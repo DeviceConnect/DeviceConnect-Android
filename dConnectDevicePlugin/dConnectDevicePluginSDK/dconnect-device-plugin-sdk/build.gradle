@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.0'
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion 14
@@ -83,6 +83,84 @@ configurations {
     all*.exclude group: 'org.deviceconnect', module: 'dconnect-sdk-for-android'
 }
 
+
+// DeviceConnect-Specからjsonファイルをダウンロード
+
+def specOutputDir = file("${projectDir}/src/main/assets/")
+def specZipFile = ''
+def apiDir = new File(specOutputDir, 'api')
+
+task downloadZip(type: SpecDownload) {
+    sourceUrl = 'https://github.com/TakayukiHoshi1984/DeviceConnect-Spec/archive/v2.2.1-release-20170324.zip'
+    target = file("${projectDir}/DeviceConnect-Spec.zip")
+    specZipFile = target
+}
+
+task unzip(type: Copy) {
+    from zipTree(specZipFile)
+    into specOutputDir
+    exclude '**/README.md'
+    exclude '**/LICENSE'
+    exclude '**/.DS_Store'
+}
+
+task downloadDeviceConnectSpec {
+    doLast {
+        // zipをダウンロード
+        tasks.downloadZip.execute()
+
+        if (!specZipFile.exists()) {
+            println 'Failed to download a zip file.'
+        } else {
+            // assets/api以下を削除
+            if (apiDir.exists()) {
+                delete(apiDir)
+            }
+
+            // zipを解凍
+            tasks.unzip.execute()
+
+            // zipを行うと不要なフォルダが作成されてしまうので、削除
+            def specRootDir = specOutputDir.listFiles(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory();
+                }
+            })[0]
+            def apiRootDir = specRootDir.listFiles(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return "api" == name && new File(dir, name).isDirectory();
+                }
+            })[0]
+            apiRootDir.renameTo(apiDir)
+
+            // 不要になったzipやフォルダを削除
+            specRootDir.delete()
+            specZipFile.delete()
+        }
+    }
+}
+
+class SpecDownload extends DefaultTask {
+    @Input
+    String sourceUrl
+
+    @OutputFile
+    File target
+
+    @TaskAction
+    void download() {
+        ant.get(src: sourceUrl, dest: target)
+    }
+}
+
+// apiフォルダが存在しない場合にはDeviceConnect-Specをダウンロード
+if (!apiDir.exists()) {
+    tasks.downloadDeviceConnectSpec.execute()
+}
+
+
+
+
 def repo = new File(rootDir, "repository")
 
 apply plugin: 'maven'
@@ -91,7 +169,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '1.1.0'
+            pom.version = '2.2.1'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-device-plugin-sdk'
         }

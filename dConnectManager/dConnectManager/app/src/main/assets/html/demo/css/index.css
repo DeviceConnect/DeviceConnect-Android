@@ -1,46 +1,47 @@
-table.profileTable {
-    width: 96%;
-    margin: 8px;
+* {
+    margin: 0px;
     padding: 0px;
-    border-collapse: separate;
-    border-spacing: 12px;
 }
 
-table.profileTable tr td {
-    width: 50%;
-    border: solid 1px #5B9CFF;
-    padding: 0px;
-    margin: 0px;
-    text-align: center;
-}
-
-table.profileTable tr td div {
-    padding: 0px;
-    margin: 0px;
+body {
+    background-color: #FBFBFB;
 }
 
 img.icon {
-    margin: 8px;
+    width: 42px;
+    margin-bottom: 12px;
 }
 
 div.profileName {
-    padding: 8px;
+    text-shadow: 0px 0px 1px #ABBCFF;
     font-size: small;
+    padding: 0px 10px 0px 10px;
+    word-break : break-all;
 }
 
-div.line {
-    width: 100%;
-    height: 20px;
-    margin: 0px;
-    padding: 0px;
-    background-color: #5B9CFF;
+.gridsDisplay .grid {
+    margin: 0;
+    float: left;
+    display: table;
+    width: calc((100% / 3));
+    height: 7rem;
+    text-align: center;
+    letter-spacing: normal;
+    font-size: 2.4rem;
 }
 
-span.serviceName {
-    font-size: x-large;
+.gridsDisplay .grid > div {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: solid 1px #E5E5E5;
+    border-right: solid 1px #E5E5E5;
+    box-shadow: 0px 0px 2px #F3F3F3;
+    color: #5B9CFC;
 }
 
-span.serviceId {
-    font-size: xx-small;
-    word-break: break-all;
-}
+a { text-decoration: none; }
+a:link { color: #5B9CFC; }
+a:visited { color: #5B9CFC; }
+a:hover { color: #5B9CFC; }
+a:active { color: #5B9CFC; }

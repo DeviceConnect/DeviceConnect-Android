@@ -275,7 +275,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
         for (int i = 0; i < mIsRemoves.size(); i++) {
             if (mIsRemoves.get(i).booleanValue()) {
                 VirtualDeviceData device = mVirtuals.get(i);
-                isRemoved = mDBHelper.removeVirtualDevice(device);
+                isRemoved = mDBHelper.removeVirtualDevice(device.getServiceId());
                 if (isRemoved) {
                     sendEventOnRemoved(device);
                 }

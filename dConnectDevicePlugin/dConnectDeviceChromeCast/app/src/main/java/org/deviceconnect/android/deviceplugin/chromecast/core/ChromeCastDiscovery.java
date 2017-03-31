@@ -73,6 +73,102 @@ public class ChromeCastDiscovery {
      * ChromeCastとの接続を管理する.
      */
     private CastContext mCastContext;
+    /**
+     * onEndingを通るかどうか.
+     */
+    private boolean mIsEnding;
+
+    private SessionManagerListener<CastSession> mSessionListener = new SessionManagerListener<CastSession>() {
+
+        @Override
+        public void onSessionStarting(CastSession castSession) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionStarting");
+                Log.d(TAG, "<================================");
+            }
+            synchronized (this) {
+                CastDevice device = castSession.getCastDevice();
+                if (device != null) {
+                    mRouteNames.add(device);
+                }
+            }
+            mCallbacks.onCastDeviceUpdate(mRouteNames);
+        }
+
+        @Override
+        public void onSessionStarted(CastSession castSession, String s) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionStarted");
+                Log.d(TAG, "<================================");
+            }
+            mSelectedDevice = castSession.getCastDevice();
+            mCallbacks.onCastDeviceSelected(mSelectedDevice);
+        }
+
+        @Override
+        public void onSessionStartFailed(CastSession castSession, int i) {
+
+        }
+
+        @Override
+        public void onSessionEnding(CastSession castSession) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionEnding");
+                Log.d(TAG, "<================================");
+            }
+            mCallbacks.onCastDeviceUpdate(mRouteNames);
+            mIsEnding = true;
+        }
+
+        @Override
+        public void onSessionEnded(CastSession castSession, int i) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionEnded");
+                Log.d(TAG, "<================================");
+            }
+            // WiFiをOFFにしたのちにChromeCastへリクエストを送ると、onSessionEndingが呼ばれずにこのメソッドが呼ばれる。
+            if (mIsEnding) {
+                mCallbacks.onCastDeviceUnselected(mSelectedDevice);
+                mSelectedDevice = null;
+            }
+            mIsEnding = false;
+        }
+
+        @Override
+        public void onSessionResuming(CastSession castSession, String s) {
+
+        }
+
+        @Override
+        public void onSessionResumed(CastSession castSession, boolean b) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionResumed: " + b);
+                Log.d(TAG, "<================================");
+            }
+            mSelectedDevice = castSession.getCastDevice();
+            mCallbacks.onCastDeviceSelected(mSelectedDevice);
+        }
+
+        @Override
+        public void onSessionResumeFailed(CastSession castSession, int i) {
+
+        }
+
+        @Override
+        public void onSessionSuspended(CastSession castSession, int i) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionSuspended");
+                Log.d(TAG, "<================================");
+            }
+            mCallbacks.onCastDeviceUnselected(mSelectedDevice);
+        }
+    };
 
     /**
      * コンストラクタ.
@@ -84,96 +180,20 @@ public class ChromeCastDiscovery {
      */
     public ChromeCastDiscovery(final Context context) {
         mCastContext = CastContext.getSharedInstance(context);
-        mCastContext.getSessionManager().addSessionManagerListener(
-                new SessionManagerListener<CastSession>() {
-
-                    @Override
-                    public void onSessionStarting(CastSession castSession) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "================================>");
-                            Log.d(TAG, "SessionManagerListener.onSessionStarting");
-                            Log.d(TAG, "<================================");
-                        }
-                        synchronized (this) {
-                            CastDevice device = castSession.getCastDevice();
-                            if (device != null) {
-                                mRouteNames.add(device);
-                            }
-                        }
-                        mCallbacks.onCastDeviceUpdate(mRouteNames);
-                    }
-
-                    @Override
-                    public void onSessionStarted(CastSession castSession, String s) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "================================>");
-                            Log.d(TAG, "SessionManagerListener.onSessionStarted");
-                            Log.d(TAG, "<================================");
-                        }
-                        mSelectedDevice = castSession.getCastDevice();
-                        mCallbacks.onCastDeviceSelected(mSelectedDevice);
-                    }
-
-                    @Override
-                    public void onSessionStartFailed(CastSession castSession, int i) {
-
-                    }
-
-                    @Override
-                    public void onSessionEnding(CastSession castSession) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "================================>");
-                            Log.d(TAG, "SessionManagerListener.onSessionEnding");
-                            Log.d(TAG, "<================================");
-                        }
-                        mCallbacks.onCastDeviceUpdate(mRouteNames);
-                    }
-
-                    @Override
-                    public void onSessionEnded(CastSession castSession, int i) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "================================>");
-                            Log.d(TAG, "SessionManagerListener.onSessionEnded");
-                            Log.d(TAG, "<================================");
-                        }
-                        mCallbacks.onCastDeviceUnselected(mSelectedDevice);
-                        mSelectedDevice = null;
-                    }
-
-                    @Override
-                    public void onSessionResuming(CastSession castSession, String s) {
-
-                    }
-
-                    @Override
-                    public void onSessionResumed(CastSession castSession, boolean b) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "================================>");
-                            Log.d(TAG, "SessionManagerListener.onSessionResumed: " + b);
-                            Log.d(TAG, "<================================");
-                        }
-                        mSelectedDevice = castSession.getCastDevice();
-                        mCallbacks.onCastDeviceSelected(mSelectedDevice);
-                    }
-
-                    @Override
-                    public void onSessionResumeFailed(CastSession castSession, int i) {
-
-                    }
-
-                    @Override
-                    public void onSessionSuspended(CastSession castSession, int i) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "================================>");
-                            Log.d(TAG, "SessionManagerListener.onSessionSuspended");
-                            Log.d(TAG, "<================================");
-                        }
-                        mCallbacks.onCastDeviceUnselected(mSelectedDevice);
-                    }
-                }, CastSession.class);
-
-        mRouteNames = new ArrayList<CastDevice>();
+        mIsEnding = false;
+        setListener();
+        mRouteNames = new ArrayList<>();
     }
+
+    /**
+     * Listenerを登録する.
+     */
+    private void setListener() {
+        mCastContext.getSessionManager().removeSessionManagerListener(mSessionListener, CastSession.class);
+        mCastContext.getSessionManager().addSessionManagerListener(
+                mSessionListener, CastSession.class);
+    }
+
 
     /**
      * 選択されたChromecastデバイスを返す.
@@ -192,4 +212,5 @@ public class ChromeCastDiscovery {
     public ArrayList<CastDevice> getDeviceNames() {
         return mRouteNames;
     }
+
 }

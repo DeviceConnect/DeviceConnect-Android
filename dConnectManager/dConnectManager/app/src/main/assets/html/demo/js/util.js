@@ -1,57 +1,80 @@
 var util = (function(parent, global) {
+    function initScope() {
+        return  Array(
+           'serviceDiscovery',
+           'serviceInformation',
+           'system',
+           'battery',
+           'connection',
+           'deviceOrientation',
+           'file',
+           'mediaPlayer',
+           'mediaStreamRecording',
+           'notification',
+           'phone',
+           'proximity',
+           'setting',
+           'vibration',
+           'light',
+           'remoteController',
+           'driveController',
+           'mhealth',
+           'sphero',
+           'dice',
+           'temperature',
+           'camera',
+           'canvas',
+           'health',
+           'touch',
+           'humanDetection',
+           'keyEvent',
+           'omnidirectionalImage',
+           'tv',
+           'powerMeter',
+           'humidity',
+           'illuminance',
+           'videoChat',
+           'airConditioner',
+           'atmosphericPressure',
+           'ecg',
+           'poseEstimation',
+           'stressEstimation',
+           'walkState',
+           'gpio',
+           'geolocation',
+           'echonetLite');
+    }
+
     var mAccessToken = null;
     var mSessionKey = "test-session-key";
     var mHost = "localhost";
-    var mScopes = Array(
-            'servicediscovery',
-            'serviceinformation',
-            'system',
-            'battery',
-            'connect',
-            'deviceorientation',
-            'filedescriptor',
-            'file',
-            'mediaplayer',
-            'mediastreamrecording',
-            'notification',
-            'phone',
-            'proximity',
-            'settings',
-            'vibration',
-            'light',
-            'remotecontroller',
-            'drivecontroller',
-            'mhealth',
-            'sphero',
-            'dice',
-            'temperature',
-            'camera',
-            'canvas',
-            'health',
-            'touch',
-            'humandetect',
-            'keyevent',
-            'omnidirectionalimage',
-            'tv',
-            'powermeter',
-            'humidity',
-            'illuminance',
-            'videochat',
-            'airconditioner',
-            'atmosphericpressure',
-            'ecg',
-            'poseEstimation',
-            'stressEstimation',
-            'walkState',
-            'gpio',
-            'geolocation');
+    var mScopes = initScope();
 
     function init(callback) {
+        loadScope();
+
         dConnect.setHost(mHost);
         dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
+
+
+    function loadScope() {
+        var scopeStr = getCookie("scope");
+        if (scopeStr) {
+            mScopes = scopeStr.split(',');
+            if (mScopes == undefined) {
+                mScopes = initScope();
+            }
+        }
+    }
+
+    function saveScope() {
+        var scopeStr = mScopes.join(',');
+        setCookie("scope", scopeStr);
+    }
+
 
     function startManager(onAvailable) {
         var errorCallback = function(errorCode, errorMessage) {
@@ -96,7 +119,7 @@ var util = (function(parent, global) {
         });
     }
 
-    function authorization(callback) {
+    function authorization(callback, errorCallback) {
         dConnect.authorization(mScopes, 'デバイス確認画面',
             function(clientId, accessToken) {
                 mAccessToken = accessToken;
@@ -106,6 +129,9 @@ var util = (function(parent, global) {
             },
             function(errorCode, errorMessage) {
                 showAlert("認証に失敗しました", errorCode, errorMessage);
+                if (errorCallback) {
+                    errorCallback(errorCode, errorMessage);
+                }
             });
     }
 
@@ -219,14 +245,13 @@ var util = (function(parent, global) {
         elm.href = uri;
 
         var p = elm.pathname.split('/');
-        for (var i = 0; i < p.length; i++) {
-            if (p[i] != '' && p[i] != 'gotapi') {
-                if (!containsScope(p[i])) {
-                    mScopes.push(p[i]);
-                }
-                break;
-            }
+        if (p.length < 3) {
+            return;
         }
+        if (!containsScope(p[2])) {
+            mScopes.push(p[2]);
+        }
+        saveScope();
     }
 
     function rebuildUri(uri) {
@@ -300,7 +325,7 @@ var util = (function(parent, global) {
              case 4: {
                  if (xhr.status == 200) {
                     var json = JSON.parse(xhr.responseText);
-                    if (json.result == 1 && json.errorCode == 14) {
+                    if (json.result == 1 && (json.errorCode == 14 || json.errorCode == 15)) {
                         appendScope(uri);
                         authorization(function() {
                             if (method.toUpperCase() == 'GET' || method.toUpperCase() == 'DELETE') {
@@ -309,6 +334,8 @@ var util = (function(parent, global) {
                                 body.set('accessToken', mAccessToken);
                             }
                             sendRequest(method, uri, body, callback);
+                        }, function(errorCode, errorMessage) {
+                            callback(xhr.status, xhr.responseText);
                         });
                         return;
                     }
@@ -323,6 +350,45 @@ var util = (function(parent, global) {
         xhr.open(method, uri);
     }
     parent.sendRequest = sendRequest;
+
+
+    function addEventListener(uri, eventCallback, successCallback, errorCallback) {
+        dConnect.addEventListener(uri, eventCallback, successCallback,
+            function(errorCode, errorMessage) {
+                if (errorCode == 14 || errorCode == 15) {
+                    appendScope(uri);
+                    authorization(function() {
+                        uri = rebuildUri(uri);
+                        addEventListener(uri, eventCallback, successCallback, errorCallback);
+                    }, function(errorCode, errorMessage) {
+                         errorCallback(errorCode, errorMessage);
+                    });
+                } else {
+                   errorCallback(errorCode, errorMessage);
+                }
+            });
+    }
+    parent.addEventListener = addEventListener;
+
+
+    function removeEventListener(uri, successCallback, errorCallback) {
+        dConnect.removeEventListener(uri, successCallback,
+            function(errorCode, errorMessage) {
+                if (errorCode == 14 || errorCode == 15) {
+                    appendScope(uri);
+                    authorization(function() {
+                        uri = rebuildUri(uri);
+                        console.log(uri);
+                        addEventListener(uri, eventCallback, successCallback, errorCallback);
+                    }, function(errorCode, errorMessage) {
+                         errorCallback(errorCode, errorMessage);
+                    });
+                } else {
+                   errorCallback(errorCode, errorMessage);
+                }
+            });
+    }
+    parent.removeEventListener = removeEventListener;
 
 
     function getUri(path) {

@@ -118,7 +118,7 @@ public class HVCC2WPairingFragment extends Fragment {
      * Check Wifi.
      */
     private void searchWifi() {
-        final WifiManager wifiManager = (WifiManager) getActivity().getSystemService(Activity.WIFI_SERVICE);
+        final WifiManager wifiManager = getWifiManager();
         if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
             mReceiver = new BroadcastReceiver() {
                 @Override
@@ -133,6 +133,9 @@ public class HVCC2WPairingFragment extends Fragment {
             getActivity().registerReceiver(mReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         }
         wifiManager.startScan();
+    }
 
+    private WifiManager getWifiManager() {
+        return (WifiManager) getActivity().getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
     }
 }

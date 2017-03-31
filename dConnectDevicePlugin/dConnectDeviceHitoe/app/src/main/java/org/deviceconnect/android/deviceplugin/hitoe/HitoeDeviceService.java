@@ -71,6 +71,9 @@ public class HitoeDeviceService extends DConnectMessageService {
 
         @Override
         public void onConnectFailed(final HitoeDevice device) {
+            if (device == null) {
+                return;
+            }
             DConnectService service = getServiceProvider().getService(device.getId());
             if (service != null) {
                 service.setOnline(false);

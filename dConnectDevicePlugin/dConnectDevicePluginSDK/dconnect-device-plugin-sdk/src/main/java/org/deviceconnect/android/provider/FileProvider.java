@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.provider;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
-
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+
+import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 /**
  * ファイル用のContentProvider.
@@ -99,7 +99,7 @@ public class FileProvider extends ContentProvider {
         if (!checkAccessToken(accessToken)) {
             throw new IllegalArgumentException("accessToken is invalid.");
         }
-        File file = new File(getBasePath(), uri.getLastPathSegment());
+        File file = new File(getBasePath(), uri.getPath());
         ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
         return parcel;
     }

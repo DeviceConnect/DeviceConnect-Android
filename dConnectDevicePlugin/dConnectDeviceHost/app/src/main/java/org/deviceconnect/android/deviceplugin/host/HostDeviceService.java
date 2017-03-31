@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.BuildConfig;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
@@ -19,9 +20,8 @@ import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostConnectProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostConnectionProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostGeolocationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
@@ -31,7 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRec
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
@@ -115,9 +115,8 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.setOnline(true);
         hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
         hostService.addProfile(new HostCanvasProfile());
-        hostService.addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
+        hostService.addProfile(new HostConnectionProfile(BluetoothAdapter.getDefaultAdapter()));
         hostService.addProfile(new HostDeviceOrientationProfile());
-        hostService.addProfile(new HostFileDescriptorProfile(mFileDataManager));
         hostService.addProfile(new HostFileProfile(mFileMgr));
         hostService.addProfile(new HostKeyEventProfile());
         hostService.addProfile(new HostMediaPlayerProfile(mHostMediaPlayerManager));
@@ -125,7 +124,7 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostNotificationProfile());
         hostService.addProfile(new HostPhoneProfile());
         hostService.addProfile(new HostProximityProfile());
-        hostService.addProfile(new HostSettingsProfile());
+        hostService.addProfile(new HostSettingProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
         hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
@@ -219,34 +218,34 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private int onChangedBluetoothStatus() {
-        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectProfile.PROFILE_NAME, null,
-                HostConnectProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
+                HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
 
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             Intent mIntent = EventManager.createEventMessage(event);
-            HostConnectProfile.setAttribute(mIntent, HostConnectProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+            HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
             Bundle bluetoothConnecting = new Bundle();
             BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            HostConnectProfile.setEnable(bluetoothConnecting, mBluetoothAdapter.isEnabled());
-            HostConnectProfile.setConnectStatus(mIntent, bluetoothConnecting);
+            HostConnectionProfile.setEnable(bluetoothConnecting, mBluetoothAdapter.isEnabled());
+            HostConnectionProfile.setConnectStatus(mIntent, bluetoothConnecting);
             sendEvent(mIntent, event.getAccessToken());
         }
         return START_STICKY;
     }
 
     private int onChangedWifiStatus() {
-        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectProfile.PROFILE_NAME, null,
-                HostConnectProfile.ATTRIBUTE_ON_WIFI_CHANGE);
+        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
+                HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
 
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             Intent mIntent = EventManager.createEventMessage(event);
-            HostConnectProfile.setAttribute(mIntent, HostConnectProfile.ATTRIBUTE_ON_WIFI_CHANGE);
+            HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
             Bundle wifiConnecting = new Bundle();
-            WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
-            HostConnectProfile.setEnable(wifiConnecting, wifiMgr.isWifiEnabled());
-            HostConnectProfile.setConnectStatus(mIntent, wifiConnecting);
+            WifiManager wifiMgr = getWifiManager();
+            HostConnectionProfile.setEnable(wifiConnecting, wifiMgr.isWifiEnabled());
+            HostConnectionProfile.setConnectStatus(mIntent, wifiConnecting);
             sendEvent(mIntent, event.getAccessToken());
         }
         return START_STICKY;
@@ -267,6 +266,10 @@ public class HostDeviceService extends DConnectMessageService {
             sendEvent(mIntent, event.getAccessToken());
         }
         return START_STICKY;
+    }
+
+    private WifiManager getWifiManager() {
+        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**

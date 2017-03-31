@@ -9,9 +9,9 @@ package org.deviceconnect.android.deviceplugin.heartrate.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
+import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
 import org.deviceconnect.android.deviceplugin.heartrate.data.health.TargetDeviceData;
@@ -122,6 +122,7 @@ public class HeartRateHealthProfile extends HealthProfile {
             return true;
         }
     };
+
     /**
      * Get Heart rate.
      */
@@ -133,25 +134,12 @@ public class HeartRateHealthProfile extends HealthProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            if (serviceId == null) {
-                MessageUtils.setEmptyServiceIdError(response);
-            } else {
-                HeartRateData data = getManager().getHeartRateData(serviceId);
-                HeartRateDevice device = getManager().getHeartRateDevice(serviceId);
-                if (data == null || device == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    setHeart(response, getHeartRateBundle(device, data));
-                }
-            }
-            return true;
+            return getHeart(request, response);
         }
     };
 
     /**
-     * Register event heartrate.
+     * Register event heart rate.
      */
     private final DConnectApi mPutHeart = new PutApi() {
         @Override
@@ -161,29 +149,13 @@ public class HeartRateHealthProfile extends HealthProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            if (serviceId == null) {
-                MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
-            } else {
-                HeartRateData data = getManager().getHeartRateData(serviceId);
-                if (data == null) {
-                    MessageUtils.setNotFoundServiceError(response);
-                } else {
-                    EventError error = EventManager.INSTANCE.addEvent(request);
-                    if (error == EventError.NONE) {
-                        addEventDispatcher(request);
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setUnknownError(response);
-                    }
-                }
-            }
+            registerHeartEvent(request, response);
             return true;
         }
     };
 
     /**
-     * Unregister event heartrate.
+     * Unregister event heart rate.
      */
     private final DConnectApi mDeleteHeart = new DeleteApi() {
         @Override
@@ -193,33 +165,61 @@ public class HeartRateHealthProfile extends HealthProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String serviceId = getServiceID(request);
-            if (serviceId == null) {
-                MessageUtils.setEmptyServiceIdError(response);
-            } else {
-                removeEventDispatcher(request);
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                if (error == EventError.NONE) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else if (error == EventError.INVALID_PARAMETER) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                } else if (error == EventError.FAILED) {
-                    MessageUtils.setUnknownError(response, "Failed to delete event.");
-                } else if (error == EventError.NOT_FOUND) {
-                    MessageUtils.setUnknownError(response, "Not found event.");
-                } else {
-                    MessageUtils.setUnknownError(response);
-                }
-            }
+            unregisterHeartEvent(request, response);
             return true;
         }
     };
 
+    /**
+     * Get Heart rate.
+     */
+    private final DConnectApi mGetOnHeart = new GetApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONHEART;
+        }
 
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return getHeart(request, response);
+        }
+    };
 
     /**
-     * Get Heartrate bundle object.
-     * @param data heartrate data
+     * Register event heart rate.
+     */
+    private final DConnectApi mPutOnHeart = new PutApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONHEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            registerHeartEvent(request, response);
+            return true;
+        }
+    };
+
+    /**
+     * Unregister event heart rate.
+     */
+    private final DConnectApi mDeleteOnHeart = new DeleteApi() {
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ONHEART;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            unregisterHeartEvent(request, response);
+            return true;
+        }
+    };
+
+    /**
+     * Get Heart Rate bundle object.
+     * @param data heart rate data
      * @return bundle object
      */
     private Bundle getHeartRateBundle(final HeartRateDevice device, final HeartRateData data) {
@@ -255,12 +255,114 @@ public class HeartRateHealthProfile extends HealthProfile {
         addApi(mGetHeartRateApi);
         addApi(mPutHeartRateApi);
         addApi(mDeleteHeartRateApi);
+        addApi(mGetOnHeart);
+        addApi(mPutOnHeart);
+        addApi(mDeleteOnHeart);
         // GotAPI 1.1
         addApi(mGetHeart);
         addApi(mPutHeart);
         addApi(mDeleteHeart);
     }
 
+    /**
+     * Bluetoothの有効設定やパーミッション設定を確認します.
+     * @param callback 確認した結果を通知するリスナー
+     */
+    private void checkBleSettings(final BleUtils.BleRequestCallback callback) {
+        HeartRateManager mgr = getManager();
+        if (mgr == null) {
+            callback.onFail("Failed to initialize a HeartRateManager.");
+            return;
+        }
+
+        if (!mgr.isEnabledBle()) {
+            BleUtils.requestBluetoothEnabled(getContext(), new BleUtils.BleRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    BleUtils.requestBLEPermission(getContext(), callback);
+                }
+                @Override
+                public void onFail(final String deniedPermission) {
+                    callback.onFail(deniedPermission);
+                }
+            });
+        } else {
+            BleUtils.requestBLEPermission(getContext(), callback);
+        }
+    }
+
+    /**
+     * Register HeartRate Event.
+     * @param request Request Message
+     * @param response Response Message
+     */
+    private void registerHeartEvent(Intent request, Intent response) {
+        String serviceId = getServiceID(request);
+        if (serviceId == null) {
+            MessageUtils.setNotFoundServiceError(response, "Not found serviceID");
+        } else {
+            HeartRateData data = getManager().getHeartRateData(serviceId);
+            if (data == null) {
+                MessageUtils.setNotFoundServiceError(response);
+            } else {
+                EventError error = EventManager.INSTANCE.addEvent(request);
+                if (error == EventError.NONE) {
+                    addEventDispatcher(request);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setUnknownError(response);
+                }
+            }
+        }
+    }
+    /**
+     * Get HeartRate Response.
+     * @param request Request Message
+     * @param response Response Message
+     * @return true:sync false:async
+     */
+    private boolean getHeart(Intent request, Intent response) {
+        String serviceId = getServiceID(request);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else {
+            HeartRateData data = getManager().getHeartRateData(serviceId);
+            HeartRateDevice device = getManager().getHeartRateDevice(serviceId);
+            if (data == null || device == null) {
+                MessageUtils.setNotFoundServiceError(response);
+            } else {
+                setResult(response, DConnectMessage.RESULT_OK);
+                setHeart(response, getHeartRateBundle(device, data));
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Unregister Heart rate Event.
+     * @param request Request Message
+     * @param response Response Message
+     */
+    private void unregisterHeartEvent(Intent request, Intent response) {
+        String serviceId = getServiceID(request);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else {
+            removeEventDispatcher(request);
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (error == EventError.FAILED) {
+                MessageUtils.setUnknownError(response, "Failed to delete event.");
+            } else if (error == EventError.NOT_FOUND) {
+                MessageUtils.setUnknownError(response, "Not found event.");
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+        }
+    }
     /**
      * Notify the heart rate event to DeviceConnectManager.
      * @param device Identifies the remote device
@@ -270,12 +372,10 @@ public class HeartRateHealthProfile extends HealthProfile {
         HeartRateDeviceService service = (HeartRateDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getAddress(),
                 getProfileName(), null, ATTRIBUTE_HEART_RATE);
-        synchronized (events) {
-            for (Event event : events) {
-                Intent intent = EventManager.createEventMessage(event);
-                setHeartRate(intent, data.getHeartRate());
-                service.sendEvent(intent, event.getAccessToken());
-            }
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            setHeartRate(intent, data.getHeartRate());
+            service.sendEvent(intent, event.getAccessToken());
         }
     }
     /**
@@ -286,18 +386,30 @@ public class HeartRateHealthProfile extends HealthProfile {
     private void notifyHeartRateData(final HeartRateDevice device, final HeartRateData data) {
         List<Event> events = EventManager.INSTANCE.getEventList(device.getAddress(),
                 getProfileName(), null, ATTRIBUTE_HEART);
-        synchronized (events) {
-            for (Event event : events) {
-                if (data == null) {
-                    break;
-                }
-
-                Intent intent = EventManager.createEventMessage(event);
-
-                setHeart(intent, getHeartRateBundle(device, data));
-                // The interval's supported is new health profile only.
-                mDispatcherManager.sendEvent(event, intent);
+        for (Event event : events) {
+            if (data == null) {
+                break;
             }
+
+            Intent intent = EventManager.createEventMessage(event);
+
+            setHeart(intent, getHeartRateBundle(device, data));
+            // The interval's supported is new health profile only.
+            mDispatcherManager.sendEvent(event, intent);
+        }
+
+        events = EventManager.INSTANCE.getEventList(device.getAddress(),
+                getProfileName(), null, ATTRIBUTE_ONHEART);
+        for (Event event : events) {
+            if (data == null) {
+                break;
+            }
+
+            Intent intent = EventManager.createEventMessage(event);
+
+            setHeart(intent, getHeartRateBundle(device, data));
+            // The interval's supported is new health profile only.
+            mDispatcherManager.sendEvent(event, intent);
         }
     }
     /**
@@ -329,10 +441,6 @@ public class HeartRateHealthProfile extends HealthProfile {
         if (service == null) {
             return null;
         }
-        HeartRateApplication app = (HeartRateApplication) service.getApplication();
-        if (app == null) {
-            return null;
-        }
-        return app.getHeartRateManager();
+        return service.getManager();
     }
 }

@@ -1535,6 +1535,8 @@ public class HitoeManager {
                             Log.d(TAG, "================>");
                             Log.d(TAG, "timestamp:" + timestamp);
                             Log.d(TAG, "history:" + history);
+                            Log.d(TAG, "CallbackRunning:" + mIsCallbackRunning);
+                            Log.d(TAG, "isRegisterFlag:" + heart.isRegisterFlag());
                             Log.d(TAG, "<================");
                         }
                         if (mIsCallbackRunning && history == timestamp && heart.isRegisterFlag()) {
@@ -1561,6 +1563,9 @@ public class HitoeManager {
                             mIsCallbackRunning = true;
                         }
                         mNowTimestamps.put(heart, timestamp);
+                        if (heart.isRegisterFlag()) {
+                            connectHitoeDevice(heart);
+                        }
                     }
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);

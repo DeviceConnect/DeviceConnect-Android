@@ -239,13 +239,13 @@ public class IRKitDBHelper {
 
     /**
      * 仮想デバイスを削除する.
-     * @param device device
+     * @param serviceId ServiceID
      * @return 成否
      */
-    public synchronized boolean removeVirtualDevice(final VirtualDeviceData device) {
+    public synchronized boolean removeVirtualDevice(final String serviceId) {
         String whereClause = VIRTUAL_DEVICE_COL_SERVICE_ID + "=?";
         String[] whereArgs = {
-                device.getServiceId()
+                serviceId
         };
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {

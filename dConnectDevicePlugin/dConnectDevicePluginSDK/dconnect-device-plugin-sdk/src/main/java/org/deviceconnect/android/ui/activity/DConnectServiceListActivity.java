@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 public abstract class DConnectServiceListActivity extends FragmentActivity
     implements DConnectServiceListener {
 
+    private DConnectMessageService mMessageService;
     private DConnectServiceProvider mProvider;
 
     private boolean mIsBound;
@@ -60,8 +61,8 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mProvider = ((DConnectMessageService.LocalBinder) service).getMessageService()
-                        .getServiceProvider();
+                    mMessageService = ((DConnectMessageService.LocalBinder) service).getMessageService();
+                    mProvider = mMessageService.getServiceProvider();
                     mProvider.addServiceListener(DConnectServiceListActivity.this);
                     mIsBound = true;
 
@@ -155,6 +156,10 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
 
     protected ListItemFilter getListItemFilter() {
         return null;
+    }
+
+    protected DConnectMessageService getMessageService() {
+        return mMessageService;
     }
 
     private boolean doFilter(final DConnectService service) {

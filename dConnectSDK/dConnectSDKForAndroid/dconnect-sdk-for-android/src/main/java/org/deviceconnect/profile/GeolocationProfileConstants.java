@@ -11,6 +11,7 @@ package org.deviceconnect.profile;
  * Define parameter name, interface name, attribute and profile name for
  * geolocation profile API.
  *
+ * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
  * @author NTT DOCOMO, INC.
  */
 public interface GeolocationProfileConstants extends DConnectProfileConstants {
@@ -116,7 +117,7 @@ public interface GeolocationProfileConstants extends DConnectProfileConstants {
     String PARAM_TIME_STAMP_STRING = "timeStampString";
 
     /**
-     * Parameter: {@value} .
+     * Parameter: false.
      */
     Boolean DEFAULT_HIGH_ACCURACY = false;
 

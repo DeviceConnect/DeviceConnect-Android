@@ -46,7 +46,7 @@
     <profile name="health" expireperiod="86400000">
         <name lang="ja">心拍数</name>
         <description lang="ja">デバイスの心拍数を取得する </description>
-        <name lang="en">Battery </name>
+        <name lang="en">Health </name>
         <description lang="en">Obtains heartrate information. </description>
     </profile>
     <profile name="deviceorientation" expireperiod="86400000">
@@ -58,25 +58,25 @@
     <profile name="ecg" expireperiod="86400000">
         <name lang="ja">ECG</name>
         <description lang="ja">デバイスのECG情報を取得する </description>
-        <name lang="en">Battery </name>
+        <name lang="en">ECG </name>
         <description lang="en">Obtains ecg information. </description>
     </profile>
     <profile name="stressEstimation" expireperiod="86400000">
         <name lang="ja">ストレス推定</name>
         <description lang="ja">デバイスのストレス推定情報を取得する </description>
-        <name lang="en">Battery </name>
+        <name lang="en">StressEstimation</name>
         <description lang="en">Obtains stress estimation information. </description>
     </profile>
     <profile name="poseEstimation" expireperiod="86400000">
         <name lang="ja">姿勢推定</name>
         <description lang="ja">デバイスの姿勢推定情報を取得する </description>
-        <name lang="en">Battery </name>
+        <name lang="en">PoseEstimation</name>
         <description lang="en">Obtains pose estimation information. </description>
     </profile>
     <profile name="walkState" expireperiod="86400000">
         <name lang="ja">歩行状態</name>
         <description lang="ja">デバイスが検知した歩行状態を取得する </description>
-        <name lang="en">Battery </name>
+        <name lang="en">WalkState</name>
         <description lang="en">Obtains walk state information. </description>
     </profile>
 

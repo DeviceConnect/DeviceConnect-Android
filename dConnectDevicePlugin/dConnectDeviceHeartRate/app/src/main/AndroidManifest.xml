@@ -15,7 +15,6 @@
 
     <application
         android:allowBackup="true"
-        android:name=".HeartRateApplication"
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
@@ -32,6 +31,12 @@
             android:name=".activity.HeartRateDeviceSettingsActivity"
             android:label="@string/app_name"
             android:exported="false">
+        </activity>
+
+        <activity android:name=".ble.activity.BleEnableActivity"
+                  android:label="@string/app_name"
+                  android:theme="@style/Theme.Dialog.Transparent"
+                  android:exported="false">
         </activity>
 
         <!-- ============================================================== -->

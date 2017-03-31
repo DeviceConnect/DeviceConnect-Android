@@ -23,23 +23,24 @@ public class CanvasDrawImageObject {
         /**
          * non-scale mode.
          */
-        NONSCALE_MODE,
+        NON_SCALE_MODE,
+
         /**
          * scale mode.
          */
         SCALE_MODE,
+
         /**
          * fill mode.
          */
         FILL_MODE,
     }
 
-    ;
-
     /**
      * Draw Canvas Action.
      */
     public static final String ACTION_DRAW_CANVAS = "org.deviceconnect.android.deviceplugin.host.canvas.DRAW";
+
     /**
      * Delete Canvas Action.
      */
@@ -78,7 +79,7 @@ public class CanvasDrawImageObject {
     /**
      * data.
      */
-    private byte[] mData;
+    private String mData;
 
     /**
      * mode.
@@ -113,7 +114,7 @@ public class CanvasDrawImageObject {
      * @param x    x
      * @param y    y
      */
-    public CanvasDrawImageObject(final byte[] data, final Mode mode,
+    public CanvasDrawImageObject(final String data, final Mode mode,
                                  final double x, final double y) {
         mData = data;
         mMode = mode;
@@ -126,7 +127,7 @@ public class CanvasDrawImageObject {
      *
      * @return data
      */
-    public byte[] getData() {
+    public String getData() {
         return mData;
     }
 
@@ -170,6 +171,27 @@ public class CanvasDrawImageObject {
         intent.putExtra(EXTRA_Y, mY);
     }
 
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        CanvasDrawImageObject o = (CanvasDrawImageObject) obj;
+        if (!mData.equals(o.mData)) {
+            return false;
+        }
+        if (!mMode.equals(o.mMode)) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Create a CanvasDrawImageObject from intent.
      *
@@ -187,8 +209,8 @@ public class CanvasDrawImageObject {
         }
 
         CanvasDrawImageObject obj = new CanvasDrawImageObject();
-        obj.mData = intent.getByteArrayExtra(EXTRA_DATA);
-        int modeOrdinal = intent.getIntExtra(EXTRA_MODE, Mode.NONSCALE_MODE.ordinal());
+        obj.mData = intent.getStringExtra(EXTRA_DATA);
+        int modeOrdinal = intent.getIntExtra(EXTRA_MODE, Mode.NON_SCALE_MODE.ordinal());
         if (0 <= modeOrdinal && modeOrdinal < Mode.values().length) {
             obj.mMode = Mode.values()[modeOrdinal];
         } else {
@@ -207,7 +229,7 @@ public class CanvasDrawImageObject {
      */
     public static Mode convertMode(final String mode) {
         if (mode == null || mode.equals("")) {
-            return Mode.NONSCALE_MODE;
+            return Mode.NON_SCALE_MODE;
         } else if (mode.equals(CanvasProfileConstants.Mode.SCALES.getValue())) {
             return Mode.SCALE_MODE;
         } else if (mode.equals(CanvasProfileConstants.Mode.FILLS.getValue())) {

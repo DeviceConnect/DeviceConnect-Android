@@ -303,6 +303,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         public void onTakePhoto(final String uri, final String filePath) {
                             setResult(response, DConnectMessage.RESULT_OK);
                             setUri(response, uri);
+                            setPath(response, filePath);
                             sendResponse(response);
 
                             List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,

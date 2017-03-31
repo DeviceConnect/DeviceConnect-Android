@@ -29,7 +29,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.theta.R;
@@ -98,7 +97,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         final View rootView = inflater.inflate(R.layout.fragment_confirmation, null);
         mServiceIdView = (TextView) rootView.findViewById(R.id.camera_search_message);
         mSettings = new UserSettings(getActivity());
-        mWifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
+        mWifiMgr = getWifiManager();
 
         Button btnCameraSearch = (Button) rootView.findViewById(R.id.btn_camera_search);
         btnCameraSearch.setOnClickListener(new View.OnClickListener() {
@@ -115,6 +114,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         });
 
         return rootView;
+    }
+
+    private WifiManager getWifiManager() {
+        return (WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /* Get connected Theta device's info. */
@@ -255,10 +258,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
-                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_confirm_wifi),
+                                        getString(R.string.theta_error_request_permission), null);
                             }
                         });
-                Toast.makeText(getContext(), "WiFi scan requires Location permission.", Toast.LENGTH_LONG).show();
             }
         }
     }

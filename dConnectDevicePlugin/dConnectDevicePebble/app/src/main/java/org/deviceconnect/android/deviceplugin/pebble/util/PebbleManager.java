@@ -28,7 +28,7 @@ import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.CanvasProfileConstants.Mode;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.KeyEventProfileConstants;
-import org.deviceconnect.profile.SettingsProfileConstants;
+import org.deviceconnect.profile.SettingProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -122,7 +122,17 @@ public final class PebbleManager {
     public static final int KEY_PARAM_KEY_EVENT_ID = 700;
     /** Key number of KeyType.*/
     public static final int KEY_PARAM_KEY_EVENT_KEY_TYPE = 701;
+    /** Key number of KeyState. */
+    public static final int KEY_PARAM_KEY_EVENT_KEY_STATE = 702;
 
+    /** Key State: up. */
+    public static final int KEY_STATE_UP = 1;
+    /** Key State: down. */
+    public static final int KEY_STATE_DOWN = 2;
+    /** Touch State move. */
+    public static final String STATE_UP = "up";
+    /** Touch State cancel. */
+    public static final String STATE_DOWN = "down";
     /** get action を表す数値. */
     public static final int ACTION_GET = 1;
     /** post action を表す数値. */
@@ -185,6 +195,8 @@ public final class PebbleManager {
     /** key event attribute onup. */
     public static final int KEY_EVENT_ATTRIBUTE_ON_UP = 2;
 
+    /** key event attribute onkeychange. */
+    public static final int KEY_EVENT_ATTRIBUTE_ON_KEY_CHANGE = 3;
     /** key event action down. */
     public static final int KEY_EVENT_ACTION_DOWN = 1;
 
@@ -813,7 +825,7 @@ public final class PebbleManager {
             return PROFILE_DEVICE_ORIENTATION;
         } else if (VibrationProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_VIBRATION;
-        } else if (SettingsProfileConstants.PROFILE_NAME.equals(profile)) {
+        } else if (SettingProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_SETTING;
         } else if (KeyEventProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_KEY_EVENT;

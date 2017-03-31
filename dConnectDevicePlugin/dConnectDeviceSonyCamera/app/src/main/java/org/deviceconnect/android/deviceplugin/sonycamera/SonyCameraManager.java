@@ -255,6 +255,7 @@ public class SonyCameraManager {
      * @param service 削除するSonyカメラサービス
      */
     public void removeSonyCameraService(final SonyCameraService service) {
+        mSonyCameraServices.remove(service);
         mDBHelper.removeSonyCameraService(service);
     }
 

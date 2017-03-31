@@ -8,6 +8,8 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.sonycamera.utils;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
@@ -267,14 +269,18 @@ public final class SonyCameraUtil {
      * @return "を省いたSSID
      */
     public static String ssid(final String ssid) {
-        String a = ssid;
-        if (a.startsWith("\"")) {
-            a = a.substring(1);
+        if (ssid == null) {
+            return null;
+        } else {
+            String a = ssid;
+            if (a.startsWith("\"")) {
+                a = a.substring(1);
+            }
+            if (a.endsWith("\"")) {
+                a = a.substring(0, a.length() - 1);
+            }
+            return a;
         }
-        if (a.endsWith("\"")) {
-            a = a.substring(0, a.length() - 1);
-        }
-        return a;
     }
 
     /**
@@ -287,12 +293,30 @@ public final class SonyCameraUtil {
     }
 
     /**
+     * ConnectivityManagerを取得する.
+     *
+     * @return ConnectivityManagerのインスタンス
+     */
+    private static ConnectivityManager getConnectivityManager(final Context context) {
+        return (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
+
+    /**
      * 接続中のWiFiのSSIDを取得します.
+     * <p>
+     * WiFi以外に接続されている場合にはnullを返却します。
+     * </p>
      * @return SSID
      */
     public static String getSSID(final Context context) {
-        WifiManager wifiMgr = getWifiManager(context);
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        return ssid(wifiInfo.getSSID());
+        ConnectivityManager cm = getConnectivityManager(context);
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        if (info.getTypeName().equalsIgnoreCase("WIFI")) {
+            WifiManager wifiMgr = getWifiManager(context);
+            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+            return ssid(wifiInfo.getSSID());
+        } else {
+            return null;
+        }
     }
 }

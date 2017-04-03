@@ -89,6 +89,7 @@ public class SonyCameraZoomProfile extends CameraProfile {
         if (!direction.equals("in")) {
             if (!direction.equals("out")) {
                 MessageUtils.setInvalidRequestParameterError(response);
+                return true;
             }
         }
 
@@ -97,6 +98,7 @@ public class SonyCameraZoomProfile extends CameraProfile {
                 if (!movement.equals("1shot")) {
                     if (!movement.equals("max")) {
                         MessageUtils.setInvalidRequestParameterError(response);
+                        return true;
                     }
                 }
             }

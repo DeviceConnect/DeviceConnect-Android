@@ -18,13 +18,19 @@ import com.example.sony.cameraremote.SimpleSsdpClient;
 import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraService;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraPreview;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
+import org.deviceconnect.android.provider.FileManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,6 +44,21 @@ import static org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCamera
  * @author NTT DOCOMO, INC.
  */
 public class SonyCameraManager {
+
+    /**
+     * ファイル名に付けるプレフィックス.
+     */
+    private static final String FILENAME_PREFIX = "sony_camera_";
+
+    /**
+     * ファイルの拡張子.
+     */
+    private static final String FILE_EXTENSION = ".jpg";
+
+    /**
+     * 日付のフォーマット.
+     */
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     /**
      * リトライ回数.
@@ -115,6 +136,16 @@ public class SonyCameraManager {
     private String mSSID;
 
     /**
+     * ファイル管理クラス.
+     */
+    private FileManager mFileManager;
+
+    /**
+     * Zoomの値.
+     */
+    private double mZoomPosition;
+
+    /**
      * コンストラクタ.
      * @param context コンテキスト
      */
@@ -123,6 +154,7 @@ public class SonyCameraManager {
         mDBHelper = new SonyCameraDBHelper(context);
         mSonyCameraServices = mDBHelper.getSonyCameraServices();
         mSsdpClient = new SimpleSsdpClient();
+        mFileManager = new FileManager(context);
     }
 
     /**
@@ -353,15 +385,6 @@ public class SonyCameraManager {
     /**
      * 接続されているSonyCameraにプレビュー開始を要求します.
      *
-     * @param listener プレビュー開始の結果を通知するリスナー
-     */
-    public void startPreview(final SonyCameraPreview.OnPreviewListener listener) {
-        startPreview(100, listener);
-    }
-
-    /**
-     * 接続されているSonyCameraにプレビュー開始を要求します.
-     *
      * @param timeSlice タイムスライス(ms)
      * @param listener プレビュー開始の結果を通知するリスナー
      */
@@ -498,23 +521,10 @@ public class SonyCameraManager {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                double zoomDiameterParam;
-                try {
-                    JSONObject replyJson = mRemoteApi.getEvent(true);
-                    if (isErrorReply(replyJson)) {
-                        listener.onError();
-                    } else {
-                        JSONArray resultsObj = replyJson.getJSONArray("result");
-                        replyJson = resultsObj.getJSONObject(2);
-                        zoomDiameterParam = Double.valueOf(replyJson.getString("zoomPosition"))
-                                / (Double) VAL_TO_PERCENTAGE;
-                        DecimalFormat decimalFormat = new DecimalFormat("0.0#");
-                        zoomDiameterParam = Double.valueOf(decimalFormat.format(zoomDiameterParam));
-
-                        listener.onZoom(zoomDiameterParam);
-
-                    }
-                } catch (Exception e) {
+                if (mEventObserver != null) {
+                    int zoomPosition = mEventObserver.getZoomPosition();
+                    listener.onZoom(zoomPosition / VAL_TO_PERCENTAGE);
+                } else {
                     listener.onError();
                 }
             }
@@ -544,13 +554,54 @@ public class SonyCameraManager {
                         if (postImageUrl == null) {
                             listener.onError();
                         } else {
-                            listener.onSuccess(postImageUrl);
-                            mOnSonyCameraManagerListener.onTakePicture(postImageUrl);
+                            saveFile(postImageUrl, listener);
                         }
                     }
                 } catch (Exception e) {
                     listener.onError();
                 }
+            }
+        });
+    }
+
+    /**
+     * 指定されたURLの画像をファイルに保存します.
+     * <p>
+     * SonyカメラのURLを返却することもできるが、通常のブラウザではCORSのために表示できない。<br>
+     * その問題を回避するために一度、端末側に保存して、DeviceConnectManager経由で画像を配信します。
+     * </p>
+     * @param uri 画像のURL
+     * @param listener 結果を通知するリスナー
+     * @throws IOException 画像の取得に失敗、もしくはファイル保存に失敗した場合に発生
+     */
+    private void saveFile(final String uri, final OnTakePictureListener listener) throws IOException {
+        mFileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                HttpURLConnection httpConn = null;
+                try {
+                    httpConn = (HttpURLConnection) (new URL(uri)).openConnection();
+                    int responseCode = httpConn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        InputStream inputStream = httpConn.getInputStream();
+                        String uri = mFileManager.saveFile(getFileName(), inputStream);
+                        inputStream.close();
+                        listener.onSuccess(uri);
+                    } else {
+                        listener.onError();
+                    }
+                } catch (IOException e) {
+                    listener.onError();
+                } finally {
+                    if (httpConn != null) {
+                        httpConn.disconnect();
+                    }
+                }
+            }
+
+            @Override
+            public void onFail() {
+                listener.onError();
             }
         });
     }
@@ -643,6 +694,7 @@ public class SonyCameraManager {
         }
         mRemoteApi = new SimpleRemoteApi(device);
         mAvailableApiList = getAvailableApi();
+        mZoomPosition = -1;
         startEventObserver();
     }
 
@@ -659,6 +711,7 @@ public class SonyCameraManager {
             mRemoteApi = null;
         }
         mRetryCount = 0;
+        mZoomPosition = -1;
 
         mSSID = null;
     }
@@ -812,6 +865,15 @@ public class SonyCameraManager {
         mOnSonyCameraManagerListener.onAdded(service);
 
         return service;
+    }
+
+    /**
+     * 写真のデータを保存するファイル名を取得する.
+     *
+     * @return 保存先のファイル名
+     */
+    private String getFileName() {
+        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 
     /**

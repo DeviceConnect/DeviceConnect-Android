@@ -68,6 +68,11 @@ public class DevicePluginInfoFragment extends Fragment {
 
         mPlaginId = getArguments().getString(DevicePluginInfoActivity.PLUGIN_ID);
 
+        if (mPlaginId == null) {
+            getActivity().finish();
+            return view;
+        }
+
         String name = null;
         Drawable icon = null;
         String versionName = null;
@@ -81,6 +86,12 @@ public class DevicePluginInfoFragment extends Fragment {
                 versionName = plugin.getVersionName();
                 break;
             }
+        }
+
+        // 指定されたプラグインIDのパッケージが見つからない場合は終了
+        if (mPackageName == null) {
+            getActivity().finish();
+            return view;
         }
 
         TextView nameView = (TextView) view.findViewById(R.id.plugin_package_name);

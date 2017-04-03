@@ -15,6 +15,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -53,7 +54,7 @@ public class DevicePluginInfoFragment extends Fragment {
     private String mPackageName;
 
     /** デバイスプラグインのプラグインID. */
-    private String mPlaginId;
+    private String mPluginId;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -66,9 +67,9 @@ public class DevicePluginInfoFragment extends Fragment {
                              final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_deviceplugin_info, container, false);
 
-        mPlaginId = getArguments().getString(DevicePluginInfoActivity.PLUGIN_ID);
+        mPluginId = getArguments().getString(DevicePluginInfoActivity.PLUGIN_ID);
 
-        if (mPlaginId == null) {
+        if (mPluginId == null) {
             getActivity().finish();
             return view;
         }
@@ -79,7 +80,7 @@ public class DevicePluginInfoFragment extends Fragment {
         DConnectApplication apps = (DConnectApplication) getActivity().getApplication();
         DevicePluginManager manager = apps.getDevicePluginManager();
         for (DevicePlugin plugin : manager.getDevicePlugins()) {
-            if (mPlaginId.equals(plugin.getPluginId())) {
+            if (mPluginId.equals(plugin.getPluginId())) {
                 mPackageName = plugin.getPackageName();
                 name = plugin.getDeviceName();
                 icon = plugin.getPluginIcon();
@@ -183,11 +184,15 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
+        if (mPackageName == null || mPluginId == null) {
+            return;
+        }
+
         DConnectApplication app = (DConnectApplication) getActivity().getApplication();
         List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
-                    && mPlaginId.equals(plugin.getPluginId())) {
+                    && mPluginId.equals(plugin.getPluginId())) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -206,6 +211,10 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open uninstall dialog.
      */
     private void openUninstall() {
+        if (mPackageName == null) {
+            return;
+        }
+
         Uri uri = Uri.fromParts("package", mPackageName, null);
         Intent intent = new Intent(Intent.ACTION_DELETE, uri);
         startActivityForResult(intent, REQUEST_CODE);
@@ -215,24 +224,40 @@ public class DevicePluginInfoFragment extends Fragment {
      * Restart device plug-in.
      */
     private void restartDevicePlugin() {
-        final StartingDialogFragment dialog = new StartingDialogFragment();
-        dialog.show(getFragmentManager(), "dialog");
-        new Thread(new Runnable() {
+        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+            private StartingDialogFragment mDialog;
+
             @Override
-            public void run() {
+            protected void onPreExecute() {
+                if (getActivity() != null) {
+                    mDialog = new StartingDialogFragment();
+                    mDialog.show(getFragmentManager(), "dialog");
+                }
+            }
+
+            @Override
+            protected Void doInBackground(final Void... params) {
                 DConnectApplication app = (DConnectApplication) getActivity().getApplication();
                 List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (mPackageName.equals(plugin.getPackageName())
+                    if (plugin.getPackageName().equals(mPackageName)
                             && plugin.getStartServiceClassName() != null
                             && plugin.getPluginId() != null) {
                         restartDevicePlugin(plugin);
                         break;
                     }
                 }
-                dialog.dismiss();
+                return null;
             }
-        }).start();
+
+            @Override
+            protected void onPostExecute(final Void o) {
+                if (mDialog != null) {
+                    mDialog.dismiss();
+                }
+            }
+        };
+        task.execute();
     }
 
     /**

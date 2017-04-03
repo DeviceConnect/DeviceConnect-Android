@@ -29,6 +29,7 @@
     <string name="sonycamera_not_found_wifi" translatable="false">SonyCameraデバイスのWifiが見つかりません。\nSonyCameraデバイスの電源を入れてください。</string>
     <string name="sonycamera_confirm_wifi" translatable="false">Wi-Fi接続確認</string>
     <string name="sonycamera_confirm_wifi_enable" translatable="false">Wi-Fiの機能をONにしても良いでしょうか？</string>
+    <string name="sonycamera_confirm_connect_wifi" translatable="false">%1$sに接続しても良いでしょうか？</string>
     <string name="sonycamera_ok" translatable="false">OK</string>
     <string name="sonycamera_cancel" translatable="false">キャンセル</string>
     <string name="sonycamera_password_dialog" translatable="false">パスワード入力ダイアログ</string>

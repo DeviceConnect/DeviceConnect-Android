@@ -1,5 +1,9 @@
 package org.deviceconnect.android.deviceplugin.sonycamera.utils;
 
+import android.net.Uri;
+
+import org.deviceconnect.android.deviceplugin.sonycamera.BuildConfig;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,10 +27,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
-import org.deviceconnect.android.deviceplugin.sonycamera.BuildConfig;
-
-import android.net.Uri;
 
 /**
  * Mixed Replace Media Server.
@@ -87,7 +87,7 @@ public class MixedReplaceMediaServer {
      * Manage a thread.
      */
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CLIENT_SIZE);
-    
+
     /**
      * List a Server Runnable.
      */
@@ -98,6 +98,11 @@ public class MixedReplaceMediaServer {
      * Sever event listener.
      */
     private ServerEventListener mListener;
+
+    /**
+     * スリープ時間.
+     */
+    private int mTimeSlice = 60;
 
     /**
      * Set a ServerEventListener.
@@ -221,7 +226,23 @@ public class MixedReplaceMediaServer {
             }
         }
     }
-    
+
+    /**
+     * Set a fps.
+     * @param fps fps
+     */
+    public void setFPS(final int fps) {
+        mTimeSlice = 1000 / fps;
+    }
+
+    /**
+     * Set a time slice.
+     * @param timeSlice time slice
+     */
+    public void setTimeSlice(final int timeSlice) {
+        mTimeSlice = timeSlice;
+    }
+
     /**
      * Start a mixed replace media server.
      * <p>
@@ -262,6 +283,10 @@ public class MixedReplaceMediaServer {
                     mLogger.warning("Error server socket[" + mServerName + "]");
                 } finally {
                     stop();
+
+                    if (mListener != null) {
+                        mListener.onStop();
+                    }
                 }
             }
         }).start();
@@ -313,9 +338,6 @@ public class MixedReplaceMediaServer {
             }
         }
         mPath = null;
-        if (mListener != null) {
-            mListener.onStop();
-        }
         mLogger.fine("MixedReplaceMediaServer is stop.");
     }
 
@@ -365,7 +387,7 @@ public class MixedReplaceMediaServer {
          * Constructor.
          * @param socket socket
          */
-        public ServerRunnable(final Socket socket) {
+        ServerRunnable(final Socket socket) {
             mSocket = socket;
         }
         
@@ -393,6 +415,7 @@ public class MixedReplaceMediaServer {
                     mStream.flush();
 
                     while (!mStopFlag) {
+                        long oldTime = System.currentTimeMillis();
                         byte[] media = mMediaQueue.take();
                         if (mSocket.isClosed()) {
                             break;
@@ -400,6 +423,12 @@ public class MixedReplaceMediaServer {
                         if (media.length > 0) {
                             sendMedia(media);
                         }
+                        long newTime = System.currentTimeMillis();
+                        long sleepTime = mTimeSlice - (newTime - oldTime);
+                        if (sleepTime < 2) {
+                            sleepTime = 2;
+                        }
+                        Thread.sleep(sleepTime);
                     }
                 }
             } catch (InterruptedException e) {
@@ -465,11 +494,16 @@ public class MixedReplaceMediaServer {
          * @throws IOException if an error occurs while sending media data.
          */
         private void sendMedia(final byte[] media) throws IOException {
-            String sb = ("--" + mBoundary + "\r\n") +
-                    "Content-type: " + mContentType + "\r\n" +
-                    "Content-Length: " + media.length + "\r\n" +
-                    "\r\n";
-            mStream.write(sb.getBytes());
+            mStream.write("--".getBytes());
+            mStream.write(mBoundary.getBytes());
+            mStream.write("\r\n".getBytes());
+            mStream.write("Content-Type: ".getBytes());
+            mStream.write(mContentType.getBytes());
+            mStream.write("\r\n".getBytes());
+            mStream.write("Content-Length: ".getBytes());
+            mStream.write(String.valueOf(media.length).getBytes());
+            mStream.write("\r\n".getBytes());
+            mStream.write("\r\n".getBytes());
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());
             mStream.flush();

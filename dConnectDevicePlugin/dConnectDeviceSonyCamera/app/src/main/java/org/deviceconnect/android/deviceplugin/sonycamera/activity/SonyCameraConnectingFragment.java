@@ -38,7 +38,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.sonycamera.R;
-import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 
 import java.util.ArrayList;
@@ -47,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -72,6 +73,14 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     /** スレッド管理クラス. */
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
+    /**
+     * WiFiスキャン実行中フラグ.
+     * <p>
+     * スキャン中の場合はtrue、それ以外はfalse
+     * </p>
+     */
+    private boolean mScanFlag;
+
     /** Wifiの状態通知を受け取るReceiver. */
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -89,7 +98,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                     if (state == NetworkInfo.State.CONNECTED
                             && type == ConnectivityManager.TYPE_WIFI) {
                         WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
-                        if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+                        if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
                             mServiceIdView.setText(R.string.sonycamera_connect);
                         }
                     }
@@ -112,7 +121,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         searchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (DConnectUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
+                if (SonyCameraUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
                     showErrorDialog(getString(R.string.sonycamera_already_connect));
                     mServiceIdView.setText(R.string.sonycamera_already_connect);
                 } else {
@@ -120,6 +129,8 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                 }
             }
         });
+
+        saveWiFiSSID();
 
         return view;
     }
@@ -144,15 +155,25 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     }
 
     /**
+     * 元々接続してあるWiFiのSSIDを保存します.
+     */
+    private void saveWiFiSSID() {
+        String ssid = SonyCameraUtil.getSSID(getActivity());
+        if (ssid != null && !SonyCameraUtil.checkSSID(ssid)) {
+            mSettings.setSSID(ssid);
+        }
+    }
+
+    /**
      * SonyCameraデバイスに接続を行います.
      */
     private void connectSonyCamera() {
         if (!mWifiMgr.isWifiEnabled()) {
-            confirmConnectWifi();
+            confirmEnableWifi();
         } else {
             WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
             mServiceIdView.setText(R.string.sonycamera_connecting);
-            if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
+            if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
                 mServiceIdView.setText(R.string.sonycamera_already_connect);
             } else {
                 searchSonyCameraWifi();
@@ -170,31 +191,37 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             checkLocationServiceEnabled();
         }
     }
-    
+
+    /**
+     * WiFiスキャンを行うには位置情報のパーミッション許可が必要なので、確認を行う.
+     */
     private void checkLocationServiceEnabled() {
         // WiFi scan in SDK 23 requires location service to be enabled.
         final LocationManager manager = getContext().getSystemService(LocationManager.class);
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             IntentHandlerActivity.startActivityForResult(getContext(),
                     new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
                     new ResultReceiver(new Handler(Looper.getMainLooper())) {
                         @Override
-                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        protected void onReceiveResult(int resultCode, final Bundle resultData) {
                             super.onReceiveResult(resultCode, resultData);
 
-                            if (manager.isProviderEnabled( LocationManager.GPS_PROVIDER )) {
-                                permissionCheck();
+                            if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                                checkLocationPermission();
                             } else {
                                 showErrorDialog(getString(R.string.sonycamera_request_permission_error));
                             }
                         }
                     });
         } else {
-            permissionCheck();
+            checkLocationPermission();
         }
     }
 
-    private void permissionCheck() {
+    /**
+     * WiFiスキャンを行うには位置情報のパーミッション許可が必要なので、確認を行う.
+     */
+    private void checkLocationPermission() {
         // WiFi scan requires location permissions.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (getContext().checkSelfPermission(
@@ -221,7 +248,15 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         }
     }
 
-    private void getSonyCameraAPList() {
+    /**
+     * SonyCameraリストを表示します.
+     */
+    private synchronized void getSonyCameraAPList() {
+        if (mScanFlag) {
+            return;
+        }
+        mScanFlag = true;
+
         final List<ScanResult> scanList = new ArrayList<ScanResult>();
         mWifiMgr.startScan();
 
@@ -231,7 +266,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             public void onReceive(Context context, Intent intent) {
                 List<ScanResult> results = mWifiMgr.getScanResults();
                 for (ScanResult result : results) {
-                    if (DConnectUtil.checkSSID(result.SSID)) {
+                    if (SonyCameraUtil.checkSSID(result.SSID)) {
                         scanList.add(result);
                         mLogger.fine("Found SonyCamera Wifi. SSID=" + result.SSID);
                     }
@@ -249,6 +284,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                         unregistered.set(true);
                     }
                 }
+                mScanFlag = false;
             }
         };
         mExecutorService.schedule(new Runnable() {
@@ -278,20 +314,20 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             wifiList[i] = wifiList[i].replace("\"", "");
         }
 
-        final int[] pos = new int[1];
+        final AtomicInteger pos = new AtomicInteger(0);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setIcon(android.R.drawable.ic_dialog_alert);
         builder.setTitle(R.string.sonycamera_confirm_wifi);
         builder.setSingleChoiceItems(wifiList, 0, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int whichButton) {
-                pos[0] = whichButton;
+                pos.set(whichButton);
             }
         });
         builder.setPositiveButton(R.string.sonycamera_ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int whichButton) {
-                connectWifi(configs.get(pos[0]));
+                connectWifi(configs.get(pos.get()));
             }
         });
         builder.setNegativeButton(R.string.sonycamera_cancel, new DialogInterface.OnClickListener() {
@@ -307,7 +343,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     /**
      * Wifi機能を入れる確認を行う.
      */
-    private void confirmConnectWifi() {
+    private void confirmEnableWifi() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setIcon(android.R.drawable.ic_dialog_alert);
         builder.setTitle(R.string.sonycamera_confirm_wifi);
@@ -469,6 +505,8 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      * @return 接続に成功した場合はtrue、それ以外はfalse
      */
     private boolean connectWifi(final int networkId, final String targetSSID) {
+        saveWiFiSSID();
+
         String ssid = targetSSID.replace("\"", "");
         mWifiMgr.startScan();
         for (ScanResult result : mWifiMgr.getScanResults()) {

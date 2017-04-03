@@ -283,6 +283,10 @@ public class MixedReplaceMediaServer {
                     mLogger.warning("Error server socket[" + mServerName + "]");
                 } finally {
                     stop();
+
+                    if (mListener != null) {
+                        mListener.onStop();
+                    }
                 }
             }
         }).start();
@@ -334,9 +338,6 @@ public class MixedReplaceMediaServer {
             }
         }
         mPath = null;
-        if (mListener != null) {
-            mListener.onStop();
-        }
         mLogger.fine("MixedReplaceMediaServer is stop.");
     }
 

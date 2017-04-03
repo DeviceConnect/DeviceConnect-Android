@@ -47,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -71,6 +72,14 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
 
     /** スレッド管理クラス. */
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * WiFiスキャン実行中フラグ.
+     * <p>
+     * スキャン中の場合はtrue、それ以外はfalse
+     * </p>
+     */
+    private boolean mScanFlag;
 
     /** Wifiの状態通知を受け取るReceiver. */
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -189,30 +198,30 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     private void checkLocationServiceEnabled() {
         // WiFi scan in SDK 23 requires location service to be enabled.
         final LocationManager manager = getContext().getSystemService(LocationManager.class);
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             IntentHandlerActivity.startActivityForResult(getContext(),
                     new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
                     new ResultReceiver(new Handler(Looper.getMainLooper())) {
                         @Override
-                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        protected void onReceiveResult(int resultCode, final Bundle resultData) {
                             super.onReceiveResult(resultCode, resultData);
 
-                            if (manager.isProviderEnabled( LocationManager.GPS_PROVIDER )) {
-                                permissionCheck();
+                            if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                                checkLocationPermission();
                             } else {
                                 showErrorDialog(getString(R.string.sonycamera_request_permission_error));
                             }
                         }
                     });
         } else {
-            permissionCheck();
+            checkLocationPermission();
         }
     }
 
     /**
      * WiFiスキャンを行うには位置情報のパーミッション許可が必要なので、確認を行う.
      */
-    private void permissionCheck() {
+    private void checkLocationPermission() {
         // WiFi scan requires location permissions.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (getContext().checkSelfPermission(
@@ -242,7 +251,12 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     /**
      * SonyCameraリストを表示します.
      */
-    private void getSonyCameraAPList() {
+    private synchronized void getSonyCameraAPList() {
+        if (mScanFlag) {
+            return;
+        }
+        mScanFlag = true;
+
         final List<ScanResult> scanList = new ArrayList<ScanResult>();
         mWifiMgr.startScan();
 
@@ -270,6 +284,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                         unregistered.set(true);
                     }
                 }
+                mScanFlag = false;
             }
         };
         mExecutorService.schedule(new Runnable() {
@@ -299,20 +314,20 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             wifiList[i] = wifiList[i].replace("\"", "");
         }
 
-        final int[] pos = new int[1];
+        final AtomicInteger pos = new AtomicInteger(0);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setIcon(android.R.drawable.ic_dialog_alert);
         builder.setTitle(R.string.sonycamera_confirm_wifi);
         builder.setSingleChoiceItems(wifiList, 0, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int whichButton) {
-                pos[0] = whichButton;
+                pos.set(whichButton);
             }
         });
         builder.setPositiveButton(R.string.sonycamera_ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int whichButton) {
-                connectWifi(configs.get(pos[0]));
+                connectWifi(configs.get(pos.get()));
             }
         });
         builder.setNegativeButton(R.string.sonycamera_cancel, new DialogInterface.OnClickListener() {

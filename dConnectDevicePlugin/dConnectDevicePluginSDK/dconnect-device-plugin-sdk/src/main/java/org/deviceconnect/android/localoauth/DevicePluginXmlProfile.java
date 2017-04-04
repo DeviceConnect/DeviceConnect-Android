@@ -22,7 +22,7 @@ public class DevicePluginXmlProfile {
     protected long mExpirePeriod;
     
     /** ロケール別プロファイル情報. */
-    private Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
+    protected Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
 
     /** プロファイル定義ディレクトリのパス. nullの場合は assets/api と同じ扱いとする. */
     private String mSpecPath;

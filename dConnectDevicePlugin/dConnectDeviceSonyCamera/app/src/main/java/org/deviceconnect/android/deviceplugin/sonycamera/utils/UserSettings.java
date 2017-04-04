@@ -49,9 +49,12 @@ public class UserSettings {
      * @param ssid 登録するSSID
      */
     public void setSSID(final String ssid) {
+        if (ssid == null) {
+            return;
+        }
         mEditor = mPref.edit();
         mEditor.putString(KEY_SSID, ssid);
-        mEditor.commit();
+        mEditor.apply();
     }
     /**
      * SSIDのパスワードを設定する.
@@ -61,7 +64,7 @@ public class UserSettings {
     public void setSSIDPassword(final String ssid, final String password) {
         mEditor = mPref.edit();
         mEditor.putString(ssid, password);
-        mEditor.commit();
+        mEditor.apply();
     }
     /**
      * SSIDのパスワードを取得する.

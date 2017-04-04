@@ -16,10 +16,10 @@ import java.util.Map;
 public class DevicePluginXmlProfile {
     
     /** プロファイル. */
-    protected final String mProfile;
+    protected String mProfile;
     
     /** 有効期限(秒). */
-    protected final long mExpirePeriod;
+    protected long mExpirePeriod;
     
     /** ロケール別プロファイル情報. */
     private Map<String, DevicePluginXmlProfileLocale> mProfileLocales;

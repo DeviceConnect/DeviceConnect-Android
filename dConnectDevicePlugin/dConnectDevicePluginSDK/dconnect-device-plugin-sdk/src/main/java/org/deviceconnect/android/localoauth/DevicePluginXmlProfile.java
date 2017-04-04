@@ -16,10 +16,10 @@ import java.util.Map;
 public class DevicePluginXmlProfile {
     
     /** プロファイル. */
-    private final String mProfile;
+    protected final String mProfile;
     
     /** 有効期限(秒). */
-    private final long mExpirePeriod;
+    protected final long mExpirePeriod;
     
     /** ロケール別プロファイル情報. */
     private Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
@@ -32,7 +32,7 @@ public class DevicePluginXmlProfile {
      * @param profile プロファイル名
      * @param expirePeriod 有効期限(秒)
      */
-    DevicePluginXmlProfile(final String profile, final long expirePeriod) {
+    public DevicePluginXmlProfile(final String profile, final long expirePeriod) {
         mProfile = profile;
         mExpirePeriod = expirePeriod;
         mProfileLocales = new HashMap<String, DevicePluginXmlProfileLocale>();

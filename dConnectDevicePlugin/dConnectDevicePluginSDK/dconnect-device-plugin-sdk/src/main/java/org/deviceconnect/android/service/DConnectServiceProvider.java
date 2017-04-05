@@ -25,6 +25,10 @@ public interface DConnectServiceProvider {
 
     /**
      * 登録されているサービスを取得する.
+     * <p>
+     * サービスIDがnullとなるDConnectServiceは存在し得ないため、<code>serviceId</code>に
+     * <code>null</code>が指定された場合は常に<code>null</code>を返す.
+     * </p>
      * @param serviceId サービスID
      * @return DConnectServiceのインスタンス. 登録されていない場合は<code>null</code>
      */
@@ -38,6 +42,9 @@ public interface DConnectServiceProvider {
 
     /**
      * サービスを追加する.
+     * <p>
+     * 同一のサービスIDが追加された場合は上書きする.
+     * </p>
      * @param service 追加するDConnectServiceのインスタンス
      */
     void addService(DConnectService service);
@@ -51,6 +58,10 @@ public interface DConnectServiceProvider {
 
     /**
      * サービスを削除する.
+     * <p>
+     * サービスIDがnullとなるDConnectServiceは存在し得ないため、<code>serviceId</code>に
+     * <code>null</code>が指定された場合は常に<code>null</code>を返す.
+     * </p>
      * @param serviceId サービスID.
      * @return 削除されたDConnectServiceのインスタンス. 削除対象が存在しなかった場合は<code>null</code>
      */

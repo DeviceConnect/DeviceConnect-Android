@@ -19,7 +19,11 @@ import java.util.List;
  * <p>
  * スマートデバイス上のライトを操作要求するAPI.
  * </p>
- * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
+ *
+ * @deprecated
+ *  swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
+ *  プロファイルを実装する際は本クラスではなく、{@link DConnectProfile} クラスを継承すること。
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class LightProfile extends DConnectProfile implements LightProfileConstants {

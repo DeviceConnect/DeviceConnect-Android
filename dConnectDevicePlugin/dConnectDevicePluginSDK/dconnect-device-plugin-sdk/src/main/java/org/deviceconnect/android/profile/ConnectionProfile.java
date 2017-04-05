@@ -21,7 +21,10 @@ import org.deviceconnect.profile.ConnectionProfileConstants;
  * CHANGE_WIFI_STATE bluetooth: BLUETOOTH, BLUETOOTH_ADMIN nfc: NFC
  * </p>
  *
- * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
+ * @deprecated
+ *  swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
+ *  プロファイルを実装する際は本クラスではなく、{@link DConnectProfile} クラスを継承すること。
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class ConnectionProfile extends DConnectProfile implements ConnectionProfileConstants {

@@ -105,6 +105,9 @@ public class DConnectServiceManager implements DConnectServiceProvider,
 
     @Override
     public DConnectService removeService(final String serviceId) {
+        if (serviceId == null) {
+            return null;
+        }
         DConnectService removed = mDConnectServices.remove(serviceId);
         if (removed != null) {
             notifyOnServiceRemoved(removed);
@@ -114,6 +117,9 @@ public class DConnectServiceManager implements DConnectServiceProvider,
 
     @Override
     public DConnectService getService(final String serviceId) {
+        if (serviceId == null) {
+            return null;
+        }
         return mDConnectServices.get(serviceId);
     }
 

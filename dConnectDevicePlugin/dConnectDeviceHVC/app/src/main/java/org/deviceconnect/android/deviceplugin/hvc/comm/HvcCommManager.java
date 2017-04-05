@@ -566,12 +566,26 @@ public class HvcCommManager {
         // connect
         int commStatus = mHvcBle.getCommStatus();
         if (commStatus == HVC.HVC_ERROR_NODEVICES || commStatus == HVC.HVC_ERROR_DISCONNECTED) {
-            
+            if (commStatus == HVC.HVC_ERROR_DISCONNECTED) {
+                mHvcBle.disconnect();
+                try {
+                    /* Disconnect wait. */
+                    Thread.sleep(15000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             // clear cache.
             mCacheHvcPrm = null;
             
             // connect
             mHvcBle.connect(mContext, mBluetoothDevice);
+            try {
+                /* Connect wait. */
+                Thread.sleep(15000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } else {
             // already connect
             sendParameterProc();

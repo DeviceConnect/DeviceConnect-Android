@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * Device Connect Profile Utility.
+ * Device Connect プロファイル ユーティリティ.
  */
 package org.deviceconnect.android.profile.util;
 

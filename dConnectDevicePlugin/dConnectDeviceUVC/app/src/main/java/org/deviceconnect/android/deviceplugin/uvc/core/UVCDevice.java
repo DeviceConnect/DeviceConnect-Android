@@ -11,11 +11,13 @@ import android.hardware.usb.UsbDevice;
 import android.view.Surface;
 import android.view.TextureView;
 
+import com.serenegiant.usb.IFrameCallback;
 import com.serenegiant.usb.IPreviewFrameCallback;
 import com.serenegiant.usb.Size;
 import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.usb.UVCCamera;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -174,7 +176,7 @@ public class UVCDevice {
         mCamera.open(mCtrlBlock);
         mIsOpen = true;
 
-        List<Size> previewSizeList = mCamera.getSupportedSizeListAll();
+        List<Size> previewSizeList = mCamera.getSupportedSizeList();
         mLogger.info("Supported preview sizes: " + previewSizeList.size());
         Size size = selectSize(previewSizeList);
         if (size == null) {
@@ -203,6 +205,8 @@ public class UVCDevice {
                 }
                 notifyPreviewFrame(frame, frameFormat, width, height);
             }
+
+
         }, pixelFormat);
 
         return true;
@@ -431,7 +435,7 @@ public class UVCDevice {
     }
 
     private boolean isSupportedPreviewSize(final int width, final int height) {
-        List<Size> sizes = mCamera.getSupportedSizeListAll();
+        List<Size> sizes = mCamera.getSupportedSizeList();
         for (Size size : sizes) {
             if (width == size.width && height == size.height) {
                 return true;

@@ -92,6 +92,7 @@
     <string name="activity_settings_web_server_warning_positive">OK</string>
     <string name="activity_settings_web_server_warning_negative">Cancel</string>
     <string name="activity_settings_event_keep_alive_settings">Event Keep Alive</string>
+    <string name="activity_settings_web_server_error_message">Failed to start the web server, because cannot get a permission.</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Whitelist of Origin</string>

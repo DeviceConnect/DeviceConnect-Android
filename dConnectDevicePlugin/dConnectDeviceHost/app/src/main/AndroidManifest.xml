@@ -78,10 +78,12 @@
                 <action android:name="android.net.wifi.STATE_CHANGE"/>
                 <action android:name="android.bluetooth.adapter.action.CONNECTION_STATE_CHANGED"/>
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
-
+            </intent-filter>
+            <intent-filter>
                 <!-- Phone Profile -->
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
-
+            </intent-filter>
+            <intent-filter>
                 <!-- uninstall notification -->
                 <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
                 <data android:scheme="package"/>

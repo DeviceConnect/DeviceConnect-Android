@@ -2,7 +2,7 @@
 # * UVCCamera
 # * library and sample to access to UVC web camera on non-rooted Android device
 # * 
-# * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
+# * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
 # * 
 # * File name: Application.mk
 # * 
@@ -22,7 +22,11 @@
 # * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 #*/
 
+# This is just for mips, if you really needs MSA, un-comment and build with GCC.
+# Note: Supporting GCC on NDK is already deprecated and GCC will be removed from NDK soon.
+#NDK_TOOLCHAIN_VERSION := 4.9
+
 APP_PLATFORM := android-14
-APP_ABI := armeabi armeabi-v7a mips x86
+APP_ABI := armeabi armeabi-v7a x86 mips
 #APP_OPTIM := debug
 APP_OPTIM := release

@@ -22,7 +22,11 @@ import java.util.List;
  * スマートデバイスに対してのファイル操作機能を提供するAPI.<br>
  * スマートデバイスに対してのファイル操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
- * @deprecated swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
+ *
+ * @deprecated
+ *  swagger定義ファイルで定数を管理することになったので、このクラスは使用しないこととする。
+ *  プロファイルを実装する際は本クラスではなく、{@link DConnectProfile} クラスを継承すること。
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class FileProfile extends DConnectProfile implements FileProfileConstants {

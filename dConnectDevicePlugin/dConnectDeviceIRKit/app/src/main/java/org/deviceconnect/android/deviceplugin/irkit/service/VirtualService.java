@@ -3,6 +3,7 @@ package org.deviceconnect.android.deviceplugin.irkit.service;
 
 import android.content.Intent;
 
+
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;

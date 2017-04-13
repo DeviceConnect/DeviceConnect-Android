@@ -2,7 +2,7 @@
  * UVCCamera
  * library and sample to access to UVC web camera on non-rooted Android device
  *
- * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
+ * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
  *
  * File name: UVCPreview.h
  *
@@ -75,11 +75,10 @@ private:
 	ObjectArray<uvc_frame_t *> previewFrames;
 	int previewFormat;
 	size_t previewBytes;
-
 	// MODIFIED
 	jobject mPreviewFrameCallbackObj;
 	Fields_ipreviewframecallback ipreviewframecallback_fields;
-//
+
 	volatile bool mIsCapturing;
 	ANativeWindow *mCaptureWindow;
 	pthread_t capture_thread;
@@ -108,12 +107,10 @@ private:
 	int prepare_preview(uvc_stream_ctrl_t *ctrl);
 	void do_preview(uvc_stream_ctrl_t *ctrl);
 	uvc_frame_t *draw_preview_one(uvc_frame_t *frame, ANativeWindow **window, convFunc_t func, int pixelBytes);
-
 	// MODIFIED
 	void do_preview_pass_through(JNIEnv *env, uvc_frame_t *frame);
 	void do_preview_pass_through_mjpeg(JNIEnv *env, uvc_frame_t *frame);
 
-	//
 	void addCaptureFrame(uvc_frame_t *frame);
 	uvc_frame_t *waitCaptureFrame();
 	void clearCaptureFrame();

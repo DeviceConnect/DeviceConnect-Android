@@ -2,7 +2,7 @@
 # * UVCCamera
 # * library and sample to access to UVC web camera on non-rooted Android device
 # * 
-# * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
+# * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
 # * 
 # * File name: Android.mk
 # * 
@@ -48,7 +48,6 @@ LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl
 LOCAL_LDLIBS += -llog
 LOCAL_LDLIBS += -landroid
 
-LOCAL_STATIC_LIBRARIES += jpeg-turbo1400_static
 LOCAL_SHARED_LIBRARIES += usb100 uvc
 
 LOCAL_ARM_MODE := arm

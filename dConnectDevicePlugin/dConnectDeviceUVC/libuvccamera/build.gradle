@@ -90,3 +90,10 @@ task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
     println('src: ' + file('src/main').absolutePath)
     commandLine ndkBuildPath, '-j8', '-C', file('src/main').absolutePath
 }
+dependencies {
+    compile fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
+    compile "com.android.support:support-annotations:${supportLibVersion}"
+    compile("com.serenegiant:common:${commonLibVersion}") {
+        exclude module: 'support-v4'
+    }
+}

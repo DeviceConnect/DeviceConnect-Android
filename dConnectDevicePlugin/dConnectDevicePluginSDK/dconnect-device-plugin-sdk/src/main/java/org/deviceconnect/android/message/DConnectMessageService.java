@@ -50,6 +50,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -117,6 +119,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private final IBinder mLocalBinder = new LocalBinder();
 
+    private ScheduledExecutorService mExecutorService;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -129,6 +133,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         serviceManager.setPluginSpec(mPluginSpec);
         serviceManager.setContext(getContext());
         mServiceProvider = serviceManager;
+        mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -143,6 +148,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public void onDestroy() {
         super.onDestroy();
+        // スレッドの停止
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+        }
         // LocalOAuthの後始末
         LocalOAuth2Main.destroy();
     }
@@ -169,7 +178,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         if (checkRequestAction(action)) {
             convertRequest(intent);
-            onRequest(intent, MessageUtils.createResponseIntent(intent));
+            mExecutorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    onRequest(intent, MessageUtils.createResponseIntent(intent));
+                }
+            });
         }
 
         if (checkManagerUninstall(intent)) {
@@ -255,9 +269,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 }
                 pluginSpec.addProfileSpec(profileName.toLowerCase(), assets.open(filePath));
                 mLogger.info("Loaded a profile spec: " + profileName);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
-            } catch (JSONException e) {
+            } catch (IOException | JSONException e) {
                 throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
             }
         }

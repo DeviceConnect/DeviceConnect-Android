@@ -124,10 +124,10 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                                     DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
                                     response.putExtra(DConnectMessage.EXTRA_VALUE,
                                             "Register OnWatchPosition event");
-                                    sendResponse(response);
                                 } else {
                                     MessageUtils.setUnknownError(response, "Can not register event.");
                                 }
+                                sendResponse(response);
                             }
 
                             @Override
@@ -165,10 +165,10 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                                     DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
                                     response.putExtra(DConnectMessage.EXTRA_VALUE,
                                             "Unregister OnWatchPosition event");
-                                    sendResponse(response);
                                 } else {
                                     MessageUtils.setUnknownError(response, "Can not unregister event.");
                                 }
+                                sendResponse(response);
                             }
 
                             @Override
@@ -213,6 +213,8 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
     private void getGPS(final boolean accuracy, final Intent response) {
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(getContext(), ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            MessageUtils.setIllegalDeviceStateError(response, "ACCESS_FINE_LOCATION permission not granted.");
+            sendResponse(response);
             return;
         }
 

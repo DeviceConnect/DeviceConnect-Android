@@ -591,12 +591,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         mIsCasting = false;
 
         if (mThread != null) {
-            try {
-                mThread.interrupt();
-                mThread.join();
-            } catch (InterruptedException e) {
-                // NOP
-            }
+            mThread.interrupt();
             mThread = null;
         }
         releaseVirtualDisplay();
@@ -634,7 +629,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         bitmap.copyPixelsFromBuffer(planes[0].getBuffer());
         img.close();
 
-        return bitmap;
+        return Bitmap.createBitmap(bitmap, 0, 0, width, height, null, true);
     }
 
     private void registerConfigChangeReceiver() {

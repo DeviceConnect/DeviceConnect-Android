@@ -3,7 +3,6 @@
     <string name="hw_name" translatable="false">HVC-C2W</string>
     <string name="api_key" translatable="false">[YOUR API KEY]</string>
     <string name="app_id" translatable="false">[YOUR APP ID]</string>
-
     <string name="page_1" translatable="false">[1/4] HVC-C2W の電源をOnにする</string>
     <string name="page_2" translatable="false">[2/4] アカウントの作成 or ログイン</string>
     <string name="page_4" translatable="false">[3/4] HVC-C2W をペアリングモードにする</string>
@@ -22,6 +21,7 @@
     <string name="c2w_setting_message_2_2" translatable="false">サインアップしました。登録したE-Mailアドレスの受信トレイをご確認ください。</string>
     <string name="c2w_setting_message_2_3" translatable="false">ログインしました。</string>
     <string name="c2w_setting_message_2_4" translatable="false">ログアウトしました。</string>
+    <string name="c2w_setting_message_2_5" translatable="false">%sでサインアップします。よろしいですか？</string>
     <string name="c2w_setting_error_1" translatable="false">E-Mailアドレスを入力してください。</string>
     <string name="c2w_setting_error_2" translatable="false">ログインに失敗しました。もう一度パスワードをご確認ください。</string>
     <string name="c2w_setting_error_3" translatable="false">ログアウトに失敗しました。</string>

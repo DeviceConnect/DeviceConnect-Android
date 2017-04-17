@@ -58,7 +58,20 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
 
             @Override
             public void onClick(View view) {
-                exeSignup();
+                final String email = mAddress.getText().toString();
+                if (!email.isEmpty()) {
+                    String message = String.format(getString(R.string.c2w_setting_message_2_5), email);
+                    HVCC2WDialogFragment.showConfirmAlert(getActivity(), getString(R.string.hw_name),
+                            message, getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    exeSignup(email);
+                                }
+                            });
+                } else {
+                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_error_1), null);
+                }
+
             }
         });
 
@@ -81,57 +94,52 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
     }
 
     /** Execute Signup.*/
-    private void exeSignup() {
-        String email = mAddress.getText().toString();
-        if (!email.isEmpty()) {
-            HVCManager.INSTANCE.signup(email, new HVCManager.ResponseListener() {
-                @Override
-                public void onReceived(String json) {
-                    try {
-                        if (json == null) {
-                            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
-                                    getString(R.string.c2w_setting_error_4), null);
-                            return;
-                        }
-                        JSONObject jsonObject = new JSONObject(json);
-                        JSONObject result = jsonObject.getJSONObject("result");
-                        String code = result.getString("code");
-                        String msg = result.getString("msg");
-                        if (BuildConfig.DEBUG) {
-                            Log.d("ABC", String.format("response=%s(%s)", code, msg));
-                        }
-                        if (msg.equals("success")) {
-                            HVCC2WDialogFragment.showConfirmAlert(getActivity(), getString(R.string.hw_name),
-                                    getString(R.string.c2w_setting_message_2_2),
-                                    getString(R.string.button_gmail), new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            Intent intent = new Intent(Intent.ACTION_MAIN);
-                                            intent.setAction("android.intent.category.LAUNCHER");
-                                            intent.setClassName("com.google.android.gm",
-                                                    "com.google.android.gm.ConversationListActivityGmail");
-                                            intent.setFlags(0x10200000);
-                                            startActivity(intent);
-
-                                        }
-                                    });
-                        } else {
-                            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
-                                    getString(R.string.c2w_setting_error_4), null);
-                        }
-                    } catch (JSONException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
+    private void exeSignup(final String email) {
+        HVCManager.INSTANCE.signup(email, new HVCManager.ResponseListener() {
+            @Override
+            public void onReceived(String json) {
+                try {
+                    if (json == null) {
                         HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
                                 getString(R.string.c2w_setting_error_4), null);
-
+                        return;
                     }
+                    JSONObject jsonObject = new JSONObject(json);
+                    JSONObject result = jsonObject.getJSONObject("result");
+                    String code = result.getString("code");
+                    String msg = result.getString("msg");
+                    if (BuildConfig.DEBUG) {
+                        Log.d("ABC", String.format("response=%s(%s)", code, msg));
+                    }
+                    if (msg.equals("success")) {
+                        HVCC2WDialogFragment.showConfirmAlert(getActivity(), getString(R.string.hw_name),
+                                getString(R.string.c2w_setting_message_2_2),
+                                getString(R.string.button_gmail), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        Intent intent = new Intent(Intent.ACTION_MAIN);
+                                        intent.setAction("android.intent.category.LAUNCHER");
+                                        intent.setClassName("com.google.android.gm",
+                                                "com.google.android.gm.ConversationListActivityGmail");
+                                        intent.setFlags(0x10200000);
+                                        startActivity(intent);
+
+                                    }
+                                });
+                    } else {
+                        HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
+                                getString(R.string.c2w_setting_error_4), null);
+                    }
+                } catch (JSONException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
+                            getString(R.string.c2w_setting_error_4), null);
+
                 }
-            });
-        } else {
-            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_error_1), null);
-        }
+            }
+        });
     }
 
     /** Execute Login. */

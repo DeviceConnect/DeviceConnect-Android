@@ -62,6 +62,10 @@ public class HitoeManager {
      * Stops scanning after 1 second.
      */
     private static final long SCAN_PERIOD = 2000;
+    /** Wait 5000 msec. */
+    private static final int CONNECTING_RETRY_WAIT = 500;
+    /** Connecting retry count. */
+    private static final int CONNECTING_RETRY_COUNT = 10;
     /** Device scanning flag. */
     private boolean mScanning;
     /** Device scanning running. */
@@ -573,13 +577,13 @@ public class HitoeManager {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice remoteDevice = adapter.getRemoteDevice(device.getId());
         if (remoteDevice.getName() == null) {
-            // RemoteDeviceがNullの場合は、一度Discovery処理を行う必要がある。
-            // 10回リトライし、RemoteDeviceが見つかったら処理を続ける。
+            // If RemoteDevice is Null, Discovery process needs to be done once.
+            // Retry 10 times and continue processing when RemoteDevice is found.
             discoveryHitoeDevices();
             int i = 0;
-            for (i = 0; i < 10; i++) {
+            for (i = 0; i < CONNECTING_RETRY_COUNT; i++) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(CONNECTING_RETRY_WAIT);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -588,7 +592,7 @@ public class HitoeManager {
                     break;
                 }
             }
-            if (i == 10 && remoteDevice.getName() == null) {
+            if (i == CONNECTING_RETRY_COUNT && remoteDevice.getName() == null) {
                 return;
             }
         }

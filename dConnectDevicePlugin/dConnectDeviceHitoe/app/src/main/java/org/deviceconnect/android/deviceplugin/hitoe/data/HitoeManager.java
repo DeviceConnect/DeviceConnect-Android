@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -139,7 +141,6 @@ public class HitoeManager {
     private ArrayList<String> mListForLRBalance;
     /** Lock for the left and right balance estimation. */
     private ReentrantLock mLockForLRBalance;
-
     /** Hitoe API Callback. */
     HitoeSdkAPI.APICallback mAPICallback = new HitoeSdkAPI.APICallback() {
 
@@ -548,8 +549,11 @@ public class HitoeManager {
      */
     public void connectHitoeDevice(final HitoeDevice device) {
         if (device == null || device.getPinCode() == null) {
+            disconnectHitoeDevice(device);
             return;
         }
+
+
         StringBuilder paramBuilder = new StringBuilder();
         paramBuilder.append("disconnect_retry_time=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_TIME);
         if (paramBuilder.length() > 0) {
@@ -566,6 +570,28 @@ public class HitoeManager {
         paramBuilder.append("pincode=");
         paramBuilder.append(device.getPinCode());
         String param = paramBuilder.toString();
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        BluetoothDevice remoteDevice = adapter.getRemoteDevice(device.getId());
+        if (remoteDevice.getName() == null) {
+            // RemoteDeviceがNullの場合は、一度Discovery処理を行う必要がある。
+            // 10回リトライし、RemoteDeviceが見つかったら処理を続ける。
+            discoveryHitoeDevices();
+            int i = 0;
+            for (i = 0; i < 10; i++) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                remoteDevice = adapter.getRemoteDevice(device.getId());
+                if (remoteDevice.getName() != null) {
+                    break;
+                }
+            }
+            if (i == 10 && remoteDevice.getName() == null) {
+                return;
+            }
+        }
         mHitoeSdkAPI.connect(device.getType(), device.getId(), device.getConnectMode(), param);
         device.setResponseId(HitoeConstants.RES_ID_SENSOR_CONNECT);
         mDBHelper.addHitoeDevice(device);

@@ -525,7 +525,6 @@ public class HitoeManager {
             mRegisterDevices.get(i).setSessionId(null);
         }
         scanHitoeDevice(false);
-
     }
     /**
      * Discovery hitoe device.
@@ -551,8 +550,8 @@ public class HitoeManager {
      *
      * @param device device for hitoe device
      */
-    public synchronized void connectHitoeDevice(final HitoeDevice device) {
-        new Thread(new Runnable() {
+    public void connectHitoeDevice(final HitoeDevice device) {
+        mExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (device == null || device.getPinCode() == null) {
@@ -611,15 +610,15 @@ public class HitoeManager {
                 }
 
             }
-        }).start();
+        });
     }
 
     /**
      * Disconnect hitoe device.
      * @param device hitoe device
      */
-    public synchronized void disconnectHitoeDevice(final HitoeDevice device) {
-        new Thread(new Runnable() {
+    public void disconnectHitoeDevice(final HitoeDevice device) {
+        mExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 HitoeDevice current = getHitoeDeviceForServiceId(device.getId());
@@ -637,7 +636,7 @@ public class HitoeManager {
                 }
 
             }
-        }).start();
+        });
 
     }
 

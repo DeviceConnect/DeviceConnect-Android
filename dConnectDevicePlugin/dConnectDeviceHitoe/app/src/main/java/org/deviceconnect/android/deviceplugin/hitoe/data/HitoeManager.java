@@ -551,82 +551,93 @@ public class HitoeManager {
      *
      * @param device device for hitoe device
      */
-    public void connectHitoeDevice(final HitoeDevice device) {
-        if (device == null || device.getPinCode() == null) {
-            disconnectHitoeDevice(device);
-            return;
-        }
+    public synchronized void connectHitoeDevice(final HitoeDevice device) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (device == null || device.getPinCode() == null) {
+                    return;
+                }
 
 
-        StringBuilder paramBuilder = new StringBuilder();
-        paramBuilder.append("disconnect_retry_time=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_TIME);
-        if (paramBuilder.length() > 0) {
-            paramBuilder.append(HitoeConstants.BR);
-        }
-        paramBuilder.append("disconnect_retry_count=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_COUNT);
-        if (paramBuilder.length() > 0) {
-            paramBuilder.append(HitoeConstants.BR);
-        }
-        paramBuilder.append("nopacket_retry_time=" + HitoeConstants.CONNECT_NOPACKET_RETRY_TIME);
-        if (paramBuilder.length() > 0) {
-            paramBuilder.append(HitoeConstants.BR);
-        }
-        paramBuilder.append("pincode=");
-        paramBuilder.append(device.getPinCode());
-        String param = paramBuilder.toString();
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice remoteDevice = adapter.getRemoteDevice(device.getId());
-        if (remoteDevice.getName() == null) {
-            // If RemoteDevice is Null, Discovery process needs to be done once.
-            // Retry 10 times and continue processing when RemoteDevice is found.
-            discoveryHitoeDevices();
-            int i = 0;
-            for (i = 0; i < CONNECTING_RETRY_COUNT; i++) {
-                try {
-                    Thread.sleep(CONNECTING_RETRY_WAIT);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                StringBuilder paramBuilder = new StringBuilder();
+                paramBuilder.append("disconnect_retry_time=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_TIME);
+                if (paramBuilder.length() > 0) {
+                    paramBuilder.append(HitoeConstants.BR);
                 }
-                remoteDevice = adapter.getRemoteDevice(device.getId());
-                if (remoteDevice.getName() != null) {
-                    break;
+                paramBuilder.append("disconnect_retry_count=" + HitoeConstants.CONNECT_DISCONNECT_RETRY_COUNT);
+                if (paramBuilder.length() > 0) {
+                    paramBuilder.append(HitoeConstants.BR);
                 }
+                paramBuilder.append("nopacket_retry_time=" + HitoeConstants.CONNECT_NOPACKET_RETRY_TIME);
+                if (paramBuilder.length() > 0) {
+                    paramBuilder.append(HitoeConstants.BR);
+                }
+                paramBuilder.append("pincode=");
+                paramBuilder.append(device.getPinCode());
+                String param = paramBuilder.toString();
+                BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+                BluetoothDevice remoteDevice = adapter.getRemoteDevice(device.getId());
+                if (remoteDevice.getName() == null) {
+                    // If RemoteDevice is Null, Discovery process needs to be done once.
+                    // Retry 10 times and continue processing when RemoteDevice is found.
+                    discoveryHitoeDevices();
+                    int i = 0;
+                    for (i = 0; i < CONNECTING_RETRY_COUNT; i++) {
+                        try {
+                            Thread.sleep(CONNECTING_RETRY_WAIT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        remoteDevice = adapter.getRemoteDevice(device.getId());
+                        if (remoteDevice.getName() != null) {
+                            break;
+                        }
+                    }
+                    if (i == CONNECTING_RETRY_COUNT && remoteDevice.getName() == null) {
+                        return;
+                    }
+                }
+                mHitoeSdkAPI.connect(device.getType(), device.getId(), device.getConnectMode(), param);
+                device.setResponseId(HitoeConstants.RES_ID_SENSOR_CONNECT);
+                mDBHelper.addHitoeDevice(device);
+                mStressEstimationData.put(device, new StressEstimationData());
+                for (int i = 0; i < mRegisterDevices.size(); i++) {
+                    if (mRegisterDevices.get(i).getId().equals(device.getId())) {
+                        mRegisterDevices.set(i, device);
+                    } else {
+                        mRegisterDevices.get(i).setResponseId(HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE);
+                    }
+                }
+
             }
-            if (i == CONNECTING_RETRY_COUNT && remoteDevice.getName() == null) {
-                return;
-            }
-        }
-        mHitoeSdkAPI.connect(device.getType(), device.getId(), device.getConnectMode(), param);
-        device.setResponseId(HitoeConstants.RES_ID_SENSOR_CONNECT);
-        mDBHelper.addHitoeDevice(device);
-        mStressEstimationData.put(device, new StressEstimationData());
-        for (int i = 0; i < mRegisterDevices.size(); i++) {
-            if (mRegisterDevices.get(i).getId().equals(device.getId())) {
-                mRegisterDevices.set(i, device);
-            } else {
-                mRegisterDevices.get(i).setResponseId(HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE);
-            }
-        }
+        }).start();
     }
 
     /**
      * Disconnect hitoe device.
      * @param device hitoe device
      */
-    public void disconnectHitoeDevice(final HitoeDevice device) {
-        HitoeDevice current = getHitoeDeviceForServiceId(device.getId());
-        int res = mHitoeSdkAPI.disconnect(current.getSessionId());
-        current.setRegisterFlag(false);
-        current.setSessionId(null);
-        mDBHelper.updateHitoeDevice(current);
-        if (!existConnected()) {
-            scanHitoeDevice(false);
-        }
-        for (OnHitoeConnectionListener l: mConnectionListeners) {
-            if (l != null) {
-                l.onDisconnected(res, device);
+    public synchronized void disconnectHitoeDevice(final HitoeDevice device) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HitoeDevice current = getHitoeDeviceForServiceId(device.getId());
+                int res = mHitoeSdkAPI.disconnect(current.getSessionId());
+                current.setRegisterFlag(false);
+                current.setSessionId(null);
+                mDBHelper.updateHitoeDevice(current);
+                if (!existConnected()) {
+                    scanHitoeDevice(false);
+                }
+                for (OnHitoeConnectionListener l: mConnectionListeners) {
+                    if (l != null) {
+                        l.onDisconnected(res, device);
+                    }
+                }
+
             }
-        }
+        }).start();
 
     }
 

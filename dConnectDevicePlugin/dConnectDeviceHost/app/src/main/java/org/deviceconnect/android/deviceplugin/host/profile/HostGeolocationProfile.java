@@ -249,7 +249,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             public void onProviderDisabled(String provider) {
                 // NOP
             }
-        }, null);
+        }, Looper.getMainLooper());
     }
 
     /**
@@ -270,7 +270,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             criteria.setAccuracy(Criteria.ACCURACY_COARSE);
         }
 
-        mLocationManager.requestLocationUpdates(mLocationManager.getBestProvider(criteria, true), interval, 0, this);
+        mLocationManager.requestLocationUpdates(mLocationManager.getBestProvider(criteria, true), interval, 0, this, Looper.getMainLooper());
     }
 
     /**

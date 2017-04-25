@@ -212,7 +212,12 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
             if (res != 0) {
                 container.setRegisterFlag(true);
             }
-            mDeviceAdapter.notifyDataSetChanged();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDeviceAdapter.notifyDataSetChanged();
+                }
+            });
         }
 
     }

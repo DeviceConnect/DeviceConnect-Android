@@ -265,8 +265,8 @@ public abstract class HitoeListActivity extends FragmentActivity {
     protected void connectDevice(final HitoeDevice device) {
         if (BleUtils.isEnabled(this)) {
             mConnectingDevice = device;
-            getManager().connectHitoeDevice(device);
             showProgressDialog(device.getName());
+            getManager().connectHitoeDevice(device);
         }
     }
 

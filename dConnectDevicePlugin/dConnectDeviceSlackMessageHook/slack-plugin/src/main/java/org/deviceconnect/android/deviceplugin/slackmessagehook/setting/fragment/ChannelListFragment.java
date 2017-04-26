@@ -11,8 +11,6 @@ import android.app.ListFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -116,7 +114,7 @@ public class ChannelListFragment extends ListFragment implements ShowMenuFragmen
                         }
                     }
                 }
-            }, new Handler(Looper.getMainLooper()));
+            });
         } else {
             // OFFLineメッセージを表示
             emptyLayout.setVisibility(View.VISIBLE);

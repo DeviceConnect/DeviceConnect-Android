@@ -846,21 +846,12 @@ public class SlackManager {
         public String icon;
     }
 
-
     /**
      * Channel一覧とDM一覧を合成したものを取得
      * @param callback 取得コールバック
      */
     public void getAllChannelList(final FinishCallback<List<ListInfo>> callback) {
-        getAllChannelList(callback, null);
-    }
-
-    /**
-     * Channel一覧とDM一覧を合成したものを取得
-     * @param callback 取得コールバック
-     * @param handler Callbackを返すスレッド
-     */
-    public void getAllChannelList(final FinishCallback<List<ListInfo>> callback, final Handler handler) {
+        final Handler handler = new Handler();
         new Thread() {
             @Override
             public void run() {
@@ -942,27 +933,19 @@ public class SlackManager {
                     }
 
                     if (callback != null) {
-                        if (handler != null) {
-                            handler.post(new Runnable() {
-                                public void run() {
-                                    callback.onFinish(resList, null);
-                                }
-                            });
-                        } else {
-                            callback.onFinish(resList, null);
-                        }
+                        handler.post(new Runnable() {
+                            public void run() {
+                                callback.onFinish(resList, null);
+                            }
+                        });
                     }
                 } else {
                     if (callback != null) {
-                        if (handler != null) {
-                            handler.post(new Runnable() {
-                                public void run() {
-                                    callback.onFinish(null, err[0]);
-                                }
-                            });
-                        } else {
-                            callback.onFinish(null, err[0]);
-                        }
+                        handler.post(new Runnable() {
+                            public void run() {
+                                callback.onFinish(null, err[0]);
+                            }
+                        });
                     }
                 }
             }

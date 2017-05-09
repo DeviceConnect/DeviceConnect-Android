@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 public class DConnectProfileSpecTest extends InstrumentationTestCase {
 
     @Test
-    public void toBundle() throws Exception {
+    public void testDeepCopy() throws Exception {
         Bundle src = new Bundle();
         src.putInt("int", 1);
         src.putLong("long", 1L);

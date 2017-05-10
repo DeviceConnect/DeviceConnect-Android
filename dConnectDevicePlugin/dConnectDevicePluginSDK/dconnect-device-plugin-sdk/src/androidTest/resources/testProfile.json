@@ -1,0 +1,34 @@
+{
+  "swagger": "2.0",
+  "basePath": "/gotapi/testProfile",
+  "info": {
+    "title": "Test Profile",
+    "version": "1.0",
+    "description": ""
+  },
+  "consumes": [],
+  "paths": {
+    "/a0": {
+      "get": {
+        "x-type": "one-shot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/a1": {
+      "get": {
+        "x-type": "one-shot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}

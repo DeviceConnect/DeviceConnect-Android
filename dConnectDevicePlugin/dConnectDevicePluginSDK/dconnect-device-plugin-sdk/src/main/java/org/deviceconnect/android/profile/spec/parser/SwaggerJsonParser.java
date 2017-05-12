@@ -154,6 +154,12 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
                     array[i] = jsonArray.getString(i);
                 }
                 bundle.putStringArray(name, array);
+            } else if (base == Boolean.class) {
+                boolean[] array = new boolean[length];
+                for (int i = 0; i < length; i++) {
+                    array[i] = jsonArray.getBoolean(i);
+                }
+                bundle.putBooleanArray(name, array);
             } else if (base == JSONObject.class) {
                 Bundle[] array = new Bundle[length];
                 for (int i = 0; i < length; i++) {

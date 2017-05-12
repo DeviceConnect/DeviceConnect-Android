@@ -171,6 +171,7 @@ public class AudioRecorderActivity extends Activity {
             values.put(Video.Media.DATA, mFile.toString());
             resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
         }
+        releaseMediaRecorder();
     }
 
     /**

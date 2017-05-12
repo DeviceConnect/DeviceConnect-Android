@@ -164,7 +164,7 @@
     <string name="activity_service_list_guide_2">To configure Device Connect Manager.</string>
     <string name="activity_service_list_guide_next">Next</string>
     <string name="activity_service_list_guide_end">Close</string>
-    <string name="activity_service_list_no_service">No device is connected.\nConfigure on the settings window of plugin.\nAlternatively, execute \n "Restart all device plugins"\n from the setting screen.</string>
+    <string name="activity_service_list_no_service">No device is connected.\nConfigure on the settings window of plugin.\nAlternatively, Please agree to LocalOAuth\nor turn LocalOAuth off.</string>
     <string name="activity_service_list_no_plugin_title">Confirming plugins</string>
     <string name="activity_service_list_no_plugin_message">Alternatively, execute \n "Restart all device plugins"\n from the setting screen.</string>
     <string name="activity_service_list_no_plugin_positive">Yes</string>

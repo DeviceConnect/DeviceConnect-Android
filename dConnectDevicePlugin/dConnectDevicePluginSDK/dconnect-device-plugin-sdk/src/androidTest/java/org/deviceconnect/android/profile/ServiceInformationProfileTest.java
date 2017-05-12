@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 
@@ -77,20 +78,44 @@ public class ServiceInformationProfileTest extends AndroidTestCase {
             assertThat(supportApis, is(notNullValue()));
             Bundle swagger = supportApis.getBundle(profileName);
             assertThat(swagger, is(notNullValue()));
-            assertThat(swagger.getString("swagger"), is("2.0"));
+            assertThat(swagger.getString("swagger"), is(notNullValue()));
+            assertThat(swagger.getString("basePath"), is(notNullValue()));
+            Bundle info = swagger.getBundle("info");
+            assertThat(info, is(notNullValue()));
+            assertThat(info.getString("title"), is(notNullValue()));
+            assertThat(info.getString("version"), is(notNullValue()));
+            assertThat(info.containsKey("description"), is(false));
+            assertThat(swagger.getStringArray("consumes"), is(notNullValue()));
             Bundle paths = swagger.getBundle("paths");
             assertThat(paths, is(notNullValue()));
             for (DConnectApi api : service.getProfile(profileName).getApiList()) {
                 DConnectApiSpec apiSpec = api.getApiSpec();
                 assertThat("Definition for " + createApiTitle(api) + " is null.", apiSpec, is(notNullValue()));
-                Bundle info = null;
+                Bundle foundPath = null;
                 for (String path : paths.keySet()) {
                     if (path.equalsIgnoreCase(createPath(apiSpec))) {
-                        info = paths.getBundle(path);
+                        foundPath = paths.getBundle(path);
                     }
                 }
-                assertThat(info, is(notNullValue()));
+                assertThat(foundPath, is(notNullValue()));
+                Bundle op = foundPath.getBundle("get");
+                assertThat(op, is(notNullValue()));
+                assertThat(op.getString("x-type"), is(notNullValue()));
+                assertThat(op.containsKey("summary"), is(false));
+                assertThat(op.containsKey("description"), is(false));
+                Bundle[] parameters = (Bundle[]) op.getParcelableArray("parameters");
+                assertThat(parameters, is(notNullValue()));
+
+                for (Bundle parameter : parameters) {
+                    assertThat(parameter.getString("name"), is(notNullValue()));
+                    assertThat(parameter.containsKey("description"), is(false));
+                    assertThat(parameter.getString("in"), is(notNullValue()));
+                    assertThat(parameter.getBoolean("required"), is(true));
+                    assertThat(parameter.getString("type"), is(notNullValue()));
+                }
+                assertThat(op.containsKey("responses"), is(false));
             }
+            assertThat(swagger.containsKey("definitions"), is(false));
         }
     }
 

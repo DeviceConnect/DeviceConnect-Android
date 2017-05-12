@@ -1,0 +1,81 @@
+{
+  "swagger": "2.0",
+  "basePath": "/gotapi/testProfile",
+  "info": {
+    "title": "Test Profile",
+    "version": "1.0",
+    "description": ""
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "paths": {
+    "/a0": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "/a1": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CommonResponse": {
+      "type": "object",
+      "required": [
+        "result"
+      ],
+      "properties": {
+        "result": {
+          "type": "integer",
+          "description": ""
+        }
+      }
+    }
+  }
+}

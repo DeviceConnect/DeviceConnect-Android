@@ -11,6 +11,7 @@ import android.os.Bundle;
 
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +40,8 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
      * @param bundle Bundleのインスタンス
      */
     void setBundle(final Bundle bundle) {
-        mBundle = bundle;
+        mBundle = new Bundle();
+        deepCopy(bundle, mBundle);
     }
 
     /**
@@ -135,7 +137,59 @@ public class DConnectProfileSpec implements DConnectSpecConstants {
      * @return Bundleのインスタンス
      */
     public Bundle toBundle() {
-        return mBundle;
+        Bundle dst = new Bundle();
+        deepCopy(mBundle, dst);
+        return dst;
+    }
+
+    static void deepCopy(final Bundle src, final Bundle dst) {
+        for (String key : src.keySet()) {
+            Object obj = src.get(key);
+            if (obj == null) {
+                continue;
+            }
+
+            // NOTE:
+            //   本メソッドに入力される Bundle オブジェクトは JSONObject を変換して得たもの.
+            //   つまり、その Bundle オブジェクトは下記の型のみを含む.
+            //     int, long, double, boolean, String,
+            //     int[], long[], double[], boolean[], String[],
+            //     Bundle
+            //  よって、ここでは上記の型の値のみをコピーする.
+            if (obj instanceof Bundle) {
+                Bundle a = (Bundle) obj;
+                Bundle b = new Bundle();
+                deepCopy(a, b);
+                dst.putBundle(key, b);
+            } else if (obj instanceof int[]) {
+                int[] a = (int[]) obj;
+                int[] b = new int[a.length];
+                System.arraycopy(a, 0, b, 0, a.length);
+                dst.putIntArray(key, b);
+            } else if (obj instanceof long[]) {
+                long[] a = (long[]) obj;
+                long[] b = new long[a.length];
+                System.arraycopy(a, 0, b, 0, a.length);
+                dst.putLongArray(key, b);
+            } else if (obj instanceof double[]) {
+                double[] a = (double[]) obj;
+                double[] b = new double[a.length];
+                System.arraycopy(a, 0, b, 0, a.length);
+                dst.putDoubleArray(key, b);
+            } else if (obj instanceof boolean[]) {
+                boolean[] a = (boolean[]) obj;
+                boolean[] b = new boolean[a.length];
+                System.arraycopy(a, 0, b, 0, a.length);
+                dst.putBooleanArray(key, b);
+            } else if (obj instanceof String[]) {
+                String[] a = (String[]) obj;
+                String[] b = new String[a.length];
+                System.arraycopy(a, 0, b, 0, a.length);
+                dst.putStringArray(key, b);
+            } else if (obj instanceof Serializable) { // int, long, double, boolean, String のいずれか.
+                dst.putSerializable(key, (Serializable) obj);
+            }
+        }
     }
 
     /**

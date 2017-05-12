@@ -157,7 +157,7 @@
     <string name="activity_service_list_guide_2">Device Connect Managerの設定を行うことができます。</string>
     <string name="activity_service_list_guide_next">次へ</string>
     <string name="activity_service_list_guide_end">閉じる</string>
-    <string name="activity_service_list_no_service">デバイスが接続されていません。\nプラグインから設定を行ってください。\nまたは、LocalOAuthに同意するか\nLocalOAuthをOFFにしてください。</string>
+    <string name="activity_service_list_no_service">サービスを検索時に表示される\nアプリケーション認可に同意するか、\nもしくは、設定画面においてLocal OAuthを\n無効にしてください。</string>
     <string name="activity_service_list_no_plugin_title">プラグイン確認</string>
     <string name="activity_service_list_no_plugin_message">設定画面から「全デバイスプラグインを再起動」を実行してください。</string>
     <string name="activity_service_list_no_plugin_positive">はい</string>

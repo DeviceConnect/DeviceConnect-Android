@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import io.fabo.android.stk500.StkWriter;
 import io.fabo.android.stk500.StkWriterListenerInterface;
+import io.fabo.serialkit.FaBoUsbConst;
 
 /**
  * 設定画面用Fragment.
@@ -61,6 +62,8 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
 
     /** Activity. */
     private static Activity mActivity;
+
+
 
     /**
      * newInstance.
@@ -146,15 +149,15 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
         super.onResume();
 
         // SerialPortの生成
-        mStkWriter = new StkWriter(getActivity().getBaseContext());
-        mStkWriter.setListener(this);
+        //mStkWriter = new StkWriter(getActivity().getBaseContext());
+        //mStkWriter.setListener(this);
 
         // USBデバイスのチェック.
         UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
 
         for (UsbDevice device : deviceList.values()) {
-            if (device.getVendorId() == 10755) {
+            if (device.getVendorId() == FaBoUsbConst.ARDUINO_UNO_VID) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -164,7 +167,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                         mButtonBack.setVisibility(Button.INVISIBLE);
                     }
                 });
-            } else if (device.getVendorId() == 9025) {
+            } else if (device.getVendorId() == FaBoUsbConst.ARDUINO_CC_UNO_VID) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -184,8 +187,8 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
         super.onPause();
 
         // SerialPortを閉じる
-        mStkWriter.closeUsb();
-        mStkWriter = null;
+        //mStkWriter.closeUsb();
+        //mStkWriter = null;
         try {
             getActivity().unregisterReceiver(mUsbReceiver);
         }catch (Exception ignored){
@@ -202,11 +205,13 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                 }
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 // USBを閉じる
+                /*
                 mStkWriter.closeUsb();
                 mTextViewCommment.setText(R.string.disconnect_usb);
                 mButtonConnect.setEnabled(false);
                 mButtonSend.setVisibility(Button.INVISIBLE);
                 mButtonBack.setVisibility(Button.INVISIBLE);
+                */
             }
         }
     };

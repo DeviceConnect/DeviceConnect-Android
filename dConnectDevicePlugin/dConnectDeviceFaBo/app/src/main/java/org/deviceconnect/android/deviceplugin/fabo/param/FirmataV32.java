@@ -39,5 +39,9 @@ public class FirmataV32 {
     // Param
     public static final byte DISABLE =                (byte)0x00;
     public static final byte ENABLE =                 (byte)0x01;
+
+    // I2C
+    public static final byte I2C_CONFIG =             (byte)0x78;
+    public static final byte I2C_REQUEST =            (byte)0x76;
 }
 

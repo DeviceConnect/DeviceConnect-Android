@@ -14,8 +14,8 @@
     <string name="open_usb" translatable="false">USBをオープンしました。</string>
     <string name="not_connect" translatable="false">FaBoデバイスが接続されていません。\n\n\nArduino.cc製のArduino UnoをUSBでAndroidに接続してください。</string>
     <string name="arduinocc_find" translatable="false">FaBoデバイスを認識しました。\n\n\nArduino Unoと接続ボタンを押してください。</string>
-    <string name="arduinocc_find_sendfirmware" translatable="false">Arduinoを認識しました。\n\n\nArduino Unoと接続ボタンを押してください。</string>
-    <string name="arduinoorg_find" translatable="false">Arduino.org製のArduino Unoを認識しました。\n\nArduino.org製のArduino Unoは非対応です。Arduino.cc製のArduino Unoを接続してください。</string>
+    <string name="arduinocc_find_sendfirmware" translatable="false">Arduino.cc製のArduinoを認識しました。\n\n\nArduino Unoと接続ボタンを押してください。</string>
+    <string name="arduinoorg_find" translatable="false">Arduino.org製のArduino Unoを認識しました。\n\nArduino Unoと接続ボタンを押してください。</string>
     <string name="failed_open_usb" translatable="false">USBデバイスの接続に失敗しました。</string>
     <string name="failed_connect_arduino" translatable="false">Arduinoに接続に失敗しました。</string>
     <string name="success_connect_arduino" translatable="false">Arduinoへの接続に成功しました。</string>

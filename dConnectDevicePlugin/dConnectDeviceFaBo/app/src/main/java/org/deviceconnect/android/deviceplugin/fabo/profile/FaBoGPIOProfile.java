@@ -19,6 +19,7 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.message.DConnectMessage;
 
 import static org.deviceconnect.message.DConnectMessage.RESULT_OK;
 
@@ -30,17 +31,34 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
     private final static String TAG = "FABO_PLUGIN";
 
-    /** Digital Pinに書き込むコマンド. */
+    /**
+     * Digital Pinに書き込むコマンド.
+     */
     private final static byte CMD_DIGITAL_WRITE = FirmataV32.DIGITAL_MESSAGE;
 
-    /** Pinモードの設定コマンド. */
+    /**
+     * Pinモードの設定コマンド.
+     */
     private final static byte CMD_PIN_SETTING = FirmataV32.SET_PIN_MODE;
 
-    /** GPIOのHigh. */
+    /**
+     * GPIOのHigh.
+     */
     private final static int HIGH = 1;
 
-    /** GPIOのLow. */
+    /**
+     * GPIOのLow.
+     */
     private final static int LOW = 0;
+
+    private final byte DRV8830_FORWARD = 0x01;
+    private final byte DRV8830_BACK = 0x02;
+    private final byte DRV8830_STOP = 0x00;
+    private final byte DRV8830_ADDRESS = 0x64;
+
+    public float arduino_map(float x, float in_min, float in_max, float out_min, float out_max) {
+        return (x - in_min)*(out_max - out_min) / (in_max - in_min) + out_min;
+    }
 
     private void addGetAnalogApi(final ArduinoUno.Pin pin) {
         // GET /gpio/analog/{pinName}
@@ -147,12 +165,12 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if(mode != null) {
                         try {
                             modeValue = Integer.parseInt(mode);
-                            if (modeValue < 0 || modeValue > 3) {
-                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-3.");
+                            if (modeValue < 0 || modeValue > 4) {
+                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
                                 return true;
                             }
                         } catch (Exception e) {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-3.");
+                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
                             return true;
                         }
                     } else {
@@ -160,6 +178,9 @@ public class FaBoGPIOProfile extends GPIOProfile {
                         return true;
                     }
                     settingPin(pin.getPinNumber(), modeValue);
+
+                    String[] modeStr = {"GPIOIN", "GPIOOUT", "ANALOG", "PWM", "SERVO"};
+                    setMessage(response, pinName + "を" + modeStr[modeValue] + "モードに設定しました。");
                     setResult(response, RESULT_OK);
                     return true;
                 }
@@ -204,6 +225,8 @@ public class FaBoGPIOProfile extends GPIOProfile {
                         return true;
                     }
                     digitalWrite(pin.getPort(), pin.getBit(), hlValue);
+                    String[] hlStr = {"LOW","HIGH"};
+                    setMessage(response, pinName + "の値を" + hlStr[hlValue] + "(" + hlValue + ")に変更");
                     setResult(response, RESULT_OK);
                     return true;
                 }
@@ -305,6 +328,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
                     digitalWrite(pin.getPort(), pin.getBit(), HIGH);
+                    setMessage(response, pinName + "の値をHIGH(1)に変更");
                     setResult(response, RESULT_OK);
                     return true;
                 }
@@ -352,6 +376,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
                     digitalWrite(pin.getPort(), pin.getBit(), LOW);
+                    setMessage(response, pinName + "の値をLOW(0)に変更");
                     setResult(response, RESULT_OK);
                     return true;
                 }

@@ -27,6 +27,8 @@ import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
 import java.util.HashMap;
 
+import io.fabo.serialkit.FaBoUsbConst;
+
 /**
  * 設定画面用Fragment.
  *
@@ -58,6 +60,9 @@ public class FaBoConnectFragment extends Fragment {
     /** 親Activity. */
     private static FaBoSettingActivity mParent;
 
+    /** Usb Device. */
+    private static UsbDevice mDevice;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -88,6 +93,7 @@ public class FaBoConnectFragment extends Fragment {
 
                 // USB OpenのコマンドをServiceにBroadcast.
                 Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
+                intent.putExtra("usbDevice", mDevice);
                 mContext.sendBroadcast(intent);
             }
         });
@@ -114,12 +120,13 @@ public class FaBoConnectFragment extends Fragment {
         UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
 
-        for (UsbDevice device : deviceList.values()) {
+        for (final UsbDevice device : deviceList.values()) {
             if (device.getVendorId() == 10755) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mTextViewCommment.setText(R.string.arduinoorg_find);
+                        mDevice = device;
                         mOutputButton.setEnabled(false);
                     }
                 });
@@ -128,6 +135,7 @@ public class FaBoConnectFragment extends Fragment {
                     @Override
                     public void run() {
                         mTextViewCommment.setText(R.string.arduinocc_find);
+                        mDevice = device;
                         mOutputButton.setEnabled(true);
                     }
                 });
@@ -181,15 +189,15 @@ public class FaBoConnectFragment extends Fragment {
                     HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
 
                     for (UsbDevice device : deviceList.values()) {
-                        if (device.getVendorId() == 10755) {
+                        if (device.getVendorId() == FaBoUsbConst.ARDUINO_UNO_VID) {
                             mActivity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     mTextViewCommment.setText(R.string.arduinoorg_find);
-                                    mOutputButton.setEnabled(false);
+                                    mOutputButton.setEnabled(true);
                                 }
                             });
-                        } else if (device.getVendorId() == 9025) {
+                        } else if (device.getVendorId() == FaBoUsbConst.ARDUINO_CC_UNO_VID) {
                             mActivity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

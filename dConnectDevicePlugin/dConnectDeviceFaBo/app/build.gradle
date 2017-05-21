@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 24
     buildToolsVersion '25.0.0'
 
     def getVersionName = { ->
@@ -17,8 +17,8 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.fabo"
-        minSdkVersion 14
-        targetSdkVersion 23
+        minSdkVersion 16
+        targetSdkVersion 24
         versionCode 1
         versionName getVersionName()
     }
@@ -57,7 +57,7 @@ android {
 }
 
 repositories {
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://raw.githubusercontent.com/FaBoPlatform/FaBo-Serial-Kit/master/repository/" }
     maven { url 'https://raw.githubusercontent.com/FaBoPlatform/STK500-Android/master/stk500/repository/' }
 }
 
@@ -65,6 +65,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile project(':dconnect-device-plugin-sdk')
-    compile 'com.hoho.android:usb-serial-for-android:0.2.0-SNAPSHOT@aar'
+    compile 'io.fabo:serialkit:0.9.3'
     compile 'io.fabo.android.stk500:stk500-aar:1.0.4'
 }

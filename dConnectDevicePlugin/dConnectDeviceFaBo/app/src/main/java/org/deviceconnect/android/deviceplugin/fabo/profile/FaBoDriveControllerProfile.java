@@ -27,12 +27,23 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
 
     private String PROFILE_NAME = "driveController";
 
-    private String INTERFACE_MOVE = "move";
+    private String ATTRIBUTE_MOVE = "move";
 
+    /** Forward command(I2C). */
     private final byte DRV8830_FORWARD = 0x01;
+
+    /** Back command(I2C). */
     private final byte DRV8830_BACK = 0x02;
+
+    /** Stop command(I2C). */
     private final byte DRV8830_STOP = 0x00;
+
+    /** Slave address(I2C). */
     private final byte DRV8830_ADDRESS = 0x64;
+
+    /** Message. */
+    private final static String PARAM_MSG = "msg";
+
 
     public float arduino_map(float x, float in_min, float in_max, float out_min, float out_max) {
         return (x - in_min)*(out_max - out_min) / (in_max - in_min) + out_min;
@@ -44,8 +55,8 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
         // POST /driveController/move/
         addApi(new PostApi() {
             @Override
-            public String getInterface() {
-                return INTERFACE_MOVE;
+            public String getAttribute() {
+                return ATTRIBUTE_MOVE;
             }
 
             @Override
@@ -62,14 +73,15 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
         // POST /driveController/move/
          addApi(new PostApi() {
             @Override
-            public String getInterface() {
-                return INTERFACE_MOVE;
+            public String getAttribute() {
+                return ATTRIBUTE_MOVE;
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 int angleValue;
                 float moveValue;
+                String msg = "";
                 String angle = request.getStringExtra("angle");
                 String move = request.getStringExtra("move");
                 if(angle != null) {
@@ -100,10 +112,15 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
                         if(moveValue < 0) {
                             direction = DRV8830_BACK;
                             moveValue = arduino_map(moveValue, 0, 1.0f, 0, 56.0f);
+                            msg = moveValue + "で更新";
                         } else if(moveValue > 0) {
                             direction = DRV8830_FORWARD;
+                            moveValue = arduino_map(moveValue, 0, -1.0f, 0, 56.0f);
+                            msg = moveValue + "で前進";
                         } else if(moveValue == 0) {
+                            moveValue = 0;
                             direction = DRV8830_STOP;
+                            msg = "停止";
                         }
                         byte[] configCommandData = {FirmataV32.START_SYSEX, FirmataV32.I2C_CONFIG, (byte)0x00, (byte)0x00, FirmataV32.END_SYSEX};
                         ((FaBoDeviceService) getContext()).SendMessage(configCommandData);
@@ -122,11 +139,15 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "The value of move is null.");
                     return true;
                 }
-
+                setMessage(response, msg);
                 setResult(response, RESULT_OK);
                 return true;
             }
         });
+    }
+
+    public static void setMessage(final Intent message, final String msg) {
+        message.putExtra(PARAM_MSG, msg);
     }
 
     public FaBoDriveControllerProfile() {

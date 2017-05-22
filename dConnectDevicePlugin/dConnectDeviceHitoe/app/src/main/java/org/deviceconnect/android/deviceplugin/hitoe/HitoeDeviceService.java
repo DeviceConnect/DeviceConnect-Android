@@ -207,7 +207,7 @@ public class HitoeDeviceService extends DConnectMessageService {
     }
 
     /**
-     * Remove All DConnectServer.
+     * Remove All service.
      */
     private void removeAllServices() {
         List<DConnectService> services = getServiceProvider().getServiceList();

@@ -35,7 +35,6 @@ public final class DevicePluginXmlUtil {
      * コンストラクタ.
      */
     private DevicePluginXmlUtil() {
-
     }
 
     /**
@@ -126,12 +125,17 @@ public final class DevicePluginXmlUtil {
         String nameText = null;
         String descriptionLang = null;
         String descriptionText = null;
+        String specPath = null;
 
         int eventType = xrp.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
             final String tagName = xrp.getName();
 
-            if (tagName != null && tagName.equals("profile")) {
+            if ("deviceplugin-provider".equals(tagName)) {
+                if (eventType == XmlPullParser.START_TAG) {
+                    specPath = xrp.getAttributeValue(null, "spec-path");
+                }
+            } else if ("profile".equals(tagName)) {
                 if (eventType == XmlPullParser.START_TAG) {
                     String profileName = xrp.getAttributeValue(null, "name");
                     String strExpirePeriod = xrp.getAttributeValue(null, "expireperiod");
@@ -159,35 +163,42 @@ public final class DevicePluginXmlUtil {
                         profile = null;
                     }
                 }
-            } else if (tagName != null && tagName.equals(tagKeyName) || nameLang != null) {
-                if (tagName != null && tagName.equals(tagKeyName) && eventType == XmlPullParser.START_TAG) {
-                    nameLang = xrp.getAttributeValue(null, tagKeyLang);
+            } else if (tagKeyName.equals(tagName) || nameLang != null) {
+                if (tagKeyName.equals(tagName) ) {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        nameLang = xrp.getAttributeValue(null, tagKeyLang);
+                    } else if (eventType == XmlPullParser.END_TAG) {
+                        if (profile != null) {
+                            profile.putName(nameLang, nameText);
+                            nameLang = null;
+                            nameText = null;
+                        }
+                    }
                 } else if (nameLang != null && eventType == XmlPullParser.TEXT) {
                     nameText = xrp.getText();
-                } else if (tagName != null && tagName.equals(tagKeyName) && eventType == XmlPullParser.END_TAG) {
-                    if (profile != null) {
-                        profile.putName(nameLang, nameText);
-                        nameLang = null;
-                        nameText = null;
-                    }
                 }
-            } else if (tagName != null && tagName.equals(tagKeyDescription) || descriptionLang != null) {
-                if (tagName != null && tagName.equals(tagKeyDescription) && eventType == XmlPullParser.START_TAG) {
-                    descriptionLang = xrp.getAttributeValue(null, tagKeyLang);
+            } else if (tagKeyDescription.equals(tagName) || descriptionLang != null) {
+                if (tagKeyDescription.equals(tagName)) {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        descriptionLang = xrp.getAttributeValue(null, tagKeyLang);
+                    } else if (eventType == XmlPullParser.END_TAG) {
+                        if (profile != null) {
+                            profile.putDescription(descriptionLang, descriptionText);
+                            descriptionLang = null;
+                            descriptionText = null;
+                        }
+                    }
                 } else if (descriptionLang != null && eventType == XmlPullParser.TEXT) {
                     descriptionText = xrp.getText();
-                } else if (tagName != null && tagName.equals(tagKeyDescription) && eventType == XmlPullParser.END_TAG) {
-                    if (profile != null) {
-                        profile.putDescription(descriptionLang, descriptionText);
-                        descriptionLang = null;
-                        descriptionText = null;
-                    }
                 }
             }
 
             eventType = xrp.next();
         }
-            
+
+        for (DevicePluginXmlProfile xmlProfile : list.values()) {
+            xmlProfile.setSpecPath(specPath);
+        }
         return list;
     }
 }

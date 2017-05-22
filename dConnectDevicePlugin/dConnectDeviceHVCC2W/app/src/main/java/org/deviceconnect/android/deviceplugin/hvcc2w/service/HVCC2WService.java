@@ -9,7 +9,7 @@ public class HVCC2WService extends DConnectService {
 
     public HVCC2WService(final HVCCameraInfo camera) {
         super(camera.getID());
-        setName(camera.getName());
+        setName(camera.getName() + "(" + camera.getID() + ")");
         setNetworkType(NetworkType.WIFI);
 
         addProfile(new HVCC2WHumanDetectionProfile());

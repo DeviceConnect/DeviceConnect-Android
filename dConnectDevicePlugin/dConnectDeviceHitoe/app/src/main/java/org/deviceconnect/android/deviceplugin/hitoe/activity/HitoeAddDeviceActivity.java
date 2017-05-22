@@ -161,13 +161,15 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             public void run() {
                 dismissProgressDialog();
                 if (device == null) {
-                    HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
-                    if (container != null) {
-                        container.setPinCode(null);
-                        mDeviceAdapter.notifyDataSetChanged();
+                    if (mConnectingDevice != null) {
+                        HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
+                        if (container != null) {
+                            container.setPinCode(null);
+                            mDeviceAdapter.notifyDataSetChanged();
+                        }
+                        Resources res = getResources();
+                        showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
                     }
-                    Resources res = getResources();
-                    showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
                 } else {
                     showErrorDialogNotConnect(device.getName());
                 }

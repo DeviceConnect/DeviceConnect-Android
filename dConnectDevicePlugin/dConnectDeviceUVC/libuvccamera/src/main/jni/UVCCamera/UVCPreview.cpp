@@ -2,7 +2,7 @@
  * UVCCamera
  * library and sample to access to UVC web camera on non-rooted Android device
  *
- * Copyright (c) 2014-2015 saki t_saki@serenegiant.com
+ * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
  *
  * File name: UVCPreview.cpp
  *
@@ -41,7 +41,6 @@
 #include "UVCPreview.h"
 #include "libuvc_internal.h"
 #include "jpeglib.h"
-
 #define	LOCAL_DEBUG 0
 #define MAX_FRAME 4
 #define PREVIEW_PIXEL_BYTES 4	// RGBA/RGBX
@@ -63,9 +62,9 @@ UVCPreview::UVCPreview(uvc_device_handle_t *devh)
 	frameMode(0),
 	previewBytes(DEFAULT_PREVIEW_WIDTH * DEFAULT_PREVIEW_HEIGHT * PREVIEW_PIXEL_BYTES),
 	previewFormat(WINDOW_FORMAT_RGBA_8888),
-	mPreviewFrameCallbackObj(NULL), // MODIFIED
 	mIsRunning(false),
 	mIsCapturing(false),
+	mPreviewFrameCallbackObj(NULL), // MODIFIED
 	captureQueu(NULL),
 	mFrameCallbackObj(NULL),
 	mFrameCallbackFunc(NULL),
@@ -286,6 +285,8 @@ int UVCPreview::setPreviewFrameCallback(JNIEnv *env, jobject frame_callback_obj,
 	RETURN(0, int);
 }
 
+
+
 void UVCPreview::callbackPixelFormatChanged() {
 	mFrameCallbackFunc = NULL;
 	const size_t sz = requestWidth * requestHeight;
@@ -310,12 +311,12 @@ void UVCPreview::callbackPixelFormatChanged() {
 		break;
 	  case PIXEL_FORMAT_YUV20SP:
 		LOGI("PIXEL_FORMAT_YUV20SP:");
-		mFrameCallbackFunc = uvc_yuyv2yuv420SP;
+		mFrameCallbackFunc = uvc_yuyv2iyuv420SP;
 		callbackPixelBytes = (sz * 3) / 2;
 		break;
 	  case PIXEL_FORMAT_NV21:
 		LOGI("PIXEL_FORMAT_NV21:");
-		mFrameCallbackFunc = uvc_yuyv2iyuv420SP;
+		mFrameCallbackFunc = uvc_yuyv2yuv420SP;
 		callbackPixelBytes = (sz * 3) / 2;
 		break;
 	}
@@ -369,7 +370,7 @@ int UVCPreview::startPreview() {
 		mIsRunning = true;
 		pthread_mutex_lock(&preview_mutex);
 		{
-			// MODIFIED
+            // MODIFIED
 			//if (LIKELY(mPreviewWindow)) {
 				result = pthread_create(&preview_thread, NULL, preview_thread_func, (void *)this);
 			//}
@@ -548,7 +549,6 @@ int UVCPreview::prepare_preview(uvc_stream_ctrl_t *ctrl) {
 
 void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 	ENTER();
-
 	// MODIFIED
 	JavaVM *vm = getVM();
 	JNIEnv *env;
@@ -571,13 +571,13 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 			for ( ; LIKELY(isRunning()) ; ) {
 				frame_mjpeg = waitPreviewFrame();
 				if (LIKELY(frame_mjpeg)) {
+                    // MODIFIED:
+                    // Insert omitted meta data to JPEG frames from some web-cameras
+                    // which output Motion-JPEG movie encoded with AVI format,
+                    // so that BitmapFactory class of Android API decodes and re-sizes JPEG frames.
+                    // (Motion-JPEG as AVI movie is often omitted huffman tables.)
+                    do_preview_pass_through_mjpeg(env, frame_mjpeg);
 
-					// MODIFIED:
-					// Insert omitted meta data to JPEG frames from some web-cameras
-					// which output Motion-JPEG movie encoded with AVI format,
-					// so that BitmapFactory class of Android API decodes and re-sizes JPEG frames.
-					// (Motion-JPEG as AVI movie is often omitted huffman tables.)
-					do_preview_pass_through_mjpeg(env, frame_mjpeg);
 
 					frame = get_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
 					result = uvc_mjpeg2yuyv(frame_mjpeg, frame);   // MJPEG => yuyv
@@ -594,11 +594,9 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 			// yuvyv mode
 			for ( ; LIKELY(isRunning()) ; ) {
 				frame = waitPreviewFrame();
-
 				if (LIKELY(frame)) {
-
-					// MODIFIED
-					do_preview_pass_through(env, frame);
+                    // MODIFIED
+                    do_preview_pass_through(env, frame);
 
 					frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
 					addCaptureFrame(frame);
@@ -616,7 +614,6 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 	} else {
 		uvc_perror(result, "failed start_streaming");
 	}
-
 	// MODIFIED
 	vm->DetachCurrentThread();
 

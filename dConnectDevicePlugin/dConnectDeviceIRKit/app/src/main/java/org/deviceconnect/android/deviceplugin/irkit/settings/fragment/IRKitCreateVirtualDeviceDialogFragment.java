@@ -155,6 +155,10 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * 仮想デバイスを追加する.
+     * @param device 追加する仮想デバイス
+     */
     private void sendEventOnAdded(final VirtualDeviceData device) {
         Activity activity = getActivity();
         if (activity == null) {

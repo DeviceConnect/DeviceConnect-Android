@@ -10,7 +10,7 @@
         "multipart/form-data"
     ],
     "paths": {
-        "/driveController/move": {
+        "/move": {
             "post": {
                 "x-type": "one-shot",
                 "summary": "",

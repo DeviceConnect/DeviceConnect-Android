@@ -145,11 +145,11 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mUsbEventReceiver, filter);
 
-        // USBが接続されている可能性があるので、初期化処理を行う
-        initUsbDevice();
-
         // FaBoサービスを登録.
         getServiceProvider().addService(new FaBoService());
+
+        // USBが接続されている可能性があるので、初期化処理を行う
+        initUsbDevice();
     }
 
     @Override
@@ -233,10 +233,12 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             Log.i(TAG, "----------------------------------------");
         }
 
+        /*
         if (mFaBoUsbManager != null) {
             Log.e(TAG, "FaboUsbManager already exists.");
             return;
         }
+        */
 
         mFaBoUsbManager = new FaBoUsbManager(this);
         mFaBoUsbManager.setParameter(FaBoUsbConst.BAUNDRATE_57600,
@@ -353,13 +355,23 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         if (DEBUG) {
             Log.i(TAG, "initUsbDevice");
         }
+        DConnectService service = getServiceProvider().getService(FaBoService.SERVICE_ID);
+        if (service != null) {
+            Log.i(TAG, "setOnline false");
+            service.setOnline(false);
+        }
+
+        setStatus(FaBoConst.STATUS_FABO_INIT);
 
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+
+
         for (final UsbDevice device : deviceList.values()) {
             switch (device.getVendorId()) {
                 case FaBoUsbConst.ARDUINO_UNO_VID:
                 case FaBoUsbConst.ARDUINO_CC_UNO_VID:
+                    Log.w(TAG, "find device connecting arduino");
                     openUsb(device);
                     break;
 
@@ -372,6 +384,12 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                     break;
             }
         }
+
+        Log.w(TAG, "USB out!!");
+
+
+
+
     }
 
     /**

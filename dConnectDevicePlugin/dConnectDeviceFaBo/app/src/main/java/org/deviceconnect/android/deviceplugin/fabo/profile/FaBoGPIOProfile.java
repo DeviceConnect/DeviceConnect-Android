@@ -19,7 +19,6 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.message.DConnectMessage;
 
 import static org.deviceconnect.message.DConnectMessage.RESULT_OK;
 
@@ -50,15 +49,6 @@ public class FaBoGPIOProfile extends GPIOProfile {
      * GPIOのLow.
      */
     private final static int LOW = 0;
-
-    private final byte DRV8830_FORWARD = 0x01;
-    private final byte DRV8830_BACK = 0x02;
-    private final byte DRV8830_STOP = 0x00;
-    private final byte DRV8830_ADDRESS = 0x64;
-
-    public float arduino_map(float x, float in_min, float in_max, float out_min, float out_max) {
-        return (x - in_min)*(out_max - out_min) / (in_max - in_min) + out_min;
-    }
 
     private void addGetAnalogApi(final ArduinoUno.Pin pin) {
         // GET /gpio/analog/{pinName}
@@ -415,7 +405,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
             bytes[0] = (byte) (CMD_DIGITAL_WRITE | port);
             bytes[1] = (byte) (status & 0xff);
             bytes[2] = (byte) ((status >> 8) & 0xff);
-            service.SendMessage(bytes);
+            service.sendMessage(bytes);
             service.setPortStatus(port, status);
         } else if(hl == LOW){
             int status = service.getPortStatus(port) & ~pinBit;
@@ -423,7 +413,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
             bytes[0] = (byte) (CMD_DIGITAL_WRITE | port);
             bytes[1] = (byte) (status & 0xff);
             bytes[2] = (byte) ((status >> 8) & 0xff);
-            service.SendMessage(bytes);
+            service.sendMessage(bytes);
             service.setPortStatus(port, status);
         }
     }
@@ -444,7 +434,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         bytes[2] = (byte) pinNo;
         bytes[3] = (byte) value;
         bytes[4] = (byte) FirmataV32.END_SYSEX;
-        service.SendMessage(bytes);
+        service.sendMessage(bytes);
     }
 
     /**
@@ -462,7 +452,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         command[1] = (byte) (pinNo);
         command[2] = (byte) (mode);
 
-        service.SendMessage(command);
+        service.sendMessage(command);
         service.setPin(pinNo, mode);
     }
 }

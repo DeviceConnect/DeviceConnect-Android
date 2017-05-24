@@ -7,7 +7,7 @@ import org.deviceconnect.android.service.DConnectService;
 
 public class FaBoService extends DConnectService {
 
-    private static final String SERVICE_ID = "gpio_service_id";
+    public static final String SERVICE_ID = "gpio_service_id";
 
     private static final String DEVICE_NAME = "FaBo Device";
 
@@ -15,7 +15,7 @@ public class FaBoService extends DConnectService {
         super(SERVICE_ID);
         setName(DEVICE_NAME);
         setNetworkType(NetworkType.UNKNOWN);
-        setOnline(false);
+        setOnline(true);
         addProfile(new FaBoGPIOProfile());
         addProfile(new FaBoDriveControllerProfile());
     }

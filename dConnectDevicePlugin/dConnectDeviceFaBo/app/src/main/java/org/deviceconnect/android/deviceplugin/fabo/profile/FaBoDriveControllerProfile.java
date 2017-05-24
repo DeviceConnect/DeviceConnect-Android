@@ -9,154 +9,138 @@ package org.deviceconnect.android.deviceplugin.fabo.profile;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
-import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
+import org.deviceconnect.android.deviceplugin.fabo.device.RobotCar;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.message.DConnectMessage;
 
-import static org.deviceconnect.message.DConnectMessage.RESULT_OK;
+import io.fabo.serialkit.FaBoUsbManager;
 
 /**
  * GPIO Profile.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class FaBoDriveControllerProfile extends DConnectProfile {
 
     private final static String TAG = "FABO_PLUGIN";
 
-    private String PROFILE_NAME = "driveController";
+    public FaBoDriveControllerProfile() {
+        // PUT /driveController/rotate
+        addApi(new PutApi() {
+            @Override
+            public String getAttribute() {
+                return "rotate";
+            }
 
-    private String ATTRIBUTE_MOVE = "move";
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                Float angle = parseFloat(request, "angle");
 
-    /** Forward command(I2C). */
-    private final byte DRV8830_FORWARD = 0x01;
+                RobotCar robotCar = getRobotCar();
+                if (robotCar == null) {
+                    MessageUtils.setIllegalDeviceStateError(response);
+                    return true;
+                }
 
-    /** Back command(I2C). */
-    private final byte DRV8830_BACK = 0x02;
+                if (angle != null) {
+                    robotCar.turnHandle(calcAngle(angle));
+                }
 
-    /** Stop command(I2C). */
-    private final byte DRV8830_STOP = 0x00;
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            }
+        });
 
-    /** Slave address(I2C). */
-    private final byte DRV8830_ADDRESS = 0x64;
-
-    /** Message. */
-    private final static String PARAM_MSG = "msg";
-
-
-    public float arduino_map(float x, float in_min, float in_max, float out_min, float out_max) {
-        return (x - in_min)*(out_max - out_min) / (in_max - in_min) + out_min;
-    }
-
-    // Motor Driver
-    private void addGetDriveControllerApi() {
-
-        // POST /driveController/move/
+        // POST /driveController/move
         addApi(new PostApi() {
             @Override
             public String getAttribute() {
-                return ATTRIBUTE_MOVE;
+                return "move";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                Float angle = parseFloat(request, "angle");
+                Float speed = parseFloat(request, "speed");
+
+                RobotCar robotCar = getRobotCar();
+                if (robotCar == null) {
+                    MessageUtils.setIllegalDeviceStateError(response);
+                    return true;
+                }
+
+                if (speed != null) {
+                    if (speed == 0) {
+                        robotCar.stop();
+                    } else if (speed > 0) {
+                        robotCar.goForward(speed);
+                    } else {
+                        robotCar.goBack(Math.abs(speed));
+                    }
+                }
+
+                if (angle != null) {
+                    robotCar.turnHandle(calcAngle(angle));
+                }
+
+                setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
-
         });
-    }
 
-    // Motor Driver
-    private void addPostDriveControllerApi() {
-
-        // POST /driveController/move/
-         addApi(new PostApi() {
+        addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
-                return ATTRIBUTE_MOVE;
+                return "move";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                int angleValue;
-                float moveValue;
-                String msg = "";
-                String angle = request.getStringExtra("angle");
-                String move = request.getStringExtra("move");
-                if(angle != null) {
-                    try {
-                        angleValue = Integer.parseInt(angle);
-                        if (angleValue < -360 || angleValue > 360) {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of angle must be defined from -360 to 360.");
-                            return true;
-                        }
-
-                    } catch (Exception e) {
-                        MessageUtils.setInvalidRequestParameterError(response, "The value of angle must be defined from -360 to 360.");
-                        return true;
-                    }
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response, "The value of angle is null.");
+                RobotCar robotCar = getRobotCar();
+                if (robotCar == null) {
+                    MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
-                if(move != null) {
-                    try {
-                        moveValue = Float.parseFloat(move);
-                        if (moveValue < -1 || moveValue > 1) {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of move must be defined from -1 to 1.");
-                            return true;
-                        }
-
-                        int direction = 0;
-                        if(moveValue < 0) {
-                            direction = DRV8830_BACK;
-                            moveValue = arduino_map(moveValue, 0, 1.0f, 0, 56.0f);
-                            msg = moveValue + "で更新";
-                        } else if(moveValue > 0) {
-                            direction = DRV8830_FORWARD;
-                            moveValue = arduino_map(moveValue, 0, -1.0f, 0, 56.0f);
-                            msg = moveValue + "で前進";
-                        } else if(moveValue == 0) {
-                            moveValue = 0;
-                            direction = DRV8830_STOP;
-                            msg = "停止";
-                        }
-                        byte[] configCommandData = {FirmataV32.START_SYSEX, FirmataV32.I2C_CONFIG, (byte)0x00, (byte)0x00, FirmataV32.END_SYSEX};
-                        ((FaBoDeviceService) getContext()).SendMessage(configCommandData);
-
-                        byte speedLsb = (byte)((((int)moveValue << 2) | direction) & 0x7f);
-                        byte speedMsb = (byte)(((((int)moveValue << 2) | direction) >> 7 )& 0x7f);
-
-                        byte[] commandData = {FirmataV32.START_SYSEX, FirmataV32.I2C_REQUEST, DRV8830_ADDRESS, 0x00, 0x00, 0x00, speedLsb, speedMsb, FirmataV32.END_SYSEX};
-                        ((FaBoDeviceService) getContext()).SendMessage(commandData);
-
-                    } catch (Exception e) {
-                        MessageUtils.setInvalidRequestParameterError(response, "The value of move must be defined from -1 to 1.");
-                        return true;
-                    }
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response, "The value of move is null.");
-                    return true;
-                }
-                setMessage(response, msg);
-                setResult(response, RESULT_OK);
+                robotCar.stop();
                 return true;
             }
         });
-    }
-
-    public static void setMessage(final Intent message, final String msg) {
-        message.putExtra(PARAM_MSG, msg);
-    }
-
-    public FaBoDriveControllerProfile() {
-        addPostDriveControllerApi();
-        addGetDriveControllerApi();
     }
 
     @Override
     public String getProfileName() {
-        return PROFILE_NAME;
+        return "driveController";
+    }
+
+    /**
+     * 角度(-360〜360)を-1.0〜1.0の範囲に変換します.
+     * @param angle 角度
+     * @return 返還後の値
+     */
+    private float calcAngle(final float angle) {
+        if (angle > 360) {
+            return 1.0f;
+        }
+        if (angle < -360) {
+            return -1.0f;
+        }
+        return angle / 360.0f;
+    }
+
+    /**
+     * RobotCarのインスタンスを取得します.
+     * @return RobotCarのインスタンス
+     */
+    private RobotCar getRobotCar() {
+        FaBoUsbManager manager = ((FaBoDeviceService) getContext()).getFaBoUsbManager();
+        if (manager == null) {
+            return null;
+        }
+
+        return new RobotCar(manager);
     }
 }

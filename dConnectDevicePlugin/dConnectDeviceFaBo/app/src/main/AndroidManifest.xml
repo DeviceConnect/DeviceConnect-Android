@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.fabo">
+          package="org.deviceconnect.android.deviceplugin.fabo">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-feature android:name="android.hardware.usb.host"/>
 
     <application
         android:allowBackup="true"
@@ -13,16 +13,16 @@
         android:theme="@style/AppTheme">
 
         <!-- Device Connect Example Device Plugin Provider. -->
-        <receiver android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceProvider" >
+        <receiver android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceProvider">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_fabo" />
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_fabo"/>
 
             <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
+                <action android:name="org.deviceconnect.action.GET"/>
+                <action android:name="org.deviceconnect.action.PUT"/>
+                <action android:name="org.deviceconnect.action.POST"/>
+                <action android:name="org.deviceconnect.action.DELETE"/>
                 <!-- uninstall notification -->
                 <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
                 <data android:scheme="package"/>
@@ -31,29 +31,18 @@
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService"
-            android:exported="false" >
-        </service>
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
+            </intent-filter>
 
-        <!-- 再起動用のService. -->
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true" >
             <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable" />
-        </service>
-
-        <!-- Local OAuth -->
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true" >
-        </activity>
-        <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
-        </activity>
-
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false" >
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter"/>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
+                android:resource="@xml/device_filter"/>
         </service>
 
         <activity
@@ -61,12 +50,16 @@
             android:label="@string/app_name"
             android:launchMode="singleInstance">
             <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
             </intent-filter>
 
-            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter"/>
         </activity>
     </application>
 

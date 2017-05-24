@@ -92,6 +92,7 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
             }
         });
 
+        // DELETE /driveController/move
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {

@@ -108,7 +108,7 @@
                         "in": "formData",
                         "required": true,
                         "type": "number",
-                        "minimum": 0,
+                        "minimum": -360,
                         "maximum": 360
                     }
                 ],

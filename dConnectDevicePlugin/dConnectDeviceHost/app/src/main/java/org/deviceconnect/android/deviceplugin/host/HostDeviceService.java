@@ -40,7 +40,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewSer
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -95,9 +94,6 @@ public class HostDeviceService extends DConnectMessageService {
 
         // Manager同梱のため、LocalOAuthを無効化
         setUseLocalOAuth(false);
-
-        // EventManagerの初期化
-        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
@@ -344,8 +340,8 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     /**
-     *
-     * @return
+     * 加速度センサーを端末がサポートしているチェックします.
+     * @return 加速度センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkSensorHardware() {
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||

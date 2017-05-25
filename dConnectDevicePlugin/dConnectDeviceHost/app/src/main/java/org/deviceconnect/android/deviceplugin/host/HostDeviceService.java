@@ -316,7 +316,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     /**
-     * カメラを端末がサポートしているチェックします.
+     * カメラを端末がサポートしているかチェックします.
      * @return カメラをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkCameraHardware() {
@@ -324,7 +324,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     /**
-     * 位置情報を端末がサポートしているチェックします.
+     * 位置情報を端末がサポートしているかチェックします.
      * @return 位置情報をサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkLocationHardware() {
@@ -332,7 +332,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     /**
-     * 近接センサーを端末がサポートしているチェックします.
+     * 近接センサーを端末がサポートしているかチェックします.
      * @return 近接センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkProximityHardware() {
@@ -340,7 +340,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     /**
-     * 加速度センサーを端末がサポートしているチェックします.
+     * 加速度センサーを端末がサポートしているかチェックします.
      * @return 加速度センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkSensorHardware() {

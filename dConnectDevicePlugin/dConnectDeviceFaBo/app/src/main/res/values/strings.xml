@@ -6,7 +6,7 @@
     <string name="can_not_open_usb" translatable="false">USBデバイスが開けませんでした。</string>
     <string name="page_1" translatable="false">Arduino Uno接続設定</string>
     <string name="page_2" translatable="false">Firmataファームウェア転送</string>
-    <string name="setting_message_1_1" translatable="false">Arduino Uno(Arduino.cc製)とAndroidをUSB接続します。Arduino.org製のArduino Unoには非対応です。</string>
+    <string name="setting_message_1_1" translatable="false">Arduino Unoと接続してください。</string>
     <string name="setting_message_2_1" translatable="false">FirmataデバイスとAndroid UnoをUSB接続します。接続に設定するとFirmataファームウェアを転送ボタンが出てくるので選択します。</string>
     <string name="button_connect" translatable="false">Arduino Unoと接続</string>
     <string name="button_sendfirmata" translatable="false">Firmataファームウェアを転送</string>

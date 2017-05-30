@@ -44,15 +44,16 @@ android:orientation="vertical" >
             android:textColor="@color/text_dark"
             android:textSize="@dimen/text_description" />
 
-        <Button
-            android:id="@+id/outputButton"
+        <TextView
+            android:id="@+id/textViewLog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:background="@drawable/button_blue"
-            android:text="@string/button_connect"
-            android:enabled="false"
-            android:textColor="@drawable/button_blue_text"
+            android:text=""
+            android:textColor="@color/text_light"
+            android:textSize="@dimen/text_description"
+            android:lines="3"
+            android:background="#cccccc"
             />
 
         <TextView
@@ -66,7 +67,6 @@ android:orientation="vertical" >
             android:lines="5"
             android:background="#000000"
             />
-
 
     </LinearLayout>
 </ScrollView>

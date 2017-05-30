@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -121,6 +122,12 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      */
     private int mStatus;
 
+    /**
+     * RobotTypeを保持.
+     */
+    private int mRobotType;
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -136,6 +143,9 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         for (int i = 14; i < 20; i++) {
             mPinMode[i] = FirmataV32.PIN_MODE_ANALOG;
         }
+
+        // DefaultでMouse型
+        mRobotType = 0;
 
         // USBのEvent用のBroadcast Receiverを設定.
         IntentFilter filter = new IntentFilter();
@@ -230,25 +240,29 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             Log.i(TAG, "----------------------------------------");
             Log.i(TAG, "Open USB.");
             Log.i(TAG, "DeviceName: " + usbDevice.getDeviceName());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Log.i(TAG, "DeviceProductName: " + usbDevice.getProductName());
+            }
             Log.i(TAG, "----------------------------------------");
         }
 
-        /*
-        if (mFaBoUsbManager != null) {
-            Log.e(TAG, "FaboUsbManager already exists.");
-            return;
-        }
-        */
 
-        mFaBoUsbManager = new FaBoUsbManager(this);
-        mFaBoUsbManager.setParameter(FaBoUsbConst.BAUNDRATE_57600,
-                FaBoUsbConst.PARITY_NONE,
-                FaBoUsbConst.STOP_1,
-                FaBoUsbConst.FLOW_CONTROL_OFF,
-                FaBoUsbConst.BITRATE_8);
-        mFaBoUsbManager.setListener(this);
-        mFaBoUsbManager.checkDevice(usbDevice);
-        mFaBoUsbManager.connection(usbDevice);
+        if (mFaBoUsbManager != null) {
+            mFaBoUsbManager.closeConnection();
+            mFaBoUsbManager.checkDevice(usbDevice);
+            mFaBoUsbManager.connection(usbDevice);
+            return;
+        } else {
+            mFaBoUsbManager = new FaBoUsbManager(this);
+            mFaBoUsbManager.setParameter(FaBoUsbConst.BAUNDRATE_57600,
+                    FaBoUsbConst.PARITY_NONE,
+                    FaBoUsbConst.STOP_1,
+                    FaBoUsbConst.FLOW_CONTROL_OFF,
+                    FaBoUsbConst.BITRATE_8);
+            mFaBoUsbManager.setListener(this);
+            mFaBoUsbManager.checkDevice(usbDevice);
+            mFaBoUsbManager.connection(usbDevice);
+        }
     }
 
     /**
@@ -293,6 +307,11 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      */
     private void onDeviceStateChange() {
         setStatus(FaBoConst.STATUS_FABO_INIT);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         // FirmataのVersion取得のコマンドを送付
         byte command[] = {(byte) 0xF9};
@@ -303,7 +322,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         mDigitalPortStatus[1] = 0; // 0000 0000
         mDigitalPortStatus[2] = 0; // 0000 0000
 
-        // 3秒たってFirmataを検出できない場合はエラー.
+        // 5秒たってFirmataを検出できない場合はエラー.
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
             @Override
@@ -313,7 +332,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                     setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
                 }
             }
-        }, 3000);
+        }, 5000);
 
         // Statusをinitへ.
         setStatus(FaBoConst.STATUS_FABO_INIT);
@@ -355,6 +374,8 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         if (DEBUG) {
             Log.i(TAG, "initUsbDevice");
         }
+
+
         DConnectService service = getServiceProvider().getService(FaBoService.SERVICE_ID);
         if (service != null) {
             Log.i(TAG, "setOnline false");
@@ -384,12 +405,6 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                     break;
             }
         }
-
-        Log.w(TAG, "USB out!!");
-
-
-
-
     }
 
     /**
@@ -435,7 +450,10 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      * @param mByte Byte型のメッセージ
      */
     public void sendMessage(final byte[] mByte) {
-        mFaBoUsbManager.writeBuffer(mByte);
+        Log.i(TAG, "sendMessage:" + mByte.length);
+        if(mByte != null) {
+            mFaBoUsbManager.writeBuffer(mByte);
+        }
     }
 
     /**
@@ -566,6 +584,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         }
 
         if (status == FaBoUsbConst.CONNECTED) {
+            Log.i(TAG, "onStatusChanged:CONNECTED");
             onDeviceStateChange();
         }
     }
@@ -657,6 +676,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             }
 
             while (!mStopFlag) {
+
                 for (int s = 0; s < mServiceIdStore.size(); s++) {
                     String serviceId = mServiceIdStore.get(s);
                     List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
@@ -665,6 +685,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                     synchronized (events) {
                         for (Event event : events) {
                             Bundle pins = new Bundle();
+
                             for (int i = 0; i < mPinMode.length; i++) {
                                 if (mPinMode[i] == FirmataV32.PIN_MODE_GPIO_IN) {
                                     pins.putInt("" + i, getGPIOValue(mPinPort[i], mPinBit[i]));
@@ -702,5 +723,13 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             mStopFlag = true;
             interrupt();
         }
+    }
+
+    public void setRobotType(int type) {
+        this.mRobotType = type;
+    }
+
+    public int getRobotType(){
+        return this.mRobotType;
     }
 }

@@ -7,6 +7,7 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.fabo.profile;
 
 import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.device.RobotCar;
@@ -19,6 +20,8 @@ import org.deviceconnect.message.DConnectMessage;
 
 import io.fabo.serialkit.FaBoUsbManager;
 
+import static android.R.attr.angle;
+
 /**
  * GPIO Profile.
  *
@@ -27,6 +30,7 @@ import io.fabo.serialkit.FaBoUsbManager;
 public class FaBoDriveControllerProfile extends DConnectProfile {
 
     private final static String TAG = "FABO_PLUGIN";
+    private final static String PARAM_MSG = "msg";
 
     public FaBoDriveControllerProfile() {
         // PUT /driveController/rotate
@@ -39,8 +43,9 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 Float angle = parseFloat(request, "angle");
+                int type = ((FaBoDeviceService) getContext()).getRobotType();
 
-                RobotCar robotCar = getRobotCar();
+                RobotCar robotCar = getRobotCar(type);
                 if (robotCar == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
@@ -66,25 +71,47 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 Float angle = parseFloat(request, "angle");
                 Float speed = parseFloat(request, "speed");
-
-                RobotCar robotCar = getRobotCar();
+                int type = ((FaBoDeviceService) getContext()).getRobotType();
+                RobotCar robotCar = getRobotCar(type);
                 if (robotCar == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
-
-                if (speed != null) {
-                    if (speed == 0) {
-                        robotCar.stop();
-                    } else if (speed > 0) {
-                        robotCar.goForward(speed);
-                    } else {
-                        robotCar.goBack(Math.abs(speed));
+                Log.i(TAG,"type=" + type);
+                if(type == robotCar.TYPE_CAR) {
+                    Log.i(TAG,"TYPE_CAR");
+                    if (speed != null) {
+                        if (speed == 0) {
+                            robotCar.stop();
+                        } else if (speed > 0) {
+                            robotCar.goForward(speed);
+                        } else {
+                            robotCar.goBack(Math.abs(speed));
+                        }
                     }
-                }
 
-                if (angle != null) {
-                    robotCar.turnHandle(calcAngle(angle));
+                    if (angle != null) {
+                        robotCar.turnHandle(calcAngle(angle));
+                    }
+                } else if(type == robotCar.TYPE_MOUSE) {
+                    float speed_right = 0;
+                    float speed_left = 0;
+                    if(angle >= 0) {
+                        float gain = angle / 360;
+                        //Log.i(TAG, "angele + gain:" + gain);
+                        speed_right = speed;
+                        speed_left = speed * (1-gain);
+
+                    } else {
+                        float gain = - angle / 360;
+                        //Log.i(TAG, "angle - gain:" + gain);
+                        speed_right = speed * (1-gain);
+                        speed_left = speed;
+                    }
+                    Log.i(TAG, "" + speed_right);
+                    Log.i(TAG, "" + speed_left);
+
+                    robotCar.moveMouse(speed_right, speed_left);
                 }
 
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -101,12 +128,38 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                RobotCar robotCar = getRobotCar();
+                int type = ((FaBoDeviceService) getContext()).getRobotType();
+                RobotCar robotCar = getRobotCar(type);
                 if (robotCar == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
                 robotCar.stop();
+                return true;
+            }
+        });
+
+        // POST /driveController/setType
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "setType";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                Integer type = parseInteger(request, "type");
+
+                if (type == null) {
+                    MessageUtils.setIllegalDeviceStateError(response);
+                    return true;
+                }
+
+                ((FaBoDeviceService) getContext()).setRobotType(type);
+
+                String[] typeStr = {"マウス型","ラジコン型"};
+                setMessage(response, "RobotTypeを" + typeStr[type] + "(" + type + ")に設定しました。");
+                setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
@@ -136,12 +189,16 @@ public class FaBoDriveControllerProfile extends DConnectProfile {
      * RobotCarのインスタンスを取得します.
      * @return RobotCarのインスタンス
      */
-    private RobotCar getRobotCar() {
+    private RobotCar getRobotCar(int type) {
         FaBoUsbManager manager = ((FaBoDeviceService) getContext()).getFaBoUsbManager();
         if (manager == null) {
             return null;
         }
 
-        return new RobotCar(manager);
+        return new RobotCar(manager, type);
+    }
+
+    private void setMessage(final Intent message, final String msg) {
+        message.putExtra(PARAM_MSG, msg);
     }
 }

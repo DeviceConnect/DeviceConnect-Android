@@ -7,6 +7,7 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.fabo.profile;
 
 import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
@@ -317,6 +318,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
+
                     digitalWrite(pin.getPort(), pin.getBit(), HIGH);
                     setMessage(response, pinName + "の値をHIGH(1)に変更");
                     setResult(response, RESULT_OK);

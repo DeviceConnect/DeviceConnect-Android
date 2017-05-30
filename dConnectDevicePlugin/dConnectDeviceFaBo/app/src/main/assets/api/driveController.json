@@ -128,6 +128,45 @@
                     }
                 }
             }
+        },
+        "/setType": {
+            "post": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスのタイプを指定。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "description": "スマートデバイスのタイプ",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number",
+                        "enum": [0, 1]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DriveControllerRotateResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

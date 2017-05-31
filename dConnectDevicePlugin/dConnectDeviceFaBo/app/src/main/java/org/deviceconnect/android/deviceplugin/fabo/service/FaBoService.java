@@ -6,9 +6,7 @@ import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 public class FaBoService extends DConnectService {
-
-    public static final String SERVICE_ID = "gpio_service_id";
-
+    private static final String SERVICE_ID = "gpio_service_id";
     private static final String DEVICE_NAME = "FaBo Device";
 
     public FaBoService() {

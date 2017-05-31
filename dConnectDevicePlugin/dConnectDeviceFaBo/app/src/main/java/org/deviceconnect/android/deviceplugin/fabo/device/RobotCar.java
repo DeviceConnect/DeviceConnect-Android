@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
-import android.util.Log;
-
 import io.fabo.serialkit.FaBoUsbManager;
 
 /**
@@ -88,7 +86,6 @@ public class RobotCar {
         int pwm = calcHandleDirection(direction);
         byte pwmLsb = (byte)(pwm & 0x7f);
         byte pwmMsb = (byte)((pwm >> 7) & 0x7f);
-        Log.e("ABC", "turnHandle : " + direction + " " + pwm);
         byte[] commandSend = {
                 START_SYSEX,
                 EXTENDED_ANALOG,
@@ -147,34 +144,33 @@ public class RobotCar {
      */
     public void moveMouse(final float speed_right, final float speed_left) {
         setI2CConfig();
+
         int right_dir = 0;
         int left_dir = 0;
         float tmp_speed_left = 0;
         float tmp_speed_right = 0;
 
-        if(speed_right > 0){
+        if (speed_right > 0) {
             right_dir = DRV8830_BACK;
             //right_dir = DRV8830_FORWARD;
             tmp_speed_right = speed_right;
-        } else if(speed_right < 0) {
+        } else if (speed_right < 0) {
             right_dir = DRV8830_FORWARD;
             //right_dir = DRV8830_BACK;
             tmp_speed_right = -speed_right;
         }
 
-        if(speed_left > 0){
+        if (speed_left > 0) {
             left_dir = DRV8830_BACK;
             //left_dir = DRV8830_FORWARD;
             tmp_speed_left = speed_left;
-        } else if(speed_left < 0) {
+        } else if (speed_left < 0) {
             left_dir = DRV8830_FORWARD;
             //left_dir = DRV8830_BACK;
             tmp_speed_left = -speed_left;
         }
 
-
         moveMotor((right_dir | ((calcSpeed(tmp_speed_right) + 5) << 2)), (left_dir | ((calcSpeed(tmp_speed_left) + 5) << 2)));
-
     }
 
     /**
@@ -203,7 +199,6 @@ public class RobotCar {
      * @param value_right 右側のモーター
      */
     private void moveMotor(final int value_left, final int value_right) {
-
         byte[] commandDataLeft = {
                 START_SYSEX,
                 I2C_REQUEST,

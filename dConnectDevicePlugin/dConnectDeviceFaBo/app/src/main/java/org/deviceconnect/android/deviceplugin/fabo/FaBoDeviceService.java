@@ -18,6 +18,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.car.RobotCarService;
+import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.mouse.MouseCarService;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
@@ -55,7 +57,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     /**
      * Tag.
      */
-    private static final String TAG = "ABC";//"FABO_PLUGIN_SERVICE";
+    private static final String TAG = "FABO_PLUGIN_SERVICE";
 
     /**
      * ロガー.
@@ -157,6 +159,8 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
 
         // FaBoサービスを登録.
         getServiceProvider().addService(new FaBoService());
+        getServiceProvider().addService(new RobotCarService());
+        getServiceProvider().addService(new MouseCarService());
 
         // USBが接続されている可能性があるので、初期化処理を行う
         initUsbDevice();
@@ -233,6 +237,16 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
+     * DConnectServiceのOnline状況を設定します.
+     * @param online オンライン状態
+     */
+    private void setOnline(final boolean online) {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            service.setOnline(online);
+        }
+    }
+
+    /**
      * USBをOpenする.
      */
     private void openUsb(final UsbDevice usbDevice) {
@@ -283,10 +297,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         }
 
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-        DConnectService service = getServiceProvider().getService(FaBoService.SERVICE_ID);
-        if (service != null) {
-            service.setOnline(false);
-        }
+        setOnline(false);
     }
 
     /**
@@ -375,18 +386,12 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             Log.i(TAG, "initUsbDevice");
         }
 
-
-        DConnectService service = getServiceProvider().getService(FaBoService.SERVICE_ID);
-        if (service != null) {
-            Log.i(TAG, "setOnline false");
-            service.setOnline(false);
-        }
+        setOnline(false);
 
         setStatus(FaBoConst.STATUS_FABO_INIT);
 
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-
 
         for (final UsbDevice device : deviceList.values()) {
             switch (device.getVendorId()) {
@@ -602,10 +607,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                         intFirmata();
                         startWatchFirmata();
 
-                        DConnectService service = getServiceProvider().getService(FaBoService.SERVICE_ID);
-                        if (service != null) {
-                            service.setOnline(true);
-                        }
+                        setOnline(true);
                     }
                 }
             } else {

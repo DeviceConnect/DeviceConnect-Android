@@ -536,7 +536,10 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             mVirtualDisplay.release();
             mVirtualDisplay = null;
         }
-
+        if (mMediaProjection != null) {
+            mMediaProjection.stop();
+            mMediaProjection = null;
+        }
         if (mImageReader != null) {
             mImageReader.setOnImageAvailableListener(null, null);
             mImageReader.close();

@@ -348,21 +348,25 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                 }
             });
         } else {
-            stopScreenCast();
-
-            mHandler.postDelayed(new Runnable() {
+           mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    takePhoto(listener, new FinishCallback() {
+                    new Thread(new Runnable() {
                         @Override
-                        public void onFinish() {
-                            mHandler.postDelayed(new Runnable() {
-                                public void run() {
-                                    startScreenCast();
+                        public void run() {
+                            takePhotoInternal(new OnPhotoEventListener() {
+                                @Override
+                                public void onTakePhoto(final String uri, final String filePath) {
+                                    listener.onTakePhoto(uri, filePath);
                                 }
-                            }, 500);
+
+                                @Override
+                                public void onFailedTakePhoto() {
+                                    listener.onFailedTakePhoto();
+                                }
+                            });
                         }
-                    });
+                    }).start();
                 }
             }, 500);
         }
@@ -536,7 +540,10 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             mVirtualDisplay.release();
             mVirtualDisplay = null;
         }
-
+        if (mMediaProjection != null) {
+            mMediaProjection.stop();
+            mMediaProjection = null;
+        }
         if (mImageReader != null) {
             mImageReader.setOnImageAvailableListener(null, null);
             mImageReader.close();

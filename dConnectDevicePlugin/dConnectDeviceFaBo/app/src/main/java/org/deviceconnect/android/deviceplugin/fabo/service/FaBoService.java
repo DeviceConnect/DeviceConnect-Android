@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.fabo.service;
 
-
-import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -15,6 +13,5 @@ public class FaBoService extends DConnectService {
         setNetworkType(NetworkType.UNKNOWN);
         setOnline(true);
         addProfile(new FaBoGPIOProfile());
-        addProfile(new FaBoDriveControllerProfile());
     }
 }

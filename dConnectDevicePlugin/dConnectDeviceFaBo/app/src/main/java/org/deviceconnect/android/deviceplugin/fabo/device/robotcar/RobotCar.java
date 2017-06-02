@@ -1,7 +1,4 @@
-package org.deviceconnect.android.deviceplugin.fabo.device.robotcar.car;
-
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.BaseRobotCar;
-
+package org.deviceconnect.android.deviceplugin.fabo.device.robotcar;
 
 public class RobotCar extends BaseRobotCar {
     /**

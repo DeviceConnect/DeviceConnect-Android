@@ -5,4 +5,7 @@
     <profile name="system" />
     <profile name="gpio" />
     <profile name="driveController" />
+    <profile name="light" />
+    <profile name="temperature" />
+    <profile name="vibration" />
 </deviceplugin-provider>

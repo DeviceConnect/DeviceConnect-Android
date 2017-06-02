@@ -1,6 +1,4 @@
-package org.deviceconnect.android.deviceplugin.fabo.device.robotcar.mouse;
-
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.BaseRobotCar;
+package org.deviceconnect.android.deviceplugin.fabo.device.robotcar;
 
 public class MouseCar extends BaseRobotCar {
 
@@ -19,21 +17,17 @@ public class MouseCar extends BaseRobotCar {
 
         if (speed_right > 0) {
             right_dir = DRV8830_BACK;
-            //right_dir = DRV8830_FORWARD;
             tmp_speed_right = speed_right;
         } else if (speed_right < 0) {
             right_dir = DRV8830_FORWARD;
-            //right_dir = DRV8830_BACK;
             tmp_speed_right = -speed_right;
         }
 
         if (speed_left > 0) {
             left_dir = DRV8830_BACK;
-            //left_dir = DRV8830_FORWARD;
             tmp_speed_left = speed_left;
         } else if (speed_left < 0) {
             left_dir = DRV8830_FORWARD;
-            //left_dir = DRV8830_BACK;
             tmp_speed_left = -speed_left;
         }
 

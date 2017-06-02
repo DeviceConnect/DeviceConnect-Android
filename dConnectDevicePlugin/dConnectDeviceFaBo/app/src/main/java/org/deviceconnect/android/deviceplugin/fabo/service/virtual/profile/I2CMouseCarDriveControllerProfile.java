@@ -1,9 +1,9 @@
-package org.deviceconnect.android.deviceplugin.fabo.device.robotcar.mouse.profile;
+package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.mouse.MouseCar;
+import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.MouseCar;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -13,11 +13,20 @@ import org.deviceconnect.message.DConnectMessage;
 
 import io.fabo.serialkit.FaBoUsbManager;
 
-public class MouseCarDriveControllerProfile extends DConnectProfile {
+/**
+ * RobotCar (Mouseタイプ)を操作するためのDriveControllerプロファイル.
+ */
+public class I2CMouseCarDriveControllerProfile extends DConnectProfile {
 
+    /**
+     * Mouse型RobotCarの操作を行う便利クラス.
+     */
     private MouseCar mMouseCar = new MouseCar();
 
-    public MouseCarDriveControllerProfile() {
+    /**
+     * コンストラクタ.
+     */
+    public I2CMouseCarDriveControllerProfile() {
         // PUT /driveController/rotate
         addApi(new PutApi() {
             @Override
@@ -105,20 +114,12 @@ public class MouseCarDriveControllerProfile extends DConnectProfile {
     }
 
     /**
-     * 角度(-360〜360)を-1.0〜1.0の範囲に変換します.
-     * @param angle 角度
-     * @return 返還後の値
+     * 接続されているFaBoを操作するためのFaBoUsbManagerを取得します.
+     * <p>
+     * 接続されていない場合にはnullを返却します。
+     * </p>
+     * @return FaBoUsbManagerのインスタンス
      */
-    private float calcAngle(final float angle) {
-        if (angle > 360) {
-            return 1.0f;
-        }
-        if (angle < -360) {
-            return -1.0f;
-        }
-        return angle / 360.0f;
-    }
-
     private FaBoUsbManager getFaBoUsbManager() {
         FaBoDeviceService service = (FaBoDeviceService) getContext();
         return service.getFaBoUsbManager();

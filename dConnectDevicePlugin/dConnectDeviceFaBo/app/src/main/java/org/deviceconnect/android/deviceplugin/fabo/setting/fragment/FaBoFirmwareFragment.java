@@ -24,7 +24,7 @@ import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
 import java.util.HashMap;
-import java.util.Iterator;
+
 import io.fabo.android.stk500.StkWriter;
 import io.fabo.android.stk500.StkWriterListenerInterface;
 import io.fabo.serialkit.FaBoUsbConst;
@@ -79,7 +79,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // Root view.
-        View root = inflater.inflate(R.layout.firmata, container, false);
+        View root = inflater.inflate(R.layout.fragment_fabo_firmata, container, false);
 
         // Get context.
         mContext = getActivity().getBaseContext();

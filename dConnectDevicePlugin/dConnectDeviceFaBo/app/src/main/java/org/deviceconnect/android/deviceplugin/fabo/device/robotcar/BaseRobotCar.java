@@ -60,6 +60,9 @@ public class BaseRobotCar {
         if (speed < 0) {
             return 0;
         }
+        if (speed > 1.0f) {
+            return MAX_MOTOR;
+        }
         return (int) (MAX_MOTOR * speed);
     }
 

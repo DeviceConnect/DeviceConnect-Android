@@ -28,4 +28,8 @@
     <string name="firmware_start_send" translatable="false">ファームウェア転送を開始します。3-5秒程度の時間がかかります。</string>
     <string name="firmware_failed_send" translatable="false">ファームウェアの転送に失敗。\n\nArdino Unoと接続ボタンを押し、再度転送しなおしてください。</string>
     <string name="firmware_success_send" translatable="false">ファームウェアの転送に成功。</string>
+
+    <string name="activity_fabo_virtual_service_id" translatable="false">サービスID</string>
+    <string name="activity_fabo_virtual_service_name" translatable="false">サービス名</string>
+    <string name="activity_fabo_virtual_service_profile" translatable="false">プロファイル</string>
 </resources>

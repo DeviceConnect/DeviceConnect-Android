@@ -21,13 +21,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
-import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
 
 import java.util.HashMap;
 
@@ -70,7 +68,7 @@ public class FaBoConnectFragment extends Fragment {
         Log.i(DEBUG, "onCreateView");
 
         // Root view.
-        View root = inflater.inflate(R.layout.connect, container, false);
+        View root = inflater.inflate(R.layout.fragment_fabo_connect, container, false);
 
         // Get context.
         mContext = getActivity().getBaseContext();

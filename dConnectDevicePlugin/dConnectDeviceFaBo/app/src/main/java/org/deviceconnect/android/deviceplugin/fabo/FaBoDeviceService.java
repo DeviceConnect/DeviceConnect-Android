@@ -18,14 +18,16 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.car.RobotCarService;
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.mouse.MouseCarService;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.FaBoService;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualServiceFactory;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.VirtualServiceDBHelper;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -57,7 +59,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     /**
      * Tag.
      */
-    private static final String TAG = "FABO_PLUGIN_SERVICE";
+    private static final String TAG = "FaBo";
 
     /**
      * ロガー.
@@ -72,12 +74,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     /**
      * Port status.
      */
-    private int mDigitalPortStatus[] = {0, 0, 0};
-
-    /**
-     * Analog pin values. A0-A5(Arduino UNO).
-     */
-    private int mAnalogPinValues[] = new int[20];
+    private int[] mDigitalPortStatus = {0, 0, 0};
 
     /**
      * 監視用Thread.
@@ -87,32 +84,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     /**
      * Version
      */
-    private static final int VERSION[] = {0x02, 0x05};
-
-    /**
-     * PinStatus.
-     */
-    private int[] mPinMode = new int[20];
-
-    /**
-     * PinPort.
-     */
-    private int mPinPort[] = {
-            ArduinoUno.PORT_D0, ArduinoUno.PORT_D1, ArduinoUno.PORT_D2, ArduinoUno.PORT_D3,
-            ArduinoUno.PORT_D4, ArduinoUno.PORT_D5, ArduinoUno.PORT_D6, ArduinoUno.PORT_D7,
-            ArduinoUno.PORT_D8, ArduinoUno.PORT_D9, ArduinoUno.PORT_D10, ArduinoUno.PORT_D11,
-            ArduinoUno.PORT_D12, ArduinoUno.PORT_D13
-    };
-
-    /**
-     * PinPort.
-     */
-    private int mPinBit[] = {
-            ArduinoUno.BIT_D0, ArduinoUno.BIT_D1, ArduinoUno.BIT_D2, ArduinoUno.BIT_D3,
-            ArduinoUno.BIT_D4, ArduinoUno.BIT_D5, ArduinoUno.BIT_D6, ArduinoUno.BIT_D7,
-            ArduinoUno.BIT_D8, ArduinoUno.BIT_D9, ArduinoUno.BIT_D10, ArduinoUno.BIT_D11,
-            ArduinoUno.BIT_D12, ArduinoUno.BIT_D13
-    };
+    private static final int[] VERSION = {0x02, 0x05};
 
     /**
      * ServiceIDを保持する.
@@ -125,29 +97,19 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     private int mStatus;
 
     /**
-     * RobotTypeを保持.
+     * 仮装サービスを管理するクラス.
      */
-    private int mRobotType;
-
+    private VirtualServiceDBHelper mDBHelper;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        mDBHelper = new VirtualServiceDBHelper(getApplicationContext());
+        test();
+
         // Set status.
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-
-        // pinモードの初期状態を保存.
-        for (int i = 0; i < 14; i++) {
-            mPinMode[i] = FirmataV32.PIN_MODE_GPIO_OUT;
-        }
-
-        for (int i = 14; i < 20; i++) {
-            mPinMode[i] = FirmataV32.PIN_MODE_ANALOG;
-        }
-
-        // DefaultでMouse型
-        mRobotType = 0;
 
         // USBのEvent用のBroadcast Receiverを設定.
         IntentFilter filter = new IntentFilter();
@@ -157,10 +119,9 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mUsbEventReceiver, filter);
 
-        // FaBoサービスを登録.
         getServiceProvider().addService(new FaBoService());
-        getServiceProvider().addService(new RobotCarService());
-        getServiceProvider().addService(new MouseCarService());
+
+        initVirtualService();
 
         // USBが接続されている可能性があるので、初期化処理を行う
         initUsbDevice();
@@ -223,6 +184,11 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         resetPluginResource();
     }
 
+    @Override
+    protected SystemProfile getSystemProfile() {
+        return new FaBoSystemProfile();
+    }
+
     /**
      * リソースリセット処理.
      */
@@ -231,9 +197,97 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         mServiceIdStore.clear();
     }
 
-    @Override
-    protected SystemProfile getSystemProfile() {
-        return new FaBoSystemProfile();
+    /**
+     * テスト用仮装データ
+     */
+    private void test() {
+        if (mDBHelper.getServiceDataList().isEmpty()) {
+            ServiceData serviceData = new ServiceData();
+            serviceData.setName("RobotCar(Car)");
+            serviceData.setServiceId("car_service_id");
+
+            ProfileData profileData = new ProfileData();
+            profileData.setServiceId("car_service_id");
+            profileData.setType(ProfileData.Type.I2C_ROBOT_DRIVE_CONTROLLER);
+            serviceData.addProfileData(profileData);
+
+            mDBHelper.addServiceData(serviceData);
+        }
+
+        if (mDBHelper.getServiceDataList().size() == 1) {
+            ServiceData serviceData = new ServiceData();
+            serviceData.setName("FaBo LED");
+            serviceData.setServiceId("led_service_id");
+
+            ProfileData profileData = new ProfileData();
+            profileData.setServiceId("led_service_id");
+            profileData.setType(ProfileData.Type.GPIO_LIGHT);
+            profileData.addPin(ArduinoUno.Pin.PIN_D2.getPinNumber());
+            profileData.addPin(ArduinoUno.Pin.PIN_D3.getPinNumber());
+            serviceData.addProfileData(profileData);
+
+            ProfileData vibration = new ProfileData();
+            vibration.setServiceId("led_service_id");
+            vibration.setType(ProfileData.Type.GPIO_VIBRATION);
+            vibration.addPin(ArduinoUno.Pin.PIN_D2.getPinNumber());
+            vibration.addPin(ArduinoUno.Pin.PIN_D3.getPinNumber());
+            serviceData.addProfileData(vibration);
+
+            mDBHelper.addServiceData(serviceData);
+        }
+
+        if (mDBHelper.getServiceDataList().size() == 2) {
+            ServiceData serviceData = new ServiceData();
+            serviceData.setName("RobotCar(Mouse)");
+            serviceData.setServiceId("mouse_service_id");
+
+            ProfileData profileData = new ProfileData();
+            profileData.setServiceId("mouse_service_id");
+            profileData.setType(ProfileData.Type.I2C_MOUSE_DRIVE_CONTROLLER);
+            serviceData.addProfileData(profileData);
+
+            mDBHelper.addServiceData(serviceData);
+        }
+    }
+
+    /**
+     * 仮装サービスの初期化を行います.
+     */
+    private void initVirtualService() {
+        if (DEBUG) {
+            Log.i(TAG, "------------------------------------");
+            Log.i(TAG, "Create virtual service list.");
+            Log.i(TAG, "------------------------------------");
+        }
+
+        List<ServiceData> serviceDataList = mDBHelper.getServiceDataList();
+        for (ServiceData serviceData : serviceDataList) {
+            DConnectService service = VirtualServiceFactory.createService(serviceData);
+            if (getServiceProvider().hasService(service.getId())) {
+                // TODO: 更新された時の処理
+            } else {
+                getServiceProvider().addService(service);
+            }
+        }
+    }
+
+    /**
+     * GPIOのPIN情報を初期化します.
+     */
+    private void initGPIO() {
+        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
+            if (pin.getPinNumber() < ArduinoUno.PIN_NO_A0) {
+                pin.setMode(ArduinoUno.Mode.GPIO_OUT);
+            } else {
+                pin.setMode(ArduinoUno.Mode.ANALOG);
+            }
+            pin.setValue(0);
+        }
+
+        // Portの状態をすべて0(Low)にする.
+        mDigitalPortStatus[0] = 0; // 0000 0000
+        mDigitalPortStatus[1] = 0; // 0000 0000
+        mDigitalPortStatus[2] = 0; // 0000 0000
     }
 
     /**
@@ -265,7 +319,6 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             mFaBoUsbManager.closeConnection();
             mFaBoUsbManager.checkDevice(usbDevice);
             mFaBoUsbManager.connection(usbDevice);
-            return;
         } else {
             mFaBoUsbManager = new FaBoUsbManager(this);
             mFaBoUsbManager.setParameter(FaBoUsbConst.BAUNDRATE_57600,
@@ -328,10 +381,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         byte command[] = {(byte) 0xF9};
         sendMessage(command);
 
-        // Portの状態をすべて0(Low)にする.
-        mDigitalPortStatus[0] = 0; // 0000 0000
-        mDigitalPortStatus[1] = 0; // 0000 0000
-        mDigitalPortStatus[2] = 0; // 0000 0000
+        initGPIO();
 
         // 5秒たってFirmataを検出できない場合はエラー.
         Handler handler = new Handler(Looper.getMainLooper());
@@ -339,7 +389,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             @Override
             public void run() {
                 if (mStatus == FaBoConst.STATUS_FABO_INIT) {
-                    sendResult(FaBoConst.FAILED_CONNECT_FIRMATA);
+                    sendResultToActivity(FaBoConst.FAILED_CONNECT_FIRMATA);
                     setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
                 }
             }
@@ -397,13 +447,15 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             switch (device.getVendorId()) {
                 case FaBoUsbConst.ARDUINO_UNO_VID:
                 case FaBoUsbConst.ARDUINO_CC_UNO_VID:
-                    Log.w(TAG, "find device connecting arduino");
+                    if (DEBUG) {
+                        Log.i(TAG, "Find device connecting arduino");
+                    }
                     openUsb(device);
                     break;
 
                 default:
                     if (DEBUG) {
-                        Log.w(TAG, "Found the device that is not Fabo.");
+                        Log.w(TAG, "Found the device that is not FaBo device.");
                         Log.w(TAG, "VendorId: " + device.getVendorId());
                         Log.w(TAG, "DeviceName: " + device.getDeviceName());
                     }
@@ -427,7 +479,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
 
                 case FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB:
                     initUsbDevice();
-                    sendStatus(mStatus);
+                    sendStatusToActivity(mStatus);
                     break;
 
                 case FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB:
@@ -454,9 +506,11 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      *
      * @param mByte Byte型のメッセージ
      */
-    public void sendMessage(final byte[] mByte) {
-        Log.i(TAG, "sendMessage:" + mByte.length);
-        if(mByte != null) {
+    private void sendMessage(final byte[] mByte) {
+        if (mByte != null) {
+            if (DEBUG) {
+                Log.i(TAG, "sendMessage:" + mByte.length);
+            }
             mFaBoUsbManager.writeBuffer(mByte);
         }
     }
@@ -467,7 +521,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      * @param port   Port番号
      * @param status Portのステータス
      */
-    public void setPortStatus(final int port, final int status) {
+    private void setPortStatus(final int port, final int status) {
         mDigitalPortStatus[port] = status;
 
         if (DEBUG) {
@@ -480,16 +534,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      *
      * @param port Port番号
      */
-    public int getPortStatus(final int port) {
-        return mDigitalPortStatus[port];
-    }
-
-    /**
-     * Digitalの値の取得.
-     *
-     * @param port ArduinoのPort番号.
-     */
-    public int getDigitalValue(final int port) {
+    private int getPortStatus(final int port) {
         return mDigitalPortStatus[port];
     }
 
@@ -521,18 +566,41 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      * @param pin PIN番号
      * @return Analogの値
      */
-    public int getAnalogValue(final int pin) {
-        return mAnalogPinValues[pin];
+    public int getAnalogValue(final ArduinoUno.Pin pin) {
+        return getAnalogValue(pin.getPinNumber());
     }
 
     /**
-     * GPIOの値の取得.
+     * ANALOGの値の取得.
+     *
+     * @param pin PIN番号
+     * @return Analogの値
+     */
+    private int getAnalogValue(final int pin) {
+        ArduinoUno.Pin p = ArduinoUno.Pin.getPin(pin);
+        if (p != null) {
+            return p.getValue();
+        }
+        return -1;
+    }
+
+    /**
+     * GPIOのデジタル値の取得.
+     * @param pin 取得するPIN
+     * @return GPIOのデジタル値
+     */
+    public int getDigitalValue(final ArduinoUno.Pin pin) {
+        return getDigitalValue(pin.getPort(), pin.getBit());
+    }
+
+    /**
+     * GPIOのデジタル値の取得.
      *
      * @param port PORT
      * @param pin  PIN
-     * @return GPIOの値
+     * @return GPIOのデジタル値
      */
-    public int getGPIOValue(final int port, final int pin) {
+    private int getDigitalValue(final int port, final int pin) {
         int value = mDigitalPortStatus[port];
         if ((value & pin) == pin) {
             return 1;
@@ -542,13 +610,78 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
-     * Pinの状態を保存する.
-     *
-     * @param pinNo pin番号
-     * @param mode  modeの値
+     * 各PINの設定.
+     * @param pin ピン
+     * @param mode モード
      */
-    public void setPin(final int pinNo, final int mode) {
-        mPinMode[pinNo] = mode;
+    public void setPinMode(final ArduinoUno.Pin pin, final ArduinoUno.Mode mode) {
+        byte[] command = new byte[3];
+        command[0] = (byte) (FirmataV32.SET_PIN_MODE);
+        command[1] = (byte) (pin.getPinNumber());
+        command[2] = (byte) (mode.getValue());
+        sendMessage(command);
+        pin.setMode(mode);
+    }
+
+    /**
+     * Analogの書き込みを行います.
+     * @param pin 書き込みを行うピン
+     * @param value 書き込む値(0〜255)
+     */
+    public void analogWrite(final ArduinoUno.Pin pin, final int value) {
+        analogWrite(pin.getPinNumber(), value);
+    }
+
+    /**
+     * Analogの書き込み.
+     *
+     * @param pinNo PIN番号
+     * @param value 値
+     */
+    private void analogWrite(int pinNo, int value) {
+        byte[] bytes = new byte[5];
+        bytes[0] = (byte) FirmataV32.START_SYSEX;
+        bytes[1] = (byte) (0x6F);
+        bytes[2] = (byte) pinNo;
+        bytes[3] = (byte) value;
+        bytes[4] = (byte) FirmataV32.END_SYSEX;
+        sendMessage(bytes);
+    }
+
+    /**
+     * Digitalの書き込みを行います.
+     * @param pin 書き込みを行うピン
+     * @param hl HIGH or LOW
+     */
+    public void digitalWrite(final ArduinoUno.Pin pin, final ArduinoUno.Level hl) {
+        digitalWrite(pin.getPort(), pin.getBit(), hl);
+    }
+
+    /**
+     * Digitalの書き込み.
+     *
+     * @param port PORT番号
+     * @param pinBit PIN番号
+     * @param hl HIGHとLOWの値
+     */
+    private void digitalWrite(final int port, final int pinBit, final ArduinoUno.Level hl) {
+        if (hl == ArduinoUno.Level.HIGH) {
+            int status = getPortStatus(port) | pinBit;
+            byte[] bytes = new byte[3];
+            bytes[0] = (byte) (FirmataV32.DIGITAL_MESSAGE | port);
+            bytes[1] = (byte) (status & 0xff);
+            bytes[2] = (byte) ((status >> 8) & 0xff);
+            sendMessage(bytes);
+            setPortStatus(port, status);
+        } else if (hl == ArduinoUno.Level.LOW) {
+            int status = getPortStatus(port) & ~pinBit;
+            byte[] bytes = new byte[3];
+            bytes[0] = (byte) (FirmataV32.DIGITAL_MESSAGE | port);
+            bytes[1] = (byte) (status & 0xff);
+            bytes[2] = (byte) ((status >> 8) & 0xff);
+            sendMessage(bytes);
+            setPortStatus(port, status);
+        }
     }
 
     /**
@@ -556,7 +689,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      *
      * @param resultId 結果のID.
      */
-    private void sendResult(final int resultId) {
+    private void sendResultToActivity(final int resultId) {
         Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB_RESULT);
         intent.putExtra("resultId", resultId);
         sendBroadcast(intent);
@@ -567,7 +700,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      *
      * @param statusId 結果のID.
      */
-    private void sendStatus(final int statusId) {
+    private void sendStatusToActivity(final int statusId) {
         Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT);
         intent.putExtra("statusId", statusId);
         sendBroadcast(intent);
@@ -581,7 +714,6 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         }
     }
 
-
     @Override
     public void onStatusChanged(final UsbDevice usbDevice, final int status) {
         if (DEBUG) {
@@ -589,7 +721,9 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         }
 
         if (status == FaBoUsbConst.CONNECTED) {
-            Log.i(TAG, "onStatusChanged:CONNECTED");
+            if (DEBUG) {
+                Log.i(TAG, "onStatusChanged:CONNECTED");
+            }
             onDeviceStateChange();
         }
     }
@@ -603,10 +737,9 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                             (byte) (data[i + 1] & 0xff) == (byte) VERSION[0] &&
                             (byte) (data[i + 2] & 0xff) == (byte) VERSION[1]) {
                         setStatus(FaBoConst.STATUS_FABO_RUNNING);
-                        sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
+                        sendResultToActivity(FaBoConst.SUCCESS_CONNECT_FIRMATA);
                         intFirmata();
                         startWatchFirmata();
-
                         setOnline(true);
                     }
                 }
@@ -618,18 +751,18 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                             int pin = (data[i] & 0x0f);
                             if (pin < 7) {
                                 int value = ((data[i + 2] & 0xff) << 7) + (data[i + 1] & 0xff);
-                                mAnalogPinValues[pin + 14] = value;
+                                ArduinoUno.Pin p = ArduinoUno.Pin.getPin(pin + 14);
+                                if (p != null) {
+                                    p.setValue(value);
+                                }
                             }
                         }
                     } else if ((byte) (data[i] & 0xf0) == FirmataV32.DIGITAL_MESSAGE) {
                         if ((i + 2) < data.length) {
                             int port = (data[i] & 0x0f);
                             int value = ((data[i + 2] & 0xff) << 8) + (data[i + 1] & 0xff);
-
                             // Arduino UNOは3Portまで.
                             if (port < 3) {
-                                // 1つ前の値を取得する.
-                                int lastValue = mDigitalPortStatus[port];
                                 // 取得した値は保存する.
                                 mDigitalPortStatus[port] = value;
                             }
@@ -673,34 +806,33 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         public void run() {
             if (DEBUG) {
                 Log.i(TAG, "---------------------------------");
-                Log.i(TAG, "Start watch a firmata.");
+                Log.i(TAG, "Start watch a fragment_fabo_firmata.");
                 Log.i(TAG, "---------------------------------");
             }
 
             while (!mStopFlag) {
-
                 for (int s = 0; s < mServiceIdStore.size(); s++) {
                     String serviceId = mServiceIdStore.get(s);
                     List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                             FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
 
-                    synchronized (events) {
-                        for (Event event : events) {
-                            Bundle pins = new Bundle();
-
-                            for (int i = 0; i < mPinMode.length; i++) {
-                                if (mPinMode[i] == FirmataV32.PIN_MODE_GPIO_IN) {
-                                    pins.putInt("" + i, getGPIOValue(mPinPort[i], mPinBit[i]));
-                                } else if (mPinMode[i] == FirmataV32.PIN_MODE_ANALOG) {
-                                    pins.putInt("" + i, getAnalogValue(i));
-                                }
+                    for (Event event : events) {
+                        Bundle pins = new Bundle();
+                        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
+                            switch (pin.getMode()) {
+                                case GPIO_IN:
+                                    pins.putInt(pin.getPinNames()[1], getDigitalValue(pin));
+                                    break;
+                                case ANALOG:
+                                    pins.putInt(pin.getPinNames()[1], getAnalogValue(pin));
+                                    break;
                             }
-
-                            // Eventに値をおくる.
-                            Intent intent = EventManager.createEventMessage(event);
-                            intent.putExtra("pins", pins);
-                            sendEvent(intent, event.getAccessToken());
                         }
+
+                        // Eventに値をおくる.
+                        Intent intent = EventManager.createEventMessage(event);
+                        intent.putExtra("pins", pins);
+                        sendEvent(intent, event.getAccessToken());
                     }
                 }
 
@@ -713,7 +845,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
 
             if (DEBUG) {
                 Log.i(TAG, "---------------------------------");
-                Log.i(TAG, "Stop watch a firmata.");
+                Log.i(TAG, "Stop watch a fragment_fabo_firmata.");
                 Log.i(TAG, "---------------------------------");
             }
         }
@@ -725,13 +857,5 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             mStopFlag = true;
             interrupt();
         }
-    }
-
-    public void setRobotType(int type) {
-        this.mRobotType = type;
-    }
-
-    public int getRobotType(){
-        return this.mRobotType;
     }
 }

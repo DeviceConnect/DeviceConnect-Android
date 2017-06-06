@@ -2,10 +2,8 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -16,7 +14,7 @@ import java.util.List;
 /**
  * GPIO用のVibrationプロファイル.
  */
-public class GPIOVibrationProfile extends DConnectProfile {
+public class GPIOVibrationProfile extends BaseFaBoProfile {
 
     /**
      * 振動パターンで使われる区切り文字.
@@ -184,16 +182,5 @@ public class GPIOVibrationProfile extends DConnectProfile {
             }
         });
         mFlashingExecutor.start(flashing);
-    }
-
-    /**
-     * FaBoDeviceServiceを取得します.
-     * <p>
-     * 返り値がnullになる場合には、プログラムがおかしいので注意。
-     * </p>
-     * @return FaBoDeviceServiceのインスタンス
-     */
-    private FaBoDeviceService getFaBoDeviceService() {
-        return (FaBoDeviceService) getContext();
     }
 }

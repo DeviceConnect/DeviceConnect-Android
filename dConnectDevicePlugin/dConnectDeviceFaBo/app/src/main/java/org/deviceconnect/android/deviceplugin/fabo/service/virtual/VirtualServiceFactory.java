@@ -6,11 +6,15 @@ import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOHumidityProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOIlluminanceProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOLightProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOVibrationProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CMouseCarDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CRobotCarDriveControllerProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CTemperatureProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -45,7 +49,7 @@ public final class VirtualServiceFactory {
             Log.d(TAG, "Name: " + serviceData.getName());
         }
 
-        DConnectService service = new DConnectService(serviceData.getServiceId());
+        DConnectService service = new VirtualService(serviceData);
         service.setName(serviceData.getName());
         service.setConfig("仮装サービス");
         service.setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.UNKNOWN);
@@ -81,11 +85,23 @@ public final class VirtualServiceFactory {
             case GPIO_VIBRATION:
                 return createGPIOVibrationProfile(profileData);
 
+            case GPIO_ILLUMINANCE:
+                return new GPIOIlluminanceProfile(conv(profileData.getPinList()));
+
+            case GPIO_HUMIDITY:
+                return new GPIOHumidityProfile(conv(profileData.getPinList()));
+
+            case GPIO_KEY_EVENT:
+                return new GPIOKeyEventProfile(conv(profileData.getPinList()));
+
             case I2C_MOUSE_DRIVE_CONTROLLER:
                 return new I2CMouseCarDriveControllerProfile();
 
             case I2C_ROBOT_DRIVE_CONTROLLER:
                 return new I2CRobotCarDriveControllerProfile();
+
+            case I2C_TEMPERATURE:
+                return new I2CTemperatureProfile();
 
             default:
                 if (DEBUG) {

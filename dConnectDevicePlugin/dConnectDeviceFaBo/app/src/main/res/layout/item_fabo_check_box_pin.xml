@@ -4,8 +4,8 @@
               android:layout_height="wrap_content"
               android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/item_fabo_profile_name"
+    <CheckBox
+        android:id="@+id/item_fabo_check_box_pin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="12dp"

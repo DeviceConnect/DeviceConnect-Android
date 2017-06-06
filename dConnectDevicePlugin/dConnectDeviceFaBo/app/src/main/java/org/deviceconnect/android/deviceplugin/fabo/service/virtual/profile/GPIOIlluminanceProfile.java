@@ -9,28 +9,29 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.List;
 
 /**
- * GPIO用のTemperatureプロファイル.
+ * GPIO用のIlluminanceプロファイル.
  */
-public class GPIOTemperatureProfile extends BaseFaBoProfile {
+public class GPIOIlluminanceProfile extends BaseFaBoProfile {
+    /**
+     * Illuminance操作を行うピンのリスト.
+     */
     private List<ArduinoUno.Pin> mPinList;
 
-    public GPIOTemperatureProfile(final List<ArduinoUno.Pin> pinList) {
+    public GPIOIlluminanceProfile(final List<ArduinoUno.Pin> pinList) {
         mPinList = pinList;
 
-        // GET /gotpai/temperature
+        // GET /gotpai/illuminance
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 ArduinoUno.Pin pin = mPinList.get(0);
 
                 int value = getFaBoDeviceService().getAnalogValue(pin);
-                value = value * 5000 / 1023;
-                value = (value - 300) * (100 - (-30)) / (1600 - 300) + (-30);
-                value = Math.round(value * 10) / 10;
+                value = 5000 - 5000 * value / 1023;
+                value = value / 10;
+                response.putExtra("illuminance", value);
 
-                response.putExtra("temperature", value);
-
-                setResult(response, DConnectMessage.RESULT_OK);
+                setResult(response,  DConnectMessage.RESULT_OK);
                 return true;
             }
         });
@@ -38,6 +39,6 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
 
     @Override
     public String getProfileName() {
-        return "temperature";
+        return "illuminance";
     }
 }

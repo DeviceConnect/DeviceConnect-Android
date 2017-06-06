@@ -32,4 +32,28 @@
     <string name="activity_fabo_virtual_service_id" translatable="false">サービスID</string>
     <string name="activity_fabo_virtual_service_name" translatable="false">サービス名</string>
     <string name="activity_fabo_virtual_service_profile" translatable="false">プロファイル</string>
+    <string name="activity_fabo_virtual_service_save" translatable="false">保存</string>
+    <string name="activity_fabo_virtual_service_profile_description" translatable="false">仮装サービスで使用するプロファイルを選択してください。</string>
+    <string name="activity_fabo_virtual_service_pin_description" translatable="false">プロファイルが使用するピンを選択してください。</string>
+    <string name="activity_fabo_virtual_service_profile_add" translatable="false">+</string>
+
+    <string name="activity_fabo_virtual_service_dialog_title" translatable="false">サービス</string>
+    <string name="activity_fabo_virtual_service_error_title" translatable="false">警告</string>
+    <string name="activity_fabo_virtual_service_error_ok" translatable="false">はい</string>
+    <string name="activity_fabo_virtual_service_error_no" translatable="false">いいえ</string>
+    <string name="activity_fabo_virtual_service_pin_no_select_message" translatable="false">ピンが選択されていません。</string>
+    <string name="activity_fabo_virtual_service_no_select_message" translatable="false">プロファイルが登録されていません。</string>
+    <string name="activity_fabo_virtual_service_no_name" translatable="false">名前が記入されていません。</string>
+    <string name="activity_fabo_virtual_service_save_message" translatable="false">仮装サービスを保存しました。</string>
+    <string name="activity_fabo_virtual_service_not_bind" translatable="false">FaBoDeviceServiceにバインドされていません。\n設定画面から再起動をお願いします。</string>
+
+    <string name="activity_fabo_virtual_gpio_light">Light(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_humidity">Humidity(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_key_event">KeyEvent(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_temperature">Temperature(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_vibration">Vibration(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_illuminance">Illuminace(GPIO)</string>
+    <string name="activity_fabo_virtual_i2c_robot_drivecontroller">DriveController(RobotCar)</string>
+    <string name="activity_fabo_virtual_i2c_mouse_drivecontroller">DriveController(MouseCar)</string>
+    <string name="activity_fabo_virtual_i2c_temperature">Temperature(I2C)</string>
 </resources>

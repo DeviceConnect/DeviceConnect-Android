@@ -52,6 +52,14 @@ public class VirtualServiceDBHelper {
     }
 
     /**
+     * サービスIDを作成します.
+     * @return サービスID
+     */
+    public String createServiceId() {
+        return "fabo_" + getServiceBaseId() + "_service_id";
+    }
+
+    /**
      * DBに仮装サービスデータを追加します.
      * @param serviceData 追加を行うサービスデータ
      * @return 挿入したデータのrow情報
@@ -243,6 +251,25 @@ public class VirtualServiceDBHelper {
             cursor.close();
             db.close();
         }
+    }
+
+    /**
+     * サービスデータのテーブルにあるBaseColumns._IDの最大値を取得します.
+     * @return テーブルにあるBaseColumns._IDの最大値
+     */
+    private int getServiceBaseId() {
+        String sql = "SELECT * FROM " + TBL_SERVICE_NAME + " ORDER BY " + BaseColumns._ID + " DESC";
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, null);
+        try {
+            if (cursor.moveToFirst()) {
+                return cursor.getInt(cursor.getColumnIndex(BaseColumns._ID));
+            }
+        } finally {
+            cursor.close();
+            db.close();
+        }
+        return 0;
     }
 
     private String convertList2String(final List<Integer> pins) {

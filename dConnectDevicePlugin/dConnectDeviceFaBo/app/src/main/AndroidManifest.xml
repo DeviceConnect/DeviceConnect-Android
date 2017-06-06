@@ -70,6 +70,14 @@
             android:exported="false"/>
 
         <activity
+            android:name=".setting.FaBoVirtualServiceActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".setting.FaBoPinListActivity"
+            android:exported="false"/>
+
+        <activity
             android:name=".setting.FaBoProfileListActivity"
             android:exported="false"/>
     </application>

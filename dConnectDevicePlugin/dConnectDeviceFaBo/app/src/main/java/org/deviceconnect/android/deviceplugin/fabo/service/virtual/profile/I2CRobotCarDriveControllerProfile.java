@@ -2,10 +2,8 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.RobotCar;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
@@ -16,7 +14,7 @@ import io.fabo.serialkit.FaBoUsbManager;
 /**
  * RobotCar (Carタイプ)を操作するためのDriveControllerプロファイル.
  */
-public class I2CRobotCarDriveControllerProfile extends DConnectProfile {
+public class I2CRobotCarDriveControllerProfile extends BaseFaBoProfile {
 
     /**
      * RobotCarを操作するための操作便利クラス.
@@ -133,17 +131,5 @@ public class I2CRobotCarDriveControllerProfile extends DConnectProfile {
             return -1.0f;
         }
         return angle / 360.0f;
-    }
-
-    /**
-     * 接続されているFaBoを操作するためのFaBoUsbManagerを取得します.
-     * <p>
-     * 接続されていない場合にはnullを返却します。
-     * </p>
-     * @return FaBoUsbManagerのインスタンス
-     */
-    private FaBoUsbManager getFaBoUsbManager() {
-        FaBoDeviceService service = (FaBoDeviceService) getContext();
-        return service.getFaBoUsbManager();
     }
 }

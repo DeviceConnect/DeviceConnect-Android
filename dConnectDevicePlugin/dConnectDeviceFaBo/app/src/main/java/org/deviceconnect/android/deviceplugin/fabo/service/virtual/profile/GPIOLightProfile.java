@@ -3,10 +3,8 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
@@ -20,7 +18,7 @@ import java.util.Map;
 /**
  * GPIO用のLightプロファイル.
  */
-public class GPIOLightProfile extends DConnectProfile {
+public class GPIOLightProfile extends BaseFaBoProfile {
 
     /**
      * ライト操作を行うピンのリスト.
@@ -209,9 +207,5 @@ public class GPIOLightProfile extends DConnectProfile {
             }
         });
         exe.start(flashing);
-    }
-
-    private FaBoDeviceService getFaBoDeviceService() {
-        return (FaBoDeviceService) getContext();
     }
 }

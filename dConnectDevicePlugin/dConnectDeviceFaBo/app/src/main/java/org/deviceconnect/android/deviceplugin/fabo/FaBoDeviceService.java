@@ -101,6 +101,12 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
      */
     private VirtualServiceDBHelper mDBHelper;
 
+    /**
+     * GPIOの値変更通知リスナー.
+     */
+    private final List<OnGPIOListener> mOnGPIOListeners = new ArrayList<>();
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -119,8 +125,10 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mUsbEventReceiver, filter);
 
+        // FaBoを直接操作するためのサービス
         getServiceProvider().addService(new FaBoService());
 
+        // 仮装サービスの初期化
         initVirtualService();
 
         // USBが接続されている可能性があるので、初期化処理を行う
@@ -251,6 +259,48 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
+     * 仮装サービスのデータをDBに追加します.
+     * @param serviceData 追加する仮装サービスのデータ
+     * @return 追加に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean addServiceData(final ServiceData serviceData) {
+        String serviceId = mDBHelper.createServiceId();
+        serviceData.setServiceId(serviceId);
+        boolean result = mDBHelper.addServiceData(serviceData) >= 0;
+        if (result) {
+            DConnectService service = VirtualServiceFactory.createService(serviceData);
+            service.setOnline(FaBoConst.STATUS_FABO_RUNNING == mStatus);
+            getServiceProvider().addService(service);
+        }
+        return result;
+    }
+
+    /**
+     * 仮装サービスのデータを更新します.
+     * @param serviceData 更新する仮装サービスのデータ
+     * @return 更新に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean updateServiceData(final ServiceData serviceData) {
+        boolean result = mDBHelper.updateServiceData(serviceData) >= 0;
+        if (result) {
+            getServiceProvider().removeService(serviceData.getServiceId());
+            DConnectService service = VirtualServiceFactory.createService(serviceData);
+            service.setOnline(FaBoConst.STATUS_FABO_RUNNING == mStatus);
+            getServiceProvider().addService(service);
+        }
+        return result;
+    }
+
+    /**
+     * 仮装サービスのデータを削除します.
+     * @param serviceData 削除する仮装サービスのデータ
+     */
+    public void removeServiceData(final ServiceData serviceData) {
+        getServiceProvider().removeService(serviceData.getServiceId());
+        mDBHelper.removeServiceData(serviceData);
+    }
+
+    /**
      * 仮装サービスの初期化を行います.
      */
     private void initVirtualService() {
@@ -263,11 +313,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         List<ServiceData> serviceDataList = mDBHelper.getServiceDataList();
         for (ServiceData serviceData : serviceDataList) {
             DConnectService service = VirtualServiceFactory.createService(serviceData);
-            if (getServiceProvider().hasService(service.getId())) {
-                // TODO: 更新された時の処理
-            } else {
-                getServiceProvider().addService(service);
-            }
+            getServiceProvider().addService(service);
         }
     }
 
@@ -456,8 +502,8 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                 default:
                     if (DEBUG) {
                         Log.w(TAG, "Found the device that is not FaBo device.");
-                        Log.w(TAG, "VendorId: " + device.getVendorId());
-                        Log.w(TAG, "DeviceName: " + device.getDeviceName());
+                        Log.w(TAG, "    VendorId: " + device.getVendorId());
+                        Log.w(TAG, "    DeviceName: " + device.getDeviceName());
                     }
                     break;
             }
@@ -706,6 +752,50 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         sendBroadcast(intent);
     }
 
+    /**
+     *  OnGPIOListenerを追加します.
+     * @param listener 追加するリスナー
+     */
+    public void addOnGPIOListener(final OnGPIOListener listener) {
+        synchronized (mOnGPIOListeners) {
+            if (!mOnGPIOListeners.contains(listener)) {
+                mOnGPIOListeners.add(listener);
+            }
+        }
+    }
+
+    /**
+     * OnGPIOListenerを削除します.
+     * @param listener 削除するリスナー
+     */
+    public void removeOnGPIOListener(final OnGPIOListener listener) {
+        synchronized (mOnGPIOListeners) {
+            mOnGPIOListeners.remove(listener);
+        }
+    }
+
+    /**
+     * アナログのピンデータが変更されたことを通知します.
+     */
+    private void notifyAnalog() {
+        synchronized (mOnGPIOListeners) {
+            for (OnGPIOListener l : mOnGPIOListeners) {
+                l.onAnalog();
+            }
+        }
+    }
+
+    /**
+     * デジタルのピンデータが変更されたことを通知します.
+     */
+    private void notifyDigital() {
+        synchronized (mOnGPIOListeners) {
+            for (OnGPIOListener l : mOnGPIOListeners) {
+                l.onDigital();
+            }
+        }
+    }
+
     @Override
     public void onFind(final UsbDevice usbDevice, final int type) {
         if (DEBUG) {
@@ -755,6 +845,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                                 if (p != null) {
                                     p.setValue(value);
                                 }
+                                notifyAnalog();
                             }
                         }
                     } else if ((byte) (data[i] & 0xf0) == FirmataV32.DIGITAL_MESSAGE) {
@@ -765,6 +856,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
                             if (port < 3) {
                                 // 取得した値は保存する.
                                 mDigitalPortStatus[port] = value;
+                                notifyDigital();
                             }
                         }
                     }
@@ -857,5 +949,10 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
             mStopFlag = true;
             interrupt();
         }
+    }
+
+    public interface OnGPIOListener {
+        void onAnalog();
+        void onDigital();
     }
 }

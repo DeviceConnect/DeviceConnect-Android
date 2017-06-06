@@ -8,4 +8,7 @@
     <profile name="light" />
     <profile name="temperature" />
     <profile name="vibration" />
+    <profile name="keyEvent"/>
+    <profile name="humidity"/>
+    <profile name="illuminance"/>
 </deviceplugin-provider>

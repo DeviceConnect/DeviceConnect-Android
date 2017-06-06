@@ -46,6 +46,8 @@ public class ProfileData implements Parcelable {
          */
         GPIO_HUMIDITY(6),
 
+        GPIO_PROXIMITY(7),
+
         /**
          * I2C用RobotCar用DriveControllerプロファイル.
          */

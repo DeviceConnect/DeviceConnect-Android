@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.deviceconnect.android.event.EventManager.INSTANCE;
-
 /**
  * GPIO用のKeyEventプロファイル.
  */
@@ -51,7 +49,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = INSTANCE.addEvent(request);
+                EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
                         getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
@@ -81,7 +79,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = INSTANCE.removeEvent(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
@@ -100,7 +98,6 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
             }
         });
 
-
         // PUT /gotapi/keyEvent/onUp
         addApi(new PutApi() {
             @Override
@@ -110,7 +107,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = INSTANCE.addEvent(request);
+                EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
                         getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
@@ -140,7 +137,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = INSTANCE.removeEvent(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
@@ -159,7 +156,6 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
             }
         });
 
-
         // PUT /gotapi/keyEvent/onKeyChange
         addApi(new PutApi() {
             @Override
@@ -169,7 +165,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = INSTANCE.addEvent(request);
+                EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
                         getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
@@ -177,6 +173,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                             if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
                                 mValues.put(pin, getFaBoDeviceService().getAnalogValue(pin));
                             } else {
+                                getFaBoDeviceService().setPinMode(pin, ArduinoUno.Mode.GPIO_IN);
                                 mValues.put(pin, getFaBoDeviceService().getDigitalValue(pin));
                             }
                         }
@@ -199,7 +196,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = INSTANCE.removeEvent(request);
+                EventError error = EventManager.INSTANCE.removeEvent(request);
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
@@ -229,28 +226,24 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
      * @return イベント登録がされていない場合はtrue、それ以外はfalse
      */
     private boolean isEmptyEvent() {
-        for (ArduinoUno.Pin pin : mPinList) {
-            String serviceId = getService().getId();
+        String serviceId = getService().getId();
 
-            List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                    "keyEvent", null, "onKeyChange");
-            if (!events.isEmpty()) {
-                return false;
-            }
-
-            events = EventManager.INSTANCE.getEventList(serviceId,
-                    "keyEvent", null, "onDown");
-            if (!events.isEmpty()) {
-                return false;
-            }
-
-            events = EventManager.INSTANCE.getEventList(serviceId,
-                    "keyEvent", null, "onUp");
-            if (!events.isEmpty()) {
-                return false;
-            }
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                "keyEvent", null, "onKeyChange");
+        if (!events.isEmpty()) {
+            return false;
         }
-        return true;
+
+        events = EventManager.INSTANCE.getEventList(serviceId,
+                "keyEvent", null, "onDown");
+        if (!events.isEmpty()) {
+            return false;
+        }
+
+        events = EventManager.INSTANCE.getEventList(serviceId,
+                "keyEvent", null, "onUp");
+
+        return events.isEmpty();
     }
 
     /**

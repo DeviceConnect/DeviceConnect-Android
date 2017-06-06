@@ -11,4 +11,6 @@
     <profile name="keyEvent"/>
     <profile name="humidity"/>
     <profile name="illuminance"/>
+    <profile name="deviceOrientation"/>
+    <profile name="proximity"/>
 </deviceplugin-provider>

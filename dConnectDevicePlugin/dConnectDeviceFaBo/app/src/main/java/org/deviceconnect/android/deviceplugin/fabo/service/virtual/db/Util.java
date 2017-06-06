@@ -22,6 +22,8 @@ public final class Util {
                 return context.getString(R.string.activity_fabo_virtual_gpio_key_event);
             case GPIO_HUMIDITY:
                 return context.getString(R.string.activity_fabo_virtual_gpio_humidity);
+            case GPIO_PROXIMITY:
+                return context.getString(R.string.activity_fabo_virtual_gpio_proximity);
             case I2C_ROBOT_DRIVE_CONTROLLER:
                 return context.getString(R.string.activity_fabo_virtual_i2c_robot_drivecontroller);
             case I2C_MOUSE_DRIVE_CONTROLLER:

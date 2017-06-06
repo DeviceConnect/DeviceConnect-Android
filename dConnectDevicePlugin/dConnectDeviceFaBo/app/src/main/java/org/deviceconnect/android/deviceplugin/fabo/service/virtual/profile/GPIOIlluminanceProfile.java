@@ -29,6 +29,7 @@ public class GPIOIlluminanceProfile extends BaseFaBoProfile {
                 int value = getFaBoDeviceService().getAnalogValue(pin);
                 value = 5000 - 5000 * value / 1023;
                 value = value / 10;
+
                 response.putExtra("illuminance", value);
 
                 setResult(response,  DConnectMessage.RESULT_OK);

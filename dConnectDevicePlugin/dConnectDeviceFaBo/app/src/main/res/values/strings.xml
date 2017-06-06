@@ -53,6 +53,7 @@
     <string name="activity_fabo_virtual_gpio_temperature">Temperature(GPIO)</string>
     <string name="activity_fabo_virtual_gpio_vibration">Vibration(GPIO)</string>
     <string name="activity_fabo_virtual_gpio_illuminance">Illuminace(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_proximity">Proximity(GPIO)</string>
     <string name="activity_fabo_virtual_i2c_robot_drivecontroller">DriveController(RobotCar)</string>
     <string name="activity_fabo_virtual_i2c_mouse_drivecontroller">DriveController(MouseCar)</string>
     <string name="activity_fabo_virtual_i2c_temperature">Temperature(I2C)</string>

@@ -10,9 +10,11 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -93,6 +95,17 @@ public class FaBoVirtualServiceActivity extends Activity {
 
         EditText serviceNameET = (EditText) findViewById(R.id.activity_fabo_service_name);
         serviceNameET.setText(mServiceData.getName());
+        serviceNameET.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(final View view, final int keyCode, final KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    return true;
+                }
+                return false;
+            }
+        });
 
         Button saveBtn = (Button) findViewById(R.id.activity_fabo_service_save_btn);
         saveBtn.setOnClickListener(new View.OnClickListener() {

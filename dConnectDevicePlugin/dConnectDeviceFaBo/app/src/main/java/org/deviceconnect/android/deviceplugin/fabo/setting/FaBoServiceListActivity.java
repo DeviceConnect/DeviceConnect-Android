@@ -38,8 +38,11 @@ public class FaBoServiceListActivity extends DConnectServiceListActivity {
     @Override
     public void onServiceRemoved(DConnectService service) {
         super.onServiceRemoved(service);
-        FaBoDeviceService faBo = (FaBoDeviceService) getMessageService();
-        faBo.removeServiceData(((VirtualService) service).getServiceData());
+
+        if (service instanceof VirtualService) {
+            FaBoDeviceService faBo = (FaBoDeviceService) getMessageService();
+            faBo.removeServiceData(((VirtualService) service).getServiceData());
+        }
     }
 
     /**

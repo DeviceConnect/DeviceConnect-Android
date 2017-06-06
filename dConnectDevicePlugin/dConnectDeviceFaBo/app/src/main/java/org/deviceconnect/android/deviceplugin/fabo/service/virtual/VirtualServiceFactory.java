@@ -10,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOH
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOIlluminanceProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOLightProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOProximityProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOVibrationProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CMouseCarDriveControllerProfile;
@@ -93,6 +94,9 @@ public final class VirtualServiceFactory {
 
             case GPIO_KEY_EVENT:
                 return new GPIOKeyEventProfile(conv(profileData.getPinList()));
+
+            case GPIO_PROXIMITY:
+                return new GPIOProximityProfile(conv(profileData.getPinList()));
 
             case I2C_MOUSE_DRIVE_CONTROLLER:
                 return new I2CMouseCarDriveControllerProfile();

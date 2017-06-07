@@ -559,6 +559,11 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                         setChecked(service, isChecked);
                     }
                 });
+                if (isChecked(service)) {
+                    checkBox.setChecked(true);
+                } else {
+                    checkBox.setChecked(false);
+                }
             } else {
                 checkBox.setEnabled(false);
                 checkBox.setClickable(false);
@@ -584,11 +589,12 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                     mCheckedServiceList.add(service);
                 }
             } else {
-                for (Iterator<ServiceContainer> it = mCheckedServiceList.iterator(); ; it.hasNext()) {
-                    if (it.next().getId().equals(service.getId())) {
-                        it.remove();
+                for (int i = 0; i < mCheckedServiceList.size(); i++) {
+                    if (mCheckedServiceList.get(i).getId().equals(service.getId())) {
+                        mCheckedServiceList.remove(i);
                         break;
                     }
+
                 }
             }
             if (mOnCheckServiceListener != null) {

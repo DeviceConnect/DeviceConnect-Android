@@ -13,6 +13,11 @@ import java.util.List;
 
 /**
  * GPIO用のVibrationプロファイル.
+ * <p>
+ * 以下のFaBoのBrickに対応します。<br>
+ * ID: #105<br>
+ * Name: Vibration Brick<br>
+ * </p>
  */
 public class GPIOVibrationProfile extends BaseFaBoProfile {
 

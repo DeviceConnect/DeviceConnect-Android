@@ -17,6 +17,10 @@ import java.util.Map;
 
 /**
  * GPIO用のLightプロファイル.
+ * <p>
+ *  ID: #101<br>
+ *  Name: LED Brick<br>
+ * </p>
  */
 public class GPIOLightProfile extends BaseFaBoProfile {
 

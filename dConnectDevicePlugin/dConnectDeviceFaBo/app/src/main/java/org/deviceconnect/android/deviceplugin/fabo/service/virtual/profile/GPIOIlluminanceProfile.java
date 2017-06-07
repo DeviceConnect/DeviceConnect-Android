@@ -10,6 +10,10 @@ import java.util.List;
 
 /**
  * GPIO用のIlluminanceプロファイル.
+ * <p>
+ *  ID: #109<br>
+ *  Name: Light Brick<br>
+ * </p>
  */
 public class GPIOIlluminanceProfile extends BaseFaBoProfile {
     /**
@@ -27,7 +31,7 @@ public class GPIOIlluminanceProfile extends BaseFaBoProfile {
                 ArduinoUno.Pin pin = mPinList.get(0);
 
                 int value = getFaBoDeviceService().getAnalogValue(pin);
-                value = 5000 - 5000 * value / 1023;
+                value = 5000 - calcArduinoMap(value, 0, 2013, 0, 5000);
                 value = value / 10;
 
                 response.putExtra("illuminance", value);

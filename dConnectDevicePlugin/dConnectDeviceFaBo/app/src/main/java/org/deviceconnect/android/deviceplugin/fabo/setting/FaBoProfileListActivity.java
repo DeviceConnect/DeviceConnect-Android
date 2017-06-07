@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
-import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.Util;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +82,7 @@ public class FaBoProfileListActivity extends Activity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         switch (requestCode) {
             case REQUEST_CODE:
                 if (resultCode == RESULT_OK) {
@@ -141,6 +141,11 @@ public class FaBoProfileListActivity extends Activity {
         selectedProfileData(profileData);
     }
 
+    /**
+     * プロファイルデータを選択し、Activityを終了します.
+     *
+     * @param profileData 選択するプロファイルデータ
+     */
     private void selectedProfileData(final ProfileData profileData) {
         Intent intent = new Intent();
         intent.putExtra("profile", profileData);
@@ -199,7 +204,7 @@ public class FaBoProfileListActivity extends Activity {
             ProfileData.Type type = (ProfileData.Type) getItem(position);
 
             TextView nameTV = (TextView) convertView.findViewById(R.id.item_fabo_profile_name);
-            nameTV.setText(Util.getProfileName(FaBoProfileListActivity.this, type));
+            nameTV.setText(ProfileDataUtil.getProfileName(FaBoProfileListActivity.this, type));
 
             return convertView;
         }

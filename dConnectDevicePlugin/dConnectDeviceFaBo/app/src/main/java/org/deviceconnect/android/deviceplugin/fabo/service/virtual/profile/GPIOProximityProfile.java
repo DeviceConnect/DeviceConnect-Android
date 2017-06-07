@@ -17,15 +17,28 @@ import java.util.List;
 
 import static org.deviceconnect.android.event.EventManager.INSTANCE;
 
+/**
+ * GPIO用のProximityプロファイル.
+ * <p>
+ * 以下のFaBoのBrickに対応します。<br>
+ * ID: #116<br>
+ * Name: Distance Brick<br>
+ * </p>
+ */
 public class GPIOProximityProfile extends BaseFaBoProfile {
     /**
-     * Humidity操作を行うピンのリスト.
+     * Proximity操作を行うピンのリスト.
      */
     private List<ArduinoUno.Pin> mPinList;
 
+    /**
+     * コンストラクタ.
+     * @param pinList 操作を行うピンのリスト
+     */
     public GPIOProximityProfile(final List<ArduinoUno.Pin> pinList) {
         mPinList = pinList;
 
+        // PUT /gotapi/proximity/onDeviceProximity
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
@@ -48,7 +61,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
             }
         });
 
-
+        // DELETE /gotapi/proximity/onDeviceProximity
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
@@ -82,20 +95,27 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
         return "proximity";
     }
 
+    /**
+     * 登録されているイベントが空か確認します.
+     * @return イベントが登録されていない場合はtrue、それ以外はfalse
+     */
     private boolean isEmptyEvent() {
-        return true;
+        String serviceId = getService().getId();
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                "proximity", null, "onDeviceProximity");
+        return events.isEmpty();
     }
 
-    private int arduino_map(int x, int in_min, int in_max, int out_min, int out_max) {
-        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-    }
-
+    /**
+     * Arduinoから渡されてきた値をProximityとして通知します.
+     * @param pin 値が渡されてきたピン
+     */
     private void notifyProximity(final ArduinoUno.Pin pin) {
         String serviceId = getService().getId();
 
         int value = getFaBoDeviceService().getAnalogValue(pin);
-        value = arduino_map(value, 0, 1023, 0, 5000);
-        value = arduino_map(value, 3200, 500, 5, 80);
+        value = calcArduinoMap(value, 0, 1023, 0, 5000);
+        value = calcArduinoMap(value, 3200, 500, 5, 80);
 
         // この範囲以外はデータおかしいので弾く
         if (value < 10 || value > 80) {

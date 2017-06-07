@@ -114,7 +114,7 @@ public class VirtualServiceDBHelper {
         ContentValues values = new ContentValues();
         values.put(COL_SERVICE_NAME, serviceData.getName());
 
-        String whereClause = COL_PROFILE_SERVICE_ID + "=?";
+        String whereClause = COL_SERVICE_ID + "=?";
         String[] whereArgs = {
                 serviceData.getServiceId()
         };
@@ -263,7 +263,7 @@ public class VirtualServiceDBHelper {
         Cursor cursor = db.rawQuery(sql, null);
         try {
             if (cursor.moveToFirst()) {
-                return cursor.getInt(cursor.getColumnIndex(BaseColumns._ID));
+                return cursor.getInt(cursor.getColumnIndex(BaseColumns._ID)) + 1;
             }
         } finally {
             cursor.close();

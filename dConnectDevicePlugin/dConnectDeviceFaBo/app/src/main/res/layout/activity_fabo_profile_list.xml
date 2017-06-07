@@ -8,7 +8,7 @@
         android:id="@+id/activity_fabo_profile_description"
         android:text="@string/activity_fabo_virtual_service_profile_description"
         android:textSize="14sp"
-        android:background="#EEE"
+        android:background="#A0D0FF"
         android:padding="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

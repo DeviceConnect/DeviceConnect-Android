@@ -9,6 +9,13 @@ import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_S
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_REQUEST;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
 
+/**
+ * I2C用Temperatureプロファイル.
+ * <p>
+ * ID: #207<br>
+ * Name: Temperature I2C Brick<br>
+ * </p>
+ */
 public class I2CTemperatureProfile extends BaseFaBoProfile {
 
     private static final byte ADT7410_ADDRESS = 0x48;

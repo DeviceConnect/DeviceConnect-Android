@@ -4,15 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
     <TextView
         android:id="@+id/activity_fabo_pin_description"
-        android:text="@string/activity_fabo_virtual_service_pin_description"
-        android:textSize="14sp"
-        android:background="#EEE"
-        android:padding="8dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:background="#A0D0FF"
+        android:padding="8dp"
+        android:text="@string/activity_fabo_virtual_service_pin_description"
+        android:textSize="14sp"/>
 
     <LinearLayout
         android:id="@+id/activity_fabo_pin_btn_layout"
@@ -29,15 +28,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/button_blue"
-            android:text="@string/activity_fabo_virtual_service_save"
+            android:text="@string/activity_fabo_virtual_service_select"
             android:textColor="#FFF"/>
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/activity_fabo_pin_list_view"
-        android:layout_below="@id/activity_fabo_pin_description"
+    <LinearLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/activity_fabo_pin_btn_layout">
-    </ListView>
+        android:layout_above="@id/activity_fabo_pin_btn_layout"
+        android:layout_below="@id/activity_fabo_pin_description"
+        android:orientation="horizontal">
+    </LinearLayout>
 </RelativeLayout>

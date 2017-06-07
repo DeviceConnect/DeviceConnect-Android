@@ -24,6 +24,7 @@ import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.FaBoService;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualService;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualServiceFactory;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
@@ -283,10 +284,10 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     public boolean updateServiceData(final ServiceData serviceData) {
         boolean result = mDBHelper.updateServiceData(serviceData) >= 0;
         if (result) {
-            getServiceProvider().removeService(serviceData.getServiceId());
-            DConnectService service = VirtualServiceFactory.createService(serviceData);
-            service.setOnline(FaBoConst.STATUS_FABO_RUNNING == mStatus);
-            getServiceProvider().addService(service);
+            DConnectService service = getServiceProvider().getService(serviceData.getServiceId());
+            if (service != null && service instanceof VirtualService) {
+                ((VirtualService)service).setServiceData(serviceData);
+            }
         }
         return result;
     }

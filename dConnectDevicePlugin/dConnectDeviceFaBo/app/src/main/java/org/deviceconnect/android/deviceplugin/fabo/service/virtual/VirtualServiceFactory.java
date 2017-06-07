@@ -52,7 +52,6 @@ public final class VirtualServiceFactory {
 
         DConnectService service = new VirtualService(serviceData);
         service.setName(serviceData.getName());
-        service.setConfig("仮装サービス");
         service.setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.UNKNOWN);
         for (ProfileData p : serviceData.getProfileDataList()) {
             DConnectProfile profile = createProfile(p);
@@ -78,13 +77,13 @@ public final class VirtualServiceFactory {
 
         switch (profileData.getType()) {
             case GPIO_LIGHT:
-                return createGPIOLightProfile(profileData);
+                return new GPIOLightProfile(conv(profileData.getPinList()));
 
             case GPIO_TEMPERATURE:
-                return createGPIOTemperatureProfile(profileData);
+                return new GPIOTemperatureProfile(conv(profileData.getPinList()));
 
             case GPIO_VIBRATION:
-                return createGPIOVibrationProfile(profileData);
+                return new GPIOVibrationProfile(conv(profileData.getPinList()));
 
             case GPIO_ILLUMINANCE:
                 return new GPIOIlluminanceProfile(conv(profileData.getPinList()));
@@ -118,18 +117,11 @@ public final class VirtualServiceFactory {
         return null;
     }
 
-    private static DConnectProfile createGPIOLightProfile(final ProfileData profileData) {
-        return new GPIOLightProfile(conv(profileData.getPinList()));
-    }
-
-    private static DConnectProfile createGPIOTemperatureProfile(final ProfileData profileData) {
-        return new GPIOTemperatureProfile(conv(profileData.getPinList()));
-    }
-
-    private static DConnectProfile createGPIOVibrationProfile(final ProfileData profileData) {
-        return new GPIOVibrationProfile(conv(profileData.getPinList()));
-    }
-
+    /**
+     * ピン情報をArudinoUno.Pinのリストに変換します.
+     * @param pins 変換前のピン情報
+     * @return ArudinoUno.Pinのリスト
+     */
     private static List<ArduinoUno.Pin> conv(List<Integer> pins) {
         List<ArduinoUno.Pin> pinList = new ArrayList<>();
         for (Integer i : pins) {

@@ -104,6 +104,9 @@ public class ServiceData implements Parcelable {
         profileData.setServiceId(mServiceId);
     }
 
+    public void removeProfileData(final ProfileData profileData) {
+        mProfileDataList.remove(profileData);
+    }
 
     @Override
     public int describeContents() {

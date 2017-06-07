@@ -19,6 +19,10 @@ import java.util.Map;
 
 /**
  * GPIO用のKeyEventプロファイル.
+ * <p>
+ *  ID: #103<br>
+ *  Name: Button Brick<br>
+ * </p>
  */
 public class GPIOKeyEventProfile extends BaseFaBoProfile {
 

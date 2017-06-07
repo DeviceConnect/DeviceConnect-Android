@@ -13,6 +13,10 @@ import io.fabo.serialkit.FaBoUsbManager;
 
 /**
  * RobotCar (Mouseタイプ)を操作するためのDriveControllerプロファイル.
+ * <p>
+ * ID: #1201 <br>
+ * Name: RobotCar Kit <br>
+ * </p>
  */
 public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
 

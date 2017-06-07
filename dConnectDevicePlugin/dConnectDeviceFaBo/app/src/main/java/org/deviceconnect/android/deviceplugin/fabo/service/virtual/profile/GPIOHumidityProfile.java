@@ -8,6 +8,13 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
+/**
+ * GPIO用Humidityプロファイル.
+ * <p>
+ *  ID: #115<br>
+ *  Name: Humidity Brick<br>
+ * </p>
+ */
 public class GPIOHumidityProfile extends BaseFaBoProfile {
     /**
      * Humidity操作を行うピンのリスト.

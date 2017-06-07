@@ -24,7 +24,7 @@ import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
-import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.Util;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
 import org.deviceconnect.android.message.DConnectMessageService;
 
 import java.util.ArrayList;
@@ -123,7 +123,6 @@ public class FaBoVirtualServiceActivity extends Activity {
             }
         });
 
-
         LinearLayout profileLayout = (LinearLayout) findViewById(R.id.activity_fabo_profile_list);
         for (ProfileData profileData : mServiceData.getProfileDataList()) {
             View view = createProfileView(profileData);
@@ -196,6 +195,19 @@ public class FaBoVirtualServiceActivity extends Activity {
     }
 
     /**
+     * プロファイルのリストをを再設定します.
+     */
+    private void resetProfileLayout() {
+        LinearLayout profileLayout = (LinearLayout) findViewById(R.id.activity_fabo_profile_list);
+        profileLayout.removeAllViews();
+
+        for (ProfileData profileData : mServiceData.getProfileDataList()) {
+            View view = createProfileView(profileData);
+            profileLayout.addView(view);
+        }
+    }
+
+    /**
      * プロファイル選択画面を開きます.
      */
     private void openProfileActivity() {
@@ -217,7 +229,7 @@ public class FaBoVirtualServiceActivity extends Activity {
      */
     private View createProfileView(final ProfileData profileData) {
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.item_fabo_profile, null);
+        View view = inflater.inflate(R.layout.item_fabo_profile_a, null);
         if (profileData.getType().getValue() < 100) {
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -227,7 +239,15 @@ public class FaBoVirtualServiceActivity extends Activity {
             });
         }
         TextView nameTV = (TextView) view.findViewById(R.id.item_fabo_profile_name);
-        nameTV.setText(Util.getProfileName(this, profileData.getType()));
+        nameTV.setText(ProfileDataUtil.getProfileName(this, profileData.getType()));
+
+        view.findViewById(R.id.item_fabo_remove_profile_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                showConfirmRemoveProfile(profileData);
+            }
+        });
+
         return view;
     }
 
@@ -290,6 +310,27 @@ public class FaBoVirtualServiceActivity extends Activity {
                                 finish();
                             }
                         })
+                .show();
+    }
+
+    /**
+     * プロファイル削除確認ダイアログを表示します.
+     * @param profileData 削除確認を行うプロファイルデータ
+     */
+    private void showConfirmRemoveProfile(final ProfileData profileData) {
+        String name = ProfileDataUtil.getProfileName(this, profileData.getType());
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.activity_fabo_virtual_service_remove_profile_title)
+                .setMessage(getString(R.string.activity_fabo_virtual_service_remove_profile_message, name))
+                .setPositiveButton(R.string.activity_fabo_virtual_service_error_ok,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(final DialogInterface dialogInterface, final int i) {
+                                mServiceData.removeProfileData(profileData);
+                                resetProfileLayout();
+                            }
+                        })
+                .setNegativeButton(R.string.activity_fabo_virtual_service_error_no, null)
                 .show();
     }
 

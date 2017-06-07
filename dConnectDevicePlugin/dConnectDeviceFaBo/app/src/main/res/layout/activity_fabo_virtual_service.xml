@@ -80,6 +80,8 @@
                 android:id="@+id/activity_fabo_profile_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:showDividers="middle"
                 android:orientation="vertical">
             </LinearLayout>
 

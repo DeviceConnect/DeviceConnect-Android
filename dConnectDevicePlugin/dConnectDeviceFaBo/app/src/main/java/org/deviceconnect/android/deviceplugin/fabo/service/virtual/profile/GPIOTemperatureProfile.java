@@ -10,10 +10,22 @@ import java.util.List;
 
 /**
  * GPIO用のTemperatureプロファイル.
+ * <p>
+ * 以下のFaBoのBrickに対応します。<br>
+ * ID: #108<br>
+ * Name: Temperature Brick<br>
+ * </p>
  */
 public class GPIOTemperatureProfile extends BaseFaBoProfile {
+    /**
+     * Temperatureを取得するピン.
+     */
     private List<ArduinoUno.Pin> mPinList;
 
+    /**
+     * コンストラクタ.
+     * @param pinList 操作を行うピンのリスト
+     */
     public GPIOTemperatureProfile(final List<ArduinoUno.Pin> pinList) {
         mPinList = pinList;
 
@@ -24,8 +36,8 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
                 ArduinoUno.Pin pin = mPinList.get(0);
 
                 int value = getFaBoDeviceService().getAnalogValue(pin);
-                value = value * 5000 / 1023;
-                value = (value - 300) * (100 - (-30)) / (1600 - 300) + (-30);
+                value = calcArduinoMap(value, 0, 1023, 0, 5000);
+                value = calcArduinoMap(value, 300, 1600, -30, 100);
                 value = Math.round(value * 10) / 10;
 
                 response.putExtra("temperature", value);

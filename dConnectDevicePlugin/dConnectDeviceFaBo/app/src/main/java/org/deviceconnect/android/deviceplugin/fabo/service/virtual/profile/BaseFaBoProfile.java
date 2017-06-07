@@ -27,4 +27,17 @@ abstract class BaseFaBoProfile extends DConnectProfile {
     FaBoUsbManager getFaBoUsbManager() {
         return getFaBoDeviceService().getFaBoUsbManager();
     }
+
+    /**
+     * Arduinoから渡されてくる値を変換します.
+     * @param x Arduinoから取得した値
+     * @param inMin Arduinoから取得できる最小値
+     * @param inMax Arduinoから取得できる最大値
+     * @param outMin 変換後の最小値
+     * @param outMax 変換後の最大値
+     * @return 変換された値
+     */
+    int calcArduinoMap(final int x, final int inMin, final int inMax, final int outMin, final int outMax) {
+        return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    }
 }

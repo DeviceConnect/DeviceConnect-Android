@@ -46,6 +46,9 @@ public class ProfileData implements Parcelable {
          */
         GPIO_HUMIDITY(6),
 
+        /**
+         * GPIO用Proximityプロファイル.
+         */
         GPIO_PROXIMITY(7),
 
         /**

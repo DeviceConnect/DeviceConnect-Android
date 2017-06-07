@@ -134,6 +134,8 @@
                 android:layout_margin="12dp"
                 android:checked="true"
                 android:text="@string/activity_service_list_checkbox"
+                android:nextFocusDown="@+id/activity_service_guide_button"
+                android:nextFocusRight="@+id/activity_service_guide_button"
                 android:textColor="@android:color/white"/>
 
             <Button

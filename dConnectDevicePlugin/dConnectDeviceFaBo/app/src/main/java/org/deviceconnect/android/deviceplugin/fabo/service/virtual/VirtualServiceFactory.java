@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 仮装サービスを作成するためのファクトリークラス.
+ * 仮想サービスを作成するためのファクトリークラス.
  */
 public final class VirtualServiceFactory {
     /**
@@ -38,8 +38,8 @@ public final class VirtualServiceFactory {
     private static final String TAG = "FaBo";
 
     /**
-     * 仮装サービスデータからDConnectServiceのインスタンスを作成します.
-     * @param serviceData 仮装サービスデータ
+     * 仮想サービスデータからDConnectServiceのインスタンスを作成します.
+     * @param serviceData 仮想サービスデータ
      * @return DConnectServiceのインスタンス
      */
     public static DConnectService createService(final ServiceData serviceData) {

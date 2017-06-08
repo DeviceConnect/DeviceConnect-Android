@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 仮装サービスの設定を行うActivity.
+ * 仮想サービスの設定を行うActivity.
  */
 public class FaBoVirtualServiceActivity extends Activity {
 
@@ -48,13 +48,13 @@ public class FaBoVirtualServiceActivity extends Activity {
     /**
      * 新規作成フラグ.
      * <p>
-     * 新規作成の仮装サービスの場合はtrue、それ以外はfalse。
+     * 新規作成の仮想サービスの場合はtrue、それ以外はfalse。
      * </p>
      */
     private boolean mNewCreateFlag = false;
 
     /**
-     * 仮装サービスデータ.
+     * 仮想サービスデータ.
      */
     private ServiceData mServiceData;
 
@@ -341,7 +341,7 @@ public class FaBoVirtualServiceActivity extends Activity {
     }
 
     /**
-     * 仮装サービスを保存します.
+     * 仮想サービスを保存します.
      */
     private void saveVirtualService() {
         if (mFaBoDeviceService == null) {

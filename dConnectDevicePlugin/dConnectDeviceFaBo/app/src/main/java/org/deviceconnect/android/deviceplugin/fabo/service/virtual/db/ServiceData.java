@@ -7,21 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 仮装サービスデータ.
+ * 仮想サービスデータ.
  */
 public class ServiceData implements Parcelable {
     /**
-     * 仮装サービスのID.
+     * 仮想サービスのID.
      */
     private String mServiceId;
 
     /**
-     * 仮装サービスの名前.
+     * 仮想サービスの名前.
      */
     private String mName;
 
     /**
-     * 仮装サービスが保持するプロファイルデータ.
+     * 仮想サービスが保持するプロファイルデータ.
      */
     private List<ProfileData> mProfileDataList = new ArrayList<>();
 

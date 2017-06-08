@@ -4,18 +4,18 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceDat
 import org.deviceconnect.android.service.DConnectService;
 
 /**
- * 仮装サービス.
+ * 仮想サービス.
  */
 public class VirtualService extends DConnectService {
 
     /**
-     * 仮装サービスのデータ.
+     * 仮想サービスのデータ.
      */
     private ServiceData mServiceData;
 
     /**
      * コンストラクタ.
-     * @param serviceData 仮装サービスデータ
+     * @param serviceData 仮想サービスデータ
      */
     VirtualService(final ServiceData serviceData) {
         super(serviceData.getServiceId());
@@ -23,8 +23,8 @@ public class VirtualService extends DConnectService {
     }
 
     /**
-     * 仮装サービスデータを取得します.
-     * @return 仮装サービスデータ
+     * 仮想サービスデータを取得します.
+     * @return 仮想サービスデータ
      */
     public ServiceData getServiceData() {
         return mServiceData;

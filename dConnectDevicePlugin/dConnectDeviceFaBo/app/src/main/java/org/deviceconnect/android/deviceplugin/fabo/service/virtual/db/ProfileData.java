@@ -13,7 +13,7 @@ import java.util.List;
 public class ProfileData implements Parcelable {
 
     /**
-     * 仮装サービスに登録するプロファイルのタイプ.
+     * 仮想サービスに登録するプロファイルのタイプ.
      */
     public enum Type {
         /**
@@ -95,7 +95,7 @@ public class ProfileData implements Parcelable {
     }
 
     /**
-     * プロファイルが属する仮装サービスのID.
+     * プロファイルが属する仮想サービスのID.
      */
     private String mServiceId;
 

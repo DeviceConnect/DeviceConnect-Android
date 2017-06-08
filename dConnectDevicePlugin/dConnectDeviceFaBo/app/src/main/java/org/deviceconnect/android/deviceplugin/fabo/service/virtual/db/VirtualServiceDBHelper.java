@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 仮装サービスのデータを管理します.
+ * 仮想サービスのデータを管理します.
  */
 public class VirtualServiceDBHelper {
     /**
@@ -60,7 +60,7 @@ public class VirtualServiceDBHelper {
     }
 
     /**
-     * DBに仮装サービスデータを追加します.
+     * DBに仮想サービスデータを追加します.
      * @param serviceData 追加を行うサービスデータ
      * @return 挿入したデータのrow情報
      */
@@ -84,7 +84,7 @@ public class VirtualServiceDBHelper {
     }
 
     /**
-     * DBから仮装サービスデータを削除します.
+     * DBから仮想サービスデータを削除します.
      * @param serviceData 削除を行うサービスデータ
      */
     public long removeServiceData(final ServiceData serviceData) {
@@ -106,8 +106,8 @@ public class VirtualServiceDBHelper {
     }
 
     /**
-     * 仮装サービスデータを更新します.
-     * @param serviceData 更新する仮装サービスデータ
+     * 仮想サービスデータを更新します.
+     * @param serviceData 更新する仮想サービスデータ
      * @return 更新したDBのカラム数
      */
     public long updateServiceData(final ServiceData serviceData) {
@@ -132,11 +132,11 @@ public class VirtualServiceDBHelper {
     }
 
     /**
-     * DBから仮装サービスデータのリストを取得します.
+     * DBから仮想サービスデータのリストを取得します.
      * <p>
      * 一つも登録されていない場合には、空のListを返却します。
      * </p>
-     * @return 仮装サービスデータのリスト
+     * @return 仮想サービスデータのリスト
      */
     public List<ServiceData> getServiceDataList() {
         String sql = "SELECT * FROM " + TBL_SERVICE_NAME;

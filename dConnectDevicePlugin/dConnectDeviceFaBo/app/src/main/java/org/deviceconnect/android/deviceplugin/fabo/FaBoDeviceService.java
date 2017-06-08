@@ -98,7 +98,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     private int mStatus;
 
     /**
-     * 仮装サービスを管理するクラス.
+     * 仮想サービスを管理するクラス.
      */
     private VirtualServiceDBHelper mDBHelper;
 
@@ -129,7 +129,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
         // FaBoを直接操作するためのサービス
         getServiceProvider().addService(new FaBoService());
 
-        // 仮装サービスの初期化
+        // 仮想サービスの初期化
         initVirtualService();
 
         // USBが接続されている可能性があるので、初期化処理を行う
@@ -207,7 +207,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
-     * テスト用仮装データ
+     * テスト用仮想データ
      */
     private void test() {
         if (mDBHelper.getServiceDataList().isEmpty()) {
@@ -260,8 +260,8 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
-     * 仮装サービスのデータをDBに追加します.
-     * @param serviceData 追加する仮装サービスのデータ
+     * 仮想サービスのデータをDBに追加します.
+     * @param serviceData 追加する仮想サービスのデータ
      * @return 追加に成功した場合はtrue、それ以外はfalse
      */
     public boolean addServiceData(final ServiceData serviceData) {
@@ -277,8 +277,8 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
-     * 仮装サービスのデータを更新します.
-     * @param serviceData 更新する仮装サービスのデータ
+     * 仮想サービスのデータを更新します.
+     * @param serviceData 更新する仮想サービスのデータ
      * @return 更新に成功した場合はtrue、それ以外はfalse
      */
     public boolean updateServiceData(final ServiceData serviceData) {
@@ -293,8 +293,8 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
-     * 仮装サービスのデータを削除します.
-     * @param serviceData 削除する仮装サービスのデータ
+     * 仮想サービスのデータを削除します.
+     * @param serviceData 削除する仮想サービスのデータ
      */
     public void removeServiceData(final ServiceData serviceData) {
         getServiceProvider().removeService(serviceData.getServiceId());
@@ -302,7 +302,7 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     }
 
     /**
-     * 仮装サービスの初期化を行います.
+     * 仮想サービスの初期化を行います.
      */
     private void initVirtualService() {
         if (DEBUG) {

@@ -47,7 +47,7 @@ public class FaBoServiceListActivity extends DConnectServiceListActivity {
 
     /**
      * VirtualServiceActivityを開きます.
-     * @param service 仮装サービス
+     * @param service 仮想サービス
      */
     private void openVirtualServiceActivity(final VirtualService service) {
         Intent intent = new Intent();

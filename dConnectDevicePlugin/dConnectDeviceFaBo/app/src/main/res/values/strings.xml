@@ -34,7 +34,7 @@
     <string name="activity_fabo_virtual_service_profile" translatable="false">プロファイル</string>
     <string name="activity_fabo_virtual_service_save" translatable="false">保存</string>
     <string name="activity_fabo_virtual_service_select" translatable="false">決定</string>
-    <string name="activity_fabo_virtual_service_profile_description" translatable="false">仮装サービスで使用するプロファイルを選択してください。</string>
+    <string name="activity_fabo_virtual_service_profile_description" translatable="false">仮想サービスで使用するプロファイルを選択してください。</string>
     <string name="activity_fabo_virtual_service_pin_description" translatable="false">プロファイルが使用するピンを選択してください。</string>
     <string name="activity_fabo_virtual_service_profile_add" translatable="false">+</string>
     <string name="activity_fabo_virtual_service_profile_remove" translatable="false">削除</string>
@@ -46,7 +46,7 @@
     <string name="activity_fabo_virtual_service_pin_no_select_message" translatable="false">ピンが選択されていません。</string>
     <string name="activity_fabo_virtual_service_no_select_message" translatable="false">プロファイルが登録されていません。</string>
     <string name="activity_fabo_virtual_service_no_name" translatable="false">名前が記入されていません。</string>
-    <string name="activity_fabo_virtual_service_save_message" translatable="false">仮装サービスを保存しました。</string>
+    <string name="activity_fabo_virtual_service_save_message" translatable="false">仮想サービスを保存しました。</string>
     <string name="activity_fabo_virtual_service_not_bind" translatable="false">FaBoDeviceServiceにバインドされていません。\n設定画面から再起動をお願いします。</string>
     <string name="activity_fabo_virtual_service_remove_profile_title" translatable="false">削除確認</string>
     <string name="activity_fabo_virtual_service_remove_profile_message" translatable="false">%1$sを削除して良いでしょうか？</string>

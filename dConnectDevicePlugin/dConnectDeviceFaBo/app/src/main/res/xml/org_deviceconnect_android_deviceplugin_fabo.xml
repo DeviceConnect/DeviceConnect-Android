@@ -4,6 +4,7 @@
     <profile name="serviceinformation" />
     <profile name="system" />
     <profile name="gpio" />
+    <profile name="fabo" />
     <profile name="driveController" />
     <profile name="light" />
     <profile name="temperature" />

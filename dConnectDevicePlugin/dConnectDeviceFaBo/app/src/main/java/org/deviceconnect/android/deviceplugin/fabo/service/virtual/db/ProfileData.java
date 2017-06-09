@@ -13,70 +13,117 @@ import java.util.List;
 public class ProfileData implements Parcelable {
 
     /**
+     * カテゴリ.
+     */
+    public enum Category {
+        /**
+         * GPIOを表すカテゴリー.
+         */
+        GPIO,
+
+        /**
+         * I2Cを表すカテゴリー.
+         */
+        I2C
+    }
+
+    /**
      * 仮想サービスに登録するプロファイルのタイプ.
      */
     public enum Type {
         /**
          * GPIO用Lightプロファイル.
          */
-        GPIO_LIGHT(1),
+        GPIO_LIGHT(1, "#101", Category.GPIO),
 
         /**
          * GPIO用Temperatureプロファイル.
          */
-        GPIO_TEMPERATURE(2),
+        GPIO_TEMPERATURE(2, "#108", Category.GPIO),
 
         /**
          * GPIO用Vibrationプロファイル.
          */
-        GPIO_VIBRATION(3),
+        GPIO_VIBRATION(3, "#105", Category.GPIO),
 
         /**
          * GPIO用Illuminanceプロファイル.
          */
-        GPIO_ILLUMINANCE(4),
+        GPIO_ILLUMINANCE(4, "#109", Category.GPIO),
 
         /**
          * GPIO用KeyEventプロファイル.
          */
-        GPIO_KEY_EVENT(5),
+        GPIO_KEY_EVENT(5, "#103", Category.GPIO),
 
         /**
          * GPIO用Humidityプロファイル.
          */
-        GPIO_HUMIDITY(6),
+        GPIO_HUMIDITY(6, "#115", Category.GPIO),
 
         /**
          * GPIO用Proximityプロファイル.
          */
-        GPIO_PROXIMITY(7),
+        GPIO_PROXIMITY(7, "#116", Category.GPIO),
 
         /**
          * I2C用RobotCar用DriveControllerプロファイル.
          */
-        I2C_ROBOT_DRIVE_CONTROLLER(100),
+        I2C_ROBOT_DRIVE_CONTROLLER(100, null, Category.I2C),
 
         /**
          * I2C用RobotCar(Mouse)用DriveControllerプロファイル.
          */
-        I2C_MOUSE_DRIVE_CONTROLLER(101),
+        I2C_MOUSE_DRIVE_CONTROLLER(101, null, Category.I2C),
 
         /**
          * I2C用Temperatureプロファイル.
          */
-        I2C_TEMPERATURE(102);
+        I2C_TEMPERATURE(102, "#207", Category.I2C);
 
         /**
-         * プロファイルのタイプ.
+         * プロファイルの種別.
          */
         private int mValue;
 
-        Type(final int value) {
+        /**
+         * BrickのID.
+         */
+        private String mBrick;
+
+        /**
+         * カテゴリ-.
+         */
+        private Category mCategory;
+
+        Type(final int value, final String brick, final Category category) {
             mValue = value;
+            mBrick = brick;
+            mCategory = category;
         }
 
+        /**
+         * プロファイルの種別を取得します.
+         * @return プロファイルの種別
+         */
         public int getValue() {
             return mValue;
+        }
+
+        /**
+         * プロファイルが対応するBrick番号を取得します.
+         * @return Brickを識別するID
+         */
+        public String getBrick() {
+            return mBrick;
+        }
+
+        /**
+         * プロファイルのカテゴリーを取得します.
+         * @return CATEGORY_GPIO もしくは CATEGORY_I2C
+         */
+        public Category getCategory() {
+            return mCategory;
         }
 
         /**
@@ -181,6 +228,10 @@ public class ProfileData implements Parcelable {
         mPinList.add(pin);
     }
 
+    public boolean usedPin(final int pin) {
+        return mPinList.contains(pin);
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -203,4 +254,25 @@ public class ProfileData implements Parcelable {
             return new ProfileData[size];
         }
     };
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + mType.getValue();
+        result = prime * result + ((mServiceId == null) ? 0 : mServiceId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        ProfileData other = (ProfileData) obj;
+        return mType == other.mType && mServiceId.equals(other.getServiceId());
+    }
 }

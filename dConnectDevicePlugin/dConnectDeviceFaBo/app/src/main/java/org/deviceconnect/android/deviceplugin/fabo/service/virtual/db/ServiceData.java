@@ -84,6 +84,15 @@ public class ServiceData implements Parcelable {
         return mProfileDataList;
     }
 
+    public ProfileData getProfileData(final ProfileData.Type type) {
+        for (ProfileData p : mProfileDataList) {
+            if (p.getType() == type) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     /**
      * サービスが持つプロファイルのリストを設定します.
      * @param profileDataList プロファイルのリスト
@@ -97,15 +106,61 @@ public class ServiceData implements Parcelable {
 
     /**
      * サービスが持つプロファイルのリストに追加します.
+     * <p>
+     * 既に同じプロファイルを持っている場合には、新しいプロファイルに置き換えます。
+     * </p>
      * @param profileData 追加するプロファイル
      */
     public void addProfileData(final ProfileData profileData) {
-        mProfileDataList.add(profileData);
+        if (mProfileDataList.contains(profileData)) {
+            for (int i = 0; i < mProfileDataList.size(); i++) {
+                if (mProfileDataList.get(i).equals(profileData)) {
+                    mProfileDataList.set(i, profileData);
+                    break;
+                }
+            }
+        } else {
+            mProfileDataList.add(profileData);
+        }
         profileData.setServiceId(mServiceId);
     }
 
+    /**
+     * 削除します.
+     * @param profileData
+     */
     public void removeProfileData(final ProfileData profileData) {
         mProfileDataList.remove(profileData);
+    }
+
+    /**
+     * 仮想サービスが使用しているピンの一覧を取得します.
+     * @return ピンの一覧
+     */
+    public List<Integer> getUsePins() {
+        List<Integer> pins = new ArrayList<>();
+        for (ProfileData p : mProfileDataList) {
+            for (Integer i : p.getPinList()) {
+                pins.add(i);
+            }
+        }
+        return pins;
+    }
+
+    /**
+     * 指定されたピン番号が使用されているか確認を行います.
+     * @param pinNumber 確認を行うピン番号
+     * @return 使用されている場合にはtrue、それ以外はfalse
+     */
+    public boolean usedPin(final int pinNumber) {
+        for (ProfileData p : mProfileDataList) {
+            for (Integer i : p.getPinList()) {
+                if (pinNumber == i) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

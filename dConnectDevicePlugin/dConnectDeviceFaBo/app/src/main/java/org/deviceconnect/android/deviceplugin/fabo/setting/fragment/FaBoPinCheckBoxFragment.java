@@ -11,7 +11,6 @@ import android.widget.ListView;
 
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
-import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,19 +28,9 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
      */
     private MultiSelectPinAdapter mPinAdapter;
 
-    /**
-     * プロファイルのタイプ.
-     * <p>
-     * ProfileData.Typeの値.
-     * </p>
-     */
-    private ProfileData mProfileData;
-
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_fabo_pin_list, container, false);
-
-        mProfileData = getActivity().getIntent().getParcelableExtra("profile");
 
         mPinAdapter = new MultiSelectPinAdapter();
 
@@ -111,13 +100,14 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
 
             ArduinoUno.Pin pin = (ArduinoUno.Pin) getItem(position);
 
-            CheckBox nameTV = (CheckBox) convertView.findViewById(R.id.item_fabo_check_box_pin);
-            nameTV.setText(pin.getPinNames()[1]);
-            nameTV.setChecked(mCheckedFlag.get(position));
+            CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.item_fabo_check_box_pin);
+            checkBox.setText(pin.getPinNames()[1]);
+            checkBox.setChecked(mCheckedFlag.get(position));
+            checkBox.setEnabled(!usedPin(pin.getPinNumber()));
             // CheckBox#setOnCheckedChangeListenerを使用するとListViewで
             // スクロールした時点でヘックが外れてしまう。
             // ここでは、その問題を回避するためにOnClickListenerを使用します。
-            nameTV.setOnClickListener(new View.OnClickListener() {
+            checkBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     boolean isChecked = ((CheckBox) view).isChecked();
@@ -126,23 +116,6 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
             });
 
             return convertView;
-        }
-
-        /**
-         * 指定されたピンがmProfileDataに含まれているか確認します.
-         * @param pin ピン
-         * @return 含まれている場合はtrue、それ以外はfalse
-         */
-        private boolean containsPin(final int pin) {
-            if (mProfileData == null) {
-                return false;
-            }
-            for (int pinNum : mProfileData.getPinList()) {
-                if (pin == pinNum) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }

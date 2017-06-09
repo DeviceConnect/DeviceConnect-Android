@@ -30,7 +30,11 @@ public class VirtualService extends DConnectService {
         return mServiceData;
     }
 
-    public void setServiceData(ServiceData serviceData) {
+    /**
+     * サービスデータを設定します.
+     * @param serviceData 設定するサービスデータ
+     */
+    public void setServiceData(final ServiceData serviceData) {
         mServiceData = serviceData;
     }
 }

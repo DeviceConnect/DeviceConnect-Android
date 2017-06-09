@@ -9,6 +9,9 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDat
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ピンを選択するための画面を作成するための基底フラグメント.
+ */
 public abstract class FaBoBasePinFragment extends Fragment {
 
     /**
@@ -49,6 +52,43 @@ public abstract class FaBoBasePinFragment extends Fragment {
     private ProfileDataUtil.PinType getPinType() {
         ProfileData p = getActivity().getIntent().getParcelableExtra("profile");
         return ProfileDataUtil.getPinType(p);
+    }
+
+
+    /**
+     * 指定されたピンがmProfileDataに含まれているか確認します.
+     * @param pin ピン
+     * @return 含まれている場合はtrue、それ以外はfalse
+     */
+    protected boolean containsPin(final int pin) {
+        ProfileData profileData = getActivity().getIntent().getParcelableExtra("profile");
+        if (profileData == null) {
+            return false;
+        }
+        for (int pinNum : profileData.getPinList()) {
+            if (pin == pinNum) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 指定されたピンが使用されているかを確認します.
+     * @param pin 使用されているか確認をするピン
+     * @return 使用されている場合はtrue、それ以外はfalse
+     */
+    protected boolean usedPin(final int pin) {
+        if (containsPin(pin)) {
+            return false;
+        }
+        ArrayList<Integer> pins = getActivity().getIntent().getIntegerArrayListExtra("pins");
+        for (int p : pins) {
+            if (p == pin) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

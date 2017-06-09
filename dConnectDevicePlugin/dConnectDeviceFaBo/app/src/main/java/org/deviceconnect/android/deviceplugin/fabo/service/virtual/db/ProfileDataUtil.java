@@ -98,6 +98,16 @@ public final class ProfileDataUtil {
     }
 
     /**
+     * プロファイルが複数のピンを使用できるかを確認します.
+     * @param type プロファイルデータ
+     * @return 複数選択できる場合はtrue、それ以外はfalse
+     */
+    public static boolean isMultiChoicePin(final ProfileData.Type type) {
+        return mMultiChoiceMap.get(type);
+    }
+
+
+    /**
      * プロファイルが使用できるピンのタイプ.
      */
     public enum PinType {

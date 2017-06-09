@@ -42,7 +42,7 @@ public final class VirtualServiceFactory {
      * @param serviceData 仮想サービスデータ
      * @return DConnectServiceのインスタンス
      */
-    public static DConnectService createService(final ServiceData serviceData) {
+    public static VirtualService createService(final ServiceData serviceData) {
         if (DEBUG) {
             Log.d(TAG, "==========================");
             Log.d(TAG, "Create virtual service.");
@@ -50,7 +50,7 @@ public final class VirtualServiceFactory {
             Log.d(TAG, "Name: " + serviceData.getName());
         }
 
-        DConnectService service = new VirtualService(serviceData);
+        VirtualService service = new VirtualService(serviceData);
         service.setName(serviceData.getName());
         service.setNetworkType(ServiceDiscoveryProfileConstants.NetworkType.UNKNOWN);
         for (ProfileData p : serviceData.getProfileDataList()) {
@@ -70,9 +70,9 @@ public final class VirtualServiceFactory {
      * @param profileData プロファイルデータ
      * @return DConnectProfileのインスタンス
      */
-    private static DConnectProfile createProfile(final ProfileData profileData) {
+    public static DConnectProfile createProfile(final ProfileData profileData) {
         if (DEBUG) {
-            Log.d(TAG, "  Add the profile. type=" + profileData.getType());
+            Log.d(TAG, "  Add " + profileData.getType());
         }
 
         switch (profileData.getType()) {

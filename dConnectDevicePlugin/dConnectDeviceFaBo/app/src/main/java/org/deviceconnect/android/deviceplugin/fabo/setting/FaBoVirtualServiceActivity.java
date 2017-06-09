@@ -22,9 +22,11 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualService;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
-import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
 import org.deviceconnect.android.message.DConnectMessageService;
 
 import java.util.ArrayList;
@@ -175,6 +177,7 @@ public class FaBoVirtualServiceActivity extends Activity {
                             pd.setPinList(profileData.getPinList());
                         }
                     }
+                    resetProfileLayout();
                 }
                 break;
         }
@@ -218,6 +221,7 @@ public class FaBoVirtualServiceActivity extends Activity {
         Intent intent = new Intent();
         intent.setClass(this, FaBoProfileListActivity.class);
         intent.putParcelableArrayListExtra("profile", list);
+        intent.putIntegerArrayListExtra("pins", new ArrayList<>(getUsePins()));
         startActivityForResult(intent, REQUEST_CODE_ADD_PROFILE);
     }
 
@@ -241,6 +245,9 @@ public class FaBoVirtualServiceActivity extends Activity {
         TextView nameTV = (TextView) view.findViewById(R.id.item_fabo_profile_name);
         nameTV.setText(ProfileDataUtil.getProfileName(this, profileData.getType()));
 
+        TextView pinsTV = (TextView) view. findViewById(R.id.item_fabo_profile_pins);
+        pinsTV.setText(createPinInfo(profileData));
+
         view.findViewById(R.id.item_fabo_remove_profile_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
@@ -252,6 +259,25 @@ public class FaBoVirtualServiceActivity extends Activity {
     }
 
     /**
+     * 使用しているピンの一覧を文字列にして取得します.
+     * @param profileData プロファイル
+     * @return ピンの一覧の文字列
+     */
+    private String createPinInfo(ProfileData profileData) {
+        StringBuilder sb = new StringBuilder();
+        for (Integer i : profileData.getPinList()) {
+            if (sb.length() > 0) {
+                sb.append(",");
+            }
+            ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(i);
+            if (pin != null) {
+                sb.append(pin.getPinNames()[1]);
+            }
+        }
+        return getString(R.string.activity_fabo_virtual_service_profile_pins, sb.toString());
+    }
+
+    /**
      * ピンの設定画面を開きます.
      *
      * @param profileData 設定画面
@@ -260,7 +286,16 @@ public class FaBoVirtualServiceActivity extends Activity {
         Intent intent = new Intent();
         intent.setClass(this, FaBoPinListActivity.class);
         intent.putExtra("profile", profileData);
+        intent.putIntegerArrayListExtra("pins", new ArrayList<>(getUsePins()));
         startActivityForResult(intent, REQUEST_CODE_UPDATE_PROFILE);
+    }
+
+    /**
+     * 仮想サービスで使用されているピンの一覧を取得します.
+     * @return ピンの一覧
+     */
+    private List<Integer> getUsePins() {
+        return mServiceData.getUsePins();
     }
 
     /**
@@ -358,14 +393,14 @@ public class FaBoVirtualServiceActivity extends Activity {
         } else {
             mServiceData.setName(serviceName);
 
-            boolean result;
+            VirtualService service;
             if (mNewCreateFlag) {
-                result = mFaBoDeviceService.addServiceData(mServiceData);
+                service = mFaBoDeviceService.addServiceData(mServiceData);
             } else {
-                result = mFaBoDeviceService.updateServiceData(mServiceData);
+                service = mFaBoDeviceService.updateServiceData(mServiceData);
             }
 
-            if (result) {
+            if (service != null) {
                 showSaveServiceData();
             } else {
                 showSaveServiceDataError();

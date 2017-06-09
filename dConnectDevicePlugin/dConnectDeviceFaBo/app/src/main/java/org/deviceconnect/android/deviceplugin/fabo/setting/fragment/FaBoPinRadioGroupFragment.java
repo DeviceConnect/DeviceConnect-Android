@@ -11,7 +11,6 @@ import android.widget.RadioGroup;
 
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
-import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,19 +25,9 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
      */
     private ArduinoUno.Pin mSelectedPin;
 
-    /**
-     * プロファイルのタイプ.
-     * <p>
-     * ProfileData.Typeの値.
-     * </p>
-     */
-    private ProfileData mProfileData;
-
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_fabo_pin_group, container, false);
-
-        mProfileData = getActivity().getIntent().getParcelableExtra("profile");
 
         List<ArduinoUno.Pin> pins = getCanUsePinList();
 
@@ -70,6 +59,7 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
         RadioButton radio = (RadioButton) inflater.inflate(R.layout.item_fabo_radio_button_pin, null, false);
         radio.setText(pin.getPinNames()[1]);
         radio.setTag(pin);
+        radio.setEnabled(!usedPin(pin.getPinNumber()));
         radio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(final CompoundButton compoundButton, final boolean b) {
@@ -79,23 +69,6 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
             }
         });
         return radio;
-    }
-
-    /**
-     * 指定されたピンがmProfileDataに含まれているか確認します.
-     * @param pin ピン
-     * @return 含まれている場合はtrue、それ以外はfalse
-     */
-    private boolean containsPin(final int pin) {
-        if (mProfileData == null) {
-            return false;
-        }
-        for (int pinNum : mProfileData.getPinList()) {
-            if (pin == pinNum) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

@@ -119,14 +119,56 @@ public class VirtualServiceDBHelper {
                 serviceData.getServiceId()
         };
 
+
+        List<ProfileData> old = getProfileDataList(serviceData.getServiceId());
+
         for (ProfileData p : serviceData.getProfileDataList()) {
-            updateProfileData(p);
+            // アップデートに失敗した場合には、プロファイルが存在しなかった
+            // 可能性があるので、追加処理を行っておく。
+            if (updateProfileData(p) <= 0) {
+                addProfileData(p);
+            }
+            old.remove(p);
+        }
+
+        // 削除されたプロファイルはDBからも削除しておく
+        for (ProfileData p : old) {
+            removeProfileData(p);
         }
 
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             return db.update(TBL_SERVICE_NAME, values, whereClause, whereArgs);
         } finally {
+            db.close();
+        }
+    }
+
+    /**
+     * 指定された仮想サービスのIDに対応するサービスデータを取得します.
+     * @param vid 仮想サービスのID
+     * @return ServiceDataのインスタンス
+     */
+    public ServiceData getServiceData(final String vid) {
+        String sql = "SELECT * FROM " + TBL_SERVICE_NAME + " WHERE " + COL_SERVICE_ID + "=?";
+        String[] selectionArgs = {
+                vid
+        };
+
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, selectionArgs);
+        try {
+            boolean next = cursor.moveToFirst();
+            if (next) {
+                ServiceData service = new ServiceData();
+                service.setServiceId(cursor.getString(cursor.getColumnIndex(COL_SERVICE_ID)));
+                service.setName(cursor.getString(cursor.getColumnIndex(COL_SERVICE_NAME)));
+                service.setProfileDataList(getProfileDataList(service.getServiceId()));
+                return service;
+            }
+            return null;
+        } finally {
+            cursor.close();
             db.close();
         }
     }
@@ -185,9 +227,10 @@ public class VirtualServiceDBHelper {
      * @param profileData 削除するプロファイルデータ
      */
     public long removeProfileData(final ProfileData profileData) {
-        String whereClause = COL_PROFILE_SERVICE_ID + "=?";
+        String whereClause = COL_PROFILE_SERVICE_ID + "=? AND " + COL_PROFILE_TYPE + "=?";
         String[] whereArgs = {
-                profileData.getServiceId()
+                profileData.getServiceId(),
+                "" + profileData.getType().getValue()
         };
 
         SQLiteDatabase db = mDBHelper.getWritableDatabase();

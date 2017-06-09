@@ -32,6 +32,7 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.VirtualSer
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -262,34 +263,49 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     /**
      * 仮想サービスのデータをDBに追加します.
      * @param serviceData 追加する仮想サービスのデータ
-     * @return 追加に成功した場合はtrue、それ以外はfalse
+     * @return 追加したVirtualService
      */
-    public boolean addServiceData(final ServiceData serviceData) {
+    public VirtualService addServiceData(final ServiceData serviceData) {
         String serviceId = mDBHelper.createServiceId();
         serviceData.setServiceId(serviceId);
         boolean result = mDBHelper.addServiceData(serviceData) >= 0;
         if (result) {
-            DConnectService service = VirtualServiceFactory.createService(serviceData);
+            VirtualService service = VirtualServiceFactory.createService(serviceData);
             service.setOnline(FaBoConst.STATUS_FABO_RUNNING == mStatus);
             getServiceProvider().addService(service);
+            return service;
         }
-        return result;
+        return null;
     }
 
     /**
      * 仮想サービスのデータを更新します.
      * @param serviceData 更新する仮想サービスのデータ
-     * @return 更新に成功した場合はtrue、それ以外はfalse
+     * @return 更新したVirtualService
      */
-    public boolean updateServiceData(final ServiceData serviceData) {
+    public VirtualService updateServiceData(final ServiceData serviceData) {
         boolean result = mDBHelper.updateServiceData(serviceData) >= 0;
         if (result) {
             DConnectService service = getServiceProvider().getService(serviceData.getServiceId());
             if (service != null && service instanceof VirtualService) {
+                service.setName(serviceData.getName());
                 ((VirtualService)service).setServiceData(serviceData);
+
+                // プロファイルを一度全て削除してから、プロファイルを追加します
+                for (DConnectProfile p : service.getProfileList()) {
+                    service.removeProfile(p);
+                }
+
+                for (ProfileData p : serviceData.getProfileDataList()) {
+                    DConnectProfile profile = VirtualServiceFactory.createProfile(p);
+                    if (profile != null) {
+                        service.addProfile(profile);
+                    }
+                }
+                return ((VirtualService) service);
             }
         }
-        return result;
+        return null;
     }
 
     /**
@@ -299,6 +315,18 @@ public class FaBoDeviceService extends DConnectMessageService implements FaBoUsb
     public void removeServiceData(final ServiceData serviceData) {
         getServiceProvider().removeService(serviceData.getServiceId());
         mDBHelper.removeServiceData(serviceData);
+    }
+
+    /**
+     * 指定されたvidに対応する仮想サービスデータを取得します.
+     * <p>
+     * 指定されたvidに対応する仮想サービスが存在しない場合にはnullを返却します.
+     * </p>
+     * @param vid 仮想サービスデータのID
+     * @return ServiceDataのインスタンス
+     */
+    public ServiceData getServiceData(final String vid) {
+        return mDBHelper.getServiceData(vid);
     }
 
     /**

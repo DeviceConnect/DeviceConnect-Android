@@ -38,6 +38,7 @@
     <string name="activity_fabo_virtual_service_pin_description" translatable="false">プロファイルが使用するピンを選択してください。</string>
     <string name="activity_fabo_virtual_service_profile_add" translatable="false">+</string>
     <string name="activity_fabo_virtual_service_profile_remove" translatable="false">削除</string>
+    <string name="activity_fabo_virtual_service_profile_pins" translatable="false">PIN: %1$s</string>
 
     <string name="activity_fabo_virtual_service_dialog_title" translatable="false">サービス</string>
     <string name="activity_fabo_virtual_service_error_title" translatable="false">警告</string>

@@ -165,6 +165,7 @@ public class FaBoProfileListActivity extends Activity {
         Intent intent = new Intent();
         intent.setClass(this, FaBoPinListActivity.class);
         intent.putExtra("profile", data);
+        intent.putExtra("pins", getIntent().getIntegerArrayListExtra("pins"));
         startActivityForResult(intent, REQUEST_CODE);
     }
 

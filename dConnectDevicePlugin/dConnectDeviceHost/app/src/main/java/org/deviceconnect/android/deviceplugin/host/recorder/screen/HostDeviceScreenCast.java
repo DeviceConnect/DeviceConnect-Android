@@ -321,6 +321,10 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         synchronized (mLockObj) {
             hideNotification();
             stopScreenCast();
+            if (mMediaProjection != null) {
+                mMediaProjection.stop();
+                mMediaProjection = null;
+            }
             unregisterConfigChangeReceiver();
             if (mServer != null) {
                 mServer.stop();
@@ -388,12 +392,20 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                             public void onTakePhoto(final String uri, final String filePath) {
                                 listener.onTakePhoto(uri, filePath);
                                 releaseVirtualDisplay();
+                                if (mMediaProjection != null) {
+                                    mMediaProjection.stop();
+                                    mMediaProjection = null;
+                                }
                             }
 
                             @Override
                             public void onFailedTakePhoto() {
                                 listener.onFailedTakePhoto();
                                 releaseVirtualDisplay();
+                                if (mMediaProjection != null) {
+                                    mMediaProjection.stop();
+                                    mMediaProjection = null;
+                                }
                             }
                         });
                     }
@@ -526,23 +538,20 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         }
 
         mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
+
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
-            "Android Host Screen",
-            w,
-            h,
-            mDisplayDensityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            mImageReader.getSurface(), callback, null);
+                "Android Host Screen",
+                w,
+                h,
+                mDisplayDensityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                mImageReader.getSurface(), callback, null);
     }
 
     private void releaseVirtualDisplay() {
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
             mVirtualDisplay = null;
-        }
-        if (mMediaProjection != null) {
-            mMediaProjection.stop();
-            mMediaProjection = null;
         }
         if (mImageReader != null) {
             mImageReader.setOnImageAvailableListener(null, null);
@@ -562,7 +571,9 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                mLogger.info("Server URL: " + mServer.getUrl());
+                if (mServer != null) {
+                    mLogger.info("Server URL: " + mServer.getUrl());
+                }
                 try {
                     while (mIsCasting) {
                         long start = System.currentTimeMillis();
@@ -599,6 +610,11 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
 
         if (mThread != null) {
             mThread.interrupt();
+            try {
+                mThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mThread = null;
         }
         releaseVirtualDisplay();
@@ -610,6 +626,9 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     }
 
     private synchronized Bitmap getScreenshot() {
+        if (mImageReader == null) {
+            return null;
+        }
         Image image = mImageReader.acquireLatestImage();
         if (image == null) {
             return null;

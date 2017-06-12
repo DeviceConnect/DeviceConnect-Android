@@ -160,10 +160,6 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     @Override
     public void clean() {
         stopWebServer();
-        if (mMediaProjection != null) {
-            mMediaProjection.stop();
-            mMediaProjection = null;
-        }
     }
 
     @Override
@@ -318,6 +314,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     @Override
     public void stopWebServer() {
         mLogger.info("Stopping web server...");
+
         synchronized (mLockObj) {
             hideNotification();
             stopScreenCast();
@@ -599,6 +596,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
 
     private void stopScreenCast() {
         if (!mIsCasting) {
+            mLogger.info("MediaProjection is already stopping.");
             return;
         }
         mIsCasting = false;
@@ -621,14 +619,18 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     }
 
     private synchronized Bitmap getScreenshot() {
-        if (mImageReader == null) {
+        try {
+            if (mImageReader == null) {
+                return null;
+            }
+            Image image = mImageReader.acquireLatestImage();
+            if (image == null) {
+                return null;
+            }
+            return decodeToBitmap(image);
+        } catch (Exception e) {
             return null;
         }
-        Image image = mImageReader.acquireLatestImage();
-        if (image == null) {
-            return null;
-        }
-        return decodeToBitmap(image);
     }
 
     private Bitmap decodeToBitmap(final Image img) {
@@ -657,7 +659,9 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         mConfigChangeReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
-                restartScreenCast();
+                if (mMediaProjection != null) {
+                    restartScreenCast();
+                }
             }
         };
         IntentFilter filter = new IntentFilter(

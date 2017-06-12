@@ -99,8 +99,6 @@ public class FaBoDeviceService extends DConnectMessageService {
             }
         });
         mFaBoDeviceControl.initialize();
-
-        setOnline(true);
     }
 
     @Override

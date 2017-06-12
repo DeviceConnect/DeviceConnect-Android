@@ -2,8 +2,18 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 
+/**
+ * マウス型RobotCarを操作しるためのクラス.
+ */
 class MouseCar extends BaseRobotCar implements IMouseCar {
+    /**
+     * 左側のモータへのアドレス.
+     */
     private static final byte DRV8830_LEFT_ADDRESS = 0x64;
+
+    /**
+     * 右側のモータへのアドレス.
+     */
     private static final byte DRV8830_RIGHT_ADDRESS = 0x63;
 
     @Override

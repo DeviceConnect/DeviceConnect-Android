@@ -1,5 +1,8 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
+/**
+ * RobotCarを操作するためのインターフェース.
+ */
 public interface IRobotCar {
     /**
      * ハンドルを切ります.
@@ -8,8 +11,8 @@ public interface IRobotCar {
     void turnHandle(final float direction);
 
     /**
-     * 前進します.
-     * @param speed 前進するスピード(-1.0〜1.0)
+     * 移動します.
+     * @param speed 移動するスピード(-1.0〜1.0)
      */
     void move(final float speed);
 

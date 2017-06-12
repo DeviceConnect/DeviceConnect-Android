@@ -2,9 +2,23 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 
+/**
+ * RobotCarを操作するためのクラス.
+ */
 class RobotCar extends BaseRobotCar implements IRobotCar {
+    /**
+     * モータへのアドレス.
+     */
     private static final byte DRV8830_ADDRESS = 0x64;
+
+    /**
+     * サーボへのアドレス.
+     */
     private static final byte EXTENDED_ANALOG = 0x6F;
+
+    /**
+     * ピン設定モード.
+     */
     private static final byte SET_PIN_MODE = (byte)0xF4;
 
     @Override

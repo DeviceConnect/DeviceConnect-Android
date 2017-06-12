@@ -314,6 +314,11 @@ public class FaBoDeviceService extends DConnectMessageService {
         return mDBHelper.getServiceData(vid);
     }
 
+    /**
+     * 削除できるプロファイルか確認を行う.
+     * @param profileName 削除できるかを確認するプロファイル名
+     * @return 削除できる場合はtrue、それ以外はfalse
+     */
     private boolean canRemoveProfile(final String profileName) {
         return !"serviceInformation".equalsIgnoreCase(profileName);
     }

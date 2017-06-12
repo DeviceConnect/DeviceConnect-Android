@@ -7,7 +7,6 @@
     <string name="page_2" translatable="false">[2/4] アカウントの作成 or ログイン</string>
     <string name="page_4" translatable="false">[3/4] HVC-C2W をペアリングモードにする</string>
     <string name="page_5" translatable="false">[4/4] 接続するための音を鳴らす</string>
-    <string name="page_6" translatable="false">[5/5] 顔認証データの登録</string>
 
     <string name="c2w_setting_message_1_1" translatable="false">HVC-C2Wの使用準備をします。HVC-C2WにACアダプタから電源を供給されたMicroUSBケーブルを挿入すると、電源が入ります。30秒後に音がなり準備が整います。</string>
     <string name="c2w_setting_message_1_2" translatable="false">HVC-C2WにSDカードを挿入するのを忘れないでください。</string>
@@ -41,31 +40,12 @@
     <string name="c2w_setting_error_5_1" translatable="false">SSIDとPasswordを入力してください。</string>
     <string name="c2w_success_connect" translatable="false">HVC-C2Wとの接続に成功しました。</string>
     <string name="c2w_fail_connect" translatable="false">HVC-C2Wとの接続に失敗しました。</string>
-    <string name="c2w_setting_message_6_1" translatable="false">顔認証するデータの名前を登録してください。</string>
-    <string name="c2w_setting_message_6_2" translatable="false">削除する顔認証するデータの名前を登録してください。</string>
 
-    <string name="c2w_name" translatable="false">name</string>
-    <string name="search_devices" translatable="false">HVC-C2Wの選択</string>
-    <string name="c2w_register_face_recognition" translatable="false">顔登録</string>
-    <string name="c2w_unregister_face_recognition" translatable="false">顔削除</string>
-    <string name="c2w_progress_register_face_recognition" translatable="false">顔認証データ登録中...</string>
-    <string name="c2w_progress_unregister_face_recognition" translatable="false">顔認証データ削除中...</string>
-    <string name="c2w_success_register" translatable="false">顔認証データを登録しました。</string>
-    <string name="c2w_fail_register" translatable="false">顔認証データの登録に失敗しました。</string>
-    <string name="c2w_fail_register_over" translatable="false">顔認証データがいっぱいです。削除してください。</string>
-    <string name="c2w_success_unregister" translatable="false">顔認証データを削除しました。</string>
-    <string name="c2w_fail_unregister" translatable="false">顔認証データの削除に失敗しました。</string>
-    <string name="c2w_fail_unregister_nothing" translatable="false">顔認証データが存在しません。</string>
 
     <string name="button_cancel" translatable="false">キャンセル</string>
     <string name="button_ok" translatable="false">OK</string>
 
     <string name="button_gmail" translatable="false">GMailを開く</string>
-
-    <string name="select_dialog_message" translatable="false">顔認証データを登録するデバイスを選択してください。</string>
-
-    <string name="loading_face_recognize_register" translatable="false">顔認証データ\n登録中...</string>
-    <string name="loading_face_recognize_unregister" translatable="false">顔認証データ\n削除中...</string>
 
     <string name="key_settings_dconn_client_id" translatable="false">settings_client_id</string>
     <string name="key_settings_dconn_access_token" translatable="false">settings_access_token</string>

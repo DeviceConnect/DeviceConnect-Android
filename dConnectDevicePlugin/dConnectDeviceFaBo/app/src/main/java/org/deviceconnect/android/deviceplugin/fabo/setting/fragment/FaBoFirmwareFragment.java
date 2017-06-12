@@ -63,8 +63,6 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
     /** Activity. */
     private static Activity mActivity;
 
-
-
     /**
      * newInstance.
      *

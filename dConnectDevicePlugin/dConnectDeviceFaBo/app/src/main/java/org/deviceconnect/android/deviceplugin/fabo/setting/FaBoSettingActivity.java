@@ -21,12 +21,6 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  */
 public class FaBoSettingActivity extends DConnectSettingPageFragmentActivity {
 
-    /** サービスID. */
-    private String mServiceId;
-
-    /** ページ数. */
-    private static final int PAGE_COUNT = 2;
-
     /**
      * ページのクラスリスト.
      */
@@ -58,37 +52,13 @@ public class FaBoSettingActivity extends DConnectSettingPageFragmentActivity {
     }
 
 
-    /**
-     * サービスIDを取得する.
-     *
-     * @return サービスID
-     */
-    public String getServiceId() {
-        return mServiceId;
-    }
-
-    /**
-     * サービスIDを設定する.
-     *
-     * @param serviceId サービスID
-     */
-    public void setServiceId(final String serviceId) {
-        mServiceId = serviceId;
-    }
-
     @Override
     public int getPageCount() {
-        return PAGE_COUNT;
-    }
-
-    public void moveWriteFirmata() {
-        ViewPager vp = getViewPager();
-        vp.setCurrentItem(1, true);
+        return PAGES.length;
     }
 
     public void moveConnectFirmata() {
         ViewPager vp = getViewPager();
         vp.setCurrentItem(0, true);
     }
-
 }

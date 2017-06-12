@@ -3,7 +3,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -56,12 +56,12 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
-                        getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
+                        getFaBoDeviceControl().addOnGPIOListener(mOnGPIOListenerImpl);
                         for (ArduinoUno.Pin pin : mPinList) {
                             if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
-                                mValues.put(pin, getFaBoDeviceService().getAnalogValue(pin));
+                                mValues.put(pin, getFaBoDeviceControl().getAnalog(pin));
                             } else {
-                                mValues.put(pin, getFaBoDeviceService().getDigitalValue(pin));
+                                mValues.put(pin, getFaBoDeviceControl().getDigital(pin).getValue());
                             }
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
@@ -87,7 +87,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
-                            getFaBoDeviceService().removeOnGPIOListener(mOnGPIOListenerImpl);
+                            getFaBoDeviceControl().removeOnGPIOListener(mOnGPIOListenerImpl);
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
                         break;
@@ -114,12 +114,12 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
-                        getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
+                        getFaBoDeviceControl().addOnGPIOListener(mOnGPIOListenerImpl);
                         for (ArduinoUno.Pin pin : mPinList) {
                             if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
-                                mValues.put(pin, getFaBoDeviceService().getAnalogValue(pin));
+                                mValues.put(pin, getFaBoDeviceControl().getAnalog(pin));
                             } else {
-                                mValues.put(pin, getFaBoDeviceService().getDigitalValue(pin));
+                                mValues.put(pin, getFaBoDeviceControl().getDigital(pin).getValue());
                             }
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
@@ -145,7 +145,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
-                            getFaBoDeviceService().removeOnGPIOListener(mOnGPIOListenerImpl);
+                            getFaBoDeviceControl().removeOnGPIOListener(mOnGPIOListenerImpl);
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
                         break;
@@ -172,13 +172,13 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
-                        getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
+                        getFaBoDeviceControl().addOnGPIOListener(mOnGPIOListenerImpl);
                         for (ArduinoUno.Pin pin : mPinList) {
                             if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
-                                mValues.put(pin, getFaBoDeviceService().getAnalogValue(pin));
+                                mValues.put(pin, getFaBoDeviceControl().getAnalog(pin));
                             } else {
-                                getFaBoDeviceService().setPinMode(pin, ArduinoUno.Mode.GPIO_IN);
-                                mValues.put(pin, getFaBoDeviceService().getDigitalValue(pin));
+                                getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_IN);
+                                mValues.put(pin, getFaBoDeviceControl().getDigital(pin).getValue());
                             }
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
@@ -204,7 +204,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
-                            getFaBoDeviceService().removeOnGPIOListener(mOnGPIOListenerImpl);
+                            getFaBoDeviceControl().removeOnGPIOListener(mOnGPIOListenerImpl);
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
                         break;
@@ -325,13 +325,13 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
     /**
      * GPIOの値変化の通知を受け取るリスナー.
      */
-    private FaBoDeviceService.OnGPIOListener mOnGPIOListenerImpl = new FaBoDeviceService.OnGPIOListener() {
+    private FaBoDeviceControl.OnGPIOListener mOnGPIOListenerImpl = new FaBoDeviceControl.OnGPIOListener() {
         @Override
         public void onAnalog() {
             for (ArduinoUno.Pin pin : mPinList) {
                 if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
                     int oldValue = mValues.get(pin);
-                    int newValue = getFaBoDeviceService().getAnalogValue(pin);
+                    int newValue = getFaBoDeviceControl().getAnalog(pin);
                     if (oldValue < 10 && newValue > 1000) {
                         notifyKeyDown(pin);
                     } else if (oldValue > 1000 && newValue < 10) {
@@ -347,7 +347,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
             for (ArduinoUno.Pin pin : mPinList) {
                 if (pin.getMode() != ArduinoUno.Mode.ANALOG) {
                     int oldValue = mValues.get(pin);
-                    int newValue = getFaBoDeviceService().getDigitalValue(pin);
+                    int newValue = getFaBoDeviceControl().getDigital(pin).getValue();
                     if (oldValue == 0 && newValue == 1) {
                         notifyKeyDown(pin);
                     } else if (oldValue == 1 && newValue == 0) {

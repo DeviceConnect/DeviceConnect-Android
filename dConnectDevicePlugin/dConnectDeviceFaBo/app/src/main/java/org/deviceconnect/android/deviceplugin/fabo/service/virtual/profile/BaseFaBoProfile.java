@@ -1,9 +1,8 @@
 package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.profile.DConnectProfile;
-
-import io.fabo.serialkit.FaBoUsbManager;
 
 abstract class BaseFaBoProfile extends DConnectProfile {
     /**
@@ -17,15 +16,19 @@ abstract class BaseFaBoProfile extends DConnectProfile {
         return (FaBoDeviceService) getContext();
     }
 
-    /**
-     * 接続されているFaBoを操作するためのFaBoUsbManagerを取得します.
-     * <p>
-     * 接続されていない場合にはnullを返却します。
-     * </p>
-     * @return FaBoUsbManagerのインスタンス
-     */
-    FaBoUsbManager getFaBoUsbManager() {
-        return getFaBoDeviceService().getFaBoUsbManager();
+//    /**
+//     * 接続されているFaBoを操作するためのFaBoUsbManagerを取得します.
+//     * <p>
+//     * 接続されていない場合にはnullを返却します。
+//     * </p>
+//     * @return FaBoUsbManagerのインスタンス
+//     */
+//    FaBoUsbManager getFaBoUsbManager() {
+//        return getFaBoDeviceService().getFaBoUsbManager();
+//    }
+
+    FaBoDeviceControl getFaBoDeviceControl() {
+        return getFaBoDeviceService().getFaBoDeviceControl();
     }
 
     /**

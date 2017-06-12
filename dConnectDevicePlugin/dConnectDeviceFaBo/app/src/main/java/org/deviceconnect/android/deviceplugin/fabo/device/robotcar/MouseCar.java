@@ -59,7 +59,7 @@ public class MouseCar extends BaseRobotCar {
                 (byte) ((value_left >> 7) & 0x7f),
                 END_SYSEX
         };
-        getFaBoUsbManager().writeBuffer(commandDataLeft);
+        getFaBoDeviceControl().writeI2C(commandDataLeft);
 
         byte[] commandDataRight = {
                 START_SYSEX,
@@ -72,6 +72,6 @@ public class MouseCar extends BaseRobotCar {
                 (byte) ((value_right >> 7) & 0x7f),
                 END_SYSEX
         };
-        getFaBoUsbManager().writeBuffer(commandDataRight);
+        getFaBoDeviceControl().writeI2C(commandDataRight);
     }
 }

@@ -1,6 +1,6 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.robotcar;
 
-import io.fabo.serialkit.FaBoUsbManager;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 
 
 public class BaseRobotCar {
@@ -26,14 +26,14 @@ public class BaseRobotCar {
     /**
      * Usbに接続されたデバイスを管理するクラス.
      */
-    private FaBoUsbManager mFaBoUsbManager;
+    private FaBoDeviceControl mFaBoDeviceControl;
 
-    protected FaBoUsbManager getFaBoUsbManager() {
-        return mFaBoUsbManager;
+    protected FaBoDeviceControl getFaBoDeviceControl() {
+        return mFaBoDeviceControl;
     }
 
-    public void setFaBoUsbManager(FaBoUsbManager faBoUsbManager) {
-        mFaBoUsbManager = faBoUsbManager;
+    public void setFaBoDeviceControl(final FaBoDeviceControl manager) {
+        mFaBoDeviceControl = manager;
     }
 
     /**
@@ -47,7 +47,7 @@ public class BaseRobotCar {
                 (byte) 0x00,
                 END_SYSEX
         };
-        mFaBoUsbManager.writeBuffer(configCommandData);
+        getFaBoDeviceControl().writeI2C(configCommandData);
     }
 
 

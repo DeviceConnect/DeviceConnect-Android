@@ -3,7 +3,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -50,7 +50,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
                 EventError error = INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
-                        getFaBoDeviceService().addOnGPIOListener(mOnGPIOListenerImpl);
+                        getFaBoDeviceControl().addOnGPIOListener(mOnGPIOListenerImpl);
                         setResult(response, DConnectMessage.RESULT_OK);
                         break;
                     default:
@@ -74,7 +74,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
                 switch (error) {
                     case NONE:
                         if (isEmptyEvent()) {
-                            getFaBoDeviceService().removeOnGPIOListener(mOnGPIOListenerImpl);
+                            getFaBoDeviceControl().removeOnGPIOListener(mOnGPIOListenerImpl);
                         }
                         setResult(response, DConnectMessage.RESULT_OK);
                         break;
@@ -113,7 +113,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
     private void notifyProximity(final ArduinoUno.Pin pin) {
         String serviceId = getService().getId();
 
-        int value = getFaBoDeviceService().getAnalogValue(pin);
+        int value = getFaBoDeviceControl().getAnalog(pin);
         value = calcArduinoMap(value, 0, 1023, 0, 5000);
         value = calcArduinoMap(value, 3200, 500, 5, 80);
 
@@ -139,7 +139,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
     /**
      * GPIOの値変化の通知を受け取るリスナー.
      */
-    private FaBoDeviceService.OnGPIOListener mOnGPIOListenerImpl = new FaBoDeviceService.OnGPIOListener() {
+    private FaBoDeviceControl.OnGPIOListener mOnGPIOListenerImpl = new FaBoDeviceControl.OnGPIOListener() {
         @Override
         public void onAnalog() {
             for (ArduinoUno.Pin pin : mPinList) {

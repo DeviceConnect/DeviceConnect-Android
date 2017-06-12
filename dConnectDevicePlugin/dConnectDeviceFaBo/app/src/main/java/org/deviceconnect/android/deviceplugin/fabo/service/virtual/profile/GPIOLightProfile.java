@@ -51,7 +51,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
                     lightList[i] = new Bundle();
                     lightList[i].putString("lightId", String.valueOf(pin.getPinNumber()));
                     lightList[i].putString("name", pin.getPinNames()[1]);
-                    lightList[i].putBoolean("on", getFaBoDeviceService().getDigitalValue(pin) == 1);
+                    lightList[i].putBoolean("on", getFaBoDeviceControl().getDigital(pin) == ArduinoUno.Level.HIGH);
                     lightList[i].putString("config", "");
                 }
                 response.putExtra("lights", lightList);
@@ -87,7 +87,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
                 } else {
                     ArduinoUno.Pin pin = findLight(lightId);
                     if (pin != null) {
-                        getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.LOW);
+                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
                         MessageUtils.setInvalidRequestParameterError(response, "Not found the light. lightId=" + lightId);
@@ -121,7 +121,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
                 if (flashing != null) {
                     flashing(pin, flashing);
                 } else {
-                    getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.HIGH);
+                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -203,9 +203,9 @@ public class GPIOLightProfile extends BaseFaBoProfile {
             @Override
             public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 if (isOn) {
-                    getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.HIGH);
+                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
                 } else {
-                    getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.LOW);
+                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
                 }
                 listener.onComplete();
             }

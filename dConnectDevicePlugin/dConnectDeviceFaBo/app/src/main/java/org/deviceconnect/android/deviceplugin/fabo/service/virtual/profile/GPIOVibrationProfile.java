@@ -62,7 +62,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
                         flashing(pattern);
                     } else {
                         for (ArduinoUno.Pin pin : mPinList) {
-                            getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.HIGH);
+                            getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
                         }
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -85,7 +85,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "Vibration does not exist.");
                 } else {
                     for (ArduinoUno.Pin pin : mPinList) {
-                        getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.LOW);
+                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
@@ -176,11 +176,11 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
             public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 if (isOn) {
                     for (ArduinoUno.Pin pin : mPinList) {
-                        getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.HIGH);
+                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
                     }
                 } else {
                     for (ArduinoUno.Pin pin : mPinList) {
-                        getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.LOW);
+                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
                     }
                 }
                 listener.onComplete();

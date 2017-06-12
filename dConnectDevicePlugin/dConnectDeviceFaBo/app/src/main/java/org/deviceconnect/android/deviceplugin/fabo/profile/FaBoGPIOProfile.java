@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.fabo.profile;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -50,7 +51,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            int value = getFaBoDeviceService().getAnalogValue(pin);
+                            int value = getFaBoDeviceControl().getAnalog(pin);
                             setValue(response, value);
                             setResult(response, RESULT_OK);
                             return true;
@@ -94,12 +95,8 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            int value = getFaBoDeviceService().getDigitalValue(pin);
-                            if (value == 1) {
-                                setValue(response, ArduinoUno.Level.HIGH.getValue());
-                            } else {
-                                setValue(response, ArduinoUno.Level.LOW.getValue());
-                            }
+                            ArduinoUno.Level value = getFaBoDeviceControl().getDigital(pin);
+                            setValue(response, value.getValue());
                             setResult(response, RESULT_OK);
                             return true;
                         }
@@ -131,7 +128,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if (modeValue != null) {
                         ArduinoUno.Mode mode = ArduinoUno.Mode.getMode(modeValue);
                         if (mode != null) {
-                            getFaBoDeviceService().setPinMode(pin, mode);
+                            getFaBoDeviceControl().setPinMode(pin, mode);
                             setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
                             setResult(response, RESULT_OK);
                         } else {
@@ -166,7 +163,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if (hlValue != null) {
                         ArduinoUno.Level level = ArduinoUno.Level.getLevel(hlValue);
                         if (level != null) {
-                            getFaBoDeviceService().digitalWrite(pin, level);
+                            getFaBoDeviceControl().writeDigital(pin, level);
                             setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
                             setResult(response, RESULT_OK);
                         } else {
@@ -207,7 +204,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                             Integer hlValue = parseInteger(request, PARAM_VALUE);
                             if (hlValue != null) {
                                 if (hlValue >= 0 && hlValue <= 255) {
-                                    getFaBoDeviceService().analogWrite(pin, hlValue);
+                                    getFaBoDeviceControl().writeAnalog(pin, hlValue);
                                     setResult(response, RESULT_OK);
                                 } else {
                                     MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
@@ -238,8 +235,10 @@ public class FaBoGPIOProfile extends GPIOProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (EventError.NONE == error) {
+                    // TODO
                     getFaBoDeviceService().registerOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);
+
                     return true;
                 } else {
                     MessageUtils.setError(response, 100, "Failed add event.");
@@ -265,7 +264,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.HIGH);
+                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
                     setMessage(response, pinName + "の値をHIGH(1)に変更");
                     setResult(response, RESULT_OK);
                     return true;
@@ -286,6 +285,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 boolean result = EventManager.INSTANCE.removeEvents(getOrigin(request));
                 if (result) {
+                    // TODO
                     getFaBoDeviceService().unregisterOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);
                     return true;
@@ -313,7 +313,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    getFaBoDeviceService().digitalWrite(pin, ArduinoUno.Level.LOW);
+                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
                     setMessage(response, pinName + "の値をLOW(0)に変更");
                     setResult(response, RESULT_OK);
                     return true;
@@ -334,6 +334,10 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
         addPutOnChangeApi();
         addDeleteOnChangeApi();
+    }
+
+    private FaBoDeviceControl getFaBoDeviceControl() {
+        return getFaBoDeviceService().getFaBoDeviceControl();
     }
 
     private FaBoDeviceService getFaBoDeviceService() {

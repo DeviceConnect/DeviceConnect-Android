@@ -2,24 +2,18 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.RobotCar;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import io.fabo.serialkit.FaBoUsbManager;
-
 /**
  * RobotCar (Carタイプ)を操作するためのDriveControllerプロファイル.
  */
 public class I2CRobotCarDriveControllerProfile extends BaseFaBoProfile {
-
-    /**
-     * RobotCarを操作するための操作便利クラス.
-     */
-    private RobotCar mRobotCar = new RobotCar();
 
     /**
      * コンストラクタ.
@@ -36,15 +30,15 @@ public class I2CRobotCarDriveControllerProfile extends BaseFaBoProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 Float angle = parseFloat(request, "angle");
 
-                FaBoUsbManager mgr = getFaBoUsbManager();
+                FaBoDeviceControl mgr = getFaBoDeviceControl();
                 if (!getService().isOnline() || mgr == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
 
+                IRobotCar robotCar = mgr.getRobotCar();
                 if (angle != null) {
-                    mRobotCar.setFaBoUsbManager(mgr);
-                    mRobotCar.turnHandle(calcAngle(angle));
+                    robotCar.turnHandle(calcAngle(angle));
                 }
 
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -64,26 +58,23 @@ public class I2CRobotCarDriveControllerProfile extends BaseFaBoProfile {
                 Float angle = parseFloat(request, "angle");
                 Float speed = parseFloat(request, "speed");
 
-                FaBoUsbManager mgr = getFaBoUsbManager();
+                FaBoDeviceControl mgr = getFaBoDeviceControl();
                 if (!getService().isOnline() || mgr == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
 
-                mRobotCar.setFaBoUsbManager(mgr);
-
+                IRobotCar robotCar = mgr.getRobotCar();
                 if (speed != null) {
                     if (speed == 0) {
-                        mRobotCar.stop();
-                    } else if (speed > 0) {
-                        mRobotCar.goForward(speed);
+                        robotCar.stop();
                     } else {
-                        mRobotCar.goBack(Math.abs(speed));
+                        robotCar.move(speed);
                     }
                 }
 
                 if (angle != null) {
-                    mRobotCar.turnHandle(calcAngle(angle));
+                    robotCar.turnHandle(calcAngle(angle));
                 }
 
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -100,14 +91,14 @@ public class I2CRobotCarDriveControllerProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                FaBoUsbManager mgr = getFaBoUsbManager();
+                FaBoDeviceControl mgr = getFaBoDeviceControl();
                 if (!getService().isOnline() || mgr == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
 
-                mRobotCar.setFaBoUsbManager(mgr);
-                mRobotCar.stop();
+                IRobotCar robotCar = mgr.getRobotCar();
+                robotCar.stop();
                 return true;
             }
         });

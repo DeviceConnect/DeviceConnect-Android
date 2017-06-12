@@ -30,7 +30,7 @@ public class GPIOHumidityProfile extends BaseFaBoProfile {
                 ArduinoUno.Pin pin = mPinList.get(0);
 
                 // TODO 要確認
-                int value = getFaBoDeviceService().getAnalogValue(pin);
+                int value = getFaBoDeviceControl().getAnalog(pin);
                 int humidity = value & 0xFFFF;
 
                 response.putExtra("humidity", humidity / 100.0f);

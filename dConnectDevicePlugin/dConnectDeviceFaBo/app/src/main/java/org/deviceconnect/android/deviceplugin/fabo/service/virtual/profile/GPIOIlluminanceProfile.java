@@ -30,7 +30,7 @@ public class GPIOIlluminanceProfile extends BaseFaBoProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 ArduinoUno.Pin pin = mPinList.get(0);
 
-                int value = getFaBoDeviceService().getAnalogValue(pin);
+                int value = getFaBoDeviceControl().getAnalog(pin);
                 value = 5000 - calcArduinoMap(value, 0, 2013, 0, 5000);
                 value = value / 10;
 

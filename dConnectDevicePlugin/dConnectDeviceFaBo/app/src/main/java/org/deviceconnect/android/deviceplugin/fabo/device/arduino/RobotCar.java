@@ -1,10 +1,13 @@
-package org.deviceconnect.android.deviceplugin.fabo.device.robotcar;
+package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
-public class RobotCar extends BaseRobotCar {
-    /**
-     * ハンドルを切ります.
-     * @param direction 向き(-1.0〜1.0)
-     */
+import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
+
+class RobotCar extends BaseRobotCar implements IRobotCar {
+    private static final byte DRV8830_ADDRESS = 0x64;
+    private static final byte EXTENDED_ANALOG = 0x6F;
+    private static final byte SET_PIN_MODE = (byte)0xF4;
+
+    @Override
     public void turnHandle(final float direction) {
         byte[] commandData = {
                 SET_PIN_MODE,
@@ -27,27 +30,17 @@ public class RobotCar extends BaseRobotCar {
         getFaBoDeviceControl().writeI2C(commandSend);
     }
 
-    /**
-     * 前進します.
-     * @param speed 前進するスピード(0.0〜1.0)
-     */
-    public void goForward(final float speed) {
+    @Override
+    public void move(final float speed) {
         setI2CConfig();
-        moveMotor((DRV8830_FORWARD | ((calcSpeed(speed) + 5) << 2)));
+        if (speed > 0) {
+            moveMotor((DRV8830_FORWARD | ((calcSpeed(speed) + 5) << 2)));
+        } else {
+            moveMotor((DRV8830_BACK | ((calcSpeed(speed) + 5) << 2)));
+        }
     }
 
-    /**
-     * 後進します.
-     * @param speed 後進するスピード(0.0〜1.0)
-     */
-    public void goBack(final float speed) {
-        setI2CConfig();
-        moveMotor((DRV8830_BACK | ((calcSpeed(speed) + 5) << 2)));
-    }
-
-    /**
-     * 停止します.
-     */
+    @Override
     public void stop() {
         setI2CConfig();
         moveMotor(DRV8830_STOP);

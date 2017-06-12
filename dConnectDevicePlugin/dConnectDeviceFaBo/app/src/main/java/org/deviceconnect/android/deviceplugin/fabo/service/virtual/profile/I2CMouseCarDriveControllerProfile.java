@@ -2,14 +2,13 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.device.robotcar.MouseCar;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
-
-import io.fabo.serialkit.FaBoUsbManager;
 
 /**
  * RobotCar (Mouseタイプ)を操作するためのDriveControllerプロファイル.
@@ -19,11 +18,6 @@ import io.fabo.serialkit.FaBoUsbManager;
  * </p>
  */
 public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
-
-    /**
-     * Mouse型RobotCarの操作を行う便利クラス.
-     */
-    private MouseCar mMouseCar = new MouseCar();
 
     /**
      * コンストラクタ.
@@ -63,7 +57,7 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
                     speed = 0.0f;
                 }
 
-                FaBoUsbManager mgr = getFaBoUsbManager();
+                FaBoDeviceControl mgr = getFaBoDeviceControl();
                 if (!getService().isOnline() || mgr == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
@@ -80,8 +74,9 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
                     speed_right = speed * (1 - gain);
                     speed_left = speed;
                 }
-                mMouseCar.setFaBoUsbManager(mgr);
-                mMouseCar.moveMouse(speed_right, speed_left);
+
+                IMouseCar mouseCar = mgr.getMouseCar();
+                mouseCar.move(speed_right, speed_left);
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
@@ -97,14 +92,14 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                FaBoUsbManager mgr = getFaBoUsbManager();
+                FaBoDeviceControl mgr = getFaBoDeviceControl();
                 if (!getService().isOnline() || mgr == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
                     return true;
                 }
 
-                mMouseCar.setFaBoUsbManager(mgr);
-                mMouseCar.stop();
+                IMouseCar mouseCar = mgr.getMouseCar();
+                mouseCar.stop();
                 return true;
             }
         });

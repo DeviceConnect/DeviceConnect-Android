@@ -35,7 +35,7 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 ArduinoUno.Pin pin = mPinList.get(0);
 
-                int value = getFaBoDeviceService().getAnalogValue(pin);
+                int value = getFaBoDeviceControl().getAnalog(pin);
                 value = calcArduinoMap(value, 0, 1023, 0, 5000);
                 value = calcArduinoMap(value, 300, 1600, -30, 100);
                 value = Math.round(value * 10) / 10;

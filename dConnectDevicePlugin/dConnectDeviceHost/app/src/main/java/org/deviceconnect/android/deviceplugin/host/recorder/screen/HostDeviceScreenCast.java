@@ -659,9 +659,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         mConfigChangeReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
-                if (mMediaProjection != null) {
-                    restartScreenCast();
-                }
+                restartScreenCast();
             }
         };
         IntentFilter filter = new IntentFilter(

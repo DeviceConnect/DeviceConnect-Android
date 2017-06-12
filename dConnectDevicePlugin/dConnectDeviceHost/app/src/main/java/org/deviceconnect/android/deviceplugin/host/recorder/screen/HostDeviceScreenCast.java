@@ -352,17 +352,22 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                 }
             });
         } else {
-            takePhotoInternal(new OnPhotoEventListener() {
+            new Thread(new Runnable() {
                 @Override
-                public void onTakePhoto(final String uri, final String filePath) {
-                    listener.onTakePhoto(uri, filePath);
-                }
+                public void run() {
+                    takePhotoInternal(new OnPhotoEventListener() {
+                        @Override
+                        public void onTakePhoto(final String uri, final String filePath) {
+                            listener.onTakePhoto(uri, filePath);
+                        }
 
-                @Override
-                public void onFailedTakePhoto() {
-                    listener.onFailedTakePhoto();
+                        @Override
+                        public void onFailedTakePhoto() {
+                            listener.onFailedTakePhoto();
+                        }
+                    });
                 }
-            });
+            }).start();
         }
     }
 

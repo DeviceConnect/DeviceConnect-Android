@@ -549,6 +549,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
             CheckBox checkBox =
                 (CheckBox) convertView.findViewById(R.id.device_connect_service_removal_checkbox);
             checkBox.setVisibility(mHasCheckbox && !service.isOnline() ? View.VISIBLE : View.GONE);
+            checkBox.setOnCheckedChangeListener(null);
             if (!service.isOnline()) {
                 checkBox.setEnabled(true);
                 checkBox.setClickable(true);

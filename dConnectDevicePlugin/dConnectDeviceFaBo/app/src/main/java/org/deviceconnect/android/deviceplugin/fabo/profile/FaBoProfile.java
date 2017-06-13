@@ -350,11 +350,18 @@ public class FaBoProfile extends DConnectProfile {
         String[] split = pins.split(",");
         for (String s : split) {
             try {
-                Integer i = Integer.parseInt(s);
-                if (isPin(i) && !pinList.contains(i)) {
-                    pinList.add(i);
+                ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(s);
+                if (pin != null) {
+                    if (!pinList.contains(pin.getPinNumber())) {
+                        pinList.add(pin.getPinNumber());
+                    }
                 } else {
-                    return null;
+                    Integer i = Integer.parseInt(s);
+                    if (isPin(i) && !pinList.contains(i)) {
+                        pinList.add(i);
+                    } else {
+                        return null;
+                    }
                 }
             } catch (NumberFormatException e) {
                 return null;

@@ -97,7 +97,14 @@ public class ArduinoUno {
      * ピンの設定レベル.
      */
     public enum Level {
+        /**
+         * HIGHレベル.
+         */
         HIGH(1, "HIGH"),
+
+        /**
+         * LOWレベル.
+         */
         LOW(0, "LOW");
 
         private int mValue;
@@ -202,41 +209,92 @@ public class ArduinoUno {
             mPinNames = pinNames;
         }
 
+        /**
+         * ピン番号を取得します.
+         * @return ピン番号
+         */
         public int getPinNumber() {
             return mPinNumber;
         }
 
+        /**
+         * 値を保持するための配列番号を取得します.
+         * @return
+         */
         public int getPort() {
             return mPort;
         }
 
+        /**
+         * デジタル値を格納するビットを取得します.
+         * @return デジタル値を格納するビット
+         */
         public int getBit() {
             return mBit;
         }
 
+        /**
+         * ピンの名前を取得します.
+         * @return ピンの名前
+         */
         public String[] getPinNames() {
             return mPinNames;
         }
 
+        /**
+         * ピンのモードを取得します.
+         * @return ピンのモード
+         */
         public Mode getMode() {
             return mMode;
         }
 
-        public void setMode(Mode mode) {
+        /**
+         * ピンのモードを設定します.
+         * @param mode ピンのモード
+         */
+        public void setMode(final Mode mode) {
             mMode = mode;
         }
 
+        /**
+         * ピンの値を取得します.
+         * @return ピンの値
+         */
         public int getValue() {
             return mValue;
         }
 
-        public void setValue(int value) {
+        /**
+         * ピンの値を設定します.
+         * @param value ピンの値
+         */
+        public void setValue(final int value) {
             mValue = value;
         }
 
-        public static Pin getPin(int number) {
+        /**
+         * ピン番号からPinのインスタンスを取得します.
+         * @param number ピン番号
+         * @return Pinのインスタンス
+         */
+        public static Pin getPin(final int number) {
             for (Pin pin : values()) {
                 if (pin.getPinNumber() == number) {
+                    return pin;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * ピンの名前からPinのインスタンスを取得します.
+         * @param pinName ピン名
+         * @return Pinのインスタンス
+         */
+        public static Pin getPin(final String pinName) {
+            for (Pin pin : values()) {
+                if (pin.getPinNames()[1].equalsIgnoreCase(pinName)) {
                     return pin;
                 }
             }

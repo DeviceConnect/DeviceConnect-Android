@@ -160,10 +160,6 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     @Override
     public void clean() {
         stopWebServer();
-        if (mMediaProjection != null) {
-            mMediaProjection.stop();
-            mMediaProjection = null;
-        }
     }
 
     @Override
@@ -318,9 +314,14 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     @Override
     public void stopWebServer() {
         mLogger.info("Stopping web server...");
+
         synchronized (mLockObj) {
             hideNotification();
             stopScreenCast();
+            if (mMediaProjection != null) {
+                mMediaProjection.stop();
+                mMediaProjection = null;
+            }
             unregisterConfigChangeReceiver();
             if (mServer != null) {
                 mServer.stop();
@@ -348,27 +349,22 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                 }
             });
         } else {
-           mHandler.postDelayed(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    new Thread(new Runnable() {
+                    takePhotoInternal(new OnPhotoEventListener() {
                         @Override
-                        public void run() {
-                            takePhotoInternal(new OnPhotoEventListener() {
-                                @Override
-                                public void onTakePhoto(final String uri, final String filePath) {
-                                    listener.onTakePhoto(uri, filePath);
-                                }
-
-                                @Override
-                                public void onFailedTakePhoto() {
-                                    listener.onFailedTakePhoto();
-                                }
-                            });
+                        public void onTakePhoto(final String uri, final String filePath) {
+                            listener.onTakePhoto(uri, filePath);
                         }
-                    }).start();
+
+                        @Override
+                        public void onFailedTakePhoto() {
+                            listener.onFailedTakePhoto();
+                        }
+                    });
                 }
-            }, 500);
+            }).start();
         }
     }
 
@@ -388,12 +384,20 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                             public void onTakePhoto(final String uri, final String filePath) {
                                 listener.onTakePhoto(uri, filePath);
                                 releaseVirtualDisplay();
+                                if (mMediaProjection != null) {
+                                    mMediaProjection.stop();
+                                    mMediaProjection = null;
+                                }
                             }
 
                             @Override
                             public void onFailedTakePhoto() {
                                 listener.onFailedTakePhoto();
                                 releaseVirtualDisplay();
+                                if (mMediaProjection != null) {
+                                    mMediaProjection.stop();
+                                    mMediaProjection = null;
+                                }
                             }
                         });
                     }
@@ -526,23 +530,20 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         }
 
         mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
+
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
-            "Android Host Screen",
-            w,
-            h,
-            mDisplayDensityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            mImageReader.getSurface(), callback, null);
+                "Android Host Screen",
+                w,
+                h,
+                mDisplayDensityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                mImageReader.getSurface(), callback, null);
     }
 
     private void releaseVirtualDisplay() {
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
             mVirtualDisplay = null;
-        }
-        if (mMediaProjection != null) {
-            mMediaProjection.stop();
-            mMediaProjection = null;
         }
         if (mImageReader != null) {
             mImageReader.setOnImageAvailableListener(null, null);
@@ -562,7 +563,9 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                mLogger.info("Server URL: " + mServer.getUrl());
+                if (mServer != null) {
+                    mLogger.info("Server URL: " + mServer.getUrl());
+                }
                 try {
                     while (mIsCasting) {
                         long start = System.currentTimeMillis();
@@ -593,12 +596,18 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
 
     private void stopScreenCast() {
         if (!mIsCasting) {
+            mLogger.info("MediaProjection is already stopping.");
             return;
         }
         mIsCasting = false;
 
         if (mThread != null) {
             mThread.interrupt();
+            try {
+                mThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             mThread = null;
         }
         releaseVirtualDisplay();
@@ -610,11 +619,18 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     }
 
     private synchronized Bitmap getScreenshot() {
-        Image image = mImageReader.acquireLatestImage();
-        if (image == null) {
+        try {
+            if (mImageReader == null) {
+                return null;
+            }
+            Image image = mImageReader.acquireLatestImage();
+            if (image == null) {
+                return null;
+            }
+            return decodeToBitmap(image);
+        } catch (Exception e) {
             return null;
         }
-        return decodeToBitmap(image);
     }
 
     private Bitmap decodeToBitmap(final Image img) {

@@ -433,7 +433,10 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
                 case FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB: {
                     UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if (device != null) {
-                        openUsb(device);
+                        UsbManager m = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
+                        if (m.hasPermission(device)) {
+                            openUsb(device);
+                        }
                     }
                 }   break;
 

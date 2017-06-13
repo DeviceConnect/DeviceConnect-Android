@@ -58,7 +58,7 @@ public class FaBoConnectFragment extends Fragment {
     private TextView mTextViewLog;
 
     /** Usb Device. */
-    private static UsbDevice mDevice;
+    private UsbDevice mDevice;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {

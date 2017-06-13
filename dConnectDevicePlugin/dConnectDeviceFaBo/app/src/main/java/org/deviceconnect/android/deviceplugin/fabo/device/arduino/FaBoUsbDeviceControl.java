@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -77,7 +78,14 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      */
     private Context mContext;
 
+    /**
+     * マウス型RobotCarを操作するクラス.
+     */
     private MouseCar mMouseCar;
+
+    /**
+     * RobotCarを操作するクラス.
+     */
     private RobotCar mRobotCar;
 
     /**
@@ -99,6 +107,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         filter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB);
         filter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         mContext.registerReceiver(mUsbEventReceiver, filter);
 
         initUsbDevice();
@@ -421,14 +430,30 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             switch (action) {
-                case FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB:
-                    UsbDevice device = intent.getParcelableExtra("usbDevice");
-                    openUsb(device);
-                    break;
+                case FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB: {
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    if (device != null) {
+                        openUsb(device);
+                    }
+                }   break;
 
                 case FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB:
                     initUsbDevice();
                     break;
+
+                case UsbManager.ACTION_USB_DEVICE_ATTACHED: {
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    if (device != null) {
+                        UsbManager m = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
+                        if (m.hasPermission(device)) {
+                            openUsb(device);
+                        } else {
+                            Intent i = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
+                            PendingIntent p = PendingIntent.getBroadcast(context, 0, i, 0);
+                            m.requestPermission(device, p);
+                        }
+                    }
+                }   break;
 
                 case FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB:
                 case UsbManager.ACTION_USB_DEVICE_DETACHED:

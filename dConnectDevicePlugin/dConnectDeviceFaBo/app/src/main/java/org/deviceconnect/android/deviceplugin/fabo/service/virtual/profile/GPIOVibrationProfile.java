@@ -55,7 +55,9 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 final long[] pattern = parsePattern(request);
 
-                if (mPinList.isEmpty()) {
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else if (mPinList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "Vibration does not exist.");
                 } else {
                     if (pattern != null) {
@@ -81,7 +83,9 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (mPinList.isEmpty()) {
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else if (mPinList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "Vibration does not exist.");
                 } else {
                     for (ArduinoUno.Pin pin : mPinList) {

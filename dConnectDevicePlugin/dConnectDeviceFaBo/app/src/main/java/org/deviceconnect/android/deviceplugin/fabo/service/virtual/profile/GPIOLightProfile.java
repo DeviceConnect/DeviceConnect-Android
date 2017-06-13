@@ -82,7 +82,9 @@ public class GPIOLightProfile extends BaseFaBoProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 String lightId = request.getStringExtra("lightId");
 
-                if (mPinList.isEmpty()) {
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else if (mPinList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "Light does not exist.");
                 } else {
                     ArduinoUno.Pin pin = findLight(lightId);
@@ -111,9 +113,17 @@ public class GPIOLightProfile extends BaseFaBoProfile {
      */
     private boolean lightOn(final Intent request, final Intent response) {
         String lightId = request.getStringExtra("lightId");
-        long[] flashing = getFlashing(request);
+        long[] flashing;
+        try {
+            flashing = getFlashing(request);
+        } catch (Exception e) {
+            MessageUtils.setInvalidRequestParameterError(response, "Format of flashing is invalid.");
+            return true;
+        }
 
-        if (mPinList.isEmpty()) {
+        if (!getService().isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+        } else if (mPinList.isEmpty()) {
             MessageUtils.setInvalidRequestParameterError(response, "Light does not exist.");
         } else {
             ArduinoUno.Pin pin = findLight(lightId);

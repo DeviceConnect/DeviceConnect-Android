@@ -51,9 +51,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            int value = getFaBoDeviceControl().getAnalog(pin);
-                            setValue(response, value);
-                            setResult(response, RESULT_OK);
+                            if (!isOnline()) {
+                                MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                            } else {
+                                int value = getFaBoDeviceControl().getAnalog(pin);
+                                setValue(response, value);
+                                setResult(response, RESULT_OK);
+                            }
                             return true;
                         }
                     });
@@ -95,9 +99,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            ArduinoUno.Level value = getFaBoDeviceControl().getDigital(pin);
-                            setValue(response, value.getValue());
-                            setResult(response, RESULT_OK);
+                            if (!isOnline()) {
+                                MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                            } else {
+                                ArduinoUno.Level value = getFaBoDeviceControl().getDigital(pin);
+                                setValue(response, value.getValue());
+                                setResult(response, RESULT_OK);
+                            }
                             return true;
                         }
                     });
@@ -124,18 +132,22 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    Integer modeValue = parseInteger(request, "mode");
-                    if (modeValue != null) {
-                        ArduinoUno.Mode mode = ArduinoUno.Mode.getMode(modeValue);
-                        if (mode != null) {
-                            getFaBoDeviceControl().setPinMode(pin, mode);
-                            setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
-                            setResult(response, RESULT_OK);
-                        } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
-                        }
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
+                        Integer modeValue = parseInteger(request, "mode");
+                        if (modeValue != null) {
+                            ArduinoUno.Mode mode = ArduinoUno.Mode.getMode(modeValue);
+                            if (mode != null) {
+                                getFaBoDeviceControl().setPinMode(pin, mode);
+                                setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
+                                setResult(response, RESULT_OK);
+                            } else {
+                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
+                            }
+                        } else {
+                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
+                        }
                     }
                     return true;
                 }
@@ -159,18 +171,22 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    Integer hlValue = parseInteger(request, PARAM_VALUE);
-                    if (hlValue != null) {
-                        ArduinoUno.Level level = ArduinoUno.Level.getLevel(hlValue);
-                        if (level != null) {
-                            getFaBoDeviceControl().writeDigital(pin, level);
-                            setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
-                            setResult(response, RESULT_OK);
-                        } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
-                        }
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                        Integer hlValue = parseInteger(request, PARAM_VALUE);
+                        if (hlValue != null) {
+                            ArduinoUno.Level level = ArduinoUno.Level.getLevel(hlValue);
+                            if (level != null) {
+                                getFaBoDeviceControl().writeDigital(pin, level);
+                                setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
+                                setResult(response, RESULT_OK);
+                            } else {
+                                MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
+                            }
+                        } else {
+                            MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                        }
                     }
                     return true;
                 }
@@ -201,17 +217,21 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            Integer hlValue = parseInteger(request, PARAM_VALUE);
-                            if (hlValue != null) {
-                                if (hlValue >= 0 && hlValue <= 255) {
-                                    getFaBoDeviceControl().writeAnalog(pin, hlValue);
-                                    setResult(response, RESULT_OK);
-                                } else {
-                                    MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
-                                }
+                            if (!isOnline()) {
+                                MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
-                                MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
-                                return true;
+                                Integer hlValue = parseInteger(request, PARAM_VALUE);
+                                if (hlValue != null) {
+                                    if (hlValue >= 0 && hlValue <= 255) {
+                                        getFaBoDeviceControl().writeAnalog(pin, hlValue);
+                                        setResult(response, RESULT_OK);
+                                    } else {
+                                        MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
+                                    }
+                                } else {
+                                    MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                                    return true;
+                                }
                             }
                             return true;
                         }
@@ -235,10 +255,8 @@ public class FaBoGPIOProfile extends GPIOProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (EventError.NONE == error) {
-                    // TODO
                     getFaBoDeviceService().registerOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);
-
                     return true;
                 } else {
                     MessageUtils.setError(response, 100, "Failed add event.");
@@ -264,9 +282,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
-                    setMessage(response, pinName + "の値をHIGH(1)に変更");
-                    setResult(response, RESULT_OK);
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                    } else {
+                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                        setMessage(response, pinName + "の値をHIGH(1)に変更");
+                        setResult(response, RESULT_OK);
+                    }
                     return true;
                 }
             });
@@ -285,7 +307,6 @@ public class FaBoGPIOProfile extends GPIOProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 boolean result = EventManager.INSTANCE.removeEvents(getOrigin(request));
                 if (result) {
-                    // TODO
                     getFaBoDeviceService().unregisterOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);
                     return true;
@@ -313,9 +334,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
-                    setMessage(response, pinName + "の値をLOW(0)に変更");
-                    setResult(response, RESULT_OK);
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                    } else {
+                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                        setMessage(response, pinName + "の値をLOW(0)に変更");
+                        setResult(response, RESULT_OK);
+                    }
                     return true;
                 }
             });
@@ -334,6 +359,10 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
         addPutOnChangeApi();
         addDeleteOnChangeApi();
+    }
+
+    private boolean isOnline() {
+        return getService().isOnline();
     }
 
     private FaBoDeviceControl getFaBoDeviceControl() {

@@ -3,6 +3,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -28,15 +29,19 @@ public class GPIOIlluminanceProfile extends BaseFaBoProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                ArduinoUno.Pin pin = mPinList.get(0);
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else {
+                    ArduinoUno.Pin pin = mPinList.get(0);
 
-                int value = getFaBoDeviceControl().getAnalog(pin);
-                value = 5000 - calcArduinoMap(value, 0, 2013, 0, 5000);
-                value = value / 10;
+                    int value = getFaBoDeviceControl().getAnalog(pin);
+                    value = 5000 - calcArduinoMap(value, 0, 2013, 0, 5000);
+                    value = value / 10;
 
-                response.putExtra("illuminance", value);
+                    response.putExtra("illuminance", value);
 
-                setResult(response,  DConnectMessage.RESULT_OK);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
                 return true;
             }
         });

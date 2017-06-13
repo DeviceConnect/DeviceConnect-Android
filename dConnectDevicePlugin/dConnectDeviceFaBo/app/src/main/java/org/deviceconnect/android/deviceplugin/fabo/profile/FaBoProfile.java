@@ -98,13 +98,17 @@ public class FaBoProfile extends DConnectProfile {
                 String vid = request.getStringExtra("vid");
 
                 ServiceData serviceData = getFaBoDeviceService().getServiceData(vid);
-                serviceData.setName(name);
-
-                VirtualService s = getFaBoDeviceService().updateServiceData(serviceData);
-                if (s != null) {
-                    setResult(response, DConnectMessage.RESULT_OK);
+                if (serviceData == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Not found the virtual service. vid=" + vid);
                 } else {
-                    MessageUtils.setUnknownError(response, "Failed to create a virtual service.");
+                    serviceData.setName(name);
+
+                    VirtualService s = getFaBoDeviceService().updateServiceData(serviceData);
+                    if (s != null) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(response, "Failed to create a virtual service.");
+                    }
                 }
 
                 return true;
@@ -345,10 +349,14 @@ public class FaBoProfile extends DConnectProfile {
         List<Integer> pinList = new ArrayList<>();
         String[] split = pins.split(",");
         for (String s : split) {
-            Integer i = Integer.parseInt(s);
-            if (isPin(i) && !pinList.contains(i)) {
-                pinList.add(i);
-            } else {
+            try {
+                Integer i = Integer.parseInt(s);
+                if (isPin(i) && !pinList.contains(i)) {
+                    pinList.add(i);
+                } else {
+                    return null;
+                }
+            } catch (NumberFormatException e) {
                 return null;
             }
         }

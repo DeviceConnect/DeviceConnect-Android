@@ -93,17 +93,7 @@ public class FaBoConnectFragment extends Fragment {
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         mContext.registerReceiver(mUSBResultEvent, filter);
 
-        // Arduino Unoとの接続状態をチェック.
-        Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB);
-        mContext.sendBroadcast(intent);
         clearLogMessage();
-
-        // Old device need wait
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         checkUsbDevice();
     }
 
@@ -269,7 +259,9 @@ public class FaBoConnectFragment extends Fragment {
         }
 
         String newMsg = lastMsg;
-        if(lastMsg != "") newMsg += "<br>";
+        if (!lastMsg.isEmpty()) {
+            newMsg += "<br>";
+        }
         newMsg += "<font color=\"#00FF00\"> ✓ </font>" + msg;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             mTextViewLog.setText(Html.fromHtml(newMsg, 0));

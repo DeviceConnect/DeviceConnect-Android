@@ -20,9 +20,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
+
 import java.util.HashMap;
 
 import io.fabo.android.stk500.StkWriter;
@@ -38,9 +40,6 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
 
     /** Context. */
     private static Context mContext;
-
-    /** LOG. */
-    private static final String TAG = "FABO_PLUGIN_SETTING";
 
     /** Connect button. */
     private static Button mButtonConnect;

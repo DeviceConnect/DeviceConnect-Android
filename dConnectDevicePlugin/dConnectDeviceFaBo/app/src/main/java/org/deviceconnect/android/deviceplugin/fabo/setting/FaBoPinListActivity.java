@@ -11,7 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.R;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
 import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoBasePinFragment;

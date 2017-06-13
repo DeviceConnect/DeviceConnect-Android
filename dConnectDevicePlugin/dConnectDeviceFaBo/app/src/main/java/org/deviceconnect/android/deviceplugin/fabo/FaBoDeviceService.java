@@ -10,8 +10,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
-import org.deviceconnect.android.deviceplugin.fabo.device.arduino.FaBoUsbDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  *
  * @author NTT DOCOMO, INC.
  */
-public class FaBoDeviceService extends DConnectMessageService {
+public abstract class FaBoDeviceService extends DConnectMessageService {
 
     /**
      * デバッグフラグ.
@@ -83,7 +83,7 @@ public class FaBoDeviceService extends DConnectMessageService {
         initVirtualService();
 
         // FaBoデバイス操作クラスの初期化
-        mFaBoDeviceControl = new FaBoUsbDeviceControl(this);
+        mFaBoDeviceControl = createFaBoDeviceControl();
         mFaBoDeviceControl.setOnFaBoDeviceControlListener(new FaBoDeviceControl.OnFaBoDeviceControlListener() {
             @Override
             public void onConnected() {
@@ -170,6 +170,8 @@ public class FaBoDeviceService extends DConnectMessageService {
         return new FaBoSystemProfile();
     }
 
+    protected abstract FaBoDeviceControl createFaBoDeviceControl();
+
     /**
      * FaBoを操作するためのクラスを取得します.
      * @return FaBoを操作するクラス
@@ -223,13 +225,13 @@ public class FaBoDeviceService extends DConnectMessageService {
             ProfileData profileData = new ProfileData();
             profileData.setServiceId("led_service_id");
             profileData.setType(ProfileData.Type.GPIO_LIGHT);
-            profileData.addPin(ArduinoUno.Pin.PIN_D2.getPinNumber());
+            profileData.addPin(ArduinoUno.Pin.PIN_D0.getPinNumber());
             serviceData.addProfileData(profileData);
 
             ProfileData vibration = new ProfileData();
             vibration.setServiceId("led_service_id");
             vibration.setType(ProfileData.Type.GPIO_VIBRATION);
-            vibration.addPin(ArduinoUno.Pin.PIN_D3.getPinNumber());
+            vibration.addPin(ArduinoUno.Pin.PIN_D1.getPinNumber());
             serviceData.addProfileData(vibration);
 
             mDBHelper.addServiceData(serviceData);

@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 
 import java.util.ArrayList;

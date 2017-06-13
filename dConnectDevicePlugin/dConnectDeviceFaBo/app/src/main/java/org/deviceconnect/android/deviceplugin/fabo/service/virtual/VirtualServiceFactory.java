@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual;
 
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
+import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
@@ -17,7 +17,6 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CMo
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CRobotCarDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CTemperatureProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.ArrayList;

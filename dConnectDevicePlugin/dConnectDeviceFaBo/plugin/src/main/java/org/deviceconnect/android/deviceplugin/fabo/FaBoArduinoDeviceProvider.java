@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.fabo;
 
 import android.app.Service;
+
 import org.deviceconnect.android.message.DConnectMessageServiceProvider;
 
 /**
@@ -14,12 +15,12 @@ import org.deviceconnect.android.message.DConnectMessageServiceProvider;
  * @author NTT DOCOMO, INC.
  * @param <T> FaBoデバイスプラグインのプロファイルを公開するサービスのクラス
  */
-public class FaBoDeviceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
+public class FaBoArduinoDeviceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
 
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) FaBoDeviceService.class;
+        Class<? extends Service> clazz = (Class<? extends Service>) FaBoArduinoDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

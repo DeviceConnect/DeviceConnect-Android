@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.db;
 
 import android.content.Context;
 
-import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.R;
 
 import java.util.HashMap;
 import java.util.Map;

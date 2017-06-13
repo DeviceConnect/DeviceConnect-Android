@@ -9,7 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
 
-import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 
 import java.util.ArrayList;

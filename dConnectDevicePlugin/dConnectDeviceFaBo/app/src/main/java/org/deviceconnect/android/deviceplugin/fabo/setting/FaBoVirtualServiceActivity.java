@@ -21,7 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
-import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualService;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;

@@ -23,9 +23,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
-import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
+import org.deviceconnect.android.deviceplugin.fabo.FaBoArduinoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 
 import java.util.HashMap;
@@ -126,7 +126,7 @@ public class FaBoConnectFragment extends Fragment {
                         addLogMessage("Arduino Uno(ORG)を認識");
 
                         // Serviceにメッセージを送信.
-                        Intent mIntent = new Intent(mContext, FaBoDeviceService.class);
+                        Intent mIntent = new Intent(mContext, FaBoArduinoDeviceService.class);
                         mContext.startService(mIntent);
 
                         // USB OpenのコマンドをServiceにBroadcast.
@@ -142,7 +142,7 @@ public class FaBoConnectFragment extends Fragment {
                         mDevice = device;
 
                         // Serviceにメッセージを送信.
-                        Intent mIntent = new Intent(mContext, FaBoDeviceService.class);
+                        Intent mIntent = new Intent(mContext, FaBoArduinoDeviceService.class);
                         mContext.startService(mIntent);
 
                         // USB OpenのコマンドをServiceにBroadcast.

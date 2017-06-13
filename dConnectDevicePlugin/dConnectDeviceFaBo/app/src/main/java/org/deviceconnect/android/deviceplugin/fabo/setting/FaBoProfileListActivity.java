@@ -14,7 +14,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.core.R;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
 

@@ -2,6 +2,25 @@
     <string name="description" translatable="false"></string>
     <string name="app_name" translatable="false">FaBo (Device Connect Device Plug-in)</string>
 
+    <string name="activity_fabo_service_add" translatable="false">追加</string>
+    <string name="activity_fabo_service_cancel" translatable="false">キャンセル</string>
+    <string name="activity_fabo_service_remove" translatable="false">削除</string>
+    <string name="activity_fabo_service_online" translatable="false">オンライン</string>
+    <string name="activity_fabo_service_offline" translatable="false">オフライン</string>
+    <string name="activity_fabo_service_default_name" translatable="false">No Name</string>
+
+    <string name="activity_fabo_service_dialog_title_service_removal_confirmation">確認</string>
+    <string name="activity_fabo_service_dialog_message_service_removal_confirmation">選択したサービスを削除しますか？</string>
+
+    <string name="activity_fabo_service_dialog_button_service_removal_ok">はい</string>
+    <string name="activity_fabo_service_dialog_button_service_removal_cancel">いいえ</string>
+
+    <string name="activity_fabo_service_dialog_title_online">確認</string>
+    <string name="activity_fabo_service_dialog_message_online">オンラインのサービスは削除することができません。\nFaBoとの接続を一度切ってから再度行なってください。</string>
+    <string name="activity_fabo_service_dialog_title_immortal">確認</string>
+    <string name="activity_fabo_service_dialog_message_immortal">このサービスは削除することができません。</string>
+
+
     <string name="activity_fabo_virtual_service_id" translatable="false">サービスID</string>
     <string name="activity_fabo_virtual_service_name" translatable="false">サービス名</string>
     <string name="activity_fabo_virtual_service_profile" translatable="false">プロファイル</string>
@@ -24,6 +43,7 @@
     <string name="activity_fabo_virtual_service_not_bind" translatable="false">FaBoDeviceServiceにバインドされていません。\n設定画面から再起動をお願いします。</string>
     <string name="activity_fabo_virtual_service_remove_profile_title" translatable="false">削除確認</string>
     <string name="activity_fabo_virtual_service_remove_profile_message" translatable="false">%1$sを削除して良いでしょうか？</string>
+    <string name="activity_fabo_virtual_service_remove_error_message" translatable="false">サービスの削除に失敗しました。</string>
 
     <string name="activity_fabo_virtual_gpio_light">Light(GPIO)</string>
     <string name="activity_fabo_virtual_gpio_humidity">Humidity(GPIO)</string>

@@ -183,13 +183,19 @@ public class FaBoVirtualServiceActivity extends Activity {
         }
     }
 
+    /**
+     * サービスとバインドします.
+     */
     private void bindMessageService() {
         if (!mIsBound) {
-            Intent intent = new Intent(getApplicationContext(), FaBoDeviceService.class);
+            Intent intent = new Intent(getApplicationContext(), Util.getDConnectMessageServiceClass(this));
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
+    /**
+     * サービスをアンバインドします.
+     */
     private void unbindMessageService() {
         if (mIsBound) {
             unbindService(mConnection);
@@ -373,6 +379,11 @@ public class FaBoVirtualServiceActivity extends Activity {
      * ServiceDataの保存に失敗した場合のエラーダイアログを表示します.
      */
     private void showSaveServiceDataError() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.activity_fabo_virtual_service_remove_profile_title)
+                .setMessage(getString(R.string.activity_fabo_virtual_service_remove_error_message))
+                .setPositiveButton(R.string.activity_fabo_virtual_service_error_ok, null)
+                .show();
     }
 
     /**

@@ -170,6 +170,10 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
         return new FaBoSystemProfile();
     }
 
+    /**
+     * FaBoを操作するクラスを取得します.
+     * @return FaBoDeviceControlのインスタンス
+     */
     protected abstract FaBoDeviceControl createFaBoDeviceControl();
 
     /**

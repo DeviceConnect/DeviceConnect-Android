@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.SpiDevice;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
@@ -26,6 +27,10 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     private RobotCar mRobotCar;
     private MouseCar mMouseCar;
 
+    private SpiDevice mDevice;
+
+    private Thread mThread;
+
     private OnFaBoDeviceControlListener mOnFaBoDeviceControlListener;
 
     public FaBoThingsDeviceControl(final Context context) {
@@ -40,7 +45,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
             e.printStackTrace();
         }
 
-        PeripheralManagerService manager = new PeripheralManagerService();
+        final PeripheralManagerService manager = new PeripheralManagerService();
         List<String> portList = manager.getGpioList();
         if (portList.isEmpty()) {
             Log.i(TAG, "No GPIO port available on this device.");
@@ -62,6 +67,43 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
             }
         }
 
+        final List<String> spiList = manager.getSpiBusList();
+        if (spiList.isEmpty()) {
+            Log.i(TAG, "No SPI bus available on this device.");
+        } else {
+            Log.i(TAG, "List of available devices: " + spiList);
+
+            mThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mDevice = manager.openSpiDevice(spiList.get(0));
+                        // Low clock, leading edge transfer
+                        mDevice.setMode(SpiDevice.MODE0);
+                        mDevice.setFrequency(16000000);     // 16MHz
+                        mDevice.setBitsPerWord(8);          // 8 BPW
+                        mDevice.setBitJustification(false); // MSB first
+                        byte[] buf = new byte[4];
+                        while (true) {
+                            mDevice.read(buf, buf.length);
+                            try {
+                                Thread.sleep(66);
+                            } catch (InterruptedException e) {
+                                break;
+                            }
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Log.e("ABC", " ,", e);
+                    }
+                }
+            });
+            mThread.start();
+
+
+        }
+
         if (mOnFaBoDeviceControlListener != null) {
             mOnFaBoDeviceControlListener.onConnected();
         }
@@ -77,6 +119,8 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
             }
         }
         mGpioList.clear();
+
+        mThread.interrupt();
     }
 
     @Override

@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.fabo;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.device.arduino.FaBoUsbDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
+import org.deviceconnect.android.profile.SystemProfile;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.

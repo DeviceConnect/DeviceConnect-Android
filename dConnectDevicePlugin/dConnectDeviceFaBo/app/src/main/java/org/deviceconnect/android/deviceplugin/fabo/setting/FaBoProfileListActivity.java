@@ -45,6 +45,8 @@ public class FaBoProfileListActivity extends Activity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        setTitle(R.string.activity_fabo_virtual_service_profile_title);
+
         Intent intent = getIntent();
         if (intent == null) {
             finish();

@@ -81,6 +81,8 @@ public class FaBoVirtualServiceActivity extends Activity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        setTitle(R.string.activity_fabo_virtual_service_title);
+
         Intent intent = getIntent();
         if (intent != null) {
             mServiceData = intent.getParcelableExtra("service");
@@ -327,6 +329,17 @@ public class FaBoVirtualServiceActivity extends Activity {
     }
 
     /**
+     * 文字数が長すぎる場合のエラーダイアログを表示します.
+     */
+    private void showTooLong() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.activity_fabo_virtual_service_error_title)
+                .setMessage(R.string.activity_fabo_virtual_service_name_too_long)
+                .setPositiveButton(R.string.activity_fabo_virtual_service_error_ok, null)
+                .show();
+    }
+
+    /**
      * プロファイルが登録されていない場合のエラーダイアログを表示します.
      */
     private void showNoProfileError() {
@@ -399,6 +412,8 @@ public class FaBoVirtualServiceActivity extends Activity {
         String serviceName = nameET.getText().toString();
         if (serviceName.isEmpty()) {
             showNoNameError();
+        } else if (serviceName.length() > 32) {
+            showTooLong();
         } else if (mServiceData.getProfileDataList().isEmpty()) {
             showNoProfileError();
         } else {

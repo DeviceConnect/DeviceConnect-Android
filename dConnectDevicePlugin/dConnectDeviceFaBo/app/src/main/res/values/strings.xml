@@ -2,7 +2,7 @@
     <string name="description" translatable="false"></string>
     <string name="app_name" translatable="false">FaBo (Device Connect Device Plug-in)</string>
 
-    <string name="activity_fabo_service_add" translatable="false">追加</string>
+    <string name="activity_fabo_service_add" translatable="false">サービスを追加</string>
     <string name="activity_fabo_service_cancel" translatable="false">キャンセル</string>
     <string name="activity_fabo_service_remove" translatable="false">削除</string>
     <string name="activity_fabo_service_online" translatable="false">オンライン</string>
@@ -20,7 +20,7 @@
     <string name="activity_fabo_service_dialog_title_immortal">確認</string>
     <string name="activity_fabo_service_dialog_message_immortal">このサービスは削除することができません。</string>
 
-
+    <string name="activity_fabo_virtual_service_title" translatable="false">仮想サービス設定</string>
     <string name="activity_fabo_virtual_service_id" translatable="false">サービスID</string>
     <string name="activity_fabo_virtual_service_name" translatable="false">サービス名</string>
     <string name="activity_fabo_virtual_service_profile" translatable="false">プロファイル</string>
@@ -32,6 +32,9 @@
     <string name="activity_fabo_virtual_service_profile_remove" translatable="false">削除</string>
     <string name="activity_fabo_virtual_service_profile_pins" translatable="false">PIN: %1$s</string>
 
+    <string name="activity_fabo_virtual_service_profile_title" translatable="false">プロファイル設定</string>
+    <string name="activity_fabo_virtual_service_pin_title" translatable="false">ピン設定</string>
+
     <string name="activity_fabo_virtual_service_dialog_title" translatable="false">サービス</string>
     <string name="activity_fabo_virtual_service_error_title" translatable="false">警告</string>
     <string name="activity_fabo_virtual_service_error_ok" translatable="false">はい</string>
@@ -39,19 +42,20 @@
     <string name="activity_fabo_virtual_service_pin_no_select_message" translatable="false">ピンが選択されていません。</string>
     <string name="activity_fabo_virtual_service_no_select_message" translatable="false">プロファイルが登録されていません。</string>
     <string name="activity_fabo_virtual_service_no_name" translatable="false">名前が記入されていません。</string>
+    <string name="activity_fabo_virtual_service_name_too_long" translatable="false">名前が長すきます。</string>
     <string name="activity_fabo_virtual_service_save_message" translatable="false">仮想サービスを保存しました。</string>
     <string name="activity_fabo_virtual_service_not_bind" translatable="false">FaBoDeviceServiceにバインドされていません。\n設定画面から再起動をお願いします。</string>
     <string name="activity_fabo_virtual_service_remove_profile_title" translatable="false">削除確認</string>
     <string name="activity_fabo_virtual_service_remove_profile_message" translatable="false">%1$sを削除して良いでしょうか？</string>
     <string name="activity_fabo_virtual_service_remove_error_message" translatable="false">サービスの削除に失敗しました。</string>
 
-    <string name="activity_fabo_virtual_gpio_light">Light(GPIO)</string>
-    <string name="activity_fabo_virtual_gpio_humidity">Humidity(GPIO)</string>
-    <string name="activity_fabo_virtual_gpio_key_event">KeyEvent(GPIO)</string>
-    <string name="activity_fabo_virtual_gpio_temperature">Temperature(GPIO)</string>
-    <string name="activity_fabo_virtual_gpio_vibration">Vibration(GPIO)</string>
-    <string name="activity_fabo_virtual_gpio_illuminance">Illuminace(GPIO)</string>
-    <string name="activity_fabo_virtual_gpio_proximity">Proximity(GPIO)</string>
+    <string name="activity_fabo_virtual_gpio_light">Light(GPIO) #101</string>
+    <string name="activity_fabo_virtual_gpio_humidity">Humidity(GPIO) #115</string>
+    <string name="activity_fabo_virtual_gpio_key_event">KeyEvent(GPIO) #103</string>
+    <string name="activity_fabo_virtual_gpio_temperature">Temperature(GPIO) #108</string>
+    <string name="activity_fabo_virtual_gpio_vibration">Vibration(GPIO) #105</string>
+    <string name="activity_fabo_virtual_gpio_illuminance">Illuminace(GPIO) #109</string>
+    <string name="activity_fabo_virtual_gpio_proximity">Proximity(GPIO) #116</string>
     <string name="activity_fabo_virtual_i2c_robot_drivecontroller">DriveController(RobotCar)</string>
     <string name="activity_fabo_virtual_i2c_mouse_drivecontroller">DriveController(MouseCar)</string>
     <string name="activity_fabo_virtual_i2c_temperature">Temperature(I2C)</string>

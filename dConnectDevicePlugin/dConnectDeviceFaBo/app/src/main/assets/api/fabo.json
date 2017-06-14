@@ -48,6 +48,8 @@
                         "in": "query",
                         "description": "新規に作成する仮想サービスにつける名前",
                         "required": true,
+                        "maxLength" : 32,
+                        "minLength" : 1,
                         "type": "string"
                     }
                 ],
@@ -84,6 +86,8 @@
                         "in": "query",
                         "description": "更新後の仮想サービスの名前",
                         "required": true,
+                        "maxLength" : 32,
+                        "minLength" : 1,
                         "type": "string"
                     }
                 ],

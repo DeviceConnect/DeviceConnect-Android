@@ -35,6 +35,8 @@ public class FaBoPinListActivity extends Activity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        setTitle(R.string.activity_fabo_virtual_service_pin_title);
+
         ProfileData p = getIntent().getParcelableExtra("profile");
         if (ProfileDataUtil.isMultiChoicePin(p)) {
             showPinFragment(new FaBoPinCheckBoxFragment());

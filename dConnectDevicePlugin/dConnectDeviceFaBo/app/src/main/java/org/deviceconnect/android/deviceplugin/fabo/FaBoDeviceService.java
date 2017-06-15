@@ -192,23 +192,10 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
     }
 
     /**
-     * テスト用仮想データ
+     * テスト用仮想データ.
      */
     private void createTestData() {
         if (mDBHelper.getServiceDataList().isEmpty()) {
-            ServiceData serviceData = new ServiceData();
-            serviceData.setName("RobotCar(Car)");
-            serviceData.setServiceId("car_service_id");
-
-            ProfileData profileData = new ProfileData();
-            profileData.setServiceId("car_service_id");
-            profileData.setType(ProfileData.Type.I2C_ROBOT_DRIVE_CONTROLLER);
-            serviceData.addProfileData(profileData);
-
-            mDBHelper.addServiceData(serviceData);
-        }
-
-        if (mDBHelper.getServiceDataList().size() == 1) {
             ServiceData serviceData = new ServiceData();
             serviceData.setName("RobotCar(Mouse)");
             serviceData.setServiceId("mouse_service_id");
@@ -217,26 +204,6 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
             profileData.setServiceId("mouse_service_id");
             profileData.setType(ProfileData.Type.I2C_MOUSE_DRIVE_CONTROLLER);
             serviceData.addProfileData(profileData);
-
-            mDBHelper.addServiceData(serviceData);
-        }
-
-        if (mDBHelper.getServiceDataList().size() == 2) {
-            ServiceData serviceData = new ServiceData();
-            serviceData.setName("FaBo LED");
-            serviceData.setServiceId("led_service_id");
-
-            ProfileData profileData = new ProfileData();
-            profileData.setServiceId("led_service_id");
-            profileData.setType(ProfileData.Type.GPIO_LIGHT);
-            profileData.addPin(ArduinoUno.Pin.PIN_D0.getPinNumber());
-            serviceData.addProfileData(profileData);
-
-            ProfileData vibration = new ProfileData();
-            vibration.setServiceId("led_service_id");
-            vibration.setType(ProfileData.Type.GPIO_VIBRATION);
-            vibration.addPin(ArduinoUno.Pin.PIN_D1.getPinNumber());
-            serviceData.addProfileData(vibration);
 
             mDBHelper.addServiceData(serviceData);
         }

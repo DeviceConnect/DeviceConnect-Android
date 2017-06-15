@@ -29,4 +29,7 @@
     <string name="firmware_failed_send" translatable="false">ファームウェアの転送に失敗。\n\nArdino Unoと接続ボタンを押し、再度転送しなおしてください。</string>
     <string name="firmware_success_send" translatable="false">ファームウェアの転送に成功。</string>
 
+    <string name="fragment_connect_org_recognition">"Arduino Uno(ORG)を認識"</string>
+    <string name="fragment_connect_cc_recognition">"Arduino(CC)を認識"</string>
+    <string name="fragment_connect_check_firmata">Firmataの動作を確認</string>
 </resources>

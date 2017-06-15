@@ -30,6 +30,8 @@ import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 
 import java.util.HashMap;
 
+import io.fabo.serialkit.FaBoUsbConst;
+
 /**
  * 設定画面用Fragment.
  *
@@ -37,7 +39,9 @@ import java.util.HashMap;
  */
 public class FaBoConnectFragment extends Fragment {
 
-    /** デバッグ用TAG. */
+    /**
+     * デバッグ用TAG.
+     */
     private static final String TAG = "FABO_PLUGIN_SETTING";
 
     /**
@@ -45,19 +49,29 @@ public class FaBoConnectFragment extends Fragment {
      */
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
-    /** Context. */
+    /**
+     * Context.
+     */
     private Context mContext;
 
-    /** Activity. */
+    /**
+     * Activity.
+     */
     private Activity mActivity;
 
-    /** TextView. */
+    /**
+     * 作業内容を表示するためのTextView.
+     */
     private TextView mTextViewComment;
 
-    /** TextView. */
+    /**
+     * ログを表示するためのTextView.
+     */
     private TextView mTextViewLog;
 
-    /** Usb Device. */
+    /**
+     * Usb Device.
+     */
     private UsbDevice mDevice;
 
     @Override
@@ -116,14 +130,14 @@ public class FaBoConnectFragment extends Fragment {
         UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
         for (final UsbDevice device : deviceList.values()) {
-            if (device.getVendorId() == 10755) {
+            if (device.getVendorId() == FaBoUsbConst.ARDUINO_UNO_VID) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mTextViewComment.setText(R.string.arduinoorg_find);
                         mDevice = device;
 
-                        addLogMessage("Arduino Uno(ORG)を認識");
+                        addLogMessage(R.string.fragment_connect_org_recognition);
 
                         // Serviceにメッセージを送信.
                         Intent mIntent = new Intent(mContext, FaBoArduinoDeviceService.class);
@@ -131,15 +145,18 @@ public class FaBoConnectFragment extends Fragment {
 
                         // USB OpenのコマンドをServiceにBroadcast.
                         Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
-                        intent.putExtra("usbDevice", mDevice);
+                        intent.putExtra(UsbManager.EXTRA_DEVICE, mDevice);
                         mContext.sendBroadcast(intent);
                     }
                 });
-            } else if (device.getVendorId() == 9025) {
+            } else if (device.getVendorId() == FaBoUsbConst.ARDUINO_CC_UNO_VID) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        mTextViewComment.setText(R.string.arduinocc_find_sendfirmware);
                         mDevice = device;
+
+                        addLogMessage(R.string.fragment_connect_cc_recognition);
 
                         // Serviceにメッセージを送信.
                         Intent mIntent = new Intent(mContext, FaBoArduinoDeviceService.class);
@@ -147,17 +164,17 @@ public class FaBoConnectFragment extends Fragment {
 
                         // USB OpenのコマンドをServiceにBroadcast.
                         Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
-                        intent.putExtra("usbDevice", mDevice);
+                        intent.putExtra(UsbManager.EXTRA_DEVICE, mDevice);
                         mContext.sendBroadcast(intent);
                     }
                 });
-                break;
             }
         }
     }
 
     /**
      * FaboDeviceServiceからのUSB接続結果を処理します.
+     *
      * @param intent USB接続処理結果
      */
     private void checkOpenUsbResult(final Intent intent) {
@@ -176,12 +193,13 @@ public class FaBoConnectFragment extends Fragment {
             mTextViewComment.setText(R.string.success_connect_arduino);
         } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA) {
             mTextViewComment.setText(R.string.success_connect);
-            addLogMessage("Firmataの動作を確認");
+            addLogMessage(R.string.fragment_connect_check_firmata);
         }
     }
 
     /**
      * FaboDeviceServiceからのUSB接続状態を処理します.
+     *
      * @param intent USB接続状態
      */
     private void checkUsbResult(final Intent intent) {
@@ -250,6 +268,16 @@ public class FaBoConnectFragment extends Fragment {
 
     /**
      * ログ表示用TextViewにメッセージを追加します.
+     *
+     * @param resId リソースID
+     */
+    private void addLogMessage(final int resId) {
+        addLogMessage(getString(resId));
+    }
+
+    /**
+     * ログ表示用TextViewにメッセージを追加します.
+     *
      * @param msg 追加するメッセージ
      */
     private void addLogMessage(final String msg) {

@@ -408,7 +408,13 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
                     if (DEBUG) {
                         Log.i(TAG, "Find device connecting arduino");
                     }
-                    openUsb(device);
+                    if (manager.hasPermission(device)) {
+                        openUsb(device);
+                    } else {
+                        Intent i = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
+                        PendingIntent p = PendingIntent.getBroadcast(mContext, 0, i, 0);
+                        manager.requestPermission(device, p);
+                    }
                     break;
 
                 default:

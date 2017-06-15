@@ -106,6 +106,20 @@ public class FaBoConnectFragment extends FaBoArduinoFragment {
     }
 
     /**
+     * 終了フラグを確認して、Activityを終了します.
+     */
+    private void checkAndFinish() {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        if (isFinishFlag()) {
+            activity.finish();
+        }
+    }
+
+    /**
      * 接続した時にActivityを終了するか確認します.
      * @return trueの場合はActivityを終了、それ以外は終了しません。
      */
@@ -145,16 +159,18 @@ public class FaBoConnectFragment extends FaBoArduinoFragment {
                 int status = ctrl.getStatus();
                 if (status == FaBoConst.STATUS_FABO_RUNNING) {
                     mTextViewComment.setText(R.string.success_connect);
+                    checkAndFinish();
                 } else if (status == FaBoConst.STATUS_FABO_NOCONNECT) {
                     sendOpenUsbDevice(activity, device);
                 }
             } else if (device.getVendorId() == FaBoUsbConst.ARDUINO_CC_UNO_VID) {
-                mTextViewComment.setText(R.string.arduinocc_find_sendfirmware);
+                mTextViewComment.setText(R.string.arduinocc_find);
                 addLogMessage(R.string.fragment_connect_cc_recognition);
 
                 int status = ctrl.getStatus();
                 if (status == FaBoConst.STATUS_FABO_RUNNING) {
                     mTextViewComment.setText(R.string.success_connect);
+                    checkAndFinish();
                 } else if (status == FaBoConst.STATUS_FABO_NOCONNECT) {
                     sendOpenUsbDevice(activity, device);
                 }
@@ -184,49 +200,15 @@ public class FaBoConnectFragment extends FaBoArduinoFragment {
         }
 
         int resultId = intent.getIntExtra("resultId", 0);
-        if (resultId == FaBoConst.CAN_NOT_FIND_USB) {
-            mTextViewComment.setText(R.string.not_found_arduino);
-        } else if (resultId == FaBoConst.FAILED_OPEN_USB) {
-            mTextViewComment.setText(R.string.failed_open_usb);
-        } else if (resultId == FaBoConst.FAILED_CONNECT_ARDUINO) {
+        if (resultId == FaBoConst.FAILED_CONNECT_ARDUINO) {
             mTextViewComment.setText(R.string.failed_connect_arduino);
+            checkAndFinish();
         } else if (resultId == FaBoConst.SUCCESS_CONNECT_ARDUINO) {
             mTextViewComment.setText(R.string.success_connect_arduino);
         } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA) {
             mTextViewComment.setText(R.string.success_connect);
             addLogMessage(R.string.fragment_connect_check_firmata);
-            if (isFinishFlag()) {
-                getActivity().finish();
-            }
-        }
-    }
-
-    /**
-     * FaboDeviceServiceからのUSB接続状態を処理します.
-     *
-     * @param intent USB接続状態
-     */
-    private void checkUsbResult(final Intent intent) {
-        int statusId = intent.getIntExtra("statusId", 0);
-        if (statusId == FaBoConst.STATUS_FABO_NOCONNECT) {
-            Activity activity = getActivity();
-            if (activity != null) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkUsbDevice();
-                    }
-                });
-            }
-        } else if (statusId == FaBoConst.STATUS_FABO_INIT) {
-            if (DEBUG) {
-                Log.i(TAG, "Usb Result: STATUS_FABO_INIT");
-            }
-        } else if (statusId == FaBoConst.STATUS_FABO_RUNNING) {
-            if (DEBUG) {
-                Log.i(TAG, "Usb Result: STATUS_FABO_RUNNING");
-            }
-            mTextViewComment.setText(R.string.success_connect);
+            checkAndFinish();
         }
     }
 
@@ -259,8 +241,6 @@ public class FaBoConnectFragment extends FaBoArduinoFragment {
 
             if (FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB_RESULT.equals(action)) {
                 checkOpenUsbResult(intent);
-            } else if (FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT.equals(action)) {
-                checkUsbResult(intent);
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 detachedUsbDevice();
             }

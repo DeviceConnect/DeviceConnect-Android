@@ -183,7 +183,7 @@ public class FaBoFirmwareFragment extends FaBoArduinoFragment implements StkWrit
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextViewComment.setText(R.string.arduinocc_find_sendfirmware);
+                        mTextViewComment.setText(R.string.arduinocc_find);
                         mButtonConnect.setEnabled(true);
                         mButtonSend.setVisibility(Button.INVISIBLE);
                         mButtonBack.setVisibility(Button.INVISIBLE);

@@ -345,17 +345,6 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
     }
 
     /**
-     * Activityにステータス状態を返信する.
-     *
-     * @param statusId 結果のID.
-     */
-    private void sendStatusToActivity(final int statusId) {
-        Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT);
-        intent.putExtra("statusId", statusId);
-        sendBroadcast(intent);
-    }
-
-    /**
      * 値監視用のThread.
      */
     private void startWatchFirmata() {

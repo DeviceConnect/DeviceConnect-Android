@@ -110,6 +110,11 @@ public interface FaBoDeviceControl {
          * FaBoが切断された時のイベントを通知します.
          */
         void onDisconnected();
+
+        /**
+         * 接続に失敗した時のイベントを通知します.
+         */
+        void onFailedConnected();
     }
 
     /**

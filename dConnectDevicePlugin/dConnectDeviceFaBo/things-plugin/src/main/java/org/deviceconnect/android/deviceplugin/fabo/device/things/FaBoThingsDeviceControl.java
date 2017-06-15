@@ -32,6 +32,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     private Thread mThread;
 
     private OnFaBoDeviceControlListener mOnFaBoDeviceControlListener;
+    private int busSpeed = 1000000;
 
     public FaBoThingsDeviceControl(final Context context) {
         mContext = context;
@@ -78,14 +79,18 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
                 public void run() {
                     try {
                         mDevice = manager.openSpiDevice(spiList.get(0));
+                        mDevice.setFrequency(busSpeed);
+                        mDevice.setMode(SpiDevice.MODE0); // Mode 0 seems to work best for WS2801
+                        mDevice.setBitsPerWord(8);
                         // Low clock, leading edge transfer
-                        mDevice.setMode(SpiDevice.MODE0);
-                        mDevice.setFrequency(16000000);     // 16MHz
-                        mDevice.setBitsPerWord(8);          // 8 BPW
-                        mDevice.setBitJustification(false); // MSB first
+//                        mDevice.setMode(SpiDevice.MODE0);
+//                        mDevice.setFrequency(16000000);     // 16MHz
+//                        mDevice.setBitsPerWord(8);          // 8 BPW
+//                        mDevice.setBitJustification(false); // MSB first
                         byte[] buf = new byte[4];
                         while (true) {
                             mDevice.read(buf, buf.length);
+                            Log.e("ABC", " " + buf[0] + " " + buf[1] + " " + buf[2] + " " + buf[3]);
                             try {
                                 Thread.sleep(66);
                             } catch (InterruptedException e) {

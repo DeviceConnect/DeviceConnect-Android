@@ -6,59 +6,38 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.fabo.setting;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
+import android.app.ActionBar;
+import android.app.Activity;
+import android.os.Bundle;
+import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
-import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoConnectFragment;
-import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoFirmwareFragment;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+import org.deviceconnect.android.deviceplugin.fabo.R;
 
 /**
  * 設定用Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class FaBoSettingActivity extends DConnectSettingPageFragmentActivity {
-
-    /**
-     * ページのクラスリスト.
-     */
-    @SuppressWarnings("rawtypes")
-    private static final Class[] PAGES = {
-            FaBoConnectFragment.class,
-            FaBoFirmwareFragment.class,
-    };
-
-
+public class FaBoSettingActivity extends Activity {
     @Override
-    public Fragment createPage(final int position) {
-        Fragment page;
-        try {
-            page = (Fragment) PAGES[position].newInstance();
-        } catch (InstantiationException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            page = null;
-        } catch (IllegalAccessException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            page = null;
+    protected void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_fabo_setting);
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            actionBar.setTitle(R.string.activity_setting_arduino_title);
         }
-
-        return page;
     }
-
 
     @Override
-    public int getPageCount() {
-        return PAGES.length;
-    }
-
-    public void moveConnectFirmata() {
-        ViewPager vp = getViewPager();
-        vp.setCurrentItem(0, true);
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

@@ -64,6 +64,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     private int mStatus;
 
     /**
+     * USB機器へのアクセス許可を行なっているかフラグ.
+     */
+    private boolean mRequestPermission;
+
+    /**
      * GPIOの値変更通知リスナー.
      */
     private final List<OnGPIOListener> mOnGPIOListeners = new ArrayList<>();
@@ -107,7 +112,6 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         filter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB);
         filter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         mContext.registerReceiver(mUsbEventReceiver, filter);
 
         initUsbDevice();
@@ -273,7 +277,6 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             Log.i(TAG, "----------------------------------------");
         }
 
-
         if (mFaBoUsbManager != null) {
             mFaBoUsbManager.closeConnection();
             mFaBoUsbManager.checkDevice(usbDevice);
@@ -309,6 +312,8 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
 
         notifyDisconnectFaBoDevice();
+
+        mRequestPermission = false;
     }
 
     /**
@@ -349,6 +354,9 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             public void run() {
                 if (mStatus == FaBoConst.STATUS_FABO_INIT) {
                     setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+                    if (mOnFaBoDeviceControlListener != null) {
+                        mOnFaBoDeviceControlListener.onFailedConnected();
+                    }
                 }
             }
         }, 5000);
@@ -396,7 +404,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
         notifyDisconnectFaBoDevice();
 
-        setStatus(FaBoConst.STATUS_FABO_INIT);
+        setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
 
         UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
@@ -437,6 +445,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             String action = intent.getAction();
             switch (action) {
                 case FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB: {
+                    mRequestPermission = false;
                     UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if (device != null) {
                         UsbManager m = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
@@ -447,9 +456,6 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
                 }   break;
 
                 case FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB:
-                    initUsbDevice();
-                    break;
-
                 case UsbManager.ACTION_USB_DEVICE_ATTACHED: {
                     UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if (device != null) {
@@ -457,6 +463,12 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
                         if (m.hasPermission(device)) {
                             openUsb(device);
                         } else {
+                            if (mRequestPermission) {
+                                // 既に許可のリクエストを投げている場合に処理しない
+                                return;
+                            }
+                            mRequestPermission = true;
+
                             Intent i = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
                             PendingIntent p = PendingIntent.getBroadcast(context, 0, i, 0);
                             m.requestPermission(device, p);

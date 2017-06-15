@@ -15,7 +15,6 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,10 +22,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.fabo.FaBoArduinoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
+import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoArduinoActivity;
 
 import java.util.HashMap;
 
@@ -37,7 +37,7 @@ import io.fabo.serialkit.FaBoUsbConst;
  *
  * @author NTT DOCOMO, INC.
  */
-public class FaBoConnectFragment extends Fragment {
+public class FaBoConnectFragment extends FaBoArduinoFragment {
 
     /**
      * デバッグ用TAG.
@@ -50,14 +50,9 @@ public class FaBoConnectFragment extends Fragment {
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
     /**
-     * Context.
+     * Arduinoとの接続が完了した時にActivityを終了するフラグを格納するキー.
      */
-    private Context mContext;
-
-    /**
-     * Activity.
-     */
-    private Activity mActivity;
+    public static final String EXTRA_FINISH_FLAG = "flag";
 
     /**
      * 作業内容を表示するためのTextView.
@@ -69,35 +64,16 @@ public class FaBoConnectFragment extends Fragment {
      */
     private TextView mTextViewLog;
 
-    /**
-     * Usb Device.
-     */
-    private UsbDevice mDevice;
-
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-        if (DEBUG) {
-            Log.i(TAG, "onCreateView");
-        }
-
         View root = inflater.inflate(R.layout.fragment_fabo_connect, container, false);
-
-        mContext = getActivity().getBaseContext();
-        mActivity = getActivity();
-
         mTextViewComment = (TextView) root.findViewById(R.id.textViewComment);
-
         mTextViewLog = (TextView) root.findViewById(R.id.textViewLog);
-
         return root;
     }
 
     @Override
     public void onResume() {
-        if (DEBUG) {
-            Log.i(TAG, "onResume()");
-        }
-
         super.onResume();
 
         // USBの結果受信用のBroadcast Receiverを設定.
@@ -105,71 +81,96 @@ public class FaBoConnectFragment extends Fragment {
         filter.addAction(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB_RESULT);
         filter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        mContext.registerReceiver(mUSBResultEvent, filter);
+        getActivity().registerReceiver(mUSBResultReceiver, filter);
 
-        clearLogMessage();
-        checkUsbDevice();
+        FaBoArduinoActivity a = (FaBoArduinoActivity) getActivity();
+        FaBoDeviceControl ctrl = a.getFaBoDeviceControl();
+        if (ctrl != null) {
+            checkUsbDevice();
+        }
     }
 
     @Override
     public void onStop() {
-        if (DEBUG) {
-            Log.i(TAG, "onStop()");
-        }
-
-        mContext.unregisterReceiver(mUSBResultEvent);
+        getActivity().unregisterReceiver(mUSBResultReceiver);
         super.onStop();
     }
 
+    @Override
+    public void onBindService() {
+        checkUsbDevice();
+    }
+
+    @Override
+    public void onUnbindService() {
+    }
+
+    /**
+     * 接続した時にActivityを終了するか確認します.
+     * @return trueの場合はActivityを終了、それ以外は終了しません。
+     */
+    private boolean isFinishFlag() {
+        Bundle args = getArguments();
+        return args == null || args.getBoolean(EXTRA_FINISH_FLAG, true);
+    }
+
+    /**
+     * USB機器の確認を行います.
+     */
     private void checkUsbDevice() {
         if (DEBUG) {
             Log.i(TAG, "checkUsbDevice()");
         }
 
-        // USBデバイスのチェック.
-        UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        FaBoArduinoActivity a = (FaBoArduinoActivity) activity;
+        final FaBoDeviceControl ctrl = a.getFaBoDeviceControl();
+        if (ctrl == null) {
+            return;
+        }
+
+        clearLogMessage();
+
+        UsbManager manager = (UsbManager) activity.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
         for (final UsbDevice device : deviceList.values()) {
             if (device.getVendorId() == FaBoUsbConst.ARDUINO_UNO_VID) {
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mTextViewComment.setText(R.string.arduinoorg_find);
-                        mDevice = device;
+                mTextViewComment.setText(R.string.arduinoorg_find);
+                addLogMessage(R.string.fragment_connect_org_recognition);
 
-                        addLogMessage(R.string.fragment_connect_org_recognition);
-
-                        // Serviceにメッセージを送信.
-                        Intent mIntent = new Intent(mContext, FaBoArduinoDeviceService.class);
-                        mContext.startService(mIntent);
-
-                        // USB OpenのコマンドをServiceにBroadcast.
-                        Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
-                        intent.putExtra(UsbManager.EXTRA_DEVICE, mDevice);
-                        mContext.sendBroadcast(intent);
-                    }
-                });
+                int status = ctrl.getStatus();
+                if (status == FaBoConst.STATUS_FABO_RUNNING) {
+                    mTextViewComment.setText(R.string.success_connect);
+                } else if (status == FaBoConst.STATUS_FABO_NOCONNECT) {
+                    sendOpenUsbDevice(activity, device);
+                }
             } else if (device.getVendorId() == FaBoUsbConst.ARDUINO_CC_UNO_VID) {
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mTextViewComment.setText(R.string.arduinocc_find_sendfirmware);
-                        mDevice = device;
+                mTextViewComment.setText(R.string.arduinocc_find_sendfirmware);
+                addLogMessage(R.string.fragment_connect_cc_recognition);
 
-                        addLogMessage(R.string.fragment_connect_cc_recognition);
-
-                        // Serviceにメッセージを送信.
-                        Intent mIntent = new Intent(mContext, FaBoArduinoDeviceService.class);
-                        mContext.startService(mIntent);
-
-                        // USB OpenのコマンドをServiceにBroadcast.
-                        Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
-                        intent.putExtra(UsbManager.EXTRA_DEVICE, mDevice);
-                        mContext.sendBroadcast(intent);
-                    }
-                });
+                int status = ctrl.getStatus();
+                if (status == FaBoConst.STATUS_FABO_RUNNING) {
+                    mTextViewComment.setText(R.string.success_connect);
+                } else if (status == FaBoConst.STATUS_FABO_NOCONNECT) {
+                    sendOpenUsbDevice(activity, device);
+                }
             }
         }
+    }
+
+    /**
+     * Usb機器のオープンリクエストを送信します.
+     * @param context コンテキスト
+     * @param device USB機器
+     */
+    private void sendOpenUsbDevice(Context context, UsbDevice device) {
+        Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB);
+        intent.putExtra(UsbManager.EXTRA_DEVICE, device);
+        context.sendBroadcast(intent);
     }
 
     /**
@@ -194,6 +195,9 @@ public class FaBoConnectFragment extends Fragment {
         } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA) {
             mTextViewComment.setText(R.string.success_connect);
             addLogMessage(R.string.fragment_connect_check_firmata);
+            if (isFinishFlag()) {
+                getActivity().finish();
+            }
         }
     }
 
@@ -205,7 +209,15 @@ public class FaBoConnectFragment extends Fragment {
     private void checkUsbResult(final Intent intent) {
         int statusId = intent.getIntExtra("statusId", 0);
         if (statusId == FaBoConst.STATUS_FABO_NOCONNECT) {
-            checkUsbDevice();
+            Activity activity = getActivity();
+            if (activity != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        checkUsbDevice();
+                    }
+                });
+            }
         } else if (statusId == FaBoConst.STATUS_FABO_INIT) {
             if (DEBUG) {
                 Log.i(TAG, "Usb Result: STATUS_FABO_INIT");
@@ -226,35 +238,31 @@ public class FaBoConnectFragment extends Fragment {
             Log.i(TAG, "detachedUsbDevice()");
         }
 
-        mTextViewComment.setText(R.string.disconnect_usb);
-
-        Intent closeIntent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
-        mContext.sendBroadcast(closeIntent);
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
         clearLogMessage();
+        mTextViewComment.setText(R.string.disconnect_usb);
     }
 
     /**
      * Broadcast receiver for usb event.
      */
-    private BroadcastReceiver mUSBResultEvent = new BroadcastReceiver() {
+    private BroadcastReceiver mUSBResultReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
+            if (DEBUG) {
+                Log.i(TAG, "Received action=" + action);
+            }
+
             if (FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB_RESULT.equals(action)) {
                 checkOpenUsbResult(intent);
-                if (DEBUG) {
-                    Log.i(TAG, "DEVICE_TO_ARDUINO_OPEN_USB_RESULT");
-                }
             } else if (FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT.equals(action)) {
                 checkUsbResult(intent);
-                if (DEBUG) {
-                    Log.i(TAG, "DEVICE_TO_ARDUINO_CHECK_USB_RESULT");
-                }
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 detachedUsbDevice();
-                if (DEBUG) {
-                    Log.i(TAG, "ACTION_USB_DEVICE_DETACHED");
-                }
             }
         }
     };
@@ -280,7 +288,7 @@ public class FaBoConnectFragment extends Fragment {
      *
      * @param msg 追加するメッセージ
      */
-    private void addLogMessage(final String msg) {
+    private synchronized void addLogMessage(final String msg) {
         String lastMsg = mTextViewLog.getText().toString();
         if (DEBUG) {
             Log.i(TAG, "lastMsg" + lastMsg);

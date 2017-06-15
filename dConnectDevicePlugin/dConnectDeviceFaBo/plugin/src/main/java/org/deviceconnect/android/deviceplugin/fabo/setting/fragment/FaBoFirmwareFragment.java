@@ -14,7 +14,6 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
-import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
+import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoArduinoActivity;
 
 import java.util.HashMap;
 
@@ -36,7 +35,7 @@ import io.fabo.serialkit.FaBoUsbConst;
  *
  * @author NTT DOCOMO, INC.
  */
-public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerInterface {
+public class FaBoFirmwareFragment extends FaBoArduinoFragment implements StkWriterListenerInterface {
 
     /**
      * Context.
@@ -71,7 +70,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
     /**
      * Parent activity.
      */
-    private FaBoSettingActivity mParent;
+    private FaBoArduinoActivity mParent;
 
     /**
      * Activity.
@@ -132,7 +131,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                 mContext.sendBroadcast(intent);
 
                 // 前のページに戻る.
-                mParent.moveConnectFirmata();
+//                mParent.moveConnectFirmata();
             }
         });
 
@@ -318,7 +317,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
 
     @Override
     public void onAttach(Activity activity) {
-        mParent = (FaBoSettingActivity) activity;
+        mParent = (FaBoArduinoActivity) activity;
         super.onAttach(activity);
     }
 }

@@ -97,6 +97,12 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
                 endWatchFirmata();
                 setOnline(false);
             }
+
+            @Override
+            public void onFailedConnected() {
+                setOnline(false);
+                sendResultToActivity(FaBoConst.FAILED_CONNECT_ARDUINO);
+            }
         });
         mFaBoDeviceControl.initialize();
     }

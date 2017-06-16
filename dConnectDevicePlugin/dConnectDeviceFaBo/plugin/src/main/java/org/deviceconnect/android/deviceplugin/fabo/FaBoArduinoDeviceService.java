@@ -47,8 +47,7 @@ public class FaBoArduinoDeviceService extends FaBoDeviceService {
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-
-        if (ACTION_SET_LOCAL_OAUTH.equals(intent.getAction())) {
+        if (intent != null && ACTION_SET_LOCAL_OAUTH.equals(intent.getAction())) {
             setUseLocalOAuth(mFaBoSettings.isUseLocalOAuth());
         }
 

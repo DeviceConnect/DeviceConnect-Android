@@ -266,7 +266,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     /**
      * USBをOpenする.
      */
-    private void openUsb(final UsbDevice usbDevice) {
+    private synchronized void openUsb(final UsbDevice usbDevice) {
         if (DEBUG) {
             Log.i(TAG, "----------------------------------------");
             Log.i(TAG, "Open USB.");
@@ -297,7 +297,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     /**
      * USBをClose.
      */
-    private void closeUsb() {
+    private synchronized void closeUsb() {
         if (DEBUG) {
             Log.i(TAG, "----------------------------------------");
             Log.i(TAG, "Close USB.");
@@ -487,11 +487,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     /**
      * メッセージの送信
      *
-     * @param mByte Byte型のメッセージ
+     * @param buf Byte型のメッセージ
      */
-    private void sendMessage(final byte[] mByte) {
-        if (mByte != null) {
-            mFaBoUsbManager.writeBuffer(mByte);
+    private synchronized void sendMessage(final byte[] buf) {
+        if (buf != null && mFaBoUsbManager != null) {
+            mFaBoUsbManager.writeBuffer(buf);
         }
     }
 

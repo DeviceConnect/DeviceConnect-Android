@@ -226,6 +226,7 @@ public class FaBoConnectFragment extends FaBoArduinoFragment {
         }
         clearLogMessage();
         mTextViewComment.setText(R.string.disconnect_usb);
+        checkAndFinish();
     }
 
     /**

@@ -305,20 +305,20 @@ public class FaBoProfile extends DConnectProfile {
     }
 
     /**
-     * List<Integer>をint[]に変換します.
+     * List<Integer>String[]に変換します.
      * <p>
      * 引数にnullが指定された場合は、空の配列を返却します。
      * </p>
      * @param list 変換前のリスト
      * @return 変換後int[]
      */
-    private int[] toArray(final List<Integer> list) {
+    private String[] toArray(final List<Integer> list) {
         if (list == null) {
-            return new int[0];
+            return new String[0];
         }
-        int[] b = new int[list.size()];
+        String[] b = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            b[i] = list.get(i);
+            b[i] = ArduinoUno.Pin.getPin(list.get(i)).getPinNames()[1];
         }
         return b;
     }
@@ -333,7 +333,8 @@ public class FaBoProfile extends DConnectProfile {
         b.putInt("type", p.getType().getValue());
         b.putString("name", ProfileDataUtil.getProfileName(getContext(), p.getType()));
         b.putString("brick", p.getType().getBrick());
-        b.putIntArray("pins", toArray(p.getPinList()));
+        b.putStringArray("pins", toArray(p.getPinList()));
+        b.putString("category", p.getType().getCategory().getValue());
         return  b;
     }
 

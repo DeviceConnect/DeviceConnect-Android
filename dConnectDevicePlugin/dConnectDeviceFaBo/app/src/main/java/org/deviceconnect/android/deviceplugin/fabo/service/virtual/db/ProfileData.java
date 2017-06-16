@@ -19,12 +19,22 @@ public class ProfileData implements Parcelable {
         /**
          * GPIOを表すカテゴリー.
          */
-        GPIO,
+        GPIO("GPIO"),
 
         /**
          * I2Cを表すカテゴリー.
          */
-        I2C
+        I2C("I2C");
+
+        private String mValue;
+
+        Category(final String value) {
+            mValue = value;
+        }
+
+        public String getValue() {
+            return mValue;
+        }
     }
 
     /**

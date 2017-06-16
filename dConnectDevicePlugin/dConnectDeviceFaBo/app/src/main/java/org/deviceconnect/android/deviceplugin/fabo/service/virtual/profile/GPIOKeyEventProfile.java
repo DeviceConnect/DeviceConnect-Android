@@ -267,7 +267,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 keyEvent.putString("config", pin.getPinNames()[1]);
 
                 Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra("keyEvent", keyEvent);
+                intent.putExtra("keyevent", keyEvent);
                 sendEvent(intent, event.getAccessToken());
             }
         }
@@ -281,7 +281,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 keyEvent.putString("config", pin.getPinNames()[1]);
 
                 Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra("keyEvent", keyEvent);
+                intent.putExtra("keyevent", keyEvent);
                 sendEvent(intent, event.getAccessToken());
             }
         }
@@ -303,7 +303,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 keyEvent.putString("config", pin.getPinNames()[1]);
 
                 Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra("keyEvent", keyEvent);
+                intent.putExtra("keyevent", keyEvent);
                 sendEvent(intent, event.getAccessToken());
             }
         }
@@ -316,7 +316,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                 keyEvent.putString("config", pin.getPinNames()[1]);
 
                 Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra("keyEvent", keyEvent);
+                intent.putExtra("keyevent", keyEvent);
                 sendEvent(intent, event.getAccessToken());
             }
         }

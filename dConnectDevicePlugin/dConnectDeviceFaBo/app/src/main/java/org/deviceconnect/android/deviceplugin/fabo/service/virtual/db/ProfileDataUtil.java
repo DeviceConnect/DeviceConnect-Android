@@ -73,6 +73,8 @@ public final class ProfileDataUtil {
                 return context.getString(R.string.activity_fabo_virtual_i2c_robot_drivecontroller);
             case I2C_MOUSE_DRIVE_CONTROLLER:
                 return context.getString(R.string.activity_fabo_virtual_i2c_mouse_drivecontroller);
+            case I2C_3AXIS_DEVICE_ORIENTATION:
+                return context.getString(R.string.activity_fabo_virtual_i2c_3axis_device_orientation);
             case I2C_TEMPERATURE:
                 return context.getString(R.string.activity_fabo_virtual_i2c_temperature);
         }

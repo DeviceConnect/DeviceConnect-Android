@@ -8,6 +8,7 @@ import com.google.android.things.pio.PeripheralManagerService;
 import com.google.android.things.pio.SpiDevice;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
@@ -182,6 +183,11 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     @Override
     public IMouseCar getMouseCar() {
         return mMouseCar;
+    }
+
+    @Override
+    public IADXL345 getADXL345() {
+        return null;
     }
 
     @Override

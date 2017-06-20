@@ -58,5 +58,6 @@
     <string name="activity_fabo_virtual_gpio_proximity">Proximity(GPIO) #116</string>
     <string name="activity_fabo_virtual_i2c_robot_drivecontroller">DriveController(RobotCar)</string>
     <string name="activity_fabo_virtual_i2c_mouse_drivecontroller">DriveController(MouseCar)</string>
+    <string name="activity_fabo_virtual_i2c_3axis_device_orientation">DeviceOrientation(3AXIS) #201</string>
     <string name="activity_fabo_virtual_i2c_temperature">Temperature(I2C)</string>
 </resources>

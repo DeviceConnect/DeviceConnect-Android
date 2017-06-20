@@ -14,12 +14,14 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +29,13 @@ import java.util.List;
 import io.fabo.serialkit.FaBoUsbConst;
 import io.fabo.serialkit.FaBoUsbListenerInterface;
 import io.fabo.serialkit.FaBoUsbManager;
+
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeByte;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.ANALOG_MESSAGE;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.DIGITAL_MESSAGE;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.REPORT_VERSION;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
 
 /**
  * Usb経由でFaBoデバイスを操作するクラス.
@@ -84,6 +93,41 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     private Context mContext;
 
     /**
+     * sysex messageを解析中フラグ.
+     * <p>
+     * sysex messageを解析している間はtrue、それ以外はfalse
+     * </p>
+     */
+    private boolean mParsingSysex;
+
+    /**
+     * Arduinoから送られてきたピン番号.
+     */
+    private int mChannel;
+
+    /**
+     * Arduinoから送られてきたコマンド.
+     * <p>
+     * 以下のコマンドが存在します。
+     *  - DIGITAL_MESSAGE
+     *  - ANALOG_MESSAGE
+     *  - REPORT_ANALOG
+     *  - REPORT_DIGITAL
+     * </p>
+     */
+    private byte mCommand;
+
+    /**
+     * コマンドのデータカウント.
+     */
+    private int mWaitForData;
+
+    /**
+     * Arduinoから送られてきたデータを一時的に格納するバッファ.
+     */
+    private ByteArrayOutputStream mStoredInputData;
+
+    /**
      * マウス型RobotCarを操作するクラス.
      */
     private MouseCar mMouseCar;
@@ -92,6 +136,16 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      * RobotCarを操作するクラス.
      */
     private RobotCar mRobotCar;
+
+    /**
+     * ADXL345用を操作するクラス.
+     */
+    private ADXL345 mADXL345;
+
+    /**
+     * I2Cを格納するリスト.
+     */
+    private List<BaseI2C> mI2CList = new ArrayList<>();
 
     /**
      * コンストラクタ.
@@ -103,6 +157,8 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
     @Override
     public void initialize() {
+        mStoredInputData = new ByteArrayOutputStream();
+
         // Set status.
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
 
@@ -115,12 +171,14 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         mContext.registerReceiver(mUsbEventReceiver, filter);
 
         initUsbDevice();
+        initI2CSDevice();
     }
 
     @Override
     public void destroy() {
         mOnFaBoDeviceControlListener = null;
         mOnGPIOListeners.clear();
+        mI2CList.clear();
         closeUsb();
         mContext.unregisterReceiver(mUsbEventReceiver);
     }
@@ -128,11 +186,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     @Override
     public void writeAnalog(final ArduinoUno.Pin pin, final int value) {
         byte[] bytes = new byte[5];
-        bytes[0] = (byte) FirmataV32.START_SYSEX;
+        bytes[0] = (byte) START_SYSEX;
         bytes[1] = (byte) (0x6F);
         bytes[2] = (byte) pin.getPinNumber();
         bytes[3] = (byte) value;
-        bytes[4] = (byte) FirmataV32.END_SYSEX;
+        bytes[4] = (byte) END_SYSEX;
         sendMessage(bytes);
     }
 
@@ -143,7 +201,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         if (hl == ArduinoUno.Level.HIGH) {
             int status = getPortStatus(port) | pinBit;
             byte[] bytes = new byte[3];
-            bytes[0] = (byte) (FirmataV32.DIGITAL_MESSAGE | port);
+            bytes[0] = (byte) (DIGITAL_MESSAGE | port);
             bytes[1] = (byte) (status & 0xff);
             bytes[2] = (byte) ((status >> 8) & 0xff);
             sendMessage(bytes);
@@ -151,7 +209,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         } else if (hl == ArduinoUno.Level.LOW) {
             int status = getPortStatus(port) & ~pinBit;
             byte[] bytes = new byte[3];
-            bytes[0] = (byte) (FirmataV32.DIGITAL_MESSAGE | port);
+            bytes[0] = (byte) (DIGITAL_MESSAGE | port);
             bytes[1] = (byte) (status & 0xff);
             bytes[2] = (byte) ((status >> 8) & 0xff);
             sendMessage(bytes);
@@ -203,24 +261,20 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
     @Override
     public IRobotCar getRobotCar() {
-        synchronized (this) {
-            if (mRobotCar == null) {
-                mRobotCar = new RobotCar();
-            }
-            mRobotCar.setFaBoDeviceControl(this);
-        }
+        mRobotCar.setFaBoDeviceControl(this);
         return mRobotCar;
     }
 
     @Override
     public IMouseCar getMouseCar() {
-        synchronized (this) {
-            if (mMouseCar == null) {
-                mMouseCar = new MouseCar();
-            }
-            mMouseCar.setFaBoDeviceControl(this);
-        }
+        mMouseCar.setFaBoDeviceControl(this);
         return mMouseCar;
+    }
+
+    @Override
+    public IADXL345 getADXL345() {
+        mADXL345.setFaBoDeviceControl(this);
+        return mADXL345;
     }
 
     @Override
@@ -242,6 +296,17 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         synchronized (mOnGPIOListeners) {
             mOnGPIOListeners.remove(listener);
         }
+    }
+
+    /**
+     * I2Cデバイスを初期化します.
+     */
+    private void initI2CSDevice() {
+        mRobotCar = new RobotCar();
+        mMouseCar = new MouseCar();
+        mADXL345 = new ADXL345();
+
+        mI2CList.add(mADXL345);
     }
 
     /**
@@ -306,6 +371,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
         if (mFaBoUsbManager != null) {
             mFaBoUsbManager.closeConnection();
+            mFaBoUsbManager.unregisterMyReceiver();
             mFaBoUsbManager = null;
         }
 
@@ -555,6 +621,138 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     /**
+     * REPORT_VERIONの解析を行います.
+     * @param data データ
+     */
+    private void reportVersion(final byte[] data) {
+        if (DEBUG) {
+            Log.i(TAG, "REPORT_VERSION");
+            Log.i(TAG, "  Version: " + data[0] + "." + data[1]);
+        }
+
+        if ((byte) (data[0] & 0xFF) == (byte) VERSION[0] &&
+                (byte) (data[1] & 0xFF) == (byte) VERSION[1]) {
+            setStatus(FaBoConst.STATUS_FABO_RUNNING);
+            intFirmata();
+            notifyConnectFaBoDevice();
+        } else {
+            if (DEBUG) {
+                Log.w(TAG, "Not support version. ver=" + data[0] + "." + data[1]);
+            }
+        }
+    }
+
+    /**
+     * Arduinoから送られてきたアナログのデータを設定します.
+     * @param port ピン番号
+     * @param value 値
+     */
+    private void setAnalogData(final int port, final int value) {
+        if (port < 7) {
+            ArduinoUno.Pin p = ArduinoUno.Pin.getPin(port + 14);
+            if (p != null) {
+                p.setValue(value);
+            }
+            notifyAnalog();
+        }
+    }
+
+    /**
+     * Arduinoから送られてきたデジタルのデータを設定します.
+     * @param port ピン番号
+     * @param value 値
+     */
+    private void setDigitalData(final int port, final int value) {
+        if (port < 3) {
+            mDigitalPortStatus[port] = value;
+            notifyDigital();
+        }
+    }
+
+    /**
+     * sysex messageを解析します.
+     * @param data sysex messageのデータ
+     */
+    private void parseSysExMessage(final byte[] data) {
+        switch (data[0]) {
+            case FirmataV32.REPORT_FIRMWARE:
+                break;
+
+            case FirmataV32.I2C_REPLY:
+                int offset = 1;
+                int address = decodeByte(data[offset++], data[offset++]);
+                for (BaseI2C i2c : mI2CList) {
+                    if (address == i2c.getAddress()) {
+                        i2c.onReadData(data);
+                    }
+                }
+                break;
+
+            case FirmataV32.STRING_DATA:
+                if (DEBUG) {
+                    Log.i(TAG, "FirmataV32.STRING_DATA");
+                    Log.i(TAG, FirmataUtil.decodeString(data, 1, data.length));
+                }
+                break;
+
+            default:
+                if (DEBUG) {
+                    Log.e(TAG, "Unknown: " + data[0]);
+                }
+                break;
+        }
+    }
+
+    /**
+     * Arduinoから読み込んだデータを処理します.
+     * @param inputData 読み込んだデータ
+     */
+    private void processInput(final byte inputData) {
+        if (mParsingSysex) {
+            if (inputData == END_SYSEX) {
+                parseSysExMessage(mStoredInputData.toByteArray());
+                mParsingSysex = false;
+            } else {
+                mStoredInputData.write(inputData);
+            }
+        } else if (mWaitForData > 0 && (inputData & 0x80) != 0x80) {
+            mWaitForData--;
+            mStoredInputData.write(inputData);
+
+            if (mWaitForData == 0) {
+                switch (mCommand) {
+                    case DIGITAL_MESSAGE:
+                        setDigitalData(mChannel, FirmataUtil.decodeByte(mStoredInputData.toByteArray()));
+                        break;
+                    case ANALOG_MESSAGE:
+                        setAnalogData(mChannel, FirmataUtil.decodeByte(mStoredInputData.toByteArray()));
+                        break;
+                    case REPORT_VERSION:
+                        reportVersion(mStoredInputData.toByteArray());
+                        break;
+                }
+            }
+        } else {
+            mChannel = (byte)(inputData & 0x0F);
+
+            switch (inputData) {
+                case START_SYSEX:
+                    mParsingSysex = true;
+                    mStoredInputData.reset();
+                    break;
+
+                case DIGITAL_MESSAGE:
+                case ANALOG_MESSAGE:
+                case REPORT_VERSION:
+                    mWaitForData = 2;
+                    mStoredInputData.reset();
+                    mCommand = inputData;
+                    break;
+            }
+        }
+    }
+
+    /**
      * FaBoUsbManagerからの通知を受け取るリスナー.
      */
     private FaBoUsbListenerInterface mInterface = new FaBoUsbListenerInterface() {
@@ -582,47 +780,17 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         }
 
         @Override
-        public void readBuffer(final int deviceId, final byte[] data) {
-            for (int i = 0; i < data.length; i++) {
-                if (mStatus == FaBoConst.STATUS_FABO_INIT) {
-                    if ((i + 2) < data.length) {
-                        if ((byte) (data[i] & 0xff) == (byte) 0xf9 &&
-                                (byte) (data[i + 1] & 0xff) == (byte) VERSION[0] &&
-                                (byte) (data[i + 2] & 0xff) == (byte) VERSION[1]) {
-                            setStatus(FaBoConst.STATUS_FABO_RUNNING);
-                            intFirmata();
-                            notifyConnectFaBoDevice();
-                        }
-                    }
-                } else {
-                    // 7bit目が1の場合は、コマンド.
-                    if ((data[i] & 0x80) == 0x80) {
-                        if ((byte) (data[i] & 0xf0) == FirmataV32.ANALOG_MESSAGE) {
-                            if ((i + 2) < data.length) {
-                                int pin = (data[i] & 0x0f);
-                                if (pin < 7) {
-                                    int value = ((data[i + 2] & 0xff) << 7) + (data[i + 1] & 0xff);
-                                    ArduinoUno.Pin p = ArduinoUno.Pin.getPin(pin + 14);
-                                    if (p != null) {
-                                        p.setValue(value);
-                                    }
-                                    notifyAnalog();
-                                }
-                            }
-                        } else if ((byte) (data[i] & 0xf0) == FirmataV32.DIGITAL_MESSAGE) {
-                            if ((i + 2) < data.length) {
-                                int port = (data[i] & 0x0f);
-                                int value = ((data[i + 2] & 0xff) << 8) + (data[i + 1] & 0xff);
-                                // Arduino UNOは3Portまで.
-                                if (port < 3) {
-                                    // 取得した値は保存する.
-                                    mDigitalPortStatus[port] = value;
-                                    notifyDigital();
-                                }
-                            }
-                        }
-                    }
+        public void readBuffer(final int deviceId, final byte[] datas) {
+            try {
+                for (byte data : datas) {
+                    processInput(data);
                 }
+            } catch (OutOfMemoryError e) {
+                mStoredInputData = new ByteArrayOutputStream();
+                mParsingSysex = false;
+            } catch (Exception e) {
+                mStoredInputData.reset();
+                mParsingSysex = false;
             }
         }
     };

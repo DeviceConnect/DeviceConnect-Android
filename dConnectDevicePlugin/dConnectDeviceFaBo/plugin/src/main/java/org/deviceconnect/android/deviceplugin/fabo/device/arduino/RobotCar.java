@@ -2,10 +2,20 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_BACK;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_FORWARD;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_STOP;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.calcHandleDirection;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.calcSpeed;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_REQUEST;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_WRITE;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
+
 /**
  * RobotCarを操作するためのクラス.
  */
-class RobotCar extends BaseRobotCar implements IRobotCar {
+class RobotCar extends BaseI2C implements IRobotCar {
     /**
      * モータへのアドレス.
      */
@@ -70,7 +80,7 @@ class RobotCar extends BaseRobotCar implements IRobotCar {
                 START_SYSEX,
                 I2C_REQUEST,
                 DRV8830_ADDRESS,
-                0x00,
+                I2C_WRITE,
                 0x00,
                 0x00,
                 (byte) (value & 0x7f),

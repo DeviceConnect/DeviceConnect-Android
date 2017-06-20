@@ -20,6 +20,19 @@ import org.deviceconnect.message.DConnectMessage;
 public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
 
     /**
+     * RobotCarの向きを保持します.
+     * <p>
+     * この角度でRobotCarが回転します。
+     * </p>
+     */
+    private float mAngle = 0;
+
+    /**
+     * RobotCarの速度を保持します.
+     */
+    private float mSpeed = 0;
+
+    /**
      * コンストラクタ.
      */
     public I2CMouseCarDriveControllerProfile() {
@@ -32,29 +45,10 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            }
-        });
-
-        // POST /driveController/move
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "move";
-            }
-
-            @Override
-            public boolean onRequest(final Intent request, final Intent response) {
                 Float angle = parseFloat(request, "angle");
-                Float speed = parseFloat(request, "speed");
 
-                if (angle == null) {
-                    angle = 0.0f;
-                }
-
-                if (speed == null) {
-                    speed = 0.0f;
+                if (angle != null) {
+                    mAngle = angle;
                 }
 
                 FaBoDeviceControl mgr = getFaBoDeviceControl();
@@ -63,35 +57,62 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
                     return true;
                 }
 
-                float speed_right;
-                float speed_left;
-                if (angle >= 0) {
-                    float gain = angle / 360.0f;
-                    speed_right = speed;
-                    speed_left = speed * (1 - gain);
-                } else {
-                    float gain = -angle / 360.0f;
-                    speed_right = speed * (1 - gain);
-                    speed_left = speed;
+                // 速度が入っている場合には動作しているの移動する
+                if (mSpeed != 0) {
+                    moveRobotCar();
                 }
-
-                IMouseCar mouseCar = mgr.getMouseCar();
-                mouseCar.move(speed_right, speed_left);
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
 
-        // DELETE /driveController/move
-        addApi(new DeleteApi() {
+        // POST /driveController/moveRobotCar
+        addApi(new PostApi() {
             @Override
             public String getAttribute() {
-                return "move";
+                return "moveRobotCar";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                Float angle = parseFloat(request, "angle");
+                Float speed = parseFloat(request, "speed");
+
+                if (angle != null) {
+                    mAngle = angle;
+                }
+
+                if (speed != null) {
+                    mSpeed = speed;
+                }
+
+                FaBoDeviceControl mgr = getFaBoDeviceControl();
+                if (!getService().isOnline() || mgr == null) {
+                    MessageUtils.setIllegalDeviceStateError(response);
+                    return true;
+                }
+
+                moveRobotCar();
+
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            }
+        });
+
+        // DELETE /driveController/stop
+        addApi(new DeleteApi() {
+            @Override
+            public String getAttribute() {
+                return "stop";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+
+                // 停止したので速度を0にしておく
+                mSpeed = 0;
+
                 FaBoDeviceControl mgr = getFaBoDeviceControl();
                 if (!getService().isOnline() || mgr == null) {
                     MessageUtils.setIllegalDeviceStateError(response);
@@ -100,6 +121,8 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
 
                 IMouseCar mouseCar = mgr.getMouseCar();
                 mouseCar.stop();
+
+                setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
@@ -108,5 +131,26 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
     @Override
     public String getProfileName() {
         return "driveController";
+    }
+
+    /**
+     * RobotCar(Mouse)を移動させます.
+     */
+    private void moveRobotCar() {
+        float speed_right;
+        float speed_left;
+        if (mAngle >= 0) {
+            float gain = mAngle / 360.0f;
+            speed_right = mSpeed;
+            speed_left = mSpeed * (1 - gain);
+        } else {
+            float gain = -mAngle / 360.0f;
+            speed_right = mSpeed * (1 - gain);
+            speed_left = mSpeed;
+        }
+
+        FaBoDeviceControl mgr = getFaBoDeviceControl();
+        IMouseCar mouseCar = mgr.getMouseCar();
+        mouseCar.move(speed_right, speed_left);
     }
 }

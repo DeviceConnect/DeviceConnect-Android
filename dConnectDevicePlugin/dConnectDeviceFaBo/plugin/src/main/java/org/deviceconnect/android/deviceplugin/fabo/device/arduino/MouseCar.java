@@ -2,10 +2,19 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_BACK;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_FORWARD;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_STOP;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.calcSpeed;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_REQUEST;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_WRITE;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
+
 /**
  * マウス型RobotCarを操作しるためのクラス.
  */
-class MouseCar extends BaseRobotCar implements IMouseCar {
+class MouseCar extends BaseI2C implements IMouseCar {
     /**
      * 左側のモータへのアドレス.
      */
@@ -63,7 +72,7 @@ class MouseCar extends BaseRobotCar implements IMouseCar {
                 START_SYSEX,
                 I2C_REQUEST,
                 DRV8830_LEFT_ADDRESS,
-                0x00,
+                I2C_WRITE,
                 0x00,
                 0x00,
                 (byte) (valueLeft & 0x7f),
@@ -76,7 +85,7 @@ class MouseCar extends BaseRobotCar implements IMouseCar {
                 START_SYSEX,
                 I2C_REQUEST,
                 DRV8830_RIGHT_ADDRESS,
-                0x00,
+                I2C_WRITE,
                 0x00,
                 0x00,
                 (byte) (valueRight & 0x7f),

@@ -87,9 +87,14 @@ public class ProfileData implements Parcelable {
         I2C_MOUSE_DRIVE_CONTROLLER(101, null, Category.I2C),
 
         /**
+         * I2C用DeviceOrientation(3axis)プロファイル.
+         */
+        I2C_3AXIS_DEVICE_ORIENTATION(102, "#201", Category.I2C),
+
+        /**
          * I2C用Temperatureプロファイル.
          */
-        I2C_TEMPERATURE(102, "#207", Category.I2C);
+        I2C_TEMPERATURE(103, "#207", Category.I2C);
 
         /**
          * プロファイルの種別.

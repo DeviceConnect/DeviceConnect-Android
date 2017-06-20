@@ -80,6 +80,12 @@ public interface FaBoDeviceControl {
     IMouseCar getMouseCar();
 
     /**
+     * ADXL345を操作するためのインターフェースを取得します.
+     * @return IADXL345を実装したクラス
+     */
+    IADXL345 getADXL345();
+
+    /**
      * FaBoデバイスの接続状態通知リスナーを設定します.
      * @param listener リスナー
      */

@@ -129,33 +129,25 @@
                 }
             }
         },
-        "/setType": {
-            "post": {
+        "/stop": {
+            "delete": {
                 "x-type": "one-shot",
-                "summary": "スマートデバイスのタイプを指定。",
+                "summary": "スマートデバイスに移動停止リクエストを送る。",
                 "description": "",
                 "parameters": [
                     {
                         "name": "serviceId",
                         "description": "サービスID。取得対象スマートデバイス",
-                        "in": "formData",
+                        "in": "query",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "name": "type",
-                        "description": "スマートデバイスのタイプ",
-                        "in": "formData",
-                        "required": true,
-                        "type": "number",
-                        "enum": [0, 1]
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/DriveControllerRotateResponse"
+                            "$ref": "#/definitions/DriveControllerStopResponse"
                         },
                         "examples": {
                             "application/json": {

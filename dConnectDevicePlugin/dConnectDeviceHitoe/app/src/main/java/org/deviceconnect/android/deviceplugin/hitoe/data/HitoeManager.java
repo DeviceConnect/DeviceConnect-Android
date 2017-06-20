@@ -167,6 +167,16 @@ public class HitoeManager {
                         break;
                     case HitoeConstants.API_ID_DISCONNECT:
                         // disconnect sensor
+                        try{
+
+                            mLockForEx.lock();
+
+                            mListForEx.clear();
+                            mFlagForEx = false;
+                        }finally {
+
+                            mLockForEx.unlock();
+                        }
                         break;
                     case HitoeConstants.API_ID_GET_AVAILABLE_DATA:
                         notifyAvailableData(responseId, responseString);
@@ -199,7 +209,6 @@ public class HitoeManager {
         @Override
         public void onDataReceive(final String connectionId, final int responseId,
                                   final String dataKey, final String rawData) {
-
 
             int pos = getPosForConnectionId(connectionId);
             if (pos == -1) {
@@ -257,7 +266,6 @@ public class HitoeManager {
                 // Expanded analysis discard the connection
                 receiveDevice.removeConnectionId(connectionId);
             } else {
-
                 // Perform any extension
                 //Do not run if it is already running
                 TempExData exData = null;
@@ -267,7 +275,6 @@ public class HitoeManager {
 
                     if (!mFlagForEx && mListForEx.size() > 0) {
                         mFlagForEx = true;
-
                         exData = mListForEx.get(0);
                         mListForEx.remove(0);
                     }
@@ -276,7 +283,7 @@ public class HitoeManager {
                     mLockForEx.unlock();
                 }
                 if (exData != null) {
-                    addExReceiverProcess(pos, exData);
+                   addExReceiverProcess(pos, exData);
                 }
             }
 
@@ -605,6 +612,7 @@ public class HitoeManager {
                     if (mRegisterDevices.get(i).getId().equals(device.getId())) {
                         mRegisterDevices.set(i, device);
                     } else {
+
                         mRegisterDevices.get(i).setResponseId(HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE);
                     }
                 }
@@ -738,6 +746,17 @@ public class HitoeManager {
             return;
         }
         if (responseId == HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE) {
+            // 切断の場合もフラグを落とす
+            try{
+
+                mLockForEx.lock();
+
+                mListForEx.clear();
+                mFlagForEx = false;
+            }finally {
+
+                mLockForEx.unlock();
+            }
             for (OnHitoeConnectionListener l: mConnectionListeners) {
                 if (l != null) {
 
@@ -870,7 +889,6 @@ public class HitoeManager {
                     exData = mListForEx.get(0);
                     mListForEx.remove(0);
                 } else {
-
                     mFlagForEx = false;
                 }
 
@@ -1134,6 +1152,7 @@ public class HitoeManager {
             }
             return;
         }
+
         int responseId;
 
         String[] keys = new String[1];
@@ -1257,12 +1276,15 @@ public class HitoeManager {
      */
     private int getCurrentPos(final int responseId) {
         int pos = -1;
+
         for (int i = 0; i < mRegisterDevices.size(); i++) {
-            if (mRegisterDevices.get(i).getResponseId() == responseId) {
+
+           if (mRegisterDevices.get(i).getResponseId() == responseId) {
                 pos = i;
                 break;
             }
         }
+
         return pos;
     }
 
@@ -1457,6 +1479,7 @@ public class HitoeManager {
                     try {
                         mLockForEx.lock();
                         mListForEx.add(new TempExData("ex.posture", postureInputList));
+
                     } finally {
                         mLockForEx.unlock();
                     }
@@ -1603,7 +1626,7 @@ public class HitoeManager {
                             mIsCallbackRunning = true;
                         }
                         mNowTimestamps.put(heart, timestamp);
-                        if (heart.isRegisterFlag()) {
+                        if (!mIsCallbackRunning && heart.isRegisterFlag()) {
                             connectHitoeDevice(heart);
                         }
                     }

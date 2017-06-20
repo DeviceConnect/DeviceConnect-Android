@@ -342,6 +342,8 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             Log.i(TAG, "----------------------------------------");
         }
 
+        mParsingSysex = false;
+
         if (mFaBoUsbManager != null) {
             mFaBoUsbManager.closeConnection();
             mFaBoUsbManager.checkDevice(usbDevice);
@@ -401,17 +403,19 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     private void onDeviceStateChange() {
         setStatus(FaBoConst.STATUS_FABO_INIT);
 
+        // Arduinoの初期化が行われるまで少し待つ
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+        // GPIOを格納しているクラスの初期化
+        initGPIO();
+
         // FirmataのVersion取得のコマンドを送付
         byte command[] = {(byte) 0xF9};
         sendMessage(command);
-
-        initGPIO();
 
         // 5秒たってFirmataを検出できない場合はエラー.
         Handler handler = new Handler(Looper.getMainLooper());
@@ -630,14 +634,23 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             Log.i(TAG, "  Version: " + data[0] + "." + data[1]);
         }
 
-        if ((byte) (data[0] & 0xFF) == (byte) VERSION[0] &&
-                (byte) (data[1] & 0xFF) == (byte) VERSION[1]) {
-            setStatus(FaBoConst.STATUS_FABO_RUNNING);
-            intFirmata();
-            notifyConnectFaBoDevice();
+        if ((byte) (data[0] & 0xFF) == (byte) VERSION[0] && (byte) (data[1] & 0xFF) == (byte) VERSION[1]) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    setStatus(FaBoConst.STATUS_FABO_RUNNING);
+                    intFirmata();
+                    notifyConnectFaBoDevice();
+                }
+            }).start();
         } else {
             if (DEBUG) {
-                Log.w(TAG, "Not support version. ver=" + data[0] + "." + data[1]);
+                Log.w(TAG, "Not support version.");
             }
         }
     }
@@ -680,7 +693,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
             case FirmataV32.I2C_REPLY:
                 int offset = 1;
-                int address = decodeByte(data[offset++], data[offset++]);
+                int address = decodeByte(data[offset++], data[offset]);
                 for (BaseI2C i2c : mI2CList) {
                     if (address == i2c.getAddress()) {
                         i2c.onReadData(data);
@@ -733,9 +746,14 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
                 }
             }
         } else {
-            mChannel = (byte)(inputData & 0x0F);
+            byte command;
+            if ((inputData & 0xFF) < 0xF0) {
+                command = (byte) (inputData & 0xF0);
+            } else {
+                command = inputData;
+            }
 
-            switch (inputData) {
+            switch (command) {
                 case START_SYSEX:
                     mParsingSysex = true;
                     mStoredInputData.reset();
@@ -746,7 +764,8 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
                 case REPORT_VERSION:
                     mWaitForData = 2;
                     mStoredInputData.reset();
-                    mCommand = inputData;
+                    mCommand = command;
+                    mChannel = (byte) (inputData & 0x0F);
                     break;
             }
         }
@@ -781,6 +800,16 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
         @Override
         public void readBuffer(final int deviceId, final byte[] datas) {
+
+            if (DEBUG) {
+                final StringBuilder sb = new StringBuilder();
+                for (byte data : datas) {
+                    sb.append(Integer.toHexString(data & 0xff));
+                    sb.append(" ");
+                }
+                Log.i(TAG, "  readBuffer: " + sb.toString());
+            }
+
             try {
                 for (byte data : datas) {
                     processInput(data);

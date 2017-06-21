@@ -31,6 +31,7 @@ import io.fabo.serialkit.FaBoUsbListenerInterface;
 import io.fabo.serialkit.FaBoUsbManager;
 
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeByte;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst.STATUS_FABO_INIT;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.ANALOG_MESSAGE;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.DIGITAL_MESSAGE;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
@@ -63,7 +64,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     private int[] mDigitalPortStatus = {0, 0, 0};
 
     /**
-     * Version
+     * FirmataのVersion.
      */
     private static final int[] VERSION = {0x02, 0x05};
 
@@ -158,6 +159,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     @Override
     public void initialize() {
         mStoredInputData = new ByteArrayOutputStream();
+        mParsingSysex = false;
 
         // Set status.
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
@@ -401,7 +403,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      * シリアル通信を開始.
      */
     private void onDeviceStateChange() {
-        setStatus(FaBoConst.STATUS_FABO_INIT);
+        setStatus(STATUS_FABO_INIT);
 
         // Arduinoの初期化が行われるまで少し待つ
         try {
@@ -422,7 +424,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mStatus == FaBoConst.STATUS_FABO_INIT) {
+                if (mStatus == STATUS_FABO_INIT) {
                     setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
                     if (mOnFaBoDeviceControlListener != null) {
                         mOnFaBoDeviceControlListener.onFailedConnected();
@@ -432,7 +434,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         }, 5000);
 
         // Statusをinitへ.
-        setStatus(FaBoConst.STATUS_FABO_INIT);
+        setStatus(STATUS_FABO_INIT);
     }
 
     /**
@@ -445,11 +447,22 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
         byte[] command = new byte[2];
 
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         // AnalogPin A0-A5の値に変化があったら通知する設定をおこなう(Firmata)
         for (int analogPin = 0; analogPin < 7; analogPin++) {
             command[0] = (byte) (FirmataV32.REPORT_ANALOG + analogPin);
             command[1] = (byte) FirmataV32.ENABLE;
             sendMessage(command);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         // Portのデジタル値に変化があったら通知する設定をおこなう(Firmata)
@@ -457,6 +470,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             command[0] = (byte) (FirmataV32.REPORT_DIGITAL + digitalPort);
             command[1] = (byte) FirmataV32.ENABLE;
             sendMessage(command);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -638,11 +656,6 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                     setStatus(FaBoConst.STATUS_FABO_RUNNING);
                     intFirmata();
                     notifyConnectFaBoDevice();

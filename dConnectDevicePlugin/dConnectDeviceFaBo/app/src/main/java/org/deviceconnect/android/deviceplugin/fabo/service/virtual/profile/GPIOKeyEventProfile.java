@@ -61,6 +61,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                             if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
                                 mValues.put(pin, getFaBoDeviceControl().getAnalog(pin));
                             } else {
+                                getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_IN);
                                 mValues.put(pin, getFaBoDeviceControl().getDigital(pin).getValue());
                             }
                         }
@@ -119,6 +120,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                             if (pin.getMode() == ArduinoUno.Mode.ANALOG) {
                                 mValues.put(pin, getFaBoDeviceControl().getAnalog(pin));
                             } else {
+                                getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_IN);
                                 mValues.put(pin, getFaBoDeviceControl().getDigital(pin).getValue());
                             }
                         }
@@ -254,7 +256,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
      * KeyDownイベントを通知します.
      * @param pin Keyが押されたピン
      */
-    private void notifyKeyDown(final ArduinoUno.Pin pin) {
+    private synchronized void notifyKeyDown(final ArduinoUno.Pin pin) {
         String serviceId = getService().getId();
 
         {
@@ -291,7 +293,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
      * KeyUpイベントを通知します.
      * @param pin Keyが離されたピン
      */
-    private void notifyKeyUp(final ArduinoUno.Pin pin) {
+    private synchronized void notifyKeyUp(final ArduinoUno.Pin pin) {
         String serviceId = getService().getId();
         {
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
@@ -335,7 +337,7 @@ public class GPIOKeyEventProfile extends BaseFaBoProfile {
                     if (oldValue < 10 && newValue > 1000) {
                         notifyKeyDown(pin);
                     } else if (oldValue > 1000 && newValue < 10) {
-                        notifyKeyUp(pin);
+                       notifyKeyUp(pin);
                     }
                     mValues.put(pin, newValue);
                 }

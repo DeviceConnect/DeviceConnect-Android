@@ -64,7 +64,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
                         flashing(pattern);
                     } else {
                         for (ArduinoUno.Pin pin : mPinList) {
-                            getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                            sendVibrateOn(pin);
                         }
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -89,7 +89,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "Vibration does not exist.");
                 } else {
                     for (ArduinoUno.Pin pin : mPinList) {
-                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                        sendVibrateOff(pin);
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
@@ -180,16 +180,38 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
             public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 if (isOn) {
                     for (ArduinoUno.Pin pin : mPinList) {
-                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                        sendVibrateOn(pin);
                     }
                 } else {
                     for (ArduinoUno.Pin pin : mPinList) {
-                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                        sendVibrateOff(pin);
                     }
                 }
                 listener.onComplete();
             }
         });
         mFlashingExecutor.start(flashing);
+    }
+
+    /**
+     * Vibratorを振動させます.
+     * @param pin Vibratorが挿さっているピン
+     */
+    private void sendVibrateOn(final ArduinoUno.Pin pin) {
+        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+        }
+        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+    }
+
+    /**
+     * Vibratorの振動を止めます.
+     * @param pin Vibratorが挿さっているピン
+     */
+    private void sendVibrateOff(final ArduinoUno.Pin pin) {
+        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+        }
+        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
     }
 }

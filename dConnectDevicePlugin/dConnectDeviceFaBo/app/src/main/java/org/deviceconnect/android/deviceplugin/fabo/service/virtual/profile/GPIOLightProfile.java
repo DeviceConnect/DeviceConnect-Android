@@ -89,7 +89,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
                 } else {
                     ArduinoUno.Pin pin = findLight(lightId);
                     if (pin != null) {
-                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                        sendLightOff(pin);
                         setResult(response, DConnectMessage.RESULT_OK);
                     } else {
                         MessageUtils.setInvalidRequestParameterError(response, "Not found the light. lightId=" + lightId);
@@ -113,6 +113,8 @@ public class GPIOLightProfile extends BaseFaBoProfile {
      */
     private boolean lightOn(final Intent request, final Intent response) {
         String lightId = request.getStringExtra("lightId");
+        Float brightness = parseFloat(request, "brightness");
+
         long[] flashing;
         try {
             flashing = getFlashing(request);
@@ -131,7 +133,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
                 if (flashing != null) {
                     flashing(pin, flashing);
                 } else {
-                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                    sendLightOn(pin);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -213,13 +215,35 @@ public class GPIOLightProfile extends BaseFaBoProfile {
             @Override
             public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 if (isOn) {
-                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                    sendLightOn(pin);
                 } else {
-                    getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                    sendLightOff(pin);
                 }
                 listener.onComplete();
             }
         });
         exe.start(flashing);
+    }
+
+    /**
+     * LEDを点灯します.
+     * @param pin LEDが挿さっているピン
+     */
+    private void sendLightOn(final ArduinoUno.Pin pin) {
+        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+        }
+        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+    }
+
+    /**
+     * LEDを消灯します.
+     * @param pin LEDが挿さっているピン
+     */
+    private void sendLightOff(final ArduinoUno.Pin pin) {
+        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+        }
+        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
     }
 }

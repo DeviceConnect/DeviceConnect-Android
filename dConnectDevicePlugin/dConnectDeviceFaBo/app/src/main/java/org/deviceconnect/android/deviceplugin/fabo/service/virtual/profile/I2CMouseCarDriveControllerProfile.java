@@ -67,11 +67,11 @@ public class I2CMouseCarDriveControllerProfile extends BaseFaBoProfile {
             }
         });
 
-        // POST /driveController/moveRobotCar
+        // POST /driveController/move
         addApi(new PostApi() {
             @Override
             public String getAttribute() {
-                return "moveRobotCar";
+                return "move";
             }
 
             @Override

@@ -230,7 +230,6 @@ public class FaBoGPIOProfile extends GPIOProfile {
                                     }
                                 } else {
                                     MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
-                                    return true;
                                 }
                             }
                             return true;

@@ -360,6 +360,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
 
                         @Override
                         public void onFailedTakePhoto() {
+                            mState = RecorderState.INACTTIVE;
                             listener.onFailedTakePhoto();
                         }
                     });
@@ -369,48 +370,35 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
     }
 
     private void takePhoto(final OnPhotoEventListener listener, final FinishCallback callback) {
-        setupVirtualDisplay(mPictureSize, new VirtualDisplay.Callback() {
+        setupVirtualDisplay();
+        new Thread(new Runnable() {
             @Override
-            public void onPaused() {
-            }
-
-            @Override
-            public void onResumed() {
-                new Thread(new Runnable() {
+            public void run() {
+                takePhotoInternal(new OnPhotoEventListener() {
                     @Override
-                    public void run() {
-                        takePhotoInternal(new OnPhotoEventListener() {
-                            @Override
-                            public void onTakePhoto(final String uri, final String filePath) {
-                                listener.onTakePhoto(uri, filePath);
-                                releaseVirtualDisplay();
-                                if (mMediaProjection != null) {
-                                    mMediaProjection.stop();
-                                    mMediaProjection = null;
-                                }
-                            }
+                    public void onTakePhoto(final String uri, final String filePath) {
+                        listener.onTakePhoto(uri, filePath);
+                        releaseVirtualDisplay();
+                        if (mMediaProjection != null) {
+                            mMediaProjection.stop();
+                            mMediaProjection = null;
+                        }
 
-                            @Override
-                            public void onFailedTakePhoto() {
-                                listener.onFailedTakePhoto();
-                                releaseVirtualDisplay();
-                                if (mMediaProjection != null) {
-                                    mMediaProjection.stop();
-                                    mMediaProjection = null;
-                                }
-                            }
-                        });
                     }
-                }).start();
-            }
 
-            @Override
-            public void onStopped() {
-                if (callback != null) {
-                    callback.onFinish();
-                }
+                    @Override
+                    public void onFailedTakePhoto() {
+                        listener.onFailedTakePhoto();
+                        releaseVirtualDisplay();
+                        if (mMediaProjection != null) {
+                            mMediaProjection.stop();
+                            mMediaProjection = null;
+                        }
+                    }
+                });
             }
-        });
+         }).start();
+
     }
 
     private void takePhotoInternal(final OnPhotoEventListener listener) {
@@ -530,7 +518,6 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         }
 
         mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
                 "Android Host Screen",
                 w,

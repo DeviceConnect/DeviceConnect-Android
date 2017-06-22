@@ -32,7 +32,7 @@ public class ArduinoUno {
     // PORT1
     public final static int BIT_D8 =  (int)0x0001;  // 00000000 00000001
     public final static int BIT_D9 =  (int)0x0002;  // 00000000 00000010
-    public final static int BIT_D10 = (int)0x0004;  // 00001000 00000100
+    public final static int BIT_D10 = (int)0x0004;  // 00000000 00000100
     public final static int BIT_D11 = (int)0x0008;  // 00000000 00001000
     public final static int BIT_D12 = (int)0x0010;  // 00000000 00010000
     public final static int BIT_D13 = (int)0x0020;  // 00000000 00100000

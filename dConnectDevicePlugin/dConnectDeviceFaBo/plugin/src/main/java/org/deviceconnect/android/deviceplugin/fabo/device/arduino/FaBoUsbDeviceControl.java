@@ -204,16 +204,16 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             int status = getPortStatus(port) | pinBit;
             byte[] bytes = new byte[3];
             bytes[0] = (byte) (DIGITAL_MESSAGE | port);
-            bytes[1] = (byte) (status & 0x7F);
-            bytes[2] = (byte) ((status >> 7) & 0x7F);
+            bytes[1] = (byte) (status & 0xFF);
+            bytes[2] = (byte) ((status >> 8) & 0xFF);
             sendMessage(bytes);
             setPortStatus(port, status);
         } else if (hl == ArduinoUno.Level.LOW) {
             int status = getPortStatus(port) & ~pinBit;
             byte[] bytes = new byte[3];
             bytes[0] = (byte) (DIGITAL_MESSAGE | port);
-            bytes[1] = (byte) (status & 0x7F);
-            bytes[2] = (byte) ((status >> 7) & 0x7F);
+            bytes[1] = (byte) (status & 0xFF);
+            bytes[2] = (byte) ((status >> 8) & 0xFF);
             sendMessage(bytes);
             setPortStatus(port, status);
         }

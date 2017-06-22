@@ -101,6 +101,10 @@ public class HostFileProfile extends FileProfile {
             final String[] oldFilePath = new String[1];
             final String[] newFilePath = new String[1];
 
+            if (oldPath.equalsIgnoreCase(newPath)) {
+                MessageUtils.setInvalidRequestParameterError(response, "Same file:" + oldPath);
+                return true;
+            }
             // パス名の先頭に"/"が含まれている場合
             if (oldPath.indexOf("/") == 0) {
                 oldFile = new File(getFileManager().getBasePath() + oldPath);
@@ -124,6 +128,7 @@ public class HostFileProfile extends FileProfile {
             } else {
                 newFilePath[0] = newPath;
             }
+
             if (oldFile.isFile()) {
                 final boolean forceOverwrite = isForce(request, "forceOverwrite");
                 mImageService.execute(new Runnable() {
@@ -333,6 +338,11 @@ public class HostFileProfile extends FileProfile {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "Not directory, \"" + newDir + "\"");
                     } else {
+                        if (oldPath.equalsIgnoreCase(newPath)) {
+                            MessageUtils.setInvalidRequestParameterError(response, "Same directory:" + oldPath);
+                            sendResponse(response);
+                            return;
+                        }
                         boolean isMoveDir = oldDir.renameTo(tempNewDir);
                         if (isMoveDir) {
                             setResult(response, DConnectMessage.RESULT_OK);

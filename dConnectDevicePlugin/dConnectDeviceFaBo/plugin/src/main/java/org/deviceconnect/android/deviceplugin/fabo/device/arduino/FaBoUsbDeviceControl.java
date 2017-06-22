@@ -204,16 +204,16 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             int status = getPortStatus(port) | pinBit;
             byte[] bytes = new byte[3];
             bytes[0] = (byte) (DIGITAL_MESSAGE | port);
-            bytes[1] = (byte) (status & 0xff);
-            bytes[2] = (byte) ((status >> 8) & 0xff);
+            bytes[1] = (byte) (status & 0x7F);
+            bytes[2] = (byte) ((status >> 7) & 0x7F);
             sendMessage(bytes);
             setPortStatus(port, status);
         } else if (hl == ArduinoUno.Level.LOW) {
             int status = getPortStatus(port) & ~pinBit;
             byte[] bytes = new byte[3];
             bytes[0] = (byte) (DIGITAL_MESSAGE | port);
-            bytes[1] = (byte) (status & 0xff);
-            bytes[2] = (byte) ((status >> 8) & 0xff);
+            bytes[1] = (byte) (status & 0x7F);
+            bytes[2] = (byte) ((status >> 7) & 0x7F);
             sendMessage(bytes);
             setPortStatus(port, status);
         }
@@ -416,7 +416,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         initGPIO();
 
         // FirmataのVersion取得のコマンドを送付
-        byte command[] = {(byte) 0xF9};
+        byte command[] = { FirmataV32.REPORT_VERSION };
         sendMessage(command);
 
         // 5秒たってFirmataを検出できない場合はエラー.
@@ -459,7 +459,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             command[1] = (byte) FirmataV32.ENABLE;
             sendMessage(command);
             try {
-                Thread.sleep(50);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -471,7 +471,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             command[1] = (byte) FirmataV32.ENABLE;
             sendMessage(command);
             try {
-                Thread.sleep(50);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

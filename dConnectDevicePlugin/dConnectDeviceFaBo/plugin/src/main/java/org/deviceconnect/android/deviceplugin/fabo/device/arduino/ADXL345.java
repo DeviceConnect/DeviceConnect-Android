@@ -27,16 +27,29 @@ class ADXL345 extends BaseI2C implements IADXL345 {
      */
     private OnADXL345Listener mOnADXL345Listener;
 
+    /**
+     * ADXL実行中フラグ.
+     */
+    private boolean mRunningFlag;
+
     @Override
-    public void start() {
+    public synchronized void start() {
+        if (mRunningFlag) {
+            return;
+        }
+        mRunningFlag = true;
+
         setI2CConfig();
         setADXL345();
         startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
     }
 
     @Override
-    public void stop() {
-        stopRead(ADXL345_DEVICE_ADDR, REGISTER);
+    public synchronized void stop() {
+        if (mRunningFlag) {
+            stopRead(ADXL345_DEVICE_ADDR, REGISTER);
+        }
+        mRunningFlag = false;
     }
 
     @Override

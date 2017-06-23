@@ -4,14 +4,31 @@ package org.deviceconnect.android.deviceplugin.fabo.device;
  * HTS221を操作するクラス.
  */
 public interface IHTS221 {
-    void readHumidity(OnHumidityCallback callback);
-    void readTemperature(TemperatureCallback callback);
+    /**
+     * HTS221から湿度の取得を行います.
+     * @param callback 湿度のデータを通知するコールバック
+     */
+    void readHumidity(final OnHumidityCallback callback);
 
+    /**
+     * HTS221の温度の取得を行います.
+     * @param callback 温度のデータを通知するコールバック
+     */
+    void readTemperature(final OnTemperatureCallback callback);
+
+    /**
+     * 湿度のデータを通知するコールバック.
+     */
     interface OnHumidityCallback {
-        void onHumidity(double humidity);
+        void onHumidity(final double humidity);
+        void onError(final String message);
     }
 
-    interface TemperatureCallback {
-        void onTemperature(double temperature);
+    /**
+     * 温度のデータを通知するコールバック.
+     */
+    interface OnTemperatureCallback {
+        void onTemperature(final double temperature);
+        void onError(final String message);
     }
 }

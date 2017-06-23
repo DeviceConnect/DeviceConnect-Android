@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOP
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOVibrationProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2C3AxisDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CHumidityProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CMouseCarDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CRobotCarDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CTemperatureProfile;
@@ -108,6 +109,9 @@ public final class VirtualServiceFactory {
 
             case I2C_TEMPERATURE:
                 return new I2CTemperatureProfile();
+
+            case I2C_HUMIDITY:
+                return new I2CHumidityProfile();
 
             default:
                 if (DEBUG) {

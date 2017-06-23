@@ -32,5 +32,11 @@ public interface IADXL345 {
          * @param z z軸の加速度
          */
         void onData(final double x, final double y, final double z);
+
+        /**
+         * 加速度センサーでエラーが発生したことを受け取ります.
+         * @param message エラーメッセージ
+         */
+        void onError(final String message);
     }
 }

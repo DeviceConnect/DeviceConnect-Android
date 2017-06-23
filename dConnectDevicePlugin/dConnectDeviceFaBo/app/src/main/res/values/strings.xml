@@ -59,5 +59,6 @@
     <string name="activity_fabo_virtual_i2c_robot_drivecontroller" translatable="false">DriveController(RobotCar)</string>
     <string name="activity_fabo_virtual_i2c_mouse_drivecontroller" translatable="false">DriveController(MouseCar)</string>
     <string name="activity_fabo_virtual_i2c_3axis_device_orientation" translatable="false">DeviceOrientation(3AXIS) #201</string>
-    <string name="activity_fabo_virtual_i2c_temperature" translatable="false">Temperature(I2C)</string>
+    <string name="activity_fabo_virtual_i2c_temperature" translatable="false">Temperature(I2C) #207</string>
+    <string name="activity_fabo_virtual_i2c_humidity" translatable="false">Humidity(I2C) #208</string>
 </resources>

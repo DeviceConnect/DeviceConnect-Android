@@ -67,10 +67,9 @@ class ADT7410 extends BaseI2C implements IADT7410 {
 
     @Override
     void onReadData(final byte[] data) {
-        int offset = 1;
-        int address = decodeByte(data[offset++], data[offset++]);
+        int offset = 3;
         int register = decodeByte(data[offset++], data[offset++]);
-        if (address == ADT7410_DEVICE_ADDR && register == REGISTER_CONFIG) {
+        if (register == REGISTER_CONFIG) {
             int ax = decodeShort2(data, offset);
             if ((ax & 0x8000) != 0) {
                 ax = ax - 65536;

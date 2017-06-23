@@ -94,7 +94,8 @@ public class ProfileData implements Parcelable {
         /**
          * I2C用Temperatureプロファイル.
          */
-        I2C_TEMPERATURE(103, "#207", Category.I2C);
+        I2C_TEMPERATURE(103, "#207", Category.I2C),
+        I2C_HUMIDITY(104, "#208", Category.I2C);
 
         /**
          * プロファイルの種別.

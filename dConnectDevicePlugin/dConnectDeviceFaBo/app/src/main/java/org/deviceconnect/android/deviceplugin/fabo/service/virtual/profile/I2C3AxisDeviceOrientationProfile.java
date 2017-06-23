@@ -59,24 +59,30 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                Long interval = parseLong(request, "interval");
-                if (interval != null) {
-                    mInterval = interval;
-                }
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else {
+                    Long interval = parseLong(request, "interval");
+                    if (interval != null) {
+                        mInterval = interval;
+                    } else {
+                        mInterval = 100;
+                    }
 
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                switch (error) {
-                    case NONE:
-                        IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
-                        if (adxl345 != null) {
-                            adxl345.setOnADXL345Listener(mOnADXL345Listener);
-                            adxl345.start();
-                        }
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    switch (error) {
+                        case NONE:
+                            IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
+                            if (adxl345 != null) {
+                                adxl345.setOnADXL345Listener(mOnADXL345Listener);
+                                adxl345.start();
+                            }
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response);
+                            break;
+                    }
                 }
                 return true;
             }
@@ -91,21 +97,25 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                switch (error) {
-                    case NONE:
-                        IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
-                        if (adxl345 != null) {
-                            adxl345.stop();
-                        }
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case NOT_FOUND:
-                        MessageUtils.setIllegalDeviceStateError(response, "Not register event.");
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else {
+                    EventError error = EventManager.INSTANCE.removeEvent(request);
+                    switch (error) {
+                        case NONE:
+                            IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
+                            if (adxl345 != null) {
+                                adxl345.stop();
+                            }
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            break;
+                        case NOT_FOUND:
+                            MessageUtils.setIllegalDeviceStateError(response, "Not register event.");
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response);
+                            break;
+                    }
                 }
                 return true;
             }
@@ -121,6 +131,10 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
      * ADXL345からのデータを受け取るためのリスナー.
      */
     private IADXL345.OnADXL345Listener mOnADXL345Listener = new IADXL345.OnADXL345Listener() {
+        @Override
+        public void onError(final String message) {
+        }
+
         @Override
         public void onData(final double x, final double y, final double z) {
             long interval = (System.currentTimeMillis() - mSendTime);
@@ -147,6 +161,7 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
 
                 mSendTime = System.currentTimeMillis();
             }
+
         }
     };
 }

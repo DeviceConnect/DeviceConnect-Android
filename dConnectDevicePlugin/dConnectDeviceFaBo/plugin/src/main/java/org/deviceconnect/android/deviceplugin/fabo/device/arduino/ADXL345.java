@@ -20,6 +20,9 @@ class ADXL345 extends BaseI2C implements IADXL345 {
      */
     private static final int REGISTER = 0x32;
 
+    private static final int DEVICE_REG = 0x0;
+    private static final int DEVICE_ID = 0xe5;
+
     /**
      * 13bitの分解能.
      */
@@ -43,8 +46,9 @@ class ADXL345 extends BaseI2C implements IADXL345 {
         mRunningFlag = true;
 
         setI2CConfig();
-        setADXL345();
-        startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
+        read(ADXL345_DEVICE_ADDR, DEVICE_REG, 1);
+//        setADXL345();
+//        startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
     }
 
     @Override
@@ -69,10 +73,20 @@ class ADXL345 extends BaseI2C implements IADXL345 {
 
     @Override
     void onReadData(final byte[] data) {
-        int offset = 1;
-        int address = decodeByte(data[offset++], data[offset++]);
+        int offset = 3;
         int register = decodeByte(data[offset++], data[offset++]);
-        if (address == ADXL345_DEVICE_ADDR && register == REGISTER) {
+        if (register == DEVICE_REG) {
+            int deviceId = decodeByte(data[offset++], data[offset]);
+            if (deviceId == DEVICE_ID) {
+                setADXL345();
+                startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
+            } else {
+                if (mOnADXL345Listener != null) {
+                    mOnADXL345Listener.onError("ADXL345 is not connect.");
+                }
+                mRunningFlag = false;
+            }
+        } else if (register == REGISTER) {
             int ax = decodeShort(data, offset);
             offset += 4;
             int ay = decodeShort(data, offset);

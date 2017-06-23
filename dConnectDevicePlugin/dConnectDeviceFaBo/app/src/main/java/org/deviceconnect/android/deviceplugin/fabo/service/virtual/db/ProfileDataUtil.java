@@ -77,6 +77,8 @@ public final class ProfileDataUtil {
                 return context.getString(R.string.activity_fabo_virtual_i2c_3axis_device_orientation);
             case I2C_TEMPERATURE:
                 return context.getString(R.string.activity_fabo_virtual_i2c_temperature);
+            case I2C_HUMIDITY:
+                return context.getString(R.string.activity_fabo_virtual_i2c_humidity);
         }
         return null;
     }

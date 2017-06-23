@@ -86,6 +86,18 @@ public interface FaBoDeviceControl {
     IADXL345 getADXL345();
 
     /**
+     * ADT7410を操作するためのインターフェースを取得します.
+     * @return IADT7410を実装したクラス
+     */
+    IADT7410 getADT7410();
+
+    /**
+     * HTS221を操作するためのインターフェースを取得します.
+     * @return IHTS221を実装したクラス
+     */
+    IHTS221 getHTS221();
+
+    /**
      * FaBoデバイスの接続状態通知リスナーを設定します.
      * @param listener リスナー
      */

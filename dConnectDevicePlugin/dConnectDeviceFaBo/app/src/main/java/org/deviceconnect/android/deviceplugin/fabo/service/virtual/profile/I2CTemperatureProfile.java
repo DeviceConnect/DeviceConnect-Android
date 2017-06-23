@@ -2,8 +2,10 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.GetApi;
+import org.deviceconnect.message.DConnectMessage;
 
 /**
  * I2C用Temperatureプロファイル.
@@ -21,8 +23,24 @@ public class I2CTemperatureProfile extends BaseFaBoProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                MessageUtils.setNotSupportProfileError(response, "Not implements yet.");
-                return true;
+                final IADT7410 adt = getFaBoDeviceControl().getADT7410();
+                if (adt != null) {
+                    adt.setOnADT7410Listener(new IADT7410.OnADT7410Listener() {
+                        @Override
+                        public void onData(double temperature) {
+                            response.putExtra("temperature", temperature);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                            adt.stop();
+                        }
+                    });
+                    adt.start();
+                    return false;
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response);
+                    return true;
+                }
+
             }
         });
     }

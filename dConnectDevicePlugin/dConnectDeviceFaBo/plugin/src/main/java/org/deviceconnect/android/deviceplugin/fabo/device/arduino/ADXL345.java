@@ -5,6 +5,9 @@ import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeByte;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeShort;
 
+/**
+ * ADXL345を操作するクラス.
+ */
 class ADXL345 extends BaseI2C implements IADXL345 {
 
     /**

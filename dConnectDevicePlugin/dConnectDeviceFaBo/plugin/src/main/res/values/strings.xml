@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FaBo (Device Connect Device Plug-in)</string>
+    <string name="app_name" translatable="false">FaBo (Device Connect Device Plug-in)</string>
 
     <string name="not_found_arduino" translatable="false">Arduino Unoが見つかりませんでした。</string>
     <string name="can_not_connet_usb" translatable="false">USBデバイスに接続できませんでした。</string>
@@ -28,20 +28,20 @@
     <string name="firmware_failed_send" translatable="false">ファームウェアの転送に失敗。\n\nArdino Unoと接続ボタンを押し、再度転送しなおしてください。</string>
     <string name="firmware_success_send" translatable="false">ファームウェアの転送に成功。</string>
 
-    <string name="activity_setting_arduino_title">FaBo設定(Arduino)</string>
+    <string name="activity_setting_arduino_title" translatable="false">FaBo設定(Arduino)</string>
 
-    <string name="fragment_setting_arduino_title">Arduino</string>
-    <string name="fragment_setting_arduino_connect">Arduino接続</string>
-    <string name="fragment_setting_arduino_firmata">Firmataファームウェア転送</string>
+    <string name="fragment_setting_arduino_title" translatable="false">Arduino</string>
+    <string name="fragment_setting_arduino_connect" translatable="false">Arduino接続</string>
+    <string name="fragment_setting_arduino_firmata" translatable="false">Firmataファームウェア転送</string>
 
-    <string name="fragment_setting_service_title">サービス</string>
-    <string name="fragment_setting_service_list">サービス一覧</string>
+    <string name="fragment_setting_service_title" translatable="false">サービス</string>
+    <string name="fragment_setting_service_list" translatable="false">サービス一覧</string>
 
-    <string name="fragment_setting_security_title">セキュリティ</string>
-    <string name="fragment_setting_security_local_oauth_title">ユーザ認可</string>
-    <string name="fragment_setting_security_local_oauth_description">ユーザによってプラグインの使用を認可します。</string>
+    <string name="fragment_setting_security_title" translatable="false">セキュリティ</string>
+    <string name="fragment_setting_security_local_oauth_title" translatable="false">ユーザ認可</string>
+    <string name="fragment_setting_security_local_oauth_description" translatable="false">ユーザによってプラグインの使用を認可します。</string>
 
-    <string name="fragment_connect_org_recognition">"Arduino Uno(ORG)を認識"</string>
-    <string name="fragment_connect_cc_recognition">"Arduino(CC)を認識"</string>
-    <string name="fragment_connect_check_firmata">Firmataの動作を確認</string>
+    <string name="fragment_connect_org_recognition" translatable="false">"Arduino Uno(ORG)を認識"</string>
+    <string name="fragment_connect_cc_recognition" translatable="false">"Arduino(CC)を認識"</string>
+    <string name="fragment_connect_check_firmata" translatable="false">Firmataの動作を確認</string>
 </resources>

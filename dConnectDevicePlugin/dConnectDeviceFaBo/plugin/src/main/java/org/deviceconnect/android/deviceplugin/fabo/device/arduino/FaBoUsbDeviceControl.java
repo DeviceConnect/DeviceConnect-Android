@@ -14,7 +14,9 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
+import org.deviceconnect.android.deviceplugin.fabo.device.IHTS221;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
@@ -142,6 +144,9 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      * ADXL345用を操作するクラス.
      */
     private ADXL345 mADXL345;
+
+    private ADT7410 mADT7410;
+    private HTS221 mHTS221;
 
     /**
      * I2Cを格納するリスト.
@@ -280,6 +285,18 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
+    public IADT7410 getADT7410() {
+        mADT7410.setFaBoDeviceControl(this);
+        return mADT7410;
+    }
+
+    @Override
+    public IHTS221 getHTS221() {
+        mHTS221.setFaBoDeviceControl(this);
+        return mHTS221;
+    }
+
+    @Override
     public void setOnFaBoDeviceControlListener(final OnFaBoDeviceControlListener listener) {
         mOnFaBoDeviceControlListener = listener;
     }
@@ -307,8 +324,12 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         mRobotCar = new RobotCar();
         mMouseCar = new MouseCar();
         mADXL345 = new ADXL345();
+        mADT7410 = new ADT7410();
+        mHTS221 = new HTS221();
 
         mI2CList.add(mADXL345);
+        mI2CList.add(mADT7410);
+        mI2CList.add(mHTS221);
     }
 
     /**

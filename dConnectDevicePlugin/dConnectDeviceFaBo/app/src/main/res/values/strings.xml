@@ -9,16 +9,16 @@
     <string name="activity_fabo_service_offline" translatable="false">オフライン</string>
     <string name="activity_fabo_service_default_name" translatable="false">No Name</string>
 
-    <string name="activity_fabo_service_dialog_title_service_removal_confirmation">確認</string>
-    <string name="activity_fabo_service_dialog_message_service_removal_confirmation">選択したサービスを削除しますか？</string>
+    <string name="activity_fabo_service_dialog_title_service_removal_confirmation" translatable="false">確認</string>
+    <string name="activity_fabo_service_dialog_message_service_removal_confirmation" translatable="false">選択したサービスを削除しますか？</string>
 
-    <string name="activity_fabo_service_dialog_button_service_removal_ok">はい</string>
-    <string name="activity_fabo_service_dialog_button_service_removal_cancel">いいえ</string>
+    <string name="activity_fabo_service_dialog_button_service_removal_ok" translatable="false">はい</string>
+    <string name="activity_fabo_service_dialog_button_service_removal_cancel" translatable="false">いいえ</string>
 
-    <string name="activity_fabo_service_dialog_title_online">確認</string>
-    <string name="activity_fabo_service_dialog_message_online">オンラインのサービスは削除することができません。\nFaBoとの接続を一度切ってから再度行なってください。</string>
-    <string name="activity_fabo_service_dialog_title_immortal">確認</string>
-    <string name="activity_fabo_service_dialog_message_immortal">このサービスは削除することができません。</string>
+    <string name="activity_fabo_service_dialog_title_online" translatable="false">確認</string>
+    <string name="activity_fabo_service_dialog_message_online" translatable="false">オンラインのサービスは削除することができません。\nFaBoとの接続を一度切ってから再度行なってください。</string>
+    <string name="activity_fabo_service_dialog_title_immortal" translatable="false">確認</string>
+    <string name="activity_fabo_service_dialog_message_immortal" translatable="false">このサービスは削除することができません。</string>
 
     <string name="activity_fabo_virtual_service_title" translatable="false">仮想サービス設定</string>
     <string name="activity_fabo_virtual_service_id" translatable="false">サービスID</string>
@@ -49,15 +49,15 @@
     <string name="activity_fabo_virtual_service_remove_profile_message" translatable="false">%1$sを削除して良いでしょうか？</string>
     <string name="activity_fabo_virtual_service_remove_error_message" translatable="false">サービスの削除に失敗しました。</string>
 
-    <string name="activity_fabo_virtual_gpio_light">Light(GPIO) #101</string>
-    <string name="activity_fabo_virtual_gpio_humidity">Humidity(GPIO) #115</string>
-    <string name="activity_fabo_virtual_gpio_key_event">KeyEvent(GPIO) #103</string>
-    <string name="activity_fabo_virtual_gpio_temperature">Temperature(GPIO) #108</string>
-    <string name="activity_fabo_virtual_gpio_vibration">Vibration(GPIO) #105</string>
-    <string name="activity_fabo_virtual_gpio_illuminance">Illuminace(GPIO) #109</string>
-    <string name="activity_fabo_virtual_gpio_proximity">Proximity(GPIO) #116</string>
-    <string name="activity_fabo_virtual_i2c_robot_drivecontroller">DriveController(RobotCar)</string>
-    <string name="activity_fabo_virtual_i2c_mouse_drivecontroller">DriveController(MouseCar)</string>
-    <string name="activity_fabo_virtual_i2c_3axis_device_orientation">DeviceOrientation(3AXIS) #201</string>
-    <string name="activity_fabo_virtual_i2c_temperature">Temperature(I2C)</string>
+    <string name="activity_fabo_virtual_gpio_light" translatable="false">Light(GPIO) #101</string>
+    <string name="activity_fabo_virtual_gpio_humidity" translatable="false">Humidity(GPIO) #115</string>
+    <string name="activity_fabo_virtual_gpio_key_event" translatable="false">KeyEvent(GPIO) #103</string>
+    <string name="activity_fabo_virtual_gpio_temperature" translatable="false">Temperature(GPIO) #108</string>
+    <string name="activity_fabo_virtual_gpio_vibration" translatable="false">Vibration(GPIO) #105</string>
+    <string name="activity_fabo_virtual_gpio_illuminance" translatable="false">Illuminace(GPIO) #109</string>
+    <string name="activity_fabo_virtual_gpio_proximity" translatable="false">Proximity(GPIO) #116</string>
+    <string name="activity_fabo_virtual_i2c_robot_drivecontroller" translatable="false">DriveController(RobotCar)</string>
+    <string name="activity_fabo_virtual_i2c_mouse_drivecontroller" translatable="false">DriveController(MouseCar)</string>
+    <string name="activity_fabo_virtual_i2c_3axis_device_orientation" translatable="false">DeviceOrientation(3AXIS) #201</string>
+    <string name="activity_fabo_virtual_i2c_temperature" translatable="false">Temperature(I2C)</string>
 </resources>

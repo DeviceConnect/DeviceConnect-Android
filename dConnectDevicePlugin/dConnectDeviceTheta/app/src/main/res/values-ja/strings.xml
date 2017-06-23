@@ -22,7 +22,7 @@
     <string name="camera_search_button">カメラ検索</string>
     <string name="theta_confirm_wifi">Wi-Fi接続確認</string>
     <string name="camera_search_message_not_found">THETAが見つかりません。</string>
-    <string name="camera_search_message_found">$NAME$ に接続されました。\nバックキーまたは画面左上のCLOSEを押して、設定画面を閉じてください。</string>
+    <string name="camera_search_message_found">$NAME$ に接続されました。\nバックキーまたは画面左上を押して、設定画面を閉じてください。</string>
     <string name="wifi_settings_button">WiFi設定画面を開く</string>
     <string name="theta_password_dialog">パスワード入力ダイアログ</string>
     <string name="theta_connecting">THETAカメラに接続中...</string>

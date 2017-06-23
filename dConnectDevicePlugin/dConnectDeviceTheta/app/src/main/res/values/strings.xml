@@ -22,7 +22,7 @@
     <string name="camera_search_button"> Searching Camera</string>
     <string name="theta_confirm_wifi">Wi-Fi Connection Check</string>
     <string name="camera_search_message_not_found">THETA can not be found.</string>
-    <string name="camera_search_message_found">Connected to the $NAME$. \nPress the back key or CLOSE on the upper left corner of the screen, please close the setting screen.</string>
+    <string name="camera_search_message_found">Connected to the $NAME$. \nPress the back key or the upper left corner of the screen, please close the setting screen.</string>
     <string name="wifi_settings_button">Open the WiFi settings screen</string>
     <string name="theta_password_dialog">Password entering dialog</string>
     <string name="theta_connecting">Connecting with THETA Camera...</string>

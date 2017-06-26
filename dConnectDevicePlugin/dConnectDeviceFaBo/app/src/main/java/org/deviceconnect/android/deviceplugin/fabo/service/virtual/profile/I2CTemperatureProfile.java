@@ -23,24 +23,39 @@ public class I2CTemperatureProfile extends BaseFaBoProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                final IADT7410 adt = getFaBoDeviceControl().getADT7410();
-                if (adt != null) {
-                    adt.setOnADT7410Listener(new IADT7410.OnADT7410Listener() {
-                        @Override
-                        public void onData(double temperature) {
-                            response.putExtra("temperature", temperature);
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
-                            adt.stop();
-                        }
-                    });
-                    adt.start();
-                    return false;
-                } else {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    return true;
-                }
+                final Integer type = parseInteger(request, "type");
 
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else {
+                    final IADT7410 adt = getFaBoDeviceControl().getADT7410();
+                    if (adt != null) {
+                        adt.setOnADT7410Listener(new IADT7410.OnADT7410Listener() {
+                            @Override
+                            public void onError(final String message) {
+                                MessageUtils.setIllegalDeviceStateError(response, message);
+                                sendResponse(response);
+                            }
+
+                            @Override
+                            public void onData(final double temperature) {
+                                if (type == null || type == 1) {
+                                    response.putExtra("temperature", temperature);
+                                } else {
+                                    response.putExtra("temperature", convertC2F(temperature));
+                                }
+                                setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
+                                adt.stop();
+                            }
+                        });
+                        adt.start();
+                        return false;
+                    } else {
+                        MessageUtils.setIllegalDeviceStateError(response);
+                    }
+                }
+                return true;
             }
         });
     }
@@ -48,5 +63,14 @@ public class I2CTemperatureProfile extends BaseFaBoProfile {
     @Override
     public String getProfileName() {
         return "temperature";
+    }
+
+    /**
+     * 摂氏を華氏に変換します.
+     * @param temp 摂氏
+     * @return 華氏
+     */
+    private double convertC2F(double temp) {
+        return temp * 1.8 + 32;
     }
 }

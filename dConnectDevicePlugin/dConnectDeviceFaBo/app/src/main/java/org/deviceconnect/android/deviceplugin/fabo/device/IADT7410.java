@@ -27,5 +27,7 @@ public interface IADT7410 {
          * @param temperature 温度
          */
         void onData(final double temperature);
+
+        void onError(final String message);
     }
 }

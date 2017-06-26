@@ -20,6 +20,16 @@ class ADT7410 extends BaseI2C implements IADT7410 {
     private static final int REGISTER_CONFIG = 0x03;
 
     /**
+     * ADT7410のデバイスID取得レジスタ.
+     */
+    private static final int DEVICE_REG = 0x0B;
+
+    /**
+     * ADT7410のデバイスID.
+     */
+    private static final int DEVICE_ID = 0x0C;
+
+    /**
      * 16bitの分解度を定義.
      */
     private static final int BIT16_RESOLUTION = 0x80;
@@ -43,8 +53,7 @@ class ADT7410 extends BaseI2C implements IADT7410 {
         mRunningFlag = true;
 
         setI2CConfig();
-        setADT7410();
-        startRead(ADT7410_DEVICE_ADDR, REGISTER_CONFIG, 2);
+        read(ADT7410_DEVICE_ADDR, DEVICE_REG, 1);
     }
 
     @Override
@@ -69,16 +78,35 @@ class ADT7410 extends BaseI2C implements IADT7410 {
     void onReadData(final byte[] data) {
         int offset = 3;
         int register = decodeByte(data[offset++], data[offset++]);
-        if (register == REGISTER_CONFIG) {
-            int ax = decodeShort2(data, offset);
-            if ((ax & 0x8000) != 0) {
-                ax = ax - 65536;
-            }
-            double temp = ax / 128.0;
+        switch (register) {
+            case DEVICE_REG:
+                int deviceId = decodeByte(data[offset++], data[offset]);
+                if ((deviceId & DEVICE_ID) != 0) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setADT7410();
+                            startRead(ADT7410_DEVICE_ADDR, REGISTER_CONFIG, 2);
+                        }
+                    }).start();
+                } else {
+                    if (mOnADT7410Listener != null) {
+                        mOnADT7410Listener.onError("ADT7410 is not connect.");
+                    }
+                }
+                break;
 
-            if (mOnADT7410Listener != null) {
-                mOnADT7410Listener.onData(temp);
-            }
+            case REGISTER_CONFIG:
+                int ax = decodeShort2(data, offset);
+                if ((ax & 0x8000) != 0) {
+                    ax = ax - 65536;
+                }
+                double temp = ax / 128.0;
+
+                if (mOnADT7410Listener != null) {
+                    mOnADT7410Listener.onData(temp);
+                }
+                break;
         }
     }
 

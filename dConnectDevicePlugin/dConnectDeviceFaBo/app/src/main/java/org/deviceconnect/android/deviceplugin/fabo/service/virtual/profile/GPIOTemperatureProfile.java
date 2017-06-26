@@ -34,6 +34,8 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                final Integer type = parseInteger(request, "type");
+
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                 } else {
@@ -44,7 +46,11 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
                     value = calcArduinoMap(value, 300, 1600, -30, 100);
                     value = Math.round(value * 10) / 10;
 
-                    response.putExtra("temperature", value);
+                    if (type == null || type == 1) {
+                        response.putExtra("temperature", value);
+                    } else {
+                        response.putExtra("temperature", convertC2F(value));
+                    }
 
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
@@ -56,5 +62,14 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
     @Override
     public String getProfileName() {
         return "temperature";
+    }
+
+    /**
+     * 摂氏を華氏に変換します.
+     * @param temp 摂氏
+     * @return 華氏
+     */
+    private double convertC2F(double temp) {
+        return temp * 1.8 + 32;
     }
 }

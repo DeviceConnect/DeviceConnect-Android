@@ -35,6 +35,11 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
      */
     private long mSendTime;
 
+    /**
+     * ADXL345からのデータを受け取るためのリスナー.
+     */
+    private IADXL345.OnADXL345Listener mOnADXL345Listener;
+
     public I2C3AxisDeviceOrientationProfile() {
         // GET /gotapi/deviceOrientation/onDeviceOrientation
         addApi(new GetApi() {
@@ -45,8 +50,32 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                MessageUtils.setNotSupportProfileError(response, "Not implements yet.");
-                return true;
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else {
+                    IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
+                    if (adxl345 != null) {
+                        adxl345.read(new IADXL345.OnADXL345Listener() {
+                            @Override
+                            public void onStarted() {
+                            }
+
+                            @Override
+                            public void onData(final double x, final double y, final double z) {
+                                response.putExtra("orientation", createOrientation(x, y, z));
+                                setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
+                            }
+
+                            @Override
+                            public void onError(final String message) {
+                                MessageUtils.setIllegalDeviceStateError(response, message);
+                                sendResponse(response);
+                            }
+                        });
+                    }
+                }
+                return false;
             }
         });
 
@@ -69,13 +98,37 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
                         mInterval = 100;
                     }
 
+                    boolean empty = isEmptyEvent();
+
                     EventError error = EventManager.INSTANCE.addEvent(request);
                     switch (error) {
                         case NONE:
-                            IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
-                            if (adxl345 != null) {
-                                adxl345.setOnADXL345Listener(mOnADXL345Listener);
-                                adxl345.start();
+                            if (empty) {
+                                final IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
+                                if (adxl345 != null) {
+                                    mOnADXL345Listener = new IADXL345.OnADXL345Listener() {
+                                        @Override
+                                        public void onStarted() {
+                                            setResult(response, DConnectMessage.RESULT_OK);
+                                            sendResponse(response);
+                                        }
+
+                                        @Override
+                                        public void onError(final String message) {
+                                            MessageUtils.setIllegalDeviceStateError(response, message);
+                                            sendResponse(response);
+                                            EventManager.INSTANCE.removeEvent(request);
+                                            adxl345.stopRead(mOnADXL345Listener);
+                                        }
+
+                                        @Override
+                                        public void onData(final double x, final double y, final double z) {
+                                            notifySensorEvent(x, y, z);
+                                        }
+                                    };
+                                    adxl345.startRead(mOnADXL345Listener);
+                                    return false;
+                                }
                             }
                             setResult(response, DConnectMessage.RESULT_OK);
                             break;
@@ -103,9 +156,11 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
                     EventError error = EventManager.INSTANCE.removeEvent(request);
                     switch (error) {
                         case NONE:
-                            IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
-                            if (adxl345 != null) {
-                                adxl345.stop();
+                            if (isEmptyEvent()) {
+                                IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
+                                if (adxl345 != null) {
+                                    adxl345.stopRead(mOnADXL345Listener);
+                                }
                             }
                             setResult(response, DConnectMessage.RESULT_OK);
                             break;
@@ -128,40 +183,58 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
     }
 
     /**
-     * ADXL345からのデータを受け取るためのリスナー.
+     * イベント登録が空か確認を行う.
+     * @return イベントが空の場合はtrue、それ以外はfalse
      */
-    private IADXL345.OnADXL345Listener mOnADXL345Listener = new IADXL345.OnADXL345Listener() {
-        @Override
-        public void onError(final String message) {
-        }
+    private boolean isEmptyEvent() {
+        String serviceId = getService().getId();
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                "deviceOrientation", null, "onDeviceOrientation");
+        return events.isEmpty();
+    }
 
-        @Override
-        public void onData(final double x, final double y, final double z) {
-            long interval = (System.currentTimeMillis() - mSendTime);
-            if (interval >= mInterval) {
-                String serviceId = getService().getId();
-                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                        "deviceOrientation", null, "onDeviceOrientation");
+    /**
+     * Orientationオブジェクトを作成します.
+     * @param x x軸への加速度
+     * @param y y軸への加速度
+     * @param z z¥軸への加速度
+     * @return Orientationオブジェクト
+     */
+    private Bundle createOrientation(final double x, final double y, final double z) {
+        Bundle accelerationIncludingGravity = new Bundle();
+        accelerationIncludingGravity.putDouble("x", x);
+        accelerationIncludingGravity.putDouble("y", y);
+        accelerationIncludingGravity.putDouble("z", z);
 
-                for (Event event : events) {
-                    Bundle accelerationIncludingGravity = new Bundle();
-                    accelerationIncludingGravity.putDouble("x", x);
-                    accelerationIncludingGravity.putDouble("y", y);
-                    accelerationIncludingGravity.putDouble("z", z);
+        Bundle orientation = new Bundle();
+        orientation.putParcelable("accelerationIncludingGravity",
+                accelerationIncludingGravity);
+        return orientation;
+    }
 
-                    Bundle orientation = new Bundle();
-                    orientation.putParcelable("accelerationIncludingGravity",
-                            accelerationIncludingGravity);
-                    orientation.putLong("interval", interval);
+    /**
+     * 加速度センサーの値を通知します.
+     * @param x x軸への加速度
+     * @param y y軸への加速度
+     * @param z z¥軸への加速度
+     */
+    private void notifySensorEvent(final double x, final double y, final double z) {
+        long interval = (System.currentTimeMillis() - mSendTime);
+        if (interval >= mInterval) {
+            String serviceId = getService().getId();
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                    "deviceOrientation", null, "onDeviceOrientation");
 
-                    Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra("orientation", orientation);
-                    sendEvent(intent, event.getAccessToken());
-                }
+            for (Event event : events) {
+                Bundle orientation = createOrientation(x, y, z);
+                orientation.putLong("interval", interval);
 
-                mSendTime = System.currentTimeMillis();
+                Intent intent = EventManager.createEventMessage(event);
+                intent.putExtra("orientation", orientation);
+                sendEvent(intent, event.getAccessToken());
             }
 
+            mSendTime = System.currentTimeMillis();
         }
-    };
+    }
 }

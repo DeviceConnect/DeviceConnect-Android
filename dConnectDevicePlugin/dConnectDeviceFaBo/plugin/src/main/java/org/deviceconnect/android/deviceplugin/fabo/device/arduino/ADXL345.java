@@ -2,6 +2,11 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeByte;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeShort;
 
@@ -20,8 +25,15 @@ class ADXL345 extends BaseI2C implements IADXL345 {
      */
     private static final int REGISTER = 0x32;
 
+    /**
+     * ADXLのデバイスID取得レジスタ.
+     */
     private static final int DEVICE_REG = 0x0;
-    private static final int DEVICE_ID = 0xe5;
+
+    /**
+     * ADXL345のデバイスID.
+     */
+    private static final int DEVICE_ID = 0xE5;
 
     /**
      * 13bitの分解能.
@@ -31,37 +43,38 @@ class ADXL345 extends BaseI2C implements IADXL345 {
     /**
      * 取得した値を通知するリスナ.
      */
-    private OnADXL345Listener mOnADXL345Listener;
+    private final List<OnADXL345ListenerImpl> mOnADXL345Listeners = new CopyOnWriteArrayList<>();
 
     /**
-     * ADXL実行中フラグ.
+     * ADXL実行カウント.
      */
-    private boolean mRunningFlag;
+    private int mRunningCount = 0;
 
     @Override
-    public synchronized void start() {
-        if (mRunningFlag) {
-            return;
-        }
-        mRunningFlag = true;
-
-        setI2CConfig();
-        read(ADXL345_DEVICE_ADDR, DEVICE_REG, 1);
-//        setADXL345();
-//        startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
+    public synchronized void read(final OnADXL345Listener listener) {
+        OnADXL345ListenerImpl impl = new OnADXL345ListenerImpl();
+        impl.setOnADXL345Listener(listener);
+        impl.setOnceRead(true);
+        impl.startADXL345();
+        mOnADXL345Listeners.add(impl);
     }
 
     @Override
-    public synchronized void stop() {
-        if (mRunningFlag) {
-            stopRead(ADXL345_DEVICE_ADDR, REGISTER);
-        }
-        mRunningFlag = false;
+    public synchronized void startRead(final OnADXL345Listener listener) {
+        OnADXL345ListenerImpl impl = new OnADXL345ListenerImpl();
+        impl.setOnADXL345Listener(listener);
+        impl.setOnceRead(false);
+        impl.startADXL345();
+        mOnADXL345Listeners.add(impl);
     }
 
     @Override
-    public void setOnADXL345Listener(final OnADXL345Listener listener) {
-        mOnADXL345Listener = listener;
+    public synchronized void stopRead(final OnADXL345Listener listener) {
+        OnADXL345ListenerImpl impl = get(listener);
+        if (impl != null) {
+            mOnADXL345Listeners.remove(impl);
+        }
+        stopRead();
     }
 
     // BaseI2C interface
@@ -81,10 +94,9 @@ class ADXL345 extends BaseI2C implements IADXL345 {
                 setADXL345();
                 startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
             } else {
-                if (mOnADXL345Listener != null) {
-                    mOnADXL345Listener.onError("ADXL345 is not connect.");
+                for (OnADXL345Listener listener : mOnADXL345Listeners) {
+                    listener.onError("ADXL345 is not connect.");
                 }
-                mRunningFlag = false;
             }
         } else if (register == REGISTER) {
             int ax = decodeShort(data, offset);
@@ -97,8 +109,8 @@ class ADXL345 extends BaseI2C implements IADXL345 {
             double gy = convertResolution(ay);
             double gz = convertResolution(az);
 
-            if (mOnADXL345Listener != null) {
-                mOnADXL345Listener.onData(gx, gy, gz);
+            for (OnADXL345Listener listener : mOnADXL345Listeners) {
+                listener.onData(gx, gy, gz);
             }
         }
     }
@@ -112,11 +124,139 @@ class ADXL345 extends BaseI2C implements IADXL345 {
     }
 
     /**
+     * センサーの値の読み込みを開始します.
+     */
+    private void startRead() {
+        mRunningCount++;
+
+        if (mRunningCount == 1) {
+            setI2CConfig();
+            read(ADXL345_DEVICE_ADDR, DEVICE_REG, 1);
+        }
+    }
+
+    /**
+     * センサーの値の読み込みを停止します.
+     */
+    private void stopRead() {
+        if (mRunningCount > 0) {
+            mRunningCount--;
+
+            if (mRunningCount == 0) {
+                stopRead(ADXL345_DEVICE_ADDR, REGISTER);
+            }
+        }
+    }
+
+    private OnADXL345ListenerImpl get(OnADXL345Listener listener) {
+        for (OnADXL345ListenerImpl impl : mOnADXL345Listeners) {
+            if (impl.mOnADXL345Listener == listener) {
+                return impl;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 加速度センサーの値を重力加速度に変換します.
      * @param data 加速度センサーからの値
      * @return 重力加速度
      */
     private double convertResolution(final int data) {
         return data * RESOLUTION;
+    }
+
+    /**
+     * タイマー付きでADXL345のセンサー値を開始します.
+     */
+    private class OnADXL345ListenerImpl implements OnADXL345Listener {
+        /**
+         * タイムアウトを監視するタイマー.
+         */
+        private Timer mTimer;
+
+        /**
+         * 通知を行うリスナー.
+         */
+        private OnADXL345Listener mOnADXL345Listener;
+
+        /**
+         * 一度だけ読み込む場合.
+         */
+        private boolean mOnceRead;
+
+        /**
+         * 開始フラグ.
+         */
+        private boolean mStartFlag;
+
+        /**
+         * ADXL345のセンサー開始とタイムアウト用のタイマーの開始を行います.
+         */
+        void startADXL345() {
+            mTimer = new Timer();
+            mTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    onError("timeout");
+                }
+            }, 1000);
+            startRead();
+        }
+
+        void setOnADXL345Listener(final OnADXL345Listener onADXL345Listener) {
+            mOnADXL345Listener = onADXL345Listener;
+        }
+
+        /**
+         * 一度だけ読み込みを行います.
+         * @param onceRead
+         */
+        void setOnceRead(final boolean onceRead) {
+            mOnceRead = onceRead;
+        }
+
+        /**
+         * タイマーをキャンセルします.
+         */
+        void cancelTimer() {
+            if (mTimer != null) {
+                mTimer.cancel();
+                mTimer = null;
+            }
+        }
+
+        /**
+         * 後始末処理を行います.
+         */
+        void onFinish() {
+            cancelTimer();
+            stopRead();
+            mOnADXL345Listeners.remove(this);
+        }
+
+        @Override
+        public void onStarted() {
+        }
+
+        @Override
+        public void onData(final double x, final double y, final double z) {
+            if (!mStartFlag) {
+                mStartFlag = true;
+                cancelTimer();
+                mOnADXL345Listener.onStarted();
+            }
+            mOnADXL345Listener.onData(x, y, z);
+
+            if (mOnceRead) {
+                onFinish();
+            }
+        }
+
+        @Override
+        public void onError(final String message) {
+            mOnADXL345Listener.onError(message);
+            onFinish();
+        }
     }
 }

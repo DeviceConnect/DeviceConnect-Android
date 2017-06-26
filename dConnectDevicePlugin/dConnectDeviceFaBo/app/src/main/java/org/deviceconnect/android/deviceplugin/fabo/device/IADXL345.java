@@ -5,26 +5,24 @@ package org.deviceconnect.android.deviceplugin.fabo.device;
  */
 public interface IADXL345 {
 
+    void read(final OnADXL345Listener listener);
+
     /**
      * ADXL345の加速度センサーを開始します.
      */
-    void start();
+    void startRead(final OnADXL345Listener listener);
 
     /**
      * ADXL345の加速度センサーを停止します.
      */
-    void stop();
-
-    /**
-     * リスナーを設定します.
-     * @param listener リスナー
-     */
-    void setOnADXL345Listener(final OnADXL345Listener listener);
+    void stopRead(final OnADXL345Listener listener);
 
     /**
      * ADXL345からのデータを受け取るリスナー.
      */
     interface OnADXL345Listener {
+        void onStarted();
+
         /**
          * 加速度センサーを受け取る.
          * @param x x軸の加速度

@@ -17,7 +17,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     private static final byte HTS221_SLAVE_ADDRESS = 0x5F;
 
     /**
-     *
+     * HTS221のデバイスID.
      */
     private static final int DEVICE_ID = 0xBC;
 
@@ -205,7 +205,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     }
 
 
-    private class HTSS221Data {
+    private abstract class HTSS221Data {
 
         /**
          * 現在のステート.
@@ -254,10 +254,17 @@ class HTS221 extends BaseI2C implements IHTS221 {
             read(HTS221_SLAVE_ADDRESS, register, 1);
         }
 
+        /**
+         * エラーが発生した場合の処理を行います.
+         * @param message エラーメッセージ
+         */
         void onError(final String message) {
             onFinish();
         }
 
+        /**
+         * 後始末処理を行います.
+         */
         void onFinish() {
             if (mTimer != null) {
                 mTimer.cancel();
@@ -265,6 +272,13 @@ class HTS221 extends BaseI2C implements IHTS221 {
             }
             mState = -1;
         }
+
+        /**
+         * HTS221から送られてきたデータを解析して、次のステップに進みます.
+         * @param data 送られてきたデータ
+         * @param register レジスタ番号
+         */
+        abstract void onReadData(final byte[] data, final int register);
     }
 
 
@@ -311,6 +325,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
             onFinish();
         }
 
+        @Override
         void onError(final String message) {
             for (OnHumidityCallback callback : mOnHumidityCallbacks) {
                 callback.onError(message);
@@ -319,11 +334,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
             super.onError(message);
         }
 
-        /**
-         * HTS221から送られてきたデータを解析して、次のステップに進みます.
-         * @param data 送られてきたデータ
-         * @param register レジスタ番号
-         */
+        @Override
         void onReadData(final byte[] data, final int register) {
 
             if (mState != register) {
@@ -434,6 +445,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
             onFinish();
         }
 
+        @Override
         void onError(final String message) {
             for (OnTemperatureCallback callback : mOnTemperatureCallbacks) {
                 callback.onError(message);
@@ -442,14 +454,11 @@ class HTS221 extends BaseI2C implements IHTS221 {
             super.onError(message);
         }
 
-        /**
-         * HTS221から送られてきたデータを解析して、次のステップに進みます.
-         * @param data 送られてきたデータ
-         * @param register レジスタ番号
-         */
+        @Override
         void onReadData(final byte[] data, final int register) {
 
             if (mState != register) {
+                // レジスタが一致しない場合には、不正なデータなので無視
                 return;
             }
 

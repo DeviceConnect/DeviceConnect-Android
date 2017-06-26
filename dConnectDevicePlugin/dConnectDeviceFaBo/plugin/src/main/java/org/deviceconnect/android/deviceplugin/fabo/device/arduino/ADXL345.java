@@ -91,8 +91,13 @@ class ADXL345 extends BaseI2C implements IADXL345 {
         if (register == DEVICE_REG) {
             int deviceId = decodeByte(data[offset++], data[offset]);
             if (deviceId == DEVICE_ID) {
-                setADXL345();
-                startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setADXL345();
+                        startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
+                    }
+                }).start();
             } else {
                 for (OnADXL345Listener listener : mOnADXL345Listeners) {
                     listener.onError("ADXL345 is not connect.");

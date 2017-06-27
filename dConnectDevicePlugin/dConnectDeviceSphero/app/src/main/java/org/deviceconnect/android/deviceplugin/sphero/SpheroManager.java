@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class SpheroManager implements DeviceInfo.DeviceSensorListener, DeviceInfo.DeviceCollisionListener {
     /** TAG. */
-    private static final String TAG = SpheroDeviceService.class.getSimpleName();
+    private static final String TAG = SpheroManager.class.getSimpleName();
 
     /**
      * シングルトンなManagerのインスタンス.
@@ -367,9 +367,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                 DeviceInfo info = mDevices.get(connected.getIdentifier());
                 if (info != null) {
                     cRobot = info.getDevice();
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "retryConnecting:" + cRobot.isConnected());
-                    }
+
                     if (cRobot.isConnected()) {
                         break;
                     }
@@ -846,6 +844,9 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                     for (String serviceId : mCounting.keySet()) {
                         Integer count = mCounting.get(serviceId);
                         count++;
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "retryConnecting:" + count);
+                        }
                         mCounting.put(serviceId, count);
                         if (count >= SEARCH_RETRY_NUM) {
                             Robot info = getNotConnectedDevice(serviceId);

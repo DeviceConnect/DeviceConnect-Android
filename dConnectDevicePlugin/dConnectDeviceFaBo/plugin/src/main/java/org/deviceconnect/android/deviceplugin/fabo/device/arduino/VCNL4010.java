@@ -79,11 +79,36 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
 
     @Override
     public void readProximity(final OnProximityListener listener) {
-        mOnProximityListeners.add(listener);
+        mOnProximityListeners.add(new OnProximityListener() {
+            @Override
+            public void onStarted() {
+                listener.onStarted();
+            }
+
+            @Override
+            public void onData(double proximity) {
+                listener.onData(proximity);
+                stopProximity(this);
+            }
+
+            @Override
+            public void onError(String message) {
+                listener.onError(message);
+                stopProximity(this);
+            }
+        });
+        if (mProximity.isMeasuring()) {
+            return;
+        }
+        mProximity.start();
     }
 
     @Override
     public void startProximity(final OnProximityListener listener) {
+        if (!mOnProximityListeners.contains(listener)) {
+            mOnProximityListeners.add(listener);
+        }
+
         if (mProximity.isMeasuring()) {
             return;
         }
@@ -95,6 +120,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         if (mProximity.isMeasuring()) {
             mProximity.stop();
         }
+        mOnProximityListeners.remove(listener);
     }
 
     @Override
@@ -182,10 +208,14 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         write(SLAVE_ADDRESS, REG_AMBI_PARM, config);
     }
 
+    private double convert(final int proximity) {
+        return 0.1 + ((65535 - proximity) / 65535.0) * 2.0;
+    }
+
     /**
      * VCNL4010と通信する場合のステートを管理するクラス.
      */
-    private abstract class VCNL4010Data {
+    private abstract class VCNL4010State {
 
         /**
          * 現在のステート.
@@ -199,6 +229,8 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
          * タイムアウトを監視するタイマー.
          */
         private Timer mTimer;
+
+        boolean mStartFlag;
 
         /**
          * 湿度の計測中フラグ.
@@ -221,6 +253,8 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                     onError("timeout");
                 }
             }, 1000);
+
+            mStartFlag = false;
 
             next(DEVICE_REG);
         }
@@ -276,7 +310,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         abstract void onReadData(final byte[] data, final int register);
     }
 
-    private class Proximity extends VCNL4010Data {
+    private class Proximity extends VCNL4010State {
         @Override
         void stop() {
             stopRead(SLAVE_ADDRESS, REG_PROX_DATA_H);
@@ -318,11 +352,20 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                     break;
 
                 case REG_PROX_DATA_H:
-                    int proximity = decodeShort(data, offset);
-                    for (OnProximityListener listener : mOnProximityListeners) {
-                        listener.onData(proximity);
+                    if (!mStartFlag) {
+                        for (OnProximityListener listener : mOnProximityListeners) {
+                            listener.onStarted();
+                        }
+                        mStartFlag = true;
+                        cancelTimer();
                     }
-                    cancelTimer();
+
+                    int proximity = decodeShort(data, offset);
+                    if (proximity > 2200) {
+                        for (OnProximityListener listener : mOnProximityListeners) {
+                            listener.onData(convert(proximity));
+                        }
+                    }
                     break;
             }
         }

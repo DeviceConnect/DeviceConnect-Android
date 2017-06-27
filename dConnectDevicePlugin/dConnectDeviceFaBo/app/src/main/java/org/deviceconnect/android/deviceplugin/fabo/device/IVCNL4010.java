@@ -11,6 +11,7 @@ public interface IVCNL4010 {
     void stopAmbientLight();
 
     interface OnProximityListener {
+        void onStarted();
         void onData(final double proximity);
         void onError(final String message);
     }

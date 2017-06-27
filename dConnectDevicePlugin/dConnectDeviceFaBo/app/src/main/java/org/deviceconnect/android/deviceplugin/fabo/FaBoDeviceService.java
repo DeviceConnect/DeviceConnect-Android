@@ -83,28 +83,7 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
         initVirtualService();
 
         // FaBoデバイス操作クラスの初期化
-        mFaBoDeviceControl = createFaBoDeviceControl();
-        mFaBoDeviceControl.setOnFaBoDeviceControlListener(new FaBoDeviceControl.OnFaBoDeviceControlListener() {
-            @Override
-            public void onConnected() {
-                startWatchFirmata();
-                setOnline(true);
-                sendResultToActivity(FaBoConst.SUCCESS_CONNECT_FIRMATA);
-            }
-
-            @Override
-            public void onDisconnected() {
-                endWatchFirmata();
-                setOnline(false);
-            }
-
-            @Override
-            public void onFailedConnected() {
-                setOnline(false);
-                sendResultToActivity(FaBoConst.FAILED_CONNECT_ARDUINO);
-            }
-        });
-        mFaBoDeviceControl.initialize();
+        initFaBoDeviceControl();
     }
 
     @Override
@@ -191,10 +170,43 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
     }
 
     /**
+     * FaBoDeviceControlを初期化します.
+     */
+    private void initFaBoDeviceControl() {
+        mFaBoDeviceControl = createFaBoDeviceControl();
+        mFaBoDeviceControl.setOnFaBoDeviceControlListener(new FaBoDeviceControl.OnFaBoDeviceControlListener() {
+            @Override
+            public void onConnected() {
+                startWatchFirmata();
+                setOnline(true);
+                sendResultToActivity(FaBoConst.SUCCESS_CONNECT_FIRMATA);
+            }
+
+            @Override
+            public void onDisconnected() {
+                endWatchFirmata();
+                setOnline(false);
+            }
+
+            @Override
+            public void onFailedConnected() {
+                setOnline(false);
+                sendResultToActivity(FaBoConst.FAILED_CONNECT_ARDUINO);
+            }
+        });
+        mFaBoDeviceControl.initialize();
+    }
+
+    /**
      * リソースリセット処理.
      */
     private void resetPluginResource() {
         EventManager.INSTANCE.removeAll();
+
+        if (mFaBoDeviceControl != null) {
+            mFaBoDeviceControl.destroy();
+        }
+        initFaBoDeviceControl();
     }
 
     /**

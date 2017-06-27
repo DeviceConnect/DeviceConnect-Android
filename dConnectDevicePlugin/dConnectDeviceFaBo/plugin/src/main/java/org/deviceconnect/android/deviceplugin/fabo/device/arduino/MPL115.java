@@ -3,6 +3,8 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMPL115;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeByte;
@@ -34,9 +36,27 @@ class MPL115 extends BaseI2C implements IMPL115 {
     private float mB2;
     private float mC12;
 
+    private Timer mTimer;
+
+    private boolean mRunningFlag;
+
     @Override
     public void readAtmosphericPressure(final OnAtmosphericPressureListener listener) {
         mOnAtmosphericPressureListeners.add(listener);
+
+        if (mRunningFlag) {
+            return;
+        }
+        mRunningFlag = true;
+
+        mTimer = new Timer();
+        mTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                onError("timeout");
+            }
+        }, 1000);
+
         setI2CConfig();
         readCoef();
     }
@@ -78,6 +98,22 @@ class MPL115 extends BaseI2C implements IMPL115 {
         }
     }
 
+    private void cancelTimer() {
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer = null;
+        }
+    }
+
+    private void onError(final String message) {
+        cancelTimer();
+
+        for (OnAtmosphericPressureListener listener : mOnAtmosphericPressureListeners) {
+            listener.onError(message);
+        }
+        mRunningFlag = false;
+    }
+
     private void readCoef() {
         read(SLAVE_ADDRESS, A0_MSB, 8);
     }
@@ -111,6 +147,10 @@ class MPL115 extends BaseI2C implements IMPL115 {
             listener.onData(hpa, temp);
         }
         mOnAtmosphericPressureListeners.clear();
+
+        cancelTimer();
+
+        mRunningFlag = false;
     }
 
     private int dataConv(final int data1, final int data2) {

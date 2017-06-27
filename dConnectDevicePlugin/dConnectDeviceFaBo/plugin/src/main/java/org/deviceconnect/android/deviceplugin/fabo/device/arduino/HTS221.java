@@ -205,7 +205,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     }
 
 
-    private abstract class HTSS221Data {
+    private abstract class HTSS221State {
 
         /**
          * 現在のステート.
@@ -285,7 +285,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     /**
      * HTS221から湿度を取得するためのステートを管理するクラス.
      */
-    private class Humidity extends HTSS221Data {
+    private class Humidity extends HTSS221State {
 
         private int h0_rh_x2;
         private int h1_rh_x2;
@@ -401,7 +401,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     /**
      * HTS221から温度を取得するためのステートを管理するクラス.
      */
-    private class Temperature extends HTSS221Data {
+    private class Temperature extends HTSS221State {
 
         private int t1_t0_msb;
 

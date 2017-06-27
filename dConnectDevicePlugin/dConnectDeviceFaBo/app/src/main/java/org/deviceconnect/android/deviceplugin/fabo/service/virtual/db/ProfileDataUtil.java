@@ -79,6 +79,12 @@ public final class ProfileDataUtil {
                 return context.getString(R.string.activity_fabo_virtual_i2c_temperature);
             case I2C_HUMIDITY:
                 return context.getString(R.string.activity_fabo_virtual_i2c_humidity);
+            case I2C_PROXIMITY:
+                return context.getString(R.string.activity_fabo_virtual_i2c_proximity);
+            case I2C_ILLUMINANCE:
+                return context.getString(R.string.activity_fabo_virtual_i2c_illuminace);
+            case I2C_ATMOSPHERIC_PRESSURE:
+                return context.getString(R.string.activity_fabo_virtual_i2c_atmospheric_pressure);
         }
         return null;
     }

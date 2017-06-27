@@ -17,8 +17,11 @@ import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 import org.deviceconnect.android.deviceplugin.fabo.device.IHTS221;
+import org.deviceconnect.android.deviceplugin.fabo.device.IISL29034;
+import org.deviceconnect.android.deviceplugin.fabo.device.IMPL115;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
+import org.deviceconnect.android.deviceplugin.fabo.device.IVCNL4010;
 import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
@@ -147,6 +150,9 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
 
     private ADT7410 mADT7410;
     private HTS221 mHTS221;
+    private VCNL4010 mVCNL4010;
+    private ISL29034 mISL29034;
+    private MPL115 mMPL115;
 
     /**
      * I2Cを格納するリスト.
@@ -297,6 +303,24 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
+    public IVCNL4010 getVCNL4010() {
+        mVCNL4010.setFaBoDeviceControl(this);
+        return mVCNL4010;
+    }
+
+    @Override
+    public IISL29034 getISL29034() {
+        mISL29034.setFaBoDeviceControl(this);
+        return mISL29034;
+    }
+
+    @Override
+    public IMPL115 getMPL115() {
+        mMPL115.setFaBoDeviceControl(this);
+        return mMPL115;
+    }
+
+    @Override
     public void setOnFaBoDeviceControlListener(final OnFaBoDeviceControlListener listener) {
         mOnFaBoDeviceControlListener = listener;
     }
@@ -326,10 +350,16 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         mADXL345 = new ADXL345();
         mADT7410 = new ADT7410();
         mHTS221 = new HTS221();
+        mVCNL4010 = new VCNL4010();
+        mISL29034 = new ISL29034();
+        mMPL115 = new MPL115();
 
         mI2CList.add(mADXL345);
         mI2CList.add(mADT7410);
         mI2CList.add(mHTS221);
+        mI2CList.add(mVCNL4010);
+        mI2CList.add(mISL29034);
+        mI2CList.add(mMPL115);
     }
 
     /**
@@ -835,14 +865,14 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         @Override
         public void readBuffer(final int deviceId, final byte[] datas) {
 
-            if (DEBUG) {
-                final StringBuilder sb = new StringBuilder();
-                for (byte data : datas) {
-                    sb.append(Integer.toHexString(data & 0xff));
-                    sb.append(" ");
-                }
-                Log.i(TAG, "  readBuffer: " + sb.toString());
-            }
+//            if (DEBUG) {
+//                final StringBuilder sb = new StringBuilder();
+//                for (byte data : datas) {
+//                    sb.append(Integer.toHexString(data & 0xff));
+//                    sb.append(" ");
+//                }
+//                Log.i(TAG, "  readBuffer: " + sb.toString());
+//            }
 
             try {
                 for (byte data : datas) {

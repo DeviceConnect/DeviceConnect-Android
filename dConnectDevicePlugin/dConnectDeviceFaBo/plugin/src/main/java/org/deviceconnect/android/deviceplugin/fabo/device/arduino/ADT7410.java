@@ -69,6 +69,8 @@ class ADT7410 extends BaseI2C implements IADT7410 {
         mOnADT7410Listener = listener;
     }
 
+    // BaseI2C interface
+
     @Override
     byte getAddress() {
         return ADT7410_DEVICE_ADDR;

@@ -88,8 +88,11 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                final IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else if (adxl345 == null) {
+                    MessageUtils.setNotSupportAttributeError(response, "Not support.");
                 } else {
                     Long interval = parseLong(request, "interval");
                     if (interval != null) {
@@ -104,31 +107,28 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
                     switch (error) {
                         case NONE:
                             if (empty) {
-                                final IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
-                                if (adxl345 != null) {
-                                    mOnADXL345Listener = new IADXL345.OnADXL345Listener() {
-                                        @Override
-                                        public void onStarted() {
-                                            setResult(response, DConnectMessage.RESULT_OK);
-                                            sendResponse(response);
-                                        }
+                                mOnADXL345Listener = new IADXL345.OnADXL345Listener() {
+                                    @Override
+                                    public void onStarted() {
+                                        setResult(response, DConnectMessage.RESULT_OK);
+                                        sendResponse(response);
+                                    }
 
-                                        @Override
-                                        public void onError(final String message) {
-                                            MessageUtils.setIllegalDeviceStateError(response, message);
-                                            sendResponse(response);
-                                            EventManager.INSTANCE.removeEvent(request);
-                                            adxl345.stopRead(mOnADXL345Listener);
-                                        }
+                                    @Override
+                                    public void onError(final String message) {
+                                        MessageUtils.setIllegalDeviceStateError(response, message);
+                                        sendResponse(response);
+                                        EventManager.INSTANCE.removeEvent(request);
+                                        adxl345.stopRead(mOnADXL345Listener);
+                                    }
 
-                                        @Override
-                                        public void onData(final double x, final double y, final double z) {
-                                            notifySensorEvent(x, y, z);
-                                        }
-                                    };
-                                    adxl345.startRead(mOnADXL345Listener);
-                                    return false;
-                                }
+                                    @Override
+                                    public void onData(final double x, final double y, final double z) {
+                                        notifySensorEvent(x, y, z);
+                                    }
+                                };
+                                adxl345.startRead(mOnADXL345Listener);
+                                return false;
                             }
                             setResult(response, DConnectMessage.RESULT_OK);
                             break;
@@ -150,17 +150,15 @@ public class I2C3AxisDeviceOrientationProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                if (!getService().isOnline()) {
-                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
+                if (adxl345 == null) {
+                    MessageUtils.setNotSupportProfileError(response, "Not support");
                 } else {
                     EventError error = EventManager.INSTANCE.removeEvent(request);
                     switch (error) {
                         case NONE:
                             if (isEmptyEvent()) {
-                                IADXL345 adxl345 = getFaBoDeviceControl().getADXL345();
-                                if (adxl345 != null) {
-                                    adxl345.stopRead(mOnADXL345Listener);
-                                }
+                                adxl345.stopRead(mOnADXL345Listener);
                             }
                             setResult(response, DConnectMessage.RESULT_OK);
                             break;

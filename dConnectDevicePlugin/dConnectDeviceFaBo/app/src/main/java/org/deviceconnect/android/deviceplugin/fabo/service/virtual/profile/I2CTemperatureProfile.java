@@ -24,36 +24,33 @@ public class I2CTemperatureProfile extends BaseFaBoProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 final Integer type = parseInteger(request, "type");
-
+                final IADT7410 adt = getFaBoDeviceControl().getADT7410();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else if (adt == null) {
+                    MessageUtils.setNotSupportAttributeError(response, "Not support.");
                 } else {
-                    final IADT7410 adt = getFaBoDeviceControl().getADT7410();
-                    if (adt != null) {
-                        adt.setOnADT7410Listener(new IADT7410.OnADT7410Listener() {
-                            @Override
-                            public void onError(final String message) {
-                                MessageUtils.setIllegalDeviceStateError(response, message);
-                                sendResponse(response);
-                            }
+                    adt.setOnADT7410Listener(new IADT7410.OnADT7410Listener() {
+                        @Override
+                        public void onError(final String message) {
+                            MessageUtils.setIllegalDeviceStateError(response, message);
+                            sendResponse(response);
+                        }
 
-                            @Override
-                            public void onData(final double temperature) {
-                                if (type == null || type == 1) {
-                                    response.putExtra("temperature", temperature);
-                                } else {
-                                    response.putExtra("temperature", convertC2F(temperature));
-                                }
-                                setResult(response, DConnectMessage.RESULT_OK);
-                                sendResponse(response);
-                                adt.stop();
+                        @Override
+                        public void onData(final double temperature) {
+                            if (type == null || type == 1) {
+                                response.putExtra("temperature", temperature);
+                            } else {
+                                response.putExtra("temperature", convertC2F(temperature));
                             }
-                        });
-                        adt.start();
-                        return false;
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
-                    }
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                            adt.stop();
+                        }
+                    });
+                    adt.start();
+                    return false;
                 }
                 return true;
             }

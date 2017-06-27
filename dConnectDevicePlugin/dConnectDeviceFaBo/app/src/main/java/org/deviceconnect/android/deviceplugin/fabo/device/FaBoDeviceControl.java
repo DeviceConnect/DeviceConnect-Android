@@ -97,6 +97,12 @@ public interface FaBoDeviceControl {
      */
     IHTS221 getHTS221();
 
+    IVCNL4010 getVCNL4010();
+
+    IISL29034 getISL29034();
+
+    IMPL115 getMPL115();
+
     /**
      * FaBoデバイスの接続状態通知リスナーを設定します.
      * @param listener リスナー

@@ -20,29 +20,29 @@ public class I2CHumidityProfile extends BaseFaBoProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                IHTS221 hts221 = getFaBoDeviceControl().getHTS221();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
-                    return true;
+                } else if (hts221 == null) {
+                    MessageUtils.setNotSupportAttributeError(response, "Not support");
                 } else {
-                    IHTS221 hts221 = getFaBoDeviceControl().getHTS221();
-                    if (hts221 != null) {
-                        hts221.readHumidity(new IHTS221.OnHumidityCallback() {
-                            @Override
-                            public void onHumidity(final double humidity) {
-                                response.putExtra("humidity", humidity / 100.0);
-                                setResult(response, DConnectMessage.RESULT_OK);
-                                sendResponse(response);
-                            }
+                    hts221.readHumidity(new IHTS221.OnHumidityCallback() {
+                        @Override
+                        public void onHumidity(final double humidity) {
+                            response.putExtra("humidity", humidity / 100.0);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                        }
 
-                            @Override
-                            public void onError(final String message) {
-                                MessageUtils.setIllegalDeviceStateError(response, message);
-                                sendResponse(response);
-                            }
-                        });
-                    }
+                        @Override
+                        public void onError(final String message) {
+                            MessageUtils.setIllegalDeviceStateError(response, message);
+                            sendResponse(response);
+                        }
+                    });
                     return false;
                 }
+                return true;
             }
         });
     }

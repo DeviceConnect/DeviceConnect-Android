@@ -1,5 +1,21 @@
 package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
+import android.content.Intent;
+import android.os.Bundle;
+
+import org.deviceconnect.android.deviceplugin.fabo.device.IVCNL4010;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.util.List;
+
+import static org.deviceconnect.android.event.EventManager.INSTANCE;
+
 /**
  * I2C用Proximityプロファイル.
  * <p>
@@ -8,8 +24,120 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
  * </p>
  */
 public class I2CProximityProfile extends BaseFaBoProfile {
+
+    /**
+     * コンストラクタ.
+     */
+    public I2CProximityProfile() {
+        // PUT /gotapi/proximity/onDeviceProximity
+        addApi(new PutApi() {
+            @Override
+            public String getAttribute() {
+                return "onDeviceProximity";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                IVCNL4010 ivcnl4010 = getFaBoDeviceControl().getVCNL4010();
+                if (!getService().isOnline()) {
+                    MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                } else if (ivcnl4010 == null) {
+                    MessageUtils.setNotSupportAttributeError(response, "Not support.");
+                } else {
+                    EventError error = INSTANCE.addEvent(request);
+                    switch (error) {
+                        case NONE:
+                            ivcnl4010.startProximity(mOnProximityListener);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response);
+                            break;
+                    }
+                }
+                return true;
+            }
+        });
+
+        // DELETE /gotapi/proximity/onDeviceProximity
+        addApi(new DeleteApi() {
+            @Override
+            public String getAttribute() {
+                return "onDeviceProximity";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                IVCNL4010 ivcnl4010 = getFaBoDeviceControl().getVCNL4010();
+                if (ivcnl4010 == null) {
+                    MessageUtils.setNotSupportAttributeError(response, "Not support.");
+                } else {
+                    EventError error = INSTANCE.removeEvent(request);
+                    switch (error) {
+                        case NONE:
+                            if (isEmptyEvent()) {
+                                ivcnl4010.stopProximity(mOnProximityListener);
+                            }
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            break;
+                        case NOT_FOUND:
+                            MessageUtils.setIllegalDeviceStateError(response, "Not register event.");
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response);
+                            break;
+                    }
+                }
+                return true;
+            }
+        });
+    }
     @Override
     public String getProfileName() {
         return "proximity";
     }
+
+    /**
+     * 登録されているイベントが空か確認します.
+     * @return イベントが登録されていない場合はtrue、それ以外はfalse
+     */
+    private boolean isEmptyEvent() {
+        String serviceId = getService().getId();
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                "proximity", null, "onDeviceProximity");
+        return events.isEmpty();
+    }
+
+    /**
+     * Arduinoから渡されてきた値をProximityとして通知します.
+     * @param value 値が渡されてきたピン
+     */
+    private void notifyProximity(double value) {
+        String serviceId = getService().getId();
+
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                "proximity", null, "onDeviceProximity");
+        for (Event event : events) {
+            Bundle proximity = new Bundle();
+            proximity.putFloat("min", 0.1f);
+            proximity.putFloat("max", 2.5f);
+            proximity.putDouble("value", value);
+
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra("proximity", proximity);
+            sendEvent(intent, event.getAccessToken());
+        }
+    }
+
+    private IVCNL4010.OnProximityListener mOnProximityListener = new IVCNL4010.OnProximityListener() {
+        @Override
+        public void onData(final double proximity) {
+            notifyProximity(proximity);
+        }
+
+        @Override
+        public void onError(final String message) {
+
+        }
+    };
 }

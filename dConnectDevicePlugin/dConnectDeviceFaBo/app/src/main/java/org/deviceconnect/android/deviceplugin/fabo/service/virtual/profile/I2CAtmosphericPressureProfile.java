@@ -2,36 +2,34 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.device.IISL29034;
+import org.deviceconnect.android.deviceplugin.fabo.device.IMPL115;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
- * I2C用Illuminaceプロファイル.
+ * I2C用気圧センサープロファイル.
  * <p>
- * ID #217<br>
- * Name: Ambient Light I2C Brick<br>
+ * 以下のFaBoのBrickに対応します。<br>
+ * ID: #204<br>
+ * Name: Barometer I2C Brick<br>
  * </p>
  */
-public class I2CIlluminanceProfile extends BaseFaBoProfile {
-
-    public I2CIlluminanceProfile() {
-
-        // GET /gotpai/illuminance
+public class I2CAtmosphericPressureProfile extends BaseFaBoProfile {
+    public I2CAtmosphericPressureProfile() {
         addApi(new GetApi() {
             @Override
-            public boolean onRequest(final Intent request, final Intent response) {
-                IISL29034 isl29034 = getFaBoDeviceControl().getISL29034();
+            public boolean onRequest(Intent request, final Intent response) {
+                IMPL115 mpl115 = getFaBoDeviceControl().getMPL115();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
-                } else if (isl29034 == null) {
+                } else if (mpl115 == null) {
                     MessageUtils.setNotSupportAttributeError(response, "Not support.");
                 } else {
-                    isl29034.read(new IISL29034.OnAmbientLightListener() {
+                    mpl115.readAtmosphericPressure(new IMPL115.OnAtmosphericPressureListener() {
                         @Override
-                        public void onData(double lux) {
-                            response.putExtra("illuminance", lux);
+                        public void onData(double hpa, double temperature) {
+                            response.putExtra("atmosphericPressure", hpa);
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
                         }
@@ -48,9 +46,8 @@ public class I2CIlluminanceProfile extends BaseFaBoProfile {
             }
         });
     }
-
     @Override
     public String getProfileName() {
-        return "illuminance";
+        return "atmosphericPressure";
     }
 }

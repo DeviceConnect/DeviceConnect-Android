@@ -14,8 +14,11 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOP
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOVibrationProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2C3AxisDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CAtmosphericPressureProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CHumidityProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CIlluminanceProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CMouseCarDriveControllerProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CProximityProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CRobotCarDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CTemperatureProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -112,6 +115,15 @@ public final class VirtualServiceFactory {
 
             case I2C_HUMIDITY:
                 return new I2CHumidityProfile();
+
+            case I2C_PROXIMITY:
+                return new I2CProximityProfile();
+
+            case I2C_ILLUMINANCE:
+                return new I2CIlluminanceProfile();
+
+            case I2C_ATMOSPHERIC_PRESSURE:
+                return new I2CAtmosphericPressureProfile();
 
             default:
                 if (DEBUG) {

@@ -61,4 +61,7 @@
     <string name="activity_fabo_virtual_i2c_3axis_device_orientation" translatable="false">DeviceOrientation(3AXIS) #201</string>
     <string name="activity_fabo_virtual_i2c_temperature" translatable="false">Temperature(I2C) #207</string>
     <string name="activity_fabo_virtual_i2c_humidity" translatable="false">Humidity(I2C) #208</string>
+    <string name="activity_fabo_virtual_i2c_proximity" translatable="false">Proximity(I2C) #205</string>
+    <string name="activity_fabo_virtual_i2c_illuminace" translatable="false">Illuminace(I2C) #217</string>
+    <string name="activity_fabo_virtual_i2c_atmospheric_pressure" translatable="false">AtmosphericPressure(I2C) #204</string>
 </resources>

@@ -153,7 +153,12 @@ class ADXL345 extends BaseI2C implements IADXL345 {
         }
     }
 
-    private OnADXL345ListenerImpl get(OnADXL345Listener listener) {
+    /**
+     * 指定されたリスナーをもつOnADXL345ListenerImplを取得します.
+     * @param listener リスナー
+     * @return OnADXL345ListenerImplのインスタンス
+     */
+    private OnADXL345ListenerImpl get(final OnADXL345Listener listener) {
         for (OnADXL345ListenerImpl impl : mOnADXL345Listeners) {
             if (impl.mOnADXL345Listener == listener) {
                 return impl;

@@ -16,7 +16,6 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -221,10 +220,24 @@ public final class DConnectUtil {
      * @return Returns ip address
      */
     public static String getIPAddress(final Context context) {
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+        NetworkUtil.getIpAddress();
+
+        String ipAddress = "0.0.0.0";
+        if (NetworkUtil.isWifiConnected(context)) {
+            if (NetworkUtil.isWifiIPv4()) {
+                ipAddress = NetworkUtil.getWifiIPv4Address();
+            } else if (NetworkUtil.isWifiIPv6()) {
+                ipAddress = NetworkUtil.getWifiIPv6Address();
+            }
+        } else {
+            if (NetworkUtil.isIPv4()) {
+                ipAddress = NetworkUtil.getIPv4Address();
+            } else if (NetworkUtil.isIPv6()) {
+                ipAddress = NetworkUtil.getIPv6Address();
+            }
+        }
+
+        return ipAddress;
     }
 
     /**

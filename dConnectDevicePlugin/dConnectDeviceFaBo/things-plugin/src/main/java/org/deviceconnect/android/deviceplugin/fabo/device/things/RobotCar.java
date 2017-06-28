@@ -1,14 +1,10 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.things;
 
-import android.util.Log;
-
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 
 import java.io.IOException;
-import java.util.List;
 
 class RobotCar implements IRobotCar {
 
@@ -84,21 +80,9 @@ class RobotCar implements IRobotCar {
      */
     private I2cDevice mPCA9685Device;
 
-    RobotCar() throws IOException {
-        PeripheralManagerService manager = new PeripheralManagerService();
-        List<String> deviceList = manager.getI2cBusList();
-        if (deviceList.isEmpty()) {
-            throw new IOException("No I2C bus available on this device.");
-        } else {
-            Log.i(TAG, "List of available devices: " + deviceList);
-        }
-
-        mPCA9685Device = manager.openI2cDevice(deviceList.get(0), PCA9685_ADDRESS);
-        setFreq(mPCA9685Device, FREQUENCY);
-
-        mMotorDevice = manager.openI2cDevice(deviceList.get(0), MOTOR_ADDRESS);
-
-        Log.i(TAG, "Robot Car connected.");
+    RobotCar(final FaBoThingsDeviceControl control) {
+        mPCA9685Device = control.getI2cDevice(PCA9685_ADDRESS);
+        mMotorDevice = control.getI2cDevice(MOTOR_ADDRESS);
     }
 
     @Override
@@ -111,6 +95,7 @@ class RobotCar implements IRobotCar {
         }
 
         try {
+            setFreq(mPCA9685Device, FREQUENCY);
             setPWM(calcHandleDirection(direction));
         } catch (IOException e) {
             e.printStackTrace();
@@ -135,6 +120,11 @@ class RobotCar implements IRobotCar {
         }
     }
 
+    /**
+     * 移動します.
+     * @param dir 向き
+     * @param speed 速度
+     */
     private void move(final int dir, float speed) {
         if (speed < 0) {
             speed = 0;
@@ -157,7 +147,7 @@ class RobotCar implements IRobotCar {
      * @param direction 回転する向き
      * @throws IOException サーボモータの回転に失敗した場合に発生
      */
-    private void setPWM(float direction) throws IOException {
+    private void setPWM(final float direction) throws IOException {
         int value = (int) (direction * 4096 / 100);
         mPCA9685Device.writeRegByte(PWM0_ON_L, (byte) 0x00);
         mPCA9685Device.writeRegByte(PWM0_ON_H, (byte) 0x00);
@@ -170,7 +160,7 @@ class RobotCar implements IRobotCar {
      * @param x 回す値
      * @return 角度
      */
-    private float calcHandleDirection(float x) {
+    private float calcHandleDirection(final float x) {
         float b = PWM_MAX - ((PWM_MAX - PWM_MIN) / 2.0f);
         return ((PWM_MAX - PWM_MIN) / 2.0f) * x + b;
     }
@@ -180,7 +170,7 @@ class RobotCar implements IRobotCar {
      * @param speed スピード(0.0f〜1.0f)
      * @return 0〜55の値
      */
-    private int calcSpeed(float speed) {
+    private int calcSpeed(final float speed) {
         return (int) (55 * speed);
     }
 
@@ -190,7 +180,7 @@ class RobotCar implements IRobotCar {
      * @param hz 初期化する周波数
      * @throws IOException 初期化設定に失敗した時に発生
      */
-    private void setFreq(I2cDevice device, int hz) throws IOException {
+    private void setFreq(final I2cDevice device, final int hz) throws IOException {
         int value = Math.round(OSC_CLOCK / (4096 * hz)) - 1;
 
         byte ctrl_dat = device.readRegByte(CONTROL_REG);

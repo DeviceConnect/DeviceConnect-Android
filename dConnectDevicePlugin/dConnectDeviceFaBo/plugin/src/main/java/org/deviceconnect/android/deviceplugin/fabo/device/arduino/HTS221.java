@@ -204,7 +204,6 @@ class HTS221 extends BaseI2C implements IHTS221 {
         return value;
     }
 
-
     private abstract class HTSS221State {
 
         /**

@@ -159,13 +159,6 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         }
     }
 
-    private int decodeShort(final byte[] buffer, final int startIndex) {
-        int offset = startIndex;
-        byte msb = (byte) (decodeByte(buffer[offset++], buffer[offset++]) & 0xFF);
-        byte lsb = (byte) (decodeByte(buffer[offset++], buffer[offset]) & 0xFF);
-        return (((msb & 0xFF) << 8) | (lsb & 0xFF));
-    }
-
     /**
      * VCNL4010の設定を行います.
      */
@@ -208,6 +201,11 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         write(SLAVE_ADDRESS, REG_AMBI_PARM, config);
     }
 
+    /**
+     * 距離(cm)に変換します.
+     * @param proximity センサーからの値
+     * @return 距離(cm)
+     */
     private double convert(final int proximity) {
         return 0.1 + ((65535 - proximity) / 65535.0) * 2.0;
     }
@@ -360,7 +358,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                         cancelTimer();
                     }
 
-                    int proximity = decodeShort(data, offset);
+                    int proximity = FirmataUtil.decodeUShort2(data, offset);
                     if (proximity > 2200) {
                         for (OnProximityListener listener : mOnProximityListeners) {
                             listener.onData(convert(proximity));

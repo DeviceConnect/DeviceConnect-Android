@@ -63,6 +63,9 @@ final class FirmataUtil {
      * <p>
      * 4byteをshortにします。
      * </p>
+     * <p>
+     * リトルエンディアン.
+     * </p>
      * @param buffer 送られてきたデータ
      * @param startIndex 開始位置
      * @return shortデータ
@@ -72,5 +75,51 @@ final class FirmataUtil {
         byte lsb = (byte) (decodeByte(buffer[offset++], buffer[offset++]) & 0xFF);
         byte msb = (byte) (decodeByte(buffer[offset++], buffer[offset]) & 0xFF);
         return ((msb << 8) | (lsb & 0xFF));
+    }
+
+    /**
+     * 送られてきたデータをshortに変換して取得します.
+     * <p>
+     * 4byteをshortにします。
+     * </p>
+     * <p>
+     * ビックエンディアン.
+     * </p>
+     * @param buffer 送られてきたデータ
+     * @param startIndex 開始位置
+     * @return shortデータ
+     */
+    static int decodeShort2(final byte[] buffer, final int startIndex) {
+        int offset = startIndex;
+        byte lsb = (byte) (decodeByte(buffer[offset++], buffer[offset++]) & 0xFF);
+        byte msb = (byte) (decodeByte(buffer[offset++], buffer[offset]) & 0xFF);
+        return (lsb << 8 | (msb & 0xFF));
+    }
+
+    /**
+     * 送られてきたデータをshortに変換して取得します.
+     * <p>
+     * 4byteをunsigned shortにします。
+     * </p>
+     * <p>
+     * ビックエンディアン.
+     * </p>
+     * @param buffer 送られてきたデータ
+     * @param startIndex 開始位置
+     * @return shortデータ
+     */
+    static int decodeUShort2(final byte[] buffer, final int startIndex) {
+        int offset = startIndex;
+        byte lsb = (byte) (decodeByte(buffer[offset++], buffer[offset++]) & 0xFF);
+        byte msb = (byte) (decodeByte(buffer[offset++], buffer[offset]) & 0xFF);
+        return ((lsb & 0xFF) << 8 | (msb & 0xFF));
+    }
+
+    static int dataConv(final int data1, final int data2) {
+        int value = data1 | (data2 << 8);
+        if ((value & (1 << 16 - 1)) != 0) {
+            value -= (1 << 16);
+        }
+        return value;
     }
 }

@@ -21,14 +21,24 @@ class ADXL345 extends BaseI2C implements IADXL345 {
     private static final byte ADXL345_DEVICE_ADDR = 0x53;
 
     /**
-     * ADXLのレジスタ.
+     * ADXL345のデバイスID取得レジスタ.
      */
-    private static final int REGISTER = 0x32;
+    private static final int REGISTER_RA_DEVID = 0x0;
 
     /**
-     * ADXLのデバイスID取得レジスタ.
+     * ADXL345のパワー設定レジスタ.
      */
-    private static final int DEVICE_REG = 0x0;
+    private static final int REGISTER_RA_POWER_CTL = 0x2D;
+
+    /**
+     * ADXL345のデータフォーマット設定レジスタ.
+     */
+    private static final int REGISTER_RA_DATA_FORMAT = 0x31;
+
+    /**
+     * ADXL345のデータ取得レジスタ.
+     */
+    private static final int REGISTER_RA_DATAX0 = 0x32;
 
     /**
      * ADXL345のデバイスID.
@@ -88,14 +98,14 @@ class ADXL345 extends BaseI2C implements IADXL345 {
     void onReadData(final byte[] data) {
         int offset = 3;
         int register = decodeByte(data[offset++], data[offset++]);
-        if (register == DEVICE_REG) {
+        if (register == REGISTER_RA_DEVID) {
             int deviceId = decodeByte(data[offset++], data[offset]);
             if (deviceId == DEVICE_ID) {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         setADXL345();
-                        startRead(ADXL345_DEVICE_ADDR, REGISTER, 6);
+                        startRead(ADXL345_DEVICE_ADDR, REGISTER_RA_DATAX0, 6);
                     }
                 }).start();
             } else {
@@ -103,7 +113,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
                     listener.onError("ADXL345 is not connect.");
                 }
             }
-        } else if (register == REGISTER) {
+        } else if (register == REGISTER_RA_DATAX0) {
             int ax = decodeShort(data, offset);
             offset += 4;
             int ay = decodeShort(data, offset);
@@ -124,8 +134,8 @@ class ADXL345 extends BaseI2C implements IADXL345 {
      * ADXL345の初期化を行います.
      */
     private void setADXL345() {
-        write(ADXL345_DEVICE_ADDR, 0x31, 0x0B);
-        write(ADXL345_DEVICE_ADDR, 0x2D, 0x08);
+        write(ADXL345_DEVICE_ADDR, REGISTER_RA_DATA_FORMAT, 0x0B);
+        write(ADXL345_DEVICE_ADDR, REGISTER_RA_POWER_CTL, 0x08);
     }
 
     /**
@@ -136,7 +146,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
 
         if (mRunningCount == 1) {
             setI2CConfig();
-            read(ADXL345_DEVICE_ADDR, DEVICE_REG, 1);
+            read(ADXL345_DEVICE_ADDR, REGISTER_RA_DEVID, 1);
         }
     }
 
@@ -148,7 +158,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
             mRunningCount--;
 
             if (mRunningCount == 0) {
-                stopRead(ADXL345_DEVICE_ADDR, REGISTER);
+                stopRead(ADXL345_DEVICE_ADDR, REGISTER_RA_DATAX0);
             }
         }
     }

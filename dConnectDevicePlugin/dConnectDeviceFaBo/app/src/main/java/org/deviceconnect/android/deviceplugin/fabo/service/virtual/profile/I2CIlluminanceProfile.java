@@ -30,6 +30,10 @@ public class I2CIlluminanceProfile extends BaseFaBoProfile {
                 } else {
                     isl29034.read(new IISL29034.OnAmbientLightListener() {
                         @Override
+                        public void onStarted() {
+                        }
+
+                        @Override
                         public void onData(double lux) {
                             response.putExtra("illuminance", lux);
                             setResult(response, DConnectMessage.RESULT_OK);

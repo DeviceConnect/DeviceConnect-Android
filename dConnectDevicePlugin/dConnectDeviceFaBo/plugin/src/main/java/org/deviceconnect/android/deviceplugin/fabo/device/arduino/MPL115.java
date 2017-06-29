@@ -119,10 +119,10 @@ class MPL115 extends BaseI2C implements IMPL115 {
     }
 
     private void onReadCoef(final int[] data) {
-        mA0 = dataConv(data[1], data[0]) / (float) (1 << 3);
-        mB1 = dataConv(data[3], data[2]) / (float) (1 << 13);
-        mB2 = dataConv(data[5], data[4]) / (float) (1 << 14);
-        mC12 = dataConv(data[7], data[6]) / (float) (1 << 24);
+        mA0 = FirmataUtil.dataConv(data[1], data[0]) / (float) (1 << 3);
+        mB1 = FirmataUtil.dataConv(data[3], data[2]) / (float) (1 << 13);
+        mB2 = FirmataUtil.dataConv(data[5], data[4]) / (float) (1 << 14);
+        mC12 = FirmataUtil.dataConv(data[7], data[6]) / (float) (1 << 24);
     }
 
     private void readData() {
@@ -151,13 +151,5 @@ class MPL115 extends BaseI2C implements IMPL115 {
         cancelTimer();
 
         mRunningFlag = false;
-    }
-
-    private int dataConv(final int data1, final int data2) {
-        int value = data1 | (data2 << 8);
-        if ((value & (1 << 16 - 1)) != 0) {
-            value -= (1 << 16);
-        }
-        return value;
     }
 }

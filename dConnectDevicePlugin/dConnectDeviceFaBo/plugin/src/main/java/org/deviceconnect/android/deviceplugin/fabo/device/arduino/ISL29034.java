@@ -92,12 +92,12 @@ class ISL29034 extends BaseI2C implements IISL29034 {
     }
 
     @Override
-    public void startRead() {
+    public void startRead(final OnAmbientLightListener listener) {
 
     }
 
     @Override
-    public void stopRead() {
+    public void stopRead(final OnAmbientLightListener listener) {
 
     }
 

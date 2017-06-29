@@ -10,7 +10,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
-import android.util.Log;
 
 import java.lang.reflect.Method;
 import java.net.Inet4Address;
@@ -19,8 +18,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * ネットワークのアドレスを取得するためのユーティリティクラス.
@@ -86,6 +83,26 @@ public final class NetworkUtil {
      */
     private static boolean mWifiIPv4Flag;
 
+    /**
+     * モバイルネットワークのIPv4を保持します.
+     */
+    private static String mCellularIPv4Address;
+
+    /**
+     * モバイルネットワークのIPv6を保持します.
+     */
+    private static String mCellularIPv6Address;
+
+    /**
+     * モバイルネットワークのIPアドレスがv4かを保持します.
+     */
+    private static boolean mCellularIPv4Flag;
+
+    /**
+     * モバイルネットワークのIPアドレスがv6かを保持します.
+     */
+    private static boolean mCellularIPv6Flag;
+
     private NetworkUtil() {
     }
 
@@ -102,6 +119,11 @@ public final class NetworkUtil {
         mWifiIPv6Address = NOT_SET_IPV6;
         mWifiIPv4Flag = false;
         mWifiIPv6Flag = false;
+
+        mCellularIPv4Address = NOT_SET_IPV4;
+        mCellularIPv6Address = NOT_SET_IPV6;
+        mCellularIPv4Flag = false;
+        mCellularIPv6Flag = false;
 
         Enumeration<NetworkInterface> enumeration;
         try {
@@ -126,7 +148,10 @@ public final class NetworkUtil {
     private static void setIPAddress(final InetAddress inetAddress, final String interfaceName) {
         String ipAddress = inetAddress.getHostAddress();
         if (inetAddress instanceof Inet4Address) {
-            if (interfaceName.contains("rmnet0") || interfaceName.contains("eth0")) {
+            if (interfaceName.contains("rmnet0") || interfaceName.contains("rmnet_data0")) {
+                mCellularIPv4Address = ipAddress;
+                mCellularIPv4Flag = true;
+            } else if (interfaceName.contains("eth0")) {
                 mIPv4Address = ipAddress;
                 mIPv4Flag = true;
             } else if (interfaceName.contains("wlan0")) {
@@ -134,7 +159,10 @@ public final class NetworkUtil {
                 mWifiIPv4Flag = true;
             }
         } else if (inetAddress instanceof Inet6Address) {
-            if (interfaceName.contains("rmnet0") || interfaceName.contains("eth0")) {
+            if (interfaceName.contains("rmnet0") || interfaceName.contains("rmnet_data0")) {
+                mCellularIPv6Address = ipAddress.replace("%" + interfaceName, "");
+                mCellularIPv6Flag = true;
+            } else if (interfaceName.contains("eth0")) {
                 mIPv6Address = ipAddress.replace("%" + interfaceName, "");
                 mIPv6Flag = true;
             } else if (interfaceName.contains("wlan0")) {
@@ -214,6 +242,40 @@ public final class NetworkUtil {
     }
 
     /**
+     * モバイルネットワークのIPv4を取得します.
+     * @return IPv4アドレス
+     */
+    public static String getCellularIPv4Address() {
+        return mCellularIPv4Address;
+    }
+
+    /**
+     * モバイルネットワークのIPv6を取得します.
+     * @return IPv6アドレス
+     */
+    public static String getCellularIPv6Address() {
+        return mCellularIPv6Address;
+    }
+
+    /**
+     * モバイルネットワークがIPv4か確認します.
+     *
+     * @return IPv4の場合はtrue、それ以外はfalse
+     */
+    public static boolean isCellularIPv4Flag() {
+        return mCellularIPv4Flag;
+    }
+
+    /**
+     * モバイルネットワークがIPv6か確認します.
+     *
+     * @return IPv6の場合はtrue、それ以外はfalse
+     */
+    public static boolean isCellularIPv6Flag() {
+        return mCellularIPv6Flag;
+    }
+
+    /**
      * WiFiに接続されているかを確認します.
      * @param context コンテキスト
      * @return WiFiに接続されている場合にはtrue、それ以外はfalse
@@ -230,16 +292,77 @@ public final class NetworkUtil {
         }
     }
 
-    private static boolean isWifiApState(final Context context) {
+    /**
+     * デザリング状態を確認します.
+     * @param context コンテキスト
+     * @return デザリングされている場合はtrue、それ以外はfalse
+     */
+    public static boolean isWifiApState(final Context context) {
         WifiManager wifi = (WifiManager)
                 context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         try {
             Method method = wifi.getClass().getMethod("getWifiApState");
-            Log.i(TAG,method.invoke(wifi).toString());
             int apState = (Integer) method.invoke(wifi);
             return apState == 13;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * IPアドレスを取得します.
+     * @param context コンテキスト
+     * @return IPアドレス
+     */
+    public static String getIpAddress(final Context context) {
+        ConnectivityManager connMgr = (ConnectivityManager)
+                context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        NetworkUtil.getIpAddress();
+        String ipAddress = NOT_SET_IPV4;
+        if (networkInfo == null) {
+            if (NetworkUtil.isCellularIPv4Flag()) {
+                ipAddress = NetworkUtil.getCellularIPv4Address();
+            } else if (NetworkUtil.isWifiIPv4()) {
+                ipAddress = NetworkUtil.getWifiIPv4Address();
+            } else if (NetworkUtil.isIPv4()) {
+                ipAddress = NetworkUtil.getIPv4Address();
+            } else if (NetworkUtil.isCellularIPv6Flag()) {
+                ipAddress = NetworkUtil.getCellularIPv6Address();
+            } else if (NetworkUtil.isWifiIPv6()) {
+                ipAddress = NetworkUtil.getWifiIPv6Address();
+            } else if (NetworkUtil.isIPv6()) {
+                ipAddress = NetworkUtil.getIPv6Address();
+            }
+        } else {
+            if (networkInfo.isConnected()) {
+                switch (networkInfo.getType()) {
+                    case ConnectivityManager.TYPE_WIFI:
+                        if (NetworkUtil.isWifiIPv4()) {
+                            ipAddress = NetworkUtil.getWifiIPv4Address();
+                        } else if (NetworkUtil.isWifiIPv6()) {
+                            ipAddress = NetworkUtil.getWifiIPv6Address();
+                        }
+                        break;
+
+                    case ConnectivityManager.TYPE_ETHERNET:
+                        if (NetworkUtil.isIPv4()) {
+                            ipAddress = NetworkUtil.getIPv4Address();
+                        } else if (NetworkUtil.isIPv6()) {
+                            ipAddress = NetworkUtil.getIPv6Address();
+                        }
+                        break;
+
+                    case ConnectivityManager.TYPE_MOBILE:
+                        if (NetworkUtil.isCellularIPv4Flag()) {
+                            ipAddress = NetworkUtil.getCellularIPv4Address();
+                        } else if (NetworkUtil.isCellularIPv6Flag()) {
+                            ipAddress = NetworkUtil.getCellularIPv6Address();
+                        }
+                        break;
+                }
+            }
+        }
+        return ipAddress;
     }
 }

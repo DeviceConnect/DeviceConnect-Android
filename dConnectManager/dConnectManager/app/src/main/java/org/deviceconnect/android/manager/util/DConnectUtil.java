@@ -220,24 +220,7 @@ public final class DConnectUtil {
      * @return Returns ip address
      */
     public static String getIPAddress(final Context context) {
-        NetworkUtil.getIpAddress();
-
-        String ipAddress = "0.0.0.0";
-        if (NetworkUtil.isWifiConnected(context)) {
-            if (NetworkUtil.isWifiIPv4()) {
-                ipAddress = NetworkUtil.getWifiIPv4Address();
-            } else if (NetworkUtil.isWifiIPv6()) {
-                ipAddress = NetworkUtil.getWifiIPv6Address();
-            }
-        } else {
-            if (NetworkUtil.isIPv4()) {
-                ipAddress = NetworkUtil.getIPv4Address();
-            } else if (NetworkUtil.isIPv6()) {
-                ipAddress = NetworkUtil.getIPv6Address();
-            }
-        }
-
-        return ipAddress;
+        return NetworkUtil.getIpAddress(context);
     }
 
     /**

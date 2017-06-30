@@ -74,8 +74,10 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     private static final int AMBI_AVE_NUM_128 = 0x07;
 
     private List<OnProximityListener> mOnProximityListeners = new CopyOnWriteArrayList<>();
+    private List<OnAmbientLightListener> mOnAmbientLightListeners = new CopyOnWriteArrayList<>();
 
     private Proximity mProximity = new Proximity();
+    private Ambi mAmbi = new Ambi();
 
     @Override
     public void readProximity(final OnProximityListener listener) {
@@ -124,18 +126,31 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     }
 
     @Override
-    public void readAmbientLight() {
+    public void readAmbientLight(final OnAmbientLightListener listener) {
+        if (!mOnAmbientLightListeners.contains(listener)) {
+            mOnAmbientLightListeners.add(listener);
+        }
+
+        if (mAmbi.isMeasuring()) {
+            return;
+        }
+        mAmbi.start();
+    }
+
+    @Override
+    public void startAmbientLight(final OnAmbientLightListener listener) {
+        if (!mOnAmbientLightListeners.contains(listener)) {
+            mOnAmbientLightListeners.add(listener);
+        }
 
     }
 
     @Override
-    public void startAmbientLight() {
-
-    }
-
-    @Override
-    public void stopAmbientLight() {
-
+    public void stopAmbientLight(final OnAmbientLightListener listener) {
+        if (mAmbi.isMeasuring()) {
+            mAmbi.stop();
+        }
+        mOnAmbientLightListeners.remove(listener);
     }
 
     // BaseI2C interface
@@ -152,9 +167,13 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         switch (register) {
             case DEVICE_REG:
                 mProximity.onReadData(data, register);
+                mAmbi.onReadData(data, register);
                 break;
             case REG_PROX_DATA_H:
                 mProximity.onReadData(data, register);
+                break;
+            case REG_AMBI_DATA_H:
+                mAmbi.onReadData(data, register);
                 break;
         }
     }
@@ -228,6 +247,9 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
          */
         private Timer mTimer;
 
+        /**
+         * 開始フラグ.
+         */
         boolean mStartFlag;
 
         /**
@@ -364,6 +386,54 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                             listener.onData(convert(proximity));
                         }
                     }
+                    break;
+            }
+        }
+    }
+
+    private class Ambi extends VCNL4010State {
+        @Override
+        void stop() {
+            stopRead(SLAVE_ADDRESS, REG_AMBI_DATA_H);
+            onFinish();
+        }
+
+        @Override
+        void onReadData(final byte[] data, final int register) {
+
+            if (mState != register) {
+                // レジスタが一致しない場合には、不正なデータなので無視
+                return;
+            }
+
+            int offset = 5;
+            switch(register) {
+                case DEVICE_REG:
+                    int deviceId = decodeByte(data[offset++], data[offset]);
+                    if (deviceId == DEVICE_ID) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setVCNL4010();
+
+                                // 設定が反映されるまで、少し時間がかかるのスリープを入れておく
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+                                mState = REG_AMBI_DATA_H;
+                                startRead(SLAVE_ADDRESS, REG_AMBI_DATA_H, 2);
+                            }
+                        }).start();
+                    } else {
+                        onError("VCNL4010 is not connect.");
+                    }
+                    break;
+
+                case REG_AMBI_DATA_H:
+                    int lux = FirmataUtil.decodeUShort2(data, offset);
                     break;
             }
         }

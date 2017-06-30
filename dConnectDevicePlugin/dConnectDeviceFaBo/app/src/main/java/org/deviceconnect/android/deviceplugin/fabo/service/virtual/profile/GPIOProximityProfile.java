@@ -10,6 +10,7 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -37,6 +38,27 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
      */
     public GPIOProximityProfile(final List<ArduinoUno.Pin> pinList) {
         mPinList = pinList;
+
+        // GET /gotapi/proximity/onDeviceProximity
+        addApi(new GetApi() {
+            @Override
+            public String getAttribute() {
+                return "onDeviceProximity";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                ArduinoUno.Pin pin = mPinList.get(0);
+
+                int value = getFaBoDeviceControl().getAnalog(pin);
+                value = calcArduinoMap(value, 0, 1023, 0, 5000);
+                value = calcArduinoMap(value, 3200, 500, 5, 80);
+
+                response.putExtra("proximity", createProximity(value));
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            }
+        });
 
         // PUT /gotapi/proximity/onDeviceProximity
         addApi(new PutApi() {
@@ -107,6 +129,19 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
     }
 
     /**
+     * Proximityのオブジェクトを作成します.
+     * @param value 距離
+     * @return Proximityのオブジェクト
+     */
+    private Bundle createProximity(final int value) {
+        Bundle proximity = new Bundle();
+        proximity.putInt("min", 10);
+        proximity.putInt("max", 80);
+        proximity.putInt("value", value);
+        return proximity;
+    }
+
+    /**
      * Arduinoから渡されてきた値をProximityとして通知します.
      * @param pin 値が渡されてきたピン
      */
@@ -125,13 +160,8 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 "proximity", null, "onDeviceProximity");
         for (Event event : events) {
-            Bundle proximity = new Bundle();
-            proximity.putInt("min", 10);
-            proximity.putInt("max", 80);
-            proximity.putInt("value", value);
-
             Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("proximity", proximity);
+            intent.putExtra("proximity", createProximity(value));
             sendEvent(intent, event.getAccessToken());
         }
     }

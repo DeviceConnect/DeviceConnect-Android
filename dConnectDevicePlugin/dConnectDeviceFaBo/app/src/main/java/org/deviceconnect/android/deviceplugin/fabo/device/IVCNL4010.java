@@ -23,17 +23,17 @@ public interface IVCNL4010 {
     /**
      * 照度センサーの値を取得します.
      */
-    void readAmbientLight();
+    void readAmbientLight(final OnAmbientLightListener listener);
 
     /**
      * 照度センサー値の連続取得を開始します.
      */
-    void startAmbientLight();
+    void startAmbientLight(final OnAmbientLightListener listener);
 
     /**
      * 照度センサー値の連続取得を停止します.
      */
-    void stopAmbientLight();
+    void stopAmbientLight(final OnAmbientLightListener listener);
 
     /**
      * 近距離センサー値の通知を受けるリスナー.
@@ -54,6 +54,12 @@ public interface IVCNL4010 {
          * 近距離センサー値の取得失敗通知を受け取ります.
          * @param message エラーメッセージ
          */
+        void onError(final String message);
+    }
+
+    interface OnAmbientLightListener {
+        void onStarted();
+        void onData(final double ambient);
         void onError(final String message);
     }
 }

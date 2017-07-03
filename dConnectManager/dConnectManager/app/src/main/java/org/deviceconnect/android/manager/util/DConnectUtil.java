@@ -216,11 +216,10 @@ public final class DConnectUtil {
 
     /**
      * Gets the ip address.
-     * @param context Context of application
      * @return Returns ip address
      */
-    public static String getIPAddress(final Context context) {
-        return NetworkUtil.getIpAddress(context);
+    public static String getIPAddress() {
+        return NetworkUtil.getIpAddress();
     }
 
     /**

@@ -138,7 +138,7 @@ public class DConnectWebService extends Service {
         builder.setContentIntent(pendingIntent);
         builder.setTicker(getString(R.string.service_web_server));
         builder.setContentTitle(getString(R.string.service_web_server));
-        builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getWebPort());
+        builder.setContentText(DConnectUtil.getIPAddress() + ":" + mSettings.getWebPort());
         int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
                 R.drawable.icon : R.drawable.on_icon;
         builder.setSmallIcon(iconType);

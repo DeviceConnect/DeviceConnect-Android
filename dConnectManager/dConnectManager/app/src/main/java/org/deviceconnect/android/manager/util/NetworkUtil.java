@@ -296,14 +296,10 @@ public final class NetworkUtil {
             ipAddress = getWifiIPv4Address();
         } else if (NetworkUtil.isIPv4()) {
             ipAddress = getIPv4Address();
-        } else if (NetworkUtil.isCellularIPv4Flag()) {
-            ipAddress = getCellularIPv4Address();
         } else if (NetworkUtil.isWifiIPv6()) {
             ipAddress = getWifiIPv6Address();
         } else if (NetworkUtil.isIPv6()) {
             ipAddress = getIPv6Address();
-        } else if (NetworkUtil.isCellularIPv6Flag()) {
-            ipAddress = getCellularIPv6Address();
         }
         return ipAddress;
     }

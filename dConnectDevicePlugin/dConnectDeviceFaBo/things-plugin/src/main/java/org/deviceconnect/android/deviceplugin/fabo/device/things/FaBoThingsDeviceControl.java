@@ -417,7 +417,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
                         gpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
                         gpio.setActiveType(Gpio.ACTIVE_HIGH);
                         gpio.registerGpioCallback(mGpioCallback);
-                        gpio.setValue(true);
+                        gpio.setValue(false);
 
                         mGpioMap.put(pin.getPinNumber(), gpio);
                     }

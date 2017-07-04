@@ -5,6 +5,8 @@ import com.google.android.things.pio.I2cDevice;
 import org.deviceconnect.android.deviceplugin.fabo.device.IISL29034;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * ISL29034を操作するクラス.
@@ -60,6 +62,15 @@ class ISL29034 extends BaseI2C implements IISL29034 {
      */
     private I2cDevice mI2cDevice;
 
+    /**
+     * 管理用スレッド.
+     */
+    private WatchThread mWatchThread;
+
+    /**
+     * コンストラクタ.
+     * @param control FaBoコントローラ
+     */
     ISL29034(final FaBoThingsDeviceControl control) {
         mI2cDevice = control.getI2cDevice(SLAVE_ADDRESS);
     }
@@ -73,7 +84,7 @@ class ISL29034 extends BaseI2C implements IISL29034 {
                 setISL29034();
 
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -86,13 +97,37 @@ class ISL29034 extends BaseI2C implements IISL29034 {
     }
 
     @Override
-    public void startRead(final OnAmbientLightListener listener) {
-
+    public synchronized void startRead(final OnAmbientLightListener listener) {
+        if (!checkDevice()) {
+            listener.onError("ISL29034 is not connect.");
+        } else {
+            if (mWatchThread == null) {
+                mWatchThread = new WatchThread();
+                mWatchThread.addListener(listener);
+                mWatchThread.start();
+            } else {
+                mWatchThread.addListener(listener);
+            }
+        }
     }
 
     @Override
-    public void stopRead(final OnAmbientLightListener listener) {
+    public synchronized void stopRead(final OnAmbientLightListener listener) {
+        if (mWatchThread != null) {
+            mWatchThread.removeListener(listener);
+            if (mWatchThread.isEmptyListener()) {
+                mWatchThread.stopWatch();
+                mWatchThread = null;
+            }
+        }
+    }
 
+    @Override
+    synchronized void destroy() {
+        if (mWatchThread != null) {
+            mWatchThread.stopWatch();
+            mWatchThread = null;
+        }
     }
 
     /**
@@ -203,5 +238,79 @@ class ISL29034 extends BaseI2C implements IISL29034 {
         int range = getRange();
         int count = getResolution();
         return (range / (float) count) * adc;
+    }
+
+    /**
+     * 管理用スレッド.
+     */
+    private class WatchThread extends Thread {
+        /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
+        /**
+         * リスナー.
+         */
+        private List<OnAmbientLightListener> mListeners = new CopyOnWriteArrayList<>();
+
+        /**
+         * リスナーを追加します.
+         * @param listener 追加するリスナー
+         */
+        void addListener(final OnAmbientLightListener listener) {
+            mListeners.add(listener);
+            listener.onStarted();
+        }
+
+        /**
+         * リスナーを削除します.
+         * @param listener 削除するリスナー
+         */
+        void removeListener(final OnAmbientLightListener listener) {
+            mListeners.remove(listener);
+        }
+
+        /**
+         * 登録されているリスナーが空か確認します.
+         * @return 空の場合はtrue、それ以外はfalse
+         */
+        boolean isEmptyListener() {
+            return mListeners.isEmpty();
+        }
+
+        /**
+         * 監視を停止します.
+         */
+        void stopWatch() {
+            mListeners.clear();
+            mStopFlag = true;
+            interrupt();
+        }
+
+        @Override
+        public void run() {
+            try {
+                setISL29034();
+
+                while (!mStopFlag) {
+                    try {
+                        Thread.sleep(33);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    double lux = readADC();
+                    for (OnAmbientLightListener l : mListeners) {
+                        l.onData(lux);
+                    }
+                }
+            } catch (IOException e) {
+                for (OnAmbientLightListener l : mListeners) {
+                    l.onError(e.getMessage());
+                }
+                mListeners.clear();
+            }
+        }
     }
 }

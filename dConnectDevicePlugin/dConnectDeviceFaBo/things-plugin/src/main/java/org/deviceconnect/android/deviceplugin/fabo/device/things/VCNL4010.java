@@ -5,6 +5,8 @@ import com.google.android.things.pio.I2cDevice;
 import org.deviceconnect.android.deviceplugin.fabo.device.IVCNL4010;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * VCNL4010を操作するクラス.
@@ -126,23 +128,28 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     }
 
     @Override
-    public void startProximity(final OnProximityListener listener) {
+    public synchronized void startProximity(final OnProximityListener listener) {
         if (!checkDevice()) {
             listener.onError("VCNL4010 is not connect.");
         } else {
             if (mProximityWatchTread == null) {
                 mProximityWatchTread = new ProximityWatchTread();
-                mProximityWatchTread.mListener = listener;
+                mProximityWatchTread.addListener(listener);
                 mProximityWatchTread.start();
+            } else {
+                mProximityWatchTread.addListener(listener);
             }
         }
     }
 
     @Override
-    public void stopProximity(final OnProximityListener listener) {
+    public synchronized void stopProximity(final OnProximityListener listener) {
         if (mProximityWatchTread != null) {
-            mProximityWatchTread.stopWatch();
-            mProximityWatchTread = null;
+            mProximityWatchTread.removeListener(listener);
+            if (mProximityWatchTread.isEmptyListener()) {
+                mProximityWatchTread.stopWatch();
+                mProximityWatchTread = null;
+            }
         }
     }
 
@@ -168,20 +175,38 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     }
 
     @Override
-    public void startAmbientLight(final OnAmbientLightListener listener) {
+    public synchronized void startAmbientLight(final OnAmbientLightListener listener) {
         if (!checkDevice()) {
             listener.onError("VCNL4010 is not connect.");
         } else {
             if (mAmbientLightWatchThread == null) {
                 mAmbientLightWatchThread = new AmbientLightWatchThread();
-                mAmbientLightWatchThread.mListener = listener;
+                mAmbientLightWatchThread.addListener(listener);
                 mAmbientLightWatchThread.start();
+            } else {
+                mAmbientLightWatchThread.addListener(listener);
             }
         }
     }
 
     @Override
-    public void stopAmbientLight(final OnAmbientLightListener listener) {
+    public synchronized void stopAmbientLight(final OnAmbientLightListener listener) {
+        if (mAmbientLightWatchThread != null) {
+            mAmbientLightWatchThread.removeListener(listener);
+            if (mAmbientLightWatchThread.isEmptyListener()) {
+                mAmbientLightWatchThread.stopWatch();
+                mAmbientLightWatchThread = null;
+            }
+        }
+    }
+
+    @Override
+    synchronized void destroy() {
+        if (mProximityWatchTread != null) {
+            mProximityWatchTread.stopWatch();
+            mProximityWatchTread = null;
+        }
+
         if (mAmbientLightWatchThread != null) {
             mAmbientLightWatchThread.stopWatch();
             mAmbientLightWatchThread = null;
@@ -278,75 +303,142 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
 
     private class ProximityWatchTread extends Thread {
         /**
-         * 終了フラグ.
+         * 停止フラグ.
          */
-        private boolean mFinishFlag;
+        private boolean mStopFlag;
 
         /**
          * リスナー.
          */
-        private OnProximityListener mListener;
+        private List<OnProximityListener> mListeners = new CopyOnWriteArrayList<>();
+
+        /**
+         * リスナーを追加します.
+         * @param listener 追加するリスナー
+         */
+        void addListener(final OnProximityListener listener) {
+            mListeners.add(listener);
+            listener.onStarted();
+        }
+
+        /**
+         * リスナーを削除します.
+         * @param listener 削除するリスナー
+         */
+        void removeListener(final OnProximityListener listener) {
+            mListeners.remove(listener);
+        }
+
+        /**
+         * 登録されているリスナーが空か確認します.
+         * @return 空の場合はtrue、それ以外はfalse
+         */
+        boolean isEmptyListener() {
+            return mListeners.isEmpty();
+        }
+
+        /**
+         * 監視を停止します.
+         */
+        void stopWatch() {
+            mListeners.clear();
+            mStopFlag = true;
+            interrupt();
+        }
 
         @Override
         public void run() {
             try {
                 setVCNL4010();
 
-                mListener.onStarted();
-
-                while (!mFinishFlag) {
-                    mListener.onData(readProx());
+                while (!mStopFlag) {
                     try {
                         Thread.sleep(33);
                     } catch (InterruptedException e) {
                         break;
                     }
+
+                    double proximity = readProx();
+
+                    for (OnProximityListener l : mListeners) {
+                        l.onData(proximity);
+                    }
                 }
             } catch (IOException e) {
-                mListener.onError(e.getMessage());
+                for (OnProximityListener l : mListeners) {
+                    l.onError(e.getMessage());
+                }
             }
-        }
-
-        void stopWatch() {
-            mFinishFlag = true;
-            interrupt();
         }
     }
 
     private class AmbientLightWatchThread extends Thread {
         /**
-         * 終了フラグ.
+         * 停止フラグ.
          */
-        private boolean mFinishFlag;
+        private boolean mStopFlag;
 
         /**
          * リスナー.
          */
-        private OnAmbientLightListener mListener;
+        private List<OnAmbientLightListener> mListeners = new CopyOnWriteArrayList<>();
+
+        /**
+         * リスナーを追加します.
+         * @param listener 追加するリスナー
+         */
+        void addListener(final OnAmbientLightListener listener) {
+            mListeners.add(listener);
+            listener.onStarted();
+        }
+
+        /**
+         * リスナーを削除します.
+         * @param listener 削除するリスナー
+         */
+        void removeListener(final OnAmbientLightListener listener) {
+            mListeners.remove(listener);
+        }
+
+        /**
+         * 登録されているリスナーが空か確認します.
+         * @return 空の場合はtrue、それ以外はfalse
+         */
+        boolean isEmptyListener() {
+            return mListeners.isEmpty();
+        }
+
+        /**
+         * 監視を停止します.
+         */
+        void stopWatch() {
+            mListeners.clear();
+            mStopFlag = true;
+            interrupt();
+        }
 
         @Override
         public void run() {
             try {
                 setVCNL4010();
 
-                mListener.onStarted();
-
-                while (!mFinishFlag) {
-                    mListener.onData(readAmbi());
+                while (!mStopFlag) {
                     try {
                         Thread.sleep(33);
                     } catch (InterruptedException e) {
                         break;
                     }
+
+                    double lux = readAmbi();
+                    for (OnAmbientLightListener l : mListeners) {
+                        l.onData(lux);
+                    }
                 }
             } catch (IOException e) {
-                mListener.onError(e.getMessage());
+                for (OnAmbientLightListener l : mListeners) {
+                    l.onError(e.getMessage());
+                }
             }
-        }
-
-        void stopWatch() {
-            mFinishFlag = true;
-            interrupt();
         }
     }
 }

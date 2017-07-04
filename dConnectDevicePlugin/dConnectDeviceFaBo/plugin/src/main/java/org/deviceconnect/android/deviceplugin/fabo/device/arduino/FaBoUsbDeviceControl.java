@@ -144,15 +144,34 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     private RobotCar mRobotCar;
 
     /**
-     * ADXL345用を操作するクラス.
+     * Brick #201 を操作するためのクラス.
      */
     private ADXL345 mADXL345;
 
+    /**
+     * Brick #207 を操作するためのクラス.
+     */
     private ADT7410 mADT7410;
+
+    /**
+     * Brick #208 を操作するためのクラス.
+     */
     private HTS221 mHTS221;
-    private VCNL4010 mVCNL4010;
+
+    /**
+     * Brick #217 を操作するクラス.
+     */
     private ISL29034 mISL29034;
+
+    /**
+     * Brick #204 を操作するクラス.
+     */
     private MPL115 mMPL115;
+
+    /**
+     * Brick # 205 を操作するクラス.
+     */
+    private VCNL4010 mVCNL4010;
 
     /**
      * I2Cを格納するリスト.

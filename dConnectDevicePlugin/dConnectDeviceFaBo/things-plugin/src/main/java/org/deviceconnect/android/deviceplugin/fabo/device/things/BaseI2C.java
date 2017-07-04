@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.things;
 
-class BaseI2C {
+abstract class BaseI2C {
+
+    void destroy() {}
 
     /**
      * 送られてきたデータをshortに変換して取得します.

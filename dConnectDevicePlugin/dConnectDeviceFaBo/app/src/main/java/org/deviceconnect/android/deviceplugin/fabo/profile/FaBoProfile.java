@@ -192,6 +192,8 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "There is only one pin.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && usedPin(serviceData, profileType, pinList)) {
                     MessageUtils.setInvalidRequestParameterError(response, "pins already used in the " + serviceData.getName());
+                } else if (profileType.getCategory() == ProfileData.Category.GPIO && !isPinsSupported(pinList)) {
+                    MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -240,6 +242,8 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "There is only one pin.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && usedPin(serviceData, profileType, pinList)) {
                     MessageUtils.setInvalidRequestParameterError(response, "pins already used in the " + serviceData.getName());
+                } else if (profileType.getCategory() == ProfileData.Category.GPIO && !isPinsSupported(pinList)) {
+                    MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -378,6 +382,30 @@ public class FaBoProfile extends DConnectProfile {
      */
     private boolean isPin(final int pin) {
         return ArduinoUno.Pin.getPin(pin) != null;
+    }
+
+    /**
+     * 指定されたピンのリストがサポートされているか確認します.
+     * @param pins 確認するピンのリスト
+     * @return 全てのピンがサポートされている場合はtrue、それ以外はfalse
+     */
+    private boolean isPinsSupported(final List<Integer> pins) {
+        for (int pin : pins) {
+            if (!isPinSupported(pin)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 指定されたピンがサポートされているか確認します.
+     * @param pinNum 確認するピン番号
+     * @return サポートされている場合はtrue、それ以外はfalse
+     */
+    private boolean isPinSupported(final int pinNum) {
+        ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(pinNum);
+        return pin != null && getFaBoDeviceService().getFaBoDeviceControl().isPinSupported(pin);
     }
 
     /**

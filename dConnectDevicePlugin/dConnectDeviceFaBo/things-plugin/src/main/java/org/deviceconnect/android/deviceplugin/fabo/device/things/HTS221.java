@@ -137,7 +137,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     }
 
     @Override
-    public void readHumidity(final OnHumidityCallback callback) {
+    public synchronized void readHumidity(final OnHumidityCallback callback) {
         if (!checkDevice()) {
             callback.onError("HTS221 is not connect.");
         } else {
@@ -173,7 +173,7 @@ class HTS221 extends BaseI2C implements IHTS221 {
     }
 
     @Override
-    public void readTemperature(final OnTemperatureCallback callback) {
+    public synchronized void readTemperature(final OnTemperatureCallback callback) {
         if (!checkDevice()) {
             callback.onError("HTS221 is not connect.");
         } else {
@@ -222,8 +222,8 @@ class HTS221 extends BaseI2C implements IHTS221 {
             return false;
         } else {
             try {
-                byte address = mI2cDevice.readRegByte(REGISTER_DEVICE_REG);
-                return (address & 0xFF) == DEVICE_ID;
+                byte deviceId = mI2cDevice.readRegByte(REGISTER_DEVICE_REG);
+                return (deviceId & 0xFF) == DEVICE_ID;
             } catch (IOException e) {
                 return false;
             }

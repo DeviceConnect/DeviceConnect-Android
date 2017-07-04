@@ -5,6 +5,8 @@ import com.google.android.things.pio.I2cDevice;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * ADXL345を操作するクラス.
@@ -80,6 +82,12 @@ class ADXL345 extends BaseI2C implements IADXL345 {
             } else {
                 startADXL345();
 
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 readADXL345(mBuffer, mBuffer.length);
 
                 double x = convertResolution(decodeShort(mBuffer, 0));
@@ -95,15 +103,32 @@ class ADXL345 extends BaseI2C implements IADXL345 {
 
     @Override
     public synchronized void startRead(final OnADXL345Listener listener) {
-        if (mWatchThread == null) {
-            mWatchThread = new WatchTread();
-            mWatchThread.mListener = listener;
-            mWatchThread.start();
+        if (!checkDevice()) {
+            listener.onError("ADXL345 is not connect.");
+        } else {
+            if (mWatchThread == null) {
+                mWatchThread = new WatchTread();
+                mWatchThread.addListener(listener);
+                mWatchThread.start();
+            } else {
+                mWatchThread.addListener(listener);
+            }
         }
     }
 
     @Override
     public synchronized void stopRead(final OnADXL345Listener listener) {
+        if (mWatchThread != null) {
+            mWatchThread.removeListener(listener);
+            if (mWatchThread.isEmptyListener()) {
+                mWatchThread.stopWatch();
+                mWatchThread = null;
+            }
+        }
+    }
+
+    @Override
+    synchronized void destroy() {
         if (mWatchThread != null) {
             mWatchThread.stopWatch();
             mWatchThread = null;
@@ -160,30 +185,66 @@ class ADXL345 extends BaseI2C implements IADXL345 {
      */
     private class WatchTread extends Thread {
         /**
-         * 終了フラグ.
+         * 停止フラグ.
          */
-        private boolean mFinishFlag;
+        private boolean mStopFlag;
 
         /**
          * リスナー.
          */
-        private OnADXL345Listener mListener;
+        private List<OnADXL345Listener> mListeners = new CopyOnWriteArrayList<>();
+
+        /**
+         * リスナーを追加します.
+         * @param listener 追加するリスナー
+         */
+        void addListener(final OnADXL345Listener listener) {
+            mListeners.add(listener);
+            listener.onStarted();
+        }
+
+        /**
+         * リスナーを削除します.
+         * @param listener 削除するリスナー
+         */
+        void removeListener(final OnADXL345Listener listener) {
+            mListeners.remove(listener);
+        }
+
+        /**
+         * 登録されているリスナーが空か確認します.
+         * @return 空の場合はtrue、それ以外はfalse
+         */
+        boolean isEmptyListener() {
+            return mListeners.isEmpty();
+        }
+
+        /**
+         * 監視を停止します.
+         */
+        void stopWatch() {
+            mListeners.clear();
+            mStopFlag = true;
+            interrupt();
+        }
 
         @Override
         public void run() {
+            final byte[] buffer = new byte[6];
+
             try {
                 startADXL345();
 
-                mListener.onStarted();
+                while (!mStopFlag) {
+                    readADXL345(buffer, buffer.length);
 
-                while (!mFinishFlag) {
-                    readADXL345(mBuffer, mBuffer.length);
+                    double x = convertResolution(decodeShort(buffer, 0));
+                    double y = convertResolution(decodeShort(buffer, 2));
+                    double z = convertResolution(decodeShort(buffer, 4));
 
-                    double x = convertResolution(decodeShort(mBuffer, 0));
-                    double y = convertResolution(decodeShort(mBuffer, 2));
-                    double z = convertResolution(decodeShort(mBuffer, 4));
-
-                    mListener.onData(x, y, z);
+                    for (OnADXL345Listener l : mListeners) {
+                        l.onData(x, y, z);
+                    }
 
                     try {
                         Thread.sleep(33);
@@ -192,13 +253,11 @@ class ADXL345 extends BaseI2C implements IADXL345 {
                     }
                 }
             } catch (IOException e) {
-                mListener.onError(e.getMessage());
+                for (OnADXL345Listener l : mListeners) {
+                    l.onError(e.getMessage());
+                }
+                mListeners.clear();
             }
-        }
-
-        void stopWatch() {
-            mFinishFlag = true;
-            interrupt();
         }
     }
 }

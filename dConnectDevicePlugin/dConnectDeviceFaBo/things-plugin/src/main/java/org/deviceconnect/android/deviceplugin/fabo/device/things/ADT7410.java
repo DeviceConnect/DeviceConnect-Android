@@ -5,6 +5,8 @@ import com.google.android.things.pio.I2cDevice;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * ADT7410を操作するクラス.
@@ -49,6 +51,11 @@ class ADT7410 extends BaseI2C implements IADT7410 {
     private byte[] mBuffer = new byte[2];
 
     /**
+     * 温度監視用スレッド.
+     */
+    private WatchThread mWatchThread;
+
+    /**
      * コンストラクタ.
      * @param control コントローラ
      */
@@ -63,6 +70,13 @@ class ADT7410 extends BaseI2C implements IADT7410 {
         } else {
             try {
                 setADT7410();
+
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 readADT7410(mBuffer, mBuffer.length);
                 listener.onData(convertTemperature(decodeUShort2(mBuffer, 0)));
             } catch (IOException e) {
@@ -72,11 +86,37 @@ class ADT7410 extends BaseI2C implements IADT7410 {
     }
 
     @Override
-    public void startRead(final OnADT7410Listener listener) {
+    public synchronized void startRead(final OnADT7410Listener listener) {
+        if (!checkDevice()) {
+            listener.onError("ADT7410 is not connect.");
+        } else {
+            if (mWatchThread == null) {
+                mWatchThread = new WatchThread();
+                mWatchThread.addListener(listener);
+                mWatchThread.start();
+            } else {
+                mWatchThread.addListener(listener);
+            }
+        }
     }
 
     @Override
-    public void stopRead(final OnADT7410Listener listener) {
+    public synchronized void stopRead(final OnADT7410Listener listener) {
+        if (mWatchThread != null) {
+            mWatchThread.removeListener(listener);
+            if (mWatchThread.isEmptyListener()) {
+                mWatchThread.stopWatch();
+                mWatchThread = null;
+            }
+        }
+    }
+
+    @Override
+    synchronized void destroy() {
+        if (mWatchThread != null) {
+            mWatchThread.stopWatch();
+            mWatchThread = null;
+        }
     }
 
     /**
@@ -123,5 +163,78 @@ class ADT7410 extends BaseI2C implements IADT7410 {
             value = value - 65536;
         }
         return value / 128.0;
+    }
+
+    private class WatchThread extends Thread {
+        /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
+        /**
+         * リスナー.
+         */
+        private List<OnADT7410Listener> mListeners = new CopyOnWriteArrayList<>();
+
+        /**
+         * リスナーを追加します.
+         * @param listener 追加するリスナー
+         */
+        void addListener(final OnADT7410Listener listener) {
+            mListeners.add(listener);
+            listener.onStarted();
+        }
+
+        /**
+         * リスナーを削除します.
+         * @param listener 削除するリスナー
+         */
+        void removeListener(final OnADT7410Listener listener) {
+            mListeners.remove(listener);
+        }
+
+        /**
+         * 登録されているリスナーが空か確認します.
+         * @return 空の場合はtrue、それ以外はfalse
+         */
+        boolean isEmptyListener() {
+            return mListeners.isEmpty();
+        }
+
+        /**
+         * 監視を停止します.
+         */
+        void stopWatch() {
+            mListeners.clear();
+            mStopFlag = true;
+            interrupt();
+        }
+
+        @Override
+        public void run() {
+            final byte[] buffer = new byte[2];
+            try {
+                setADT7410();
+
+                while (!mStopFlag) {
+                    readADT7410(buffer, buffer.length);
+
+                    double t = convertTemperature(decodeUShort2(buffer, 0));
+                    for (OnADT7410Listener l : mListeners) {
+                        l.onData(t);
+                    }
+
+                    try {
+                        Thread.sleep(33);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                for (OnADT7410Listener l : mListeners) {
+                    l.onError(e.getMessage());
+                }
+            }
+        }
     }
 }

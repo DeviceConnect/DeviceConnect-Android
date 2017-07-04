@@ -150,6 +150,30 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
         }
         mGpioMap.clear();
 
+        if (mADXL345 != null) {
+            mADXL345.destroy();
+        }
+
+        if (mADT7410 != null) {
+            mADT7410.destroy();
+        }
+
+        if (mHTS221 != null) {
+            mHTS221.destroy();
+        }
+
+        if (mISL29034 != null) {
+            mISL29034.destroy();
+        }
+
+        if (mMPL115 != null) {
+            mMPL115.destroy();
+        }
+
+        if (mVCNL4010 != null) {
+            mVCNL4010.destroy();
+        }
+
         for (I2cDevice device : mI2cDeviceMap.values()) {
             try {
                 device.close();
@@ -389,6 +413,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
                     ArduinoUno.Pin pin = pins.get(name);
                     if (pin != null) {
                         Gpio gpio = mManagerService.openGpio(name);
+                        gpio.setEdgeTriggerType(Gpio.EDGE_NONE);
                         gpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
                         gpio.setActiveType(Gpio.ACTIVE_HIGH);
                         gpio.registerGpioCallback(mGpioCallback);

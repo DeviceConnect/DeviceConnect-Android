@@ -429,13 +429,15 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
                     for (Event event : events) {
                         Bundle pins = new Bundle();
                         for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
-                            switch (pin.getMode()) {
-                                case GPIO_IN:
-                                    pins.putInt(pin.getPinNames()[1], getFaBoDeviceControl().getDigital(pin).getValue());
-                                    break;
-                                case ANALOG:
-                                    pins.putInt(pin.getPinNames()[1], getFaBoDeviceControl().getAnalog(pin));
-                                    break;
+                            if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                switch (pin.getMode()) {
+                                    case GPIO_IN:
+                                        pins.putInt(pin.getPinNames()[1], getFaBoDeviceControl().getDigital(pin).getValue());
+                                        break;
+                                    case ANALOG:
+                                        pins.putInt(pin.getPinNames()[1], getFaBoDeviceControl().getAnalog(pin));
+                                        break;
+                                }
                             }
                         }
 

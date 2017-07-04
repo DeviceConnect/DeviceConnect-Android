@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 import org.deviceconnect.android.message.MessageUtils;
@@ -44,8 +43,6 @@ public class I2CTemperatureProfile extends BaseFaBoProfile {
 
                         @Override
                         public void onData(final double temperature) {
-                            Log.e("ABC", "AAAAAA D" + temperature);
-
                             if (type == null || type == 1) {
                                 response.putExtra("temperature", temperature);
                             } else {

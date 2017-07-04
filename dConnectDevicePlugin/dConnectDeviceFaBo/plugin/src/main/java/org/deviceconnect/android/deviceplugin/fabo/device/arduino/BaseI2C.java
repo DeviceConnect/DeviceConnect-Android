@@ -1,7 +1,5 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
-import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
-
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_CONFIG;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_READ;
@@ -16,13 +14,13 @@ class BaseI2C {
     /**
      * Usbに接続されたデバイスを管理するクラス.
      */
-    private FaBoDeviceControl mFaBoDeviceControl;
+    private FaBoUsbDeviceControl mFaBoDeviceControl;
 
     /**
      * FaBoDeviceControlのインスタンスを取得します.
      * @return FaBoDeviceControlのインスタンス
      */
-    FaBoDeviceControl getFaBoDeviceControl() {
+    FaBoUsbDeviceControl getFaBoDeviceControl() {
         return mFaBoDeviceControl;
     }
 
@@ -30,7 +28,7 @@ class BaseI2C {
      * FaBoDeviceControlのインスタンスを設定します.
      * @param controller FaBoDeviceControlのインスタンス
      */
-    void setFaBoDeviceControl(final FaBoDeviceControl controller) {
+    void setFaBoDeviceControl(final FaBoUsbDeviceControl controller) {
         mFaBoDeviceControl = controller;
     }
 

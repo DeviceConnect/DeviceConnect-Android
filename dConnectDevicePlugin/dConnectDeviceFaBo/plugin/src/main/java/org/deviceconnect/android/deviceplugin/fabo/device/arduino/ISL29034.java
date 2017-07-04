@@ -278,7 +278,7 @@ class ISL29034 extends BaseI2C implements IISL29034 {
                 break;
 
             case REG_DATA_L:
-                notifyLux(decodeByte(data[offset++], data[offset]));
+                notifyLux(FirmataUtil.decodeShort2(data, offset));
                 break;
         }
     }

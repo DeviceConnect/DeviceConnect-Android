@@ -197,6 +197,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
+    public boolean isPinSupported(final ArduinoUno.Pin pin) {
+        return true;
+    }
+
+    @Override
     public void writeAnalog(final ArduinoUno.Pin pin, final int value) {
         byte[] bytes = new byte[5];
         bytes[0] = (byte) START_SYSEX;
@@ -260,16 +265,6 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     @Override
     public int getStatus() {
         return mStatus;
-    }
-
-    @Override
-    public void writeI2C(final byte[] buffer) {
-        sendMessage(buffer);
-    }
-
-    @Override
-    public void readI2C() {
-        // TODO
     }
 
     @Override
@@ -622,6 +617,14 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             }
         }
     };
+
+    /**
+     * I2Cへの書き込みを行います.
+     * @param buffer 書き込むバッファ
+     */
+    void writeI2C(final byte[] buffer) {
+        sendMessage(buffer);
+    }
 
     /**
      * メッセージの送信

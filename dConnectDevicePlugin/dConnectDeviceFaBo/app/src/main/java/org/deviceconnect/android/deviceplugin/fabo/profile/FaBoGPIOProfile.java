@@ -54,9 +54,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
                             if (!isOnline()) {
                                 MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
-                                int value = getFaBoDeviceControl().getAnalog(pin);
-                                setValue(response, value);
-                                setResult(response, RESULT_OK);
+                                if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                    int value = getFaBoDeviceControl().getAnalog(pin);
+                                    setValue(response, value);
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                                }
                             }
                             return true;
                         }
@@ -102,9 +106,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
                             if (!isOnline()) {
                                 MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
-                                ArduinoUno.Level value = getFaBoDeviceControl().getDigital(pin);
-                                setValue(response, value.getValue());
-                                setResult(response, RESULT_OK);
+                                if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                    ArduinoUno.Level value = getFaBoDeviceControl().getDigital(pin);
+                                    setValue(response, value.getValue());
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not support.");
+                                }
                             }
                             return true;
                         }
@@ -135,18 +143,22 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if (!isOnline()) {
                         MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        Integer modeValue = parseInteger(request, "mode");
-                        if (modeValue != null) {
-                            ArduinoUno.Mode mode = ArduinoUno.Mode.getMode(modeValue);
-                            if (mode != null) {
-                                getFaBoDeviceControl().setPinMode(pin, mode);
-                                setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
-                                setResult(response, RESULT_OK);
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            Integer modeValue = parseInteger(request, "mode");
+                            if (modeValue != null) {
+                                ArduinoUno.Mode mode = ArduinoUno.Mode.getMode(modeValue);
+                                if (mode != null) {
+                                    getFaBoDeviceControl().setPinMode(pin, mode);
+                                    setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
+                                }
                             } else {
-                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
+                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
                             }
                         } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
                         }
                     }
                     return true;
@@ -174,18 +186,22 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if (!isOnline()) {
                         MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        Integer hlValue = parseInteger(request, PARAM_VALUE);
-                        if (hlValue != null) {
-                            ArduinoUno.Level level = ArduinoUno.Level.getLevel(hlValue);
-                            if (level != null) {
-                                getFaBoDeviceControl().writeDigital(pin, level);
-                                setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
-                                setResult(response, RESULT_OK);
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            Integer hlValue = parseInteger(request, PARAM_VALUE);
+                            if (hlValue != null) {
+                                ArduinoUno.Level level = ArduinoUno.Level.getLevel(hlValue);
+                                if (level != null) {
+                                    getFaBoDeviceControl().writeDigital(pin, level);
+                                    setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
+                                }
                             } else {
-                                MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
+                                MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
                             }
                         } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
                         }
                     }
                     return true;
@@ -220,16 +236,20 @@ public class FaBoGPIOProfile extends GPIOProfile {
                             if (!isOnline()) {
                                 MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
-                                Integer hlValue = parseInteger(request, PARAM_VALUE);
-                                if (hlValue != null) {
-                                    if (hlValue >= 0 && hlValue <= 255) {
-                                        getFaBoDeviceControl().writeAnalog(pin, hlValue);
-                                        setResult(response, RESULT_OK);
+                                if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                    Integer hlValue = parseInteger(request, PARAM_VALUE);
+                                    if (hlValue != null) {
+                                        if (hlValue >= 0 && hlValue <= 255) {
+                                            getFaBoDeviceControl().writeAnalog(pin, hlValue);
+                                            setResult(response, RESULT_OK);
+                                        } else {
+                                            MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
+                                        }
                                     } else {
-                                        MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
+                                        MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
                                     }
                                 } else {
-                                    MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                                    MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
                                 }
                             }
                             return true;
@@ -284,9 +304,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if (!isOnline()) {
                         MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
-                        setMessage(response, pinName + "の値をHIGH(1)に変更");
-                        setResult(response, RESULT_OK);
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                            setMessage(response, pinName + "の値をHIGH(1)に変更");
+                            setResult(response, RESULT_OK);
+                        } else {
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                        }
                     }
                     return true;
                 }
@@ -336,9 +360,13 @@ public class FaBoGPIOProfile extends GPIOProfile {
                     if (!isOnline()) {
                         MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
-                        setMessage(response, pinName + "の値をLOW(0)に変更");
-                        setResult(response, RESULT_OK);
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                            setMessage(response, pinName + "の値をLOW(0)に変更");
+                            setResult(response, RESULT_OK);
+                        } else {
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                        }
                     }
                     return true;
                 }

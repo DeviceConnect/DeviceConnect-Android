@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.things;
 
-import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.things.pio.Gpio;
@@ -8,6 +9,7 @@ import com.google.android.things.pio.GpioCallback;
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManagerService;
 
+import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
@@ -25,20 +27,76 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst.STATUS_FABO_RUNNING;
+
+/**
+ * Android Things版FaBoを操作するためのクラス.
+ */
 public class FaBoThingsDeviceControl implements FaBoDeviceControl {
 
+    /**
+     * デバッグ用タグ.
+     */
     private static final String TAG = "FaBo";
 
-    private Context mContext;
+    /**
+     * デバッグフラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
+    /**
+     * GPIOを保持するマップ.
+     */
     private Map<Integer, Gpio> mGpioMap = new HashMap<>();
 
+    /**
+     * I2Cデバイスを保持するマップ.
+     */
     private Map<Integer, I2cDevice> mI2cDeviceMap = new HashMap<>();
 
+    /**
+     * RobotCarを操作するためのクラス.
+     */
     private RobotCar mRobotCar;
+
+    /**
+     * RobotCar(Mouse)を操作するためのクラス.
+     */
     private MouseCar mMouseCar;
+
+    /**
+     * Brick #201 を操作するためのクラス.
+     */
     private ADXL345 mADXL345;
 
+    /**
+     * Brick #207 を操作するためのクラス.
+     */
+    private ADT7410 mADT7410;
+
+    /**
+     * Brick #208 を操作するためのクラス.
+     */
+    private HTS221 mHTS221;
+
+    /**
+     * Brick #217 を操作するクラス.
+     */
+    private ISL29034 mISL29034;
+
+    /**
+     * Brick #204 を操作するクラス.
+     */
+    private MPL115 mMPL115;
+
+    /**
+     * Brick # 205 を操作するクラス.
+     */
+    private VCNL4010 mVCNL4010;
+
+    /**
+     * FaBoとの接続状態を通知するリスナー.
+     */
     private OnFaBoDeviceControlListener mOnFaBoDeviceControlListener;
 
     /**
@@ -51,60 +109,37 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
      */
     private PeripheralManagerService mManagerService;
 
-    public FaBoThingsDeviceControl(final Context context) {
-        mContext = context;
+    /**
+     * GPIOの処理を行うハンドラ.
+     */
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    /**
+     * コンストラクタ.
+     */
+    public FaBoThingsDeviceControl() {
     }
 
     @Override
     public void initialize() {
+        if (DEBUG) {
+            Log.i(TAG, "FaBoThingsDeviceControl::initialize");
+        }
+
         mManagerService = new PeripheralManagerService();
 
-        List<String> portList = mManagerService.getGpioList();
-        if (portList.isEmpty()) {
-            Log.i(TAG, "No GPIO port available on this device.");
-        } else {
-            Log.i(TAG, "List of available ports: " + portList);
-
-            Map<String, ArduinoUno.Pin> pins = new HashMap<>();
-            pins.put("BCM4", ArduinoUno.Pin.PIN_D4);
-            pins.put("BCM5", ArduinoUno.Pin.PIN_D5);
-            pins.put("BCM6", ArduinoUno.Pin.PIN_D6);
-            pins.put("BCM12", ArduinoUno.Pin.PIN_D12);
-
-            for (String name : portList) {
-                Log.i(TAG, "      " + name);
-                try {
-                    ArduinoUno.Pin pin = pins.get(name);
-                    if (pin != null) {
-                        Gpio gpio = mManagerService.openGpio(name);
-                        gpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
-                        gpio.setActiveType(Gpio.ACTIVE_HIGH);
-                        gpio.setValue(true);
-
-//                        gpio.setDirection(Gpio.DIRECTION_IN);
-//                        gpio.setActiveType(Gpio.ACTIVE_LOW);
-//                        gpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
-//                        gpio.registerGpioCallback(mGpioCallback);
-
-                        mGpioMap.put(pin.getPinNumber(), gpio);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        if (mOnFaBoDeviceControlListener != null) {
-            mOnFaBoDeviceControlListener.onConnected();
-        }
+        initGpio();
     }
 
     @Override
     public void destroy() {
+        if (DEBUG) {
+            Log.i(TAG, "FaBoThingsDeviceControl::destroy");
+        }
 
-        Log.i(TAG, "FaBoThingsDeviceControl::destroy");
-
-        mOnGPIOListeners.clear();
+        synchronized (mOnGPIOListeners) {
+            mOnGPIOListeners.clear();
+        }
 
         for (Gpio gpio : mGpioMap.values()) {
             try {
@@ -126,7 +161,13 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
+    public boolean isPinSupported(final ArduinoUno.Pin pin) {
+        return mGpioMap.containsKey(pin.getPinNumber());
+    }
+
+    @Override
     public void writeAnalog(final ArduinoUno.Pin pin, final int value) {
+        throw new RuntimeException("Analog is not supported.");
     }
 
     @Override
@@ -137,13 +178,15 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
                 gpio.setValue(hl == ArduinoUno.Level.HIGH);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (DEBUG) {
+                Log.w(TAG, "", e);
+            }
         }
     }
 
     @Override
     public int getAnalog(final ArduinoUno.Pin pin) {
-        return 0;
+        throw new RuntimeException("Analog is not supported.");
     }
 
     @Override
@@ -161,102 +204,104 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
 
     @Override
     public void setPinMode(final ArduinoUno.Pin pin, final ArduinoUno.Mode mode) {
-        Log.e("ABC", "setPinMode::");
-        try {
-            Gpio gpio = mGpioMap.get(pin.getPinNumber());
-            if (gpio != null) {
-
-                Log.e("ABC", "setPinMode:: 2");
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
                 try {
-                    gpio.unregisterGpioCallback(mGpioCallback);
-                    gpio.close();
+                    Gpio gpio = mGpioMap.get(pin.getPinNumber());
+                    if (gpio != null && pin.getMode() != mode) {
+                        switch (mode) {
+                            case GPIO_IN:
+                                gpio.setEdgeTriggerType(Gpio.EDGE_NONE);
+                                gpio.setDirection(Gpio.DIRECTION_IN);
+                                gpio.setActiveType(Gpio.ACTIVE_HIGH);
+                                gpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
+                                break;
+
+                            case GPIO_OUT:
+                                gpio.setEdgeTriggerType(Gpio.EDGE_NONE);
+                                gpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+                                gpio.setActiveType(Gpio.ACTIVE_HIGH);
+                                break;
+                        }
+                        pin.setMode(mode);
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    if (DEBUG) {
+                        Log.w(TAG, "setPinMode", e);
+                    }
                 }
-
-                Map<ArduinoUno.Pin, String> pins = new HashMap<>();
-                pins.put(ArduinoUno.Pin.PIN_D4, "BCM4");
-                pins.put(ArduinoUno.Pin.PIN_D5, "BCM5");
-                pins.put(ArduinoUno.Pin.PIN_D6, "BCM6");
-                pins.put(ArduinoUno.Pin.PIN_D12, "BCM12");
-
-                gpio = mManagerService.openGpio(pins.get(pin));
-
-                switch (mode) {
-                    case GPIO_IN:
-                        Log.e("ABC", "setPinMode:: A");
-                        gpio.setDirection(Gpio.DIRECTION_IN);
-                        gpio.setActiveType(Gpio.ACTIVE_LOW);
-                        gpio.setEdgeTriggerType(Gpio.EDGE_BOTH);
-                        gpio.registerGpioCallback(mGpioCallback);
-                        Log.e("ABC", "setPinMode:: B");
-                        break;
-
-                    case GPIO_OUT:
-                        Log.e("ABC", "setPinMode:: C");
-                        gpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
-                        gpio.setActiveType(Gpio.ACTIVE_HIGH);
-                        Log.e("ABC", "setPinMode:: D");
-                        break;
-                }
-                pin.setMode(mode);
             }
-        } catch (IOException e) {
-            Log.w(TAG, "", e);
-        }
+        });
     }
 
     @Override
     public int getStatus() {
-        return 0;
-    }
-
-    @Override
-    public void writeI2C(final byte[] buffer) {
-    }
-
-    @Override
-    public void readI2C() {
+        return STATUS_FABO_RUNNING;
     }
 
     @Override
     public IRobotCar getRobotCar() {
+        if (mRobotCar == null) {
+            mRobotCar = new RobotCar(this);
+        }
         return mRobotCar;
     }
 
     @Override
     public IMouseCar getMouseCar() {
+        if (mMouseCar == null) {
+            mMouseCar = new MouseCar(this);
+        }
         return mMouseCar;
     }
 
     @Override
     public IADXL345 getADXL345() {
+        if (mADXL345 == null) {
+            mADXL345 = new ADXL345(this);
+        }
         return mADXL345;
     }
 
     @Override
     public IADT7410 getADT7410() {
-        return null;
+        if (mADT7410 == null) {
+            mADT7410 = new ADT7410(this);
+        }
+        return mADT7410;
     }
 
     @Override
     public IHTS221 getHTS221() {
-        return null;
+        if (mHTS221 == null) {
+            mHTS221 = new HTS221(this);
+        }
+        return mHTS221;
     }
 
     @Override
     public IVCNL4010 getVCNL4010() {
-        return null;
+        if (mVCNL4010 == null) {
+            mVCNL4010 = new VCNL4010(this);
+        }
+        return mVCNL4010;
     }
 
     @Override
     public IISL29034 getISL29034() {
-        return null;
+        if (mISL29034 == null) {
+            mISL29034 = new ISL29034(this);
+        }
+        return mISL29034;
     }
 
     @Override
     public IMPL115 getMPL115() {
-        return null;
+        if (mMPL115 == null) {
+            mMPL115 = new MPL115(this);
+        }
+        return mMPL115;
     }
 
     @Override
@@ -297,16 +342,72 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     private GpioCallback mGpioCallback = new GpioCallback() {
         @Override
         public boolean onGpioEdge(final Gpio gpio) {
-            Log.i(TAG, "onGpioEdge : " + gpio);
+            if (DEBUG) {
+                try {
+                    Log.e(TAG, "GPIO: " + gpio.getValue());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             notifyDigital();
             return true;
         }
-
         @Override
         public void onGpioError(final Gpio gpio, final int error) {
-            Log.w(TAG, gpio + ": Error event " + error);
+            if (DEBUG) {
+                Log.w(TAG, gpio + ": Error event " + error);
+            }
         }
     };
+
+    /**
+     * GPIOを初期化します.
+     */
+    private void initGpio() {
+        List<String> portList = mManagerService.getGpioList();
+        if (portList.isEmpty()) {
+            if (DEBUG) {
+                Log.i(TAG, "No GPIO port available on this device.");
+            }
+
+            if (mOnFaBoDeviceControlListener != null) {
+                mOnFaBoDeviceControlListener.onFailedConnected();
+            }
+        } else {
+            if (DEBUG) {
+                Log.i(TAG, "List of available ports: " + portList);
+            }
+
+            Map<String, ArduinoUno.Pin> pins = new HashMap<>();
+            pins.put("BCM4", ArduinoUno.Pin.PIN_D4);
+            pins.put("BCM5", ArduinoUno.Pin.PIN_D5);
+            pins.put("BCM6", ArduinoUno.Pin.PIN_D6);
+            pins.put("BCM12", ArduinoUno.Pin.PIN_D12);
+
+            for (String name : portList) {
+                try {
+                    ArduinoUno.Pin pin = pins.get(name);
+                    if (pin != null) {
+                        Gpio gpio = mManagerService.openGpio(name);
+                        gpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+                        gpio.setActiveType(Gpio.ACTIVE_HIGH);
+                        gpio.registerGpioCallback(mGpioCallback);
+                        gpio.setValue(true);
+
+                        mGpioMap.put(pin.getPinNumber(), gpio);
+                    }
+                } catch (IOException e) {
+                    if (DEBUG) {
+                        Log.w(TAG, " ", e);
+                    }
+                }
+            }
+
+            if (mOnFaBoDeviceControlListener != null) {
+                mOnFaBoDeviceControlListener.onConnected();
+            }
+        }
+    }
 
     /**
      * I2cDeviceを取得します.
@@ -326,7 +427,9 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
 
         List<String> i2cList = mManagerService.getI2cBusList();
         if (i2cList.isEmpty()) {
-            Log.i(TAG, "No I2C port available on this device.");
+            if (DEBUG) {
+                Log.i(TAG, "No I2C port available on this device.");
+            }
             return null;
         } else {
             try {

@@ -17,6 +17,13 @@ public interface FaBoDeviceControl {
     void destroy();
 
     /**
+     * 指定されたピンがサポートされているか確認を行います.
+     * @param pin サポートされているか確認するピン
+     * @return サポートされている場合はtrue、それ以外はfalse
+     */
+    boolean isPinSupported(final ArduinoUno.Pin pin);
+
+    /**
      * アナログピンに対して書き込みを行います.
      * @param pin アナログピン
      * @param value 書き込む値
@@ -58,16 +65,6 @@ public interface FaBoDeviceControl {
     int getStatus();
 
     /**
-     * TODO
-     */
-    void writeI2C(final byte[] buffer);
-
-    /**
-     * TODO
-     */
-    void readI2C();
-
-    /**
      * RobotCarを操作するためのインターフェースを取得します.
      * @return IRobotCarを実装したクラス
      */
@@ -97,10 +94,22 @@ public interface FaBoDeviceControl {
      */
     IHTS221 getHTS221();
 
+    /**
+     * VCNL4010を操作するためのインターフェースを取得します.
+     * @return VCNL4010を実装したクラス
+     */
     IVCNL4010 getVCNL4010();
 
+    /**
+     * ISL29034を操作するためのインターフェースを取得します.
+     * @return ISL29034を実装したクラス
+     */
     IISL29034 getISL29034();
 
+    /**
+     * MPL115を操作するためのインターフェースを取得します.
+     * @return MPL115を実装したクラス
+     */
     IMPL115 getMPL115();
 
     /**

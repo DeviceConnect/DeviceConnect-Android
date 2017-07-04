@@ -23,6 +23,7 @@ import org.synchronoss.cloud.nio.stream.storage.StreamStorage;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -172,10 +173,10 @@ public class BlockingIOAdapter {
 
                 PartItem next;
                 next = partItems.poll();
-                if (next != null && next.getType() == null){
+                if (next != null && next.getType() == null) {
                     return endOfData();
                 }
-                if (next != null){
+                if (next != null) {
                     return next;
                 }
 
@@ -183,16 +184,18 @@ public class BlockingIOAdapter {
                     parser.write(buffer, 0, read);
                 }
 
-                if (next != null && next.getType() == null){
+                if (next != null && next.getType() == null) {
                     return endOfData();
                 }
-                if (next != null){
+                if (next != null) {
                     return next;
                 }
 
                 throw new IllegalStateException("Error parsing the multipart stream. Stream ended unexpectedly");
-
-            }catch (Exception e){
+                // MODIFIED
+            } catch (InterruptedIOException e) {
+                return endOfData();
+            } catch (Exception e){
                 throw new IllegalStateException("Error parsing the multipart stream", e);
             }
         }

@@ -21,6 +21,8 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno.PIN_NO_A0;
+
 public class FaBoProfile extends DConnectProfile {
 
     public FaBoProfile() {
@@ -194,6 +196,8 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "pins already used in the " + serviceData.getName());
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !isPinsSupported(pinList)) {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
+                } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
+                    MessageUtils.setNotSupportAttributeError(response, "Pins that can not be used are included.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -244,6 +248,8 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "pins already used in the " + serviceData.getName());
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !isPinsSupported(pinList)) {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
+                } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
+                    MessageUtils.setNotSupportAttributeError(response, "Pins that can not be used are included.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -406,6 +412,31 @@ public class FaBoProfile extends DConnectProfile {
     private boolean isPinSupported(final int pinNum) {
         ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(pinNum);
         return pin != null && getFaBoDeviceService().getFaBoDeviceControl().isPinSupported(pin);
+    }
+
+    /**
+     * ピンのタイプを確認します.
+     * @param type ピンのタイプ
+     * @param pins ピン
+     * @return ピンのタイプが合って入ればtrue、それ以外はfalse
+     */
+    private boolean checkPinType(final ProfileData.Type type, final List<Integer> pins) {
+        ProfileDataUtil.PinType pinType = ProfileDataUtil.getPinType(type);
+        for (int pin : pins) {
+            switch (pinType) {
+                case ANALOG:
+                    if (pin < PIN_NO_A0) {
+                        return false;
+                    }
+                    break;
+                case DIGITAL:
+                    if (pin >= PIN_NO_A0) {
+                        return false;
+                    }
+                    break;
+            }
+        }
+        return true;
     }
 
     /**

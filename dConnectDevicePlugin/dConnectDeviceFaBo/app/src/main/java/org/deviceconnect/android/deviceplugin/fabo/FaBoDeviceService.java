@@ -441,10 +441,12 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
                             }
                         }
 
-                        // Eventに値をおくる.
-                        Intent intent = EventManager.createEventMessage(event);
-                        intent.putExtra("pins", pins);
-                        sendEvent(intent, event.getAccessToken());
+                        if (pins.size() > 0) {
+                            // Eventに値をおくる.
+                            Intent intent = EventManager.createEventMessage(event);
+                            intent.putExtra("pins", pins);
+                            sendEvent(intent, event.getAccessToken());
+                        }
                     }
                 }
 

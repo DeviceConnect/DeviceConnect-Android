@@ -98,6 +98,16 @@ public final class ProfileDataUtil {
         return mPinTypeMap.get(profileData.getType());
     }
 
+
+    /**
+     * プロファイルが使用できるピンのタイプを取得します.
+     * @param type プロファイルタイプ
+     * @return 使用できるピンのタイプ
+     */
+    public static PinType getPinType(final ProfileData.Type type) {
+        return mPinTypeMap.get(type);
+    }
+
     /**
      * プロファイルが複数のピンを使用できるかを確認します.
      * @param profileData プロファイルデータ

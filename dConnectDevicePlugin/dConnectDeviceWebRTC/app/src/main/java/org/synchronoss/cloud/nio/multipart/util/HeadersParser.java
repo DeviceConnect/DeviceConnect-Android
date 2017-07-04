@@ -77,6 +77,8 @@ public class HeadersParser {
                 // Parse the header name and value
                 int colon = line.indexOf(":");
                 if (colon < 0) {
+                    // MODIFIED
+                    Log.e("MRMC", "Unable to parse header: " + line);
                     break;
 //                    throw new IllegalStateException("Unable to parse header: " + line);
                 }

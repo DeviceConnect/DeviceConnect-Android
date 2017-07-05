@@ -26,16 +26,6 @@ import static org.deviceconnect.android.event.EventManager.INSTANCE;
  */
 public class I2CProximityProfile extends BaseFaBoProfile {
     /**
-     * イベントを送信するためのインターバル.
-     */
-    private long mInterval = 100;
-
-    /**
-     * 前回送信したイベントの時間.
-     */
-    private long mSendTime;
-
-    /**
      * コンストラクタ.
      */
     public I2CProximityProfile() {
@@ -48,7 +38,6 @@ public class I2CProximityProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-
                 IVCNL4010 ivcnl4010 = getFaBoDeviceControl().getVCNL4010();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
@@ -87,13 +76,6 @@ public class I2CProximityProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                final Integer interval = parseInteger(request, "interval");
-                if (interval != null) {
-                    mInterval = interval;
-                } else {
-                    mInterval = 100;
-                }
-
                 IVCNL4010 ivcnl4010 = getFaBoDeviceControl().getVCNL4010();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
@@ -180,18 +162,13 @@ public class I2CProximityProfile extends BaseFaBoProfile {
      * @param value 値が渡されてきたピン
      */
     private void notifyProximity(final boolean value) {
-        long interval = (System.currentTimeMillis() - mSendTime);
-        if (interval >= mInterval) {
-            String serviceId = getService().getId();
-            List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                    "proximity", null, "onUserProximity");
-            for (Event event : events) {
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra("proximity", createProximity(value));
-                sendEvent(intent, event.getAccessToken());
-            }
-
-            mSendTime = System.currentTimeMillis();
+        String serviceId = getService().getId();
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                "proximity", null, "onUserProximity");
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra("proximity", createProximity(value));
+            sendEvent(intent, event.getAccessToken());
         }
     }
 

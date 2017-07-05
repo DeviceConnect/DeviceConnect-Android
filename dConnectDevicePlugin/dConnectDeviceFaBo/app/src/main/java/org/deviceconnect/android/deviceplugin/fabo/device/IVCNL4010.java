@@ -48,7 +48,7 @@ public interface IVCNL4010 {
          * 近距離センサー値を受け取ります.
          * @param proximity 距離
          */
-        void onData(final double proximity);
+        void onData(final boolean proximity);
 
         /**
          * 近距離センサー値の取得失敗通知を受け取ります.

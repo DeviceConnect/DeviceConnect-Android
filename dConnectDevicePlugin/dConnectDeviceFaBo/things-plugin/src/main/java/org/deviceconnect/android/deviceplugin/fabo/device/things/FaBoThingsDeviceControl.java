@@ -152,26 +152,32 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
 
         if (mADXL345 != null) {
             mADXL345.destroy();
+            mADXL345 = null;
         }
 
         if (mADT7410 != null) {
             mADT7410.destroy();
+            mADT7410 = null;
         }
 
         if (mHTS221 != null) {
             mHTS221.destroy();
+            mHTS221 = null;
         }
 
         if (mISL29034 != null) {
             mISL29034.destroy();
+            mISL29034 = null;
         }
 
         if (mMPL115 != null) {
             mMPL115.destroy();
+            mMPL115 = null;
         }
 
         if (mVCNL4010 != null) {
             mVCNL4010.destroy();
+            mVCNL4010 = null;
         }
 
         for (I2cDevice device : mI2cDeviceMap.values()) {

@@ -73,6 +73,8 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     private static final int AMBI_AVE_NUM_64 = 0x06;
     private static final int AMBI_AVE_NUM_128 = 0x07;
 
+    private static final double THRESHOLD = 1.8;
+
     private List<OnProximityListener> mOnProximityListeners = new CopyOnWriteArrayList<>();
     private List<OnAmbientLightListener> mOnAmbientLightListeners = new CopyOnWriteArrayList<>();
 
@@ -88,13 +90,13 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
             }
 
             @Override
-            public void onData(double proximity) {
+            public void onData(final boolean proximity) {
                 listener.onData(proximity);
                 stopProximity(this);
             }
 
             @Override
-            public void onError(String message) {
+            public void onError(final String message) {
                 listener.onError(message);
                 stopProximity(this);
             }
@@ -331,6 +333,9 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     }
 
     private class Proximity extends VCNL4010State {
+
+        private double mOldProximity;
+
         @Override
         void stop() {
             stopRead(SLAVE_ADDRESS, REG_PROX_DATA_H);
@@ -380,12 +385,18 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                         cancelTimer();
                     }
 
-                    int proximity = FirmataUtil.decodeUShort2(data, offset);
-                    if (proximity > 2200) {
-                        for (OnProximityListener listener : mOnProximityListeners) {
-                            listener.onData(convert(proximity));
+                    double proximity = convert(FirmataUtil.decodeUShort2(data, offset));
+                    if (mOldProximity > THRESHOLD && proximity < THRESHOLD) {
+                        for (OnProximityListener l : mOnProximityListeners) {
+                            l.onData(true);
+                        }
+                    } else if (mOldProximity < THRESHOLD && proximity > THRESHOLD) {
+                        for (OnProximityListener l : mOnProximityListeners) {
+                            l.onData(false);
                         }
                     }
+                    mOldProximity = proximity;
+
                     break;
             }
         }
@@ -418,7 +429,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
 
                                 // 設定が反映されるまで、少し時間がかかるのスリープを入れておく
                                 try {
-                                    Thread.sleep(100);
+                                    Thread.sleep(33);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }

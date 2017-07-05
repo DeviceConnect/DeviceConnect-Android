@@ -79,6 +79,11 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
     private static final int AMBI_AVE_NUM_128 = 0x07;
 
     /**
+     * 距離の閾値.
+     */
+    private static final double THRESHOLD = 1.8;
+
+    /**
      * I2Cデバイス.
      */
     private I2cDevice mI2cDevice;
@@ -120,7 +125,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                     e.printStackTrace();
                 }
 
-                listener.onData(readProx());
+                listener.onData(readProx() < THRESHOLD);
             } catch (IOException e) {
                 listener.onError(e.getMessage());
             }
@@ -301,6 +306,9 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         return decodeUShort2(mBuffer, 0);
     }
 
+    /**
+     * 近距離を監視するスレッド.
+     */
     private class ProximityWatchTread extends Thread {
         /**
          * 停止フラグ.
@@ -311,6 +319,11 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
          * リスナー.
          */
         private List<OnProximityListener> mListeners = new CopyOnWriteArrayList<>();
+
+        /**
+         * 距離.
+         */
+        private double mOldProximity;
 
         /**
          * リスナーを追加します.
@@ -359,10 +372,16 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
                     }
 
                     double proximity = readProx();
-
-                    for (OnProximityListener l : mListeners) {
-                        l.onData(proximity);
+                    if (mOldProximity > THRESHOLD && proximity < THRESHOLD) {
+                        for (OnProximityListener l : mListeners) {
+                            l.onData(true);
+                        }
+                    } else if (mOldProximity < THRESHOLD && proximity > THRESHOLD) {
+                        for (OnProximityListener l : mListeners) {
+                            l.onData(false);
+                        }
                     }
+                    mOldProximity = proximity;
                 }
             } catch (IOException e) {
                 for (OnProximityListener l : mListeners) {
@@ -372,6 +391,9 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         }
     }
 
+    /**
+     * 照度を監視するスレッド.
+     */
     private class AmbientLightWatchThread extends Thread {
         /**
          * 停止フラグ.
@@ -381,7 +403,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
         /**
          * リスナー.
          */
-        private List<OnAmbientLightListener> mListeners = new CopyOnWriteArrayList<>();
+        private List<OnAmbientLightListener> mListeners = new CopyOnWriteArrayList<>();;
 
         /**
          * リスナーを追加します.

@@ -39,11 +39,11 @@ public class I2CProximityProfile extends BaseFaBoProfile {
      * コンストラクタ.
      */
     public I2CProximityProfile() {
-        // GET /gotapi/proximity/onDeviceProximity
+        // GET /gotapi/proximity/onUserProximity
         addApi(new GetApi() {
             @Override
             public String getAttribute() {
-                return "onDeviceProximity";
+                return "onUserProximity";
             }
 
             @Override
@@ -61,7 +61,7 @@ public class I2CProximityProfile extends BaseFaBoProfile {
                         }
 
                         @Override
-                        public void onData(double proximity) {
+                        public void onData(final boolean proximity) {
                             response.putExtra("proximity", createProximity(proximity));
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
@@ -78,11 +78,11 @@ public class I2CProximityProfile extends BaseFaBoProfile {
             }
         });
 
-        // PUT /gotapi/proximity/onDeviceProximity
+        // PUT /gotapi/proximity/onUserProximity
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
-                return "onDeviceProximity";
+                return "onUserProximity";
             }
 
             @Override
@@ -115,11 +115,11 @@ public class I2CProximityProfile extends BaseFaBoProfile {
             }
         });
 
-        // DELETE /gotapi/proximity/onDeviceProximity
+        // DELETE /gotapi/proximity/onUserProximity
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
-                return "onDeviceProximity";
+                return "onUserProximity";
             }
 
             @Override
@@ -160,7 +160,7 @@ public class I2CProximityProfile extends BaseFaBoProfile {
     private boolean isEmptyEvent() {
         String serviceId = getService().getId();
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                "proximity", null, "onDeviceProximity");
+                "proximity", null, "onUserProximity");
         return events.isEmpty();
     }
 
@@ -169,11 +169,9 @@ public class I2CProximityProfile extends BaseFaBoProfile {
      * @param value 距離
      * @return Proximityのオブジェクト
      */
-    private Bundle createProximity(double value) {
+    private Bundle createProximity(final boolean value) {
         Bundle proximity = new Bundle();
-        proximity.putFloat("min", 0.1f);
-        proximity.putFloat("max", 2.0f);
-        proximity.putDouble("value", value);
+        proximity.putBoolean("near", value);
         return proximity;
     }
 
@@ -181,12 +179,12 @@ public class I2CProximityProfile extends BaseFaBoProfile {
      * Arduinoから渡されてきた値をProximityとして通知します.
      * @param value 値が渡されてきたピン
      */
-    private void notifyProximity(double value) {
+    private void notifyProximity(final boolean value) {
         long interval = (System.currentTimeMillis() - mSendTime);
         if (interval >= mInterval) {
             String serviceId = getService().getId();
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                    "proximity", null, "onDeviceProximity");
+                    "proximity", null, "onUserProximity");
             for (Event event : events) {
                 Intent intent = EventManager.createEventMessage(event);
                 intent.putExtra("proximity", createProximity(value));
@@ -199,7 +197,7 @@ public class I2CProximityProfile extends BaseFaBoProfile {
 
     private IVCNL4010.OnProximityListener mOnProximityListener = new IVCNL4010.OnProximityListener() {
         @Override
-        public void onData(final double proximity) {
+        public void onData(final boolean proximity) {
             notifyProximity(proximity);
         }
 

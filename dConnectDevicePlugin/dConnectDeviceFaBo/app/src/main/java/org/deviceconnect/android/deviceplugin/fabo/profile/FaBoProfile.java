@@ -197,7 +197,7 @@ public class FaBoProfile extends DConnectProfile {
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !isPinsSupported(pinList)) {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
-                    MessageUtils.setNotSupportAttributeError(response, "Pins that can not be used are included.");
+                    MessageUtils.setInvalidRequestParameterError(response, "Pins that can not be used are included.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -249,7 +249,7 @@ public class FaBoProfile extends DConnectProfile {
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !isPinsSupported(pinList)) {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
-                    MessageUtils.setNotSupportAttributeError(response, "Pins that can not be used are included.");
+                    MessageUtils.setInvalidRequestParameterError(response, "Pins that can not be used are included.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);

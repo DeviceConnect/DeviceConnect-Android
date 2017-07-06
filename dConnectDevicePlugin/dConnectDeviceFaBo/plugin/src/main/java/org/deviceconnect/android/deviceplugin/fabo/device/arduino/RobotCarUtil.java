@@ -29,6 +29,6 @@ class RobotCarUtil {
      * @return 角度
      */
     static int calcHandleDirection(final float x) {
-        return (int) (100 + x * 40);
+        return (int) (90 + x * 40);
     }
 }

@@ -362,7 +362,7 @@ class VCNL4010 extends BaseI2C implements IVCNL4010 {
 
                                 // 設定が反映されるまで、少し時間がかかるのスリープを入れておく
                                 try {
-                                    Thread.sleep(100);
+                                    Thread.sleep(33);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }

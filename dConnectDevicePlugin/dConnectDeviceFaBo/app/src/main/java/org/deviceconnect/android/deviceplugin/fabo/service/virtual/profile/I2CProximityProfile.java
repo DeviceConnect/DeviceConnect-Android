@@ -25,6 +25,12 @@ import static org.deviceconnect.android.event.EventManager.INSTANCE;
  * </p>
  */
 public class I2CProximityProfile extends BaseFaBoProfile {
+
+    /**
+     * VCNL4010からの通知を受け取るリスナー.
+     */
+    private IVCNL4010.OnProximityListener mOnProximityListener;
+
     /**
      * コンストラクタ.
      */
@@ -76,16 +82,41 @@ public class I2CProximityProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                IVCNL4010 ivcnl4010 = getFaBoDeviceControl().getVCNL4010();
+                final IVCNL4010 ivcnl4010 = getFaBoDeviceControl().getVCNL4010();
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                 } else if (ivcnl4010 == null) {
                     MessageUtils.setNotSupportAttributeError(response, "Not support.");
                 } else {
+                    boolean empty = isEmptyEvent();
                     EventError error = INSTANCE.addEvent(request);
                     switch (error) {
                         case NONE:
-                            ivcnl4010.startProximity(mOnProximityListener);
+                            if (empty) {
+                                mOnProximityListener = new IVCNL4010.OnProximityListener() {
+                                    @Override
+                                    public void onStarted() {
+                                        setResult(response, DConnectMessage.RESULT_OK);
+                                        sendResponse(response);
+                                    }
+
+                                    @Override
+                                    public void onData(final boolean proximity) {
+                                        notifyProximity(proximity);
+                                    }
+
+                                    @Override
+                                    public void onError(final String message) {
+                                        MessageUtils.setIllegalDeviceStateError(response, message);
+                                        sendResponse(response);
+                                        EventManager.INSTANCE.removeEvent(request);
+                                        ivcnl4010.stopProximity(mOnProximityListener);
+
+                                    }
+                                };
+                                ivcnl4010.startProximity(mOnProximityListener);
+                                return false;
+                            }
                             setResult(response, DConnectMessage.RESULT_OK);
                             break;
                         default:
@@ -113,7 +144,7 @@ public class I2CProximityProfile extends BaseFaBoProfile {
                     EventError error = INSTANCE.removeEvent(request);
                     switch (error) {
                         case NONE:
-                            if (isEmptyEvent()) {
+                            if (isEmptyEvent() && mOnProximityListener != null) {
                                 ivcnl4010.stopProximity(mOnProximityListener);
                             }
                             setResult(response, DConnectMessage.RESULT_OK);
@@ -171,20 +202,4 @@ public class I2CProximityProfile extends BaseFaBoProfile {
             sendEvent(intent, event.getAccessToken());
         }
     }
-
-    private IVCNL4010.OnProximityListener mOnProximityListener = new IVCNL4010.OnProximityListener() {
-        @Override
-        public void onData(final boolean proximity) {
-            notifyProximity(proximity);
-        }
-
-        @Override
-        public void onError(final String message) {
-        }
-
-        @Override
-        public void onStarted() {
-
-        }
-    };
 }

@@ -55,7 +55,7 @@ class RobotCar implements IRobotCar {
      * 前のタイヤを左端まで回す値.
      * </p>
      */
-    private static final float PWM_MIN = 7.9f;
+    private static final float PWM_MIN = 6f;
 
     /**
      * サーボモータの上限を定義.
@@ -63,7 +63,7 @@ class RobotCar implements IRobotCar {
      * 前のタイヤを右端まで回す値.
      * </p>
      */
-    private static final float PWM_MAX = 10.9f;
+    private static final float PWM_MAX = 9f;
 
     /**
      * 初期化を行う周波数.
@@ -195,7 +195,7 @@ class RobotCar implements IRobotCar {
         device.writeRegByte(PRE_SCALE, (byte) value);
 
         try {
-            Thread.sleep(1);
+            Thread.sleep(5);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

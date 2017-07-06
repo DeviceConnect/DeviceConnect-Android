@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
 import org.deviceconnect.android.manager.util.VersionName;
@@ -199,6 +200,10 @@ public class DevicePlugin {
      */
     public Drawable getPluginIcon() {
         return mPluginIcon;
+    }
+
+    public void sendRequest(final Intent request) {
+        // TODO バインダーまたはブロードキャストでリクエストを送信する
     }
 
     @Override

@@ -1,5 +1,8 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
+/**
+ * MPL115を操作するためのインターフェース.
+ */
 public interface IMPL115 {
     /**
      * 気圧センサーの値を取得します.

@@ -17,7 +17,6 @@ import org.deviceconnect.message.DConnectMessage;
 public class I2CIlluminanceProfile extends BaseFaBoProfile {
 
     public I2CIlluminanceProfile() {
-
         // GET /gotpai/illuminance
         addApi(new GetApi() {
             @Override

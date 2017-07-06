@@ -1,7 +1,7 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
 /**
- * ADXL345を操作するクラス.
+ * ADXL345を操作するためのインターフェース.
  */
 public interface IADXL345 {
 

@@ -1,5 +1,8 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
+/**
+ * ISL29034を操作するためのインターフェース.
+ */
 public interface IISL29034 {
     /**
      * 照度センサー値を取得します.

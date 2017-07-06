@@ -17,6 +17,7 @@ import org.deviceconnect.message.DConnectMessage;
 public class I2CHumidityProfile extends BaseFaBoProfile {
 
     public I2CHumidityProfile() {
+        // GET /gotapi/humidity
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {

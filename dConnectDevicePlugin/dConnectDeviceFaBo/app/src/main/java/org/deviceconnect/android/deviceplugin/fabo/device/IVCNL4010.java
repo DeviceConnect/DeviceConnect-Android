@@ -1,5 +1,8 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
+/**
+ * VCNL4010を操作するためのインターフェース.
+ */
 public interface IVCNL4010 {
 
     /**

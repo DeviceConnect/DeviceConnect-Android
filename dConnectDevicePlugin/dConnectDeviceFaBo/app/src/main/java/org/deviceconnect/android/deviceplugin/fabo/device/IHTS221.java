@@ -1,7 +1,7 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
 /**
- * HTS221を操作するクラス.
+ * HTS221を操作するためのインターフェース.
  */
 public interface IHTS221 {
     /**

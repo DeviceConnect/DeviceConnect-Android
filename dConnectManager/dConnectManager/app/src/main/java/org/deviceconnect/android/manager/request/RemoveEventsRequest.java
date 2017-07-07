@@ -9,7 +9,7 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 import android.util.SparseArray;
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 

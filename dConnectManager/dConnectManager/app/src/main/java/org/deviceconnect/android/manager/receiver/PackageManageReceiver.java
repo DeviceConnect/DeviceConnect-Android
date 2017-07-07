@@ -9,10 +9,9 @@ package org.deviceconnect.android.manager.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.manager.DConnectApplication;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
 /**
  * apkのインストールとアンインストールのブロードキャストを受け取るレシーバー.

@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.manager;
+package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
 import android.content.Intent;

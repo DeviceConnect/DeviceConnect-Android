@@ -11,7 +11,7 @@ import android.content.Intent;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.request.ServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;

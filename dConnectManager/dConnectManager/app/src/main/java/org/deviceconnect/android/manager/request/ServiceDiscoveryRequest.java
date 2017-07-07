@@ -11,7 +11,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;

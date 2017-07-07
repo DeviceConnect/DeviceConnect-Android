@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.manager;
+package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -19,6 +19,9 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
+import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.DConnectMessage;

@@ -9,6 +9,8 @@ package org.deviceconnect.android.manager;
 import android.content.Context;
 import android.content.Intent;
 
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;

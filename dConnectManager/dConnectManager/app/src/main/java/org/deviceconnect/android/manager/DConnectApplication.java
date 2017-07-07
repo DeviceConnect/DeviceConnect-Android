@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import org.deviceconnect.android.logger.AndroidHandler;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 
 import java.util.logging.Level;

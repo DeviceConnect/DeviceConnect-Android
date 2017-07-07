@@ -15,8 +15,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 
 import org.deviceconnect.android.manager.DConnectApplication;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 

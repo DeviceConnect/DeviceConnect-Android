@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
@@ -14,6 +15,7 @@ import org.deviceconnect.android.manager.util.VersionName;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * デバイスプラグイン.
@@ -40,6 +42,12 @@ public class DevicePlugin {
      * サポートしているプロファイルを格納する.
      */
     private List<String> mSupports = new ArrayList<String>();
+
+    private ConnectionType mConnectionType;
+
+    private Connection mConnection;
+
+    private DevicePluginState mState = DevicePluginState.ENABLED;
 
     /**
      * デバイスプラグインのパッケージ名を取得する.
@@ -202,8 +210,20 @@ public class DevicePlugin {
         return mPluginIcon;
     }
 
-    public void sendRequest(final Intent request) {
-        // TODO バインダーまたはブロードキャストでリクエストを送信する
+    public ConnectionType getConnectionType() {
+        return mConnectionType;
+    }
+
+    void setConnectionType(final ConnectionType type) {
+        mConnectionType = type;
+    }
+
+    public DevicePluginState getState() {
+        return mState;
+    }
+
+    private void setState(final DevicePluginState state) {
+        mState = state;
     }
 
     @Override
@@ -215,5 +235,30 @@ public class DevicePlugin {
                 "    Class: " + getClassName() + "\n" +
                 "    Version: " + getVersionName() + "\n" +
                 "}";
+    }
+
+    public void enable(final Context context) {
+        switch (getState()) {
+            case DISABLED:
+                setState(DevicePluginState.ENABLED);
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    private Connection createConnection(final Context context) {
+        ConnectionType type = getConnectionType();
+        Connection connection;
+        switch (type) {
+            case BINDER: {
+                connection = new BinderConnection(context, getComponentName());
+            }   break;
+            case BROADCAST: {
+                connection = new BroadcastConnection(context);
+            }   break;
+            default:
+                throw new IllegalArgumentException();
+        }
+        return connection;
     }
 }

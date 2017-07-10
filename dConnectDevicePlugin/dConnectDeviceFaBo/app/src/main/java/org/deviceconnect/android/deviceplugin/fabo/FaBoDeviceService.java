@@ -12,7 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
@@ -428,7 +428,7 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
 
                     for (Event event : events) {
                         Bundle pins = new Bundle();
-                        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
+                        for (FaBoShield.Pin pin : FaBoShield.Pin.values()) {
                             if (getFaBoDeviceControl().isPinSupported(pin)) {
                                 switch (pin.getMode()) {
                                     case GPIO_IN:

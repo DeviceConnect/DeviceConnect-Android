@@ -10,7 +10,7 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -28,7 +28,7 @@ import static org.deviceconnect.message.DConnectMessage.RESULT_OK;
  */
 public class FaBoGPIOProfile extends GPIOProfile {
 
-    private void addGetAnalogApi(final ArduinoUno.Pin pin) {
+    private void addGetAnalogApi(final FaBoShield.Pin pin) {
         // GET /gpio/analog/{pinName}
         switch (pin) {
             case PIN_A0:
@@ -72,7 +72,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
     }
 
-    private void addGetDigitalApi(final ArduinoUno.Pin pin) {
+    private void addGetDigitalApi(final FaBoShield.Pin pin) {
         // GET /gpio/digital/{pinName}
         switch (pin) {
             case PIN_D0:
@@ -107,7 +107,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                                 MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
                                 if (getFaBoDeviceControl().isPinSupported(pin)) {
-                                    ArduinoUno.Level value = getFaBoDeviceControl().getDigital(pin);
+                                    FaBoShield.Level value = getFaBoDeviceControl().getDigital(pin);
                                     setValue(response, value.getValue());
                                     setResult(response, RESULT_OK);
                                 } else {
@@ -124,7 +124,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
     }
 
-    private void addPostExportApi(final ArduinoUno.Pin pin) {
+    private void addPostExportApi(final FaBoShield.Pin pin) {
         // POST /gpio/export/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new PostApi() {
@@ -146,7 +146,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                         if (getFaBoDeviceControl().isPinSupported(pin)) {
                             Integer modeValue = parseInteger(request, "mode");
                             if (modeValue != null) {
-                                ArduinoUno.Mode mode = ArduinoUno.Mode.getMode(modeValue);
+                                FaBoShield.Mode mode = FaBoShield.Mode.getMode(modeValue);
                                 if (mode != null) {
                                     getFaBoDeviceControl().setPinMode(pin, mode);
                                     setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
@@ -167,7 +167,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
     }
 
-    private void addPostDigitalApi(final ArduinoUno.Pin pin) {
+    private void addPostDigitalApi(final FaBoShield.Pin pin) {
         // POST /gpio/digital/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new PostApi() {
@@ -189,7 +189,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                         if (getFaBoDeviceControl().isPinSupported(pin)) {
                             Integer hlValue = parseInteger(request, PARAM_VALUE);
                             if (hlValue != null) {
-                                ArduinoUno.Level level = ArduinoUno.Level.getLevel(hlValue);
+                                FaBoShield.Level level = FaBoShield.Level.getLevel(hlValue);
                                 if (level != null) {
                                     getFaBoDeviceControl().writeDigital(pin, level);
                                     setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
@@ -210,7 +210,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
     }
     
-    private void addPostAnalogApi(final ArduinoUno.Pin pin) {
+    private void addPostAnalogApi(final FaBoShield.Pin pin) {
         // POST /gpio/analog/{pinName}
         switch (pin) {
             case PIN_D3:
@@ -285,7 +285,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         });
     }
 
-    private void addPutDigitalApi(final ArduinoUno.Pin pin) {
+    private void addPutDigitalApi(final FaBoShield.Pin pin) {
         // PUT /gpio/digital/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new PutApi() {
@@ -305,7 +305,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                         MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
                         if (getFaBoDeviceControl().isPinSupported(pin)) {
-                            getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+                            getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.HIGH);
                             setMessage(response, pinName + "の値をHIGH(1)に変更");
                             setResult(response, RESULT_OK);
                         } else {
@@ -341,7 +341,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         });
     }
 
-    private void addDeleteDigitalApi(final ArduinoUno.Pin pin) {
+    private void addDeleteDigitalApi(final FaBoShield.Pin pin) {
         // DELETE /gpio/digital/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new DeleteApi() {
@@ -361,7 +361,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
                         MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
                         if (getFaBoDeviceControl().isPinSupported(pin)) {
-                            getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+                            getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.LOW);
                             setMessage(response, pinName + "の値をLOW(0)に変更");
                             setResult(response, RESULT_OK);
                         } else {
@@ -375,7 +375,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
     }
 
     public FaBoGPIOProfile() {
-        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
+        for (FaBoShield.Pin pin : FaBoShield.Pin.values()) {
             addGetAnalogApi(pin);
             addGetDigitalApi(pin);
             addPostExportApi(pin);

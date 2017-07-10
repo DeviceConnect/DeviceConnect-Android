@@ -1,13 +1,14 @@
 package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_CONFIG;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_READ;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_READ_CONTINUOUSLY;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_REQUEST;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_STOP_READING;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_WRITE;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
+
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.END_SYSEX;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_CONFIG;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_READ;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_READ_CONTINUOUSLY;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_REQUEST;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_STOP_READING;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_WRITE;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.START_SYSEX;
 
 class BaseI2C {
 

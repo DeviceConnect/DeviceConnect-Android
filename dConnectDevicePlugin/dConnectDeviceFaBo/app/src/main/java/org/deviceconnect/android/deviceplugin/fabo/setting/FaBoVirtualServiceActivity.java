@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.core.R;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualService;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
@@ -277,7 +277,7 @@ public class FaBoVirtualServiceActivity extends Activity {
             if (sb.length() > 0) {
                 sb.append(",");
             }
-            ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(i);
+            FaBoShield.Pin pin = FaBoShield.Pin.getPin(i);
             if (pin != null) {
                 sb.append(pin.getPinNames()[1]);
             }

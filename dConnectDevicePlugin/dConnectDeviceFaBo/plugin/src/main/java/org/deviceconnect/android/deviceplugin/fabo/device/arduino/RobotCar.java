@@ -2,15 +2,15 @@ package org.deviceconnect.android.deviceplugin.fabo.device.arduino;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.END_SYSEX;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_REQUEST;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.I2C_WRITE;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.START_SYSEX;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_BACK;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_FORWARD;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.DRV8830_STOP;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.calcHandleDirection;
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.RobotCarUtil.calcSpeed;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_REQUEST;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.I2C_WRITE;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
 
 /**
  * RobotCarを操作するためのクラス.

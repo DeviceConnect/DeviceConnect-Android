@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -21,13 +21,13 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
     /**
      * Temperatureを取得するピン.
      */
-    private List<ArduinoUno.Pin> mPinList;
+    private List<FaBoShield.Pin> mPinList;
 
     /**
      * コンストラクタ.
      * @param pinList 操作を行うピンのリスト
      */
-    public GPIOTemperatureProfile(final List<ArduinoUno.Pin> pinList) {
+    public GPIOTemperatureProfile(final List<FaBoShield.Pin> pinList) {
         mPinList = pinList;
 
         // GET /gotpai/temperature
@@ -39,7 +39,7 @@ public class GPIOTemperatureProfile extends BaseFaBoProfile {
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                 } else {
-                    ArduinoUno.Pin pin = mPinList.get(0);
+                    FaBoShield.Pin pin = mPinList.get(0);
 
                     int value = getFaBoDeviceControl().getAnalog(pin);
                     value = calcArduinoMap(value, 0, 1023, 0, 5000);

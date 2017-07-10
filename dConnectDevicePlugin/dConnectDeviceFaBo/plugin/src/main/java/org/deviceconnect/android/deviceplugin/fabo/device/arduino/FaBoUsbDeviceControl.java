@@ -23,9 +23,8 @@ import org.deviceconnect.android.deviceplugin.fabo.device.IMPL115;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IVCNL4010;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
-import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -37,12 +36,12 @@ import io.fabo.serialkit.FaBoUsbListenerInterface;
 import io.fabo.serialkit.FaBoUsbManager;
 
 import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataUtil.decodeByte;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.ANALOG_MESSAGE;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.DIGITAL_MESSAGE;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.END_SYSEX;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.REPORT_VERSION;
+import static org.deviceconnect.android.deviceplugin.fabo.device.arduino.FirmataV32.START_SYSEX;
 import static org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst.STATUS_FABO_INIT;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.ANALOG_MESSAGE;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.DIGITAL_MESSAGE;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.END_SYSEX;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.REPORT_VERSION;
-import static org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32.START_SYSEX;
 
 /**
  * Usb経由でFaBoデバイスを操作するクラス.
@@ -222,12 +221,12 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
-    public boolean isPinSupported(final ArduinoUno.Pin pin) {
+    public boolean isPinSupported(final FaBoShield.Pin pin) {
         return true;
     }
 
     @Override
-    public void writeAnalog(final ArduinoUno.Pin pin, final int value) {
+    public void writeAnalog(final FaBoShield.Pin pin, final int value) {
         byte[] bytes = new byte[5];
         bytes[0] = (byte) START_SYSEX;
         bytes[1] = (byte) (0x6F);
@@ -238,10 +237,10 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
-    public void writeDigital(final ArduinoUno.Pin pin, final ArduinoUno.Level hl) {
+    public void writeDigital(final FaBoShield.Pin pin, final FaBoShield.Level hl) {
         int port = pin.getPort();
         int pinBit = pin.getBit();
-        if (hl == ArduinoUno.Level.HIGH) {
+        if (hl == FaBoShield.Level.HIGH) {
             int status = getPortStatus(port) | pinBit;
             byte[] bytes = new byte[3];
             bytes[0] = (byte) (DIGITAL_MESSAGE | port);
@@ -249,7 +248,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
             bytes[2] = (byte) ((status >> 8) & 0xFF);
             sendMessage(bytes);
             setPortStatus(port, status);
-        } else if (hl == ArduinoUno.Level.LOW) {
+        } else if (hl == FaBoShield.Level.LOW) {
             int status = getPortStatus(port) & ~pinBit;
             byte[] bytes = new byte[3];
             bytes[0] = (byte) (DIGITAL_MESSAGE | port);
@@ -261,24 +260,24 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
-    public int getAnalog(final ArduinoUno.Pin pin) {
+    public int getAnalog(final FaBoShield.Pin pin) {
         return pin.getValue();
     }
 
     @Override
-    public ArduinoUno.Level getDigital(final ArduinoUno.Pin pin) {
+    public FaBoShield.Level getDigital(final FaBoShield.Pin pin) {
         int port = pin.getPort();
         int pinBit = pin.getBit();
         int value = mDigitalPortStatus[port];
         if ((value & pinBit) == pinBit) {
-            return ArduinoUno.Level.HIGH;
+            return FaBoShield.Level.HIGH;
         } else {
-            return ArduinoUno.Level.LOW;
+            return FaBoShield.Level.LOW;
         }
     }
 
     @Override
-    public void setPinMode(final ArduinoUno.Pin pin, final ArduinoUno.Mode mode) {
+    public void setPinMode(final FaBoShield.Pin pin, final FaBoShield.Mode mode) {
         byte[] command = new byte[3];
         command[0] = (byte) (FirmataV32.SET_PIN_MODE);
         command[1] = (byte) (pin.getPinNumber());
@@ -394,11 +393,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      * GPIOのPIN情報を初期化します.
      */
     private void initGPIO() {
-        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
-            if (pin.getPinNumber() < ArduinoUno.PIN_NO_A0) {
-                pin.setMode(ArduinoUno.Mode.GPIO_OUT);
+        for (FaBoShield.Pin pin : FaBoShield.Pin.values()) {
+            if (pin.getPinNumber() < FaBoShield.PIN_NO_A0) {
+                pin.setMode(FaBoShield.Mode.GPIO_OUT);
             } else {
-                pin.setMode(ArduinoUno.Mode.ANALOG);
+                pin.setMode(FaBoShield.Mode.ANALOG);
             }
             pin.setValue(0);
         }
@@ -495,7 +494,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         initGPIO();
 
         // FirmataのVersion取得のコマンドを送付
-        byte command[] = { FirmataV32.REPORT_VERSION };
+        byte command[] = { REPORT_VERSION };
         sendMessage(command);
 
         // 5秒たってFirmataを検出できない場合はエラー.
@@ -762,7 +761,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      */
     private void setAnalogData(final int port, final int value) {
         if (port < 7) {
-            ArduinoUno.Pin p = ArduinoUno.Pin.getPin(port + 14);
+            FaBoShield.Pin p = FaBoShield.Pin.getPin(port + 14);
             if (p != null) {
                 p.setValue(value);
             }

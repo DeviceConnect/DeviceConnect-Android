@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -30,13 +30,13 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
     /**
      * Proximity操作を行うピンのリスト.
      */
-    private List<ArduinoUno.Pin> mPinList;
+    private List<FaBoShield.Pin> mPinList;
 
     /**
      * コンストラクタ.
      * @param pinList 操作を行うピンのリスト
      */
-    public GPIOProximityProfile(final List<ArduinoUno.Pin> pinList) {
+    public GPIOProximityProfile(final List<FaBoShield.Pin> pinList) {
         mPinList = pinList;
 
         // GET /gotapi/proximity/onDeviceProximity
@@ -48,7 +48,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                ArduinoUno.Pin pin = mPinList.get(0);
+                FaBoShield.Pin pin = mPinList.get(0);
 
                 int value = getFaBoDeviceControl().getAnalog(pin);
                 value = calcArduinoMap(value, 0, 1023, 0, 5000);
@@ -145,7 +145,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
      * Arduinoから渡されてきた値をProximityとして通知します.
      * @param pin 値が渡されてきたピン
      */
-    private void notifyProximity(final ArduinoUno.Pin pin) {
+    private void notifyProximity(final FaBoShield.Pin pin) {
         String serviceId = getService().getId();
 
         int value = getFaBoDeviceControl().getAnalog(pin);
@@ -172,7 +172,7 @@ public class GPIOProximityProfile extends BaseFaBoProfile {
     private FaBoDeviceControl.OnGPIOListener mOnGPIOListenerImpl = new FaBoDeviceControl.OnGPIOListener() {
         @Override
         public void onAnalog() {
-            for (ArduinoUno.Pin pin : mPinList) {
+            for (FaBoShield.Pin pin : mPinList) {
                 notifyProximity(pin);
             }
         }

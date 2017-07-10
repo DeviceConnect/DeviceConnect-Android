@@ -10,7 +10,7 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 
 import org.deviceconnect.android.deviceplugin.fabo.core.R;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
     /**
      * ピン情報を格納するアダプタ.
      * <p>
-     * ArduinoUno.Pin.getPinNumber()の値を保持します.
+     * FaBoShield.Pin.getPinNumber()の値を保持します.
      * </p>
      */
     private MultiSelectPinAdapter mPinAdapter;
@@ -45,7 +45,7 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
         ArrayList<Integer> pins = new ArrayList<>();
         for (int i = 0; i < mPinAdapter.getCount(); i++) {
             if (mPinAdapter.mCheckedFlag.get(i)) {
-                pins.add(((ArduinoUno.Pin) mPinAdapter.getItem(i)).getPinNumber());
+                pins.add(((FaBoShield.Pin) mPinAdapter.getItem(i)).getPinNumber());
             }
         }
         return pins;
@@ -64,7 +64,7 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
         /**
          * ピンのリスト.
          */
-        private List<ArduinoUno.Pin> mPinList;
+        private List<FaBoShield.Pin> mPinList;
 
         /**
          * コンストラクタ.
@@ -98,7 +98,7 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
                 convertView = inflater.inflate(R.layout.item_fabo_check_box_pin, null);
             }
 
-            ArduinoUno.Pin pin = (ArduinoUno.Pin) getItem(position);
+            FaBoShield.Pin pin = (FaBoShield.Pin) getItem(position);
 
             CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.item_fabo_check_box_pin);
             checkBox.setText(pin.getPinNames()[1]);

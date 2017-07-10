@@ -3,7 +3,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.GPIOHumidityProfile;
@@ -145,10 +145,10 @@ public final class VirtualServiceFactory {
      * @param pins 変換前のピン情報
      * @return ArudinoUno.Pinのリスト
      */
-    private static List<ArduinoUno.Pin> conv(List<Integer> pins) {
-        List<ArduinoUno.Pin> pinList = new ArrayList<>();
+    private static List<FaBoShield.Pin> conv(List<Integer> pins) {
+        List<FaBoShield.Pin> pinList = new ArrayList<>();
         for (Integer i : pins) {
-            pinList.add(ArduinoUno.Pin.getPin(i));
+            pinList.add(FaBoShield.Pin.getPin(i));
         }
         return pinList;
     }

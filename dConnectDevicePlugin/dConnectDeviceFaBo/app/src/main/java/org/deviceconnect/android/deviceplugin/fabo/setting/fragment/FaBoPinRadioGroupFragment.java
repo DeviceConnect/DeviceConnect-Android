@@ -10,7 +10,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import org.deviceconnect.android.deviceplugin.fabo.core.R;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,22 +23,22 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
     /**
      * 選択されたPin.
      */
-    private ArduinoUno.Pin mSelectedPin;
+    private FaBoShield.Pin mSelectedPin;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_fabo_pin_group, container, false);
 
-        List<ArduinoUno.Pin> pins = getCanUsePinList();
+        List<FaBoShield.Pin> pins = getCanUsePinList();
 
         RadioGroup group = (RadioGroup) view.findViewById(R.id.activity_fabo_pin_layout);
-        for (ArduinoUno.Pin pin : pins) {
+        for (FaBoShield.Pin pin : pins) {
             group.addView(createRadioButton(inflater, pin),
                     new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT));
         }
 
-        for (ArduinoUno.Pin pin : pins) {
+        for (FaBoShield.Pin pin : pins) {
             if (containsPin(pin.getPinNumber())) {
                 RadioButton radioButton = (RadioButton) group.findViewWithTag(pin);
                 radioButton.setChecked(true);
@@ -55,7 +55,7 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
      * @param pin ピン
      * @return RadioButtonのインスタンス
      */
-    private RadioButton createRadioButton(final LayoutInflater inflater,final ArduinoUno.Pin pin) {
+    private RadioButton createRadioButton(final LayoutInflater inflater,final FaBoShield.Pin pin) {
         RadioButton radio = (RadioButton) inflater.inflate(R.layout.item_fabo_radio_button_pin, null, false);
         radio.setText(pin.getPinNames()[1]);
         radio.setTag(pin);

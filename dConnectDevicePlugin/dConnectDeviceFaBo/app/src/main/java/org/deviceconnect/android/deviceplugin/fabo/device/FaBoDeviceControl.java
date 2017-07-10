@@ -1,6 +1,6 @@
 package org.deviceconnect.android.deviceplugin.fabo.device;
 
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 
 /**
  * FaBoデバイスを操作するためのインターフェース.
@@ -21,42 +21,42 @@ public interface FaBoDeviceControl {
      * @param pin サポートされているか確認するピン
      * @return サポートされている場合はtrue、それ以外はfalse
      */
-    boolean isPinSupported(final ArduinoUno.Pin pin);
+    boolean isPinSupported(final FaBoShield.Pin pin);
 
     /**
      * アナログピンに対して書き込みを行います.
      * @param pin アナログピン
      * @param value 書き込む値
      */
-    void writeAnalog(final ArduinoUno.Pin pin, final int value);
+    void writeAnalog(final FaBoShield.Pin pin, final int value);
 
     /**
      * デジタルピンに対して書き込みを行います.
      * @param pin デジタルピン
      * @param hl 書き込む値(HIGH or LOW)
      */
-    void writeDigital(final ArduinoUno.Pin pin, final ArduinoUno.Level hl);
+    void writeDigital(final FaBoShield.Pin pin, final FaBoShield.Level hl);
 
     /**
      * アナログピンのデータを取得します.
      * @param pin アナログピン
      * @return アナログ値
      */
-    int getAnalog(final ArduinoUno.Pin pin);
+    int getAnalog(final FaBoShield.Pin pin);
 
     /**
      * デジタルピンのデータを取得します.
      * @param pin デジタルピン
      * @return デジタル値
      */
-    ArduinoUno.Level getDigital(final ArduinoUno.Pin pin);
+    FaBoShield.Level getDigital(final FaBoShield.Pin pin);
 
     /**
      * 各PINのモードを設定します.
      * @param pin ピン
      * @param mode モード
      */
-    void setPinMode(final ArduinoUno.Pin pin, final ArduinoUno.Mode mode);
+    void setPinMode(final FaBoShield.Pin pin, final FaBoShield.Mode mode);
 
     /**
      * FaBoデバイスの接続状態を取得します.

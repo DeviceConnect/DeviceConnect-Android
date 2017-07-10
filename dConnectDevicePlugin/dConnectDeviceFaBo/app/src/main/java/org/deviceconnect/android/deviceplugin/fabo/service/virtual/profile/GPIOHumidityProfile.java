@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -20,9 +20,9 @@ public class GPIOHumidityProfile extends BaseFaBoProfile {
     /**
      * Humidity操作を行うピンのリスト.
      */
-    private List<ArduinoUno.Pin> mPinList;
+    private List<FaBoShield.Pin> mPinList;
 
-    public GPIOHumidityProfile(final List<ArduinoUno.Pin> pinList) {
+    public GPIOHumidityProfile(final List<FaBoShield.Pin> pinList) {
         mPinList = pinList;
 
         addApi(new GetApi() {
@@ -31,7 +31,7 @@ public class GPIOHumidityProfile extends BaseFaBoProfile {
                 if (!getService().isOnline()) {
                     MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                 } else {
-                    ArduinoUno.Pin pin = mPinList.get(0);
+                    FaBoShield.Pin pin = mPinList.get(0);
 
                     // TODO 要確認
                     int value = getFaBoDeviceControl().getAnalog(pin);

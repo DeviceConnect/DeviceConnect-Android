@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualService;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
@@ -21,7 +21,7 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno.PIN_NO_A0;
+import static org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield.PIN_NO_A0;
 
 public class FaBoProfile extends DConnectProfile {
 
@@ -347,7 +347,7 @@ public class FaBoProfile extends DConnectProfile {
         }
         String[] b = new String[list.size()];
         for (int i = 0; i < list.size(); i++) {
-            b[i] = ArduinoUno.Pin.getPin(list.get(i)).getPinNames()[1];
+            b[i] = FaBoShield.Pin.getPin(list.get(i)).getPinNames()[1];
         }
         return b;
     }
@@ -380,7 +380,7 @@ public class FaBoProfile extends DConnectProfile {
         String[] split = pins.split(",");
         for (String s : split) {
             try {
-                ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(s);
+                FaBoShield.Pin pin = FaBoShield.Pin.getPin(s);
                 if (pin != null) {
                     if (!pinList.contains(pin.getPinNumber())) {
                         pinList.add(pin.getPinNumber());
@@ -406,7 +406,7 @@ public class FaBoProfile extends DConnectProfile {
      * @return ピンが存在する場合はtrue、それ以外はfalse
      */
     private boolean isPin(final int pin) {
-        return ArduinoUno.Pin.getPin(pin) != null;
+        return FaBoShield.Pin.getPin(pin) != null;
     }
 
     /**
@@ -429,7 +429,7 @@ public class FaBoProfile extends DConnectProfile {
      * @return サポートされている場合はtrue、それ以外はfalse
      */
     private boolean isPinSupported(final int pinNum) {
-        ArduinoUno.Pin pin = ArduinoUno.Pin.getPin(pinNum);
+        FaBoShield.Pin pin = FaBoShield.Pin.getPin(pinNum);
         return pin != null && getFaBoDeviceService().getFaBoDeviceControl().isPinSupported(pin);
     }
 

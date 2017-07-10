@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PutApi;
@@ -30,7 +30,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
     /**
      * バイブレーションに接続されているピンのリスト.
      */
-    private List<ArduinoUno.Pin> mPinList;
+    private List<FaBoShield.Pin> mPinList;
 
     /**
      * ライトフラッシング管理マップ.
@@ -41,7 +41,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
      * コンストラクタ.
      * @param pinList 操作を行うピンのリスト
      */
-    public GPIOVibrationProfile(final List<ArduinoUno.Pin> pinList) {
+    public GPIOVibrationProfile(final List<FaBoShield.Pin> pinList) {
         mPinList = pinList;
 
         // PUT /gotapi/vibration/vibrate
@@ -63,7 +63,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
                     if (pattern != null) {
                         flashing(pattern);
                     } else {
-                        for (ArduinoUno.Pin pin : mPinList) {
+                        for (FaBoShield.Pin pin : mPinList) {
                             sendVibrateOn(pin);
                         }
                     }
@@ -88,7 +88,7 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
                 } else if (mPinList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "Vibration does not exist.");
                 } else {
-                    for (ArduinoUno.Pin pin : mPinList) {
+                    for (FaBoShield.Pin pin : mPinList) {
                         sendVibrateOff(pin);
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -179,11 +179,11 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
             @Override
             public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 if (isOn) {
-                    for (ArduinoUno.Pin pin : mPinList) {
+                    for (FaBoShield.Pin pin : mPinList) {
                         sendVibrateOn(pin);
                     }
                 } else {
-                    for (ArduinoUno.Pin pin : mPinList) {
+                    for (FaBoShield.Pin pin : mPinList) {
                         sendVibrateOff(pin);
                     }
                 }
@@ -197,21 +197,21 @@ public class GPIOVibrationProfile extends BaseFaBoProfile {
      * Vibratorを振動させます.
      * @param pin Vibratorが挿さっているピン
      */
-    private void sendVibrateOn(final ArduinoUno.Pin pin) {
-        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
-            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+    private void sendVibrateOn(final FaBoShield.Pin pin) {
+        if (pin.getMode() != FaBoShield.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, FaBoShield.Mode.GPIO_OUT);
         }
-        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+        getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.HIGH);
     }
 
     /**
      * Vibratorの振動を止めます.
      * @param pin Vibratorが挿さっているピン
      */
-    private void sendVibrateOff(final ArduinoUno.Pin pin) {
-        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
-            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+    private void sendVibrateOff(final FaBoShield.Pin pin) {
+        if (pin.getMode() != FaBoShield.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, FaBoShield.Mode.GPIO_OUT);
         }
-        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+        getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.LOW);
     }
 }

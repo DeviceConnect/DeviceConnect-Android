@@ -20,7 +20,7 @@ import org.deviceconnect.android.deviceplugin.fabo.device.IMPL115;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IVCNL4010;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -202,21 +202,21 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
-    public boolean isPinSupported(final ArduinoUno.Pin pin) {
+    public boolean isPinSupported(final FaBoShield.Pin pin) {
         return mGpioMap.containsKey(pin.getPinNumber());
     }
 
     @Override
-    public void writeAnalog(final ArduinoUno.Pin pin, final int value) {
+    public void writeAnalog(final FaBoShield.Pin pin, final int value) {
         throw new RuntimeException("Analog is not supported.");
     }
 
     @Override
-    public void writeDigital(final ArduinoUno.Pin pin, final ArduinoUno.Level hl) {
+    public void writeDigital(final FaBoShield.Pin pin, final FaBoShield.Level hl) {
         try {
             Gpio gpio = mGpioMap.get(pin.getPinNumber());
             if (gpio != null) {
-                gpio.setValue(hl == ArduinoUno.Level.HIGH);
+                gpio.setValue(hl == FaBoShield.Level.HIGH);
             }
         } catch (Exception e) {
             if (DEBUG) {
@@ -226,16 +226,16 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
-    public int getAnalog(final ArduinoUno.Pin pin) {
+    public int getAnalog(final FaBoShield.Pin pin) {
         throw new RuntimeException("Analog is not supported.");
     }
 
     @Override
-    public ArduinoUno.Level getDigital(final ArduinoUno.Pin pin) {
+    public FaBoShield.Level getDigital(final FaBoShield.Pin pin) {
         try {
             Gpio gpio = mGpioMap.get(pin.getPinNumber());
             if (gpio != null) {
-                return gpio.getValue() ? ArduinoUno.Level.HIGH : ArduinoUno.Level.LOW;
+                return gpio.getValue() ? FaBoShield.Level.HIGH : FaBoShield.Level.LOW;
             }
             return null;
         } catch (Exception e) {
@@ -244,7 +244,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
-    public void setPinMode(final ArduinoUno.Pin pin, final ArduinoUno.Mode mode) {
+    public void setPinMode(final FaBoShield.Pin pin, final FaBoShield.Mode mode) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -427,15 +427,15 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
                 Log.i(TAG, "List of available ports: " + portList);
             }
 
-            Map<String, ArduinoUno.Pin> pins = new HashMap<>();
-            pins.put("BCM4", ArduinoUno.Pin.PIN_D4);
-            pins.put("BCM5", ArduinoUno.Pin.PIN_D5);
-            pins.put("BCM6", ArduinoUno.Pin.PIN_D6);
-            pins.put("BCM12", ArduinoUno.Pin.PIN_D12);
+            Map<String, FaBoShield.Pin> pins = new HashMap<>();
+            pins.put("BCM4", FaBoShield.Pin.PIN_D4);
+            pins.put("BCM5", FaBoShield.Pin.PIN_D5);
+            pins.put("BCM6", FaBoShield.Pin.PIN_D6);
+            pins.put("BCM12", FaBoShield.Pin.PIN_D12);
 
             for (String name : portList) {
                 try {
-                    ArduinoUno.Pin pin = pins.get(name);
+                    FaBoShield.Pin pin = pins.get(name);
                     if (pin != null) {
                         Gpio gpio = mManagerService.openGpio(name);
                         gpio.setEdgeTriggerType(Gpio.EDGE_NONE);

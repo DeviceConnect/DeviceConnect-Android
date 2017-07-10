@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.fabo.setting.fragment;
 
 import android.app.Fragment;
 
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileDataUtil;
 
@@ -19,9 +19,9 @@ public abstract class FaBoBasePinFragment extends Fragment {
      *
      * @return ピンのリスト
      */
-    List<ArduinoUno.Pin> getCanUsePinList() {
-        List<ArduinoUno.Pin> names = new ArrayList<>();
-        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
+    List<FaBoShield.Pin> getCanUsePinList() {
+        List<FaBoShield.Pin> names = new ArrayList<>();
+        for (FaBoShield.Pin pin : FaBoShield.Pin.values()) {
             if (checkCanUsePin(pin)) {
                 names.add(pin);
             }
@@ -34,11 +34,11 @@ public abstract class FaBoBasePinFragment extends Fragment {
      * @param pin 確認するピン
      * @return 使用できる場合はtrue、それ以外はfalse
      */
-    private boolean checkCanUsePin(final ArduinoUno.Pin pin) {
+    private boolean checkCanUsePin(final FaBoShield.Pin pin) {
         ProfileDataUtil.PinType type = getPinType();
-        if (type == ProfileDataUtil.PinType.ANALOG && pin.getPinNumber() > ArduinoUno.PIN_NO_D13) {
+        if (type == ProfileDataUtil.PinType.ANALOG && pin.getPinNumber() > FaBoShield.PIN_NO_D13) {
             return true;
-        } else if (type == ProfileDataUtil.PinType.DIGITAL && pin.getPinNumber() <= ArduinoUno.PIN_NO_D13) {
+        } else if (type == ProfileDataUtil.PinType.DIGITAL && pin.getPinNumber() <= FaBoShield.PIN_NO_D13) {
             return true;
         }
         return type == ProfileDataUtil.PinType.ALL;

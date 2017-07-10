@@ -3,7 +3,7 @@ package org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -27,7 +27,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
     /**
      * ライト操作を行うピンのリスト.
      */
-    private List<ArduinoUno.Pin> mPinList;
+    private List<FaBoShield.Pin> mPinList;
 
     /**
      * ライトフラッシング管理マップ.
@@ -38,7 +38,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
      * コンストラクタ.
      * @param pinList ライトに対応するPinのリスト
      */
-    public GPIOLightProfile(final List<ArduinoUno.Pin> pinList) {
+    public GPIOLightProfile(final List<FaBoShield.Pin> pinList) {
         mPinList = pinList;
 
         // GET /gotpai/light
@@ -47,11 +47,11 @@ public class GPIOLightProfile extends BaseFaBoProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 Bundle[] lightList = new Bundle[mPinList.size()];
                 for (int i = 0; i < mPinList.size(); i++) {
-                    ArduinoUno.Pin pin = mPinList.get(i);
+                    FaBoShield.Pin pin = mPinList.get(i);
                     lightList[i] = new Bundle();
                     lightList[i].putString("lightId", String.valueOf(pin.getPinNumber()));
                     lightList[i].putString("name", pin.getPinNames()[1]);
-                    lightList[i].putBoolean("on", getFaBoDeviceControl().getDigital(pin) == ArduinoUno.Level.HIGH);
+                    lightList[i].putBoolean("on", getFaBoDeviceControl().getDigital(pin) == FaBoShield.Level.HIGH);
                     lightList[i].putString("config", "");
                 }
                 response.putExtra("lights", lightList);
@@ -87,7 +87,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
                 } else if (mPinList.isEmpty()) {
                     MessageUtils.setInvalidRequestParameterError(response, "Light does not exist.");
                 } else {
-                    ArduinoUno.Pin pin = findLight(lightId);
+                    FaBoShield.Pin pin = findLight(lightId);
                     if (pin != null) {
                         sendLightOff(pin);
                         setResult(response, DConnectMessage.RESULT_OK);
@@ -128,7 +128,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
         } else if (mPinList.isEmpty()) {
             MessageUtils.setInvalidRequestParameterError(response, "Light does not exist.");
         } else {
-            ArduinoUno.Pin pin = findLight(lightId);
+            FaBoShield.Pin pin = findLight(lightId);
             if (pin != null) {
                 if (flashing != null) {
                     flashing(pin, flashing);
@@ -183,13 +183,13 @@ public class GPIOLightProfile extends BaseFaBoProfile {
      * @param lightId ライトID
      * @return 対応するPinのインスタンス
      */
-    private ArduinoUno.Pin findLight(final String lightId) {
+    private FaBoShield.Pin findLight(final String lightId) {
         if (lightId == null) {
             return mPinList.get(0);
         }
         try {
             int id = Integer.parseInt(lightId);
-            for (ArduinoUno.Pin pin : mPinList) {
+            for (FaBoShield.Pin pin : mPinList) {
                 if (id == pin.getPinNumber()) {
                     return pin;
                 }
@@ -205,7 +205,7 @@ public class GPIOLightProfile extends BaseFaBoProfile {
      * @param pin ピン情報
      * @param flashing フラッシュ
      */
-    private void flashing(final ArduinoUno.Pin pin, final long[] flashing) {
+    private void flashing(final FaBoShield.Pin pin, final long[] flashing) {
         FlashingExecutor exe = mFlashingMap.get("" + pin.getPinNumber());
         if (exe == null) {
             exe = new FlashingExecutor();
@@ -229,21 +229,21 @@ public class GPIOLightProfile extends BaseFaBoProfile {
      * LEDを点灯します.
      * @param pin LEDが挿さっているピン
      */
-    private void sendLightOn(final ArduinoUno.Pin pin) {
-        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
-            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+    private void sendLightOn(final FaBoShield.Pin pin) {
+        if (pin.getMode() != FaBoShield.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, FaBoShield.Mode.GPIO_OUT);
         }
-        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.HIGH);
+        getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.HIGH);
     }
 
     /**
      * LEDを消灯します.
      * @param pin LEDが挿さっているピン
      */
-    private void sendLightOff(final ArduinoUno.Pin pin) {
-        if (pin.getMode() != ArduinoUno.Mode.GPIO_OUT) {
-            getFaBoDeviceControl().setPinMode(pin, ArduinoUno.Mode.GPIO_OUT);
+    private void sendLightOff(final FaBoShield.Pin pin) {
+        if (pin.getMode() != FaBoShield.Mode.GPIO_OUT) {
+            getFaBoDeviceControl().setPinMode(pin, FaBoShield.Mode.GPIO_OUT);
         }
-        getFaBoDeviceControl().writeDigital(pin, ArduinoUno.Level.LOW);
+        getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.LOW);
     }
 }

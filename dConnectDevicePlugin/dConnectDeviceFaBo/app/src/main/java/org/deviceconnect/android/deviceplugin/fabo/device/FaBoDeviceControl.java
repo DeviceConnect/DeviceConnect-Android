@@ -113,6 +113,12 @@ public interface FaBoDeviceControl {
     IMPL115 getMPL115();
 
     /**
+     * LIDARLite v3を操作するためのインターフェースを取得します.
+     * @return ILIDARLiteV3を実装したクラス
+     */
+    ILIDARLiteV3 getLIDARLite();
+
+    /**
      * FaBoデバイスの接続状態通知リスナーを設定します.
      * @param listener リスナー
      */

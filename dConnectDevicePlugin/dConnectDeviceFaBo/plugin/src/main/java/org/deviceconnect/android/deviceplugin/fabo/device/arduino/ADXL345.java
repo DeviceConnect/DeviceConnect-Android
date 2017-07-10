@@ -170,7 +170,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
      */
     private OnADXL345ListenerImpl get(final OnADXL345Listener listener) {
         for (OnADXL345ListenerImpl impl : mOnADXL345Listeners) {
-            if (impl.mOnADXL345Listener == listener) {
+            if (impl.mListener == listener) {
                 return impl;
             }
         }
@@ -198,7 +198,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
         /**
          * 通知を行うリスナー.
          */
-        private OnADXL345Listener mOnADXL345Listener;
+        private OnADXL345Listener mListener;
 
         /**
          * 一度だけ読み込む場合.
@@ -224,8 +224,8 @@ class ADXL345 extends BaseI2C implements IADXL345 {
             startRead();
         }
 
-        void setOnADXL345Listener(final OnADXL345Listener onADXL345Listener) {
-            mOnADXL345Listener = onADXL345Listener;
+        void setOnADXL345Listener(final OnADXL345Listener listener) {
+            mListener = listener;
         }
 
         /**
@@ -264,9 +264,9 @@ class ADXL345 extends BaseI2C implements IADXL345 {
             if (!mStartFlag) {
                 mStartFlag = true;
                 cancelTimer();
-                mOnADXL345Listener.onStarted();
+                mListener.onStarted();
             }
-            mOnADXL345Listener.onData(x, y, z);
+            mListener.onData(x, y, z);
 
             if (mOnceRead) {
                 onFinish();
@@ -275,7 +275,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
 
         @Override
         public void onError(final String message) {
-            mOnADXL345Listener.onError(message);
+            mListener.onError(message);
             onFinish();
         }
     }

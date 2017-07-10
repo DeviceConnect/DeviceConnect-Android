@@ -64,7 +64,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
     /**
      * 加速度センサーの値を監視するスレッド.
      */
-    private WatchTread mWatchThread;
+    private WatchThread mWatchThread;
 
     /**
      * コンストラクタ.
@@ -107,7 +107,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
             listener.onError("ADXL345 is not connect.");
         } else {
             if (mWatchThread == null) {
-                mWatchThread = new WatchTread();
+                mWatchThread = new WatchThread();
                 mWatchThread.addListener(listener);
                 mWatchThread.start();
             } else {
@@ -183,7 +183,7 @@ class ADXL345 extends BaseI2C implements IADXL345 {
     /**
      * 加速度センサーの値を取得するスレッド.
      */
-    private class WatchTread extends Thread {
+    private class WatchThread extends Thread {
         /**
          * 停止フラグ.
          */

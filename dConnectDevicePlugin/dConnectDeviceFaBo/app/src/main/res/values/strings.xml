@@ -64,4 +64,5 @@
     <string name="activity_fabo_virtual_i2c_proximity" translatable="false">Proximity(I2C) #205</string>
     <string name="activity_fabo_virtual_i2c_illuminace" translatable="false">Illuminace(I2C) #217</string>
     <string name="activity_fabo_virtual_i2c_atmospheric_pressure" translatable="false">AtmosphericPressure(I2C) #204</string>
+    <string name="activity_fabo_virtual_i2c_lidarlite_proximity" translatable="false">Proximity(I2C) LIDARLite v3</string>
 </resources>

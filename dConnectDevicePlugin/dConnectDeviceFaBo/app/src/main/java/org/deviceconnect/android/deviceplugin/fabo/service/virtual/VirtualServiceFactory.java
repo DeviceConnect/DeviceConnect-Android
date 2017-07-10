@@ -17,6 +17,7 @@ import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2C3A
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CAtmosphericPressureProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CHumidityProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CIlluminanceProfile;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CLIDARLiteProximityProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CMouseCarDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CProximityProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.virtual.profile.I2CRobotCarDriveControllerProfile;
@@ -124,6 +125,9 @@ public final class VirtualServiceFactory {
 
             case I2C_ATMOSPHERIC_PRESSURE:
                 return new I2CAtmosphericPressureProfile();
+
+            case I2C_LIDARLITE_PROXIMITY:
+                return new I2CLIDARLiteProximityProfile();
 
             default:
                 if (DEBUG) {

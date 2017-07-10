@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.fabo.device.IADT7410;
 import org.deviceconnect.android.deviceplugin.fabo.device.IADXL345;
 import org.deviceconnect.android.deviceplugin.fabo.device.IHTS221;
 import org.deviceconnect.android.deviceplugin.fabo.device.IISL29034;
+import org.deviceconnect.android.deviceplugin.fabo.device.ILIDARLiteV3;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMPL115;
 import org.deviceconnect.android.deviceplugin.fabo.device.IMouseCar;
 import org.deviceconnect.android.deviceplugin.fabo.device.IRobotCar;
@@ -172,6 +173,11 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
      * Brick # 205 を操作するクラス.
      */
     private VCNL4010 mVCNL4010;
+
+    /**
+     * LIDARLite v3を操作するクラス.
+     */
+    private LIDARLiteV3 mLIDARLiteV3;
 
     /**
      * I2Cを格納するリスト.
@@ -335,6 +341,12 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
     }
 
     @Override
+    public ILIDARLiteV3 getLIDARLite() {
+        mLIDARLiteV3.setFaBoDeviceControl(this);
+        return mLIDARLiteV3;
+    }
+
+    @Override
     public void setOnFaBoDeviceControlListener(final OnFaBoDeviceControlListener listener) {
         mOnFaBoDeviceControlListener = listener;
     }
@@ -367,6 +379,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         mVCNL4010 = new VCNL4010();
         mISL29034 = new ISL29034();
         mMPL115 = new MPL115();
+        mLIDARLiteV3 = new LIDARLiteV3();
 
         mI2CList.add(mADXL345);
         mI2CList.add(mADT7410);
@@ -374,6 +387,7 @@ public class FaBoUsbDeviceControl implements FaBoDeviceControl {
         mI2CList.add(mVCNL4010);
         mI2CList.add(mISL29034);
         mI2CList.add(mMPL115);
+        mI2CList.add(mLIDARLiteV3);
     }
 
     /**

@@ -85,6 +85,8 @@ public final class ProfileDataUtil {
                 return context.getString(R.string.activity_fabo_virtual_i2c_illuminace);
             case I2C_ATMOSPHERIC_PRESSURE:
                 return context.getString(R.string.activity_fabo_virtual_i2c_atmospheric_pressure);
+            case I2C_LIDARLITE_PROXIMITY:
+                return context.getString(R.string.activity_fabo_virtual_i2c_lidarlite_proximity);
         }
         return null;
     }

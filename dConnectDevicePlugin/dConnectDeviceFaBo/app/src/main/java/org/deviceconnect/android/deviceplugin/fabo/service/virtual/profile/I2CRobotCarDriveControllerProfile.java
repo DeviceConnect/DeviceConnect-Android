@@ -82,11 +82,11 @@ public class I2CRobotCarDriveControllerProfile extends BaseFaBoProfile {
             }
         });
 
-        // DELETE /driveController/move
+        // DELETE /driveController/stop
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
-                return "move";
+                return "stop";
             }
 
             @Override

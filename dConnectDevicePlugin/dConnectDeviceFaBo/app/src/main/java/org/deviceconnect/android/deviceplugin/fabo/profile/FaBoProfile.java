@@ -198,6 +198,8 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Pins that can not be used are included.");
+                } else if (containsProfile(serviceData, profileType)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "This service already has the same profile.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -250,6 +252,8 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Pins that can not be used are included.");
+                } else if (containsProfile(serviceData, profileType)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "This service already has the same profile.");
                 } else {
                     ProfileData p = new ProfileData();
                     p.setServiceId(vid);
@@ -312,6 +316,21 @@ public class FaBoProfile extends DConnectProfile {
     @Override
     public String getProfileName() {
         return "fabo";
+    }
+
+    /**
+     * 指定されたサービスデータが指定されたプロファイルデータを持っているか確認します.
+     * @param serviceData サービスデータ
+     * @param type プロファイルデータ
+     * @return プロファイルデータを持っている場合はtrue、それ以外はfalse
+     */
+    private boolean containsProfile(final ServiceData serviceData, final ProfileData.Type type) {
+        for (ProfileData profileData : serviceData.getProfileDataList()) {
+            if (profileData.getType().getProfileName().equals(type.getProfileName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

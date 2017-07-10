@@ -122,7 +122,7 @@ public class FaBoProfileListActivity extends Activity {
         }
 
         for (ProfileData p : list) {
-            if (p.getType() == type) {
+            if (p.getType().getProfileName().equals(type.getProfileName())) {
                 return true;
             }
         }

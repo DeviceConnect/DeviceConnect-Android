@@ -43,63 +43,125 @@ public class ProfileData implements Parcelable {
     public enum Type {
         /**
          * GPIO用Lightプロファイル.
+         * <p>
+         * Brick: #101
+         * </p>
          */
-        GPIO_LIGHT(1, "#101", Category.GPIO),
+        GPIO_LIGHT(1, "#101", Category.GPIO, "light"),
 
         /**
          * GPIO用Temperatureプロファイル.
+         * <p>
+         * Brick: #108
+         * </p>
          */
-        GPIO_TEMPERATURE(2, "#108", Category.GPIO),
+        GPIO_TEMPERATURE(2, "#108", Category.GPIO, "temperature"),
 
         /**
          * GPIO用Vibrationプロファイル.
+         * <p>
+         * Brick: #105
+         * </p>
          */
-        GPIO_VIBRATION(3, "#105", Category.GPIO),
+        GPIO_VIBRATION(3, "#105", Category.GPIO, "vibration"),
 
         /**
          * GPIO用Illuminanceプロファイル.
+         * <p>
+         * Brick: #109
+         * </p>
          */
-        GPIO_ILLUMINANCE(4, "#109", Category.GPIO),
+        GPIO_ILLUMINANCE(4, "#109", Category.GPIO, "illuminace"),
 
         /**
          * GPIO用KeyEventプロファイル.
+         * <p>
+         * Brick: #103
+         * </p>
          */
-        GPIO_KEY_EVENT(5, "#103", Category.GPIO),
+        GPIO_KEY_EVENT(5, "#103", Category.GPIO, "keyEvent"),
 
         /**
          * GPIO用Humidityプロファイル.
+         * <p>
+         * Brick: #115
+         * </p>
          */
-        GPIO_HUMIDITY(6, "#115", Category.GPIO),
+        GPIO_HUMIDITY(6, "#115", Category.GPIO, "humidity"),
 
         /**
          * GPIO用Proximityプロファイル.
+         * <p>
+         * Brick: #1116
+         * </p>
          */
-        GPIO_PROXIMITY(7, "#116", Category.GPIO),
+        GPIO_PROXIMITY(7, "#116", Category.GPIO, "proximity"),
 
         /**
          * I2C用RobotCar用DriveControllerプロファイル.
          */
-        I2C_ROBOT_DRIVE_CONTROLLER(100, null, Category.I2C),
+        I2C_ROBOT_DRIVE_CONTROLLER(100, null, Category.I2C, "driveController"),
 
         /**
          * I2C用RobotCar(Mouse)用DriveControllerプロファイル.
          */
-        I2C_MOUSE_DRIVE_CONTROLLER(101, null, Category.I2C),
+        I2C_MOUSE_DRIVE_CONTROLLER(101, null, Category.I2C, "driveController"),
 
         /**
          * I2C用DeviceOrientation(3axis)プロファイル.
+         * <p>
+         * Brick: #201
+         * </p>
          */
-        I2C_3AXIS_DEVICE_ORIENTATION(102, "#201", Category.I2C),
+        I2C_3AXIS_DEVICE_ORIENTATION(102, "#201", Category.I2C, "deviceOrientation"),
 
         /**
          * I2C用Temperatureプロファイル.
+         * <p>
+         * Brick: #207
+         * </p>
          */
-        I2C_TEMPERATURE(103, "#207", Category.I2C),
-        I2C_HUMIDITY(104, "#208", Category.I2C),
-        I2C_PROXIMITY(105, "#205", Category.I2C),
-        I2C_ILLUMINANCE(106, "#217", Category.I2C),
-        I2C_ATMOSPHERIC_PRESSURE(107, "#204", Category.I2C),
-        I2C_LIDARLITE_PROXIMITY(108, "#222", Category.I2C);
+        I2C_TEMPERATURE(103, "#207", Category.I2C, "temperature"),
+
+        /**
+         * I2C用Humidityプロファイル.
+         * <p>
+         * Brick: #208
+         * </p>
+         */
+        I2C_HUMIDITY(104, "#208", Category.I2C, "humidity"),
+
+        /**
+         * I2C用Proximityプロファイル.
+         * <p>
+         * Brick: #205
+         * </p>
+         */
+        I2C_PROXIMITY(105, "#205", Category.I2C, "proximity"),
+
+        /**
+         * I2C用Illuminanceプロファイル.
+         * <p>
+         * Brick: #217
+         * </p>
+         */
+        I2C_ILLUMINANCE(106, "#217", Category.I2C, "illuminace"),
+
+        /**
+         * I2C用AtmosphericPressureプロファイル.
+         * <p>
+         * Brick: #204
+         * </p>
+         */
+        I2C_ATMOSPHERIC_PRESSURE(107, "#204", Category.I2C, "atmosphericPressure"),
+
+        /**
+         * I2C用Proximityプロファイル.
+         * <p>
+         * Brick: #222
+         * </p>
+         */
+        I2C_LIDARLITE_PROXIMITY(108, "#222", Category.I2C, "proximity");
 
         /**
          * プロファイルの種別.
@@ -116,10 +178,16 @@ public class ProfileData implements Parcelable {
          */
         private Category mCategory;
 
-        Type(final int value, final String brick, final Category category) {
+        /**
+         * プロファイル名.
+         */
+        private String mProfileName;
+
+        Type(final int value, final String brick, final Category category, final String profileName) {
             mValue = value;
             mBrick = brick;
             mCategory = category;
+            mProfileName = profileName;
         }
 
         /**
@@ -144,6 +212,14 @@ public class ProfileData implements Parcelable {
          */
         public Category getCategory() {
             return mCategory;
+        }
+
+        /**
+         * プロファイル名を取得します.
+         * @return プロファイル名
+         */
+        public String getProfileName() {
+            return mProfileName;
         }
 
         /**

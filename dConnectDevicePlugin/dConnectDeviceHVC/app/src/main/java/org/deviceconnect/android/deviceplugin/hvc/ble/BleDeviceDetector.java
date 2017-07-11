@@ -212,7 +212,7 @@ public class BleDeviceDetector {
      */
     public void removeCacheDevice(final String name) {
         for (int i = 0; i < mDevices.size(); i++) {
-            if (mDevices.get(i).getName().equals(name)) {
+            if (mDevices.get(i) != null && mDevices.get(i).getName().equals(name)) {
                 mDevices.remove(i);
             }
         }

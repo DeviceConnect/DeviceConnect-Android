@@ -22,6 +22,7 @@ import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectionProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
 import org.deviceconnect.android.deviceplugin.hvc.service.HvcService;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
@@ -40,7 +41,7 @@ import java.util.regex.Pattern;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HvcDeviceService extends DConnectMessageService {
+public class HvcDeviceService extends DConnectMessageService implements HvcCommManager.HVCConnectionListener {
 
     /**
      * log tag.
@@ -73,7 +74,34 @@ public class HvcDeviceService extends DConnectMessageService {
      * BLE device detector.
      */
     private BleDeviceDetector mDetector;
-    
+
+    @Override
+    public void onConnected(final String serviceId) {
+        DConnectService service = getServiceProvider().getService(serviceId);
+        if (service != null) {
+            service.setOnline(true);
+            getServiceProvider().addService(service);
+        }
+    }
+
+    @Override
+    public void onDisconnected(final String serviceId) {
+        DConnectService service = getServiceProvider().getService(serviceId);
+        if (service != null) {
+            service.setOnline(false);
+            getServiceProvider().addService(service);
+            for (int i = 0; i < mHvcCommManagerArray.size(); i++) {
+                if (mHvcCommManagerArray.get(i).getServiceId().equals(serviceId)) {
+                    mHvcCommManagerArray.remove(i);
+                }
+            }
+            if (mDetector != null && service.getName() != null) {
+                mDetector.removeCacheDevice(service.getName());
+            }
+        }
+    }
+
+
     
     @Override
     public void onCreate() {
@@ -245,7 +273,7 @@ public class HvcDeviceService extends DConnectMessageService {
             }
             
             // add comm manager.
-            commManager = new HvcCommManager(this, serviceId, bluetoothDevice);
+            commManager = new HvcCommManager(this, this, serviceId, bluetoothDevice);
             synchronized (mHvcCommManagerArray) {
                 mHvcCommManagerArray.add(commManager);
             }
@@ -323,17 +351,20 @@ public class HvcDeviceService extends DConnectMessageService {
         for (HvcCommManager commManager : mHvcCommManagerArray) {
             commManager.removeDetectEvent(origin);
             HumanDetectKind kind;
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < HumanDetectKind.values().length; i++) {
                 switch (i) {
                     case 0:
                         kind = HumanDetectKind.BODY;
                         break;
                     case 1:
-                        kind = HumanDetectKind.FACE;
+                        kind = HumanDetectKind.HAND;
                         break;
                     case 2:
+                        kind = HumanDetectKind.FACE;
+                        break;
+                    case 3:
                     default:
-                        kind = HumanDetectKind.HAND;
+                        kind = HumanDetectKind.HUMAN;
                         break;
                 }
                 Long interval = commManager.getEventInterval(kind, origin);
@@ -349,9 +380,9 @@ public class HvcDeviceService extends DConnectMessageService {
      */
     private void removeAllDetectEvent() {
         for (HvcCommManager commManager : mHvcCommManagerArray) {
-            /** 全イベント解除 */
+            /** 全イベント解除. */
             commManager.removeAllDetectEvent();
-            /** 全インターバルタイマー削除 */
+            /** 全インターバルタイマー削除. */
             int count = mIntervalTimerInfoArray.size();
             for (int index = (count - 1); index >= 0; index--) {
                 HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
@@ -404,7 +435,7 @@ public class HvcDeviceService extends DConnectMessageService {
             }
             
             // add comm manager.
-            commManager = new HvcCommManager(this, serviceId, bluetoothDevice);
+            commManager = new HvcCommManager(this, this, serviceId, bluetoothDevice);
             synchronized (mHvcCommManagerArray) {
                 mHvcCommManagerArray.add(commManager);
             }
@@ -475,7 +506,6 @@ public class HvcDeviceService extends DConnectMessageService {
                     }
 
                     turnOn(currentDevices);
-                    turnOff(findLostServices(currentDevices));
                 }
             });
         }
@@ -505,6 +535,10 @@ public class HvcDeviceService extends DConnectMessageService {
             if (service == null) {
                 service = new HvcService(device);
                 getServiceProvider().addService(service);
+                // For offline detection.
+                doGetDetectionProc(HumanDetectKind.HUMAN,
+                        HvcDetectRequestUtils.getRequestParams(new Intent(), new Intent(), HumanDetectKind.HUMAN),
+                        new Intent(), HvcCommManager.getServiceId(device.getAddress()));
             }
             service.setOnline(true);
         }

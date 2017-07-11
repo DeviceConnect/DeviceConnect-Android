@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">dConnectDeviceHOGP</string>
+
+    <string name="activity_setting_device_control_btn">デバイス操作</string>
+    <string name="activity_setting_default_device_name">Default</string>
+    <string name="activity_setting_switch_on">ON</string>
+    <string name="activity_setting_switch_off">OFF</string>
+    <string name="activity_setting_device_list">デバイス一覧</string>
+
+    <string name="activity_setting_bt_enabled_dialog_title">警告</string>
+    <string name="activity_setting_bt_enabled_dialog_message">Bluetoothが無効になっています。\n設定を有効にしますか？</string>
+    <string name="activity_setting_dialog_ok">はい</string>
+    <string name="activity_setting_dialog_no">いいえ</string>
+    <string name="activity_setting_ble_not_support_title">警告</string>
+    <string name="activity_setting_ble_not_support_message">Bluetooth Low Energyがサポートされていません。</string>
+    <string name="activity_setting_peripheral_not_support_title">警告</string>
+    <string name="activity_setting_peripheral_not_support_message">Bluetooth Peripheralがサポートされていません。</string>
+    <string name="activity_setting_failed_to_start_server_title">エラー</string>
+    <string name="activity_setting_failed_to_start_server_message">HOGPサーバの起動に失敗しました。\n</string>
+    <string name="activity_setting_not_start_server_title">警告</string>
+    <string name="activity_setting_not_start_server_message">HOGPサーバが起動していません。</string>
+
+    <string name="activity_control_message">画面をドラッグすることでマウスとの代わりに使用することができます。</string>
+    <string name="activity_control_key_0">0</string>
+    <string name="activity_control_key_1">1</string>
+    <string name="activity_control_key_2">2</string>
+    <string name="activity_control_key_3">3</string>
+    <string name="activity_control_key_4">4</string>
+    <string name="activity_control_key_5">5</string>
+    <string name="activity_control_key_6">6</string>
+    <string name="activity_control_key_7">7</string>
+    <string name="activity_control_key_8">8</string>
+    <string name="activity_control_key_9">9</string>
+
+    <string name="activity_control_key_a">a</string>
+    <string name="activity_control_key_b">b</string>
+    <string name="activity_control_key_c">c</string>
+    <string name="activity_control_key_d">d</string>
+    <string name="activity_control_key_e">e</string>
+    <string name="activity_control_key_f">f</string>
+    <string name="activity_control_key_g">g</string>
+    <string name="activity_control_key_h">h</string>
+    <string name="activity_control_key_i">i</string>
+    <string name="activity_control_key_j">j</string>
+    <string name="activity_control_key_k">k</string>
+    <string name="activity_control_key_l">l</string>
+    <string name="activity_control_key_m">m</string>
+    <string name="activity_control_key_n">n</string>
+    <string name="activity_control_key_o">o</string>
+    <string name="activity_control_key_p">p</string>
+    <string name="activity_control_key_q">q</string>
+    <string name="activity_control_key_r">r</string>
+    <string name="activity_control_key_s">s</string>
+    <string name="activity_control_key_t">t</string>
+    <string name="activity_control_key_u">u</string>
+    <string name="activity_control_key_v">v</string>
+    <string name="activity_control_key_w">w</string>
+    <string name="activity_control_key_x">x</string>
+    <string name="activity_control_key_y">y</string>
+    <string name="activity_control_key_z">z</string>
+
+    <string name="activity_control_key_caps">caps</string>
+    <string name="activity_control_key_enter">Enter</string>
+    <string name="activity_control_key_delete">delete</string>
+</resources>

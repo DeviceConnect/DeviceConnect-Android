@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceplugin-provider>
+
+    <profile name="hogp" />
+
+    <profile name="serviceDiscovery" />
+    <profile name="serviceInformation" />
+    <profile name="system" />
+
+</deviceplugin-provider>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/activity_setting_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_margin="20dp"
+        android:background="@drawable/hogp_button_blue"
+        android:text="@string/activity_setting_device_control_btn"
+        android:textColor="#FFF"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/activity_setting_btn"
+        android:orientation="vertical">
+
+        <Switch
+            android:id="@+id/activity_setting_device_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:text="@string/activity_setting_default_device_name"
+            android:textOff="@string/activity_setting_switch_off"
+            android:textOn="@string/activity_setting_switch_on"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#aaa"
+            android:padding="12dp"
+            android:text="@string/activity_setting_device_list"/>
+
+        <ListView
+            android:id="@+id/activity_setting_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </ListView>
+    </LinearLayout>
+</RelativeLayout>

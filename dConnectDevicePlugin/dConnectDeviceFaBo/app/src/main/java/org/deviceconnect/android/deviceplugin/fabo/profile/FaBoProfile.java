@@ -252,7 +252,7 @@ public class FaBoProfile extends DConnectProfile {
                     MessageUtils.setNotSupportAttributeError(response, "pins contains unsupported PIN.");
                 } else if (profileType.getCategory() == ProfileData.Category.GPIO && !checkPinType(profileType, pinList)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Pins that can not be used are included.");
-                } else if (containsProfile(serviceData, profileType)) {
+                } else if (!isSameProfile(serviceData, profileType) && containsProfile(serviceData, profileType)) {
                     MessageUtils.setInvalidRequestParameterError(response, "This service already has the same profile.");
                 } else {
                     ProfileData p = new ProfileData();
@@ -320,13 +320,34 @@ public class FaBoProfile extends DConnectProfile {
 
     /**
      * 指定されたサービスデータが指定されたプロファイルデータを持っているか確認します.
+     * <p>
+     * Brickが異なっても同じプロファイルの場合には同じプロファイルとしてみなす。
+     * </p>
      * @param serviceData サービスデータ
-     * @param type プロファイルデータ
+     * @param type プロファイルタイプ
      * @return プロファイルデータを持っている場合はtrue、それ以外はfalse
      */
     private boolean containsProfile(final ServiceData serviceData, final ProfileData.Type type) {
         for (ProfileData profileData : serviceData.getProfileDataList()) {
             if (profileData.getType().getProfileName().equals(type.getProfileName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 同じプロファイルを持っているか確認を行います.
+     * <p>
+     * Brickとプロファイル療法が同じ場合に同じプロファイルとみなす。
+     * </p>
+     * @param serviceData サービスデータ
+     * @param type プロファイルタイプ
+     * @return 同じプロファイルを持つ場合はtrue、それ以外はfalse
+     */
+    private boolean isSameProfile(final ServiceData serviceData, final ProfileData.Type type) {
+        for (ProfileData profileData : serviceData.getProfileDataList()) {
+            if (profileData.getType() == type) {
                 return true;
             }
         }

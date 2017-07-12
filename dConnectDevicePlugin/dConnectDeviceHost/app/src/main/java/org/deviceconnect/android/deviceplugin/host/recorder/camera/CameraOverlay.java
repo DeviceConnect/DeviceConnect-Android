@@ -465,36 +465,22 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         cleanup();
                         return;
                     }
-                    int degrees = 0;
-                    switch (mWinMgr.getDefaultDisplay().getRotation()) {
-                        case Surface.ROTATION_0:
-                            degrees = 0;
-                            break;
-                        case Surface.ROTATION_90:
-                            degrees = 90;
-                            break;
-                        case Surface.ROTATION_180:
-                            degrees = 180;
-                            break;
-                        case Surface.ROTATION_270:
-                            degrees = 270;
-                            break;
-                    }
-                    mLogger.info("takePicture: display rotation = " + degrees);
-                    int rotation = mFacingDirection == 1 ? 0 : degrees + 180;
+
                     Bitmap original = BitmapFactory.decodeByteArray(data, 0, data.length);
+                    int degrees = Preview.getCameraDisplayOrientation(mContext, mCameraId);
                     Bitmap rotated;
-                    if (rotation == 0) {
+                    if (degrees == 0) {
                         rotated = original;
                     } else {
                         Matrix m = new Matrix();
-                        m.setRotate(rotation);
+                        m.setRotate(degrees * mFacingDirection);
                         rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
-                        original.recycle();
                     }
+
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     rotated.compress(CompressFormat.JPEG, mJpegQuality, baos);
                     byte[] jpeg = baos.toByteArray();
+                    original.recycle();
                     rotated.recycle();
 
                     // 常に違うファイル名になるためforceOverwriteはtrue
@@ -607,7 +593,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     if (yuvimage.compressToJpeg(rect, mJpegQuality, baos)) {
                         byte[] jdata = baos.toByteArray();
 
-                        int degree = mPreview.getCameraDisplayOrientation(mContext);
+                        int degree = Preview.getCameraDisplayOrientation(mContext, mCameraId);
                         if (degree == 0) {
                             mServer.offerMedia(jdata);
                         } else {

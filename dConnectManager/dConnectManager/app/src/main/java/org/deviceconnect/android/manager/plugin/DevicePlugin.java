@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import static org.deviceconnect.android.manager.plugin.DevicePluginState.FOUND;
+
 /**
  * デバイスプラグイン.
  * @author NTT DOCOMO, INC.
@@ -47,7 +49,7 @@ public class DevicePlugin {
 
     private Connection mConnection;
 
-    private DevicePluginState mState = DevicePluginState.ENABLED;
+    private DevicePluginState mState = DevicePluginState.FOUND;
 
     /**
      * デバイスプラグインのパッケージ名を取得する.
@@ -214,8 +216,12 @@ public class DevicePlugin {
         return mConnectionType;
     }
 
-    void setConnectionType(final ConnectionType type) {
-        mConnectionType = type;
+    void setConnectionType(ConnectionType connectionType) {
+        mConnectionType = connectionType;
+    }
+
+    void setConnection(final Connection connection) {
+        mConnection = connection;
     }
 
     public DevicePluginState getState() {
@@ -224,6 +230,29 @@ public class DevicePlugin {
 
     private void setState(final DevicePluginState state) {
         mState = state;
+    }
+
+    public synchronized void enable() {
+        switch (getState()) {
+            case FOUND:
+            case DISABLED:
+                setState(DevicePluginState.ENABLED);
+                try {
+                    mConnection.connect();
+                } catch (ConnectingException e) {
+                    e.printStackTrace();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public synchronized void send(final Intent message) throws MessagingException {
+        if (DevicePluginState.ENABLED != getState()) {
+            throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+        }
+        mConnection.send(message);
     }
 
     @Override
@@ -235,30 +264,5 @@ public class DevicePlugin {
                 "    Class: " + getClassName() + "\n" +
                 "    Version: " + getVersionName() + "\n" +
                 "}";
-    }
-
-    public void enable(final Context context) {
-        switch (getState()) {
-            case DISABLED:
-                setState(DevicePluginState.ENABLED);
-            default:
-                throw new IllegalStateException();
-        }
-    }
-
-    private Connection createConnection(final Context context) {
-        ConnectionType type = getConnectionType();
-        Connection connection;
-        switch (type) {
-            case BINDER: {
-                connection = new BinderConnection(context, getComponentName());
-            }   break;
-            case BROADCAST: {
-                connection = new BroadcastConnection(context);
-            }   break;
-            default:
-                throw new IllegalArgumentException();
-        }
-        return connection;
     }
 }

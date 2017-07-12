@@ -158,11 +158,38 @@ public abstract class DConnectRequest {
     }
 
     /**
+     * プラグイン無効エラーレスポンスを返却する.
+     */
+    protected void sendPluginDisabledError() {
+        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+        MessageUtils.setPluginDisabledError(response);
+        sendResponse(response);
+    }
+
+    /**
+     * プラグイン連携中止エラーレスポンスを返却する.
+     */
+    protected void sendPluginSuspendedError() {
+        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+        MessageUtils.setPluginSuspendedError(response);
+        sendResponse(response);
+    }
+
+    /**
      * タイムアウトのレスポンスを返却する.
      */
     protected void sendTimeout() {
         Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         MessageUtils.setTimeoutError(response);
+        sendResponse(response);
+    }
+
+    /**
+     * 不明なエラーレスポンスを返却する.
+     */
+    protected void sendIllegalServerStateError(final String message) {
+        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+        MessageUtils.setIllegalServerStateError(response, message);
         sendResponse(response);
     }
 

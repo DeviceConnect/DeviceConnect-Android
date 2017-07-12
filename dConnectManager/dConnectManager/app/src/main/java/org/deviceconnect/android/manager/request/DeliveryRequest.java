@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -57,7 +58,22 @@ public class DeliveryRequest extends LocalOAuthRequest {
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
-        mContext.sendBroadcast(request);
+        try {
+            mDevicePlugin.send(request);
+        } catch (MessagingException e) {
+            switch (e.getReason()) {
+                case NOT_ENABLED:
+                    sendPluginDisabledError();
+                    break;
+                case CONNECTION_SUSPENDED:
+                    sendPluginSuspendedError();
+                    break;
+                default: // NOT_CONNECTED
+                    sendIllegalServerStateError("Failed to send a message to the plugin: " + mDevicePlugin.getPackageName());
+                    break;
+            }
+            return;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ

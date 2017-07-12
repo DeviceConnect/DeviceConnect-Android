@@ -54,7 +54,7 @@ public class DConnectApplication  extends HostDeviceApplication {
         initialize();
 
         mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
-        mDevicePluginManager.createDevicePluginList();
+        //mDevicePluginManager.createDevicePluginList();
 
         mWebSocketInfoManager = new WebSocketInfoManager(this);
     }

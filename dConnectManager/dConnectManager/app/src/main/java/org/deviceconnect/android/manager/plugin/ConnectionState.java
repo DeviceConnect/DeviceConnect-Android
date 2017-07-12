@@ -9,6 +9,8 @@ enum ConnectionState {
 
     DISCONNECTING,
 
-    DISCONNECTED
+    DISCONNECTED,
+
+    SUSPENDED
 
 }

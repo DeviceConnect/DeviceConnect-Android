@@ -3,7 +3,7 @@ package org.deviceconnect.android.manager.plugin;
 
 import android.content.Intent;
 
-interface Connection {
+public interface Connection {
 
     ConnectionType getType();
 
@@ -16,7 +16,5 @@ interface Connection {
     void setConnectionListener(ConnectionListener listener);
 
     void send(Intent message) throws MessagingException;
-
-    void setMessageListener(MessageListener listener);
 
 }

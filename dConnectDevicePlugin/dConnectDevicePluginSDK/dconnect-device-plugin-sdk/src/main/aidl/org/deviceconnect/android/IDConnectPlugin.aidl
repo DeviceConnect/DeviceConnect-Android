@@ -8,7 +8,7 @@ interface IDConnectPlugin {
 
     void registerCallback(in IDConnectCallback callback);
 
-    void sendRequest(in Intent request);
+    void sendMessage(in Intent message);
 
     ParcelFileDescriptor readFileDescriptor(in String fileId);
 }

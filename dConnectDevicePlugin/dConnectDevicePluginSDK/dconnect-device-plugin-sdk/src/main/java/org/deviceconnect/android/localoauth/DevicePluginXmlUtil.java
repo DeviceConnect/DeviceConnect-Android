@@ -9,10 +9,13 @@ package org.deviceconnect.android.localoauth;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
+import android.os.Bundle;
 
 import org.deviceconnect.android.BuildConfig;
 import org.xmlpull.v1.XmlPullParser;
@@ -49,11 +52,11 @@ public final class DevicePluginXmlUtil {
             final String packageName) {
         Map<String, DevicePluginXmlProfile> supportProfiles = null;
 
-        ActivityInfo receiverInfo = getActivityInfo(context, packageName);
-        if (receiverInfo != null) {
-            if (receiverInfo.metaData != null) {
+        ComponentInfo info = getComponentInfo(context, packageName);
+        if (info != null) {
+            if (info.metaData != null) {
                 PackageManager pkgMgr = context.getPackageManager();
-                XmlResourceParser xrp = receiverInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+                XmlResourceParser xrp = info.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
                 try {
                     supportProfiles = parseDevicePluginXML(xrp);
                 } catch (XmlPullParserException e) {
@@ -70,6 +73,41 @@ public final class DevicePluginXmlUtil {
         return supportProfiles;
     }
 
+    private static ComponentInfo getComponentInfo(final Context context, final String packageName) {
+        ComponentInfo compInfo = getServiceInfo(context, packageName);
+        if (compInfo != null) {
+            return compInfo;
+        }
+        return getReceiverInfo(context, packageName);
+    }
+
+    private static ServiceInfo getServiceInfo(final Context context, final String packageName) {
+        try {
+            PackageManager pkgMgr = context.getPackageManager();
+            PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_SERVICES);
+            if (pkg != null) {
+                ServiceInfo[] services = pkg.services;
+                if (services != null) {
+                    for (int i = 0; i < services.length; i++) {
+                        String pkgName = services[i].packageName;
+                        String className = services[i].name;
+                        ComponentName component = new ComponentName(pkgName, className);
+                        ServiceInfo serviceInfo = pkgMgr.getServiceInfo(component, PackageManager.GET_META_DATA);
+                        if (serviceInfo.metaData != null) {
+                            Object value = serviceInfo.metaData.get(PLUGIN_META_DATA);
+                            if (value != null) {
+                                return serviceInfo;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        } catch (NameNotFoundException e) {
+            return null;
+        }
+    }
+
     /**
      * コンポーネントのActivityInfoを取得する.
      * 
@@ -77,7 +115,7 @@ public final class DevicePluginXmlUtil {
      * @param packageName package name
      * @return コンポーネントのActivityInfo
      */
-    private static ActivityInfo getActivityInfo(final Context context, final String packageName) {
+    private static ActivityInfo getReceiverInfo(final Context context, final String packageName) {
         try {
             PackageManager pkgMgr = context.getPackageManager();
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_RECEIVERS);

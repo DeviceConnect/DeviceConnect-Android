@@ -131,13 +131,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private final MessageSender mDefaultSender = new MessageSender() {
         @Override
-        public void sendResponse(final Intent response) {
-            sendBroadcast(response);
-        }
-
-        @Override
-        public void sendEvent(final Intent event) {
-            sendBroadcast(event);
+        public void send(final Intent message) {
+            sendBroadcast(message);
         }
     };
 
@@ -184,9 +179,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     @Override
     public IBinder onBind(final Intent intent) {
+        mLogger.info("onBind: " + getClass().getName());
         if (isCalledFromLocal()) {
+            mLogger.info("onBind: Local binder");
             return mLocalBinder;
         }
+        mLogger.info("onBind: Remote binder");
         return mRemoteBinder;
     }
 
@@ -214,6 +212,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return START_STICKY;
         }
 
+        handleMessage(intent);
+        return START_STICKY;
+    }
+
+    private void handleMessage(final Intent intent) {
+        String action = intent.getAction();
         if (checkRequestAction(action)) {
             onRequest(intent);
         }
@@ -243,7 +247,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
             mIsEnabled = false;
             onDevicePluginDisabled();
         }
-        return START_STICKY;
     }
 
     /**
@@ -580,7 +583,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         MessageSender sender = getMessageSender(response);
         if (sender != null) {
-            sender.sendResponse(response);
+            sender.send(response);
             return true;
         }
         return false;
@@ -614,7 +617,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         MessageSender sender = getMessageSender(event);
         if (sender != null) {
-            sender.sendEvent(event);
+            sender.send(event);
             return true;
         }
         return false;
@@ -789,8 +792,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         @Override
-        public void sendRequest(final Intent request) throws RemoteException {
-            mDelegate.sendRequest(request);
+        public void sendMessage(final Intent message) throws RemoteException {
+            mDelegate.sendMessage(message);
         }
 
         @Override
@@ -805,18 +808,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
         public void registerCallback(final IDConnectCallback callback) throws RemoteException {
             mBindingSenders.put(getCallingPackage(), new MessageSender() {
                 @Override
-                public void sendResponse(final Intent response) {
+                public void send(final Intent message) {
                     try {
-                        callback.sendResponse(response);
-                    } catch (RemoteException e) {
-                        // TODO マネージャへの応答に失敗した場合
-                    }
-                }
-
-                @Override
-                public void sendEvent(final Intent event) {
-                    try {
-                        callback.sendEvent(event);
+                        callback.sendMessage(message);
                     } catch (RemoteException e) {
                         // TODO マネージャへの応答に失敗した場合
                     }
@@ -825,8 +819,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         @Override
-        public void sendRequest(final Intent request) throws RemoteException {
-            onRequest(request);
+        public void sendMessage(final Intent message) throws RemoteException {
+            handleMessage(message);
         }
 
         @Override
@@ -836,7 +830,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     private interface MessageSender {
-        void sendResponse(Intent response);
-        void sendEvent(Intent event);
+        void send(Intent response);
     }
 }

@@ -548,4 +548,42 @@ public final class MessageUtils {
     public static void setInvalidProfileError(final Intent response, final String message) {
         setError(response, ErrorCode.INVALID_PROFILE, message);
     }
+
+    /**
+     * レスポンスのエラーコードに プラグイン無効エラー を設定する.
+     *
+     * @param response レスポンスパラメータ
+     */
+    public static void setPluginDisabledError(final Intent response) {
+        setError(response, ErrorCode.PLUGIN_DISABLED);
+    }
+
+    /**
+     * レスポンスのエラーコードに プラグイン無効エラー を設定し、指定されたエラーメッセージを設定する.
+     *
+     * @param response レスポンスパラメータ
+     * @param message エラーメッセージ　
+     */
+    public static void setPluginDisabledError(final Intent response, final String message) {
+        setError(response, ErrorCode.PLUGIN_DISABLED, message);
+    }
+
+    /**
+     * レスポンスのエラーコードに プラグイン連携中止エラー を設定する.
+     *
+     * @param response レスポンスパラメータ
+     */
+    public static void setPluginSuspendedError(final Intent response) {
+        setError(response, ErrorCode.PLUGIN_SUSPENDED);
+    }
+
+    /**
+     * レスポンスのエラーコードに プラグイン連携中止エラー を設定し、指定されたエラーメッセージを設定する.
+     *
+     * @param response レスポンスパラメータ
+     * @param message エラーメッセージ　
+     */
+    public static void setPluginSuspendedError(final Intent response, final String message) {
+        setError(response, ErrorCode.PLUGIN_SUSPENDED, message);
+    }
 }

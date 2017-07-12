@@ -1,15 +1,18 @@
 package org.deviceconnect.android.manager.plugin;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 
 
-class BroadcastConnection extends AbstractConnection {
+public class BroadcastConnection extends AbstractConnection {
 
     private final Context mContext;
 
-    BroadcastConnection(final Context context) {
+    public BroadcastConnection(final Context context) {
         mContext = context;
+        setState(ConnectionState.CONNECTED);
     }
 
     @Override
@@ -19,12 +22,12 @@ class BroadcastConnection extends AbstractConnection {
 
     @Override
     public void connect() throws ConnectingException {
-        notifyOnConnected();
+        // NOP.
     }
 
     @Override
     public void disconnect() {
-        notifyOnDisconnected();
+        // NOP.
     }
 
     @Override

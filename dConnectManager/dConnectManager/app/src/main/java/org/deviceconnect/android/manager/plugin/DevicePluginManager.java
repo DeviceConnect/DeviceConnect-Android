@@ -7,16 +7,17 @@
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,6 +68,8 @@ public class DevicePluginManager {
     /** アプリケーションクラスインスタンス. */
     private final DConnectApplication mApp;
 
+    private ConnectionFactory mConnectionFactory;
+
     /**
      * コンストラクタ.
      * @param app DConnectApplicationのインスタンス
@@ -75,6 +79,11 @@ public class DevicePluginManager {
         setDConnectDomain(domain);
         mApp = app;
     }
+
+    public void setConnectionFactory(final ConnectionFactory factory) {
+        mConnectionFactory = factory;
+    }
+
     /**
      * イベントリスナーを設定する.
      * @param listener リスナー
@@ -82,6 +91,7 @@ public class DevicePluginManager {
     public void setEventListener(final DevicePluginEventListener listener) {
         mEventListener = listener;
     }
+
     /**
      * dConnect Managerのドメイン名を設定する.
      * @param domain ドメイン名
@@ -89,20 +99,32 @@ public class DevicePluginManager {
     public void setDConnectDomain(final String domain) {
         mDConnectDomain = domain;
     }
+
     /**
      * アプリ一覧からデバイスプラグイン一覧を作成する.
      */
     public void createDevicePluginList() {
         PackageManager pkgMgr = mApp.getPackageManager();
-        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_RECEIVERS);
+        int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
+        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(flag);
         if (pkgList != null) {
             for (PackageInfo pkg : pkgList) {
-                ActivityInfo[] receivers = pkg.receivers;
-                if (receivers != null) {
-                    for (int i = 0; i < receivers.length; i++) {
-                        String packageName = receivers[i].packageName;
-                        String className = receivers[i].name;
-                        checkAndAddDevicePlugin(new ComponentName(packageName, className), pkg);
+                ComponentInfo[] components = getComponentInfoList(pkg);
+                for (ComponentInfo component : components) {
+                    String pkgName = component.packageName;
+                    String className = component.name;
+                    ComponentName name = new ComponentName(pkgName, className);
+                    ComponentInfo pluginInfo;
+                    if (component instanceof ServiceInfo) {
+                        pluginInfo = getServiceInfo(pkgMgr, name);
+                    } else {
+                        pluginInfo = getReceiverInfo(pkgMgr, name);
+                    }
+                    if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
+                        //mLogger.info("Device Plug-in: " + pluginInfo.name);
+                        checkAndAddDevicePlugin(name, pkg, pluginInfo);
+                    } else {
+                        //mLogger.info("Ignored: " + component.name);
                     }
                 }
             }
@@ -128,97 +150,165 @@ public class DevicePluginManager {
         }
         PackageManager pkgMgr = mApp.getPackageManager();
         try {
-            PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_RECEIVERS);
+            int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
+            PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
             if (pkg != null) {
-                ActivityInfo[] receivers = pkg.receivers;
-                if (receivers != null) {
-                    for (int i = 0; i < receivers.length; i++) {
-                        String pkgName = receivers[i].packageName;
-                        String className = receivers[i].name;
-                        checkAndAddDevicePlugin(new ComponentName(pkgName, className), pkg);
+                ComponentInfo[] components = getComponentInfoList(pkg);
+                for (ComponentInfo component : components) {
+                    String pkgName = component.packageName;
+                    String className = component.name;
+                    ComponentName name = new ComponentName(pkgName, className);
+                    ComponentInfo pluginInfo;
+                    if (component instanceof ServiceInfo) {
+                        pluginInfo = getServiceInfo(pkgMgr, name);
+                    } else {
+                        pluginInfo = getReceiverInfo(pkgMgr, name);
+                    }
+                    if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
+                        //mLogger.info("Device Plug-in: " + pluginInfo.name);
+                        checkAndAddDevicePlugin(name, pkg, pluginInfo);
+                    } else {
+                        //mLogger.info("Ignored: " + component.name);
                     }
                 }
             }
         } catch (NameNotFoundException e) {
-            return;
+            // NOP.
         }
+    }
+
+    private ComponentInfo[] getComponentInfoList(final PackageInfo pkg) {
+        List<ComponentInfo> result = new ArrayList<>();
+        ServiceInfo[] services = pkg.services;
+        if (services != null) {
+            result.addAll(Arrays.asList(services));
+        }
+        ActivityInfo[] receivers = pkg.receivers;
+        if (receivers != null) {
+            result.addAll(Arrays.asList(receivers));
+        }
+        return result.toArray(new ComponentInfo[result.size()]);
     }
 
     /**
      * コンポーネントにデバイスプラグインが存在するかチェックし追加する.
      * コンポーネントの中にデバイスプラグインがない場合には何もしない。
-     * @param component コンポーネント
+     * @param componentName コンポーネント
      */
-    public void checkAndAddDevicePlugin(final ComponentName component, final PackageInfo pkgInfo) {
-        ApplicationInfo appInfo;
-        ActivityInfo receiverInfo;
+    private void checkAndAddDevicePlugin(final ComponentName componentName, final PackageInfo pkgInfo,
+                                         final ComponentInfo componentInfo) {
+        PackageManager pkgMgr = mApp.getPackageManager();
+        ConnectionType type;
+        if (componentInfo instanceof ServiceInfo) {
+            type = ConnectionType.BINDER;
+        } else {
+            type = ConnectionType.BROADCAST;
+        }
+        mLogger.info("Plug-in: type = " + type + ", name = " + componentName);
+
+        DevicePlugin plugin = parsePlugin(pkgMgr, pkgInfo, componentInfo);
+        plugin.setConnectionType(type);
+        if (mConnectionFactory != null) {
+            plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
+        }
+        mPlugins.put(plugin.getPluginId(), plugin);
+        if (mEventListener != null) {
+            mEventListener.onDeviceFound(plugin);
+        }
+    }
+
+    private ServiceInfo getServiceInfo(final PackageManager pkgMgr, final ComponentName component) {
         try {
-            PackageManager pkgMgr = mApp.getPackageManager();
-            appInfo = pkgMgr.getApplicationInfo(component.getPackageName(), PackageManager.GET_META_DATA);
-            receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
-            if (receiverInfo.metaData != null) {
-                Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
-                if (value != null) {
-                    String pluginName = (String) receiverInfo.metaData.getString(PLUGIN_META_PLUGIN_NAME);
-                    if (pluginName == null) {
-                        pluginName = receiverInfo.applicationInfo.loadLabel(pkgMgr).toString();
-                    }
+            return pkgMgr.getServiceInfo(component, PackageManager.GET_META_DATA);
+        } catch (NameNotFoundException e) {
+            return null;
+        }
+    }
 
-                    VersionName sdkVersionName = getPluginSDKVersion(appInfo);
-                    String packageName = receiverInfo.packageName;
-                    String className = receiverInfo.name;
-                    String versionName = pkgInfo.versionName;
-                    String startClassName = getStartServiceClassName(packageName);
-                    String hash = md5(packageName + className);
-                    if (hash == null) {
-                        throw new RuntimeException("Can't generate md5.");
-                    }
-                    Drawable icon;
-                    Object iconId = receiverInfo.metaData.get(PLUGIN_META_PLUGIN_ICON);
-                    if (iconId != null) {
-                        icon = ResourcesCompat.getDrawable(mApp.getResources(), (int)iconId, null);
-                    } else {
-                        try {
-                            ApplicationInfo info = pkgMgr.getApplicationInfo(packageName, 0);
-                            icon = pkgMgr.getApplicationIcon(info.packageName);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            icon = null;
-                            if (BuildConfig.DEBUG) {
-                                Log.d("Manager", "Icon is not found.");
-                            }
-                        }
-                    }
+    private ActivityInfo getReceiverInfo(final PackageManager pkgMgr, final ComponentName component) {
+        try {
+            return pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
+        } catch (NameNotFoundException e) {
+            return null;
+        }
+    }
 
-                    mLogger.info("Added DevicePlugin: [" + hash + "]");
-                    mLogger.info("    PackageName: " + packageName);
-                    mLogger.info("    className: " + className);
-                    mLogger.info("    versionName: " + versionName);
-                    mLogger.info("    sdkVersionName: " + sdkVersionName);
-                    // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
-                    // 現在は警告を表示し、上書きする.
-                    if (mPlugins.containsKey(hash)) {
-                        mLogger.warning("DevicePlugin[" + hash + "] already exists.");
-                    }
+    private boolean isDevicePlugin(final ComponentInfo compInfo) {
+        if (compInfo.name.contains("org.deviceconnect.android.message.DConnectLaunchService")) {
+            //mLogger.info("DConnectLaunchService is not requesting service: " + compInfo.name);
+            return false;
+        }
+        if (!compInfo.exported) {
+            //mLogger.info("Not exported: " + compInfo.name);
+            return false;
+        }
+        Bundle metaData = compInfo.metaData;
+        if (metaData == null) {
+            //mLogger.info("No meta-data: " + compInfo.name);
+            return false;
+        }
+        if (metaData.get(PLUGIN_META_DATA) != null) {
+            return true;
+        }
+        //mLogger.info("No meta-data for plug-in: " + compInfo.name);
+        return false;
+    }
 
-                    DevicePlugin plugin = new DevicePlugin();
-                    plugin.setClassName(className);
-                    plugin.setPackageName(packageName);
-                    plugin.setVersionName(versionName);
-                    plugin.setPluginId(hash);
-                    plugin.setDeviceName(pluginName);
-                    plugin.setStartServiceClassName(startClassName);
-                    plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
-                    plugin.setPluginSdkVersionName(sdkVersionName);
-                    plugin.setPluginIcon(icon);
-                    mPlugins.put(hash, plugin);
-                    if (mEventListener != null) {
-                        mEventListener.onDeviceFound(plugin);
-                    }
+    private DevicePlugin parsePlugin(final PackageManager pkgMgr, final PackageInfo pkgInfo,
+                                     final ComponentInfo compInfo) {
+        Bundle metaData = compInfo.metaData;
+        String pluginName = metaData.getString(PLUGIN_META_PLUGIN_NAME);
+        if (pluginName == null) {
+            pluginName = compInfo.applicationInfo.loadLabel(pkgMgr).toString();
+        }
+
+        VersionName sdkVersionName = getPluginSDKVersion(compInfo.applicationInfo);
+        String packageName = compInfo.packageName;
+        String className = compInfo.name;
+        String versionName = pkgInfo.versionName;
+        String startClassName = getStartServiceClassName(packageName);
+        String hash = md5(packageName + className);
+        if (hash == null) {
+            throw new RuntimeException("Can't generate md5.");
+        }
+        Drawable icon;
+        Object iconId = metaData.get(PLUGIN_META_PLUGIN_ICON);
+        if (iconId != null) {
+            icon = ResourcesCompat.getDrawable(mApp.getResources(), (int)iconId, null);
+        } else {
+            try {
+                ApplicationInfo info = pkgMgr.getApplicationInfo(packageName, 0);
+                icon = pkgMgr.getApplicationIcon(info.packageName);
+            } catch (PackageManager.NameNotFoundException e) {
+                icon = null;
+                if (BuildConfig.DEBUG) {
+                    Log.d("Manager", "Icon is not found.");
                 }
             }
-        } catch (NameNotFoundException e) {
-            return;
         }
+
+        mLogger.info("Added DevicePlugin: [" + hash + "]");
+        mLogger.info("    PackageName: " + packageName);
+        mLogger.info("    className: " + className);
+        mLogger.info("    versionName: " + versionName);
+        mLogger.info("    sdkVersionName: " + sdkVersionName);
+        // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
+        // 現在は警告を表示し、上書きする.
+        if (mPlugins.containsKey(hash)) {
+            mLogger.warning("DevicePlugin[" + hash + "] already exists.");
+        }
+
+        DevicePlugin plugin = new DevicePlugin();
+        plugin.setClassName(className);
+        plugin.setPackageName(packageName);
+        plugin.setVersionName(versionName);
+        plugin.setPluginId(hash);
+        plugin.setDeviceName(pluginName);
+        plugin.setStartServiceClassName(startClassName);
+        plugin.setSupportProfiles(checkDevicePluginXML(compInfo));
+        plugin.setPluginSdkVersionName(sdkVersionName);
+        plugin.setPluginIcon(icon);
+        return plugin;
     }
 
     /**
@@ -475,7 +565,7 @@ public class DevicePluginManager {
      * @param info receiverのタグ情報
      * @return プロファイル一覧
      */
-    public List<String> checkDevicePluginXML(final ActivityInfo info) {
+    public List<String> checkDevicePluginXML(final ComponentInfo info) {
         PackageManager pkgMgr = mApp.getPackageManager();
         XmlResourceParser xpp = info.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
         try {
@@ -577,6 +667,7 @@ public class DevicePluginManager {
             return null;
         }
     }
+
     /**
      * デバイスプラグインの発見、見失う通知を行うリスナー.
      * @author NTT DOCOMO, INC.

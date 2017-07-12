@@ -12,6 +12,7 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -23,6 +24,9 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import static org.deviceconnect.android.manager.plugin.MessagingException.Reason.CONNECTION_SUSPENDED;
+import static org.deviceconnect.android.manager.plugin.MessagingException.Reason.NOT_ENABLED;
 
 /**
  * Service Discovery用のリクエストクラス.
@@ -123,7 +127,22 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
             request.setComponent(plugin.getComponentName());
             request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-            mContext.sendBroadcast(request);
+            try {
+                plugin.send(request);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+                switch (e.getReason()) {
+                    case NOT_ENABLED:
+                        sendPluginDisabledError();
+                        break;
+                    case CONNECTION_SUSPENDED:
+                        sendPluginSuspendedError();
+                        break;
+                    default: // NOT_CONNECTED
+                        sendIllegalServerStateError("Failed to send a message to the plugin: " + plugin.getPackageName());
+                        break;
+                }
+            }
         }
 
         try {

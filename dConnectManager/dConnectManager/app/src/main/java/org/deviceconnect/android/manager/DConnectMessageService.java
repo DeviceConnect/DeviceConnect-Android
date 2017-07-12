@@ -9,18 +9,25 @@ package org.deviceconnect.android.manager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
+import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.manager.plugin.BinderConnection;
+import org.deviceconnect.android.manager.plugin.BroadcastConnection;
+import org.deviceconnect.android.manager.plugin.Connection;
+import org.deviceconnect.android.manager.plugin.ConnectionFactory;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
@@ -35,7 +42,6 @@ import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
-import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -126,6 +132,13 @@ public abstract class DConnectMessageService extends Service
     /** イベントブローカー. */
     protected EventBroker mEventBroker;
 
+    private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
+        @Override
+        public void sendMessage(final Intent message) throws RemoteException {
+            handleMessage(message);
+        }
+    };
+
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -153,6 +166,20 @@ public abstract class DConnectMessageService extends Service
 
         // デバイスプラグイン管理クラスの作成
         mPluginMgr = ((DConnectApplication) getApplication()).getDevicePluginManager();
+        mPluginMgr.setConnectionFactory(new ConnectionFactory() {
+            @Override
+            public Connection createConnectionForPlugin(final DevicePlugin plugin) {
+                Context context = DConnectMessageService.this;
+                switch (plugin.getConnectionType()) {
+                    case BINDER:
+                        return new BinderConnection(context, plugin.getComponentName(), mCallback);
+                    case BROADCAST:
+                        return new BroadcastConnection(context);
+                    default:
+                        return null;
+                }
+            }
+        });
 
         // イベントハンドラーの初期化
         mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginMgr);
@@ -194,6 +221,12 @@ public abstract class DConnectMessageService extends Service
             return START_STICKY;
         }
 
+        handleMessage(intent);
+        return START_STICKY;
+    }
+
+    private void handleMessage(final Intent intent) {
+        String action = intent.getAction();
         String scheme = intent.getScheme();
         if (SCHEME_LAUNCH.equals(scheme)) {
             String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
@@ -201,18 +234,13 @@ public abstract class DConnectMessageService extends Service
             if (key != null && !TextUtils.isEmpty(origin)) {
                 mHmacManager.updateKey(origin, key);
             }
-            return START_STICKY;
-        }
-
-        if (checkAction(action)) {
+        } else if (checkAction(action)) {
             onRequestReceive(intent);
         } else if (IntentDConnectMessage.ACTION_RESPONSE.equals(action)) {
             onResponseReceive(intent);
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
             onEventReceive(intent);
         }
-
-        return START_STICKY;
     }
 
     /**
@@ -493,11 +521,14 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDeviceFound(final DevicePlugin plugin) {
-        RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
-        req.setContext(this);
-        req.setDestination(plugin);
-        req.setDevicePluginManager(mPluginMgr);
-        addRequest(req);
+        plugin.enable();
+
+        // TODO プラグインが有効になった時に下記の処理を実行
+//        RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
+//        req.setContext(this);
+//        req.setDestination(plugin);
+//        req.setDevicePluginManager(mPluginMgr);
+//        addRequest(req);
     }
 
     @Override

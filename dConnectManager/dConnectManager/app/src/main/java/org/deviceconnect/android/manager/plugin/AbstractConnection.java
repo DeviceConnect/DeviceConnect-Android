@@ -12,9 +12,7 @@ abstract class AbstractConnection implements Connection {
 
     private ConnectionListener mConnectionListener;
 
-    private MessageListener mMessageListener;
-
-    private ConnectionState mState;
+    private ConnectionState mState = ConnectionState.DISCONNECTED;
 
     @Override
     public ConnectionState getState() {
@@ -49,23 +47,6 @@ abstract class AbstractConnection implements Connection {
                 @Override
                 public void run() {
                     l.onDisconnected();
-                }
-            });
-        }
-    }
-
-    @Override
-    public void setMessageListener(final MessageListener listener) {
-        mMessageListener = listener;
-    }
-
-    protected void notifyIncomingMessage(final Intent message) {
-        final MessageListener l = mMessageListener;
-        if (l != null) {
-            mExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    l.onMessage(message);
                 }
             });
         }

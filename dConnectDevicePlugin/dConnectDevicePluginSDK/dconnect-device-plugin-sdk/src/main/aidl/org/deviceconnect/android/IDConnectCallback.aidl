@@ -5,7 +5,5 @@ import android.content.Intent;
 
 interface IDConnectCallback {
 
-    void sendResponse(in Intent response);
-
-    void sendEvent(in Intent event);
+    void sendMessage(in Intent message);
 }

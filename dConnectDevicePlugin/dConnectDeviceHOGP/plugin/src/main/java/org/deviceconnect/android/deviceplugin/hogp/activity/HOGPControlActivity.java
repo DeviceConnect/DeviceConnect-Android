@@ -1,9 +1,10 @@
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
+import android.app.ActionBar;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.GestureDetector;
-import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ToggleButton;
@@ -11,7 +12,7 @@ import android.widget.ToggleButton;
 import org.deviceconnect.android.deviceplugin.hogp.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
 import org.deviceconnect.android.deviceplugin.hogp.R;
-import org.deviceconnect.android.deviceplugin.hogp.server.MouseHOGPServer;
+import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.KeyboardCode;
 
 import java.util.HashMap;
@@ -46,12 +47,19 @@ public class HOGPControlActivity extends HOGPBaseActivity {
     /**
      * HOGPサーバ.
      */
-    private MouseHOGPServer mMouseHOGPServer;
+    private HOGPServer mMouseHOGPServer;
+
+    private long mTime;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control);
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         mGestureDetector = new GestureDetector(this, new GestureDetector.OnGestureListener() {
             @Override
@@ -109,15 +117,20 @@ public class HOGPControlActivity extends HOGPBaseActivity {
                         mMaxPointerCount = motionEvent.getPointerCount();
                         mLastX = motionEvent.getX();
                         mLastY = motionEvent.getY();
+                        mTime = 0;
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
+                        if (System.currentTimeMillis() - mTime < 20) {
+                            return true;
+                        }
                         mMaxPointerCount = Math.max(mMaxPointerCount, motionEvent.getPointerCount());
                         if (mMouseHOGPServer != null) {
                             mMouseHOGPServer.movePointer((int) (motionEvent.getX() - mLastX), (int) (motionEvent.getY() - mLastY), 0, mDragFlag, false, false);
                         }
                         mLastX = motionEvent.getX();
                         mLastY = motionEvent.getY();
+                        mTime = System.currentTimeMillis();
                         return true;
 
                     case MotionEvent.ACTION_UP:
@@ -201,7 +214,7 @@ public class HOGPControlActivity extends HOGPBaseActivity {
             @Override
             public void onClick(final View v) {
                 if (mMouseHOGPServer != null) {
-                    mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x2C);
+                    mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x64);
                     mMouseHOGPServer.sendKeyUp();
                 }
             }
@@ -218,17 +231,27 @@ public class HOGPControlActivity extends HOGPBaseActivity {
         });
 
     }
+
     @Override
-    public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (mMouseHOGPServer != null) {
-                mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x29);
-                mMouseHOGPServer.sendKeyUp();
-            }
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
             return true;
         }
-        return super.onKeyDown(keyCode, event);
+        return super.onMenuItemSelected(featureId, item);
     }
+
+    //    @Override
+//    public boolean onKeyDown(final int keyCode, final KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            if (mMouseHOGPServer != null) {
+//                mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x29);
+//                mMouseHOGPServer.sendKeyUp();
+//            }
+//            return true;
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
 
     @Override
     void onServiceConnected() {
@@ -256,10 +279,10 @@ public class HOGPControlActivity extends HOGPBaseActivity {
      * </p>
      * @return HOGPサーバ
      */
-    private MouseHOGPServer getHOGPServer() {
+    private HOGPServer getHOGPServer() {
         HOGPMessageService s = getHOGPMessageService();
         if (s != null) {
-            return (MouseHOGPServer) s.getHOGPServer();
+            return (HOGPServer) s.getHOGPServer();
         }
         return null;
     }

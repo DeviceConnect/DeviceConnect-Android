@@ -1,12 +1,17 @@
 package org.deviceconnect.android.deviceplugin.hogp;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPHogpProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPSystemProfile;
+import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
-import org.deviceconnect.android.deviceplugin.hogp.server.MouseHOGPServer;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
@@ -15,11 +20,53 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 public class HOGPMessageService extends DConnectMessageService {
 
-    private HOGPServer mHOGPServer;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "HOGP";
+
+    /**
+     * HOGPサーバ.
+     */
+    private AbstractHOGPServer mHOGPServer;
+
+    /**
+     * HOGPプラグインの設定.
+     */
+    private HOGPSetting mHOGPSetting;
+
+    /**
+     * Bluetoothの状態通知を受け取るレシーバー.
+     */
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        if (DEBUG) {
+                            Log.i(TAG, "Bluetooth is off.");
+                        }
+                        stopHOGPServer();
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        if (DEBUG) {
+                            Log.i(TAG, "Bluetooth is on.");
+                        }
+                        if (mHOGPSetting.isEnabledServer()) {
+                            startHOGPServer();
+                        }
+                        break;
+                }
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mHOGPSetting = new HOGPSetting(this);
 
         DConnectService service = new DConnectService("hogp_service_id");
         service.setName("dConnectDeviceHOGP Service");
@@ -27,15 +74,20 @@ public class HOGPMessageService extends DConnectMessageService {
         service.setNetworkType(NetworkType.BLE);
         service.addProfile(new HOGPHogpProfile());
         getServiceProvider().addService(service);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mReceiver, filter);
+
+        if (mHOGPSetting.isEnabledServer()) {
+            startHOGPServer();
+        }
     }
 
     @Override
     public void onDestroy() {
-
-        Log.d("ABC", "onDestroy");
-
         stopHOGPServer();
-
+        unregisterReceiver(mReceiver);
         super.onDestroy();
     }
 
@@ -64,6 +116,10 @@ public class HOGPMessageService extends DConnectMessageService {
         // TODO Device Connect Managerの設定画面上で「プラグイン再起動」を要求された場合の処理. 実装は任意.
     }
 
+    public HOGPSetting getHOGPSetting() {
+        return mHOGPSetting;
+    }
+
     /**
      * HOGPサーバを取得します.
      * <p>
@@ -71,7 +127,7 @@ public class HOGPMessageService extends DConnectMessageService {
      * </p>
      * @return HOGPサーバ
      */
-    public synchronized HOGPServer getHOGPServer() {
+    public synchronized AbstractHOGPServer getHOGPServer() {
         return mHOGPServer;
     }
 
@@ -80,17 +136,30 @@ public class HOGPMessageService extends DConnectMessageService {
      */
     public synchronized void startHOGPServer() {
         if (mHOGPServer != null) {
+            if (DEBUG) {
+                Log.d(TAG, "HOGP Server is already running.");
+            }
             return;
         }
 
-        mHOGPServer = new MouseHOGPServer(this);
-        mHOGPServer.setOnHOGPServerListener(new HOGPServer.OnHOGPServerListener() {
+        if (DEBUG) {
+            Log.i(TAG, "Start the HOGP Server.");
+        }
+
+        mHOGPServer = new HOGPServer(this);
+        mHOGPServer.setOnHOGPServerListener(new AbstractHOGPServer.OnHOGPServerListener() {
             @Override
             public void onConnected(final BluetoothDevice device) {
+                if (DEBUG) {
+                    Log.d(TAG, "Connected the device. " + device.getName());
+                }
             }
 
             @Override
             public void onDisconnected(final BluetoothDevice device) {
+                if (DEBUG) {
+                    Log.d(TAG, "Disconnected the device. " + device.getName());
+                }
             }
         });
         mHOGPServer.start();
@@ -101,6 +170,10 @@ public class HOGPMessageService extends DConnectMessageService {
      */
     public synchronized void stopHOGPServer() {
         if (mHOGPServer != null) {
+            if (DEBUG) {
+                Log.i(TAG, "Stop the HOGP Server.");
+            }
+
             mHOGPServer.stop();
             mHOGPServer = null;
         }

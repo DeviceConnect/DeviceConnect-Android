@@ -1,16 +1,18 @@
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
 import org.deviceconnect.android.deviceplugin.hogp.R;
-import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
+import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUtils;
 
 
@@ -20,6 +22,11 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         Intent intent = new Intent();
         intent.setClass(this, HOGPMessageService.class);
@@ -40,6 +47,15 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
     }
 
     @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
+
+    @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -53,7 +69,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
     @Override
     void onServiceConnected() {
         HOGPMessageService service = getHOGPMessageService();
-        HOGPServer server = service.getHOGPServer();
+        AbstractHOGPServer server = service.getHOGPServer();
 
         final Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
         sw.setChecked(server != null);
@@ -64,6 +80,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                     startHOGPServer();
                 } else {
                     getHOGPMessageService().stopHOGPServer();
+                    getHOGPMessageService().getHOGPSetting().setEnabledServer(false);
                     setSwitchUI(false);
                 }
             }
@@ -81,6 +98,10 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         findViewById(R.id.activity_setting_btn).setEnabled(false);
     }
 
+    /**
+     * HOGPサーバのOn/Offスイッチを設定します.
+     * @param flag Onの場合はtrue、それ以外はfalse
+     */
     private void setSwitchUI(final boolean flag) {
         ((Switch) findViewById(R.id.activity_setting_device_switch)).setChecked(flag);
     }
@@ -94,7 +115,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         if (service == null) {
             return false;
         }
-        HOGPServer server = service.getHOGPServer();
+        AbstractHOGPServer server = service.getHOGPServer();
         return server != null;
     }
 
@@ -126,6 +147,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         } else {
             try {
                 getHOGPMessageService().startHOGPServer();
+                getHOGPMessageService().getHOGPSetting().setEnabledServer(true);
                 setSwitchUI(true);
             } catch (Exception e) {
                 showFailedStartServer();

@@ -41,6 +41,7 @@ import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.AnimationUtil;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.ServiceContainer;
@@ -542,7 +543,11 @@ public class ServiceListActivity extends Activity implements AlertDialogFragment
                 SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
                 SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
                 request.putExtra("pluginId", plugin.getPluginId());
-                sendBroadcast(request);
+                try {
+                    plugin.send(request);
+                } catch (MessagingException e) {
+                    // TODO プラグインが異常終了していた場合はエラーダイアログを出す.
+                }
                 break;
             }
         }

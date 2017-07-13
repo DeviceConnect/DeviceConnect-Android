@@ -12,6 +12,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -135,9 +136,15 @@ public abstract class DConnectMessageService extends Service
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
         public void sendMessage(final Intent message) throws RemoteException {
+            mLogger.info("IDConnectCallback.sendMessage: from = " + getCallingPackage());
             handleMessage(message);
         }
     };
+
+    private String getCallingPackage() {
+        int uid = Binder.getCallingUid();
+        return getPackageManager().getNameForUid(uid);
+    }
 
     @Override
     public IBinder onBind(final Intent intent) {

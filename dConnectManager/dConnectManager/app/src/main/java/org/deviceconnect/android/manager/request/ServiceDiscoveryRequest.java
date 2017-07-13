@@ -130,18 +130,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             try {
                 plugin.send(request);
             } catch (MessagingException e) {
-                e.printStackTrace();
-                switch (e.getReason()) {
-                    case NOT_ENABLED:
-                        sendPluginDisabledError();
-                        break;
-                    case CONNECTION_SUSPENDED:
-                        sendPluginSuspendedError();
-                        break;
-                    default: // NOT_CONNECTED
-                        sendIllegalServerStateError("Failed to send a message to the plugin: " + plugin.getPackageName());
-                        break;
-                }
+                // NOP.
             }
         }
 
@@ -151,9 +140,10 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             mLogger.warning("Exception occurred in wait.");
         }
 
-        if (mResponseCount < plugins.size()) {
-            restartDevicePlugins();
-        }
+        // TODO: 応答のなかったプラグインだけを再起動する
+//        if (mResponseCount < plugins.size()) {
+//            restartDevicePlugins();
+//        }
 
         // パラメータを設定する
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);

@@ -58,20 +58,7 @@ public class DeliveryRequest extends LocalOAuthRequest {
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
-        try {
-            mDevicePlugin.send(request);
-        } catch (MessagingException e) {
-            switch (e.getReason()) {
-                case NOT_ENABLED:
-                    sendPluginDisabledError();
-                    break;
-                case CONNECTION_SUSPENDED:
-                    sendPluginSuspendedError();
-                    break;
-                default: // NOT_CONNECTED
-                    sendIllegalServerStateError("Failed to send a message to the plugin: " + mDevicePlugin.getPackageName());
-                    break;
-            }
+        if (!forwardRequest(request)) {
             return;
         }
 

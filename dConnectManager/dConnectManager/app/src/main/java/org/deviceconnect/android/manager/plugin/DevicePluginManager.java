@@ -299,8 +299,7 @@ public class DevicePluginManager {
         }
 
         DevicePlugin plugin = new DevicePlugin();
-        plugin.setClassName(className);
-        plugin.setPackageName(packageName);
+        plugin.setPluginComponent(compInfo);
         plugin.setVersionName(versionName);
         plugin.setPluginId(hash);
         plugin.setDeviceName(pluginName);

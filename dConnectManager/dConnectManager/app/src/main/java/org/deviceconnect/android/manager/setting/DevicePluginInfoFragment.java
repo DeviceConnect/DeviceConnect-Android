@@ -12,6 +12,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -33,6 +34,7 @@ import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -49,6 +51,9 @@ public class DevicePluginInfoFragment extends Fragment {
 
     /** デバイスプラグインをアンインストールする際のリクエストコード. */
     private static final int REQUEST_CODE = 101;
+
+    /** デバイスプラグインを宣言するコンポーネント. */
+    private ComponentInfo mPluginComponent;
 
     /** デバイスプラグインのパッケージ名. */
     private String mPackageName;
@@ -81,6 +86,7 @@ public class DevicePluginInfoFragment extends Fragment {
         DevicePluginManager manager = apps.getDevicePluginManager();
         for (DevicePlugin plugin : manager.getDevicePlugins()) {
             if (mPluginId.equals(plugin.getPluginId())) {
+                mPluginComponent = plugin.getPluginComponent();
                 mPackageName = plugin.getPackageName();
                 name = plugin.getDeviceName();
                 icon = plugin.getPluginIcon();
@@ -177,7 +183,7 @@ public class DevicePluginInfoFragment extends Fragment {
      * @return profiles
      */
     private Map<String, DevicePluginXmlProfile> getSupportedProfiles() {
-        return DevicePluginXmlUtil.getSupportProfiles(getActivity(), mPackageName);
+        return DevicePluginXmlUtil.getSupportProfiles(getActivity(), mPluginComponent);
     }
 
     /**
@@ -201,7 +207,11 @@ public class DevicePluginInfoFragment extends Fragment {
                 SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
                 SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
                 request.putExtra("pluginId", plugin.getPluginId());
-                getActivity().sendBroadcast(request);
+                try {
+                    plugin.send(request);
+                } catch (MessagingException e) {
+                    // TODO エラーダイアログを表示する
+                }
                 break;
             }
         }

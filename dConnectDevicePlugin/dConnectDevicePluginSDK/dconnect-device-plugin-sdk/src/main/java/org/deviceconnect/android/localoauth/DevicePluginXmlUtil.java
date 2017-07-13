@@ -42,16 +42,15 @@ public final class DevicePluginXmlUtil {
 
     /**
      * デバイスプラグインのxmlファイルを参照し、スコープに対応する有効期限設定値があれば返す.
-     * 
+     *
      * @param context コンテキスト
      * @param packageName デバイスプラグインのパッケージ名
      * @return not null: xmlで定義されているスコープ名と有効期限[msec]が対応付けされたMap / null:
      *         有効期限設定値無し
      */
     public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context,
-            final String packageName) {
+                                                                         final String packageName) {
         Map<String, DevicePluginXmlProfile> supportProfiles = null;
-
         ComponentInfo info = getComponentInfo(context, packageName);
         if (info != null) {
             if (info.metaData != null) {
@@ -68,6 +67,33 @@ public final class DevicePluginXmlUtil {
                         e.printStackTrace();
                     }
                 }
+            }
+        }
+        return supportProfiles;
+    }
+
+    /**
+     * デバイスプラグインのxmlファイルを参照し、スコープに対応する有効期限設定値があれば返す.
+     *
+     * @param context コンテキスト
+     * @param pluginComponent デバイスプラグインを宣言するコンポーネント
+     * @return not null: xmlで定義されているスコープ名と有効期限[msec]が対応付けされたMap / null:
+     *         有効期限設定値無し
+     */
+    public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context,
+            final ComponentInfo pluginComponent) {
+        Map<String, DevicePluginXmlProfile> supportProfiles = null;
+        PackageManager pkgMgr = context.getPackageManager();
+        XmlResourceParser xrp = pluginComponent.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+        try {
+            supportProfiles = parseDevicePluginXML(xrp);
+        } catch (XmlPullParserException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
             }
         }
         return supportProfiles;

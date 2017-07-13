@@ -12,6 +12,7 @@ import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -162,7 +163,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
         // デバイスプラグインに送信
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return null;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ
@@ -230,7 +233,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(getScope()));
 
         // トークン取得を行う
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return null;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ
@@ -260,6 +265,29 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
             sendTimeout();
         }
         return null;
+    }
+
+    protected boolean forwardRequest(final Intent request) {
+        if (mDevicePlugin == null) {
+            throw new IllegalStateException("Destination is null.");
+        }
+        try {
+            mDevicePlugin.send(request);
+            return true;
+        } catch (MessagingException e) {
+            switch (e.getReason()) {
+                case NOT_ENABLED:
+                    sendPluginDisabledError();
+                    break;
+                case CONNECTION_SUSPENDED:
+                    sendPluginSuspendedError();
+                    break;
+                default: // NOT_CONNECTED
+                    sendIllegalServerStateError("Failed to send a message to the plugin: " + mDevicePlugin.getPackageName());
+                    break;
+            }
+            return false;
+        }
     }
 
     /**

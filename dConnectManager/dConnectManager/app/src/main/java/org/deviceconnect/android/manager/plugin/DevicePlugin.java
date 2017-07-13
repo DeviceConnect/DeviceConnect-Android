@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.plugin;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
 
 import org.deviceconnect.android.manager.util.VersionName;
@@ -16,6 +17,7 @@ import org.deviceconnect.android.manager.util.VersionName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import static org.deviceconnect.android.manager.plugin.DevicePluginState.FOUND;
 
@@ -24,10 +26,8 @@ import static org.deviceconnect.android.manager.plugin.DevicePluginState.FOUND;
  * @author NTT DOCOMO, INC.
  */
 public class DevicePlugin {
-    /** デバイスプラグインのパッケージ名. */
-    private String mPackageName;
-    /** デバイスプラグインのクラス名. */
-    private String mClassName;
+    /** デバイスプラグインを定義するコンポーネントの情報. */
+    private ComponentInfo mPluginComponent;
     /** デバイスプラグインのバージョン名. */
     private String mVersionName;
     /** プラグインID. */
@@ -51,19 +51,30 @@ public class DevicePlugin {
 
     private DevicePluginState mState = DevicePluginState.FOUND;
 
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
+
+    /**
+     * プラグインを宣言するコンポーネントを取得する.
+     * @return プラグインを宣言するコンポーネント
+     */
+    public ComponentInfo getPluginComponent() {
+        return mPluginComponent;
+    }
+
+    /**
+     * プラグインを宣言するコンポーネントを設定する.
+     * @param component プラグインを宣言するコンポーネント
+     */
+    void setPluginComponent(final ComponentInfo component) {
+        mPluginComponent = component;
+    }
+
     /**
      * デバイスプラグインのパッケージ名を取得する.
      * @return パッケージ名
      */
     public String getPackageName() {
-        return mPackageName;
-    }
-    /**
-     * デバイスプラグインのパッケージ名を設定する.
-     * @param packageName パッケージ名
-     */
-    public void setPackageName(final String packageName) {
-        this.mPackageName = packageName;
+        return mPluginComponent.packageName;
     }
 
     /**
@@ -87,14 +98,7 @@ public class DevicePlugin {
      * @return クラス名
      */
     public String getClassName() {
-        return mClassName;
-    }
-    /**
-     * デバイスプラグインのクラス名を設定する.
-     * @param className クラス名
-     */
-    public void setClassName(final String className) {
-        this.mClassName = className;
+        return mPluginComponent.name;
     }
     /**
      * デバイスプラグインIDを取得する.
@@ -129,7 +133,7 @@ public class DevicePlugin {
      * @return ComponentNameのインスタンス
      */
     public ComponentName getComponentName() {
-        return new ComponentName(mPackageName, mClassName);
+        return new ComponentName(getPackageName(), getClassName());
     }
     
     /**
@@ -239,7 +243,9 @@ public class DevicePlugin {
                 setState(DevicePluginState.ENABLED);
                 try {
                     mConnection.connect();
+                    mLogger.info("Connected to the plug-in: " + getPackageName());
                 } catch (ConnectingException e) {
+                    mLogger.warning("Failed to connect to the plug-in: " + getPackageName());
                     e.printStackTrace();
                 }
                 break;

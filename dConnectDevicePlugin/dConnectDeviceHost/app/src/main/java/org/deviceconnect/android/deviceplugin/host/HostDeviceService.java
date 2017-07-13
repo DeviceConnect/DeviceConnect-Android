@@ -84,11 +84,6 @@ public class HostDeviceService extends DConnectMessageService {
     private HostDeviceRecorderManager mRecorderMgr;
 
     @Override
-    public IBinder onBind(final Intent intent) {
-        return null;
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
 

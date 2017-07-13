@@ -73,11 +73,12 @@ public class BinderConnection extends AbstractConnection {
 
         try {
             mRunningTask = mExecutor.submit(new ConnectingTask());
-            ConnectingResult result = mRunningTask.get(10, TimeUnit.SECONDS);
+            ConnectingResult result = mRunningTask.get(2, TimeUnit.SECONDS);
             synchronized (this) {
                 mPlugin = result.mPlugin;
                 mServiceConnection = result.mServiceConnection;
                 mRunningTask = null;
+                setState(ConnectionState.CONNECTED);
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
@@ -99,6 +100,7 @@ public class BinderConnection extends AbstractConnection {
 
     @Override
     public void send(final Intent message) throws MessagingException {
+        mLogger.info("BinderConnection.send: sending: target = " + mPluginName.getPackageName());
         synchronized (this) {
             if (ConnectionState.SUSPENDED == getState()) {
                 throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
@@ -109,6 +111,7 @@ public class BinderConnection extends AbstractConnection {
         }
         try {
             mPlugin.sendMessage(message);
+            mLogger.info("BinderConnection.send: sent: target = " + mPluginName.getPackageName());
         } catch (RemoteException e) {
             throw new MessagingException(e, MessagingException.Reason.NOT_CONNECTED);
         }
@@ -128,7 +131,7 @@ public class BinderConnection extends AbstractConnection {
             final ServiceConnection serviceConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(final ComponentName componentName, final IBinder binder) {
-                    mLogger.info("onServiceConnected: " + componentName);
+                    mLogger.info("onServiceConnected: componentName = " + componentName + ", binder = " + binder);
                     try {
                         IDConnectPlugin plugin = IDConnectPlugin.Stub.asInterface(binder);
                         plugin.registerCallback(mCallback);
@@ -157,13 +160,13 @@ public class BinderConnection extends AbstractConnection {
                 throw new ConnectingException("Failed to bind to the plugin: " + mPluginName);
             }
 
-//            synchronized (lockObj) {
-//                lockObj.wait();
-//            }
-//            if (!result.mIsComplete) {
-//                setState(ConnectionState.DISCONNECTED);
-//                throw new ConnectingException("Binder connection timeout");
-//            }
+            synchronized (lockObj) {
+                lockObj.wait();
+            }
+            if (!result.mIsComplete) {
+                setState(ConnectionState.DISCONNECTED);
+                throw new ConnectingException("Binder connection timeout");
+            }
             return result;
         }
     }

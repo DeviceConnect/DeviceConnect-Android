@@ -578,16 +578,16 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
                     // (Motion-JPEG as AVI movie is often omitted huffman tables.)
                     do_preview_pass_through_mjpeg(env, frame_mjpeg);
 
-
-					frame = get_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
-					result = uvc_mjpeg2yuyv(frame_mjpeg, frame);   // MJPEG => yuyv
-					recycle_frame(frame_mjpeg);
-					if (LIKELY(!result)) {
-						frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
-						addCaptureFrame(frame);
-					} else {
-						recycle_frame(frame);
-					}
+                    // MODIFIED:
+					// frame = get_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
+					// result = uvc_mjpeg2yuyv(frame_mjpeg, frame);   // MJPEG => yuyv
+					//recycle_frame(frame_mjpeg);
+					//if (LIKELY(!result)) {
+					//	frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
+					//	addCaptureFrame(frame);
+					//} else {
+					//	recycle_frame(frame);
+					//}
 				}
 			}
 		} else {

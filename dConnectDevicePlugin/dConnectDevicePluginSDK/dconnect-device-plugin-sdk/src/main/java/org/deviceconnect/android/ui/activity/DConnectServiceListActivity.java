@@ -549,6 +549,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
             CheckBox checkBox =
                 (CheckBox) convertView.findViewById(R.id.device_connect_service_removal_checkbox);
             checkBox.setVisibility(mHasCheckbox && !service.isOnline() ? View.VISIBLE : View.GONE);
+            checkBox.setOnCheckedChangeListener(null);
             if (!service.isOnline()) {
                 checkBox.setEnabled(true);
                 checkBox.setClickable(true);
@@ -559,6 +560,11 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                         setChecked(service, isChecked);
                     }
                 });
+                if (isChecked(service)) {
+                    checkBox.setChecked(true);
+                } else {
+                    checkBox.setChecked(false);
+                }
             } else {
                 checkBox.setEnabled(false);
                 checkBox.setClickable(false);
@@ -584,11 +590,12 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                     mCheckedServiceList.add(service);
                 }
             } else {
-                for (Iterator<ServiceContainer> it = mCheckedServiceList.iterator(); ; it.hasNext()) {
-                    if (it.next().getId().equals(service.getId())) {
-                        it.remove();
+                for (int i = 0; i < mCheckedServiceList.size(); i++) {
+                    if (mCheckedServiceList.get(i).getId().equals(service.getId())) {
+                        mCheckedServiceList.remove(i);
                         break;
                     }
+
                 }
             }
             if (mOnCheckServiceListener != null) {

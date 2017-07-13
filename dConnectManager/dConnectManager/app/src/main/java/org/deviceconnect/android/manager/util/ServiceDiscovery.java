@@ -65,7 +65,7 @@ public class ServiceDiscovery extends Authorization {
                     case EXPIRED_ACCESS_TOKEN:
                     case NOT_FOUND_CLIENT_ID:
                         clearAccessToken();
-                        return parseServiceList(executeServiceDiscovery(getAccessToken()));
+                        return services;
                     default:
                         if (DEBUG) {
                             Log.w(TAG, "");

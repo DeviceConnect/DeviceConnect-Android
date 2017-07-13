@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -39,7 +40,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewSer
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -95,9 +95,6 @@ public class HostDeviceService extends DConnectMessageService {
         // Manager同梱のため、LocalOAuthを無効化
         setUseLocalOAuth(false);
 
-        // EventManagerの初期化
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
@@ -116,19 +113,32 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
         hostService.addProfile(new HostCanvasProfile());
         hostService.addProfile(new HostConnectionProfile(BluetoothAdapter.getDefaultAdapter()));
-        hostService.addProfile(new HostDeviceOrientationProfile());
         hostService.addProfile(new HostFileProfile(mFileMgr));
         hostService.addProfile(new HostKeyEventProfile());
         hostService.addProfile(new HostMediaPlayerProfile(mHostMediaPlayerManager));
-        hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
         hostService.addProfile(new HostNotificationProfile());
         hostService.addProfile(new HostPhoneProfile());
-        hostService.addProfile(new HostProximityProfile());
         hostService.addProfile(new HostSettingProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
-        hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
-        hostService.addProfile(new HostGeolocationProfile());
+
+        if (checkSensorHardware()) {
+            hostService.addProfile(new HostDeviceOrientationProfile());
+        }
+
+        if (checkProximityHardware()) {
+            hostService.addProfile(new HostProximityProfile());
+        }
+
+        if (checkCameraHardware()) {
+            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
+            hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
+        }
+
+        if (checkLocationHardware()) {
+            hostService.addProfile(new HostGeolocationProfile());
+        }
+
         getServiceProvider().addService(hostService);
     }
 
@@ -303,5 +313,38 @@ public class HostDeviceService extends DConnectMessageService {
 
         // MediaStreamingRecorder リセット
         mRecorderMgr.clean();
+    }
+
+    /**
+     * カメラを端末がサポートしているかチェックします.
+     * @return カメラをサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkCameraHardware() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+    }
+
+    /**
+     * 位置情報を端末がサポートしているかチェックします.
+     * @return 位置情報をサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkLocationHardware() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
+    }
+
+    /**
+     * 近接センサーを端末がサポートしているかチェックします.
+     * @return 近接センサーをサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkProximityHardware() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
+    }
+
+    /**
+     * 加速度センサーを端末がサポートしているかチェックします.
+     * @return 加速度センサーをサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkSensorHardware() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
     }
 }

@@ -492,8 +492,7 @@ public class HVC_BLE extends HVC implements BleInterface
      * Connect with HVC_BLE device<br>
      */
     @Override
-    public void connect(Context context, BluetoothDevice device) {
-        // TODO Auto-generated method stub
+    public synchronized void connect(Context context, BluetoothDevice device) {
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
 
@@ -522,8 +521,7 @@ public class HVC_BLE extends HVC implements BleInterface
      * Disconnect HVC_BLE device<br>
      */
     @Override
-    public void disconnect() {
-        // TODO Auto-generated method stub
+    public synchronized void disconnect() {
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
             if (DEBUG_LOG) {

@@ -425,7 +425,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                 }
                 @Override
                 public void onFail() {
-                    listener.onFailedTakePhoto();
+                    listener.onFailedTakePhoto("Permission for overlay view is not granted.");
                 }
             });
         }
@@ -453,7 +453,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         synchronized (mCameraLock) {
             if (mPreview == null || mCamera == null) {
                 if (listener != null) {
-                    listener.onFailedTakePhoto();
+                    listener.onFailedTakePhoto("Failed to open camera.");
                 }
                 return;
             }
@@ -461,47 +461,51 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                 @Override
                 public void onPictureTaken(final byte[] data, final Camera camera) {
                     if (data == null) {
-                        listener.onFailedTakePhoto();
+                        listener.onFailedTakePhoto("Failed to take picture.");
                         cleanup();
                         return;
                     }
+                    try {
+                        Bitmap original = BitmapFactory.decodeByteArray(data, 0, data.length);
+                        int degrees = Preview.getCameraDisplayOrientation(mContext, mCameraId);
+                        Bitmap rotated;
+                        if (degrees == 0) {
+                            rotated = original;
+                        } else {
+                            Matrix m = new Matrix();
+                            m.setRotate(degrees * mFacingDirection);
+                            rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
+                            original.recycle();
+                        }
 
-                    Bitmap original = BitmapFactory.decodeByteArray(data, 0, data.length);
-                    int degrees = Preview.getCameraDisplayOrientation(mContext, mCameraId);
-                    Bitmap rotated;
-                    if (degrees == 0) {
-                        rotated = original;
-                    } else {
-                        Matrix m = new Matrix();
-                        m.setRotate(degrees * mFacingDirection);
-                        rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        rotated.compress(CompressFormat.JPEG, mJpegQuality, baos);
+                        byte[] jpeg = baos.toByteArray();
+                        rotated.recycle();
+
+                        // 常に違うファイル名になるためforceOverwriteはtrue
+                        mFileMgr.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
+                            @Override
+                            public void onSuccess(@NonNull final String uri) {
+                                String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;
+                                if (listener != null) {
+                                    listener.onTakenPhoto(uri, filePath);
+                                }
+                                cleanup();
+                            }
+
+                            @Override
+                            public void onFail(@NonNull final Throwable throwable) {
+                                if (listener != null) {
+                                    listener.onFailedTakePhoto(throwable.getMessage());
+                                }
+                                cleanup();
+                            }
+                        });
+                    } catch (OutOfMemoryError e) {
+                        listener.onFailedTakePhoto("Too large picture size.");
+                        cleanup();
                     }
-
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    rotated.compress(CompressFormat.JPEG, mJpegQuality, baos);
-                    byte[] jpeg = baos.toByteArray();
-                    original.recycle();
-                    rotated.recycle();
-
-                    // 常に違うファイル名になるためforceOverwriteはtrue
-                    mFileMgr.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
-                        @Override
-                        public void onSuccess(@NonNull final String uri) {
-                            String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;
-                            if (listener != null) {
-                                listener.onTakenPhoto(uri, filePath);
-                            }
-                            cleanup();
-                        }
-
-                        @Override
-                        public void onFail(@NonNull final Throwable throwable) {
-                            if (listener != null) {
-                                listener.onFailedTakePhoto();
-                            }
-                            cleanup();
-                        }
-                    });
                 }
             });
         }
@@ -597,22 +601,27 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         if (degree == 0) {
                             mServer.offerMedia(jdata);
                         } else {
-                            BitmapFactory.Options bitmapFactoryOptions = new BitmapFactory.Options();
-                            bitmapFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-                            Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
-                            if (bmp != null) {
-                                Matrix m = new Matrix();
-                                m.setRotate(degree * mFacingDirection);
+                            try {
+                                BitmapFactory.Options bitmapFactoryOptions = new BitmapFactory.Options();
+                                bitmapFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+                                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
+                                if (bmp != null) {
+                                    Matrix m = new Matrix();
+                                    m.setRotate(degree * mFacingDirection);
 
-                                Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
-                                if (rotatedBmp != null) {
-                                    baos.reset();
-                                    if (rotatedBmp.compress(CompressFormat.JPEG, mJpegQuality, baos)) {
-                                        mServer.offerMedia(baos.toByteArray());
+                                    Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
+                                    if (rotatedBmp != null) {
+                                        baos.reset();
+                                        if (rotatedBmp.compress(CompressFormat.JPEG, mJpegQuality, baos)) {
+                                            mServer.offerMedia(baos.toByteArray());
+                                        }
+                                        rotatedBmp.recycle();
                                     }
-                                    rotatedBmp.recycle();
+                                    bmp.recycle();
                                 }
-                                bmp.recycle();
+                            } catch (OutOfMemoryError e) {
+                                mServer.stop();
+                                return;
                             }
                         }
                     }
@@ -639,8 +648,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
         /**
          * 写真撮影に失敗したことを通知する.
+         * @param errorMessage DeviceConnect エラーメッセージ
          */
-        void onFailedTakePhoto();
+        void onFailedTakePhoto(String errorMessage);
     }
 
     /**

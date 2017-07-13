@@ -11,7 +11,9 @@ import android.content.Intent;
 
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.SystemProfileConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,7 +126,7 @@ public class WebSocketInfoManager {
             Intent request = new Intent();
             request.setComponent(plugin.getComponentName());
             request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
-            request.putExtra("pluginId", serviceId);
+            request.putExtra(SystemProfileConstants.PARAM_PLUGIN_ID, serviceId);
             request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, origin);
             mContext.sendBroadcast(request);
         }

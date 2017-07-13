@@ -65,7 +65,7 @@ public class BinderConnection extends AbstractConnection {
         mLogger.info("BinderConnection.connect: " + mPluginName.getPackageName());
 
         synchronized (this) {
-            if (ConnectionState.DISCONNECTED != getState()) {
+            if (!(ConnectionState.DISCONNECTED == getState() || ConnectionState.SUSPENDED == getState())) {
                 return;
             }
             setState(ConnectionState.CONNECTING);
@@ -93,8 +93,11 @@ public class BinderConnection extends AbstractConnection {
             if (ConnectionState.CONNECTED != getState()) {
                 return;
             }
-            setState(ConnectionState.DISCONNECTING);
             mContext.unbindService(mServiceConnection);
+            mServiceConnection = null;
+            mPlugin = null;
+            setState(ConnectionState.DISCONNECTED);
+            notifyOnDisconnected();
         }
     }
 

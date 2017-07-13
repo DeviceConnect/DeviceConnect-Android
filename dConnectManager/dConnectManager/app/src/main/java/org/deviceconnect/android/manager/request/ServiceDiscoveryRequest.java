@@ -121,6 +121,10 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
         for (int i = 0; i < plugins.size(); i++) {
             DevicePlugin plugin = plugins.get(i);
+            if (!plugin.isEnabled()) {
+                mCountDownLatch.countDown();
+                continue;
+            }
 
             int requestCode = UUID.randomUUID().hashCode();
             mRequestCodeArray.put(requestCode, plugin);

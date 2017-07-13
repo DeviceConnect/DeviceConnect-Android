@@ -7,8 +7,6 @@ enum ConnectionState {
 
     CONNECTED,
 
-    DISCONNECTING,
-
     DISCONNECTED,
 
     SUSPENDED

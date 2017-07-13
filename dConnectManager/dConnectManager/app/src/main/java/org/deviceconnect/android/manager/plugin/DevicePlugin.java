@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED;
 import static org.deviceconnect.android.manager.plugin.DevicePluginState.FOUND;
 
 /**
@@ -236,11 +237,16 @@ public class DevicePlugin {
         mState = state;
     }
 
+    public boolean isEnabled() {
+        return mState == ENABLED;
+    }
+
     public synchronized void enable() {
         switch (getState()) {
             case FOUND:
             case DISABLED:
                 setState(DevicePluginState.ENABLED);
+
                 try {
                     mConnection.connect();
                     mLogger.info("Connected to the plug-in: " + getPackageName());
@@ -248,6 +254,18 @@ public class DevicePlugin {
                     mLogger.warning("Failed to connect to the plug-in: " + getPackageName());
                     e.printStackTrace();
                 }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public synchronized void disable() {
+        switch (getState()) {
+            case ENABLED:
+                setState(DevicePluginState.DISABLED);
+                mConnection.disconnect();
+                mLogger.info("Disconnected to the plug-in: " + getPackageName());
                 break;
             default:
                 break;

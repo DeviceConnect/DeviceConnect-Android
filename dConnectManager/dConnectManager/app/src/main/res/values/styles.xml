@@ -25,4 +25,15 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
+    <style name="AppBaseTheme.AppCompat" parent="Theme.AppCompat.Light" />
+
+    <style name="AppTheme.AppCompat" parent="AppBaseTheme.AppCompat" />
+
+    <style name="AppTheme.AppCompat.Translucent" parent="AppTheme.AppCompat">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

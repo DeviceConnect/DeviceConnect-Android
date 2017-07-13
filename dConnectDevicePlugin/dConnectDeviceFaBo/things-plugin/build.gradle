@@ -1,0 +1,54 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.1.0" : version
+        return "${version}"
+    }
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.fabo"
+        minSdkVersion 16
+        targetSdkVersion 24
+        versionCode 1
+        versionName getVersionName()
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':app')
+    provided 'com.google.android.things:androidthings:0.4-devpreview'
+}

@@ -188,6 +188,9 @@ public class DataLayerListenerService extends WearableListenerService {
      */
     private void stopVibration() {
         Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        // 停止のパターンの時にバイブレーションを止めようとした時にcancelが効かないため、
+        // バイブレーションが停止している時は、一度バイブレーションを鳴らしたのちに停止を行う。
+        vibrator.vibrate(new long[]{100}, -1);
         vibrator.cancel();
     }
 

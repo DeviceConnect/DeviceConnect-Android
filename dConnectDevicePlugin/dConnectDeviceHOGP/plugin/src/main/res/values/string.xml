@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">dConnectDeviceHOGP</string>
+    <string name="app_name">HOGP (Device Connect Device Plug-in)</string>
+
+    <string name="activity_setting_menu">メニュー</string>
+    <string name="activity_setting_menu_help">ヘルプ</string>
 
     <string name="activity_setting_device_control_btn">デバイス操作</string>
     <string name="activity_setting_default_device_name">Default</string>
@@ -21,6 +24,22 @@
     <string name="activity_setting_failed_to_start_server_message">HOGPサーバの起動に失敗しました。\n</string>
     <string name="activity_setting_not_start_server_title">警告</string>
     <string name="activity_setting_not_start_server_message">HOGPサーバが起動していません。</string>
+    <string name="activity_setting_device_online">接続</string>
+    <string name="activity_setting_device_offline">切断</string>
+
+    <string name="activity_help01_text">設定画面で、HOGPサーバをONにします。ここに表示されるデバイス名を覚えておきます。</string>
+    <string name="activity_help02_text">「Bluetooth」をオンにして、周辺にあるデバイスを検出します。\n
+\n
+検出したデバイスから、同じデバイス名を選択してペアリングを行います。\n
+※ 端末によって見た目が変わる可能性がありますのでご注意してください。\n
+\n
+ペアリングの確認画面が表示されますので、「はい」を選んでください。\n
+\n
+また、ペアリングのダイアログが表示されない場合があります。その場合には、通知バーに隠れている可能性がありますので、確認してください。</string>
+    <string name="activity_help03_text">ペアリングに成功すると、上記のように表示されます。\n
+「入力デバイスとして接続」されていますので、この状態で操作できるようになります。\n
+\n
+しばらくしても「入力デバイスとして接続」が表示されない場合には接続に失敗していますので、ペアリングを解除して、最初から接続を行ってください。</string>
 
     <string name="activity_control_message">画面をドラッグすることでマウスとの代わりに使用することができます。</string>
     <string name="activity_control_key_0">0</string>
@@ -64,4 +83,11 @@
     <string name="activity_control_key_caps">caps</string>
     <string name="activity_control_key_enter">Enter</string>
     <string name="activity_control_key_delete">delete</string>
+    <string name="activity_control_key_esc">esc</string>
+    <string name="activity_control_key_up">↑</string>
+    <string name="activity_control_key_down">↓</string>
+    <string name="activity_control_key_left">←</string>
+    <string name="activity_control_key_right">→</string>
+    <string name="activity_control_key_mode">あ/A</string>
+    <string name="activity_control_key_num">123</string>
 </resources>

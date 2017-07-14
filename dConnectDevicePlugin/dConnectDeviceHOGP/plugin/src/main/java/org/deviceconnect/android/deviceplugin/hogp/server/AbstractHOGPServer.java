@@ -25,9 +25,9 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
-import android.support.v4.BuildConfig;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.hogp.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hogp.util.BatteryUtils;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUuidUtils;
 
@@ -300,7 +300,7 @@ public abstract class AbstractHOGPServer {
 
         addService(setUpHidService(true, true, false));
         addService(setUpDeviceInformationService());
-//        addService(setUpBatteryService());
+        addService(setUpBatteryService());
 
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {
@@ -609,11 +609,11 @@ public abstract class AbstractHOGPServer {
     }
 
     /**
-     * Obtains connected Bluetooth devices
+     * 接続中のデバイス一覧を取得します.
      *
      * @return the connected Bluetooth devices
      */
-    private Set<BluetoothDevice> getDevices() {
+    public Set<BluetoothDevice> getDevices() {
         final Set<BluetoothDevice> deviceSet = new HashSet<>();
         synchronized (mBluetoothDevicesMap) {
             deviceSet.addAll(mBluetoothDevicesMap.values());

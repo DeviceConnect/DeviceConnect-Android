@@ -8,14 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPHogpProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPSystemProfile;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 
 public class HOGPMessageService extends DConnectMessageService {
@@ -49,12 +46,19 @@ public class HOGPMessageService extends DConnectMessageService {
                         }
                         stopHOGPServer();
                         break;
+
                     case BluetoothAdapter.STATE_ON:
                         if (DEBUG) {
                             Log.i(TAG, "Bluetooth is on.");
                         }
                         if (mHOGPSetting.isEnabledServer()) {
-                            startHOGPServer();
+                            try {
+                                startHOGPServer();
+                            } catch (Exception e) {
+                                if (DEBUG) {
+                                    Log.w(TAG, "Failed to start HOGPServer.", e);
+                                }
+                            }
                         }
                         break;
                 }
@@ -68,19 +72,18 @@ public class HOGPMessageService extends DConnectMessageService {
 
         mHOGPSetting = new HOGPSetting(this);
 
-        DConnectService service = new DConnectService("hogp_service_id");
-        service.setName("dConnectDeviceHOGP Service");
-        service.setOnline(false);
-        service.setNetworkType(NetworkType.BLE);
-        service.addProfile(new HOGPHogpProfile());
-        getServiceProvider().addService(service);
-
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
 
         if (mHOGPSetting.isEnabledServer()) {
-            startHOGPServer();
+            try {
+                startHOGPServer();
+            } catch (Exception e) {
+                if (DEBUG) {
+                    Log.w(TAG, "Failed to start HOGPServer.", e);
+                }
+            }
         }
     }
 
@@ -116,6 +119,10 @@ public class HOGPMessageService extends DConnectMessageService {
         // TODO Device Connect Managerの設定画面上で「プラグイン再起動」を要求された場合の処理. 実装は任意.
     }
 
+    /**
+     * HOGPの設定を取得します.
+     * @return HOGP設定
+     */
     public HOGPSetting getHOGPSetting() {
         return mHOGPSetting;
     }
@@ -153,6 +160,13 @@ public class HOGPMessageService extends DConnectMessageService {
                 if (DEBUG) {
                     Log.d(TAG, "Connected the device. " + device.getName());
                 }
+
+                HOGPService service = (HOGPService) getServiceProvider().getService(device.getAddress());
+                if (service == null) {
+                    service = new HOGPService(device);
+                    getServiceProvider().addService(service);
+                }
+                service.setOnline(true);
             }
 
             @Override
@@ -160,6 +174,13 @@ public class HOGPMessageService extends DConnectMessageService {
                 if (DEBUG) {
                     Log.d(TAG, "Disconnected the device. " + device.getName());
                 }
+
+                HOGPService service = (HOGPService) getServiceProvider().getService(device.getAddress());
+                if (service == null) {
+                    service = new HOGPService(device);
+                    getServiceProvider().addService(service);
+                }
+                service.setOnline(false);
             }
         });
         mHOGPServer.start();

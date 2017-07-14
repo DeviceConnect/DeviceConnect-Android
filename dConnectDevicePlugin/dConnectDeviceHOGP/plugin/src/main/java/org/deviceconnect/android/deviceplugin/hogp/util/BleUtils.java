@@ -12,8 +12,6 @@ import android.support.annotation.NonNull;
 
 /**
  * Utilities for Bluetooth LE
- *
- * @author K.Shoji
  */
 public class BleUtils {
 
@@ -83,6 +81,22 @@ public class BleUtils {
         }
 
         return bluetoothAdapter != null && bluetoothAdapter.isEnabled();
+    }
+
+    public static String getBluetoothName(@NonNull final Context context) {
+        final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (bluetoothManager == null) {
+            return null;
+        }
+
+        final BluetoothAdapter bluetoothAdapter;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            bluetoothAdapter = bluetoothManager.getAdapter();
+        } else {
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        }
+
+        return bluetoothAdapter != null ? bluetoothAdapter.getName() : null;
     }
 
     /**

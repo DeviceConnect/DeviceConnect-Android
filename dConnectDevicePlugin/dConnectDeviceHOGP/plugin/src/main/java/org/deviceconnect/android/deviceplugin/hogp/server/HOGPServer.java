@@ -17,7 +17,7 @@ import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.USAGE_PA
 
 public class HOGPServer extends AbstractHOGPServer {
     /**
-     * Characteristic Data(Report Map)
+     * Mouseとキーボード用のレポート定義マップ.
      */
     private static final byte[] REPORT_MAP = {
             USAGE_PAGE(1),      0x01,         // Generic Desktop
@@ -88,15 +88,40 @@ public class HOGPServer extends AbstractHOGPServer {
             END_COLLECTION(0),
     };
 
-    private static final byte[] EMPTY_REPORT = new byte[12];
-
+    /**
+     * キーボード用レポートのModifierのインデックス.
+     */
     private static final int KEY_PACKET_MODIFIER_KEY_INDEX = 4;
+
+    /**
+     * キーボード用レポートのKeyCodeのインデックス.
+     */
     private static final int KEY_PACKET_KEY_INDEX = 6;
 
+    /**
+     * 空のレポート.
+     */
+    private static final byte[] EMPTY_REPORT = new byte[12];
+
+    /**
+     * キーボード用のレポート.
+     */
     private byte[] mKeyboardReport = new byte[12];
+
+    /**
+     * マウス用のレポート.
+     */
     private byte[] mMouseReport = new byte[12];
+
+    /**
+     * 前回送ったマウス用レポート.
+     */
     private byte[] mLastMouseReport = new byte[12];
 
+    /**
+     * コンストラクタ.
+     * @param context このクラスが属するコンテキスト
+     */
     public HOGPServer(final Context context) {
         super(context);
     }
@@ -111,9 +136,14 @@ public class HOGPServer extends AbstractHOGPServer {
     void onOutputReport(final byte[] outputReport) {
     }
 
+    /**
+     * 指定された配列が0で埋め尽くされているか確認します.
+     * @param array 配列
+     * @return 全ての要素が0の場合はtrue、それ以外はfalse
+     */
     private boolean isZero(final byte[] array) {
-        for (int i = 0; i < array.length; i ++) {
-            if (array[i] != 0) {
+        for (int a : array) {
+            if (a != 0) {
                 return false;
             }
         }
@@ -179,7 +209,7 @@ public class HOGPServer extends AbstractHOGPServer {
     }
 
     /**
-     * キーあっぷのレポートを送信します.
+     * キーアップのレポートを送信します.
      */
     public void sendKeyUp() {
         addInputReport(EMPTY_REPORT);

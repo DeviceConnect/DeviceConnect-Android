@@ -7,8 +7,6 @@ import java.util.UUID;
 
 /**
  * Utilities for BLE UUID
- *
- * @author K.Shoji
  */
 public final class BleUuidUtils {
 

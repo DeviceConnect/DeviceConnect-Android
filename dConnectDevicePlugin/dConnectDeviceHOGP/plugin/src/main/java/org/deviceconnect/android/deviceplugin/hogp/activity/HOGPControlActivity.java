@@ -9,18 +9,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ToggleButton;
 
-import org.deviceconnect.android.deviceplugin.hogp.BuildConfig;
-import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
 import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.KeyboardCode;
 
-import java.util.HashMap;
-
+/**
+ * コントローラ画面用Activity.
+ */
 public class HOGPControlActivity extends HOGPBaseActivity {
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "HOGP";
-
     /**
      * ジェスチャー検出器.
      */
@@ -47,8 +43,11 @@ public class HOGPControlActivity extends HOGPBaseActivity {
     /**
      * HOGPサーバ.
      */
-    private HOGPServer mMouseHOGPServer;
+    private HOGPServer mHOGPServer;
 
+    /**
+     * MotionEventを送信した時間.
+     */
     private long mTime;
 
     @Override
@@ -73,9 +72,14 @@ public class HOGPControlActivity extends HOGPBaseActivity {
 
             @Override
             public boolean onSingleTapUp(final MotionEvent e) {
-                if (mMouseHOGPServer != null) {
-                    mMouseHOGPServer.movePointer(0, 0, 0, true, false, false);
-                    mMouseHOGPServer.movePointer(0, 0, 0, false, false, false);
+                if (!mDragFlag && mHOGPServer != null) {
+                    mHOGPServer.movePointer(0, 0, 0, true, false, false);
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                    mHOGPServer.movePointer(0, 0, 0, false, false, false);
                 }
                 return false;
             }
@@ -92,8 +96,8 @@ public class HOGPControlActivity extends HOGPBaseActivity {
                 Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
                 vibrator.vibrate(80);
 
-                if (mMouseHOGPServer != null) {
-                    mMouseHOGPServer.movePointer((int) (e.getX() - mLastX), (int) (e.getY() - mLastY), 0, true, false, false);
+                if (mHOGPServer != null) {
+                    mHOGPServer.movePointer((int) (e.getX() - mLastX), (int) (e.getY() - mLastY), 0, true, false, false);
                 }
 
                 mLastX = e.getX();
@@ -121,12 +125,16 @@ public class HOGPControlActivity extends HOGPBaseActivity {
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
-                        if (System.currentTimeMillis() - mTime < 20) {
+                        if (System.currentTimeMillis() - mTime < 10) {
                             return true;
                         }
                         mMaxPointerCount = Math.max(mMaxPointerCount, motionEvent.getPointerCount());
-                        if (mMouseHOGPServer != null) {
-                            mMouseHOGPServer.movePointer((int) (motionEvent.getX() - mLastX), (int) (motionEvent.getY() - mLastY), 0, mDragFlag, false, false);
+                        if (mHOGPServer != null) {
+                            mHOGPServer.movePointer(
+                                    (int) (motionEvent.getX() - mLastX),
+                                    (int) (motionEvent.getY() - mLastY),
+                                    0,
+                                    mDragFlag, false, false);
                         }
                         mLastX = motionEvent.getX();
                         mLastY = motionEvent.getY();
@@ -136,8 +144,12 @@ public class HOGPControlActivity extends HOGPBaseActivity {
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_POINTER_UP:
                         mDragFlag = false;
-                        if (mMouseHOGPServer != null) {
-                            mMouseHOGPServer.movePointer((int) (motionEvent.getX() - mLastX), (int) (motionEvent.getY() - mLastY), 0, false, false, false);
+                        if (mHOGPServer != null) {
+                            mHOGPServer.movePointer(
+                                    (int) (motionEvent.getX() - mLastX),
+                                    (int) (motionEvent.getY() - mLastY),
+                                    0,
+                                    false, false, false);
                         }
                         mLastX = motionEvent.getX();
                         mLastY = motionEvent.getY();
@@ -147,89 +159,76 @@ public class HOGPControlActivity extends HOGPBaseActivity {
             }
         });
 
+        final int[][] keyMap = {
+                { R.id.activity_control_key_1, 0, 0x00, 0x1E },
+                { R.id.activity_control_key_2, 0, 0x00, 0x1F },
+                { R.id.activity_control_key_3, 0, 0x00, 0x20 },
+                { R.id.activity_control_key_4, 0, 0x00, 0x21 },
+                { R.id.activity_control_key_5, 0, 0x00, 0x22 },
+                { R.id.activity_control_key_6, 0, 0x00, 0x23 },
+                { R.id.activity_control_key_7, 0, 0x00, 0x24 },
+                { R.id.activity_control_key_8, 0, 0x00, 0x25 },
+                { R.id.activity_control_key_9, 0, 0x00, 0x26 },
+                { R.id.activity_control_key_0, 0, 0x00, 0x27 },
 
-        final HashMap<Integer, String> map = new HashMap<Integer, String>() {
-            { put(R.id.activity_control_key_0, "0"); }
-            { put(R.id.activity_control_key_1, "1"); }
-            { put(R.id.activity_control_key_2, "2"); }
-            { put(R.id.activity_control_key_3, "3"); }
-            { put(R.id.activity_control_key_4, "4"); }
-            { put(R.id.activity_control_key_5, "5"); }
-            { put(R.id.activity_control_key_6, "6"); }
-            { put(R.id.activity_control_key_7, "7"); }
-            { put(R.id.activity_control_key_8, "8"); }
-            { put(R.id.activity_control_key_9, "9"); }
-            { put(R.id.activity_control_key_a, "a"); }
-            { put(R.id.activity_control_key_b, "b"); }
-            { put(R.id.activity_control_key_c, "c"); }
-            { put(R.id.activity_control_key_d, "d"); }
-            { put(R.id.activity_control_key_e, "e"); }
-            { put(R.id.activity_control_key_f, "f"); }
-            { put(R.id.activity_control_key_g, "g"); }
-            { put(R.id.activity_control_key_h, "h"); }
-            { put(R.id.activity_control_key_i, "i"); }
-            { put(R.id.activity_control_key_j, "j"); }
-            { put(R.id.activity_control_key_k, "k"); }
-            { put(R.id.activity_control_key_l, "l"); }
-            { put(R.id.activity_control_key_m, "m"); }
-            { put(R.id.activity_control_key_n, "n"); }
-            { put(R.id.activity_control_key_o, "o"); }
-            { put(R.id.activity_control_key_p, "p"); }
-            { put(R.id.activity_control_key_q, "q"); }
-            { put(R.id.activity_control_key_r, "r"); }
-            { put(R.id.activity_control_key_s, "s"); }
-            { put(R.id.activity_control_key_t, "t"); }
-            { put(R.id.activity_control_key_u, "u"); }
-            { put(R.id.activity_control_key_v, "v"); }
-            { put(R.id.activity_control_key_w, "w"); }
-            { put(R.id.activity_control_key_x, "x"); }
-            { put(R.id.activity_control_key_y, "y"); }
-            { put(R.id.activity_control_key_z, "z"); }
+                { R.id.activity_control_key_a, 0, 0x00, 0x04 },
+                { R.id.activity_control_key_b, 0, 0x00, 0x05 },
+                { R.id.activity_control_key_c, 0, 0x00, 0x06 },
+                { R.id.activity_control_key_d, 0, 0x00, 0x07 },
+                { R.id.activity_control_key_e, 0, 0x00, 0x08 },
+                { R.id.activity_control_key_f, 0, 0x00, 0x09 },
+                { R.id.activity_control_key_g, 0, 0x00, 0x0A },
+                { R.id.activity_control_key_h, 0, 0x00, 0x0B },
+                { R.id.activity_control_key_i, 0, 0x00, 0x0C },
+                { R.id.activity_control_key_j, 0, 0x00, 0x0D },
+                { R.id.activity_control_key_k, 0, 0x00, 0x0E },
+                { R.id.activity_control_key_l, 0, 0x00, 0x0F },
+                { R.id.activity_control_key_m, 0, 0x00, 0x10 },
+                { R.id.activity_control_key_n, 0, 0x00, 0x11 },
+                { R.id.activity_control_key_o, 0, 0x00, 0x12 },
+                { R.id.activity_control_key_p, 0, 0x00, 0x13 },
+                { R.id.activity_control_key_q, 0, 0x00, 0x14 },
+                { R.id.activity_control_key_r, 0, 0x00, 0x15 },
+                { R.id.activity_control_key_s, 0, 0x00, 0x16 },
+                { R.id.activity_control_key_t, 0, 0x00, 0x17 },
+                { R.id.activity_control_key_u, 0, 0x00, 0x18 },
+                { R.id.activity_control_key_v, 0, 0x00, 0x19 },
+                { R.id.activity_control_key_w, 0, 0x00, 0x1A },
+                { R.id.activity_control_key_x, 0, 0x00, 0x1B },
+                { R.id.activity_control_key_y, 0, 0x00, 0x1C },
+                { R.id.activity_control_key_z, 0, 0x00, 0x1D },
+
+                { R.id.activity_control_key_esc,    1, 0x00, 0x29 },
+                { R.id.activity_control_key_up,     1, 0x00, 0x52 },
+                { R.id.activity_control_key_down,   1, 0x00, 0x51 },
+                { R.id.activity_control_key_left,   1, 0x00, 0x50 },
+                { R.id.activity_control_key_right,  1, 0x00, 0x4F },
+                { R.id.activity_control_key_delete, 1, 0x00, 0x2A },
+                { R.id.activity_control_key_space,  1, 0x00, 0x2C },
+                { R.id.activity_control_key_enter,  1, 0x00, 0x28 },
+
+                { R.id.activity_control_key_mode,   1, 0x02, 0x2C },
+                { R.id.activity_control_key_num,    1, 0x04, 0x2C },
         };
 
-        for (final Integer key : map.keySet()) {
-            findViewById(key).setOnClickListener(new View.OnClickListener() {
+        for (int[] map : keyMap) {
+            final boolean useShift = (map[1] == 0);
+            final byte modifier = (byte) (map[2] & 0xFF);
+            final byte keyCode = (byte) (map[3] & 0xFF);
+            findViewById(map[0]).setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(final View v) {
-                    String code = map.get(key);
-                    if (mMouseHOGPServer != null) {
-                        mMouseHOGPServer.sendKeyDown(caps(), KeyboardCode.keyCode(code));
-                        mMouseHOGPServer.sendKeyUp();
+                public void onClick(View v) {
+                    if (mHOGPServer != null) {
+                        if (useShift) {
+                            mHOGPServer.sendKeyDown(caps(), keyCode);
+                        } else {
+                            mHOGPServer.sendKeyDown(modifier, keyCode);
+                        }
+                        mHOGPServer.sendKeyUp();
                     }
                 }
             });
         }
-
-        findViewById(R.id.activity_control_key_delete).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                if (mMouseHOGPServer != null) {
-                    mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x2A);
-                    mMouseHOGPServer.sendKeyUp();
-                }
-            }
-        });
-
-        findViewById(R.id.activity_control_key_space).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                if (mMouseHOGPServer != null) {
-                    mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x64);
-                    mMouseHOGPServer.sendKeyUp();
-                }
-            }
-        });
-
-        findViewById(R.id.activity_control_key_enter).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                if (mMouseHOGPServer != null) {
-                    mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x28);
-                    mMouseHOGPServer.sendKeyUp();
-                }
-            }
-        });
-
     }
 
     @Override
@@ -241,26 +240,14 @@ public class HOGPControlActivity extends HOGPBaseActivity {
         return super.onMenuItemSelected(featureId, item);
     }
 
-    //    @Override
-//    public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_BACK) {
-//            if (mMouseHOGPServer != null) {
-//                mMouseHOGPServer.sendKeyDown((byte) 0, (byte) 0x29);
-//                mMouseHOGPServer.sendKeyUp();
-//            }
-//            return true;
-//        }
-//        return super.onKeyDown(keyCode, event);
-//    }
-
     @Override
     void onServiceConnected() {
-        mMouseHOGPServer = getHOGPServer();
+        mHOGPServer = (HOGPServer) getHOGPServer();
     }
 
     @Override
     void onServiceDisconnected() {
-        mMouseHOGPServer = null;
+        mHOGPServer = null;
     }
 
     /**
@@ -270,20 +257,5 @@ public class HOGPControlActivity extends HOGPBaseActivity {
     private byte caps() {
         ToggleButton toggle = (ToggleButton) findViewById(R.id.activity_control_key_caps);
         return toggle.isChecked() ? (byte) KeyboardCode.MODIFIER_KEY_SHIFT : 0;
-    }
-
-    /**
-     * HOGPサーバを取得します.
-     * <p>
-     * HOGPサーバが開始されていない場合にはnullを返却します.
-     * </p>
-     * @return HOGPサーバ
-     */
-    private HOGPServer getHOGPServer() {
-        HOGPMessageService s = getHOGPMessageService();
-        if (s != null) {
-            return (HOGPServer) s.getHOGPServer();
-        }
-        return null;
     }
 }

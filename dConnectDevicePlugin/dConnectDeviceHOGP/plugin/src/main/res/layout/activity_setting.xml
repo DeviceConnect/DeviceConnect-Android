@@ -33,9 +33,10 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#aaa"
+            android:background="#00a0e9"
             android:padding="12dp"
-            android:text="@string/activity_setting_device_list"/>
+            android:text="@string/activity_setting_device_list"
+            android:textColor="#FFF"/>
 
         <ListView
             android:id="@+id/activity_setting_list_view"

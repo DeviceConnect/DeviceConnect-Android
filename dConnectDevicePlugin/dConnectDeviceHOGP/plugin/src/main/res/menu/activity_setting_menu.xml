@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:showAsAction="never"
+        android:id="@+id/activity_setting_menu_help"
+        android:title="@string/activity_setting_menu_help">
+    </item>
+</menu>

@@ -2,21 +2,34 @@ package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
+import android.widget.ListView;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
+import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
 import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUtils;
 
+import java.util.Set;
 
+/**
+ * 設定画面用Activity.
+ */
 public class HOGPSettingActivity extends HOGPBaseActivity {
+
+    private DeviceAdapter mDeviceAdapter;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -44,6 +57,25 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 }
             }
         });
+
+        mDeviceAdapter = new DeviceAdapter();
+
+        ListView listView = (ListView) findViewById(R.id.activity_setting_list_view);
+        listView.setAdapter(mDeviceAdapter);
+
+        setDeviceName();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setDeviceName();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_setting_menu, menu);
+        return true;
     }
 
     @Override
@@ -51,6 +83,9 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         if (item.getItemId() == android.R.id.home) {
             finish();
             return true;
+        } else if (item.getItemId() == R.id.activity_setting_menu_help) {
+            openHelpActivity();
+            return false;
         }
         return super.onMenuItemSelected(featureId, item);
     }
@@ -61,6 +96,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
 
         if (requestCode == BleUtils.REQUEST_CODE_BLUETOOTH_ENABLE) {
             if (resultCode == RESULT_OK) {
+                setDeviceName();
                 startHOGPServer();
             }
         }
@@ -68,7 +104,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
 
     @Override
     void onServiceConnected() {
-        HOGPMessageService service = getHOGPMessageService();
+        final HOGPMessageService service = getHOGPMessageService();
         AbstractHOGPServer server = service.getHOGPServer();
 
         final Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
@@ -79,13 +115,20 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 if (isChecked) {
                     startHOGPServer();
                 } else {
-                    getHOGPMessageService().stopHOGPServer();
-                    getHOGPMessageService().getHOGPSetting().setEnabledServer(false);
+                    service.stopHOGPServer();
+                    service.getHOGPSetting().setEnabledServer(false);
                     setSwitchUI(false);
                 }
             }
         });
         sw.setEnabled(true);
+
+        if (server != null) {
+            Set<BluetoothDevice> devices = server.getDevices();
+            if (devices != null) {
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        }
 
         findViewById(R.id.activity_setting_btn).setEnabled(true);
     }
@@ -96,6 +139,19 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         sw.setOnCheckedChangeListener(null);
         sw.setEnabled(false);
         findViewById(R.id.activity_setting_btn).setEnabled(false);
+    }
+
+    /**
+     * デバイス名をSwitchのタイトルに設定します.
+     */
+    private void setDeviceName() {
+        Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
+        if (BleUtils.isBluetoothEnabled(this)) {
+            String name = BleUtils.getBluetoothName(this);
+            if (name != null) {
+                sw.setText(name);
+            }
+        }
     }
 
     /**
@@ -129,6 +185,15 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
     }
 
     /**
+     * ヘルプ画面を開きます.
+     */
+    private void openHelpActivity() {
+        Intent intent = new Intent();
+        intent.setClass(this, HOGPHelpActivity.class);
+        startActivity(intent);
+    }
+
+    /**
      * HOGPサーバを起動します.
      * <p>
      * HOGPサーバを起動するための設定やサポート状況の確認を行います。
@@ -157,7 +222,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
     }
 
     /**
-     * HOGPサーバの軌道に失敗したことを警告するダイアログを表示します.
+     * HOGPサーバの起動に失敗したことを警告するダイアログを表示します.
      */
     private void showFailedStartServer() {
         new AlertDialog.Builder(this)
@@ -215,5 +280,54 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 .setMessage(R.string.activity_setting_not_start_server_message)
                 .setPositiveButton(R.string.activity_setting_dialog_ok, null)
                 .show();
+    }
+
+    /**
+     * 接続されているデバイス一覧を表示するためのAdapter.
+     */
+    private class DeviceAdapter extends BaseAdapter {
+
+        @Override
+        public int getCount() {
+            HOGPMessageService service = getHOGPMessageService();
+            if (service == null) {
+                return 0;
+            }
+            return service.getServiceProvider().getServiceList().size();
+        }
+
+        @Override
+        public Object getItem(final int position) {
+            HOGPMessageService service = getHOGPMessageService();
+            if (service == null) {
+                return 0;
+            }
+            return service.getServiceProvider().getServiceList().get(position);
+        }
+
+        @Override
+        public long getItemId(final int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, final ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getLayoutInflater().inflate(R.layout.item_setting_device, null);
+            }
+
+            TextView nameView = (TextView) convertView.findViewById(R.id.activity_setting_device_name);
+            TextView statusView = (TextView) convertView.findViewById(R.id.activity_setting_device_status);
+
+            HOGPService service = (HOGPService) getItem(position);
+            nameView.setText(service.getName());
+
+            String status = service.isOnline() ? getString(R.string.activity_setting_device_online) :
+                    getString(R.string.activity_setting_device_offline);
+
+            statusView.setText(status);
+
+            return convertView;
+        }
     }
 }

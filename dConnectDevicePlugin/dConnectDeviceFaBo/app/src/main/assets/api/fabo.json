@@ -1,0 +1,461 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Device Connect API",
+        "version": "2.0.0",
+        "description": ""
+    },
+    "consumes": [],
+    "basePath": "/gotapi/fabo",
+    "paths": {
+        "/service": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "仮想サービス一覧取得",
+                "description": "仮想サービス一覧を取得します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/GetServiceResponse"
+                        }
+                    }
+                }
+            },
+            "post" : {
+                "x-type": "one-shot",
+                "summary": "仮想サービス作成",
+                "description": "仮想サービスを新規作成します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "新規に作成する仮想サービスにつける名前",
+                        "required": true,
+                        "maxLength" : 32,
+                        "minLength" : 1,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/NewServiceResponse"
+                        }
+                    }
+                }
+            },
+            "put" : {
+                "x-type": "one-shot",
+                "summary": "仮想サービス更新",
+                "description": "仮想サービスを更新します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "vid",
+                        "in": "query",
+                        "description": "仮想サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "更新後の仮想サービスの名前",
+                        "required": true,
+                        "maxLength" : 32,
+                        "minLength" : 1,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/CommonResponse"
+                        }
+                    }
+                }
+            },
+            "delete" : {
+                "x-type": "one-shot",
+                "summary": "仮想サービス削除",
+                "description": "仮想サービスを削除します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "vid",
+                        "in": "query",
+                        "description": "仮想サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/CommonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "x-type": "one-shot",
+                "summary": "仮想サービスに登録されているプロファイル一覧取得",
+                "description": "仮想サービスに登録されているプロファイル一覧を取得します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "vid",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/GetProfileResponse"
+                        }
+                    }
+                }
+            },
+            "post" : {
+                "x-type": "one-shot",
+                "summary": "プロファイルを追加.",
+                "description": "仮想サービスにプロファイルを追加します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "vid",
+                        "in": "query",
+                        "description": "仮想サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "FaBoが保持するプロファイルの種別",
+                        "required": true,
+                        "type": "integer",
+                        "enum": [
+                            1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 103, 104, 105, 106, 107, 108
+                        ]
+                    },
+                    {
+                        "name": "pins",
+                        "in": "query",
+                        "description": "プロファイルに対応するピン番号の配列。<br>「,」区切りでピン番号を指定します。",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/CommonResponse"
+                        }
+                    }
+                }
+            },
+            "put" : {
+                "x-type": "one-shot",
+                "summary": "プロファイルの更新.",
+                "description": "仮想サービスにありプロファイルを更新します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "vid",
+                        "in": "query",
+                        "description": "仮想サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "FaBoが保持するプロファイルの種別",
+                        "required": true,
+                        "type": "integer",
+                        "enum": [
+                            1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 103, 104, 105, 106, 107, 108
+                        ]
+                    },
+                    {
+                        "name": "pins",
+                        "in": "query",
+                        "description": "プロファイルが対応するピン番号。",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/CommonResponse"
+                        }
+                    }
+                }
+            },
+
+            "delete" : {
+                "x-type": "one-shot",
+                "summary": "プロファイルを削除.",
+                "description": "仮想サービスにプロファイルを削除します。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "vid",
+                        "in": "query",
+                        "description": "仮想サービスを識別するID",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "FaBoが保持するプロファイルの種別",
+                        "required": true,
+                        "type": "integer",
+                        "enum": [
+                            1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 103, 104, 105, 106, 107, 108
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service",
+                        "schema": {
+                            "$ref": "#/definitions/CommonResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    "definitions": {
+         "GetProfileResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": ["profiles"],
+                    "properties": {
+                        "profiles": {
+                            "type": "array",
+                            "description": "プロファイルの配列",
+                            "items": {
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "name",
+                                    "brick"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type" : "integer",
+                                        "description": "プロファイルの種別"
+                                    },
+                                    "name": {
+                                        "type" : "string",
+                                        "description": "プロファイルの名"
+                                    },
+                                    "brick": {
+                                        "type" : "string",
+                                        "description": "対応するBrick名"
+                                    },
+                                    "pins" : {
+                                        "type": "array",
+                                        "description": "ピン情報",
+                                        "items": {
+                                            "type" : "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+
+        "GetServiceResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [ "services" ],
+                    "properties": {
+                        "services": {
+                            "type": "array",
+                            "description": "仮想サービスの配列",
+                            "items" : {
+                                "type": "object",
+                                "required": [
+                                    "vid",
+                                    "name",
+                                    "profiles"
+                                ],
+                                "properties": {
+                                    "vid": {
+                                        "type": "string",
+                                        "description": "仮想サービスのID"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": "仮想サービスの名前"
+                                    },
+                                    "profiles": {
+                                        "type": "array",
+                                        "description": "仮想サービスが持つプロファイル一覧",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "type",
+                                                "name",
+                                                "brick"
+                                            ],
+                                            "properties": {
+                                                "type": {
+                                                    "type" : "integer",
+                                                    "description": "プロファイルの種別"
+                                                },
+                                                "name": {
+                                                    "type" : "string",
+                                                    "description": "プロファイルの名"
+                                                },
+                                                "brick": {
+                                                    "type" : "string",
+                                                    "description": "対応するBrick名"
+                                                },
+                                                "pins" : {
+                                                    "type": "array",
+                                                    "description": "ピン情報",
+                                                    "items": {
+                                                        "type" : "integer"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+
+        "NewServiceResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [ "vid" ],
+                    "properties": {
+                        "vid": {
+                            "type": "string",
+                            "description": "新規に作成された仮想サービスのID"
+                        }
+                    }
+                }
+            ]
+        },
+
+        "CommonResponse": {
+            "type": "object",
+            "required": [
+                "result",
+                "product",
+                "version"
+            ],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0:正常応答<br>0以外:異常応答"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。アプリケーション側から事前にHMACキーを共有されていた場合は必須。"
+                }
+            }
+        }
+    }
+}

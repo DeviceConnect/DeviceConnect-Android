@@ -1,0 +1,67 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="org.deviceconnect.android.deviceplugin.fabo">
+
+    <uses-feature android:name="android.hardware.usb.host"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/dconnect_icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- Device Connect Example Device Plugin Provider. -->
+        <receiver android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoArduinoDeviceProvider">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_fabo"/>
+
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET"/>
+                <action android:name="org.deviceconnect.action.PUT"/>
+                <action android:name="org.deviceconnect.action.POST"/>
+                <action android:name="org.deviceconnect.action.DELETE"/>
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoArduinoDeviceService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
+                android:resource="@xml/device_filter"/>
+        </service>
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity"
+            android:label="@string/app_name"
+            android:exported="false">
+        </activity>
+
+        <activity
+            android:name=".setting.FaBoArduinoActivity"
+            android:exported="false"
+            android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter"/>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
+                android:resource="@xml/device_filter"/>
+        </activity>
+
+    </application>
+</manifest>

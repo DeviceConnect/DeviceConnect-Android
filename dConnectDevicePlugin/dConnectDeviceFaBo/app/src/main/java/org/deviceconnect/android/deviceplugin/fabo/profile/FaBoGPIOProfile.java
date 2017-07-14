@@ -9,8 +9,8 @@ package org.deviceconnect.android.deviceplugin.fabo.profile;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
-import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -28,21 +28,7 @@ import static org.deviceconnect.message.DConnectMessage.RESULT_OK;
  */
 public class FaBoGPIOProfile extends GPIOProfile {
 
-    private final static String TAG = "FABO_PLUGIN";
-
-    /** Digital Pinに書き込むコマンド. */
-    private final static byte CMD_DIGITAL_WRITE = FirmataV32.DIGITAL_MESSAGE;
-
-    /** Pinモードの設定コマンド. */
-    private final static byte CMD_PIN_SETTING = FirmataV32.SET_PIN_MODE;
-
-    /** GPIOのHigh. */
-    private final static int HIGH = 1;
-
-    /** GPIOのLow. */
-    private final static int LOW = 0;
-
-    private void addGetAnalogApi(final ArduinoUno.Pin pin) {
+    private void addGetAnalogApi(final FaBoShield.Pin pin) {
         // GET /gpio/analog/{pinName}
         switch (pin) {
             case PIN_A0:
@@ -65,9 +51,17 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            int value = ((FaBoDeviceService) getContext()).getAnalogValue(pin.getPinNumber());
-                            setValue(response, value);
-                            setResult(response, RESULT_OK);
+                            if (!isOnline()) {
+                                MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                            } else {
+                                if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                    int value = getFaBoDeviceControl().getAnalog(pin);
+                                    setValue(response, value);
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                                }
+                            }
                             return true;
                         }
                     });
@@ -78,7 +72,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
     }
 
-    private void addGetDigitalApi(final ArduinoUno.Pin pin) {
+    private void addGetDigitalApi(final FaBoShield.Pin pin) {
         // GET /gpio/digital/{pinName}
         switch (pin) {
             case PIN_D0:
@@ -109,13 +103,17 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            int value = ((FaBoDeviceService) getContext()).getDigitalValue(pin.getPort());
-                            if ((value & pin.getBit()) == pin.getBit()) {
-                                setValue(response, HIGH);
+                            if (!isOnline()) {
+                                MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
-                                setValue(response, LOW);
+                                if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                    FaBoShield.Level value = getFaBoDeviceControl().getDigital(pin);
+                                    setValue(response, value.getValue());
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not support.");
+                                }
                             }
-                            setResult(response, RESULT_OK);
                             return true;
                         }
                     });
@@ -126,7 +124,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         }
     }
 
-    private void addPostExportApi(final ArduinoUno.Pin pin) {
+    private void addPostExportApi(final FaBoShield.Pin pin) {
         // POST /gpio/export/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new PostApi() {
@@ -142,32 +140,34 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    int modeValue;
-                    String mode = request.getStringExtra("mode");
-                    if(mode != null) {
-                        try {
-                            modeValue = Integer.parseInt(mode);
-                            if (modeValue < 0 || modeValue > 3) {
-                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-3.");
-                                return true;
-                            }
-                        } catch (Exception e) {
-                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-3.");
-                            return true;
-                        }
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
-                        return true;
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            Integer modeValue = parseInteger(request, "mode");
+                            if (modeValue != null) {
+                                FaBoShield.Mode mode = FaBoShield.Mode.getMode(modeValue);
+                                if (mode != null) {
+                                    getFaBoDeviceControl().setPinMode(pin, mode);
+                                    setMessage(response, pinName + "を" + mode.getName() + "モードに設定しました。");
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 0-4.");
+                                }
+                            } else {
+                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
+                            }
+                        } else {
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                        }
                     }
-                    settingPin(pin.getPinNumber(), modeValue);
-                    setResult(response, RESULT_OK);
                     return true;
                 }
             });
         }
     }
 
-    private void addPostDigitalApi(final ArduinoUno.Pin pin) {
+    private void addPostDigitalApi(final FaBoShield.Pin pin) {
         // POST /gpio/digital/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new PostApi() {
@@ -183,35 +183,34 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    int hlValue;
-                    String hl = request.getStringExtra(PARAM_VALUE);
-
-                    if(hl != null) {
-                        try {
-                            hlValue = Integer.parseInt(hl);
-                            if (hlValue != HIGH && hlValue != LOW) {
-                                // 値が無効
-                                MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
-                                return true;
-                            }
-                        } catch (Exception e) {
-                            // 値が無効
-                            MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
-                            return true;
-                        }
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                     } else {
-                        MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
-                        return true;
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            Integer hlValue = parseInteger(request, PARAM_VALUE);
+                            if (hlValue != null) {
+                                FaBoShield.Level level = FaBoShield.Level.getLevel(hlValue);
+                                if (level != null) {
+                                    getFaBoDeviceControl().writeDigital(pin, level);
+                                    setMessage(response, pinName + "の値を" + level.getName() + "(" + level.getValue() + ")に変更");
+                                    setResult(response, RESULT_OK);
+                                } else {
+                                    MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
+                                }
+                            } else {
+                                MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                            }
+                        } else {
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                        }
                     }
-                    digitalWrite(pin.getPort(), pin.getBit(), hlValue);
-                    setResult(response, RESULT_OK);
                     return true;
                 }
             });
         }
     }
     
-    private void addPostAnalogApi(final ArduinoUno.Pin pin) {
+    private void addPostAnalogApi(final FaBoShield.Pin pin) {
         // POST /gpio/analog/{pinName}
         switch (pin) {
             case PIN_D3:
@@ -234,27 +233,25 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                         @Override
                         public boolean onRequest(final Intent request, final Intent response) {
-                            int hlValue;
-                            String hl = request.getStringExtra(PARAM_VALUE);
-                            if(hl != null) {
-                                try {
-                                    hlValue = Integer.parseInt(hl);
-                                    if (hlValue > 255) {
-                                        // 値が無効
-                                        MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
-                                        return true;
-                                    }
-                                } catch (Exception e) {
-                                    // 値が無効
-                                    MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 0-255.");
-                                    return true;
-                                }
+                            if (!isOnline()) {
+                                MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
                             } else {
-                                MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
-                                return true;
+                                if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                    Integer hlValue = parseInteger(request, PARAM_VALUE);
+                                    if (hlValue != null) {
+                                        if (hlValue >= 0 && hlValue <= 255) {
+                                            getFaBoDeviceControl().writeAnalog(pin, hlValue);
+                                            setResult(response, RESULT_OK);
+                                        } else {
+                                            MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
+                                        }
+                                    } else {
+                                        MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                                    }
+                                } else {
+                                    MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                                }
                             }
-                            analogWrite(pin.getPinNumber(), hlValue);
-                            setResult(response, RESULT_OK);
                             return true;
                         }
                     });
@@ -277,7 +274,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 if (EventError.NONE == error) {
-                    ((FaBoDeviceService) getContext()).registerOnChange(getServiceID(request));
+                    getFaBoDeviceService().registerOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);
                     return true;
                 } else {
@@ -288,7 +285,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         });
     }
 
-    private void addPutDigitalApi(final ArduinoUno.Pin pin) {
+    private void addPutDigitalApi(final FaBoShield.Pin pin) {
         // PUT /gpio/digital/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new PutApi() {
@@ -304,8 +301,17 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    digitalWrite(pin.getPort(), pin.getBit(), HIGH);
-                    setResult(response, RESULT_OK);
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                    } else {
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.HIGH);
+                            setMessage(response, pinName + "の値をHIGH(1)に変更");
+                            setResult(response, RESULT_OK);
+                        } else {
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                        }
+                    }
                     return true;
                 }
             });
@@ -324,7 +330,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 boolean result = EventManager.INSTANCE.removeEvents(getOrigin(request));
                 if (result) {
-                    ((FaBoDeviceService) getContext()).unregisterOnChange(getServiceID(request));
+                    getFaBoDeviceService().unregisterOnChange(getServiceID(request));
                     setResult(response, RESULT_OK);
                     return true;
                 } else {
@@ -335,7 +341,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
         });
     }
 
-    private void addDeleteDigitalApi(final ArduinoUno.Pin pin) {
+    private void addDeleteDigitalApi(final FaBoShield.Pin pin) {
         // DELETE /gpio/digital/{pinName}
         for (final String pinName : pin.getPinNames()) {
             addApi(new DeleteApi() {
@@ -351,8 +357,17 @@ public class FaBoGPIOProfile extends GPIOProfile {
 
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
-                    digitalWrite(pin.getPort(), pin.getBit(), LOW);
-                    setResult(response, RESULT_OK);
+                    if (!isOnline()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "FaBo device is not connected.");
+                    } else {
+                        if (getFaBoDeviceControl().isPinSupported(pin)) {
+                            getFaBoDeviceControl().writeDigital(pin, FaBoShield.Level.LOW);
+                            setMessage(response, pinName + "の値をLOW(0)に変更");
+                            setResult(response, RESULT_OK);
+                        } else {
+                            MessageUtils.setNotSupportAttributeError(response, pin.getPinNames()[1] + " is not supported.");
+                        }
+                    }
                     return true;
                 }
             });
@@ -360,7 +375,7 @@ public class FaBoGPIOProfile extends GPIOProfile {
     }
 
     public FaBoGPIOProfile() {
-        for (ArduinoUno.Pin pin : ArduinoUno.Pin.values()) {
+        for (FaBoShield.Pin pin : FaBoShield.Pin.values()) {
             addGetAnalogApi(pin);
             addGetDigitalApi(pin);
             addPostExportApi(pin);
@@ -373,71 +388,15 @@ public class FaBoGPIOProfile extends GPIOProfile {
         addDeleteOnChangeApi();
     }
 
-    /**
-     * Digitalの書き込み.
-     *
-     * @param port PORT番号
-     * @param pinBit PIN番号
-     * @param hl HIGHとLOWの値
-     */
-    private void digitalWrite(int port, int pinBit, int hl){
-
-        FaBoDeviceService service = (FaBoDeviceService) getContext();
-
-        if (hl == HIGH){
-            int status = service.getPortStatus(port) | pinBit;
-            byte[] bytes = new byte[3];
-            bytes[0] = (byte) (CMD_DIGITAL_WRITE | port);
-            bytes[1] = (byte) (status & 0xff);
-            bytes[2] = (byte) ((status >> 8) & 0xff);
-            service.SendMessage(bytes);
-            service.setPortStatus(port, status);
-        } else if(hl == LOW){
-            int status = service.getPortStatus(port) & ~pinBit;
-            byte[] bytes = new byte[3];
-            bytes[0] = (byte) (CMD_DIGITAL_WRITE | port);
-            bytes[1] = (byte) (status & 0xff);
-            bytes[2] = (byte) ((status >> 8) & 0xff);
-            service.SendMessage(bytes);
-            service.setPortStatus(port, status);
-        }
+    private boolean isOnline() {
+        return getService().isOnline();
     }
 
-    /**
-     * Analogの書き込み.
-     *
-     * @param pinNo PIN番号
-     * @param value 値
-     */
-    private void analogWrite(int pinNo, int value){
-
-        FaBoDeviceService service = (FaBoDeviceService) getContext();
-
-        byte[] bytes = new byte[5];
-        bytes[0] = (byte) FirmataV32.START_SYSEX;
-        bytes[1] = (byte) (0x6F);
-        bytes[2] = (byte) pinNo;
-        bytes[3] = (byte) value;
-        bytes[4] = (byte) FirmataV32.END_SYSEX;
-        service.SendMessage(bytes);
+    private FaBoDeviceControl getFaBoDeviceControl() {
+        return getFaBoDeviceService().getFaBoDeviceControl();
     }
 
-    /**
-     * 各PINの設定.
-     *
-     * @param pinNo PIN番号
-     * @param mode モード、0:GPIO IN, 1:GPIO OUT, 2: ANALOG, 3: PWM, 4:SERVO
-     */
-    private void settingPin(int pinNo, int mode){
-
-        FaBoDeviceService service = (FaBoDeviceService) getContext();
-
-        byte[] command = new byte[3];
-        command[0] = (byte) (CMD_PIN_SETTING);
-        command[1] = (byte) (pinNo);
-        command[2] = (byte) (mode);
-
-        service.SendMessage(command);
-        service.setPin(pinNo, mode);
+    private FaBoDeviceService getFaBoDeviceService() {
+        return (FaBoDeviceService) getContext();
     }
 }

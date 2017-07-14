@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name" translatable="false">FaBo (Device Connect Device Plug-in)</string>
+
+    <string name="not_found_arduino" translatable="false">Arduino Unoが見つかりませんでした。</string>
+    <string name="can_not_connet_usb" translatable="false">USBデバイスに接続できませんでした。</string>
+    <string name="can_not_open_usb" translatable="false">USBデバイスが開けませんでした。</string>
+    <string name="page_1" translatable="false">Arduino Uno接続設定</string>
+    <string name="page_2" translatable="false">Firmataファームウェア転送</string>
+    <string name="setting_message_1_1" translatable="false">Arduino Unoと接続してください。</string>
+    <string name="setting_message_2_1" translatable="false">FirmataデバイスとAndroid UnoをUSB接続します。接続に設定するとFirmataファームウェアを転送ボタンが出てくるので選択します。</string>
+    <string name="button_connect" translatable="false">Arduino Unoと接続</string>
+    <string name="button_sendfirmata" translatable="false">Firmataファームウェアを転送</string>
+    <string name="button_back" translatable="false">FaBoデバイスへの接続画面に戻る</string>
+    <string name="open_usb" translatable="false">USBをオープンしました。</string>
+    <string name="not_connect" translatable="false">FaBoデバイスが接続されていません。\n\nArduino UnoをUSBでAndroidに接続してください。</string>
+    <string name="arduinocc_find" translatable="false">Arduino.cc製のArduinoを認識しました。\n\nArduino Unoと接続処理を行なっています。</string>
+    <string name="arduinoorg_find" translatable="false">Arduino.org製のArduino Unoを認識しました。\n\nArduino Unoと接続処理を行なっています。</string>
+    <string name="failed_open_usb" translatable="false">USBデバイスの接続に失敗しました。</string>
+    <string name="failed_connect_arduino" translatable="false">Arduinoに接続に失敗しました。</string>
+    <string name="success_connect_arduino" translatable="false">Arduinoへの接続に成功しました。</string>
+    <string name="success_connect" translatable="false">FaBoデバイスプラグイン動作中。\n動作を終了する場合は、USBを抜いてください。</string>
+    <string name="failed_connect_firmata" translatable="false">Firmataへの接続に失敗しました。</string>
+    <string name="failed_send_firmata" translatable="false">Firwareの転送に失敗しました。</string>
+    <string name="disconnect_fabo" translatable="false">FaBoデバイスが切断されました。</string>
+    <string name="disconnect_usb" translatable="false">USBデバイスが切断されました。</string>
+    <string name="firmware_usb_find" translatable="false">USBデバイスに接続しました。\n\nFirmataファームウェアを転送ボタンを押し、ファームウェアを転送します。</string>
+    <string name="firmware_start_send" translatable="false">ファームウェア転送を開始します。3-5秒程度の時間がかかります。</string>
+    <string name="firmware_failed_send" translatable="false">ファームウェアの転送に失敗。\n\nArdino Unoと接続ボタンを押し、再度転送しなおしてください。</string>
+    <string name="firmware_success_send" translatable="false">ファームウェアの転送に成功。</string>
+
+    <string name="activity_setting_arduino_title" translatable="false">FaBo設定(Arduino)</string>
+
+    <string name="fragment_setting_arduino_title" translatable="false">Arduino</string>
+    <string name="fragment_setting_arduino_connect" translatable="false">Arduino接続</string>
+    <string name="fragment_setting_arduino_firmata" translatable="false">Firmataファームウェア転送</string>
+
+    <string name="fragment_setting_service_title" translatable="false">サービス</string>
+    <string name="fragment_setting_service_list" translatable="false">サービス一覧</string>
+
+    <string name="fragment_setting_security_title" translatable="false">セキュリティ</string>
+    <string name="fragment_setting_security_local_oauth_title" translatable="false">ユーザ認可</string>
+    <string name="fragment_setting_security_local_oauth_description" translatable="false">ユーザによってプラグインの使用を認可します。</string>
+
+    <string name="fragment_connect_org_recognition" translatable="false">"Arduino Uno(ORG)を認識"</string>
+    <string name="fragment_connect_cc_recognition" translatable="false">"Arduino(CC)を認識"</string>
+    <string name="fragment_connect_check_firmata" translatable="false">Firmataの動作を確認</string>
+</resources>

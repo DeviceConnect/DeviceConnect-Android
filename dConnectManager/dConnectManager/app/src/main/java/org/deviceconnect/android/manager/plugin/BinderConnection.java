@@ -97,7 +97,6 @@ public class BinderConnection extends AbstractConnection {
             mServiceConnection = null;
             mPlugin = null;
             setState(ConnectionState.DISCONNECTED);
-            notifyOnDisconnected();
         }
     }
 
@@ -154,7 +153,6 @@ public class BinderConnection extends AbstractConnection {
                 @Override
                 public void onServiceDisconnected(final ComponentName componentName) {
                     setState(ConnectionState.DISCONNECTED);
-                    notifyOnDisconnected();
                 }
             };
             boolean canBind = mContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);

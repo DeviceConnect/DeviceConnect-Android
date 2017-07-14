@@ -1,8 +1,9 @@
 package org.deviceconnect.android.manager.plugin;
 
 
-import android.content.Intent;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -10,7 +11,7 @@ abstract class AbstractConnection implements Connection {
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
-    private ConnectionListener mConnectionListener;
+    private final List<ConnectionStateListener> mConnectionStateListeners = new ArrayList<>();
 
     private ConnectionState mState = ConnectionState.DISCONNECTED;
 
@@ -19,36 +20,48 @@ abstract class AbstractConnection implements Connection {
         return mState;
     }
 
-    protected void setState(final ConnectionState state) {
+    void setState(final ConnectionState state) {
         mState = state;
+        notifyStateChange(state);
     }
 
     @Override
-    public void setConnectionListener(final ConnectionListener listener) {
-        mConnectionListener = listener;
-    }
-
-    void notifyOnConnected() {
-        final ConnectionListener l = mConnectionListener;
-        if (l != null) {
-            mExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    l.onConnected();
+    public void addConnectionStateListener(final ConnectionStateListener listener) {
+        synchronized (mConnectionStateListeners) {
+            for (ConnectionStateListener cache : mConnectionStateListeners) {
+                if (cache == listener) {
+                    return;
                 }
-            });
+            }
+            mConnectionStateListeners.add(listener);
         }
     }
 
-    void notifyOnDisconnected() {
-        final ConnectionListener l = mConnectionListener;
-        if (l != null) {
-            mExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    l.onDisconnected();
+    @Override
+    public void removeConnectionStateListener(ConnectionStateListener listener) {
+        synchronized (mConnectionStateListeners) {
+            for (Iterator<ConnectionStateListener> it = mConnectionStateListeners.iterator(); it.hasNext(); ) {
+                ConnectionStateListener cache = it.next();
+                if (cache == listener) {
+                    it.remove();
+                    return;
                 }
-            });
+            }
+        }
+    }
+
+    private void notifyStateChange(final ConnectionState state) {
+        synchronized (mConnectionStateListeners) {
+            if (mConnectionStateListeners.size() > 0) {
+                for (final ConnectionStateListener l : mConnectionStateListeners) {
+                    mExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            l.onConnectionStateChanged(state);
+                        }
+                    });
+                }
+            }
         }
     }
 }

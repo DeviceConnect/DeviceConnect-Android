@@ -7,7 +7,6 @@
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
@@ -16,11 +15,9 @@ import org.deviceconnect.android.manager.util.VersionName;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED;
-import static org.deviceconnect.android.manager.plugin.DevicePluginState.FOUND;
 
 /**
  * デバイスプラグイン.
@@ -270,6 +267,14 @@ public class DevicePlugin {
             default:
                 break;
         }
+    }
+
+    public void addConnectionStateListener(final ConnectionStateListener listener) {
+        mConnection.addConnectionStateListener(listener);
+    }
+
+    public void removeConnectionStateListener(final ConnectionStateListener listener) {
+        mConnection.removeConnectionStateListener(listener);
     }
 
     public synchronized void send(final Intent message) throws MessagingException {

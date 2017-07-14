@@ -14,10 +14,13 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
+import android.view.View;
 import android.widget.CompoundButton;
 
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
+import org.deviceconnect.android.manager.plugin.ConnectionStateListener;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
@@ -34,11 +37,30 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
     /** デバイスプラグインのプラグインIDのキー. */
     static final String PLUGIN_ID = "pluginId";
 
-    private SwitchCompat mStatusSwitch;
-
     private DevicePlugin mPlugin;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private final ConnectionStateListener mListener = new ConnectionStateListener() {
+        @Override
+        public void onConnectionStateChanged(final ConnectionState state) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    switch (state) {
+                        case CONNECTING:
+                            mProgressCircle.setVisibility(View.VISIBLE);
+                            break;
+                        case CONNECTED:
+                            mProgressCircle.setVisibility(View.INVISIBLE);
+                            break;
+                    }
+                }
+            });
+        }
+    };
+
+    private View mProgressCircle;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -66,13 +88,14 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
             for (DevicePlugin plugin : manager.getDevicePlugins()) {
                 if (pluginId.equals(plugin.getPluginId())) {
                     mPlugin = plugin;
+                    mPlugin.addConnectionStateListener(mListener);
                     break;
                 }
             }
 
-            mStatusSwitch = (SwitchCompat) actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
-            mStatusSwitch.setChecked(mPlugin.isEnabled());
-            mStatusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            SwitchCompat statusSwitch = (SwitchCompat) actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
+            statusSwitch.setChecked(mPlugin.isEnabled());
+            statusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(final CompoundButton button, final boolean isOn) {
                     mExecutor.execute(new Runnable() {
@@ -87,6 +110,8 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
                     });
                 }
             });
+
+            mProgressCircle = actionBar.getCustomView().findViewById(R.id.progress_plugin_enable_status);
         }
 
         if (savedInstanceState == null) {
@@ -101,5 +126,13 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
             t.add(android.R.id.content, f, "container");
             t.commit();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mPlugin != null) {
+            mPlugin.removeConnectionStateListener(mListener);
+        }
+        super.onDestroy();
     }
 }

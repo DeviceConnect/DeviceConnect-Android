@@ -1,7 +1,7 @@
 package org.deviceconnect.android.manager.plugin;
 
 
-enum ConnectionState {
+public enum ConnectionState {
 
     CONNECTING,
 

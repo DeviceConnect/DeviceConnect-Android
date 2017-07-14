@@ -13,7 +13,9 @@ public interface Connection {
 
     void disconnect();
 
-    void setConnectionListener(ConnectionListener listener);
+    void addConnectionStateListener(ConnectionStateListener listener);
+
+    void removeConnectionStateListener(ConnectionStateListener listener);
 
     void send(Intent message) throws MessagingException;
 

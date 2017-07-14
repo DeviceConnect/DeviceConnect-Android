@@ -189,6 +189,7 @@
         <!-- Device Plug-in Information Activity. -->
         <activity
             android:name=".setting.DevicePluginInfoActivity"
+            android:theme="@style/AppTheme.AppCompat.Translucent"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="org.deviceconnect.action.setting.PLUGIN" />

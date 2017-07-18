@@ -36,9 +36,12 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
@@ -63,12 +66,24 @@ public class DevicePluginManager {
     /** dConnectManagerのドメイン名. */
     private String mDConnectDomain;
 
-    /** イベントリスナー. */
-    private DevicePluginEventListener mEventListener;
+    /** イベントリスナーリスト. */
+    private List<DevicePluginEventListener> mEventListeners = new ArrayList<>();
+    /** イベントを通知するスレッド. */
+    private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     /** アプリケーションクラスインスタンス. */
     private final DConnectApplication mApp;
-
+    /** 接続管理用インスタンスのファクトリー. */
     private ConnectionFactory mConnectionFactory;
+    /** 接続管理用インスタンスのイベントリスナー. */
+    private ConnectionStateListener mStateListener = new ConnectionStateListener() {
+        @Override
+        public void onConnectionStateChanged(final String pluginId, final ConnectionState state) {
+            DevicePlugin plugin = mPlugins.get(pluginId);
+            if (plugin != null) {
+                notifyStateChange(plugin, state);
+            }
+        }
+    };
 
     /**
      * コンストラクタ.
@@ -82,14 +97,6 @@ public class DevicePluginManager {
 
     public void setConnectionFactory(final ConnectionFactory factory) {
         mConnectionFactory = factory;
-    }
-
-    /**
-     * イベントリスナーを設定する.
-     * @param listener リスナー
-     */
-    public void setEventListener(final DevicePluginEventListener listener) {
-        mEventListener = listener;
     }
 
     /**
@@ -121,10 +128,7 @@ public class DevicePluginManager {
                         pluginInfo = getReceiverInfo(pkgMgr, name);
                     }
                     if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
-                        //mLogger.info("Device Plug-in: " + pluginInfo.name);
                         checkAndAddDevicePlugin(name, pkg, pluginInfo);
-                    } else {
-                        //mLogger.info("Ignored: " + component.name);
                     }
                 }
             }
@@ -165,10 +169,7 @@ public class DevicePluginManager {
                         pluginInfo = getReceiverInfo(pkgMgr, name);
                     }
                     if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
-                        //mLogger.info("Device Plug-in: " + pluginInfo.name);
                         checkAndAddDevicePlugin(name, pkg, pluginInfo);
-                    } else {
-                        //mLogger.info("Ignored: " + component.name);
                     }
                 }
             }
@@ -210,11 +211,10 @@ public class DevicePluginManager {
         plugin.setConnectionType(type);
         if (mConnectionFactory != null) {
             plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
+            plugin.addConnectionStateListener(mStateListener);
         }
         mPlugins.put(plugin.getPluginId(), plugin);
-        if (mEventListener != null) {
-            mEventListener.onDeviceFound(plugin);
-        }
+        notifyFound(plugin);
     }
 
     private ServiceInfo getServiceInfo(final PackageManager pkgMgr, final ComponentName component) {
@@ -235,22 +235,18 @@ public class DevicePluginManager {
 
     private boolean isDevicePlugin(final ComponentInfo compInfo) {
         if (compInfo.name.contains("org.deviceconnect.android.message.DConnectLaunchService")) {
-            //mLogger.info("DConnectLaunchService is not requesting service: " + compInfo.name);
             return false;
         }
         if (!compInfo.exported) {
-            //mLogger.info("Not exported: " + compInfo.name);
             return false;
         }
         Bundle metaData = compInfo.metaData;
         if (metaData == null) {
-            //mLogger.info("No meta-data: " + compInfo.name);
             return false;
         }
         if (metaData.get(PLUGIN_META_DATA) != null) {
             return true;
         }
-        //mLogger.info("No meta-data for plug-in: " + compInfo.name);
         return false;
     }
 
@@ -298,7 +294,7 @@ public class DevicePluginManager {
             mLogger.warning("DevicePlugin[" + hash + "] already exists.");
         }
 
-        DevicePlugin plugin = new DevicePlugin();
+        final DevicePlugin plugin = new DevicePlugin();
         plugin.setPluginComponent(compInfo);
         plugin.setVersionName(versionName);
         plugin.setPluginId(hash);
@@ -329,11 +325,16 @@ public class DevicePluginManager {
         for (String key : mPlugins.keySet()) {
             DevicePlugin plugin = mPlugins.get(key);
             if (plugin.getPackageName().equals(packageName)) {
-                mPlugins.remove(key);
-                if (mEventListener != null) {
-                    mEventListener.onDeviceLost(plugin);
-                }
+                removePlugin(key);
             }
+        }
+    }
+
+    private void removePlugin(final String key) {
+        DevicePlugin plugin = mPlugins.remove(key);
+        if (plugin != null) {
+            plugin.removeConnectionStateListener(mStateListener);
+            notifyLost(plugin);
         }
     }
 
@@ -355,10 +356,7 @@ public class DevicePluginManager {
                     mLogger.info("Removed DevicePlugin: [" + hash + "]");
                     mLogger.info("    PackageName: " + packageName);
                     mLogger.info("    className: " + className);
-                    DevicePlugin plugin = mPlugins.remove(hash);
-                    if (plugin != null && mEventListener != null) {
-                        mEventListener.onDeviceLost(plugin);
-                    }
+                    removePlugin(hash);
                 }
             }
         } catch (NameNotFoundException e) {
@@ -667,6 +665,74 @@ public class DevicePluginManager {
         }
     }
 
+    public void addEventListener(final DevicePluginEventListener listener) {
+        synchronized (mEventListeners) {
+            for (DevicePluginEventListener cache : mEventListeners) {
+                if (cache == listener) {
+                    return;
+                }
+            }
+            mEventListeners.add(listener);
+        }
+    }
+
+    public void removeEventListener(final DevicePluginEventListener listener) {
+        synchronized (mEventListeners) {
+            for (Iterator<DevicePluginEventListener> it = mEventListeners.iterator(); it.hasNext(); ) {
+                DevicePluginEventListener cache = it.next();
+                if (cache == listener) {
+                    it.remove();
+                    return;
+                }
+            }
+        }
+    }
+
+    private void notifyFound(final DevicePlugin plugin) {
+        synchronized (mEventListeners) {
+            if (mEventListeners.size() > 0) {
+                for (final DevicePluginEventListener l : mEventListeners) {
+                    mExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            l.onDeviceFound(plugin);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private void notifyLost(final DevicePlugin plugin) {
+        synchronized (mEventListeners) {
+            if (mEventListeners.size() > 0) {
+                for (final DevicePluginEventListener l : mEventListeners) {
+                    mExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            l.onDeviceLost(plugin);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private void notifyStateChange(final DevicePlugin plugin, final ConnectionState state) {
+        synchronized (mEventListeners) {
+            if (mEventListeners.size() > 0) {
+                for (final DevicePluginEventListener l : mEventListeners) {
+                    mExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            l.onConnectionStateChanged(plugin, state);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     /**
      * デバイスプラグインの発見、見失う通知を行うリスナー.
      * @author NTT DOCOMO, INC.
@@ -683,5 +749,12 @@ public class DevicePluginManager {
          * @param plugin 見失ったデバイスプラグイン
          */
         void onDeviceLost(DevicePlugin plugin);
+
+        /**
+         * デバイスプラグインとの接続状態が変更されたことを通知する
+         * @param plugin デバイスプラグイン
+         * @param state 現在の接続状態
+         */
+        void onConnectionStateChanged(DevicePlugin plugin, ConnectionState state);
     }
 }

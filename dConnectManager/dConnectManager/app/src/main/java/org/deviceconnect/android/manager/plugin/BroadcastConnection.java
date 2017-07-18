@@ -1,16 +1,15 @@
 package org.deviceconnect.android.manager.plugin;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 
 
 public class BroadcastConnection extends AbstractConnection {
 
     private final Context mContext;
 
-    public BroadcastConnection(final Context context) {
+    public BroadcastConnection(final Context context, final String pluginId) {
+        super(pluginId);
         mContext = context;
         setState(ConnectionState.CONNECTED);
     }

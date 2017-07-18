@@ -9,11 +9,25 @@ import java.util.concurrent.Executors;
 
 abstract class AbstractConnection implements Connection {
 
+    private final String mPluginId;
+
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final List<ConnectionStateListener> mConnectionStateListeners = new ArrayList<>();
 
     private ConnectionState mState = ConnectionState.DISCONNECTED;
+
+    protected AbstractConnection(final String pluginId) {
+        if (pluginId == null) {
+            throw new IllegalArgumentException();
+        }
+        mPluginId = pluginId;
+    }
+
+    @Override
+    public String getPluginId() {
+        return mPluginId;
+    }
 
     @Override
     public ConnectionState getState() {
@@ -57,7 +71,7 @@ abstract class AbstractConnection implements Connection {
                     mExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            l.onConnectionStateChanged(state);
+                            l.onConnectionStateChanged(mPluginId, state);
                         }
                     });
                 }

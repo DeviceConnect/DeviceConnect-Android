@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 
 import org.deviceconnect.android.manager.BuildConfig;
-import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;

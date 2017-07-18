@@ -37,13 +37,16 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
     /** デバイスプラグインのプラグインIDのキー. */
     static final String PLUGIN_ID = "pluginId";
 
+    /** デバイスプラグイン情報. */
     private DevicePlugin mPlugin;
 
+    /** デバイスプラグインを有効・無効にするスレッド. */
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    /** デバイスプラグインとの接続状態の変更通知を受信するリスナー. */
     private final ConnectionStateListener mListener = new ConnectionStateListener() {
         @Override
-        public void onConnectionStateChanged(final ConnectionState state) {
+        public void onConnectionStateChanged(final String pluginId, final ConnectionState state) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -60,6 +63,7 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
         }
     };
 
+    /** 接続中であることを示すビュー. */
     private View mProgressCircle;
 
     @Override
@@ -81,7 +85,7 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);
-            actionBar.setCustomView(R.layout.layout_plugin_enable_status);
+            actionBar.setCustomView(R.layout.action_bar_plugin_enable_status);
 
             DConnectApplication apps = (DConnectApplication) getApplication();
             DevicePluginManager manager = apps.getDevicePluginManager();

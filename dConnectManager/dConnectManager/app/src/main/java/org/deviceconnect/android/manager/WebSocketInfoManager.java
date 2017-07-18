@@ -11,7 +11,6 @@ import android.content.Intent;
 
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
-import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 

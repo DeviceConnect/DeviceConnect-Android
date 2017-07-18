@@ -6,32 +6,39 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.Fragment;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.DConnectApplication;
+import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
-import org.deviceconnect.android.manager.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
 
 /**
  * Device plug-in list fragment.
@@ -43,9 +50,47 @@ public class DevicePluginListFragment extends Fragment {
     /** Adapter. */
     private PluginAdapter mPluginAdapter;
 
+    /** デバイスプラグイン管理クラス. */
+    private DevicePluginManager mPluginMgr;
+
+    /** デバイスプラグインを有効・無効にするスレッド. */
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    /** デバイスプラグインとの接続状態の変更通知を受信するリスナー. */
+    private final DevicePluginEventListener mEventListener = new DevicePluginEventListener() {
+        @Override
+        public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mPluginAdapter.onStateChange(plugin.getPluginId(), state);
+                }
+            });
+        }
+
+        @Override
+        public void onDeviceFound(final DevicePlugin plugin) {
+            // NOP.
+        }
+
+        @Override
+        public void onDeviceLost(final DevicePlugin plugin) {
+            // NOP.
+        }
+    };
+
+    private void runOnUiThread(final Runnable r) {
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(r);
+        }
+    }
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPluginMgr = ((DConnectApplication) getActivity().getApplication()).getDevicePluginManager();
+        mPluginMgr.addEventListener(mEventListener);
         setHasOptionsMenu(true);
     }
 
@@ -55,19 +100,10 @@ public class DevicePluginListFragment extends Fragment {
         updatePluginList();
     }
 
-    /**
-     * Create a PluginContainer from Device Plug-in.
-     * @param pm PackageManager.
-     * @param plugin ApplicationInfo.
-     * @return Instance of DeviceContainer
-     */
-    private PluginContainer createContainer(final PackageManager pm, final DevicePlugin plugin) {
-        PluginContainer container = new PluginContainer();
-        container.setLabel(plugin.getDeviceName());
-        container.setPluginId(plugin.getPluginId());
-        container.setIcon(plugin.getPluginIcon());
-        container.setVersion(plugin.getVersionName());
-        return container;
+    @Override
+    public void onDestroyView() {
+        mPluginMgr.removeEventListener(mEventListener);
+        super.onDestroyView();
     }
 
     /**
@@ -80,12 +116,7 @@ public class DevicePluginListFragment extends Fragment {
         DConnectApplication app = (DConnectApplication) getActivity().getApplication();
         DevicePluginManager manager = app.getDevicePluginManager();
         for (DevicePlugin plugin : manager.getDevicePlugins()) {
-            try {
-                ApplicationInfo info = pm.getApplicationInfo(plugin.getPackageName(), 0);
-                containers.add(createContainer(pm, plugin));
-            } catch (PackageManager.NameNotFoundException e) {
-                continue;
-            }
+            containers.add(new PluginContainer(plugin));
         }
         Collections.sort(containers, new Comparator<PluginContainer>() {
             @Override
@@ -161,13 +192,21 @@ public class DevicePluginListFragment extends Fragment {
      */
     static class PluginContainer {
         /** Label. */
-        private String mLabel;
-        /** Plug-in Id. */
-        private String mPluginId;
-        /** Version. */
-        private String mVersion;
-        /** Icon. */
-        private Drawable mIcon;
+        private final String mLabel;
+        /** Plug-in. */
+        private final DevicePlugin mPlugin;
+        /** Connecting state. */
+        private boolean mIsConnecting;
+
+        PluginContainer(final DevicePlugin plugin) {
+            mPlugin = plugin;
+            String label = plugin.getDeviceName();
+            if (label == null) {
+                mLabel = "Unknown";
+            } else {
+                mLabel = label;
+            }
+        }
 
         /**
          * Get plug-in Label.
@@ -179,34 +218,12 @@ public class DevicePluginListFragment extends Fragment {
         }
 
         /**
-         * Set plug-in label.
-         * 
-         * @param label Plug-in label.
-         */
-        public void setLabel(final String label) {
-            if (label == null) {
-                mLabel = "Unknown";
-            } else {
-                mLabel = label;
-            }
-        }
-
-        /**
          * Get plug-in id.
          *
          * @return Plug-in id.
          */
         public String getPluginId() {
-            return mPluginId;
-        }
-
-        /**
-         * Set plug-in id.
-         *
-         * @param pluginId Plug-in id.
-         */
-        public void setPluginId(final String pluginId) {
-            mPluginId = pluginId;
+            return mPlugin.getPluginId();
         }
 
         /**
@@ -215,16 +232,7 @@ public class DevicePluginListFragment extends Fragment {
          * @return Plug-in version
          */
         public String getVersion() {
-            return mVersion;
-        }
-
-        /**
-         * Set plug-in version.
-         *
-         * @param version Plug-in version
-         */
-        public void setVersion(final String version) {
-            mVersion = version;
+            return mPlugin.getVersionName();
         }
 
         /**
@@ -232,15 +240,27 @@ public class DevicePluginListFragment extends Fragment {
          * @return icon
          */
         public Drawable getIcon() {
-            return mIcon;
+            return mPlugin.getPluginIcon();
         }
 
         /**
-         * Set plug-in icon.
-         * @param icon plug-in icon
+         * Get plug-in entity.
+         * @return plug-in
          */
-        public void setIcon(final Drawable icon) {
-            mIcon = icon;
+        public DevicePlugin getPluginEntity() {
+            return mPlugin;
+        }
+
+        public boolean isConnecting() {
+            return mIsConnecting;
+        }
+
+        public void setConnecting(final boolean isConnecting) {
+            mIsConnecting = isConnecting;
+        }
+
+        public boolean hasSamePlugin(final String pluginId) {
+            return mPlugin.getPluginId().equals(pluginId);
         }
     }
 
@@ -257,7 +277,7 @@ public class DevicePluginListFragment extends Fragment {
          * @param context Context.
          * @param objects Plug-in list object.
          */
-        public PluginAdapter(final Context context, final List<PluginContainer> objects) {
+        PluginAdapter(final Context context, final List<PluginContainer> objects) {
             super(context, 0, objects);
             mInflater = (LayoutInflater) context.getSystemService(
                     Context.LAYOUT_INFLATER_SERVICE);
@@ -272,23 +292,61 @@ public class DevicePluginListFragment extends Fragment {
                 cv = convertView;
             }
 
-            final PluginContainer plugin = getItem(position);
+            final PluginContainer container = getItem(position);
+            final DevicePlugin plugin = container.getPluginEntity();
 
-            String name = plugin.getLabel();
+            String name = container.getLabel();
 
             TextView nameView = (TextView) cv.findViewById(R.id.devicelist_package_name);
             nameView.setText(name);
 
-            Drawable icon = plugin.getIcon();
+            Drawable icon = container.getIcon();
             if (icon != null) {
                 ImageView iconView = (ImageView) cv.findViewById(R.id.devicelist_icon);
                 iconView.setImageDrawable(icon);
             }
 
-            String version = plugin.getVersion();
+            String version = container.getVersion();
             TextView versionView = (TextView) cv.findViewById(R.id.devicelist_version);
             versionView.setText(getString(R.string.activity_devicepluginlist_version) + version);
+
+            SwitchCompat switchCompat = (SwitchCompat) cv.findViewById(R.id.switch_plugin_enable_status);
+            switchCompat.setChecked(plugin.isEnabled());
+            switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(final CompoundButton button, final boolean isOn) {
+                    mExecutor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isOn) {
+                                plugin.enable();
+                            } else {
+                                plugin.disable();
+                            }
+                        }
+                    });
+                }
+            });
+
+            View progressCircle = cv.findViewById(R.id.progress_plugin_enable_status);
+            if (container.isConnecting()) {
+                progressCircle.setVisibility(View.VISIBLE);
+            } else {
+                progressCircle.setVisibility(View.INVISIBLE);
+            }
             return cv;
+        }
+
+        void onStateChange(final String pluginId, final ConnectionState state) {
+            int cnt = getCount();
+            for (int i = 0; i < cnt; i++) {
+                PluginContainer container = getItem(i);
+                if (container != null && container.hasSamePlugin(pluginId)) {
+                    container.setConnecting(state == ConnectionState.CONNECTING);
+                    notifyDataSetChanged();
+                    break;
+                }
+            }
         }
     }
 }

@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.manager;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.util.DConnectUtil;

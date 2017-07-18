@@ -25,9 +25,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import static org.deviceconnect.android.manager.plugin.MessagingException.Reason.CONNECTION_SUSPENDED;
-import static org.deviceconnect.android.manager.plugin.MessagingException.Reason.NOT_ENABLED;
-
 /**
  * Service Discovery用のリクエストクラス.
  * <p>

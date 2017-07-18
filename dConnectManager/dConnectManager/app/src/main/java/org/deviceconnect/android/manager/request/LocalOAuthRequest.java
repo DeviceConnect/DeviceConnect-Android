@@ -10,8 +10,8 @@ import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
-import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;

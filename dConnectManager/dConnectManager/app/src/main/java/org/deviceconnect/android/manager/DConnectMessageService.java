@@ -25,16 +25,17 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.manager.event.EventBroker;
+import org.deviceconnect.android.manager.event.EventSessionTable;
+import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.plugin.BinderConnection;
 import org.deviceconnect.android.manager.plugin.BroadcastConnection;
 import org.deviceconnect.android.manager.plugin.Connection;
 import org.deviceconnect.android.manager.plugin.ConnectionFactory;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
-import org.deviceconnect.android.manager.event.EventBroker;
-import org.deviceconnect.android.manager.event.EventSessionTable;
-import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
@@ -179,9 +180,9 @@ public abstract class DConnectMessageService extends Service
                 Context context = DConnectMessageService.this;
                 switch (plugin.getConnectionType()) {
                     case BINDER:
-                        return new BinderConnection(context, plugin.getComponentName(), mCallback);
+                        return new BinderConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
                     case BROADCAST:
-                        return new BroadcastConnection(context);
+                        return new BroadcastConnection(context, plugin.getPluginId());
                     default:
                         return null;
                 }
@@ -543,6 +544,11 @@ public abstract class DConnectMessageService extends Service
         mLocalOAuth.deleteOAuthDatas(plugin.getPluginId());
     }
 
+    @Override
+    public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
+        // NOP.
+    }
+
     /**
      * 指定されたアクションがdConnectのアクションをチェックする.
      * @param action アクション
@@ -563,7 +569,7 @@ public abstract class DConnectMessageService extends Service
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
-        mPluginMgr.setEventListener(this);
+        mPluginMgr.addEventListener(this);
         showNotification();
     }
 
@@ -572,7 +578,7 @@ public abstract class DConnectMessageService extends Service
      */
     protected void stopDConnect() {
         sendTerminateEvent();
-        mPluginMgr.setEventListener(null);
+        mPluginMgr.removeEventListener(this);
         if (mRequestManager != null) {
             mRequestManager.shutdown();
         }

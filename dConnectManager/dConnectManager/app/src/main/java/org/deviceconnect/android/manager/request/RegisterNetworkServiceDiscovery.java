@@ -8,8 +8,8 @@ package org.deviceconnect.android.manager.request;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.event.EventProtocol;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;

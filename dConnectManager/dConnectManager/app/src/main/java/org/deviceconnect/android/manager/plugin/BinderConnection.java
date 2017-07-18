@@ -10,13 +10,11 @@ import android.os.RemoteException;
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.IDConnectPlugin;
 
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
@@ -39,8 +37,11 @@ public class BinderConnection extends AbstractConnection {
 
     private Logger mLogger = Logger.getLogger("binder");
 
-    public BinderConnection(final Context context, final ComponentName target,
-                     final IDConnectCallback callback) {
+    public BinderConnection(final Context context,
+                            final String pluginId,
+                            final ComponentName target,
+                            final IDConnectCallback callback) {
+        super(pluginId);
         mContext = context;
         mPluginName = target;
         mCallback = callback;

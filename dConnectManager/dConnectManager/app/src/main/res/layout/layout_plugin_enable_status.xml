@@ -4,16 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/text_plugin_enable_status"
-        android:layout_weight="1"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:textSize="16sp"
-        android:text="@string/activity_deviceplugin_info_title">
-    </TextView>
-
     <ProgressBar
         android:id="@+id/progress_plugin_enable_status"
         android:layout_weight="0"

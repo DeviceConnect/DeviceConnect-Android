@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.manager.policy;
 
-import org.deviceconnect.android.manager.R;
-
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+
+import org.deviceconnect.android.manager.R;
 
 /**
  * Whitelist Activity.

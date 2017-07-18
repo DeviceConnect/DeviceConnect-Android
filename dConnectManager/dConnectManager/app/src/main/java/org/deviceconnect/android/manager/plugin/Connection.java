@@ -5,6 +5,8 @@ import android.content.Intent;
 
 public interface Connection {
 
+    String getPluginId();
+
     ConnectionType getType();
 
     ConnectionState getState();

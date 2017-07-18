@@ -1,65 +1,8 @@
 package org.deviceconnect.android.deviceplugin.hogp.util;
 
 public final class HIDUtils {
-    private static final int INPUT_CONSTANT = 1;
-    private static final int INPUT_VARIABLE = (1 << 1);
-    private static final int INPUT_RELATIVE = (1 << 2);
-    private static final int INPUT_WRAP = (1 << 3);
-    private static final int INPUT_NON_LINEAR = (1 << 4);
-    private static final int INPUT_NO_PREFERRED = (1 << 5);
-    private static final int INPUT_NULL_STATE = (1 << 6);
-    private static final int INPUT_BUFFERED_BYTES = (1 << 8);
 
     private HIDUtils() {
-    }
-
-//    Input 1000 00 nn
-//    Bit 0 {Data (0) | Constant (1)}
-//    Bit 1 {Array (0) | Variable (1)}
-//    Bit 2 {Absolute (0) | Relative (1)}
-//    Bit 3 {No Wrap (0) | Wrap (1)}
-//    Bit 4 {Linear (0) | Non Linear (1)}
-//    Bit 5 {Preferred State (0) | No Preferred (1)}
-//    Bit 6 {No Null position (0) | Null state(1)}
-//    Bit 7 Reserved (0)
-//    Bit 8 {Bit Field (0) | Buffered Bytes (1)}
-    public static byte input(boolean constant, boolean variable, boolean relative, boolean wrap,
-                             boolean nonLinear, boolean noPreferred, boolean nullState, boolean bufferedBytes) {
-        byte result = 0;
-
-        if (constant) {
-            result |= INPUT_CONSTANT;
-        }
-
-        if (variable) {
-            result |= INPUT_VARIABLE;
-        }
-
-        if (relative) {
-            result |= INPUT_RELATIVE;
-        }
-
-        if (wrap) {
-            result |= INPUT_WRAP;
-        }
-
-        if (nonLinear) {
-            result |= INPUT_NON_LINEAR;
-        }
-
-        if (noPreferred) {
-            result |= INPUT_NO_PREFERRED;
-        }
-
-        if (nullState) {
-            result |= INPUT_NULL_STATE;
-        }
-
-        if (bufferedBytes) {
-            result |= INPUT_BUFFERED_BYTES;
-        }
-
-        return result;
     }
 
     /**

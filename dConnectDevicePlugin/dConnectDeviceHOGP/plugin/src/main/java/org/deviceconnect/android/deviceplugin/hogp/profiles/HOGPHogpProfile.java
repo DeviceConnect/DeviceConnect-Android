@@ -2,6 +2,9 @@ package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
+import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -23,8 +26,19 @@ public class HOGPHogpProfile extends DConnectProfile {
                 Integer modifier = parseInteger(request, "modifier");
                 Integer keyCode = parseInteger(request, "keyCode");
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    server.sendKeyDown(modifier.byteValue(), keyCode.byteValue());
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    server.sendKeyUp();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
                 return true;
             }
         });
@@ -42,12 +56,33 @@ public class HOGPHogpProfile extends DConnectProfile {
                 Integer x = parseInteger(request, "x");
                 Integer y = parseInteger(request, "y");
                 Integer wheel = parseInteger(request, "wheel");
-                Integer rightButton = parseInteger(request, "rightButton");
-                Integer leftButton = parseInteger(request, "leftButton");
-                Integer middleButton = parseInteger(request, "middleButton");
+                Boolean rightButton = parseBoolean(request, "rightButton");
+                Boolean leftButton = parseBoolean(request, "leftButton");
+                Boolean middleButton = parseBoolean(request, "middleButton");
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    if (wheel == null) {
+                        wheel = 0;
+                    }
+
+                    if (rightButton == null) {
+                        rightButton = false;
+                    }
+
+                    if (leftButton == null) {
+                        leftButton = false;
+                    }
+
+                    if (middleButton == null) {
+                        middleButton = false;
+                    }
+
+                    server.movePointer(x, y, wheel, leftButton, rightButton, middleButton);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
                 return true;
             }
         });
@@ -57,5 +92,14 @@ public class HOGPHogpProfile extends DConnectProfile {
     @Override
     public String getProfileName() {
         return "hogp";
+    }
+
+    /**
+     * HOGPサーバを取得します.
+     * @return HOGPサーバ
+     */
+    private HOGPServer getHOGPServer() {
+        HOGPMessageService service = (HOGPMessageService) getContext();
+        return (HOGPServer) service.getHOGPServer();
     }
 }

@@ -17,7 +17,7 @@ import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.USAGE_PA
 
 public class HOGPServer extends AbstractHOGPServer {
     /**
-     * Mouseとキーボード用のレポート定義マップ.
+     * マウスとキーボード用のレポート定義マップ.
      */
     private static final byte[] REPORT_MAP = {
             USAGE_PAGE(1),      0x01,         // Generic Desktop
@@ -199,8 +199,8 @@ public class HOGPServer extends AbstractHOGPServer {
     /**
      * キーダウンのレポートを送信します.
      *
-     * @param modifier modifier key
-     * @param keyCode key code
+     * @param modifier モディファイアキー
+     * @param keyCode キーコード
      */
     public void sendKeyDown(final byte modifier, final byte keyCode) {
         mKeyboardReport[KEY_PACKET_MODIFIER_KEY_INDEX] = modifier;

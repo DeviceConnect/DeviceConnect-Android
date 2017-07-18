@@ -9,7 +9,7 @@ public final class BatteryUtils {
 
     private BatteryUtils() {}
 
-    public static final float getBatteryLevel(final Context context) {
+    public static float getBatteryLevel(final Context context) {
         IntentFilter intentfilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, intentfilter);
         if (batteryStatus == null) {

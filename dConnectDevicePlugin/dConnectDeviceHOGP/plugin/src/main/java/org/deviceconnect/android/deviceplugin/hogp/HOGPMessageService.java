@@ -17,7 +17,14 @@ import org.deviceconnect.android.profile.SystemProfile;
 
 public class HOGPMessageService extends DConnectMessageService {
 
+    /**
+     * デバッグ用フラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * デバッグ用タグ.
+     */
     private static final String TAG = "HOGP";
 
     /**

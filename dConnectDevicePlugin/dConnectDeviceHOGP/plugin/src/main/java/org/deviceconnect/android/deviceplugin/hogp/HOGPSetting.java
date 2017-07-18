@@ -20,6 +20,10 @@ public class HOGPSetting {
      */
     private SharedPreferences mSharedPreferences;
 
+    /**
+     * コンストラクタ.
+     * @param context コンテキスト
+     */
     public HOGPSetting(final Context context) {
         mSharedPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
     }

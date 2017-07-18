@@ -285,6 +285,9 @@ public abstract class AbstractHOGPServer {
     public void start() {
 
         if (mGattServer != null) {
+            if (DEBUG) {
+                Log.w(TAG, "HOGP Server is already running.");
+            }
             return;
         }
 
@@ -627,7 +630,7 @@ public abstract class AbstractHOGPServer {
      */
     private void paringDevice(final BluetoothDevice device) {
         if (DEBUG) {
-            Log.i(TAG, "AAAAAAAAAAAAAAAAAAAA paringDevice.");
+            Log.i(TAG, "AbstractHOGPServer#paringDevice.");
         }
 
         mApplicationContext.registerReceiver(new BroadcastReceiver() {
@@ -639,7 +642,7 @@ public abstract class AbstractHOGPServer {
                     switch (state) {
                         case BluetoothDevice.BOND_BONDING:
                             if (DEBUG) {
-                                Log.e("ABC", "AAAAAAAAAAAAAAAAAAAA bond bonding.");
+                                Log.e(TAG, "Bond bonding.");
                             }
                             break;
 
@@ -648,7 +651,7 @@ public abstract class AbstractHOGPServer {
                             if (!bondedDevice.getAddress().equals(device.getAddress())) {
                                 // 違うデバイスと接続された場合
                                 if (DEBUG) {
-                                    Log.w("ABC", "BBBBBBBBBBBBBBBBBBB Connected to a different device");
+                                    Log.w(TAG, "Connected to a different device");
                                 }
                                 return;
                             }
@@ -659,7 +662,7 @@ public abstract class AbstractHOGPServer {
 
                         default:
                             if (DEBUG) {
-                                Log.e(TAG, "AAAAAAAAAAAAAAAAAAAA bond error.");
+                                Log.e(TAG, "Bond error.");
                             }
                             context.unregisterReceiver(this);
                             break;
@@ -843,12 +846,12 @@ public abstract class AbstractHOGPServer {
                 @Override
                 public void run() {
                     if (BleUuidUtils.matches(DESCRIPTOR_REPORT_REFERENCE, descriptor.getUuid())) {
-                        final int characteristicProperties = descriptor.getCharacteristic().getProperties();
-                        if (characteristicProperties == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY)) {
+                        final int property = descriptor.getCharacteristic().getProperties();
+                        if (property == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY)) {
                             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, new byte[]{0, 1});
-                        } else if (characteristicProperties == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
+                        } else if (property == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
                             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, new byte[]{0, 2});
-                        } else if (characteristicProperties == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE)) {
+                        } else if (property == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE)) {
                             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, new byte[]{0, 3});
                         } else {
                             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, EMPTY_BYTES);
@@ -874,7 +877,6 @@ public abstract class AbstractHOGPServer {
             if (responseNeeded) {
                 if (BleUuidUtils.matches(CHARACTERISTIC_REPORT, characteristic.getUuid())) {
                     if (characteristic.getProperties() == (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) {
-                        // Output Report
                         onOutputReport(value);
                     }
                     mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, EMPTY_BYTES);

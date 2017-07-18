@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.hogp;
 
 import android.bluetooth.BluetoothDevice;
 
+import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPHogpProfile;
 import org.deviceconnect.android.service.DConnectService;
 
 public class HOGPService extends DConnectService {
@@ -11,6 +12,8 @@ public class HOGPService extends DConnectService {
     HOGPService(final BluetoothDevice device) {
         super(device.getAddress());
         mDevice = device;
+
+        addProfile(new HOGPHogpProfile());
     }
 
     @Override

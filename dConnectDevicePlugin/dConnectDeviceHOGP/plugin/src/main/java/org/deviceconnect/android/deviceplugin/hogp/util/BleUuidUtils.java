@@ -16,7 +16,7 @@ public final class BleUuidUtils {
     // https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.device_information.xml
 
     /**
-     * Device Information Service
+     * Device Information Service.
      */
     public static final UUID SERVICE_DEVICE_INFORMATION = BleUuidUtils.fromShortValue(0x180A);
     public static final UUID CHARACTERISTIC_MANUFACTURER_NAME = BleUuidUtils.fromShortValue(0x2A29);
@@ -27,7 +27,7 @@ public final class BleUuidUtils {
     // https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.battery_service.xml
 
     /**
-     * Battery Service
+     * Battery Service.
      */
     public static final UUID SERVICE_BATTERY = BleUuidUtils.fromShortValue(0x180F);
     public static final UUID CHARACTERISTIC_BATTERY_LEVEL = BleUuidUtils.fromShortValue(0x2A19);
@@ -35,7 +35,7 @@ public final class BleUuidUtils {
     // https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.human_interface_device.xml
 
     /**
-     * HID Service
+     * HID Service.
      */
     public static final UUID SERVICE_BLE_HID = BleUuidUtils.fromShortValue(0x1812);
     public static final UUID CHARACTERISTIC_HID_INFORMATION = BleUuidUtils.fromShortValue(0x2A4A);
@@ -45,7 +45,7 @@ public final class BleUuidUtils {
     public static final UUID CHARACTERISTIC_PROTOCOL_MODE = BleUuidUtils.fromShortValue(0x2A4E);
 
     /**
-     * Gatt Characteristic Descriptor
+     * Gatt Characteristic Descriptor.
      */
     public static final UUID DESCRIPTOR_REPORT_REFERENCE = BleUuidUtils.fromShortValue(0x2908);
     public static final UUID DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION = BleUuidUtils.fromShortValue(0x2902);
@@ -113,7 +113,6 @@ public final class BleUuidUtils {
             // at least one instance is short style: check only 16bits
             final long srcShortUUID = src.getMostSignificantBits() & 0x0000ffff00000000L;
             final long dstShortUUID = dst.getMostSignificantBits() & 0x0000ffff00000000L;
-
             return srcShortUUID == dstShortUUID;
         } else {
             return src.equals(dst);

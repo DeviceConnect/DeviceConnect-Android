@@ -24,6 +24,9 @@ import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED
  * @author NTT DOCOMO, INC.
  */
 public class DevicePlugin {
+
+    private static final int MAX_CONNECTION_TRY = 5;
+
     /** デバイスプラグインを定義するコンポーネントの情報. */
     private ComponentInfo mPluginComponent;
     /** デバイスプラグインのバージョン名. */
@@ -243,18 +246,24 @@ public class DevicePlugin {
             case FOUND:
             case DISABLED:
                 setState(DevicePluginState.ENABLED);
-
-                try {
-                    mConnection.connect();
-                    mLogger.info("Connected to the plug-in: " + getPackageName());
-                } catch (ConnectingException e) {
-                    mLogger.warning("Failed to connect to the plug-in: " + getPackageName());
-                    e.printStackTrace();
-                }
+                tryConnection();
                 break;
             default:
                 break;
         }
+    }
+
+    private boolean tryConnection() {
+        for (int cnt = 0; cnt < MAX_CONNECTION_TRY; cnt++) {
+            try {
+                mConnection.connect();
+                mLogger.info("Connected to the plug-in: " + getPackageName());
+                return true;
+            } catch (ConnectingException e) {
+                mLogger.warning("Failed to connect to the plug-in: " + getPackageName());
+            }
+        }
+        return false;
     }
 
     public synchronized void disable() {
@@ -280,6 +289,15 @@ public class DevicePlugin {
     public synchronized void send(final Intent message) throws MessagingException {
         if (DevicePluginState.ENABLED != getState()) {
             throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+        }
+        switch (mConnection.getState()) {
+            case SUSPENDED:
+                if (!tryConnection()) {
+                    throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
+                }
+                break;
+            default:
+                break;
         }
         mConnection.send(message);
     }

@@ -404,13 +404,13 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      */
     public void takePicture(final Camera.PictureCallback callback) {
         if (mCamera != null) {
-            post(new Runnable() {
+            postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mCamera.takePicture(mShutterCallback, null, callback);
                     Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
                 }
-            });
+            }, 1000);
         }
     }
 

@@ -345,7 +345,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                 @Override
                 public void onDisallowed() {
                     mState = RecorderState.INACTTIVE;
-                    listener.onFailedTakePhoto();
+                    listener.onFailedTakePhoto("Permission for ScreenCast is not granted.");
                 }
             });
         } else {
@@ -359,9 +359,9 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                         }
 
                         @Override
-                        public void onFailedTakePhoto() {
+                        public void onFailedTakePhoto(final String errorMessage) {
                             mState = RecorderState.INACTTIVE;
-                            listener.onFailedTakePhoto();
+                            listener.onFailedTakePhoto(errorMessage);
                         }
                     });
                 }
@@ -387,8 +387,8 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
                     }
 
                     @Override
-                    public void onFailedTakePhoto() {
-                        listener.onFailedTakePhoto();
+                    public void onFailedTakePhoto(final String errorMessage) {
+                        listener.onFailedTakePhoto(errorMessage);
                         releaseVirtualDisplay();
                         if (mMediaProjection != null) {
                             mMediaProjection.stop();
@@ -416,7 +416,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         }
         if (bitmap == null) {
             mState = RecorderState.INACTTIVE;
-            listener.onFailedTakePhoto();
+            listener.onFailedTakePhoto("Failed to get Screenshot.");
             return;
         }
 
@@ -425,7 +425,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         byte[] media = baos.toByteArray();
         if (media == null) {
             mState = RecorderState.INACTTIVE;
-            listener.onFailedTakePhoto();
+            listener.onFailedTakePhoto("Failed to get Screenshot.");
             return;
         }
         // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
@@ -439,7 +439,7 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
             @Override
             public void onFail(@NonNull final Throwable throwable) {
                 mState = RecorderState.INACTTIVE;
-                listener.onFailedTakePhoto();
+                listener.onFailedTakePhoto(throwable.getMessage());
             }
         });
     }

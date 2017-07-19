@@ -22,6 +22,6 @@ public interface HostDevicePhotoRecorder {
 
     interface OnPhotoEventListener {
         void onTakePhoto(String uri, String filePath);
-        void onFailedTakePhoto();
+        void onFailedTakePhoto(String errorMessage);
     }
 }

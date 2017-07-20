@@ -16,4 +16,8 @@ public class GPIOProfile extends DConnectProfile implements GPIOProfileConstants
         message.putExtra(PARAM_VALUE, value);
     }
 
+    public static void setMessage(final Intent message, final String msg) {
+        message.putExtra(PARAM_MSG, msg);
+    }
+
 }

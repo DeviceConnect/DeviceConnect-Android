@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/activity_fabo_service_btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/activity_fabo_service_cancel_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_blue"
+            android:text="@string/activity_fabo_service_cancel"
+            android:textColor="#FFF"/>
+
+        <Button
+            android:id="@+id/activity_fabo_service_remove_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_blue"
+            android:text="@string/activity_fabo_service_remove"
+            android:textColor="#FFF"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/activity_fabo_service_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/activity_fabo_service_btn_layout"/>
+
+</RelativeLayout>

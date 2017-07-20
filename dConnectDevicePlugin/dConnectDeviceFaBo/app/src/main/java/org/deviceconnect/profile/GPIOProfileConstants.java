@@ -14,4 +14,6 @@ public interface GPIOProfileConstants extends DConnectProfileConstants {
     String ATTRIBUTE_ON_CHANGE = "onChange";
 
     String PARAM_VALUE = "value";
+
+    String PARAM_MSG = "msg";
 }

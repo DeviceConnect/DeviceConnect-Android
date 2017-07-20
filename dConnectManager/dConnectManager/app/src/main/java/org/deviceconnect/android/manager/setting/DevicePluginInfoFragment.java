@@ -6,9 +6,8 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import android.app.Activity;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -18,6 +17,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -79,21 +80,12 @@ public class DevicePluginInfoFragment extends Fragment {
             return view;
         }
 
-        String name = null;
-        Drawable icon = null;
-        String versionName = null;
-        DConnectApplication apps = (DConnectApplication) getActivity().getApplication();
-        DevicePluginManager manager = apps.getDevicePluginManager();
-        for (DevicePlugin plugin : manager.getDevicePlugins()) {
-            if (mPluginId.equals(plugin.getPluginId())) {
-                mPluginComponent = plugin.getPluginComponent();
-                mPackageName = plugin.getPackageName();
-                name = plugin.getDeviceName();
-                icon = plugin.getPluginIcon();
-                versionName = plugin.getVersionName();
-                break;
-            }
-        }
+        DevicePlugin plugin = ((DevicePluginInfoActivity) getActivity()).getPlugin();
+        mPluginComponent = plugin.getPluginComponent();
+        mPackageName = plugin.getPackageName();
+        String name = plugin.getDeviceName();
+        Drawable icon = plugin.getPluginIcon(getActivity());
+        String versionName = plugin.getVersionName();
 
         // 指定されたプラグインIDのパッケージが見つからない場合は終了
         if (mPackageName == null) {
@@ -178,6 +170,15 @@ public class DevicePluginInfoFragment extends Fragment {
         }
     }
 
+    private DevicePluginManager getPluginManager() {
+        Activity activity = getActivity();
+        if (activity != null && activity instanceof DevicePluginInfoActivity) {
+            DevicePluginInfoActivity infoActivity = (DevicePluginInfoActivity) activity;
+            return infoActivity.getPluginManager();
+        }
+        return null;
+    }
+
     /**
      * Get supported profiles.
      * @return profiles
@@ -194,8 +195,12 @@ public class DevicePluginInfoFragment extends Fragment {
             return;
         }
 
-        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
-        List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr == null) {
+            return;
+        }
+
+        List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (mPackageName.equals(plugin.getPackageName())
                     && mPluginId.equals(plugin.getPluginId())) {
@@ -247,8 +252,11 @@ public class DevicePluginInfoFragment extends Fragment {
 
             @Override
             protected Void doInBackground(final Void... params) {
-                DConnectApplication app = (DConnectApplication) getActivity().getApplication();
-                List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
+                DevicePluginManager mgr = getPluginManager();
+                if (mgr == null) {
+                    return null;
+                }
+                List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (plugin.getPackageName().equals(mPackageName)
                             && plugin.getStartServiceClassName() != null

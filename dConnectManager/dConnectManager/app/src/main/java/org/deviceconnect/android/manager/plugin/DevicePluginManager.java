@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
@@ -22,7 +23,6 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
 import org.deviceconnect.android.manager.BuildConfig;
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
@@ -70,8 +70,8 @@ public class DevicePluginManager {
     private List<DevicePluginEventListener> mEventListeners = new ArrayList<>();
     /** イベントを通知するスレッド. */
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    /** アプリケーションクラスインスタンス. */
-    private final DConnectApplication mApp;
+    /** コンテキスト. */
+    private final Context mContext;
     /** 接続管理用インスタンスのファクトリー. */
     private ConnectionFactory mConnectionFactory;
     /** 接続管理用インスタンスのイベントリスナー. */
@@ -87,12 +87,12 @@ public class DevicePluginManager {
 
     /**
      * コンストラクタ.
-     * @param app DConnectApplicationのインスタンス
+     * @param context コンテキスト
      * @param domain dConnect Managerのドメイン
      */
-    public DevicePluginManager(final DConnectApplication app, final String domain) {
+    public DevicePluginManager(final Context context, final String domain) {
         setDConnectDomain(domain);
-        mApp = app;
+        mContext = context;
     }
 
     public void setConnectionFactory(final ConnectionFactory factory) {
@@ -111,7 +111,7 @@ public class DevicePluginManager {
      * アプリ一覧からデバイスプラグイン一覧を作成する.
      */
     public void createDevicePluginList() {
-        PackageManager pkgMgr = mApp.getPackageManager();
+        PackageManager pkgMgr = mContext.getPackageManager();
         int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
         List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(flag);
         if (pkgList != null) {
@@ -136,14 +136,6 @@ public class DevicePluginManager {
     }
 
     /**
-     * 指定されたIntentからデバイスプラグインを確認して、リストに追加する.
-     * @param intent 追加するデバイスプラグインのIntent
-     */
-    public void checkAndAddDevicePlugin(final Intent intent) {
-        checkAndAddDevicePlugin(getPackageName(intent));
-    }
-
-    /**
      * 指定されたパッケージの中にデバイスプラグインが存在するかチェックし追加する.
      * パッケージの中にデバイスプラグインがない場合には何もしない。
      * @param packageName パッケージ名
@@ -152,7 +144,7 @@ public class DevicePluginManager {
         if (packageName == null) {
             throw new IllegalArgumentException("packageName is null.");
         }
-        PackageManager pkgMgr = mApp.getPackageManager();
+        PackageManager pkgMgr = mContext.getPackageManager();
         try {
             int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
@@ -198,17 +190,8 @@ public class DevicePluginManager {
      */
     private void checkAndAddDevicePlugin(final ComponentName componentName, final PackageInfo pkgInfo,
                                          final ComponentInfo componentInfo) {
-        PackageManager pkgMgr = mApp.getPackageManager();
-        ConnectionType type;
-        if (componentInfo instanceof ServiceInfo) {
-            type = ConnectionType.BINDER;
-        } else {
-            type = ConnectionType.BROADCAST;
-        }
-        mLogger.info("Plug-in: type = " + type + ", name = " + componentName);
-
+        PackageManager pkgMgr = mContext.getPackageManager();
         DevicePlugin plugin = parsePlugin(pkgMgr, pkgInfo, componentInfo);
-        plugin.setConnectionType(type);
         if (mConnectionFactory != null) {
             plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
             plugin.addConnectionStateListener(mStateListener);
@@ -250,38 +233,25 @@ public class DevicePluginManager {
         return false;
     }
 
-    private DevicePlugin parsePlugin(final PackageManager pkgMgr, final PackageInfo pkgInfo,
-                                     final ComponentInfo compInfo) {
-        Bundle metaData = compInfo.metaData;
+    private DevicePlugin parsePlugin(final PackageManager pkgMgr,
+                                     final PackageInfo pkgInfo,
+                                     final ComponentInfo componentInfo) {
+        Bundle metaData = componentInfo.metaData;
         String pluginName = metaData.getString(PLUGIN_META_PLUGIN_NAME);
         if (pluginName == null) {
-            pluginName = compInfo.applicationInfo.loadLabel(pkgMgr).toString();
+            pluginName = componentInfo.applicationInfo.loadLabel(pkgMgr).toString();
         }
 
-        VersionName sdkVersionName = getPluginSDKVersion(compInfo.applicationInfo);
-        String packageName = compInfo.packageName;
-        String className = compInfo.name;
+        VersionName sdkVersionName = getPluginSDKVersion(componentInfo.applicationInfo);
+        String packageName = componentInfo.packageName;
+        String className = componentInfo.name;
         String versionName = pkgInfo.versionName;
         String startClassName = getStartServiceClassName(packageName);
         String hash = md5(packageName + className);
         if (hash == null) {
             throw new RuntimeException("Can't generate md5.");
         }
-        Drawable icon;
-        Object iconId = metaData.get(PLUGIN_META_PLUGIN_ICON);
-        if (iconId != null) {
-            icon = ResourcesCompat.getDrawable(mApp.getResources(), (int)iconId, null);
-        } else {
-            try {
-                ApplicationInfo info = pkgMgr.getApplicationInfo(packageName, 0);
-                icon = pkgMgr.getApplicationIcon(info.packageName);
-            } catch (PackageManager.NameNotFoundException e) {
-                icon = null;
-                if (BuildConfig.DEBUG) {
-                    Log.d("Manager", "Icon is not found.");
-                }
-            }
-        }
+        Integer iconId = (Integer) metaData.get(PLUGIN_META_PLUGIN_ICON);
 
         mLogger.info("Added DevicePlugin: [" + hash + "]");
         mLogger.info("    PackageName: " + packageName);
@@ -294,24 +264,24 @@ public class DevicePluginManager {
             mLogger.warning("DevicePlugin[" + hash + "] already exists.");
         }
 
-        final DevicePlugin plugin = new DevicePlugin();
-        plugin.setPluginComponent(compInfo);
-        plugin.setVersionName(versionName);
-        plugin.setPluginId(hash);
-        plugin.setDeviceName(pluginName);
-        plugin.setStartServiceClassName(startClassName);
-        plugin.setSupportProfiles(checkDevicePluginXML(compInfo));
-        plugin.setPluginSdkVersionName(sdkVersionName);
-        plugin.setPluginIcon(icon);
-        return plugin;
-    }
+        ConnectionType type;
+        if (componentInfo instanceof ServiceInfo) {
+            type = ConnectionType.BINDER;
+        } else {
+            type = ConnectionType.BROADCAST;
+        }
 
-    /**
-     * 指定されたIntentのデバイスプラグインを削除する.
-     * @param intent 削除するデバイスプラグインのIntent
-     */
-    public void checkAndRemoveDevicePlugin(final Intent intent) {
-        checkAndRemoveDevicePlugin(getPackageName(intent));
+        return new DevicePlugin.Builder()
+            .setPluginComponent(componentInfo)
+            .setVersionName(versionName)
+            .setPluginId(hash)
+            .setDeviceName(pluginName)
+            .setStartServiceClassName(startClassName)
+            .setSupportedProfiles(checkDevicePluginXML(componentInfo))
+            .setPluginSdkVersionName(sdkVersionName)
+            .setPluginIconId(iconId)
+            .setConnectionType(type)
+            .build();
     }
 
     /**
@@ -345,7 +315,7 @@ public class DevicePluginManager {
     public void checkAndRemoveDevicePlugin(final ComponentName component) {
         ActivityInfo receiverInfo = null;
         try {
-            PackageManager pkgMgr = mApp.getPackageManager();
+            PackageManager pkgMgr = mContext.getPackageManager();
             receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
             if (receiverInfo.metaData != null) {
                 String value = receiverInfo.metaData.getString(PLUGIN_META_DATA);
@@ -513,7 +483,7 @@ public class DevicePluginManager {
     private VersionName getPluginSDKVersion(final ApplicationInfo info) {
         VersionName versionName = null;
         if (info.metaData != null && info.metaData.get(PLUGIN_SDK_META_DATA) != null) {
-            PackageManager pkgMgr = mApp.getPackageManager();
+            PackageManager pkgMgr = mContext.getPackageManager();
             XmlResourceParser xpp = info.loadXmlMetaData(pkgMgr, PLUGIN_SDK_META_DATA);
             try {
                 String str = parsePluginSDKVersionName(xpp);
@@ -563,7 +533,7 @@ public class DevicePluginManager {
      * @return プロファイル一覧
      */
     public List<String> checkDevicePluginXML(final ComponentInfo info) {
-        PackageManager pkgMgr = mApp.getPackageManager();
+        PackageManager pkgMgr = mContext.getPackageManager();
         XmlResourceParser xpp = info.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
         try {
             return parseDevicePluginXML(xpp);
@@ -624,26 +594,12 @@ public class DevicePluginManager {
     }
 
     /**
-     * インストール・アンインストールしたアプリのパッケージ名を取得する.
-     * @param intent パッケージ名を取得するIntent
-     * @return パッケージ名
-     */
-    private String getPackageName(final Intent intent) {
-        String pkgName = intent.getDataString();
-        int idx = pkgName.indexOf(":");
-        if (idx != -1) {
-            pkgName = pkgName.substring(idx + 1);
-        }
-        return pkgName;
-    }
-
-    /**
      * Get a class name of service for start.
      * @param packageName package name of device plugin
      * @return class name or null if there are no service for start
      */
     private String getStartServiceClassName(final String packageName) {
-        PackageManager pkgMgr = mApp.getPackageManager();
+        PackageManager pkgMgr = mContext.getPackageManager();
         try {
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_SERVICES);
             ServiceInfo[] slist = pkg.services;

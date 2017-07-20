@@ -9,10 +9,8 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -25,7 +23,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
@@ -45,13 +42,10 @@ import static org.deviceconnect.android.manager.plugin.DevicePluginManager.Devic
  * 
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginListFragment extends Fragment {
+public class DevicePluginListFragment extends BaseSettingFragment {
 
     /** Adapter. */
     private PluginAdapter mPluginAdapter;
-
-    /** デバイスプラグイン管理クラス. */
-    private DevicePluginManager mPluginMgr;
 
     /** デバイスプラグインを有効・無効にするスレッド. */
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -70,12 +64,12 @@ public class DevicePluginListFragment extends Fragment {
 
         @Override
         public void onDeviceFound(final DevicePlugin plugin) {
-            // NOP.
+            updatePluginList();
         }
 
         @Override
         public void onDeviceLost(final DevicePlugin plugin) {
-            // NOP.
+            updatePluginList();
         }
     };
 
@@ -89,8 +83,6 @@ public class DevicePluginListFragment extends Fragment {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mPluginMgr = ((DConnectApplication) getActivity().getApplication()).getDevicePluginManager();
-        mPluginMgr.addEventListener(mEventListener);
         setHasOptionsMenu(true);
     }
 
@@ -102,8 +94,20 @@ public class DevicePluginListFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        mPluginMgr.removeEventListener(mEventListener);
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null) {
+            mgr.removeEventListener(mEventListener);
+        }
         super.onDestroyView();
+    }
+
+    @Override
+    protected void onManagerBonded() {
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null) {
+            mgr.addEventListener(mEventListener);
+            updatePluginList();
+        }
     }
 
     /**
@@ -112,20 +116,20 @@ public class DevicePluginListFragment extends Fragment {
      */
     private List<PluginContainer> createPluginContainers() {
         List<PluginContainer> containers = new ArrayList<>();
-        PackageManager pm = getActivity().getPackageManager();
-        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
-        DevicePluginManager manager = app.getDevicePluginManager();
-        for (DevicePlugin plugin : manager.getDevicePlugins()) {
-            containers.add(new PluginContainer(plugin));
-        }
-        Collections.sort(containers, new Comparator<PluginContainer>() {
-            @Override
-            public int compare(final PluginContainer o1, final PluginContainer o2) {
-                String a = o1.getLabel();
-                String b = o2.getLabel();
-                return a.compareTo(b);
+        if (isManagerBonded()) {
+            DevicePluginManager manager = getPluginManager();
+            for (DevicePlugin plugin : manager.getDevicePlugins()) {
+                containers.add(new PluginContainer(getActivity(), plugin));
             }
-        });
+            Collections.sort(containers, new Comparator<PluginContainer>() {
+                @Override
+                public int compare(final PluginContainer o1, final PluginContainer o2) {
+                    String a = o1.getLabel();
+                    String b = o2.getLabel();
+                    return a.compareTo(b);
+                }
+            });
+        }
         return containers;
     }
 
@@ -133,7 +137,7 @@ public class DevicePluginListFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
 
-        mPluginAdapter = new PluginAdapter(getActivity(), createPluginContainers());
+        mPluginAdapter = new PluginAdapter(getActivity());
         View rootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
         ListView listView = (ListView) rootView.findViewById(R.id.listview_pluginlist);
         listView.setAdapter(mPluginAdapter);
@@ -195,10 +199,13 @@ public class DevicePluginListFragment extends Fragment {
         private final String mLabel;
         /** Plug-in. */
         private final DevicePlugin mPlugin;
+        /** Context. */
+        private final Context mContext;
         /** Connecting state. */
         private boolean mIsConnecting;
 
-        PluginContainer(final DevicePlugin plugin) {
+        PluginContainer(final Context context, final DevicePlugin plugin) {
+            mContext = context;
             mPlugin = plugin;
             String label = plugin.getDeviceName();
             if (label == null) {
@@ -240,7 +247,7 @@ public class DevicePluginListFragment extends Fragment {
          * @return icon
          */
         public Drawable getIcon() {
-            return mPlugin.getPluginIcon();
+            return mPlugin.getPluginIcon(mContext);
         }
 
         /**
@@ -275,10 +282,9 @@ public class DevicePluginListFragment extends Fragment {
          * Constructor.
          * 
          * @param context Context.
-         * @param objects Plug-in list object.
          */
-        PluginAdapter(final Context context, final List<PluginContainer> objects) {
-            super(context, 0, objects);
+        PluginAdapter(final Context context) {
+            super(context, 0, new ArrayList<PluginContainer>());
             mInflater = (LayoutInflater) context.getSystemService(
                     Context.LAYOUT_INFLATER_SERVICE);
         }

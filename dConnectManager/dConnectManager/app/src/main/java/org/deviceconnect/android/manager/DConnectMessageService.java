@@ -74,8 +74,24 @@ import java.util.logging.Logger;
  */
 public abstract class DConnectMessageService extends Service
         implements DConnectProfileProvider, DevicePluginEventListener {
+
+    /** アクション名: パッケージインストール通知. */
+    public static final String ACTION_PACKAGE_ADDED = "org.deviceconnect.android.action.PACKAGE_ADDED";
+
+    /** アクション名: パッケージアンインストール通知. */
+    public static final String ACTION_PACKAGE_REMOVED = "org.deviceconnect.android.action.PACKAGE_REMOVED";
+
+    /** エクストラ名: インストールまたはアンインストールされたパッケージの名前. */
+    public static final String EXTRA_PACKAGE_NAME = "packageName";
+
     /** 匿名オリジン. */
     public static final String ANONYMOUS_ORIGIN = "<anonymous>";
+
+    /** ドメイン名. */
+    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
+
+    /** ローカルのドメイン名. */
+    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
 
     /** Notification ID.*/
     private static final int ONGOING_NOTIFICATION_ID = 4035;
@@ -101,6 +117,9 @@ public abstract class DConnectMessageService extends Service
     /** プロファイルインスタンスマップ. */
     protected Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
 
+    /** デバイスプラグイン管理クラス. */
+    private DevicePluginManager mPluginManager;
+
     /** 最後に処理されるプロファイル. */
     private DConnectProfile mDeliveryProfile;
 
@@ -109,9 +128,6 @@ public abstract class DConnectMessageService extends Service
 
     /** リクエスト管理クラス. */
     protected DConnectRequestManager mRequestManager;
-
-    /** デバイスプラグイン管理. */
-    protected DevicePluginManager mPluginMgr;
 
     /** DeviceConnectの設定. */
     protected DConnectSettings mSettings;
@@ -156,6 +172,25 @@ public abstract class DConnectMessageService extends Service
     public void onCreate() {
         super.onCreate();
 
+        // プラグイン管理クラスの初期化
+        mPluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
+        mPluginManager.addEventListener(this);
+        mPluginManager.setConnectionFactory(new ConnectionFactory() {
+            @Override
+            public Connection createConnectionForPlugin(final DevicePlugin plugin) {
+                Context context = DConnectMessageService.this;
+                switch (plugin.getConnectionType()) {
+                    case BINDER:
+                        return new BinderConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
+                    case BROADCAST:
+                        return new BroadcastConnection(context, plugin.getPluginId());
+                    default:
+                        return null;
+                }
+            }
+        });
+        mPluginManager.createDevicePluginList();
+
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -172,34 +207,17 @@ public abstract class DConnectMessageService extends Service
         // デバイスプラグインとのLocal OAuth情報
         mLocalOAuth = new DConnectLocalOAuth(this);
 
-        // デバイスプラグイン管理クラスの作成
-        mPluginMgr = ((DConnectApplication) getApplication()).getDevicePluginManager();
-        mPluginMgr.setConnectionFactory(new ConnectionFactory() {
-            @Override
-            public Connection createConnectionForPlugin(final DevicePlugin plugin) {
-                Context context = DConnectMessageService.this;
-                switch (plugin.getConnectionType()) {
-                    case BINDER:
-                        return new BinderConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
-                    case BROADCAST:
-                        return new BroadcastConnection(context, plugin.getPluginId());
-                    default:
-                        return null;
-                }
-            }
-        });
-
         // イベントハンドラーの初期化
-        mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginMgr);
+        mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginManager);
 
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
-        addProfile(new DConnectServiceDiscoveryProfile(null, mPluginMgr));
-        addProfile(new DConnectSystemProfile(this, mPluginMgr));
+        addProfile(new DConnectServiceDiscoveryProfile(null, mPluginManager));
+        addProfile(new DConnectSystemProfile(this, mPluginManager));
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
-        setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
+        setDeliveryProfile(new DConnectDeliveryProfile(mPluginManager, mLocalOAuth,
             mEventBroker, mSettings.requireOrigin()));
 
         loadProfileSpecs();
@@ -207,6 +225,7 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDestroy() {
+        mPluginManager.removeEventListener(this);
         stopDConnect();
         LocalOAuth2Main.destroy();
         super.onDestroy();
@@ -248,6 +267,12 @@ public abstract class DConnectMessageService extends Service
             onResponseReceive(intent);
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
             onEventReceive(intent);
+        } else if (DConnectMessageService.ACTION_PACKAGE_ADDED.equals(action)) {
+            String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
+            mPluginManager.checkAndAddDevicePlugin(packageName);
+        } else if (DConnectMessageService.ACTION_PACKAGE_REMOVED.equals(action)) {
+            String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
+            mPluginManager.checkAndRemoveDevicePlugin(packageName);
         }
     }
 
@@ -569,7 +594,6 @@ public abstract class DConnectMessageService extends Service
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
-        mPluginMgr.addEventListener(this);
         showNotification();
     }
 
@@ -578,7 +602,6 @@ public abstract class DConnectMessageService extends Service
      */
     protected void stopDConnect() {
         sendTerminateEvent();
-        mPluginMgr.removeEventListener(this);
         if (mRequestManager != null) {
             mRequestManager.shutdown();
         }
@@ -589,7 +612,7 @@ public abstract class DConnectMessageService extends Service
      * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
      */
     private void sendTerminateEvent() {
-        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins();
+        List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (plugin.getPluginId() != null) {
                 Intent request = new Intent();
@@ -739,5 +762,21 @@ public abstract class DConnectMessageService extends Service
      */
     public boolean usesLocalOAuth() {
         return mSettings.isUseALocalOAuth();
+    }
+
+    /**
+     * プラグインマネージャーを取得する.
+     * @return プラグインマネージャー
+     */
+    public DevicePluginManager getPluginManager() {
+        return mPluginManager;
+    }
+
+    /**
+     * DeviceConnect設定を取得する.
+     * @return DeviceConnect設定
+     */
+    public DConnectSettings getSettings() {
+        return mSettings;
     }
 }

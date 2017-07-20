@@ -7,10 +7,14 @@
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 
 import java.util.ArrayList;
@@ -24,34 +28,19 @@ import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED
  * @author NTT DOCOMO, INC.
  */
 public class DevicePlugin {
-
+    /** 接続試行回数. */
     private static final int MAX_CONNECTION_TRY = 5;
 
-    /** デバイスプラグインを定義するコンポーネントの情報. */
+    /** デバイスプラグイン情報. */
+    private Info mInfo;
+    /** デバイスプラグインを宣言するコンポーネントの情報. */
     private ComponentInfo mPluginComponent;
-    /** デバイスプラグインのバージョン名. */
-    private String mVersionName;
-    /** プラグインID. */
-    private String mPluginId;
-    /** デバイスプラグイン名. */
-    private String mDeviceName;
-    /* プラグインアイコン. */
-    private Drawable mPluginIcon;
-    /** Class name of service for restart. */
-    private String mStartServiceClassName;
-    /* プラグインSDKバージョン名. */
-    private VersionName mPluginSdkVersionName;
-    /**
-     * サポートしているプロファイルを格納する.
-     */
-    private List<String> mSupports = new ArrayList<String>();
 
-    private ConnectionType mConnectionType;
-
-    private Connection mConnection;
-
+    /** 有効状態. */
     private DevicePluginState mState = DevicePluginState.FOUND;
-
+    /** 接続管理クラス. */
+    private Connection mConnection;
+    /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
@@ -63,35 +52,11 @@ public class DevicePlugin {
     }
 
     /**
-     * プラグインを宣言するコンポーネントを設定する.
-     * @param component プラグインを宣言するコンポーネント
-     */
-    void setPluginComponent(final ComponentInfo component) {
-        mPluginComponent = component;
-    }
-
-    /**
      * デバイスプラグインのパッケージ名を取得する.
      * @return パッケージ名
      */
     public String getPackageName() {
         return mPluginComponent.packageName;
-    }
-
-    /**
-     * デバイスプラグインのバージョン名を取得する.
-     * @return バージョン名
-     */
-    public String getVersionName() {
-        return mVersionName;
-    }
-
-    /**
-     * デバイスプラグインのバージョン名を設定する.
-     * @param versionName バージョン名
-     */
-    public void setVersionName(final String versionName) {
-        mVersionName = versionName;
     }
 
     /**
@@ -101,34 +66,7 @@ public class DevicePlugin {
     public String getClassName() {
         return mPluginComponent.name;
     }
-    /**
-     * デバイスプラグインIDを取得する.
-     * @return デバイスプラグインID
-     */
-    public String getPluginId() {
-        return mPluginId;
-    }
-    /**
-     * デバイスプラグインIDを設定する.
-     * @param pluginId デバイスプラグインID
-     */
-    public void setPluginId(final String pluginId) {
-        this.mPluginId = pluginId;
-    }
-    /**
-     * デバイスプラグイン名を取得する.
-     * @return デバイスプラグイン名
-     */
-    public String getDeviceName() {
-        return mDeviceName;
-    }
-    /**
-     * デバイスプラグイン名を設定する.
-     * @param deviceName デバイスプラグイン名
-     */
-    public void setDeviceName(final String deviceName) {
-        mDeviceName = deviceName;
-    }
+
     /**
      * ComponentNameを取得する.
      * @return ComponentNameのインスタンス
@@ -136,48 +74,49 @@ public class DevicePlugin {
     public ComponentName getComponentName() {
         return new ComponentName(getPackageName(), getClassName());
     }
+
+    /**
+     * デバイスプラグインのバージョン名を取得する.
+     * @return バージョン名
+     */
+    public String getVersionName() {
+        return mInfo.mVersionName;
+    }
+
+    /**
+     * デバイスプラグインIDを取得する.
+     * @return デバイスプラグインID
+     */
+    public String getPluginId() {
+        return mInfo.mPluginId;
+    }
+
+    /**
+     * デバイスプラグイン名を取得する.
+     * @return デバイスプラグイン名
+     */
+    public String getDeviceName() {
+        return mInfo.mDeviceName;
+    }
     
     /**
      * Get a class name of service for restart.
      * @return class name or null if there are no service for restart
      */
     public String getStartServiceClassName() {
-        return mStartServiceClassName;
+        return mInfo.mStartServiceClassName;
     }
-    /**
-     * Set a class name of service for restart.
-     * @param className class name
-     */
-    public void setStartServiceClassName(final String className) {
-        this.mStartServiceClassName = className;
-    }
-    /**
-     * サポートするプロファイルを追加する.
-     * @param profileName プロファイル名
-     */
-    public void addProfile(final String profileName) {
-        mSupports.add(profileName);
-    }
-    /**
-     * サポートするプロファイルを設定する.
-     * @param profiles プロファイル名一覧
-     */
-    public void setSupportProfiles(final List<String> profiles) {
-        mSupports = profiles;
-    }
+
     /**
      * デバイスプラグインがサポートするプロファイルの一覧を取得する.
      * @return サポートするプロファイルの一覧
      */
     public List<String> getSupportProfiles() {
-        return mSupports;
+        return new ArrayList<>(mInfo.mSupports);
     }
 
     public boolean supportsProfile(final String profileName) {
-        if (mSupports == null) {
-            return false;
-        }
-        for (String support : mSupports) {
+        for (String support : mInfo.mSupports) {
             if (support.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字無視
                 return true;
             }
@@ -190,7 +129,7 @@ public class DevicePlugin {
      * @param pluginSdkVersionName デバイスプラグインSDKのバージョン
      */
     public void setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
-        mPluginSdkVersionName = pluginSdkVersionName;
+        mInfo.mPluginSdkVersionName = pluginSdkVersionName;
     }
 
     /**
@@ -198,31 +137,28 @@ public class DevicePlugin {
      * @return デバイスプラグインSDKのバージョン
      */
     public VersionName getPluginSdkVersionName() {
-        return mPluginSdkVersionName;
+        return mInfo.mPluginSdkVersionName;
     }
 
     /**
-     * デバイスプラグインのアイコンデータを設定する.
-     * @param icon デバイスプラグインのアイコンデータ
+     * デバイスプラグインのアイコンデータのリソースIDを取得する.
+     * @return デバイスプラグインのアイコンデータのリソースID
      */
-    public void setPluginIcon(final Drawable icon) {
-        mPluginIcon = icon;
+    public Integer getPluginIconId() {
+        return mInfo.mPluginIconId;
     }
 
     /**
      * デバイスプラグインのアイコンデータを取得する.
+     * @param context コンテキスト
      * @return デバイスプラグインのアイコンデータ
      */
-    public Drawable getPluginIcon() {
-        return mPluginIcon;
+    public Drawable getPluginIcon(final Context context) {
+        return DConnectUtil.loadPluginIcon(context, this);
     }
 
     public ConnectionType getConnectionType() {
-        return mConnectionType;
-    }
-
-    void setConnectionType(ConnectionType connectionType) {
-        mConnectionType = connectionType;
+        return mInfo.mConnectionType;
     }
 
     void setConnection(final Connection connection) {
@@ -311,5 +247,162 @@ public class DevicePlugin {
                 "    Class: " + getClassName() + "\n" +
                 "    Version: " + getVersionName() + "\n" +
                 "}";
+    }
+
+    public static class Builder {
+        /** デバイスプラグイン情報. */
+        private Info mInfo = new Info();
+        /** デバイスプラグインを宣言するコンポーネントの情報. */
+        private ComponentInfo mPluginComponent;
+
+        public Builder() {
+        }
+
+        public Builder setStartServiceClassName(final String startServiceClassName) {
+            mInfo.mStartServiceClassName = startServiceClassName;
+            return this;
+        }
+
+        public Builder setVersionName(final String versionName) {
+            mInfo.mVersionName = versionName;
+            return this;
+        }
+
+        public Builder setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
+            mInfo.mPluginSdkVersionName = pluginSdkVersionName;
+            return this;
+        }
+
+        public Builder setPluginId(final String pluginId) {
+            mInfo.mPluginId = pluginId;
+            return this;
+        }
+
+        public Builder setDeviceName(final String deviceName) {
+            mInfo.mDeviceName = deviceName;
+            return this;
+        }
+
+        public Builder setPluginIconId(final Integer pluginIconId) {
+            mInfo.mPluginIconId = pluginIconId;
+            return this;
+        }
+
+        public Builder setSupportedProfiles(final List<String> supportedProfiles) {
+            mInfo.mSupports = supportedProfiles;
+            return this;
+        }
+
+        public Builder setConnectionType(final ConnectionType connectionType) {
+            mInfo.mConnectionType = connectionType;
+            return this;
+        }
+
+        public Builder setPluginComponent(final ComponentInfo pluginComponent) {
+            mPluginComponent = pluginComponent;
+            return this;
+        }
+
+        public DevicePlugin build() {
+            DevicePlugin plugin = new DevicePlugin();
+            plugin.mInfo = mInfo;
+            plugin.mPluginComponent = mPluginComponent;
+            return plugin;
+        }
+    }
+
+    public static class Info implements Parcelable {
+        /** Class name of service for restart. */
+        private String mStartServiceClassName;
+        /** デバイスプラグインのバージョン名. */
+        private String mVersionName;
+        /** プラグインSDKバージョン名. */
+        private VersionName mPluginSdkVersionName;
+        /** プラグインID. */
+        private String mPluginId;
+        /** デバイスプラグイン名. */
+        private String mDeviceName;
+        /** プラグインアイコン. */
+        private Integer mPluginIconId;
+        /** サポートしているプロファイルのリスト. */
+        private List<String> mSupports;
+        /** 接続タイプ. */
+        private ConnectionType mConnectionType;
+
+        public String getStartServiceClassName() {
+            return mStartServiceClassName;
+        }
+
+        public String getVersionName() {
+            return mVersionName;
+        }
+
+        public VersionName getPluginSdkVersionName() {
+            return mPluginSdkVersionName;
+        }
+
+        public String getPluginId() {
+            return mPluginId;
+        }
+
+        public String getDeviceName() {
+            return mDeviceName;
+        }
+
+        public Integer getPluginIconId() {
+            return mPluginIconId;
+        }
+
+        public List<String> getSupports() {
+            return mSupports;
+        }
+
+        public ConnectionType getConnectionType() {
+            return mConnectionType;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(this.mStartServiceClassName);
+            dest.writeString(this.mVersionName);
+            dest.writeParcelable(this.mPluginSdkVersionName, flags);
+            dest.writeString(this.mPluginId);
+            dest.writeString(this.mDeviceName);
+            dest.writeValue(this.mPluginIconId);
+            dest.writeStringList(this.mSupports);
+            dest.writeInt(this.mConnectionType == null ? -1 : this.mConnectionType.ordinal());
+        }
+
+        Info() {
+        }
+
+        protected Info(Parcel in) {
+            this.mStartServiceClassName = in.readString();
+            this.mVersionName = in.readString();
+            this.mPluginSdkVersionName = in.readParcelable(VersionName.class.getClassLoader());
+            this.mPluginId = in.readString();
+            this.mDeviceName = in.readString();
+            this.mPluginIconId = (Integer) in.readValue(Integer.class.getClassLoader());
+            this.mSupports = in.createStringArrayList();
+            int tmpMConnectionType = in.readInt();
+            this.mConnectionType = tmpMConnectionType == -1 ? null : ConnectionType.values()[tmpMConnectionType];
+        }
+
+        public static final Creator<Info> CREATOR = new Creator<Info>() {
+            @Override
+            public Info createFromParcel(Parcel source) {
+                return new Info(source);
+            }
+
+            @Override
+            public Info[] newArray(int size) {
+                return new Info[size];
+            }
+        };
     }
 }

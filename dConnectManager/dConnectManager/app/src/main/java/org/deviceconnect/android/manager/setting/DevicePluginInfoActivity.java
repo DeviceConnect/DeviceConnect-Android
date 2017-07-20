@@ -6,18 +6,16 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.view.View;
 import android.widget.CompoundButton;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.ConnectionStateListener;
@@ -32,7 +30,7 @@ import java.util.concurrent.Executors;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginInfoActivity extends AppCompatActivity {
+public class DevicePluginInfoActivity extends BaseSettingActivity {
 
     /** デバイスプラグインのプラグインIDのキー. */
     static final String PLUGIN_ID = "pluginId";
@@ -67,9 +65,7 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
     private View mProgressCircle;
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    protected void onManagerBonded() {
         Intent intent = getIntent();
         if (intent == null) {
             finish();
@@ -87,8 +83,7 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
             actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);
             actionBar.setCustomView(R.layout.action_bar_plugin_enable_status);
 
-            DConnectApplication apps = (DConnectApplication) getApplication();
-            DevicePluginManager manager = apps.getDevicePluginManager();
+            DevicePluginManager manager = getPluginManager();
             for (DevicePlugin plugin : manager.getDevicePlugins()) {
                 if (pluginId.equals(plugin.getPluginId())) {
                     mPlugin = plugin;
@@ -118,13 +113,13 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
             mProgressCircle = actionBar.getCustomView().findViewById(R.id.progress_plugin_enable_status);
         }
 
-        if (savedInstanceState == null) {
+        if (!hasSavedInstance()) {
             Fragment f = new DevicePluginInfoFragment();
             Bundle args = new Bundle();
             args.putString(PLUGIN_ID, pluginId);
             f.setArguments(args);
 
-            FragmentManager fm = getFragmentManager();
+            FragmentManager fm = getSupportFragmentManager();
             FragmentTransaction t = fm.beginTransaction();
             t.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             t.add(android.R.id.content, f, "container");
@@ -138,5 +133,9 @@ public class DevicePluginInfoActivity extends AppCompatActivity {
             mPlugin.removeConnectionStateListener(mListener);
         }
         super.onDestroy();
+    }
+
+    DevicePlugin getPlugin() {
+        return mPlugin;
     }
 }

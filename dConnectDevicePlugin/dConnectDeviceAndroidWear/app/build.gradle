@@ -3,7 +3,9 @@ apply plugin: 'com.android.application'
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
+    compile 'com.android.support:multidex:1.0.1'
     compile 'com.google.android.gms:play-services:11.0.2'
+
     wearApp project(':wear-app')
 }
 
@@ -29,6 +31,7 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName getVersionName()
+        multiDexEnabled true
     }
 
     signingConfigs {

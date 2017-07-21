@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.plugin;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static org.deviceconnect.android.manager.plugin.DevicePluginState.DISABLED;
 import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED;
 
 /**
@@ -30,18 +32,30 @@ import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED
 public class DevicePlugin {
     /** 接続試行回数. */
     private static final int MAX_CONNECTION_TRY = 5;
+    /** 設定ファイル名のプレフィクス. */
+    private static final String PREFIX_PREFERENCES = "plugin_preferences_";
+    /** 設定キー: 有効状態. */
+    private static final String KEY_ENABLED = "enabled";
 
     /** デバイスプラグイン情報. */
     private Info mInfo;
     /** デバイスプラグインを宣言するコンポーネントの情報. */
     private ComponentInfo mPluginComponent;
-
     /** 有効状態. */
-    private DevicePluginState mState = DevicePluginState.FOUND;
+    private DevicePluginState mState;
+    /** プラグイン設定を永続化するオブジェクト. */
+    private SharedPreferences mPreferences;
     /** 接続管理クラス. */
     private Connection mConnection;
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
+
+    /**
+     * リソースを削除する.
+     */
+    synchronized void dispose() {
+        mPreferences.edit().clear().apply();
+    }
 
     /**
      * プラグインを宣言するコンポーネントを取得する.
@@ -125,14 +139,6 @@ public class DevicePlugin {
     }
 
     /**
-     * デバイスプラグインSDKのバージョンを設定する.
-     * @param pluginSdkVersionName デバイスプラグインSDKのバージョン
-     */
-    public void setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
-        mInfo.mPluginSdkVersionName = pluginSdkVersionName;
-    }
-
-    /**
      * デバイスプラグインSDKのバージョンを取得する.
      * @return デバイスプラグインSDKのバージョン
      */
@@ -171,6 +177,11 @@ public class DevicePlugin {
 
     private void setState(final DevicePluginState state) {
         mState = state;
+
+        boolean isEnabled = state == ENABLED;
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(KEY_ENABLED, isEnabled);
+        editor.apply();
     }
 
     public boolean isEnabled() {
@@ -178,11 +189,27 @@ public class DevicePlugin {
     }
 
     public synchronized void enable() {
+        setState(DevicePluginState.ENABLED);
+        apply();
+    }
+
+    public synchronized void disable() {
+        setState(DevicePluginState.DISABLED);
+        apply();
+    }
+
+    public synchronized void apply() {
         switch (getState()) {
-            case FOUND:
+            case ENABLED:
+                if (mConnection.getState() == ConnectionState.DISCONNECTED) {
+                    tryConnection();
+                }
+                break;
             case DISABLED:
-                setState(DevicePluginState.ENABLED);
-                tryConnection();
+                if (mConnection.getState() == ConnectionState.CONNECTED) {
+                    mConnection.disconnect();
+                    mLogger.info("Disconnected to the plug-in: " + getPackageName());
+                }
                 break;
             default:
                 break;
@@ -200,18 +227,6 @@ public class DevicePlugin {
             }
         }
         return false;
-    }
-
-    public synchronized void disable() {
-        switch (getState()) {
-            case ENABLED:
-                setState(DevicePluginState.DISABLED);
-                mConnection.disconnect();
-                mLogger.info("Disconnected to the plug-in: " + getPackageName());
-                break;
-            default:
-                break;
-        }
     }
 
     public void addConnectionStateListener(final ConnectionStateListener listener) {
@@ -249,64 +264,73 @@ public class DevicePlugin {
                 "}";
     }
 
-    public static class Builder {
+    static class Builder {
+        /** コンテキスト. */
+        private final Context mContext;
         /** デバイスプラグイン情報. */
         private Info mInfo = new Info();
         /** デバイスプラグインを宣言するコンポーネントの情報. */
         private ComponentInfo mPluginComponent;
 
-        public Builder() {
+        public Builder(final Context context) {
+            mContext = context;
         }
 
-        public Builder setStartServiceClassName(final String startServiceClassName) {
+        Builder setStartServiceClassName(final String startServiceClassName) {
             mInfo.mStartServiceClassName = startServiceClassName;
             return this;
         }
 
-        public Builder setVersionName(final String versionName) {
+        Builder setVersionName(final String versionName) {
             mInfo.mVersionName = versionName;
             return this;
         }
 
-        public Builder setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
+        Builder setPluginSdkVersionName(final VersionName pluginSdkVersionName) {
             mInfo.mPluginSdkVersionName = pluginSdkVersionName;
             return this;
         }
 
-        public Builder setPluginId(final String pluginId) {
+        Builder setPluginId(final String pluginId) {
             mInfo.mPluginId = pluginId;
             return this;
         }
 
-        public Builder setDeviceName(final String deviceName) {
+        Builder setDeviceName(final String deviceName) {
             mInfo.mDeviceName = deviceName;
             return this;
         }
 
-        public Builder setPluginIconId(final Integer pluginIconId) {
+        Builder setPluginIconId(final Integer pluginIconId) {
             mInfo.mPluginIconId = pluginIconId;
             return this;
         }
 
-        public Builder setSupportedProfiles(final List<String> supportedProfiles) {
+        Builder setSupportedProfiles(final List<String> supportedProfiles) {
             mInfo.mSupports = supportedProfiles;
             return this;
         }
 
-        public Builder setConnectionType(final ConnectionType connectionType) {
+        Builder setConnectionType(final ConnectionType connectionType) {
             mInfo.mConnectionType = connectionType;
             return this;
         }
 
-        public Builder setPluginComponent(final ComponentInfo pluginComponent) {
+        Builder setPluginComponent(final ComponentInfo pluginComponent) {
             mPluginComponent = pluginComponent;
             return this;
         }
 
-        public DevicePlugin build() {
+        DevicePlugin build() {
+            String prefName = PREFIX_PREFERENCES + mInfo.getPluginId();
+            SharedPreferences pref = mContext.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+            boolean isEnabled = pref.getBoolean(KEY_ENABLED, true);
+
             DevicePlugin plugin = new DevicePlugin();
             plugin.mInfo = mInfo;
             plugin.mPluginComponent = mPluginComponent;
+            plugin.mPreferences = pref;
+            plugin.mState = isEnabled ? ENABLED : DISABLED;
             return plugin;
         }
     }

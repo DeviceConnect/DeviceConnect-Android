@@ -44,6 +44,7 @@ import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
+import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -189,7 +190,6 @@ public abstract class DConnectMessageService extends Service
                 }
             }
         });
-        mPluginManager.createDevicePluginList();
 
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -554,14 +554,14 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDeviceFound(final DevicePlugin plugin) {
-        plugin.enable();
-
-        // TODO プラグインが有効になった時に下記の処理を実行
-//        RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
-//        req.setContext(this);
-//        req.setDestination(plugin);
-//        req.setDevicePluginManager(mPluginMgr);
-//        addRequest(req);
+        plugin.apply();
+        if (plugin.isEnabled()) {
+            RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
+            req.setContext(this);
+            req.setDestination(plugin);
+            req.setDevicePluginManager(mPluginManager);
+            addRequest(req);
+        }
     }
 
     @Override
@@ -594,6 +594,7 @@ public abstract class DConnectMessageService extends Service
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
+        mPluginManager.createDevicePluginList();
         showNotification();
     }
 

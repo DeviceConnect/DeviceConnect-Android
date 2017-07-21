@@ -271,7 +271,7 @@ public class DevicePluginManager {
             type = ConnectionType.BROADCAST;
         }
 
-        return new DevicePlugin.Builder()
+        return new DevicePlugin.Builder(mContext)
             .setPluginComponent(componentInfo)
             .setVersionName(versionName)
             .setPluginId(hash)
@@ -304,6 +304,7 @@ public class DevicePluginManager {
         DevicePlugin plugin = mPlugins.remove(key);
         if (plugin != null) {
             plugin.removeConnectionStateListener(mStateListener);
+            plugin.dispose();
             notifyLost(plugin);
         }
     }

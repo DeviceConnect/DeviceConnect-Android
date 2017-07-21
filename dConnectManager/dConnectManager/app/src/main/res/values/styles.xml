@@ -15,6 +15,7 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="android:actionBarStyle">@style/DefaultActionBarTheme</item>
     </style>
 
     <style name="AppTheme.Translucent" parent="AppTheme">
@@ -27,7 +28,9 @@
 
     <style name="AppBaseTheme.AppCompat" parent="Theme.AppCompat.Light" />
 
-    <style name="AppTheme.AppCompat" parent="AppBaseTheme.AppCompat" />
+    <style name="AppTheme.AppCompat" parent="AppBaseTheme.AppCompat">
+        <item name="actionBarStyle">@style/SettingActionBarTheme</item>
+    </style>
 
     <style name="AppTheme.AppCompat.Translucent" parent="AppTheme.AppCompat">
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -35,5 +38,9 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowAnimationStyle">@android:style/Animation</item>
         <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="SettingActionBarTheme" parent="@style/Widget.AppCompat.ActionBar">
+        <item name="background">@color/setting_actionbar_color</item>
     </style>
 </resources>

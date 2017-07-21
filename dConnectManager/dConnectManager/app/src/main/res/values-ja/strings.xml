@@ -131,6 +131,10 @@
     <string name="activity_deviceplugin_info_settings">設定</string>
     <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
     <string name="activity_deviceplugin_info_profile">プロファイル</string>
+    <string name="activity_deviceplugin_info_connection_type_title">連携タイプ</string>
+    <string name="activity_deviceplugin_info_connection_type_binder">バインダー</string>
+    <string name="activity_deviceplugin_info_connection_type_broadcast">ブロードキャスト</string>
+    <string name="activity_deviceplugin_info_connection_type_unknown">不明</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>

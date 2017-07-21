@@ -33,11 +33,13 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.w3c.dom.Text;
 
 import java.util.List;
 import java.util.Locale;
@@ -125,6 +127,21 @@ public class DevicePluginInfoFragment extends Fragment {
                 restartDevicePlugin();
             }
         });
+
+        TextView connectionTypeView = (TextView) view.findViewById(R.id.plugin_connection_type);
+        int resId;
+        switch (plugin.getConnectionType()) {
+            case BINDER:
+                resId = R.string.activity_deviceplugin_info_connection_type_binder;
+                break;
+            case BROADCAST:
+                resId = R.string.activity_deviceplugin_info_connection_type_broadcast;
+                break;
+            default:
+                resId = R.string.activity_deviceplugin_info_connection_type_unknown;
+                break;
+        }
+        connectionTypeView.setText(getString(resId));
 
         LinearLayout mainLayout = (LinearLayout) view.findViewById(R.id.plugin_support_profiles);
 

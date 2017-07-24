@@ -7,6 +7,8 @@ import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 
 import org.deviceconnect.android.deviceplugin.hogp.R;
@@ -74,11 +76,6 @@ public class HOGPControlActivity extends HOGPBaseActivity {
             public boolean onSingleTapUp(final MotionEvent e) {
                 if (!mDragFlag && mHOGPServer != null) {
                     mHOGPServer.movePointer(0, 0, 0, true, false, false);
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
                     mHOGPServer.movePointer(0, 0, 0, false, false, false);
                 }
                 return false;
@@ -209,6 +206,29 @@ public class HOGPControlActivity extends HOGPBaseActivity {
 
                 { R.id.activity_control_key_mode,   1, 0x02, 0x2C },
                 { R.id.activity_control_key_num,    1, 0x04, 0x2C },
+
+                { R.id.activity_control_key_at_mark, 1, 0x00, 0x2F },
+                { R.id.activity_control_key_hash,    1, 0x02, 0x20 },
+                { R.id.activity_control_key_percent, 1, 0x02, 0x22 },
+                { R.id.activity_control_key_yen,     1, 0x00, 0x89 },
+                { R.id.activity_control_key_and,     1, 0x02, 0x23 },
+                { R.id.activity_control_key_parentheses_start, 1, 0x02, 0x25 },
+                { R.id.activity_control_key_parentheses_end,   1, 0x02, 0x26 },
+                { R.id.activity_control_key_hyphen,    1, 0x00, 0x2D },
+                { R.id.activity_control_key_slash,     1, 0x00, 0x38 },
+                { R.id.activity_control_key_colon,     1, 0x00, 0x34 },
+                { R.id.activity_control_key_semicolon, 1, 0x00, 0x33 },
+                { R.id.activity_control_key_hat,       1, 0x00, 0x2E },
+                { R.id.activity_control_key_exclamation_mark, 1, 0x02, 0x1E },
+                { R.id.activity_control_key_question_mark, 1, 0x02, 0x38 },
+
+                { R.id.activity_control_key_asterisk,      1, 0x02, 0x34 },
+                { R.id.activity_control_key_add,           1, 0x02, 0x33 },
+                { R.id.activity_control_key_lt,            1, 0x02, 0x36 },
+                { R.id.activity_control_key_gt,            1, 0x02, 0x37 },
+                { R.id.activity_control_key_bracket_start, 1, 0x00, 0x30 },
+                { R.id.activity_control_key_bracket_end,   1, 0x00, 0x32 },
+                { R.id.activity_control_key_under,         1, 0x02, 0x87 },
         };
 
         for (int[] map : keyMap) {
@@ -229,6 +249,21 @@ public class HOGPControlActivity extends HOGPBaseActivity {
                 }
             });
         }
+
+        findViewById(R.id.activity_control_key_num).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                changeKeyboard();
+            }
+        });
+
+        ToggleButton toggle = (ToggleButton) findViewById(R.id.activity_control_key_caps);
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                changeUppercase(isChecked);
+            }
+        });
     }
 
     @Override
@@ -257,5 +292,59 @@ public class HOGPControlActivity extends HOGPBaseActivity {
     private byte caps() {
         ToggleButton toggle = (ToggleButton) findViewById(R.id.activity_control_key_caps);
         return toggle.isChecked() ? (byte) KeyboardCode.MODIFIER_KEY_SHIFT : 0;
+    }
+
+    private void changeUppercase(final boolean flag) {
+        int[] ids = {
+                R.id.activity_control_key_a,
+                R.id.activity_control_key_b,
+                R.id.activity_control_key_c,
+                R.id.activity_control_key_d,
+                R.id.activity_control_key_e,
+                R.id.activity_control_key_f,
+                R.id.activity_control_key_g,
+                R.id.activity_control_key_h,
+                R.id.activity_control_key_i,
+                R.id.activity_control_key_j,
+                R.id.activity_control_key_k,
+                R.id.activity_control_key_l,
+                R.id.activity_control_key_m,
+                R.id.activity_control_key_n,
+                R.id.activity_control_key_o,
+                R.id.activity_control_key_p,
+                R.id.activity_control_key_q,
+                R.id.activity_control_key_r,
+                R.id.activity_control_key_s,
+                R.id.activity_control_key_t,
+                R.id.activity_control_key_u,
+                R.id.activity_control_key_v,
+                R.id.activity_control_key_w,
+                R.id.activity_control_key_x,
+                R.id.activity_control_key_y,
+                R.id.activity_control_key_z,
+        };
+
+        for (int id : ids) {
+            Button btn = (Button) findViewById(id);
+            String t = btn.getText().toString();
+            if (flag) {
+                t = t.toUpperCase();
+            } else {
+                t = t.toLowerCase();
+            }
+            btn.setText(t);
+        }
+    }
+
+    private void changeKeyboard() {
+        View v1 = findViewById(R.id.activity_control_keyboard_a);
+        View v2 = findViewById(R.id.activity_control_keyboard_s);
+        if (v1.getVisibility() == View.GONE) {
+            v1.setVisibility(View.VISIBLE);
+            v2.setVisibility(View.GONE);
+        } else {
+            v1.setVisibility(View.GONE);
+            v2.setVisibility(View.VISIBLE);
+        }
     }
 }

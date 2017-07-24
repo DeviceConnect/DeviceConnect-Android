@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
+import org.deviceconnect.android.deviceplugin.hogp.HOGPSetting;
 import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUtils;
@@ -104,32 +105,8 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
 
     @Override
     void onServiceConnected() {
-        final HOGPMessageService service = getHOGPMessageService();
-        AbstractHOGPServer server = service.getHOGPServer();
-
-        final Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
-        sw.setChecked(server != null);
-        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                if (isChecked) {
-                    startHOGPServer();
-                } else {
-                    service.stopHOGPServer();
-                    service.getHOGPSetting().setEnabledServer(false);
-                    setSwitchUI(false);
-                }
-            }
-        });
-        sw.setEnabled(true);
-
-        if (server != null) {
-            Set<BluetoothDevice> devices = server.getDevices();
-            if (devices != null) {
-                mDeviceAdapter.notifyDataSetChanged();
-            }
-        }
-
+        setHOGPServerUI();
+        setLocalOAuthUI();
         findViewById(R.id.activity_setting_btn).setEnabled(true);
     }
 
@@ -145,13 +122,62 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
      * デバイス名をSwitchのタイトルに設定します.
      */
     private void setDeviceName() {
-        Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
+        TextView textView = (TextView) findViewById(R.id.activity_setting_device_name);
         if (BleUtils.isBluetoothEnabled(this)) {
             String name = BleUtils.getBluetoothName(this);
             if (name != null) {
-                sw.setText(name);
+                textView.setText(name);
             }
         }
+    }
+
+    /**
+     * HOGPサーバUIの設定を行います.
+     */
+    private void setHOGPServerUI() {
+        final HOGPMessageService service = getHOGPMessageService();
+        AbstractHOGPServer server = service.getHOGPServer();
+
+        final Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
+        sw.setChecked(server != null);
+        sw.setEnabled(true);
+        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                if (isChecked) {
+                    startHOGPServer();
+                } else {
+                    service.stopHOGPServer();
+                    service.getHOGPSetting().setEnabledServer(false);
+                    setSwitchUI(false);
+                }
+            }
+        });
+
+        if (server != null) {
+            Set<BluetoothDevice> devices = server.getDevices();
+            if (devices != null) {
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    /**
+     * ユーザ認可UIの設定を行います.
+     */
+    private void setLocalOAuthUI() {
+        HOGPSetting setting = getHOGPMessageService().getHOGPSetting();
+        Switch oauthSwitch = (Switch) findViewById(R.id.activity_setting_device_oauth_switch);
+        oauthSwitch.setChecked(setting.isEnabledOAuth());
+        oauthSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                HOGPMessageService service = getHOGPMessageService();
+                if (service != null) {
+                    service.setEnabledOuath(isChecked);
+                }
+            }
+        });
     }
 
     /**

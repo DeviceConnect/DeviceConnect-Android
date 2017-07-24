@@ -1,6 +1,9 @@
 package org.deviceconnect.android.deviceplugin.hogp.server;
 
 import android.content.Context;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.hogp.BuildConfig;
 
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.COLLECTION;
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.END_COLLECTION;
@@ -104,16 +107,6 @@ public class HOGPServer extends AbstractHOGPServer {
     private static final byte[] EMPTY_REPORT = new byte[12];
 
     /**
-     * キーボード用のレポート.
-     */
-    private byte[] mKeyboardReport = new byte[12];
-
-    /**
-     * マウス用のレポート.
-     */
-    private byte[] mMouseReport = new byte[12];
-
-    /**
      * 前回送ったマウス用レポート.
      */
     private byte[] mLastMouseReport = new byte[12];
@@ -134,6 +127,13 @@ public class HOGPServer extends AbstractHOGPServer {
 
     @Override
     void onOutputReport(final byte[] outputReport) {
+        if (BuildConfig.DEBUG) {
+            String t = "";
+            for (int i = 0; i < outputReport.length; i++) {
+                t += String.format("%02x", outputReport[i]);
+            }
+            Log.i("HOGP", t);
+        }
     }
 
     /**
@@ -179,21 +179,22 @@ public class HOGPServer extends AbstractHOGPServer {
             button |= 4;
         }
 
-        mMouseReport[0] = (byte) (button & 7);
-        mMouseReport[1] = (byte) dx;
-        mMouseReport[2] = (byte) dy;
-        mMouseReport[3] = (byte) wheel;
+        final byte[] report = new byte[12];
+        report[0] = (byte) (button & 7);
+        report[1] = (byte) dx;
+        report[2] = (byte) dy;
+        report[3] = (byte) wheel;
 
-        if (isZero(mLastMouseReport) && isZero(mMouseReport)) {
+        if (isZero(mLastMouseReport) && isZero(report)) {
             return;
         }
 
-        addInputReport(mMouseReport);
+        addInputReport(report);
 
-        mLastMouseReport[0] = mMouseReport[0];
-        mLastMouseReport[1] = mMouseReport[1];
-        mLastMouseReport[2] = mMouseReport[2];
-        mLastMouseReport[3] = mMouseReport[3];
+        mLastMouseReport[0] = report[0];
+        mLastMouseReport[1] = report[1];
+        mLastMouseReport[2] = report[2];
+        mLastMouseReport[3] = report[3];
     }
 
     /**
@@ -203,9 +204,10 @@ public class HOGPServer extends AbstractHOGPServer {
      * @param keyCode キーコード
      */
     public void sendKeyDown(final byte modifier, final byte keyCode) {
-        mKeyboardReport[KEY_PACKET_MODIFIER_KEY_INDEX] = modifier;
-        mKeyboardReport[KEY_PACKET_KEY_INDEX] = keyCode;
-        addInputReport(mKeyboardReport);
+        final byte[] report = new byte[12];
+        report[KEY_PACKET_MODIFIER_KEY_INDEX] = modifier;
+        report[KEY_PACKET_KEY_INDEX] = keyCode;
+        addInputReport(report);
     }
 
     /**
@@ -214,5 +216,4 @@ public class HOGPServer extends AbstractHOGPServer {
     public void sendKeyUp() {
         addInputReport(EMPTY_REPORT);
     }
-
 }

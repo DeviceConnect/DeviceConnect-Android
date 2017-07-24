@@ -10,94 +10,67 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/activity_control_key_q"
+            android:id="@+id/activity_control_key_at_mark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_q"/>
+            android:text="@string/activity_control_key_at_mark"/>
 
         <Button
-            android:id="@+id/activity_control_key_w"
+            android:id="@+id/activity_control_key_hash"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_w"/>
+            android:text="@string/activity_control_key_hash"/>
 
         <Button
-            android:id="@+id/activity_control_key_e"
+            android:id="@+id/activity_control_key_percent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_e"/>
+            android:text="@string/activity_control_key_percent"/>
 
         <Button
-            android:id="@+id/activity_control_key_r"
+            android:id="@+id/activity_control_key_yen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_r"/>
+            android:text="@string/activity_control_key_yen"/>
 
         <Button
-            android:id="@+id/activity_control_key_t"
+            android:id="@+id/activity_control_key_and"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_t"/>
+            android:text="@string/activity_control_key_and"/>
 
         <Button
-            android:id="@+id/activity_control_key_y"
+            android:id="@+id/activity_control_key_parentheses_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_y"/>
+            android:text="@string/activity_control_key_parentheses_start"/>
 
         <Button
-            android:id="@+id/activity_control_key_u"
+            android:id="@+id/activity_control_key_parentheses_end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_u"/>
-
-        <Button
-            android:id="@+id/activity_control_key_i"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/hogp_keyboard_margin"
-            android:layout_weight="1"
-            android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_i"/>
-
-        <Button
-            android:id="@+id/activity_control_key_o"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/hogp_keyboard_margin"
-            android:layout_weight="1"
-            android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_o"/>
-
-        <Button
-            android:id="@+id/activity_control_key_p"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/hogp_keyboard_margin"
-            android:layout_weight="1"
-            android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_p"/>
+            android:text="@string/activity_control_key_parentheses_end"/>
     </LinearLayout>
 
     <LinearLayout
@@ -106,85 +79,67 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/activity_control_key_a"
+            android:id="@+id/activity_control_key_hyphen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_a"/>
+            android:text="@string/activity_control_key_hyphen"/>
 
         <Button
-            android:id="@+id/activity_control_key_s"
+            android:id="@+id/activity_control_key_slash"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_s"/>
+            android:text="@string/activity_control_key_slash"/>
 
         <Button
-            android:id="@+id/activity_control_key_d"
+            android:id="@+id/activity_control_key_colon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_d"/>
+            android:text="@string/activity_control_key_colon"/>
 
         <Button
-            android:id="@+id/activity_control_key_f"
+            android:id="@+id/activity_control_key_semicolon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_f"/>
+            android:text="@string/activity_control_key_semicolon"/>
 
         <Button
-            android:id="@+id/activity_control_key_g"
+            android:id="@+id/activity_control_key_hat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_g"/>
+            android:text="@string/activity_control_key_hat"/>
 
         <Button
-            android:id="@+id/activity_control_key_h"
+            android:id="@+id/activity_control_key_exclamation_mark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_h"/>
+            android:text="@string/activity_control_key_exclamation_mark"/>
 
         <Button
-            android:id="@+id/activity_control_key_j"
+            android:id="@+id/activity_control_key_question_mark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_j"/>
-
-        <Button
-            android:id="@+id/activity_control_key_k"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/hogp_keyboard_margin"
-            android:layout_weight="1"
-            android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_k"/>
-
-        <Button
-            android:id="@+id/activity_control_key_l"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/hogp_keyboard_margin"
-            android:layout_weight="1"
-            android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_l"/>
+            android:text="@string/activity_control_key_question_mark"/>
     </LinearLayout>
 
     <LinearLayout
@@ -192,83 +147,68 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <ToggleButton
-            android:id="@+id/activity_control_key_caps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textOff="@string/activity_control_key_caps"
-            android:textOn="@string/activity_control_key_caps"/>
-
         <Button
-            android:id="@+id/activity_control_key_z"
+            android:id="@+id/activity_control_key_asterisk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_z"/>
+            android:text="@string/activity_control_key_asterisk"/>
 
         <Button
-            android:id="@+id/activity_control_key_x"
+            android:id="@+id/activity_control_key_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_x"/>
+            android:text="@string/activity_control_key_add"/>
 
         <Button
-            android:id="@+id/activity_control_key_c"
+            android:id="@+id/activity_control_key_lt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_c"/>
+            android:text="@string/activity_control_key_lt"/>
 
         <Button
-            android:id="@+id/activity_control_key_v"
+            android:id="@+id/activity_control_key_gt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_v"/>
+            android:text="@string/activity_control_key_gt"/>
 
         <Button
-            android:id="@+id/activity_control_key_b"
+            android:id="@+id/activity_control_key_bracket_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_b"/>
+            android:text="@string/activity_control_key_bracket_start"/>
 
         <Button
-            android:id="@+id/activity_control_key_n"
+            android:id="@+id/activity_control_key_bracket_end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_n"/>
+            android:text="@string/activity_control_key_bracket_end"/>
 
         <Button
-            android:id="@+id/activity_control_key_m"
+            android:id="@+id/activity_control_key_under"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/hogp_keyboard_margin"
             android:layout_weight="1"
             android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_m"/>
-
-        <Button
-            android:id="@+id/activity_control_key_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/hogp_keyboard_margin"
-            android:background="@drawable/hogp_keyboard_button"
-            android:text="@string/activity_control_key_delete"/>
+            android:text="@string/activity_control_key_under"/>
     </LinearLayout>
 
 </LinearLayout>

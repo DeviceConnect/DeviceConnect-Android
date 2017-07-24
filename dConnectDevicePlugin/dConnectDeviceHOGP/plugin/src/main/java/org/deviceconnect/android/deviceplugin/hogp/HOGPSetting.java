@@ -16,6 +16,11 @@ public class HOGPSetting {
     private static final String KEY_ENABLED_SERVER = "server_enabled";
 
     /**
+     * Local OAuthのOn/Off設定を格納するキー.
+     */
+    private static final String KEY_ENABLED_OAUTH = "local_oauth_enabled";
+
+    /**
      * 設定を保存するプリファレンス.
      */
     private SharedPreferences mSharedPreferences;
@@ -43,6 +48,24 @@ public class HOGPSetting {
     public void setEnabledServer(final boolean flag) {
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putBoolean(KEY_ENABLED_SERVER, flag);
+        editor.apply();
+    }
+
+    /**
+     * Local OAuthのOn/Off設定を取得します.
+     * @return Local OAuthのOn/Off設定
+     */
+    public boolean isEnabledOAuth() {
+        return mSharedPreferences.getBoolean(KEY_ENABLED_OAUTH, false);
+    }
+
+    /**
+     * Local OAuthのOn/Off設定を行います.
+     * @param flag Onの場合はtrue、Offの場合はfalse
+     */
+    public void setEnabledOAuth(final boolean flag) {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putBoolean(KEY_ENABLED_OAUTH, flag);
         editor.apply();
     }
 }

@@ -92,6 +92,8 @@ public class HOGPMessageService extends DConnectMessageService {
                 }
             }
         }
+
+        setUseLocalOAuth(mHOGPSetting.isEnabledOAuth());
     }
 
     @Override
@@ -132,6 +134,11 @@ public class HOGPMessageService extends DConnectMessageService {
      */
     public HOGPSetting getHOGPSetting() {
         return mHOGPSetting;
+    }
+
+    public void setEnabledOuath(final boolean flag) {
+        setUseLocalOAuth(flag);
+        mHOGPSetting.setEnabledOAuth(flag);
     }
 
     /**

@@ -7,9 +7,16 @@
     <string name="activity_setting_menu_help">ヘルプ</string>
 
     <string name="activity_setting_device_control_btn">デバイス操作</string>
-    <string name="activity_setting_default_device_name">Default</string>
+    <string name="activity_setting_default_device_name">-</string>
+    <string name="activity_setting_plugin_setting">設定</string>
+    <string name="activity_setting_switch_title">HOGPサーバ</string>
+    <string name="activity_setting_switch_message">外部から入力デバイスとして接続できるようにします。</string>
     <string name="activity_setting_switch_on">ON</string>
     <string name="activity_setting_switch_off">OFF</string>
+    <string name="activity_setting_oauth_switch_title">ユーザ認可</string>
+    <string name="activity_setting_oauth_switch_message">このプラグインに対してアクセスするときにユーザ認可を求めます。</string>
+    <string name="activity_setting_oauth_switch_on">ON</string>
+    <string name="activity_setting_oauth_switch_off">OFF</string>
     <string name="activity_setting_device_list">デバイス一覧</string>
 
     <string name="activity_setting_bt_enabled_dialog_title">警告</string>
@@ -35,13 +42,14 @@
 \n
 ペアリングの確認画面が表示されますので、「はい」を選んでください。\n
 \n
-また、ペアリングのダイアログが表示されない場合があります。その場合には、通知バーに隠れている可能性がありますので、確認してください。</string>
+また、ペアリングのダイアログが表示されない場合があります。\n
+その場合には、通知バーに隠れている可能性がありますので、確認してください。</string>
     <string name="activity_help03_text">ペアリングに成功すると、上記のように表示されます。\n
 「入力デバイスとして接続」されていますので、この状態で操作できるようになります。\n
 \n
 しばらくしても「入力デバイスとして接続」が表示されない場合には接続に失敗していますので、ペアリングを解除して、最初から接続を行ってください。</string>
 
-    <string name="activity_control_message">画面をドラッグすることでマウスとの代わりに使用することができます。</string>
+    <string name="activity_control_message">ここをドラッグすることでマウスポインターを動かすことができます。</string>
     <string name="activity_control_key_0">0</string>
     <string name="activity_control_key_1">1</string>
     <string name="activity_control_key_2">2</string>
@@ -80,10 +88,37 @@
     <string name="activity_control_key_y">y</string>
     <string name="activity_control_key_z">z</string>
 
+    <string name="activity_control_key_at_mark">\@</string>
+    <string name="activity_control_key_hash">#</string>
+    <string name="activity_control_key_percent">%</string>
+    <string name="activity_control_key_yen">¥</string>
+    <string name="activity_control_key_and">&amp;</string>
+    <string name="activity_control_key_parentheses_start">(</string>
+    <string name="activity_control_key_parentheses_end">)</string>
+    <string name="activity_control_key_hyphen">-</string>
+    <string name="activity_control_key_slash">/</string>
+    <string name="activity_control_key_colon">:</string>
+    <string name="activity_control_key_semicolon">;</string>
+    <string name="activity_control_key_hat">^</string>
+    <string name="activity_control_key_exclamation_mark">!</string>
+    <string name="activity_control_key_question_mark">\?</string>
+    <string name="activity_control_key_asterisk">*</string>
+    <string name="activity_control_key_add">+</string>
+    <string name="activity_control_key_equal">=</string>
+    <string name="activity_control_key_lt">&lt;</string>
+    <string name="activity_control_key_gt">&gt;</string>
+    <string name="activity_control_key_bracket_start">[</string>
+    <string name="activity_control_key_bracket_end">]</string>
+    <string name="activity_control_key_under">_</string>
+    <string name="activity_control_key_dot">.</string>
+    <string name="activity_control_key_comma">,</string>
+
+
     <string name="activity_control_key_caps">caps</string>
     <string name="activity_control_key_enter">Enter</string>
-    <string name="activity_control_key_delete">delete</string>
+    <string name="activity_control_key_delete">del</string>
     <string name="activity_control_key_esc">esc</string>
+    <string name="activity_control_key_tab">tab</string>
     <string name="activity_control_key_up">↑</string>
     <string name="activity_control_key_down">↓</string>
     <string name="activity_control_key_left">←</string>

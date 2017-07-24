@@ -9,47 +9,12 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
-public class HOGPHogpProfile extends DConnectProfile {
+public class HOGPMouseProfile extends DConnectProfile {
 
-    public HOGPHogpProfile() {
+    public HOGPMouseProfile() {
 
-        // POST /hogp/keyboard
+        // POST /mouse
         addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "keyboard";
-            }
-
-            @Override
-            public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-                Integer modifier = parseInteger(request, "modifier");
-                Integer keyCode = parseInteger(request, "keyCode");
-
-                HOGPServer server = getHOGPServer();
-                if (server == null) {
-                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
-                } else {
-                    server.sendKeyDown(modifier.byteValue(), keyCode.byteValue());
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    server.sendKeyUp();
-                    setResult(response, DConnectMessage.RESULT_OK);
-                }
-                return true;
-            }
-        });
-
-        // POST /hogp/mouse
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "mouse";
-            }
-
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = (String) request.getExtras().get("serviceId");
@@ -87,11 +52,43 @@ public class HOGPHogpProfile extends DConnectProfile {
             }
         });
 
+        // POST /mouse/click
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "click";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+                String button = (String) request.getExtras().get("button");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    boolean leftButton = "left".equals(button);
+                    boolean rightButton = "right".equals(button);
+                    boolean middleButton = "middle".equals(button);
+                    server.movePointer(0, 0, 0, leftButton, rightButton, middleButton);
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    server.movePointer(0, 0, 0, false, false, false);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
     }
 
     @Override
     public String getProfileName() {
-        return "hogp";
+        return "mouse";
     }
 
     /**

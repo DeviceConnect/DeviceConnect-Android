@@ -67,6 +67,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
@@ -150,6 +152,12 @@ public abstract class DConnectMessageService extends Service
 
     /** イベントブローカー. */
     protected EventBroker mEventBroker;
+
+    /** プラグイン検索用スレッド. */
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    /** プラグイン検索中フラグ. */
+    private boolean mIsSearchingPlugins;
 
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
@@ -378,7 +386,9 @@ public abstract class DConnectMessageService extends Service
         }
 
         // レスポンスをリクエスト管理クラスに渡す
-        mRequestManager.setResponse(response);
+        if (mRequestManager != null) {
+            mRequestManager.setResponse(response);
+        }
     }
 
     /**
@@ -423,7 +433,9 @@ public abstract class DConnectMessageService extends Service
      * @param request 追加するリクエスト
      */
     public void addRequest(final DConnectRequest request) {
-        mRequestManager.addRequest(request);
+        if (mRequestManager != null) {
+            mRequestManager.addRequest(request);
+        }
     }
 
     private void loadProfileSpecs() {
@@ -594,8 +606,22 @@ public abstract class DConnectMessageService extends Service
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
-        mPluginManager.createDevicePluginList();
+        startPluginSearch();
         showNotification();
+    }
+
+    private synchronized void startPluginSearch() {
+        if (mIsSearchingPlugins) {
+            return;
+        }
+        mIsSearchingPlugins = true;
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                mPluginManager.createDevicePluginList();
+                mIsSearchingPlugins = false;
+            }
+        });
     }
 
     /**

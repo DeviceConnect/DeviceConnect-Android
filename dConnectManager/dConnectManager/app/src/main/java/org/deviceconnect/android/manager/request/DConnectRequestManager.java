@@ -77,7 +77,7 @@ public class DConnectRequestManager {
      * シングルスレッドで実行するリクエストを追加する.
      * @param request 追加するリクエスト
      */
-    public void addRequestOnSingleThread(final DConnectRequest request) {
+    public synchronized void addRequestOnSingleThread(final DConnectRequest request) {
         if (mSingleExecutor.isShutdown()) {
             return;
         }

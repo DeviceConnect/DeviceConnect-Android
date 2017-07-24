@@ -229,6 +229,7 @@ public abstract class DConnectMessageService extends Service
             mEventBroker, mSettings.requireOrigin()));
 
         loadProfileSpecs();
+        startPluginSearch();
     }
 
     @Override
@@ -606,7 +607,6 @@ public abstract class DConnectMessageService extends Service
         mRequestManager = new DConnectRequestManager();
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
-        startPluginSearch();
         showNotification();
     }
 

@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
+import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -272,12 +273,13 @@ public class DevicePluginManager {
         }
 
         return new DevicePlugin.Builder(mContext)
-            .setPluginComponent(componentInfo)
+            .setPackageName(componentInfo.packageName)
+            .setClassName(componentInfo.name)
             .setVersionName(versionName)
             .setPluginId(hash)
             .setDeviceName(pluginName)
             .setStartServiceClassName(startClassName)
-            .setSupportedProfiles(checkDevicePluginXML(componentInfo))
+            .setSupportedProfiles(DevicePluginXmlUtil.getSupportProfiles(mContext, componentInfo))
             .setPluginSdkVersionName(sdkVersionName)
             .setPluginIconId(iconId)
             .setConnectionType(type)

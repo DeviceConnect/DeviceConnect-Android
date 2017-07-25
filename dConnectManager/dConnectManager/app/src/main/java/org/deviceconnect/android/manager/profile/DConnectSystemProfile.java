@@ -97,7 +97,7 @@ public class DConnectSystemProfile extends SystemProfile {
                 b.putString(PARAM_NAME, plugin.getDeviceName());
                 b.putString(PARAM_PACKAGE_NAME, plugin.getPackageName());
                 b.putString(PARAM_VERSION, plugin.getVersionName());
-                setSupports(b, plugin.getSupportProfiles());
+                setSupports(b, plugin.getSupportProfileNames());
                 plugins.add(b);
             }
             response.putExtra(PARAM_PLUGINS, plugins.toArray(new Bundle[plugins.size()]));

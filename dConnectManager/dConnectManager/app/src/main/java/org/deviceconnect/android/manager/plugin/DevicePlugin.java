@@ -9,16 +9,18 @@ package org.deviceconnect.android.manager.plugin;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -34,8 +36,6 @@ public class DevicePlugin {
     private final Info mInfo;
     /** デバイスプラグイン設定 */
     private final DevicePluginSetting mSetting;
-    /** デバイスプラグインを宣言するコンポーネントの情報. */
-    private ComponentInfo mPluginComponent;
     /** 接続管理クラス. */
     private Connection mConnection;
     /** ロガー. */
@@ -55,19 +55,11 @@ public class DevicePlugin {
     }
 
     /**
-     * プラグインを宣言するコンポーネントを取得する.
-     * @return プラグインを宣言するコンポーネント
-     */
-    public ComponentInfo getPluginComponent() {
-        return mPluginComponent;
-    }
-
-    /**
      * デバイスプラグインのパッケージ名を取得する.
      * @return パッケージ名
      */
     public String getPackageName() {
-        return mPluginComponent.packageName;
+        return mInfo.mPackageName;
     }
 
     /**
@@ -75,7 +67,7 @@ public class DevicePlugin {
      * @return クラス名
      */
     public String getClassName() {
-        return mPluginComponent.name;
+        return mInfo.mClassName;
     }
 
     /**
@@ -122,8 +114,18 @@ public class DevicePlugin {
      * デバイスプラグインがサポートするプロファイルの一覧を取得する.
      * @return サポートするプロファイルの一覧
      */
-    public List<String> getSupportProfiles() {
-        return new ArrayList<>(mInfo.mSupports);
+    public List<String> getSupportProfileNames() {
+        List<String> result = new ArrayList<>();
+        if (mInfo.mSupportedProfiles != null) {
+            for (String profileName : mInfo.mSupportedProfiles.keySet()) {
+                result.add(profileName);
+            }
+        }
+        return result;
+    }
+
+    public Map<String, DevicePluginXmlProfile> getSupportProfiles() {
+        return new HashMap<>(mInfo.mSupportedProfiles);
     }
 
     /**
@@ -133,7 +135,7 @@ public class DevicePlugin {
      * @return サポートする場合は<code>true</code>、そうで無い場合は<code>false</code>
      */
     public boolean supportsProfile(final String profileName) {
-        for (String support : mInfo.mSupports) {
+        for (String support : getSupportProfileNames()) {
             if (support.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字無視
                 return true;
             }
@@ -304,8 +306,6 @@ public class DevicePlugin {
         private final Context mContext;
         /** デバイスプラグイン情報. */
         private Info mInfo = new Info();
-        /** デバイスプラグインを宣言するコンポーネントの情報. */
-        private ComponentInfo mPluginComponent;
 
         /**
          * コンストラクタ.
@@ -314,6 +314,16 @@ public class DevicePlugin {
          */
         public Builder(final Context context) {
             mContext = context;
+        }
+
+        Builder setPackageName(final String packageName) {
+            mInfo.mPackageName = packageName;
+            return this;
+        }
+
+        Builder setClassName(final String className) {
+            mInfo.mClassName = className;
+            return this;
         }
 
         Builder setStartServiceClassName(final String startServiceClassName) {
@@ -346,8 +356,8 @@ public class DevicePlugin {
             return this;
         }
 
-        Builder setSupportedProfiles(final List<String> supportedProfiles) {
-            mInfo.mSupports = supportedProfiles;
+        Builder setSupportedProfiles(final Map<String, DevicePluginXmlProfile> supportedProfiles) {
+            mInfo.mSupportedProfiles = supportedProfiles;
             return this;
         }
 
@@ -356,19 +366,13 @@ public class DevicePlugin {
             return this;
         }
 
-        Builder setPluginComponent(final ComponentInfo pluginComponent) {
-            mPluginComponent = pluginComponent;
-            return this;
-        }
-
         /**
          * {@link DevicePlugin}オブジェクトを生成する.
          * @return {@link DevicePlugin}オブジェクト
          */
         DevicePlugin build() {
-            DevicePluginSetting setting = new DevicePluginSetting(mContext, mInfo.getPluginId());
+            DevicePluginSetting setting = new DevicePluginSetting(mContext, mInfo.mPluginId);
             DevicePlugin plugin = new DevicePlugin(mInfo, setting);
-            plugin.mPluginComponent = mPluginComponent;
             return plugin;
         }
     }
@@ -378,6 +382,10 @@ public class DevicePlugin {
      */
     public static class Info implements Parcelable {
 
+        /** プラグインのパッケージ名. */
+        private String mPackageName;
+        /** マネージャからのメッセージを受信するJavaクラス名. */
+        private String mClassName;
         /** Class name of service for restart. */
         private String mStartServiceClassName;
         /** デバイスプラグインのバージョン名. */
@@ -391,41 +399,9 @@ public class DevicePlugin {
         /** プラグインアイコン. */
         private Integer mPluginIconId;
         /** サポートしているプロファイルのリスト. */
-        private List<String> mSupports;
+        private Map<String, DevicePluginXmlProfile> mSupportedProfiles;
         /** 接続タイプ. */
         private ConnectionType mConnectionType;
-
-        public String getStartServiceClassName() {
-            return mStartServiceClassName;
-        }
-
-        public String getVersionName() {
-            return mVersionName;
-        }
-
-        public VersionName getPluginSdkVersionName() {
-            return mPluginSdkVersionName;
-        }
-
-        public String getPluginId() {
-            return mPluginId;
-        }
-
-        public String getDeviceName() {
-            return mDeviceName;
-        }
-
-        public Integer getPluginIconId() {
-            return mPluginIconId;
-        }
-
-        public List<String> getSupports() {
-            return mSupports;
-        }
-
-        public ConnectionType getConnectionType() {
-            return mConnectionType;
-        }
 
         @Override
         public int describeContents() {
@@ -440,11 +416,15 @@ public class DevicePlugin {
             dest.writeString(this.mPluginId);
             dest.writeString(this.mDeviceName);
             dest.writeValue(this.mPluginIconId);
-            dest.writeStringList(this.mSupports);
+            dest.writeInt(this.mSupportedProfiles.size());
+            for (Map.Entry<String, DevicePluginXmlProfile> entry : this.mSupportedProfiles.entrySet()) {
+                dest.writeString(entry.getKey());
+                dest.writeParcelable(entry.getValue(), flags);
+            }
             dest.writeInt(this.mConnectionType == null ? -1 : this.mConnectionType.ordinal());
         }
 
-        Info() {
+        public Info() {
         }
 
         protected Info(Parcel in) {
@@ -454,7 +434,13 @@ public class DevicePlugin {
             this.mPluginId = in.readString();
             this.mDeviceName = in.readString();
             this.mPluginIconId = (Integer) in.readValue(Integer.class.getClassLoader());
-            this.mSupports = in.createStringArrayList();
+            int mSupportedProfilesSize = in.readInt();
+            this.mSupportedProfiles = new HashMap<String, DevicePluginXmlProfile>(mSupportedProfilesSize);
+            for (int i = 0; i < mSupportedProfilesSize; i++) {
+                String key = in.readString();
+                DevicePluginXmlProfile value = in.readParcelable(DevicePluginXmlProfile.class.getClassLoader());
+                this.mSupportedProfiles.put(key, value);
+            }
             int tmpMConnectionType = in.readInt();
             this.mConnectionType = tmpMConnectionType == -1 ? null : ConnectionType.values()[tmpMConnectionType];
         }

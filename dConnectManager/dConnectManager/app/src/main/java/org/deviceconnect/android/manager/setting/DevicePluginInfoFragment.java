@@ -11,7 +11,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -31,15 +30,12 @@ import android.widget.TextView;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.w3c.dom.Text;
 
 import java.util.List;
 import java.util.Locale;
@@ -54,9 +50,6 @@ public class DevicePluginInfoFragment extends Fragment {
 
     /** デバイスプラグインをアンインストールする際のリクエストコード. */
     private static final int REQUEST_CODE = 101;
-
-    /** デバイスプラグインを宣言するコンポーネント. */
-    private ComponentInfo mPluginComponent;
 
     /** デバイスプラグインのパッケージ名. */
     private String mPackageName;
@@ -83,7 +76,6 @@ public class DevicePluginInfoFragment extends Fragment {
         }
 
         DevicePlugin plugin = ((DevicePluginInfoActivity) getActivity()).getPlugin();
-        mPluginComponent = plugin.getPluginComponent();
         mPackageName = plugin.getPackageName();
         String name = plugin.getDeviceName();
         Drawable icon = plugin.getPluginIcon(getActivity());
@@ -145,7 +137,7 @@ public class DevicePluginInfoFragment extends Fragment {
 
         LinearLayout mainLayout = (LinearLayout) view.findViewById(R.id.plugin_support_profiles);
 
-        Map<String, DevicePluginXmlProfile> profiles = getSupportedProfiles();
+        Map<String, DevicePluginXmlProfile> profiles = plugin.getSupportProfiles();
         if (profiles != null) {
             String locale = Locale.getDefault().getLanguage();
             for (String key : profiles.keySet()) {
@@ -194,14 +186,6 @@ public class DevicePluginInfoFragment extends Fragment {
             return infoActivity.getPluginManager();
         }
         return null;
-    }
-
-    /**
-     * Get supported profiles.
-     * @return profiles
-     */
-    private Map<String, DevicePluginXmlProfile> getSupportedProfiles() {
-        return DevicePluginXmlUtil.getSupportProfiles(getActivity(), mPluginComponent);
     }
 
     /**

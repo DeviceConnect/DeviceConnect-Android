@@ -441,7 +441,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
      * @return プロファイルの一覧
      */
     private String[] getScope() {
-        List<String> list = mDevicePlugin.getSupportProfiles();
+        List<String> list = mDevicePlugin.getSupportProfileNames();
         return list.toArray(new String[list.size()]);
     }
 

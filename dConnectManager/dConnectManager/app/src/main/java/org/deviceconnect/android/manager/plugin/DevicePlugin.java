@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.plugin;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ComponentInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
@@ -22,39 +21,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.deviceconnect.android.manager.plugin.DevicePluginState.DISABLED;
-import static org.deviceconnect.android.manager.plugin.DevicePluginState.ENABLED;
-
 /**
  * デバイスプラグイン.
  * @author NTT DOCOMO, INC.
  */
 public class DevicePlugin {
+
     /** 接続試行回数. */
     private static final int MAX_CONNECTION_TRY = 5;
-    /** 設定ファイル名のプレフィクス. */
-    private static final String PREFIX_PREFERENCES = "plugin_preferences_";
-    /** 設定キー: 有効状態. */
-    private static final String KEY_ENABLED = "enabled";
 
     /** デバイスプラグイン情報. */
-    private Info mInfo;
+    private final Info mInfo;
+    /** デバイスプラグイン設定 */
+    private final DevicePluginSetting mSetting;
     /** デバイスプラグインを宣言するコンポーネントの情報. */
     private ComponentInfo mPluginComponent;
-    /** 有効状態. */
-    private DevicePluginState mState;
-    /** プラグイン設定を永続化するオブジェクト. */
-    private SharedPreferences mPreferences;
     /** 接続管理クラス. */
     private Connection mConnection;
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
+    private DevicePlugin(final Info info,
+                 final DevicePluginSetting setting) {
+        mInfo = info;
+        mSetting = setting;
+    }
+
     /**
-     * リソースを削除する.
+     * リソースを破棄する.
      */
     synchronized void dispose() {
-        mPreferences.edit().clear().apply();
+        mSetting.clear();
     }
 
     /**
@@ -129,6 +126,12 @@ public class DevicePlugin {
         return new ArrayList<>(mInfo.mSupports);
     }
 
+    /**
+     * 指定されたプロファイルをサポートするかどうかを確認する.
+     *
+     * @param profileName プロファイル名
+     * @return サポートする場合は<code>true</code>、そうで無い場合は<code>false</code>
+     */
     public boolean supportsProfile(final String profileName) {
         for (String support : mInfo.mSupports) {
             if (support.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字無視
@@ -163,59 +166,73 @@ public class DevicePlugin {
         return DConnectUtil.loadPluginIcon(context, this);
     }
 
+    /**
+     * 連携タイプを取得する.
+     * @return 連携タイプ
+     */
     public ConnectionType getConnectionType() {
         return mInfo.mConnectionType;
     }
 
+    /**
+     * プラグインとの接続を管理するオブジェクトを設定する.
+     * @param connection {@link Connection}オブジェクト
+     */
     void setConnection(final Connection connection) {
         mConnection = connection;
     }
 
-    public DevicePluginState getState() {
-        return mState;
-    }
-
-    private void setState(final DevicePluginState state) {
-        mState = state;
-
-        boolean isEnabled = state == ENABLED;
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putBoolean(KEY_ENABLED, isEnabled);
-        editor.apply();
-    }
-
+    /**
+     * プラグインが有効であるかどうかを取得する.
+     * @return 有効である場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
     public boolean isEnabled() {
-        return mState == ENABLED;
+        return mSetting.isEnabled();
     }
 
+    /**
+     * プラグイン有効状態を設定する.
+     * @param isEnabled プラグイン有効状態
+     */
+    private void setEnabled(final boolean isEnabled) {
+        mSetting.setEnabled(isEnabled);
+    }
+
+    /**
+     * プラグインを有効化する.
+     */
     public synchronized void enable() {
-        setState(DevicePluginState.ENABLED);
+        setEnabled(true);
         apply();
     }
 
+    /**
+     * プラグインを無効化する.
+     */
     public synchronized void disable() {
-        setState(DevicePluginState.DISABLED);
+        setEnabled(false);
         apply();
     }
 
     public synchronized void apply() {
-        switch (getState()) {
-            case ENABLED:
-                if (mConnection.getState() == ConnectionState.DISCONNECTED) {
-                    tryConnection();
-                }
-                break;
-            case DISABLED:
-                if (mConnection.getState() == ConnectionState.CONNECTED) {
-                    mConnection.disconnect();
-                    mLogger.info("Disconnected to the plug-in: " + getPackageName());
-                }
-                break;
-            default:
-                break;
+        if (isEnabled()) {
+            if (mConnection.getState() == ConnectionState.DISCONNECTED) {
+                tryConnection();
+            }
+        } else {
+            if (mConnection.getState() == ConnectionState.CONNECTED) {
+                mConnection.disconnect();
+            }
         }
     }
 
+    /**
+     * プラグインとマネージャ間の接続を確立を試みる.
+     *
+     * 最大試行回数は、定数 MAX_CONNECTION_TRY で定める.
+     *
+     * @return 接続に成功した場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
     private boolean tryConnection() {
         for (int cnt = 0; cnt < MAX_CONNECTION_TRY; cnt++) {
             try {
@@ -229,16 +246,30 @@ public class DevicePlugin {
         return false;
     }
 
+    /**
+     * 接続変更通知リスナーを追加する.
+     * @param listener リスナー
+     */
     public void addConnectionStateListener(final ConnectionStateListener listener) {
         mConnection.addConnectionStateListener(listener);
     }
 
+    /**
+     * 接続変更通知リスナーを解除する.
+     * @param listener リスナー
+     */
     public void removeConnectionStateListener(final ConnectionStateListener listener) {
         mConnection.removeConnectionStateListener(listener);
     }
 
+    /**
+     * プラグインに対してメッセージを送信する.
+     *
+     * @param message メッセージ
+     * @throws MessagingException メッセージ送信に失敗した場合
+     */
     public synchronized void send(final Intent message) throws MessagingException {
-        if (DevicePluginState.ENABLED != getState()) {
+        if (!isEnabled()) {
             throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
         }
         switch (mConnection.getState()) {
@@ -264,7 +295,11 @@ public class DevicePlugin {
                 "}";
     }
 
+    /**
+     * {@link DevicePlugin}オブジェクトを生成するためのビルダー.
+     */
     static class Builder {
+
         /** コンテキスト. */
         private final Context mContext;
         /** デバイスプラグイン情報. */
@@ -272,6 +307,11 @@ public class DevicePlugin {
         /** デバイスプラグインを宣言するコンポーネントの情報. */
         private ComponentInfo mPluginComponent;
 
+        /**
+         * コンストラクタ.
+         *
+         * @param context コンテキスト
+         */
         public Builder(final Context context) {
             mContext = context;
         }
@@ -321,21 +361,23 @@ public class DevicePlugin {
             return this;
         }
 
+        /**
+         * {@link DevicePlugin}オブジェクトを生成する.
+         * @return {@link DevicePlugin}オブジェクト
+         */
         DevicePlugin build() {
-            String prefName = PREFIX_PREFERENCES + mInfo.getPluginId();
-            SharedPreferences pref = mContext.getSharedPreferences(prefName, Context.MODE_PRIVATE);
-            boolean isEnabled = pref.getBoolean(KEY_ENABLED, true);
-
-            DevicePlugin plugin = new DevicePlugin();
-            plugin.mInfo = mInfo;
+            DevicePluginSetting setting = new DevicePluginSetting(mContext, mInfo.getPluginId());
+            DevicePlugin plugin = new DevicePlugin(mInfo, setting);
             plugin.mPluginComponent = mPluginComponent;
-            plugin.mPreferences = pref;
-            plugin.mState = isEnabled ? ENABLED : DISABLED;
             return plugin;
         }
     }
 
+    /**
+     * プラグインの静的な情報を提供するクラス.
+     */
     public static class Info implements Parcelable {
+
         /** Class name of service for restart. */
         private String mStartServiceClassName;
         /** デバイスプラグインのバージョン名. */

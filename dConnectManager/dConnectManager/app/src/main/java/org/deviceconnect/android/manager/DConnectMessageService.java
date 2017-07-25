@@ -162,7 +162,9 @@ public abstract class DConnectMessageService extends Service
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
         public void sendMessage(final Intent message) throws RemoteException {
-            mLogger.info("IDConnectCallback.sendMessage: from = " + getCallingPackage());
+            if (BuildConfig.DEBUG) {
+                mLogger.info("IDConnectCallback.sendMessage: from = " + getCallingPackage());
+            }
             handleMessage(message);
         }
     };

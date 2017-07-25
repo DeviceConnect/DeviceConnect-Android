@@ -1,3 +1,9 @@
+/*
+ BinderConnection.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.ComponentName;
@@ -19,6 +25,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
+/**
+ * バインダーによる接続.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class BinderConnection extends AbstractConnection {
 
     private final Context mContext;

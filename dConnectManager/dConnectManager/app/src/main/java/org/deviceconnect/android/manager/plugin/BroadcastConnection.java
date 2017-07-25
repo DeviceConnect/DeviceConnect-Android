@@ -1,9 +1,20 @@
+/*
+ BroadcastConnection.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.plugin;
 
 import android.content.Context;
 import android.content.Intent;
 
 
+/**
+ * ブロードキャストによる接続.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class BroadcastConnection extends AbstractConnection {
 
     private final Context mContext;

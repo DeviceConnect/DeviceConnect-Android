@@ -35,6 +35,9 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
     /** デバイスプラグインのプラグインIDのキー. */
     static final String PLUGIN_ID = "pluginId";
 
+    /** フラグメントのタグ. */
+    private static final String TAG = "info";
+
     /** デバイスプラグイン情報. */
     private DevicePlugin mPlugin;
 
@@ -100,6 +103,14 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
                     mExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
+                            // 再起動ボタンの有効状態を変更
+                            FragmentManager fm = getSupportFragmentManager();
+                            Fragment f = fm.findFragmentByTag(TAG);
+                            if (f != null && f.isResumed() && f instanceof DevicePluginInfoFragment) {
+                                ((DevicePluginInfoFragment) f).onEnabled(isOn);
+                            }
+
+                            // プラグインの有効状態を変更
                             if (isOn) {
                                 mPlugin.enable();
                             } else {
@@ -122,7 +133,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             FragmentManager fm = getSupportFragmentManager();
             FragmentTransaction t = fm.beginTransaction();
             t.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            t.add(android.R.id.content, f, "container");
+            t.add(android.R.id.content, f, TAG);
             t.commit();
         }
     }

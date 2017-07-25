@@ -31,6 +31,7 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
@@ -113,6 +114,7 @@ public class DevicePluginInfoFragment extends Fragment {
         });
         deleteBtn.setEnabled(!mPackageName.equals(getActivity().getPackageName()));
         Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
+        restartBtn.setEnabled(plugin.isEnabled());
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -158,6 +160,23 @@ public class DevicePluginInfoFragment extends Fragment {
             }
         }
         return view;
+    }
+
+    private void runOnUiThread(final Runnable r) {
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(r);
+        }
+    }
+
+    void onEnabled(final boolean isEnabled) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Button restartBtn = (Button) getView().findViewById(R.id.plugin_restart_btn);
+                restartBtn.setEnabled(isEnabled);
+            }
+        });
     }
 
     @Override

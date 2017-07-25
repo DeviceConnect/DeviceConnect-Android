@@ -6,150 +6,118 @@
  */
 package org.deviceconnect.android.deviceplugin.fabo;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
-
-import org.deviceconnect.android.deviceplugin.fabo.param.ArduinoUno;
+import org.deviceconnect.android.deviceplugin.fabo.core.BuildConfig;
+import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoShield;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
-import org.deviceconnect.android.deviceplugin.fabo.param.FirmataV32;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoGPIOProfile;
 import org.deviceconnect.android.deviceplugin.fabo.profile.FaBoSystemProfile;
 import org.deviceconnect.android.deviceplugin.fabo.service.FaBoService;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualService;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.VirtualServiceFactory;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ProfileData;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.ServiceData;
+import org.deviceconnect.android.deviceplugin.fabo.service.virtual.db.VirtualServiceDBHelper;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
+ *
  * @author NTT DOCOMO, INC.
  */
-public class FaBoDeviceService extends DConnectMessageService {
+public abstract class FaBoDeviceService extends DConnectMessageService {
 
-    /** ServiceId. */
-    private static final String SERVICE_ID = "gpio_service_id";
+    /**
+     * デバッグフラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
-    /** Tag. */
-    private final static String TAG = "FABO_PLUGIN_SERVICE";
+    /**
+     * Tag.
+     */
+    private static final String TAG = "FaBo";
 
-    /** ロガー. */
+    /**
+     * ロガー.
+     */
     private final Logger mLogger = Logger.getLogger("fabo.dplugin");
 
-    /** USB Port. */
-    private static UsbSerialPort mSerialPort = null;
+    /**
+     * 仮想サービスを管理するクラス.
+     */
+    private VirtualServiceDBHelper mDBHelper;
 
-    /** USBのSerial IO Manager. */
-    private static SerialInputOutputManager mSerialIoManager;
+    /**
+     * FaBoデバイスを操作するためのクラス.
+     */
+    private FaBoDeviceControl mFaBoDeviceControl;
 
-    /** Executor. */
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-
-    /** Port status. */
-    private static int digitalPortStatus[] = {0,0,0};
-
-    /** Analog pin values. A0-A5(Arduino UNO). */
-    private static int analogPinValues[] = new int[20];
-
-    /** ServiceID. */
-    private static String mServiceId = "";
-
-    /** Thredd. */
-    private static Thread mThread;
-
-    /** PinStatus. */
-    private static int pinMode[] = new int[20];
-
-    /** PinPort. */
-    private static int pinPort[] = {ArduinoUno.PORT_D0, ArduinoUno.PORT_D1, ArduinoUno.PORT_D2, ArduinoUno.PORT_D3,
-            ArduinoUno.PORT_D4, ArduinoUno.PORT_D5, ArduinoUno.PORT_D6, ArduinoUno.PORT_D7,
-            ArduinoUno.PORT_D8, ArduinoUno.PORT_D9, ArduinoUno.PORT_D10, ArduinoUno.PORT_D11,
-            ArduinoUno.PORT_D12, ArduinoUno.PORT_D13};
-
-    /** PinPort. */
-    private static int pinBit[] = {ArduinoUno.BIT_D0, ArduinoUno.BIT_D1, ArduinoUno.BIT_D2, ArduinoUno.BIT_D3,
-            ArduinoUno.BIT_D4, ArduinoUno.BIT_D5, ArduinoUno.BIT_D6, ArduinoUno.BIT_D7,
-            ArduinoUno.BIT_D8, ArduinoUno.BIT_D9, ArduinoUno.BIT_D10, ArduinoUno.BIT_D11,
-            ArduinoUno.BIT_D12, ArduinoUno.BIT_D13};
-
-    /** ServiceIDを保持する. */
-    private List<String> mServiceIdStore = new ArrayList<String>();
-
-    /** Statusを保持. */
-    private static int mStatus;
+    /**
+     * 監視用Thread.
+     */
+    private WatchFirmataThread mWatchFirmataThread;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // Set status.
-        setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-
-        // Eventの設定.
-        EventManager.INSTANCE.setController(new MemoryCacheController());
-
-        // pinモードの初期状態を保存.
-        for(int i = 0; i < 14; i++){
-            pinMode[i] = FirmataV32.PIN_MODE_GPIO_OUT;
-        }
-        for(int i = 14; i < 20; i++){
-            pinMode[i] = FirmataV32.PIN_MODE_ANALOG;
-        }
-
-        // USBのEvent用のBroadcast Receiverを設定.
-        IntentFilter mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB);
-        mIntentFilter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB);
-        mIntentFilter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
-        mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        registerReceiver(mUSBEvent, mIntentFilter);
-
-        // FaBoサービスを登録.
+        // FaBoを直接操作するためのサービス
         getServiceProvider().addService(new FaBoService());
+
+        // 仮想サービスの初期化
+        initVirtualService();
+
+        // FaBoデバイス操作クラスの初期化
+        initFaBoDeviceControl();
+    }
+
+    @Override
+    public void onDestroy() {
+        endWatchFirmata();
+
+        if (mFaBoDeviceControl != null) {
+            mFaBoDeviceControl.destroy();
+            mFaBoDeviceControl = null;
+        }
+
+        super.onDestroy();
     }
 
     @Override
     protected void onManagerUninstalled() {
-        // Managerアンインストール検知時の処理。
-        if (BuildConfig.DEBUG) {
+        // Managerアンインストール検知時の処理.
+        if (DEBUG) {
             mLogger.info("Plug-in : onManagerUninstalled");
         }
     }
 
     @Override
     protected void onManagerTerminated() {
-        // Manager正常終了通知受信時の処理。
-        if (BuildConfig.DEBUG) {
+        // Manager正常終了通知受信時の処理.
+        if (DEBUG) {
             mLogger.info("Plug-in : onManagerTerminated");
         }
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(final String origin) {
-        // ManagerのEvent送信経路切断通知受信時の処理。
-        if (BuildConfig.DEBUG) {
+        // ManagerのEvent送信経路切断通知受信時の処理.
+        if (DEBUG) {
             mLogger.info("Plug-in : onManagerEventTransmitDisconnected");
         }
         if (origin != null) {
@@ -160,9 +128,11 @@ public class FaBoDeviceService extends DConnectMessageService {
                 if (event.getOrigin().equals(origin)) {
                     String serviceId = event.getServiceId();
                     Iterator serviceIds = mServiceIdStore.iterator();
-                    while(serviceIds.hasNext()){
-                        String tmpServiceId = (String)serviceIds.next();
-                        if(tmpServiceId.equals(serviceId)) serviceIds.remove();
+                    while (serviceIds.hasNext()) {
+                        String tmpServiceId = (String) serviceIds.next();
+                        if (tmpServiceId.equals(serviceId)) {
+                            serviceIds.remove();
+                        }
                     }
                 }
             }
@@ -173,76 +143,11 @@ public class FaBoDeviceService extends DConnectMessageService {
 
     @Override
     protected void onDevicePluginReset() {
-        // Device Plug-inへのReset要求受信時の処理。
-        if (BuildConfig.DEBUG) {
+        // Device Plug-inへのReset要求受信時の処理.
+        if (DEBUG) {
             mLogger.info("Plug-in : onDevicePluginReset");
         }
         resetPluginResource();
-    }
-
-    /**
-     * リソースリセット処理.
-     */
-    private void resetPluginResource() {
-        /** 全イベント削除. */
-        EventManager.INSTANCE.removeAll();
-        /** serviceId保持テーブル リセット. */
-        mServiceIdStore.clear();
-    }
-
-    /**
-     * 値監視用のThread.
-     */
-    private void startWatchFirmata(){
-        if(mThread == null) {
-            mThread = new Thread(new Runnable() {
-                public void run() {
-                    do {
-                        for (int s = 0; s < mServiceIdStore.size(); s++) {
-
-                            String serviceId = mServiceIdStore.get(s);
-                            List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                                    FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
-
-                            synchronized (events) {
-                                for (Event event : events) {
-
-                                    Bundle pins = new Bundle();
-                                    for (int i = 0; i < 20; i++) {
-                                        if (pinMode[i] == FirmataV32.PIN_MODE_GPIO_IN) {
-                                            pins.putInt("" + i, getGPIOValue(pinPort[i], pinBit[i]));
-                                        } else if (pinMode[i] == FirmataV32.PIN_MODE_ANALOG) {
-                                            pins.putInt("" + i, getAnalogValue(i));
-                                        }
-                                    }
-
-                                    // Eventに値をおくる.
-                                    Intent intent = EventManager.createEventMessage(event);
-                                    intent.putExtra("pins", pins);
-                                    sendEvent(intent, event.getAccessToken());
-
-                                }
-                            }
-                        }
-
-                        try {
-                            Thread.sleep(30);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } while (true);
-                    }
-            }
-            );
-            mThread.start();
-        }
-    }
-
-    /**
-     * Threadを停止.
-     */
-    private void endWatchFirmata(){
-        mThread = null;
     }
 
     @Override
@@ -251,404 +156,320 @@ public class FaBoDeviceService extends DConnectMessageService {
     }
 
     /**
-     * USBをOpenする.
+     * FaBoを操作するクラスを取得します.
+     * @return FaBoDeviceControlのインスタンス
      */
-    private void openUsb(){
+    protected abstract FaBoDeviceControl createFaBoDeviceControl();
 
-        // USBManagerを取得.
-        UsbManager mUsbManager = (UsbManager) this.getSystemService(Context.USB_SERVICE);
+    /**
+     * FaBoを操作するためのクラスを取得します.
+     * @return FaBoを操作するクラス
+     */
+    public FaBoDeviceControl getFaBoDeviceControl() {
+        return mFaBoDeviceControl;
+    }
 
-        // 使用可能なUSB Portを取得.
-        final List<UsbSerialDriver> drivers =
-                UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
-        final List<UsbSerialPort> result = new ArrayList<UsbSerialPort>();
-
-        if(drivers.size() == 0) {
-            sendResult(FaBoConst.CAN_NOT_FIND_USB);
-            return;
-        } else {
-            //  発見したPortをResultに一時格納.
-            for (final UsbSerialDriver driver : drivers) {
-                final List<UsbSerialPort> ports = driver.getPorts();
-                result.addAll(ports);
+    /**
+     * FaBoDeviceControlを初期化します.
+     */
+    private void initFaBoDeviceControl() {
+        mFaBoDeviceControl = createFaBoDeviceControl();
+        mFaBoDeviceControl.setOnFaBoDeviceControlListener(new FaBoDeviceControl.OnFaBoDeviceControlListener() {
+            @Override
+            public void onConnected() {
+                startWatchFirmata();
+                setOnline(true);
+                sendResultToActivity(FaBoConst.SUCCESS_CONNECT_FIRMATA);
             }
 
-            // 一番最後に発見されたPortをmSerialPortに格納.
-            int count = result.size();
-            mSerialPort = result.get(count - 1);
-
-            // PortをOpen.
-            UsbDeviceConnection connection = mUsbManager.openDevice(mSerialPort.getDriver().getDevice());
-
-            if (connection == null) {
-                sendResult(FaBoConst.FAILED_OPEN_USB);
-                return;
+            @Override
+            public void onDisconnected() {
+                endWatchFirmata();
+                setOnline(false);
             }
 
-            try {
-                // Firmataは、57600bpsで接続する.
-                mSerialPort.open(connection);
-                mSerialPort.setParameters(FirmataV32.BAUDRATE, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-                sendResult(FaBoConst.SUCCESS_CONNECT_ARDUINO);
-            } catch (IOException e) {
-                sendResult(FaBoConst.FAILED_CONNECT_ARDUINO);
-                Toast.makeText(this.getContext(), "Error:" + e, Toast.LENGTH_SHORT).show();
-                try {
-                    mSerialPort.close();
-                } catch (IOException e2) {
-                    // Ignore.
-                }
-                mSerialPort = null;
-                return;
+            @Override
+            public void onFailedConnected() {
+                setOnline(false);
+                sendResultToActivity(FaBoConst.FAILED_CONNECT_ARDUINO);
             }
-        }
-        onDeviceStateChange();
+        });
+        mFaBoDeviceControl.initialize();
     }
 
     /**
-     * USBをClose.
+     * リソースリセット処理.
      */
-    private void closeUsb(){
-        endWatchFirmata();
-        stopIoManager();
+    private void resetPluginResource() {
+        EventManager.INSTANCE.removeAll();
 
-        if(mSerialPort != null) {
-            try {
-                mSerialPort.close();
-                mSerialPort = null;
-            } catch (IOException ignored) {}
+        if (mFaBoDeviceControl != null) {
+            mFaBoDeviceControl.destroy();
         }
-
-        setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-
-        DConnectService service = getServiceProvider().getService(SERVICE_ID);
-        if (service != null) {
-            service.setOnline(false);
-        }
+        initFaBoDeviceControl();
     }
 
     /**
-     * ステータスを変化する.
-     * @param status ステータス
+     * テスト用仮想データ.
      */
-    private void setStatus(int status){
-        mStatus = status;
-        Log.i(TAG, "status:" + status);
-    }
+    private void createTestData() {
+        if (mDBHelper.getServiceDataList().isEmpty()) {
+            ServiceData serviceData = new ServiceData();
+            serviceData.setName("RobotCar(Mouse)");
+            serviceData.setServiceId("mouse_service_id");
 
-    /**
-     * シリアル通信を開始.
-     */
-    private void onDeviceStateChange() {
+            ProfileData profileData = new ProfileData();
+            profileData.setServiceId("mouse_service_id");
+            profileData.setType(ProfileData.Type.I2C_MOUSE_DRIVE_CONTROLLER);
+            serviceData.addProfileData(profileData);
 
-        // Init.
-        stopIoManager();
-        startIoManager();
-        intFirmata();
-
-        // Portの状態をすべて0(Low)にする.
-        digitalPortStatus[0] = 0; // 0000 0000
-        digitalPortStatus[1] = 0; // 0000 0000
-        digitalPortStatus[2] = 0; // 0000 0000
-
-        // 3秒だってFirmataを検出できない場合はエラー.
-        new Handler().postDelayed(checkStatus, 3000);
-
-        // Statusをinitへ.
-        setStatus(FaBoConst.STATUS_FABO_INIT);
-
-        // FirmataのVersion取得のコマンドを送付
-        byte command[] = {(byte)0xF9};
-        SendMessage(command);
-
-
-    }
-
-    /**
-     * Firmata未検出時のTimeout処理.
-     */
-    private final Runnable checkStatus = new Runnable() {
-        @Override
-        public void run() {
-            if(mStatus == FaBoConst.STATUS_FABO_INIT){
-                sendResult(FaBoConst.FAILED_CONNECT_FIRMATA);
-                setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-            }
-        }
-    };
-
-    /**
-     * シリアル通信をストップする.
-     */
-    private void stopIoManager() {
-        if (mSerialIoManager != null) {
-            mSerialIoManager.stop();
-            mSerialIoManager = null;
+            mDBHelper.addServiceData(serviceData);
         }
     }
 
     /**
-     * シリアル通信を開始する.
+     * 仮想サービスのデータをDBに追加します.
+     * @param serviceData 追加する仮想サービスのデータ
+     * @return 追加したVirtualService
      */
-    private void startIoManager() {
-        if (mSerialPort != null) {
-            mSerialIoManager = new SerialInputOutputManager(mSerialPort, mListener);
-            mExecutor.submit(mSerialIoManager);
+    public VirtualService addServiceData(final ServiceData serviceData) {
+        String serviceId = mDBHelper.createServiceId();
+        serviceData.setServiceId(serviceId);
+        boolean result = mDBHelper.addServiceData(serviceData) >= 0;
+        if (result) {
+            VirtualService service = VirtualServiceFactory.createService(serviceData);
+            service.setOnline(FaBoConst.STATUS_FABO_RUNNING == mFaBoDeviceControl.getStatus());
+            getServiceProvider().addService(service);
+            return service;
         }
+        return null;
     }
 
     /**
-     * Firmataの初期設定.
+     * 仮想サービスのデータを更新します.
+     * @param serviceData 更新する仮想サービスのデータ
+     * @return 更新したVirtualService
      */
-    private void intFirmata(){
-        byte[] command = new byte[2];
+    public VirtualService updateServiceData(final ServiceData serviceData) {
+        boolean result = mDBHelper.updateServiceData(serviceData) >= 0;
+        if (result) {
+            DConnectService service = getServiceProvider().getService(serviceData.getServiceId());
+            if (service != null && service instanceof VirtualService) {
+                service.setName(serviceData.getName());
+                ((VirtualService)service).setServiceData(serviceData);
 
-        // AnalogPin A0-A5の値に変化があったら通知する設定をおこなう(Firmata)
-        for(int analogPin = 0; analogPin < 7; analogPin++) {
-            command[0] = (byte) (FirmataV32.REPORT_ANALOG + analogPin);
-            command[1] = (byte) FirmataV32.ENABLE;
-            SendMessage(command);
-        }
-
-        // Portのデジタル値に変化があったら通知する設定をおこなう(Firmata)
-        for(int digitalPort = 0; digitalPort < 3; digitalPort++) {
-            command[0] = (byte) (FirmataV32.REPORT_DIGITAL + digitalPort);
-            command[1] = (byte) FirmataV32.ENABLE;
-            SendMessage(command);
-        }
-    }
-
-    /**
-     * Arduino側から返答のあるメッセージを受信するLisener.
-     */
-    private final SerialInputOutputManager.Listener mListener =
-            new SerialInputOutputManager.Listener() {
-
-                @Override
-                public void onRunError(Exception e) {
-
-                }
-
-                @Override
-                public void onNewData(final byte[] data) {
-                    for(int i = 0; i < data.length; i++) {
-                        if (mStatus == FaBoConst.STATUS_FABO_INIT) {
-                            if ((i + 2) < data.length) {
-                                if ((byte) (data[i] & 0xff) == (byte) 0xf9 &&
-                                        (byte) (data[i + 1] & 0xff) == (byte) 0x02 &&
-                                        (byte) (data[i + 2] & 0xff) == (byte) 0x04) {
-                                    setStatus(FaBoConst.STATUS_FABO_RUNNING);
-                                    sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
-                                    startWatchFirmata();
-
-                                    DConnectService service = getServiceProvider().getService(SERVICE_ID);
-                                    if (service != null) {
-                                        service.setOnline(true);
-                                    }
-                                }
-                            }
-                        } else {
-                            // 7bit目が1の場合は、コマンド.
-                            if ((data[i] & 0x80) == 0x80) {
-                                if ((byte) (data[i] & 0xf0) == FirmataV32.ANALOG_MESSAGE) {
-                                    if ((i + 2) < data.length) {
-                                        int pin = (data[i] & 0x0f);
-                                        if (pin < 7) {
-                                            int value = ((data[i + 2] & 0xff) << 7) + (data[i + 1] & 0xff);
-                                            analogPinValues[pin + 14] = value;
-                                        }
-                                    }
-                                } else if ((byte) (data[i] & 0xf0) == FirmataV32.DIGITAL_MESSAGE) {
-                                    if ((i + 2) < data.length) {
-                                        int port = (data[i] & 0x0f);
-                                        int value = ((data[i + 2] & 0xff) << 8) + (data[i + 1] & 0xff);
-
-                                        // Arduino UNOは3Portまで.
-                                        if (port < 3) {
-
-                                            // 1つ前の値を取得する.
-                                            int lastValue = digitalPortStatus[port];
-
-                                            // 取得した値は保存する.
-                                            digitalPortStatus[port] = value;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                // プロファイルを一度全て削除してから、プロファイルを追加します
+                for (DConnectProfile p : service.getProfileList()) {
+                    if (canRemoveProfile(p.getProfileName())) {
+                        service.removeProfile(p);
                     }
                 }
-            };
 
-    /**
-     * Broadcast receiver for usb event.
-     */
-    private BroadcastReceiver mUSBEvent = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            String action = intent.getAction();
-            switch (action) {
-                case FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB:
-                    openUsb();
-                    break;
-                case FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB:
-                    sendStatus(mStatus);
-                    break;
-                case FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB:
-                    closeUsb();
-                    setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-                    break;
-                case UsbManager.ACTION_USB_DEVICE_DETACHED:
-                    closeUsb();
-                    setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-                    break;
+                for (ProfileData p : serviceData.getProfileDataList()) {
+                    DConnectProfile profile = VirtualServiceFactory.createProfile(p);
+                    if (profile != null) {
+                        service.addProfile(profile);
+
+                        DConnectProfileSpec profileSpec =
+                                getPluginSpec().findProfileSpec(profile.getProfileName().toLowerCase());
+                        if (profileSpec != null) {
+                            profile.setProfileSpec(profileSpec);
+                        }
+                        profile.setContext(this);
+                    }
+                }
+                return ((VirtualService) service);
             }
         }
-    };
+        return null;
+    }
 
     /**
-     * Arduinoへのメッセージの送信
-     * @param msg String型のメッセージ
+     * 仮想サービスのデータを削除します.
+     * @param serviceData 削除する仮想サービスのデータ
      */
-    public void SendMessage(String msg) {
+    public void removeServiceData(final ServiceData serviceData) {
+        getServiceProvider().removeService(serviceData.getServiceId());
+        mDBHelper.removeServiceData(serviceData);
+    }
 
-        if (mSerialIoManager != null) {
+    /**
+     * 指定されたvidに対応する仮想サービスデータを取得します.
+     * <p>
+     * 指定されたvidに対応する仮想サービスが存在しない場合にはnullを返却します.
+     * </p>
+     * @param vid 仮想サービスデータのID
+     * @return ServiceDataのインスタンス
+     */
+    public ServiceData getServiceData(final String vid) {
+        return mDBHelper.getServiceData(vid);
+    }
 
-            try{
-                mSerialPort.write(msg.getBytes(), 10000);
-            } catch(Exception e){
-                onDeviceStateChange();
-            }
+    /**
+     * 削除できるプロファイルか確認を行う.
+     * @param profileName 削除できるかを確認するプロファイル名
+     * @return 削除できる場合はtrue、それ以外はfalse
+     */
+    private boolean canRemoveProfile(final String profileName) {
+        return !"serviceInformation".equalsIgnoreCase(profileName);
+    }
 
-        }  else {
-            setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+    /**
+     * 仮想サービスの初期化を行います.
+     */
+    private void initVirtualService() {
+        if (DEBUG) {
+            Log.i(TAG, "------------------------------------");
+            Log.i(TAG, "Create virtual service list.");
+            Log.i(TAG, "------------------------------------");
+        }
+
+        mDBHelper = new VirtualServiceDBHelper(getApplicationContext());
+        createTestData();
+
+        List<ServiceData> serviceDataList = mDBHelper.getServiceDataList();
+        for (ServiceData serviceData : serviceDataList) {
+            DConnectService service = VirtualServiceFactory.createService(serviceData);
+            getServiceProvider().addService(service);
         }
     }
 
     /**
-     * メッセージの送信
-     * @param mByte Byte型のメッセージ
-     */
-    public void SendMessage(byte[] mByte) {
-        if(mSerialIoManager != null) {
-            try {
-                mSerialPort.write(mByte, 1000);
-            } catch (Exception e){
-                onDeviceStateChange();
-            }
-        } else {
-            setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-        }
-    }
-
-    /**
-     * Portの状態の保存.
-     * @param port Port番号
-     * @param status Portのステータス
-     */
-    public void setPortStatus(int port, int status){
-        digitalPortStatus[port] = status;
-        Log.i(TAG, "setStatus:" + digitalPortStatus[port]);
-
-    }
-
-    /**
-     * Portの状態の取得.
-     * @param port Port番号
+     * DConnectServiceのOnline状況を設定します.
      *
+     * @param online オンライン状態
      */
-    public int getPortStatus(int port){
-        return digitalPortStatus[port];
-    }
-
-    /**
-     * Digitalの値の取得.
-     * @param port ArduinoのPort番号.
-     */
-    public int getDigitalValue(int port){
-
-        return digitalPortStatus[port];
-    }
-
-    /**
-     * onChangeイベントの登録.
-     * @param serviceId  現在接続中のデバイスプラグインのServiceId.
-     */
-    public void registerOnChange(String serviceId) {
-        mServiceIdStore.add(serviceId);
-        for(int i = 0; i < mServiceIdStore.size(); i++) {
-            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                    FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
+    private void setOnline(final boolean online) {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            service.setOnline(online);
         }
-    }
-
-    /**
-     * onChangeイベントの削除.
-     */
-    public void unregisterOnChange(String serviceId) {
-        Iterator serviceIds = mServiceIdStore.iterator();
-        while(serviceIds.hasNext()){
-            String tmpServiceId = (String)serviceIds.next();
-            if(tmpServiceId.equals(serviceId)) serviceIds.remove();
-        }
-
-        for(int i = 0; i < mServiceIdStore.size(); i++) {
-            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                    FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
-        }
-
-    }
-
-    /**
-     * ANALOGの値の取得.
-     * @param pin PIN番号
-     * @return Analogの値
-     */
-    public int getAnalogValue(int pin) {
-        return analogPinValues[pin];
-    }
-
-    /**
-     * GPIOの値の取得.
-     * @param port PORT
-     * @param pin PIN
-     * @return GPIOの値
-     */
-    public int getGPIOValue(int port, int pin) {
-        int value = digitalPortStatus[port];
-        if((value&pin) == pin){
-            return 1;
-        } else{
-            return 0;
-        }
-    }
-
-    /**
-     * Pinの状態を保存する.
-     * @param pinNo pin番号　
-     * @param mode modeの値
-     */
-    public void setPin(int pinNo, int mode){
-        pinMode[pinNo] = mode;
     }
 
     /**
      * Activityにメッセージを返信する.
+     *
      * @param resultId 結果のID.
      */
-    private void sendResult(int resultId){
+    private void sendResultToActivity(final int resultId) {
         Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB_RESULT);
         intent.putExtra("resultId", resultId);
         sendBroadcast(intent);
     }
 
     /**
-     * Activityにステータス状態を返信する.
-     * @param statusId 結果のID.
+     * 値監視用のThread.
      */
-    private void sendStatus(int statusId){
-        Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT);
-        intent.putExtra("statusId", statusId);
-        sendBroadcast(intent);
+    private void startWatchFirmata() {
+        if (mWatchFirmataThread == null) {
+            mWatchFirmataThread = new WatchFirmataThread();
+            mWatchFirmataThread.start();
+        }
+    }
+
+    /**
+     * Threadを停止.
+     */
+    private void endWatchFirmata() {
+        if (mWatchFirmataThread != null) {
+            mWatchFirmataThread.stopWatchFirmata();
+            mWatchFirmataThread = null;
+        }
+    }
+
+    /**
+     * ServiceIDを保持する.
+     */
+    private List<String> mServiceIdStore = new ArrayList<>();
+
+    /**
+     * onChangeイベントの登録.
+     *
+     * @param serviceId 現在接続中のデバイスプラグインのServiceId.
+     */
+    public void registerOnChange(final String serviceId) {
+        mServiceIdStore.add(serviceId);
+    }
+
+    /**
+     * onChangeイベントの削除.
+     */
+    public void unregisterOnChange(final String serviceId) {
+        Iterator serviceIds = mServiceIdStore.iterator();
+        while (serviceIds.hasNext()) {
+            String tmpServiceId = (String) serviceIds.next();
+            if (tmpServiceId.equals(serviceId)) {
+                serviceIds.remove();
+            }
+        }
+    }
+
+    /**
+     * 監視用スレッド.
+     */
+    private class WatchFirmataThread extends Thread {
+        /**
+         * 監視スレッド停止フラグ.
+         */
+        private boolean mStopFlag;
+
+        @Override
+        public void run() {
+            if (DEBUG) {
+                Log.i(TAG, "---------------------------------");
+                Log.i(TAG, "Start watch a fragment_fabo_firmata.");
+                Log.i(TAG, "---------------------------------");
+            }
+
+            while (!mStopFlag) {
+                for (int s = 0; s < mServiceIdStore.size(); s++) {
+                    String serviceId = mServiceIdStore.get(s);
+                    List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                            FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
+
+                    for (Event event : events) {
+                        Bundle pins = new Bundle();
+                        for (FaBoShield.Pin pin : FaBoShield.Pin.values()) {
+                            if (getFaBoDeviceControl().isPinSupported(pin)) {
+                                switch (pin.getMode()) {
+                                    case GPIO_IN:
+                                        pins.putInt(pin.getPinNames()[1], getFaBoDeviceControl().getDigital(pin).getValue());
+                                        break;
+                                    case ANALOG:
+                                        pins.putInt(pin.getPinNames()[1], getFaBoDeviceControl().getAnalog(pin));
+                                        break;
+                                }
+                            }
+                        }
+
+                        if (pins.size() > 0) {
+                            // Eventに値をおくる.
+                            Intent intent = EventManager.createEventMessage(event);
+                            intent.putExtra("pins", pins);
+                            sendEvent(intent, event.getAccessToken());
+                        }
+                    }
+                }
+
+                try {
+                    Thread.sleep(30);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+
+            if (DEBUG) {
+                Log.i(TAG, "---------------------------------");
+                Log.i(TAG, "Stop watch a fragment_fabo_firmata.");
+                Log.i(TAG, "---------------------------------");
+            }
+        }
+
+        /**
+         * 監視用スレッドを停止します.
+         */
+        void stopWatchFirmata() {
+            mStopFlag = true;
+            interrupt();
+        }
     }
 }

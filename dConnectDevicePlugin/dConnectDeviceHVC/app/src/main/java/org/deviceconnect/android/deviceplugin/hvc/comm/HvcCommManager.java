@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEvent;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEventUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
@@ -97,17 +98,39 @@ public class HvcCommManager {
      * HVC detect listener.
      */
     private HvcDetectListener mListener;
-    
-    
+
+    /**
+     * HVC connection listener.
+     */
+    private HVCConnectionListener mConnectionListener;
+
+    /**
+     * HVC connection listener.
+     */
+    public interface HVCConnectionListener {
+        /**
+         * Connected with HVC.
+         * @param serviceId hvc's serviceId(Bluetooth device address)
+         */
+        void onConnected(String serviceId);
+
+        /**
+         * Disconnected with HVC.
+         * @param serviceId hvc's serviceID(Bluetooth device address)
+         */
+        void onDisconnected(String serviceId);
+    }
     /**
      * Constructor.
      * 
      * @param context context
+     * @param l HVC Connection Listener
      * @param serviceId serviceId
      * @param bluetoothDevice bluetoothDevice
      */
-    public HvcCommManager(final DConnectMessageService context, final String serviceId, final BluetoothDevice bluetoothDevice) {
+    public HvcCommManager(final DConnectMessageService context, final HVCConnectionListener l, final String serviceId, final BluetoothDevice bluetoothDevice) {
         mContext = context;
+        mConnectionListener = l;
         mServiceId = serviceId;
         mBluetoothDevice = bluetoothDevice;
     }
@@ -249,7 +272,8 @@ public class HvcCommManager {
      * @param requestParams requestParams
      * @param response response
      */
-    public void doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
+    public void
+    doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
             final Intent response) {
         
         // check comm busy.
@@ -384,7 +408,7 @@ public class HvcCommManager {
                             }
                             mContext.sendEvent(intent, event.getAccessToken());
                             if (DEBUG) {
-                                Log.d(TAG, "<EVENT> send event. attribute:" + attribute);
+                                Log.d(TAG, "<EVENT> send event. attribute:" + attribute + " serviceId:" + mServiceId + " accessToken:" + event.getAccessToken());
                             }
                         }
                     }
@@ -522,7 +546,9 @@ public class HvcCommManager {
                 if (DEBUG) {
                     Log.d(TAG, "commRequestProc() - onConnected()");
                 }
-                
+                if (mConnectionListener != null) {
+                    mConnectionListener.onConnected(mServiceId);
+                }
                 // send parameter(if cache hit, no send)
                 sendParameterProc();
             }
@@ -531,6 +557,9 @@ public class HvcCommManager {
             public void onDisconnected() {
                 if (DEBUG) {
                     Log.d(TAG, "commRequestProc() - onDisconnected()");
+                }
+                if (mConnectionListener != null) {
+                    mConnectionListener.onDisconnected(mServiceId);
                 }
                 super.onDisconnected();
             }

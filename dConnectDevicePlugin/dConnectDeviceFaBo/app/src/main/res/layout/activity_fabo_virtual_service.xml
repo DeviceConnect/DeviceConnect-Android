@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/activity_fabo_service_btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_margin="12dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/activity_fabo_service_save_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_blue"
+            android:text="@string/activity_fabo_virtual_service_save"
+            android:textColor="#FFF"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/activity_fabo_service_btn_layout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#00a0e9"
+                android:padding="8dp"
+                android:text="@string/activity_fabo_virtual_service_id"
+                android:textColor="#FFF"
+                android:textStyle="bold"/>
+
+            <EditText
+                android:id="@+id/activity_fabo_service_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:enabled="false"
+                android:hint="@string/activity_fabo_virtual_service_id"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#00a0e9"
+                android:padding="8dp"
+                android:text="@string/activity_fabo_virtual_service_name"
+                android:textColor="#FFF"
+                android:textStyle="bold"/>
+
+            <EditText
+                android:id="@+id/activity_fabo_service_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:hint="@string/activity_fabo_virtual_service_name"
+                android:inputType="text"
+                android:maxLength="32"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#00a0e9"
+                android:padding="8dp"
+                android:text="@string/activity_fabo_virtual_service_profile"
+                android:textColor="#FFF"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:id="@+id/activity_fabo_profile_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="vertical"
+                android:showDividers="middle">
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="12dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/activity_fabo_profile_add_btn"
+                    android:layout_width="54dp"
+                    android:layout_height="54dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/button_blue_circle"
+                    android:text="@string/activity_fabo_virtual_service_profile_add"
+                    android:textColor="#FFF"
+                    android:textSize="32sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

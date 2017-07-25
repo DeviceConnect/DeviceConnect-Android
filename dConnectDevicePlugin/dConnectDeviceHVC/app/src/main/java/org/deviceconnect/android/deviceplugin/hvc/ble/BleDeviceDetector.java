@@ -207,6 +207,17 @@ public class BleDeviceDetector {
     }
 
     /**
+     * Remove a BluetoothDevice from device name.
+     * @param name bluetooth device name
+     */
+    public void removeCacheDevice(final String name) {
+        for (int i = 0; i < mDevices.size(); i++) {
+            if (mDevices.get(i) != null && mDevices.get(i).getName().equals(name)) {
+                mDevices.remove(i);
+            }
+        }
+    }
+    /**
      * Gets the set of BluetoothDevice that are bonded (paired) to the local adapter.
      *
      * @return set of BluetoothDevice, or null on error
@@ -296,7 +307,6 @@ public class BleDeviceDetector {
                         }
                     }, SCAN_PERIOD);
                     if (mBleAdapter.isEnabled()) {
-                        mDevices.clear();
                         startBleScan();
                     } else {
                         mScanTimerFuture.cancel(true);

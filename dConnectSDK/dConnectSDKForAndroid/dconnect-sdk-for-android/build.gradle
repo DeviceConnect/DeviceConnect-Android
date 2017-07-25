@@ -27,8 +27,6 @@ android {
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
 
-    useLibrary 'org.apache.http.legacy'
-
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 23

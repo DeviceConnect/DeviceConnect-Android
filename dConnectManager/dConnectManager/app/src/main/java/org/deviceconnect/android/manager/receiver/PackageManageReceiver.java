@@ -12,6 +12,7 @@ import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectMessageService;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
 /**
@@ -30,7 +31,7 @@ public class PackageManageReceiver extends BroadcastReceiver {
         } else {
             return;
         }
-        Intent message = new Intent(context, DConnectMessageService.class);
+        Intent message = new Intent(context, DConnectService.class);
         message.setAction(action);
         message.putExtra(DConnectMessageService.EXTRA_PACKAGE_NAME, getPackageName(intent));
         context.startService(message);

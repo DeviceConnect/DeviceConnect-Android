@@ -856,6 +856,8 @@ public abstract class AbstractHOGPServer {
                         } else {
                             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, EMPTY_BYTES);
                         }
+                    } else {
+                        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, EMPTY_BYTES);
                     }
                 }
             });
@@ -880,6 +882,8 @@ public abstract class AbstractHOGPServer {
                         onOutputReport(value);
                     }
                     mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, EMPTY_BYTES);
+                } else {
+                    mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, EMPTY_BYTES);
                 }
             }
         }
@@ -901,6 +905,8 @@ public abstract class AbstractHOGPServer {
             if (responseNeeded) {
                 if (BleUuidUtils.matches(DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION, descriptor.getUuid())) {
                     mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, EMPTY_BYTES);
+                } else {
+                    mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, EMPTY_BYTES);
                 }
             }
         }

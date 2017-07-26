@@ -54,6 +54,7 @@
                 android:textOn="@string/activity_setting_switch_on"/>
 
             <LinearLayout
+                android:id="@+id/activity_setting_device_switch_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@id/activity_setting_device_switch"
@@ -98,8 +99,8 @@
                 android:textOff="@string/activity_setting_oauth_switch_off"
                 android:textOn="@string/activity_setting_oauth_switch_on"/>
 
-
             <LinearLayout
+                android:id="@+id/activity_setting_device_oauth_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@id/activity_setting_device_oauth_switch"

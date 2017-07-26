@@ -153,6 +153,12 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 }
             }
         });
+        findViewById(R.id.activity_setting_device_switch_title).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sw.setChecked(!sw.isChecked());
+            }
+        });
 
         if (server != null) {
             Set<BluetoothDevice> devices = server.getDevices();
@@ -167,7 +173,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
      */
     private void setLocalOAuthUI() {
         HOGPSetting setting = getHOGPMessageService().getHOGPSetting();
-        Switch oauthSwitch = (Switch) findViewById(R.id.activity_setting_device_oauth_switch);
+        final Switch oauthSwitch = (Switch) findViewById(R.id.activity_setting_device_oauth_switch);
         oauthSwitch.setChecked(setting.isEnabledOAuth());
         oauthSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -176,6 +182,13 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 if (service != null) {
                     service.setEnabledOuath(isChecked);
                 }
+            }
+        });
+
+        findViewById(R.id.activity_setting_device_oauth_title).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                oauthSwitch.setChecked(!oauthSwitch.isChecked());
             }
         });
     }

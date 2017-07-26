@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.widget.SwitchCompat;
@@ -117,9 +118,15 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     private List<PluginContainer> createPluginContainers() {
         List<PluginContainer> containers = new ArrayList<>();
         if (isManagerBonded()) {
+            PackageManager pm = getActivity().getPackageManager();
             DevicePluginManager manager = getPluginManager();
             for (DevicePlugin plugin : manager.getDevicePlugins()) {
-                containers.add(new PluginContainer(getActivity(), plugin));
+                try {
+                    pm.getApplicationInfo(plugin.getPackageName(), 0);
+                    containers.add(new PluginContainer(getActivity(), plugin));
+                } catch (PackageManager.NameNotFoundException e) {
+                    // NOP.
+                }
             }
             Collections.sort(containers, new Comparator<PluginContainer>() {
                 @Override
@@ -166,10 +173,7 @@ public class DevicePluginListFragment extends BaseSettingFragment {
         if (mPluginAdapter == null) {
             return;
         }
-        if (getActivity() == null) {
-            return;
-        }
-        getActivity().runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 mPluginAdapter.clear();

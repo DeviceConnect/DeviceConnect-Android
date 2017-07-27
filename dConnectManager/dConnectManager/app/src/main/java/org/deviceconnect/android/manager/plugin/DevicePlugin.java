@@ -16,6 +16,7 @@ import android.os.Parcelable;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -206,12 +207,14 @@ public class DevicePlugin {
     public synchronized void enable() {
         setEnabled(true);
         apply();
+        sendEnableState(true);
     }
 
     /**
      * プラグインを無効化する.
      */
     public synchronized void disable() {
+        sendEnableState(false);
         setEnabled(false);
         apply();
     }
@@ -284,6 +287,23 @@ public class DevicePlugin {
                 break;
         }
         mConnection.send(message);
+    }
+
+    private void sendEnableState(boolean isEnabled) {
+        Intent notification = createNotificationIntent(isEnabled);
+        try {
+            send(notification);
+        } catch (MessagingException e) {
+            mLogger.warning("Failed to send enable-state to " + getComponentName());
+        }
+    }
+
+    private Intent createNotificationIntent(final boolean isEnabled) {
+        String action = isEnabled ? IntentDConnectMessage.ACTION_DEVICEPLUGIN_ENABLED
+                                    : IntentDConnectMessage.ACTION_DEVICEPLUGIN_DISABLED;
+        Intent notification = new Intent(action);
+        notification.setComponent(getComponentName());
+        return notification;
     }
 
     @Override

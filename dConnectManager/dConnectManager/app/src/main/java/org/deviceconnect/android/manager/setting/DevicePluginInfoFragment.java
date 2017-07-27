@@ -29,9 +29,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
-import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
@@ -235,10 +233,17 @@ public class DevicePluginInfoFragment extends Fragment {
                 try {
                     plugin.send(request);
                 } catch (MessagingException e) {
-                    // TODO エラーダイアログを表示する
+                    showMessagingErrorDialog(e);
                 }
                 break;
             }
+        }
+    }
+
+    private void showMessagingErrorDialog(final MessagingException e) {
+        Activity activity = getActivity();
+        if (activity != null && activity instanceof BaseSettingActivity) {
+            ((BaseSettingActivity) activity).showMessagingErrorDialog(e);
         }
     }
 

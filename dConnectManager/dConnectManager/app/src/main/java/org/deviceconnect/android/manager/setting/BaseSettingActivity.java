@@ -10,8 +10,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfoManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 
 
 public abstract class BaseSettingActivity extends AppCompatActivity {
@@ -107,5 +109,31 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
 
     protected DConnectService getManagerService() {
         return mDConnectService;
+    }
+
+    public void showMessagingErrorDialog(final MessagingException e) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String errorMessage = findErrorMessage(e);
+
+                Bundle args = new Bundle();
+                args.putString(ErrorDialogFragment.EXTRA_MESSAGE, errorMessage);
+                ErrorDialogFragment f = new ErrorDialogFragment();
+                f.setArguments(args);
+                f.show(getSupportFragmentManager(), "error");
+            }
+        });
+    }
+
+    private String findErrorMessage(final MessagingException e) {
+        switch (e.getReason()) {
+            case NOT_ENABLED:
+                return getString(R.string.dconnect_error_plugin_not_enabled);
+            case CONNECTION_SUSPENDED:
+                return getString(R.string.dconnect_error_plugin_suspended);
+            default:
+                return getString(R.string.dconnect_error_plugin_not_connected);
+        }
     }
 }

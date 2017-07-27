@@ -14,7 +14,6 @@
     <string name="activity_launch_message_stop">Please click the below button\nto stop Device Connect Manager.</string>
 
     <!-- ================= SettingsActivity ================= -->
-
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
     <string name="activity_settings_observer">Monitoring Port</string>
     <string name="activity_settings_observer_summary">Notify the possibility that Manager will be spoofed if the port is used by other application.</string>
@@ -181,6 +180,12 @@
     <string name="activity_websocket_delete_message">May this WebSocket be closed?</string>
     <string name="activity_websocket_delete_positive">Yes</string>
     <string name="activity_websocket_delete_negative">No</string>
+
+    <!-- ================= Error Messages for UI ================= -->
+    <string name="dconnect_error_default_title">Error</string>
+    <string name="dconnect_error_plugin_not_enabled">The plug-in is not enabled.</string>
+    <string name="dconnect_error_plugin_suspended">The connection with plug-in is suspended because the plug-in cannot be connected for unexpected error. Please contact the plug-in vendor.</string>
+    <string name="dconnect_error_plugin_not_connected">Failed to send an message to the plug-in.</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

@@ -536,7 +536,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 try {
                     plugin.send(request);
                 } catch (MessagingException e) {
-                    // TODO プラグインが異常終了していた場合はエラーダイアログを出す.
+                    showMessagingErrorDialog(e);
                 }
                 break;
             }

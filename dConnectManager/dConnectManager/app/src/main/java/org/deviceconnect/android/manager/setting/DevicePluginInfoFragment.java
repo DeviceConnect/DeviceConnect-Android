@@ -97,6 +97,7 @@ public class DevicePluginInfoFragment extends Fragment {
         versionView.setText(getString(R.string.activity_deviceplugin_info_version) + versionName);
 
         Button settingBtn = (Button) view.findViewById(R.id.plugin_settings_btn);
+        settingBtn.setEnabled(plugin.isEnabled());
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -171,6 +172,8 @@ public class DevicePluginInfoFragment extends Fragment {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Button settingBtn = (Button) getView().findViewById(R.id.plugin_settings_btn);
+                settingBtn.setEnabled(isEnabled);
                 Button restartBtn = (Button) getView().findViewById(R.id.plugin_restart_btn);
                 restartBtn.setEnabled(isEnabled);
             }

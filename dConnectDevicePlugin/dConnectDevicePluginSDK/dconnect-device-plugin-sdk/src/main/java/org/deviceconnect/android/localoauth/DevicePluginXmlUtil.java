@@ -41,6 +41,33 @@ public final class DevicePluginXmlUtil {
     }
 
     /**
+     * デバイスプラグインのxmlファイルの内容を取得する.
+     *
+     * @param context コンテキスト
+     * @param pluginComponent デバイスプラグインを宣言するコンポーネント
+     * @return {@link DevicePluginXml}クラスのインスタンス
+     */
+    public static DevicePluginXml getXml(final Context context,
+                                         final ComponentInfo pluginComponent) {
+        PackageManager pkgMgr = context.getPackageManager();
+        XmlResourceParser xrp = pluginComponent.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+        try {
+            if (xrp != null) {
+                return parseDevicePluginXML(xrp);
+            }
+        } catch (XmlPullParserException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
      * デバイスプラグインのxmlファイルを参照し、スコープに対応する有効期限設定値があれば返す.
      *
      * @param context コンテキスト
@@ -50,26 +77,8 @@ public final class DevicePluginXmlUtil {
      */
     public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context,
                                                                          final String packageName) {
-        Map<String, DevicePluginXmlProfile> supportProfiles = null;
-        ComponentInfo info = getComponentInfo(context, packageName);
-        if (info != null) {
-            if (info.metaData != null) {
-                PackageManager pkgMgr = context.getPackageManager();
-                XmlResourceParser xrp = info.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
-                try {
-                    supportProfiles = parseDevicePluginXML(xrp);
-                } catch (XmlPullParserException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return supportProfiles;
+        ComponentInfo pluginComponent = getComponentInfo(context, packageName);
+        return getSupportProfiles(context, pluginComponent);
     }
 
     /**
@@ -82,21 +91,15 @@ public final class DevicePluginXmlUtil {
      */
     public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context,
             final ComponentInfo pluginComponent) {
-        Map<String, DevicePluginXmlProfile> supportProfiles = null;
-        PackageManager pkgMgr = context.getPackageManager();
-        XmlResourceParser xrp = pluginComponent.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
-        try {
-            supportProfiles = parseDevicePluginXML(xrp);
-        } catch (XmlPullParserException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
+        if (pluginComponent != null) {
+            if (pluginComponent.metaData != null) {
+                DevicePluginXml xml = getXml(context, pluginComponent);
+                if (xml != null) {
+                    return xml.getSupportedProfiles();
+                }
             }
         }
-        return supportProfiles;
+        return null;
     }
 
     private static ComponentInfo getComponentInfo(final Context context, final String packageName) {
@@ -120,8 +123,8 @@ public final class DevicePluginXmlUtil {
                         ComponentName component = new ComponentName(pkgName, className);
                         ServiceInfo serviceInfo = pkgMgr.getServiceInfo(component, PackageManager.GET_META_DATA);
                         if (serviceInfo.metaData != null) {
-                            Object value = serviceInfo.metaData.get(PLUGIN_META_DATA);
-                            if (value != null) {
+                            XmlResourceParser xrp = serviceInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+                            if (xrp != null) {
                                 return serviceInfo;
                             }
                         }
@@ -154,8 +157,8 @@ public final class DevicePluginXmlUtil {
                         ComponentName component = new ComponentName(pkgName, className);
                         ActivityInfo receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
                         if (receiverInfo.metaData != null) {
-                            Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
-                            if (value != null) {
+                            XmlResourceParser xrp = receiverInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+                            if (xrp != null) {
                                 return receiverInfo;
                             }
                         }
@@ -174,9 +177,9 @@ public final class DevicePluginXmlUtil {
      * @param xrp xmlパーサ
      * @throws XmlPullParserException xmlの解析に失敗した場合に発生
      * @throws IOException xmlの読み込みに失敗した場合
-     * @return プロファイル名とプロファイル情報の一覧
+     * @return {@link DevicePluginXml}クラスのインスタンス
      */
-    private static Map<String, DevicePluginXmlProfile> parseDevicePluginXML(final XmlResourceParser xrp)
+    private static DevicePluginXml parseDevicePluginXML(final XmlResourceParser xrp)
             throws XmlPullParserException, IOException {
         Map<String, DevicePluginXmlProfile> list = new HashMap<String, DevicePluginXmlProfile>();
 
@@ -184,6 +187,7 @@ public final class DevicePluginXmlUtil {
         final String tagKeyName = "name";
         final String tagKeyDescription = "description";
 
+        DevicePluginXml xml = null;
         DevicePluginXmlProfile profile = null;
         String nameLang = null;
         String nameText = null;
@@ -197,6 +201,7 @@ public final class DevicePluginXmlUtil {
 
             if ("deviceplugin-provider".equals(tagName)) {
                 if (eventType == XmlPullParser.START_TAG) {
+                    xml = new DevicePluginXml();
                     specPath = xrp.getAttributeValue(null, "spec-path");
                 }
             } else if ("profile".equals(tagName)) {
@@ -260,9 +265,14 @@ public final class DevicePluginXmlUtil {
             eventType = xrp.next();
         }
 
+        if (xml == null) {
+            return null;
+        }
+        xml.mSpecPath = specPath;
+        xml.mSupportedProfiles = list;
         for (DevicePluginXmlProfile xmlProfile : list.values()) {
             xmlProfile.setSpecPath(specPath);
         }
-        return list;
+        return xml;
     }
 }

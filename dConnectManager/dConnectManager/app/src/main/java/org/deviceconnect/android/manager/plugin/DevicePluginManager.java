@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
+import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectMessageService;
@@ -218,9 +219,6 @@ public class DevicePluginManager {
     }
 
     private boolean isDevicePlugin(final ComponentInfo compInfo) {
-        if (compInfo.name.contains("org.deviceconnect.android.message.DConnectLaunchService")) {
-            return false;
-        }
         if (!compInfo.exported) {
             return false;
         }
@@ -228,10 +226,11 @@ public class DevicePluginManager {
         if (metaData == null) {
             return false;
         }
-        if (metaData.get(PLUGIN_META_DATA) != null) {
-            return true;
+        if (metaData.get(PLUGIN_META_DATA) == null) {
+            return false;
         }
-        return false;
+        DevicePluginXml xml = DevicePluginXmlUtil.getXml(mContext, compInfo);
+        return xml != null;
     }
 
     private DevicePlugin parsePlugin(final PackageManager pkgMgr,

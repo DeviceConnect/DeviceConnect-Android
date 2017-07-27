@@ -52,6 +52,7 @@ public class DevicePlugin {
      * リソースを破棄する.
      */
     synchronized void dispose() {
+        mConnection.disconnect();
         mSetting.clear();
     }
 

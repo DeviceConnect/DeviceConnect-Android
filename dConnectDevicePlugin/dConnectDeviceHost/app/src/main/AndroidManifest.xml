@@ -146,7 +146,7 @@
 
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
-            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
+            android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
             android:exported="true" >
         </provider>
 

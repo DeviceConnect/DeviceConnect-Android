@@ -316,7 +316,11 @@ public class DevicePluginInfoFragment extends Fragment {
         request.setComponent(plugin.getComponentName());
         request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
         request.putExtra("pluginId", plugin.getPluginId());
-        getActivity().sendBroadcast(request);
+        try {
+            plugin.send(request);
+        } catch (MessagingException e) {
+            showMessagingErrorDialog(e);
+        }
     }
 
     /**

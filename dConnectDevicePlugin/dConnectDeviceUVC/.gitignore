@@ -1,4 +1,5 @@
 .gradle
+.externalNativeBuild
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries

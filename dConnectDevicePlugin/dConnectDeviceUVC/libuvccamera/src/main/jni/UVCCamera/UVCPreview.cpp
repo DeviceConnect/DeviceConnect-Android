@@ -41,6 +41,9 @@
 #include "UVCPreview.h"
 #include "libuvc_internal.h"
 #include "jpeglib.h"
+// MODIFIED
+#define MJPEG_FRAME_THRESHOLD_BYTE 10000
+//
 #define	LOCAL_DEBUG 0
 #define MAX_FRAME 4
 #define PREVIEW_PIXEL_BYTES 4	// RGBA/RGBX
@@ -581,6 +584,13 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
                     // MODIFIED:
 					// frame = get_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
 					// result = uvc_mjpeg2yuyv(frame_mjpeg, frame);   // MJPEG => yuyv
+                    if (frame_mjpeg->data_bytes > MJPEG_FRAME_THRESHOLD_BYTE) {  // XXX
+                        //Restart streaming
+                        uvc_stop_streaming(mDeviceHandle);
+                        uvc_start_streaming_bandwidth(
+                                mDeviceHandle, ctrl, uvc_preview_frame_callback, (void *) this,
+                                requestBandwidth, 0);
+                    }
 					recycle_frame(frame_mjpeg);
 					//if (LIKELY(!result)) {
 					//	frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);

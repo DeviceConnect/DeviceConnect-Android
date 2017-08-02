@@ -383,10 +383,11 @@ dump_buffer (working_state *state)
   } \
 }
 
+/* MODIFIED
 #if !defined(_WIN32) && !defined(SIZEOF_SIZE_T)
 #error Cannot determine word size
 #endif
-
+*/
 #if SIZEOF_SIZE_T==8 || defined(_WIN64)
 
 #define EMIT_BITS(code, size) { \

@@ -438,20 +438,25 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         }
 
         byte[] resize(final byte[] frame) {
-            Bitmap src = BitmapFactory.decodeByteArray(frame, 0, frame.length);
-            if (src == null) {
-                mLogger.warning("MotionJPEG Frame could not be decoded to bitmap.");
-                return null;
+            byte[] resizedBytes = null;
+            try {
+                Bitmap src = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                if (src == null) {
+                    mLogger.warning("MotionJPEG Frame could not be decoded to bitmap.");
+                    return null;
+                }
+
+                int w = mWidth != null ? mWidth : src.getWidth();
+                int h = mHeight != null ? mHeight : src.getHeight();
+
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(src, w, h, true);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                resizedBytes = baos.toByteArray();
+                resizedBitmap.recycle();
+            } catch (OutOfMemoryError e) {
+                mLogger.warning("MotionJPEG Frame could not be decoded to bitmap for: " + e.getMessage());
             }
-
-            int w = mWidth != null ? mWidth : src.getWidth();
-            int h = mHeight != null ? mHeight : src.getHeight();
-
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(src, w, h, true);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] resizedBytes = baos.toByteArray();
-            resizedBitmap.recycle();
             return resizedBytes;
         }
 

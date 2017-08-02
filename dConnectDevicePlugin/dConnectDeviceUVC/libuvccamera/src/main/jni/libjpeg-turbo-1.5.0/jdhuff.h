@@ -70,10 +70,11 @@ EXTERN(void) jpeg_make_d_derived_tbl
  * necessary.
  */
 
+/* MODIFIED
 #if !defined(_WIN32) && !defined(SIZEOF_SIZE_T)
 #error Cannot determine word size
 #endif
-
+*/
 #if SIZEOF_SIZE_T==8 || defined(_WIN64)
 
 typedef size_t bit_buf_type;            /* type of bit-extraction buffer */

@@ -14,6 +14,7 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/dconnect_icon"
+        android:name="android.support.multidex.MultiDexApplication"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
 

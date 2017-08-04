@@ -469,11 +469,16 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         Bitmap original = BitmapFactory.decodeByteArray(data, 0, data.length);
                         int degrees = Preview.getCameraDisplayOrientation(mContext, mCameraId);
                         Bitmap rotated;
-                        if (degrees == 0) {
+                        if (degrees == 0 && mFacingDirection != -1) {
                             rotated = original;
                         } else {
                             Matrix m = new Matrix();
-                            m.setRotate(degrees * mFacingDirection);
+                            if (degrees == 90 && mFacingDirection == -1) {
+                                m.postRotate(360 - degrees);
+                            } else {
+                                m.postRotate(degrees * mFacingDirection);
+                            }
+                            m.postScale(mFacingDirection, 1);
                             rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
                             original.recycle();
                         }
@@ -598,7 +603,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         byte[] jdata = baos.toByteArray();
 
                         int degree = Preview.getCameraDisplayOrientation(mContext, mCameraId);
-                        if (degree == 0) {
+                        if (degree == 0 && mFacingDirection != -1) {
                             mServer.offerMedia(jdata);
                         } else {
                             try {
@@ -607,8 +612,12 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                                 Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
                                 if (bmp != null) {
                                     Matrix m = new Matrix();
-                                    m.setRotate(degree * mFacingDirection);
-
+                                    if (degree == 90 && mFacingDirection == -1) {
+                                        m.postRotate(360 - degree);
+                                    } else {
+                                        m.postRotate(degree * mFacingDirection);
+                                    }
+                                    m.postScale(mFacingDirection, 1);
                                     Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
                                     if (rotatedBmp != null) {
                                         baos.reset();

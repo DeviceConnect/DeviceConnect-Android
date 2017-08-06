@@ -389,6 +389,18 @@ public class DevicePluginManager {
         return new ArrayList<DevicePlugin>(mPlugins.values());
     }
 
+    public List<DevicePlugin> getEnabledDevicePlugins() {
+        List<DevicePlugin> result = new ArrayList<>();
+        synchronized (mPlugins) {
+            for (DevicePlugin plugin : mPlugins.values()) {
+                if (plugin.isEnabled()) {
+                    result.add(plugin);
+                }
+            }
+        }
+        return result;
+    }
+
     /**
      * サービスIDにDevice Connect Managerのドメイン名を追加する.
      *

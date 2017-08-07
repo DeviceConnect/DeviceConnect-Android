@@ -20,6 +20,9 @@ import org.deviceconnect.android.provider.FileManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraOverlay.FACING_DIRECTION_BACK;
+import static org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraOverlay.FACING_DIRECTION_FRONT;
+
 /**
  * Host Device Camera Recorder.
  *
@@ -102,7 +105,7 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
             }
         }
         mCameraOverlay.setFileManager(fileMgr);
-        mCameraOverlay.setFacingDirection(facing == CameraFacing.FRONT ? -1 : 1);
+        mCameraOverlay.setFacingDirection(facing == CameraFacing.FRONT ? FACING_DIRECTION_FRONT : FACING_DIRECTION_BACK);
     }
 
     @Override

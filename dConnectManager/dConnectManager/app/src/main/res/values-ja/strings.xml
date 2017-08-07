@@ -134,6 +134,7 @@
     <string name="activity_deviceplugin_info_connection_type_title">連携タイプ</string>
     <string name="activity_deviceplugin_info_connection_type_binder">バインダー</string>
     <string name="activity_deviceplugin_info_connection_type_broadcast">ブロードキャスト</string>
+    <string name="activity_deviceplugin_info_connection_type_included_with_manager">マネージャ同梱</string>
     <string name="activity_deviceplugin_info_connection_type_unknown">不明</string>
 
     <!-- ================= KeywordDialogActivity ================= -->

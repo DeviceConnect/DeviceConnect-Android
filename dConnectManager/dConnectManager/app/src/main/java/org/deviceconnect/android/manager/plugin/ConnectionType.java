@@ -22,6 +22,13 @@ public enum ConnectionType {
     /**
      * Broadcast Intentによる連携.
      */
-    BROADCAST
+    BROADCAST,
+
+    /**
+     * オンメモリ上でのオブジェクトによる内部的な連携.
+     *
+     * マネージャのパッケージにプラグインを同梱する必要がある.
+     */
+    INTERNAL
 
 }

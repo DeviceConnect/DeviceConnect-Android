@@ -130,6 +130,9 @@ public class DevicePluginInfoFragment extends Fragment {
             case BROADCAST:
                 resId = R.string.activity_deviceplugin_info_connection_type_broadcast;
                 break;
+            case INTERNAL:
+                resId = R.string.activity_deviceplugin_info_connection_type_included_with_manager;
+                break;
             default:
                 resId = R.string.activity_deviceplugin_info_connection_type_unknown;
                 break;

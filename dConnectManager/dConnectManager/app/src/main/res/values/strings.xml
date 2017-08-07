@@ -134,6 +134,7 @@
     <string name="activity_deviceplugin_info_connection_type_title">Connection Type</string>
     <string name="activity_deviceplugin_info_connection_type_binder">Binder</string>
     <string name="activity_deviceplugin_info_connection_type_broadcast">Broadcast</string>
+    <string name="activity_deviceplugin_info_connection_type_included_with_manager">Included</string>
     <string name="activity_deviceplugin_info_connection_type_unknown">Unknown</string>
 
     <!-- ================= KeywordDialogActivity ================= -->

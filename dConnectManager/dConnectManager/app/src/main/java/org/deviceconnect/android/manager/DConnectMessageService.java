@@ -36,6 +36,7 @@ import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
+import org.deviceconnect.android.manager.plugin.InternalConnection;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
@@ -191,6 +192,8 @@ public abstract class DConnectMessageService extends Service
             public Connection createConnectionForPlugin(final DevicePlugin plugin) {
                 Context context = DConnectMessageService.this;
                 switch (plugin.getConnectionType()) {
+                    case INTERNAL:
+                        return new InternalConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
                     case BINDER:
                         return new BinderConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
                     case BROADCAST:

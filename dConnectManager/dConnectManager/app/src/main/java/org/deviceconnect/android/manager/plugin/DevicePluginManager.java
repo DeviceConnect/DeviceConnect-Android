@@ -17,14 +17,10 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.content.res.ResourcesCompat;
-import android.util.Log;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
@@ -266,7 +262,11 @@ public class DevicePluginManager {
 
         ConnectionType type;
         if (componentInfo instanceof ServiceInfo) {
-            type = ConnectionType.BINDER;
+            if (isSamePackage(componentInfo)) {
+                type = ConnectionType.INTERNAL;
+            } else {
+                type = ConnectionType.BINDER;
+            }
         } else {
             type = ConnectionType.BROADCAST;
         }
@@ -283,6 +283,10 @@ public class DevicePluginManager {
             .setPluginIconId(iconId)
             .setConnectionType(type)
             .build();
+    }
+
+    private boolean isSamePackage(final ComponentInfo componentInfo) {
+        return mContext.getPackageName().equals(componentInfo.packageName);
     }
 
     /**

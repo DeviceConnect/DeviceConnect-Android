@@ -138,7 +138,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mServiceAdapter = new ServiceAdapter();
+                mServiceAdapter = new ServiceAdapter(getPluginManager());
 
                 GridView gridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
                 if (gridView != null) {
@@ -563,9 +563,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      */
     private class ServiceAdapter extends BaseAdapter {
         /**
+         * プラグイン管理クラス.
+         */
+        private final DevicePluginManager mPluginMgr;
+        /**
          * サービス一覧.
          */
         private List<ServiceContainer> mServices = new ArrayList<>();
+
+        ServiceAdapter(final DevicePluginManager pluginMgr) {
+            mPluginMgr = pluginMgr;
+        }
 
         @Override
         public int getCount() {
@@ -617,8 +625,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
             ImageView imageView = (ImageView) view.findViewById(R.id.item_icon);
             if (imageView != null) {
-                DevicePluginManager mgr = getPluginManager();
-                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (service.getId().contains(plugin.getPluginId())) {
                         setIcon(imageView, service, plugin.getPluginIcon(ServiceListActivity.this));

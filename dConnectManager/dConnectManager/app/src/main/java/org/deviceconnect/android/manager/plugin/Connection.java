@@ -17,6 +17,25 @@ import android.content.Intent;
 public interface Connection {
 
     /**
+     * プラグインとの接続状態を通知するブロードキャストのアクション名.
+     * マネージャの内部のみで通知される.
+     */
+    String ACTION_CONNECTION_STATE_CHANGED
+            = "org.deviceconnect.android.manager.plugin.action.CONNECTION_STATE_CHANGED";
+
+    /**
+     * アクション ACTION_CONNECTION_STATE_CHANGED で通知する接続状態のキー.
+     * 値の型は {@link ConnectionState}.
+     */
+    String EXTRA_CONNECTION_STATE = "connectionState";
+
+    /**
+     * アクション ACTION_CONNECTION_STATE_CHANGED で通知するプラグインIDのキー.
+     * 値の型は {@link String}.
+     */
+    String EXTRA_PLUGIN_ID = "pluginId";
+
+    /**
      * 接続先のプラグインIDを取得する.
      * @return プラグインID
      */

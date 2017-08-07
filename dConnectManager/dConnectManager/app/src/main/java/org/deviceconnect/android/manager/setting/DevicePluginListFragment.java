@@ -191,7 +191,8 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     private void openDevicePluginInformation(final PluginContainer container) {
         Intent intent = new Intent();
         intent.setClass(getActivity(), DevicePluginInfoActivity.class);
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ID, container.getPluginId());
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, container.getPluginEntity().getInfo());
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, container.getPluginEntity().isEnabled());
         startActivity(intent);
     }
 

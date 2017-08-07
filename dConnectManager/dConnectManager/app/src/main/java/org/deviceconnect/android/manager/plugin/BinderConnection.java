@@ -32,8 +32,6 @@ import java.util.logging.Logger;
  */
 public class BinderConnection extends AbstractConnection {
 
-    private final Context mContext;
-
     private final ComponentName mPluginName;
 
     private final IDConnectCallback mCallback;
@@ -52,8 +50,7 @@ public class BinderConnection extends AbstractConnection {
                             final String pluginId,
                             final ComponentName target,
                             final IDConnectCallback callback) {
-        super(pluginId);
-        mContext = context;
+        super(context, pluginId);
         mPluginName = target;
         mCallback = callback;
     }

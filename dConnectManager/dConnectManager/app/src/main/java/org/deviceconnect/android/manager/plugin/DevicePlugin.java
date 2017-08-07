@@ -57,6 +57,14 @@ public class DevicePlugin {
     }
 
     /**
+     * デバイスプラグイン情報を取得する.
+     * @return デバイスプラグイン情報
+     */
+    public Info getInfo() {
+        return mInfo;
+    }
+
+    /**
      * デバイスプラグインのパッケージ名を取得する.
      * @return パッケージ名
      */
@@ -424,6 +432,47 @@ public class DevicePlugin {
         /** 接続タイプ. */
         private ConnectionType mConnectionType;
 
+        public String getPackageName() {
+            return mPackageName;
+        }
+
+        public String getClassName() {
+            return mClassName;
+        }
+
+        public String getStartServiceClassName() {
+            return mStartServiceClassName;
+        }
+
+        public String getVersionName() {
+            return mVersionName;
+        }
+
+        public VersionName getPluginSdkVersionName() {
+            return mPluginSdkVersionName;
+        }
+
+        public String getPluginId() {
+            return mPluginId;
+        }
+
+        public String getDeviceName() {
+            return mDeviceName;
+        }
+
+        public Integer getPluginIconId() {
+            return mPluginIconId;
+        }
+
+        public Map<String, DevicePluginXmlProfile> getSupportedProfiles() {
+            return mSupportedProfiles;
+        }
+
+        public ConnectionType getConnectionType() {
+            return mConnectionType;
+        }
+
+
         @Override
         public int describeContents() {
             return 0;
@@ -431,6 +480,8 @@ public class DevicePlugin {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(this.mPackageName);
+            dest.writeString(this.mClassName);
             dest.writeString(this.mStartServiceClassName);
             dest.writeString(this.mVersionName);
             dest.writeParcelable(this.mPluginSdkVersionName, flags);
@@ -449,6 +500,8 @@ public class DevicePlugin {
         }
 
         protected Info(Parcel in) {
+            this.mPackageName = in.readString();
+            this.mClassName = in.readString();
             this.mStartServiceClassName = in.readString();
             this.mVersionName = in.readString();
             this.mPluginSdkVersionName = in.readParcelable(VersionName.class.getClassLoader());

@@ -367,12 +367,23 @@ public final class DConnectUtil {
      * @return プラグインのアイコン画像
      */
     public static Drawable loadPluginIcon(final Context context, final DevicePlugin plugin) {
+        return loadPluginIcon(context, plugin.getPackageName(), plugin.getPluginIconId());
+    }
+
+    /**
+     * プラグインのアイコン画像を読み込みます.
+     * @param context コンテキスト
+     * @param packageName プラグインのパッケージ名
+     * @param iconId アイコンのリソースID
+     * @return プラグインのアイコン画像
+     */
+    public static Drawable loadPluginIcon(final Context context,
+                                          final String packageName,
+                                          final Integer iconId) {
         PackageManager pkgMgr = context.getPackageManager();
-        String packageName = plugin.getPackageName();
-        Integer iconId = plugin.getPluginIconId();
         Drawable icon;
         if (iconId != null) {
-            icon = ResourcesCompat.getDrawable(context.getResources(), (int)iconId, null);
+            icon = ResourcesCompat.getDrawable(context.getResources(), iconId, null);
         } else {
             try {
                 ApplicationInfo info = pkgMgr.getApplicationInfo(packageName, 0);

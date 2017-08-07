@@ -17,11 +17,8 @@ import android.content.Intent;
  */
 public class BroadcastConnection extends AbstractConnection {
 
-    private final Context mContext;
-
     public BroadcastConnection(final Context context, final String pluginId) {
-        super(pluginId);
-        mContext = context;
+        super(context, pluginId);
         setState(ConnectionState.CONNECTED);
     }
 

@@ -37,6 +37,7 @@ import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.plugin.InternalConnection;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
@@ -51,6 +52,7 @@ import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
+import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParser;
 import org.deviceconnect.android.profile.spec.parser.DConnectProfileSpecJsonParserFactory;
@@ -78,6 +80,18 @@ import java.util.logging.Logger;
  */
 public abstract class DConnectMessageService extends Service
         implements DConnectProfileProvider, DevicePluginEventListener {
+
+    /** アクション名: プラグイン有効化要求. */
+    public static final String ACTION_ENABLE_PLUGIN = "org.deviceconnect.android.action.ENABLE_PLUGIN";
+
+    /** アクション名: プラグイン無効化要求. */
+    public static final String ACTION_DISABLE_PLUGIN = "org.deviceconnect.android.action.DISABLE_PLUGIN";
+
+    /** アクション名: プラグイン設定画面起動要求. */
+    public static final String ACTION_OPEN_SETTINGS = "org.deviceconnect.android.action.OPEN_SETTINGS";
+
+    /** エクストラ名: プラグインID. */
+    public static final String EXTRA_PLUGIN_ID = "pluginId";
 
     /** アクション名: パッケージインストール通知. */
     public static final String ACTION_PACKAGE_ADDED = "org.deviceconnect.android.action.PACKAGE_ADDED";
@@ -155,7 +169,10 @@ public abstract class DConnectMessageService extends Service
     protected EventBroker mEventBroker;
 
     /** プラグイン検索用スレッド. */
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService mPluginSearchExecutor = Executors.newSingleThreadExecutor();
+
+    /** プラグイン有効化用スレッド. */
+    private final ExecutorService mPluginEnableExecutor = Executors.newSingleThreadExecutor();
 
     /** プラグイン検索中フラグ. */
     private boolean mIsSearchingPlugins;
@@ -281,12 +298,63 @@ public abstract class DConnectMessageService extends Service
             onResponseReceive(intent);
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
             onEventReceive(intent);
-        } else if (DConnectMessageService.ACTION_PACKAGE_ADDED.equals(action)) {
+        } else if (ACTION_PACKAGE_ADDED.equals(action)) {
             String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
             mPluginManager.checkAndAddDevicePlugin(packageName);
-        } else if (DConnectMessageService.ACTION_PACKAGE_REMOVED.equals(action)) {
+        } else if (ACTION_PACKAGE_REMOVED.equals(action)) {
             String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
             mPluginManager.checkAndRemoveDevicePlugin(packageName);
+        } else if (ACTION_ENABLE_PLUGIN.equals(action)) {
+            final DevicePlugin plugin = findPlugin(intent);
+            if (plugin != null) {
+                mPluginEnableExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        plugin.enable();
+                    }
+                });
+            }
+        } else if (ACTION_DISABLE_PLUGIN.equals(action)) {
+            final DevicePlugin plugin = findPlugin(intent);
+            if (plugin != null) {
+                mPluginEnableExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        plugin.disable();
+                    }
+                });
+            }
+        } else if (ACTION_OPEN_SETTINGS.equals(action)) {
+            openSettings(intent);
+        }
+    }
+
+    private DevicePlugin findPlugin(final Intent intent) {
+        String pluginId = intent.getStringExtra(EXTRA_PLUGIN_ID);
+        if (pluginId == null) {
+            return null;
+        }
+        return mPluginManager.getDevicePlugin(pluginId);
+    }
+
+    private void openSettings(final Intent intent) {
+        DevicePlugin plugin = findPlugin(intent);
+        if (plugin == null) {
+            return;
+        }
+
+        Intent request = new Intent();
+        request.setComponent(plugin.getComponentName());
+        request.setAction(IntentDConnectMessage.ACTION_PUT);
+        SystemProfile.setApi(request, "gotapi");
+        SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
+        SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
+        SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
+        request.putExtra("pluginId", plugin.getPluginId());
+        try {
+            plugin.send(request);
+        } catch (MessagingException e) {
+            mLogger.warning("Failed to open settings window: plugin = " + plugin.getDeviceName());
         }
     }
 
@@ -620,7 +688,7 @@ public abstract class DConnectMessageService extends Service
             return;
         }
         mIsSearchingPlugins = true;
-        mExecutor.execute(new Runnable() {
+        mPluginSearchExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 mPluginManager.createDevicePluginList();

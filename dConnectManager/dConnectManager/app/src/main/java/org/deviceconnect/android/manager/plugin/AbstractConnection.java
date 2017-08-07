@@ -7,6 +7,10 @@
 package org.deviceconnect.android.manager.plugin;
 
 
+import android.content.Context;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,6 +23,9 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 abstract class AbstractConnection implements Connection {
+
+    /** コンテキスト. */
+    protected final Context mContext;
 
     /** 接続先のプラグインID. */
     private final String mPluginId;
@@ -34,12 +41,17 @@ abstract class AbstractConnection implements Connection {
 
     /**
      * コンストラクタ.
+     * @param context コンテキスト
      * @param pluginId 接続先のプラグインID
      */
-    protected AbstractConnection(final String pluginId) {
-        if (pluginId == null) {
-            throw new IllegalArgumentException();
+    protected AbstractConnection(final Context context, final String pluginId) {
+        if (context == null) {
+            throw new IllegalArgumentException("context is null.");
         }
+        if (pluginId == null) {
+            throw new IllegalArgumentException("pluginId is null.");
+        }
+        mContext = context;
         mPluginId = pluginId;
     }
 
@@ -98,11 +110,19 @@ abstract class AbstractConnection implements Connection {
                     mExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
+                            sendLocalBroadcast(state);
                             l.onConnectionStateChanged(mPluginId, state);
                         }
                     });
                 }
             }
         }
+    }
+
+    private void sendLocalBroadcast(final ConnectionState state) {
+        Intent notification = new Intent(ACTION_CONNECTION_STATE_CHANGED);
+        notification.putExtra(EXTRA_PLUGIN_ID, mPluginId);
+        notification.putExtra(EXTRA_CONNECTION_STATE, state);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(notification);
     }
 }

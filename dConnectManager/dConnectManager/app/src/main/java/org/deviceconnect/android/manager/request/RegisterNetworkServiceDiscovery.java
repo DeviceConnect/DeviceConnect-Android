@@ -8,8 +8,9 @@ package org.deviceconnect.android.manager.request;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.event.EventProtocol;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -65,7 +66,9 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
         mRequest = request;
 
         // リクエスト送信
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ
@@ -86,6 +89,29 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
             }
         } else {
             sendTimeout();
+        }
+    }
+
+    private boolean forwardRequest(final Intent request) {
+        if (mDevicePlugin == null) {
+            throw new IllegalStateException("Destination is null.");
+        }
+        try {
+            mDevicePlugin.send(request);
+            return true;
+        } catch (MessagingException e) {
+            switch (e.getReason()) {
+                case NOT_ENABLED:
+                    sendPluginDisabledError();
+                    break;
+                case CONNECTION_SUSPENDED:
+                    sendPluginSuspendedError();
+                    break;
+                default: // NOT_CONNECTED
+                    sendIllegalServerStateError("Failed to send a message to the plugin: " + mDevicePlugin.getPackageName());
+                    break;
+            }
+            return false;
         }
     }
 

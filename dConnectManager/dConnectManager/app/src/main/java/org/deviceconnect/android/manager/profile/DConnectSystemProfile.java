@@ -15,9 +15,9 @@ import android.os.Bundle;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
@@ -97,7 +97,7 @@ public class DConnectSystemProfile extends SystemProfile {
                 b.putString(PARAM_NAME, plugin.getDeviceName());
                 b.putString(PARAM_PACKAGE_NAME, plugin.getPackageName());
                 b.putString(PARAM_VERSION, plugin.getVersionName());
-                setSupports(b, plugin.getSupportProfiles());
+                setSupports(b, plugin.getSupportProfileNames());
                 plugins.add(b);
             }
             response.putExtra(PARAM_PLUGINS, plugins.toArray(new Bundle[plugins.size()]));

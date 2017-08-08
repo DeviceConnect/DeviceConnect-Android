@@ -41,7 +41,7 @@ public class DConnectRequestManager {
     /**
      * リクエスト管理を終了する.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
         mExecutor.shutdown();
         mSingleExecutor.shutdown();
     }
@@ -50,7 +50,10 @@ public class DConnectRequestManager {
      * 実行するリクエストを追加する.
      * @param request 追加するリクエスト
      */
-    public void addRequest(final DConnectRequest request) {
+    public synchronized void addRequest(final DConnectRequest request) {
+        if (mExecutor.isShutdown()) {
+            return;
+        }
         request.setRequestMgr(this);
         mRequestList.add(request);
         mExecutor.execute(new Runnable() {
@@ -74,7 +77,10 @@ public class DConnectRequestManager {
      * シングルスレッドで実行するリクエストを追加する.
      * @param request 追加するリクエスト
      */
-    public void addRequestOnSingleThread(final DConnectRequest request) {
+    public synchronized void addRequestOnSingleThread(final DConnectRequest request) {
+        if (mSingleExecutor.isShutdown()) {
+            return;
+        }
         request.setRequestMgr(this);
         mRequestList.add(request);
         mSingleExecutor.execute(new Runnable() {

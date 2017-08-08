@@ -175,7 +175,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '2.2.3'
+            pom.version = '2.2.4'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-device-plugin-sdk'
         }

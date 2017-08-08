@@ -15,7 +15,7 @@
         android:allowBackup="true"
         android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
+        android:theme="@style/AppTheme.AppCompat"
         android:name="org.deviceconnect.android.manager.DConnectApplication">
 
         <!-- Device Connect Manager起動用Activity. -->
@@ -25,7 +25,7 @@
             android:label="@string/app_name"
             android:launchMode="singleInstance"
             android:taskAffinity="@string/affinity_launcher_activity"
-            android:theme="@style/AppTheme.Translucent">
+            android:theme="@style/AppTheme.AppCompat.Translucent">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -106,10 +106,10 @@
             android:name=".setting.KeywordDialogActivity"
             android:exported="false"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.Translucent">
+            android:theme="@style/AppTheme.AppCompat.Translucent">
         </activity>
 
-        <!-- キーワード表示用Activity. -->
+        <!-- デバイス確認用Activity. -->
         <activity
             android:name=".setting.WebViewActivity"
             android:label="@string/app_name"
@@ -122,7 +122,7 @@
             android:name="org.deviceconnect.android.observer.activity.WarningDialogActivity"
             android:exported="false"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.Translucent">
+            android:theme="@style/AppTheme.AppCompat.Translucent">
         </activity>
 
         <!-- 各アプリやデバイスプラグインからのDConnectMessageを受領するためのBroadcastReceiver. -->
@@ -200,6 +200,12 @@
             android:name=".setting.WebSocketListActivity"
             android:exported="false"
             android:label="@string/app_name">
+        </activity>
+
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.AccessTokenListActivity"
+            android:excludeFromRecents="true"
+            android:exported="false">
         </activity>
 
         <!-- Device Connect監視サービス. -->

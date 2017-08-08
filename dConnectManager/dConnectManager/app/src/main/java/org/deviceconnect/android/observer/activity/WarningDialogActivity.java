@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.observer.activity;
 
-import org.deviceconnect.android.observer.fragment.WarningDialogFragment;
-
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+
+import org.deviceconnect.android.observer.fragment.WarningDialogFragment;
 
 /**
  * 警告用ダイアログアクティビティ.

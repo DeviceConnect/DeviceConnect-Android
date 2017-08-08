@@ -6,17 +6,6 @@
  */
 package org.deviceconnect.android.observer;
 
-import java.util.ArrayList;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.observer.activity.WarningDialogActivity;
-import org.deviceconnect.android.observer.receiver.ObserverReceiver;
-import org.deviceconnect.android.observer.util.AndroidSocket;
-import org.deviceconnect.android.observer.util.SockStatUtil;
-import org.deviceconnect.android.observer.util.SocketState;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -34,7 +23,17 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
-import android.util.Log;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.manager.DConnectSettings;
+import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.observer.activity.WarningDialogActivity;
+import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+import org.deviceconnect.android.observer.util.AndroidSocket;
+import org.deviceconnect.android.observer.util.SockStatUtil;
+import org.deviceconnect.android.observer.util.SocketState;
+
+import java.util.ArrayList;
 
 /**
  * DeviceConnectの生存確認を行うサービス.

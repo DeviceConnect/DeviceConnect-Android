@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.manager.event;
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 /**
  * Keep Alive.

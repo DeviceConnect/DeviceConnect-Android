@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/activity_service_manager_power"
-        android:actionViewClass="android.widget.Switch"
-        android:showAsAction="always"
+        app:actionViewClass="android.widget.Switch"
+        app:showAsAction="always"
         android:title="@string/app_name"/>
 
     <item
-        android:showAsAction="always"
+        app:showAsAction="always"
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="@string/activity_launch_button_settings">
         <menu>
             <item
                 android:id="@+id/activity_service_menu_item_settings"
-                android:showAsAction="never"
+                app:showAsAction="never"
                 android:title="@string/activity_service_menu_settings"/>
 
             <item
                 android:id="@+id/activity_service_menu_item_help"
-                android:showAsAction="never"
+                app:showAsAction="never"
                 android:title="@string/activity_service_menu_help"/>
         </menu>
     </item>

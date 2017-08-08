@@ -24,7 +24,6 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
 
     private BluetoothAdapter mBluetoothAdapter;
     private BleDeviceScanCallback mCallback;
-
     public OldBleDeviceAdapterImpl(final Context context) {
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
@@ -33,7 +32,7 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
     @Override
     public void startScan(final BleDeviceScanCallback callback) {
         mCallback = callback;
-        mBluetoothAdapter.startLeScan(mLeScanCallback);
+        mBluetoothAdapter.startLeScan(mServiceUuids, mLeScanCallback);
     }
 
     @Override

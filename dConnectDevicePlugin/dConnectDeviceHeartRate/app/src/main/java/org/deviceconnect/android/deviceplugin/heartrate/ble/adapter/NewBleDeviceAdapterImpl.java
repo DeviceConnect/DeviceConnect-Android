@@ -38,9 +38,6 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBleScanner;
     private BleDeviceScanCallback mCallback;
-    private final UUID[] mServiceUuids = {
-            UUID.fromString(BleUtils.SERVICE_HEART_RATE_SERVICE)
-    };
 
     public NewBleDeviceAdapterImpl(final Context context) {
         mContext = context;

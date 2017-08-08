@@ -9,12 +9,16 @@ package org.deviceconnect.android.deviceplugin.heartrate.ble;
 import android.bluetooth.BluetoothDevice;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * This abstract class is used to implements.
  * @author NTT DOCOMO, INC.
  */
 public abstract class BleDeviceAdapter {
+    protected final UUID[] mServiceUuids = {
+            UUID.fromString(BleUtils.SERVICE_HEART_RATE_SERVICE)
+    };
     public abstract void startScan(BleDeviceScanCallback callback);
     public abstract void stopScan(BleDeviceScanCallback callback);
     public abstract BluetoothDevice getDevice(String address);

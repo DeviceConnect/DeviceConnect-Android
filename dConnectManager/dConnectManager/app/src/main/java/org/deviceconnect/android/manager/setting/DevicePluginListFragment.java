@@ -24,6 +24,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.manager.DConnectMessageService;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
@@ -322,20 +324,12 @@ public class DevicePluginListFragment extends BaseSettingFragment {
             versionView.setText(getString(R.string.activity_devicepluginlist_version) + version);
 
             SwitchCompat switchCompat = (SwitchCompat) cv.findViewById(R.id.switch_plugin_enable_status);
+            switchCompat.setOnCheckedChangeListener(null);
             switchCompat.setChecked(plugin.isEnabled());
             switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(final CompoundButton button, final boolean isOn) {
-                    mExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (isOn) {
-                                plugin.enable();
-                            } else {
-                                plugin.disable();
-                            }
-                        }
-                    });
+                    requestPluginStateChange(plugin.getPluginId(), isOn);
                 }
             });
 
@@ -357,6 +351,19 @@ public class DevicePluginListFragment extends BaseSettingFragment {
                     notifyDataSetChanged();
                     break;
                 }
+            }
+        }
+
+        private void requestPluginStateChange(final String pluginId, final boolean isOn) {
+            Activity activity = getActivity();
+            if (activity != null) {
+                String action = isOn ?
+                        DConnectMessageService.ACTION_ENABLE_PLUGIN :
+                        DConnectMessageService.ACTION_DISABLE_PLUGIN;
+                Intent request = new Intent(activity.getApplicationContext(), DConnectService.class);
+                request.setAction(action);
+                request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, pluginId);
+                activity.startService(request);
             }
         }
     }

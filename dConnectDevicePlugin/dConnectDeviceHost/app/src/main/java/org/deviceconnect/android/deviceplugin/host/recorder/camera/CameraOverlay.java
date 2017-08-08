@@ -54,6 +54,15 @@ import java.util.logging.Logger;
 @SuppressWarnings("deprecation")
 public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallback {
     /**
+     * カメラの向き：前.
+     */
+    public static final int FACING_DIRECTION_FRONT = -1;
+    /**
+     * カメラの向き：後.
+     */
+    public static final int FACING_DIRECTION_BACK = 1;
+
+    /**
      * JPEGの圧縮クオリティを定義.
      */
     private static final int JPEG_COMPRESS_QUALITY = 100;
@@ -469,11 +478,17 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         Bitmap original = BitmapFactory.decodeByteArray(data, 0, data.length);
                         int degrees = Preview.getCameraDisplayOrientation(mContext, mCameraId);
                         Bitmap rotated;
-                        if (degrees == 0) {
+                        if (degrees == 0 && mFacingDirection == FACING_DIRECTION_BACK) {
                             rotated = original;
                         } else {
                             Matrix m = new Matrix();
-                            m.setRotate(degrees * mFacingDirection);
+                            if (mFacingDirection == FACING_DIRECTION_FRONT) {
+                                m.preRotate(degrees);
+                                m.preScale(mFacingDirection, 1);
+                            } else {
+                                m.postRotate(degrees);
+                            }
+
                             rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
                             original.recycle();
                         }
@@ -598,7 +613,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         byte[] jdata = baos.toByteArray();
 
                         int degree = Preview.getCameraDisplayOrientation(mContext, mCameraId);
-                        if (degree == 0) {
+                        if (degree == 0 && mFacingDirection == FACING_DIRECTION_BACK) {
                             mServer.offerMedia(jdata);
                         } else {
                             try {
@@ -607,8 +622,12 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                                 Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
                                 if (bmp != null) {
                                     Matrix m = new Matrix();
-                                    m.setRotate(degree * mFacingDirection);
-
+                                    if (mFacingDirection == FACING_DIRECTION_FRONT) {
+                                        m.preRotate(degree);
+                                        m.preScale(mFacingDirection, 1);
+                                    } else {
+                                        m.postRotate(degree);
+                                    }
                                     Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
                                     if (rotatedBmp != null) {
                                         baos.reset();

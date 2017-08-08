@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android">
-    <profile name="servicediscovery" />
-    <profile name="serviceinformation" />
-    <profile name="system" />
-    <profile name="gpio" />
+    <profile name="servicediscovery"/>
+    <profile name="serviceinformation"/>
+    <profile name="system"/>
+    <profile name="gpio"/>
+    <profile name="fabo"/>
+    <profile name="driveController"/>
+    <profile name="light"/>
+    <profile name="temperature"/>
+    <profile name="vibration"/>
+    <profile name="keyEvent"/>
+    <profile name="humidity"/>
+    <profile name="illuminance"/>
+    <profile name="deviceOrientation"/>
+    <profile name="proximity"/>
+    <profile name="atmosphericPressure"/>
 </deviceplugin-provider>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="key_settings_security_local_oauth" translatable="false">settings_security_local_oauth</string>
+</resources>

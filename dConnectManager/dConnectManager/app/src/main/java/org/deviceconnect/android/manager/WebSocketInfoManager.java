@@ -6,13 +6,9 @@
  */
 package org.deviceconnect.android.manager;
 
-import android.content.Context;
-import android.content.Intent;
-
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -25,39 +21,52 @@ public class WebSocketInfoManager {
     /**
      * WebSocketを格納しておくMap.
      */
-    private Map<String, WebSocketInfo> mWebSocketInfoMap = new HashMap<>();
-
-    /**
-     * コンテキスト.
-     */
-    private Context mContext;
-
-    /**
-     * プラグイン管理クラス.
-     */
-    private DevicePluginManager mDevicePluginManager;
+    private final Map<String, WebSocketInfo> mWebSocketInfoMap = new HashMap<>();
 
     /**
      * WebSocketのイベントリスナー.
      */
-    private OnWebSocketEventListener mOnWebSocketEventListener;
+    private final List<OnWebSocketEventListener> mOnWebSocketEventListeners = new ArrayList<>();
 
     /**
-     * コンストラクタ.
-     * @param context コンテキスト
+     * WebSocketのイベントを通知するリスナーを登録する.
+     *
+     * @param listener リスナー
      */
-    public WebSocketInfoManager(final Context context) {
-        mContext = context;
-        mDevicePluginManager = ((DConnectApplication) mContext).getDevicePluginManager();
+    public void addOnWebSocketEventListener(final OnWebSocketEventListener listener) {
+        synchronized (mOnWebSocketEventListeners) {
+            for (OnWebSocketEventListener cache : mOnWebSocketEventListeners) {
+                if (cache == null) {
+                    return;
+                }
+            }
+            mOnWebSocketEventListeners.add(listener);
+        }
     }
 
     /**
-     * WebSocketのイベントを通知するリスナーを設定する.
+     * WebSocketのイベントを通知するリスナーを削除する.
      *
-     * @param onWebSocketEventListener リスナー
+     * @param listener リスナー
      */
-    public void setOnWebSocketEventListener(final OnWebSocketEventListener onWebSocketEventListener) {
-        mOnWebSocketEventListener = onWebSocketEventListener;
+    public void removeOnWebSocketEventListener(final OnWebSocketEventListener listener) {
+        synchronized (mOnWebSocketEventListeners) {
+            for (Iterator<OnWebSocketEventListener> it = mOnWebSocketEventListeners.iterator(); it.hasNext(); ) {
+                OnWebSocketEventListener cache = it.next();
+                if (cache == listener) {
+                    it.remove();
+                    return;
+                }
+            }
+        }
+    }
+
+    private void notifyOnDisconnect(final String origin) {
+        synchronized (mOnWebSocketEventListeners) {
+            for (OnWebSocketEventListener listener : mOnWebSocketEventListeners) {
+                listener.onDisconnect(origin);
+            }
+        }
     }
 
     /**
@@ -67,7 +76,7 @@ public class WebSocketInfoManager {
      * @param uri URI
      * @param webSocketId WebSocketの識別子.
      */
-    public void addWebSocketInfo(final String origin, final String uri, final String webSocketId) {
+    void addWebSocketInfo(final String origin, final String uri, final String webSocketId) {
         WebSocketInfo info = new WebSocketInfo();
         info.setRawId(webSocketId);
         info.setUri(uri);
@@ -81,14 +90,10 @@ public class WebSocketInfoManager {
      *
      * @param origin WebSocketのオリジン、もしくはセッションキー
      */
-    public void removeWebSocketInfo(final String origin) {
+    void removeWebSocketInfo(final String origin) {
         WebSocketInfo info = mWebSocketInfoMap.remove(origin);
         if (info != null) {
-            notifyDisconnectWebSocket(info.getOrigin());
-
-            if (mOnWebSocketEventListener != null) {
-                mOnWebSocketEventListener.onDisconnect(origin);
-            }
+            notifyOnDisconnect(origin);
         }
     }
 
@@ -98,7 +103,7 @@ public class WebSocketInfoManager {
      * @param origin WebSocketのオリジン、もしくはセッションキー
      * @return WebSocketの情報
      */
-    public WebSocketInfo getWebSocketInfo(final String origin) {
+    WebSocketInfo getWebSocketInfo(final String origin) {
         return mWebSocketInfoMap.get(origin);
     }
 
@@ -109,23 +114,6 @@ public class WebSocketInfoManager {
      */
     public List<WebSocketInfo> getWebSocketInfos() {
         return new ArrayList<>(mWebSocketInfoMap.values());
-    }
-
-    /**
-     * 全プラグインにWebSocketが切断されたことを通知する.
-     * @param origin オリジン
-     */
-    private void notifyDisconnectWebSocket(final String origin) {
-        List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins();
-        for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getPluginId();
-            Intent request = new Intent();
-            request.setComponent(plugin.getComponentName());
-            request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
-            request.putExtra("pluginId", serviceId);
-            request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, origin);
-            mContext.sendBroadcast(request);
-        }
     }
 
     /**

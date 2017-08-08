@@ -3,14 +3,16 @@ apply plugin: 'com.android.application'
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
-    compile 'com.google.android.gms:play-services:6.1.+'
+    compile 'com.android.support:multidex:1.0.1'
+    compile 'com.google.android.gms:play-services:11.0.2'
+
     wearApp project(':wear-app')
 }
 
 android {
 
-    compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    compileSdkVersion 25
+    buildToolsVersion '25.0.2'
 
     def getVersionName = { ->
         def version
@@ -26,9 +28,10 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.wear"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName getVersionName()
+        multiDexEnabled true
     }
 
     signingConfigs {

@@ -323,8 +323,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         }
 
                         @Override
-                        public void onFailedTakePhoto() {
-                            MessageUtils.setUnknownError(response, "Failed to take a photo");
+                        public void onFailedTakePhoto(final String errorMessage) {
+                            MessageUtils.setUnknownError(response, errorMessage);
                             sendResponse(response);
                         }
                     });

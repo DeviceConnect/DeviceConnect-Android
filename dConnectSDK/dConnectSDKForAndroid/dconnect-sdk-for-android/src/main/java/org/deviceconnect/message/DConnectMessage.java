@@ -347,7 +347,15 @@ public interface DConnectMessage extends Map<String, Object> {
         /**
          * Profile名が不正.
          */
-        INVALID_PROFILE(20, "Profile name is invalid.");
+        INVALID_PROFILE(20, "Profile name is invalid."),
+        /**
+         * プラグインが無効.
+         */
+        PLUGIN_DISABLED(21, "Plug-in is disabled."),
+        /**
+         * プラグインとの連携が中断されている.
+         */
+        PLUGIN_SUSPENDED(22, "Plug-in is suspended.");
 
         /**
          * エラーコード.

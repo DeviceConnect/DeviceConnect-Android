@@ -318,12 +318,12 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
     @Override
     public void takePhoto(final OnPhotoEventListener listener) {
         if (!mIsInitialized) {
-            listener.onFailedTakePhoto();
+            listener.onFailedTakePhoto("Camera is not initialized.");
             return;
         }
 
         if (mState != RecorderState.INACTTIVE) {
-            listener.onFailedTakePhoto();
+            listener.onFailedTakePhoto("Failed to camera state.");
             return;
         }
 
@@ -336,8 +336,8 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
             }
 
             @Override
-            public void onFailedTakePhoto() {
-                listener.onFailedTakePhoto();
+            public void onFailedTakePhoto(final String errorMessage) {
+                listener.onFailedTakePhoto(errorMessage);
                 mState = RecorderState.INACTTIVE;
             }
         });

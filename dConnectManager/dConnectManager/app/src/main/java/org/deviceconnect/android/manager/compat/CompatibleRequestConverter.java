@@ -10,8 +10,8 @@ package org.deviceconnect.android.manager.compat;
 import android.content.Intent;
 
 import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
 

@@ -1,5 +1,6 @@
 {
     "swagger": "2.0",
+    "basePath": "/gotapi/gpio",
     "info": {
         "title": "GPIO Profile",
         "version": "2.0.0",

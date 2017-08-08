@@ -1,0 +1,220 @@
+{
+    "swagger": "2.0",
+    "basePath": "/gotapi/driveController",
+    "info": {
+        "title": "DriveController Profile",
+        "version": "2.0.0",
+        "description": "スマートデバイスの駆動処理を提供するAPI。"
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/move": {
+            "post": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスを指定された方向に移動開始する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "angle",
+                        "description": "角度。デバイスの方向 (degree)<br>0~360",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number",
+                        "minimum": -360,
+                        "maximum": 360
+                    },
+                    {
+                        "name": "speed",
+                        "description": "速度。デバイスの動く速度<br>0.0~1.0",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number",
+                        "minimum": -1.0,
+                        "maximum": 1.0
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DriveControllerMoveResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに移動停止リクエストを送る。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DriveControllerStopResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rotate": {
+            "put": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスを指定された向きに回転を行う。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "angle",
+                        "description": "角度。デバイスの方向 (degree)<br>0~360",
+                        "in": "formData",
+                        "required": true,
+                        "type": "number",
+                        "minimum": -360,
+                        "maximum": 360
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DriveControllerRotateResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stop": {
+            "delete": {
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに移動停止リクエストを送る。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DriveControllerStopResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "DriveControllerMoveResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "DriveControllerStopResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "DriveControllerRotateResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": [
+                "result",
+                "product",
+                "version"
+            ],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "title": "処理結果",
+                    "description": "0: 正常応答<br>0以外: 異常応答"
+                },
+                "product": {
+                    "type": "string",
+                    "title": "DeviceConnectシステムの名前",
+                    "description": ""
+                },
+                "version": {
+                    "type": "string",
+                    "title": "DeviceConnectシステムのバージョン名",
+                    "description": ""
+                },
+                "hmac": {
+                    "type": "string",
+                    "title": "レスポンスに対する署名",
+                    "description": "アプリケーション側から事前にHMACキーを共有されていた場合は必須。"
+                }
+            }
+        }
+    }
+}

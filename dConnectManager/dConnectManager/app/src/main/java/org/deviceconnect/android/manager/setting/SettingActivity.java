@@ -6,10 +6,9 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectWebService;
@@ -19,7 +18,7 @@ import org.deviceconnect.android.manager.R;
  * Device Connect Manager設定管理用Activity.
  * @author NTT DOCOMO, INC.
  */
-public class SettingActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener {
+public class SettingActivity extends BaseSettingActivity implements AlertDialogFragment.OnAlertDialogListener {
 
     /**
      * {@inheritDoc}
@@ -29,7 +28,7 @@ public class SettingActivity extends Activity implements AlertDialogFragment.OnA
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dconnect_settings);
 
-        ActionBar actionBar = getActionBar();
+        ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }

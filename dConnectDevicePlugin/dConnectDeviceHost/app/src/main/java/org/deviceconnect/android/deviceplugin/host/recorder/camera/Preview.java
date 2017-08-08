@@ -173,7 +173,6 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
                 previewWidth = mPreviewSize.getWidth();
                 previewHeight = mPreviewSize.getHeight();
             }
-
             // Center the child SurfaceView within the parent.
             if (width * previewHeight > height * previewWidth) {
                 final int scaledChildWidth = previewWidth * height / previewHeight;
@@ -228,7 +227,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     }
 
     private void setCameraParam() {
-        int rot = getCameraDisplayOrientation(getContext());
+        int rot = getCameraDisplayOrientation(getContext(), mCameraId);
 
         if (DEBUG) {
             Log.i(LOG_TAG, "PreViewSize: " + mPreviewSize.getWidth() + ", "
@@ -246,20 +245,13 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
             mCamera.setParameters(parameters);
         }
 
-        parameters.setRotation(rot);
-        try {
-            mCamera.setParameters(parameters);
-        } catch (Exception e) {
-            Log.i(LOG_TAG, "Rotation not support.");
-        }
-
         mCamera.setDisplayOrientation(rot);
+
         try {
             mCamera.setParameters(parameters);
         } catch (Exception e) {
             Log.i(LOG_TAG, "Display orientation not support.");
         }
-
         mCamera.startPreview();
 
         mPreviewFormat = parameters.getPreviewFormat();
@@ -371,11 +363,12 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /**
      * カメラの向きを取得する.
      * @param context コンテキスト
+     * @param cameraId カメラ
      * @return カメラの向き
      */
-    public int getCameraDisplayOrientation(final Context context) {
+    public static int getCameraDisplayOrientation(final Context context, final int cameraId) {
         Camera.CameraInfo info = new Camera.CameraInfo();
-        Camera.getCameraInfo(mCameraId, info);
+        Camera.getCameraInfo(cameraId, info);
         WindowManager windowMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         int rotation = windowMgr.getDefaultDisplay().getRotation();
         int degrees = 0;
@@ -411,13 +404,13 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      */
     public void takePicture(final Camera.PictureCallback callback) {
         if (mCamera != null) {
-            post(new Runnable() {
+            postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mCamera.takePicture(mShutterCallback, null, callback);
                     Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
                 }
-            });
+            }, 1000);
         }
     }
 

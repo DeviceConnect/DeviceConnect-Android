@@ -22,10 +22,13 @@ import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -34,6 +37,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,7 +45,7 @@ import java.util.concurrent.Executors;
  * dConnect Manager本体.
  * @author NTT DOCOMO, INC.
  */
-public class DConnectService extends DConnectMessageService {
+public class DConnectService extends DConnectMessageService implements WebSocketInfoManager.OnWebSocketEventListener {
 
     /**
      * WakeLockのタグを定義する.
@@ -70,6 +74,9 @@ public class DConnectService extends DConnectMessageService {
     /** RESTfulサーバからのイベントを受領するリスナー. */
     private DConnectServerEventListenerImpl mWebServerListener;
 
+    /** WebSocket管理クラス. */
+    private WebSocketInfoManager mWebSocketInfoManager;
+
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
@@ -96,6 +103,10 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mWebSocketInfoManager = new WebSocketInfoManager();
+        mWebSocketInfoManager.addOnWebSocketEventListener(this);
+
         mKeepAliveManager = new KeepAliveManager(this, mEventSessionTable);
         mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
             @Override
@@ -113,7 +124,7 @@ public class DConnectService extends DConnectMessageService {
             }
         });
         mRequestConverters = new MessageConverter[] {
-                new CompatibleRequestConverter(mPluginMgr)
+                new CompatibleRequestConverter(getPluginManager())
         };
         mResponseConverters = new MessageConverter[] {
                 new ServiceDiscoveryConverter(),
@@ -127,6 +138,8 @@ public class DConnectService extends DConnectMessageService {
 
     @Override
     public void onDestroy() {
+        mWebSocketInfoManager.removeOnWebSocketEventListener(this);
+
         stopRESTfulServer();
         super.onDestroy();
     }
@@ -162,6 +175,24 @@ public class DConnectService extends DConnectMessageService {
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDisconnect(final String origin) {
+        List<DevicePlugin> plugins = getPluginManager().getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            String serviceId = plugin.getPluginId();
+            Intent request = new Intent();
+            request.setComponent(plugin.getComponentName());
+            request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
+            request.putExtra(SystemProfileConstants.PARAM_PLUGIN_ID, serviceId);
+            request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, origin);
+            try {
+                plugin.send(request);
+            } catch (MessagingException e) {
+                mLogger.info("Failed to send the notification: ACTION_EVENT_TRANSMIT_DISCONNECT");
+            }
+        }
     }
 
     private void onKeepAliveCommand(final Intent intent) {
@@ -289,7 +320,7 @@ public class DConnectService extends DConnectMessageService {
      * @return WebSocketの情報。指定された識別子のWebSocketが存在しない場合は{@code null}を返す。
      */
     private WebSocketInfo getWebSocketInfo(final String receiverId) {
-        return ((DConnectApplication) getApplication()).getWebSocketInfoManager().getWebSocketInfo(receiverId);
+        return mWebSocketInfoManager.getWebSocketInfo(receiverId);
     }
 
     /**
@@ -502,5 +533,9 @@ public class DConnectService extends DConnectMessageService {
             converter.convert(result);
         }
         return result;
+    }
+
+    public WebSocketInfoManager getWebSocketInfoManager() {
+        return mWebSocketInfoManager;
     }
 }

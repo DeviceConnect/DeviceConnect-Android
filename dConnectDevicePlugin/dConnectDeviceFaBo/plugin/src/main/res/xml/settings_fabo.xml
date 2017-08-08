@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/fragment_setting_service_title">
+        <PreferenceScreen
+            android:title="@string/fragment_setting_service_list">
+            <intent
+                android:targetClass="org.deviceconnect.android.deviceplugin.fabo.setting.FaBoServiceListActivity"
+                android:targetPackage="org.deviceconnect.android.deviceplugin.fabo"/>
+        </PreferenceScreen>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/fragment_setting_arduino_title">
+        <PreferenceScreen
+            android:title="@string/fragment_setting_arduino_connect">
+            <intent
+                android:targetClass="org.deviceconnect.android.deviceplugin.fabo.setting.FaBoArduinoActivity"
+                android:targetPackage="org.deviceconnect.android.deviceplugin.fabo">
+                <extra
+                    android:name="page"
+                    android:value="connect"/>
+            </intent>
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:title="@string/fragment_setting_arduino_firmata">
+            <intent
+                android:targetClass="org.deviceconnect.android.deviceplugin.fabo.setting.FaBoArduinoActivity"
+                android:targetPackage="org.deviceconnect.android.deviceplugin.fabo">
+                <extra
+                    android:name="page"
+                    android:value="firmata"/>
+            </intent>
+        </PreferenceScreen>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/fragment_setting_security_title">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/key_settings_security_local_oauth"
+            android:summaryOff="@string/fragment_setting_security_local_oauth_description"
+            android:summaryOn="@string/fragment_setting_security_local_oauth_description"
+            android:title="@string/fragment_setting_security_local_oauth_title"/>
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -318,7 +318,7 @@ public class DataManager {
         data.body = null;
         data.success = "{%loop in $media as $m}[{$m.mediaId}:{$m.title}]{% endloop %}";
         data.error = "エラーです。 {$errorMessage}";
-        data.serviceId = "Host.ebc9a9ec2354491f929dd4b25abccb6.localhost.deviceconnect.org";
+        data.serviceId = "Host.f16efda156ed2d91b1a82b6fdbbd30.localhost.deviceconnect.org";
         data.serviceName = "Host";
         upsert(db, data);
         // 音楽設定

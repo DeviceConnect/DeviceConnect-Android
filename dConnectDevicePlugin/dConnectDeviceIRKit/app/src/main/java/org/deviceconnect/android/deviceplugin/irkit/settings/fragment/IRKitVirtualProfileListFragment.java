@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -257,7 +258,7 @@ public class IRKitVirtualProfileListFragment extends Fragment {
 
                 @Override
                 public void onClick(View view) {
-                    int pos = ((Integer) view.getTag()).intValue();
+                    int pos = ((Integer) view.getTag());
                     VirtualProfileData profile = mProfiles.get(pos);
                     IRKitVirtualDeviceListActivity activity = (IRKitVirtualDeviceListActivity) getActivity();
                     activity.startRegisterPageApp(profile);

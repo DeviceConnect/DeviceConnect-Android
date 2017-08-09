@@ -60,7 +60,14 @@
                 android:text="@string/sphero_setting_message_2_2"
                 android:textColor="@color/text_dark"
                 android:textSize="@dimen/text_description" />
-            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:text="@string/sphero_setting_message_2_3"
+                android:textColor="@color/text_red"
+                android:textSize="@dimen/text_description" />
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

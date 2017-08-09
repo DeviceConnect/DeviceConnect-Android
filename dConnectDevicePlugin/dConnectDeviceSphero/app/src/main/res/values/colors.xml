@@ -4,5 +4,6 @@
     <item name="background_title" type="color">#00a0e9</item>
     <item name="text_light" type="color">#ffffff</item>
     <item name="text_dark" type="color">#666666</item>
-    
+    <item name="text_red" type="color">#FF0000</item>
+
 </resources>

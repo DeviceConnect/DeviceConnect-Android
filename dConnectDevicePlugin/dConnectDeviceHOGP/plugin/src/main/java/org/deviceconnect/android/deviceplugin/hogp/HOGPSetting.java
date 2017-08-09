@@ -3,6 +3,11 @@ package org.deviceconnect.android.deviceplugin.hogp;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
+
+/**
+ * HOGPの設定情報を管理するクラス.
+ */
 public class HOGPSetting {
 
     /**
@@ -19,6 +24,16 @@ public class HOGPSetting {
      * Local OAuthのOn/Off設定を格納するキー.
      */
     private static final String KEY_ENABLED_OAUTH = "local_oauth_enabled";
+
+    /**
+     * キーボードの有効・無効設定を格納するキー.
+     */
+    private static final String KEY_ENABLED_KEYBOARD = "hid_keyboard";
+
+    /**
+     * マウスのモード設定を格納するキー.
+     */
+    private static final String KEY_MOUSE_MODE = "hid_mouse";
 
     /**
      * 設定を保存するプリファレンス.
@@ -66,6 +81,42 @@ public class HOGPSetting {
     public void setEnabledOAuth(final boolean flag) {
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putBoolean(KEY_ENABLED_OAUTH, flag);
+        editor.apply();
+    }
+
+    /**
+     * キーボードの有効・無効設定を行います.
+     * @return キーボードの有効・無効
+     */
+    public boolean isEnabledKeyboard() {
+        return mSharedPreferences.getBoolean(KEY_ENABLED_KEYBOARD, false);
+    }
+
+    /**
+     * キーボードの有効・無効設定を行います.
+     * @param flag 有効の場合はtrue、無効の場合はfalse
+     */
+    public void setEnabledKeyboard(final boolean flag) {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putBoolean(KEY_ENABLED_KEYBOARD, flag);
+        editor.apply();
+    }
+
+    /**
+     * マウスのモードを取得します.
+     * @return マウスモード
+     */
+    public HOGPServer.MouseMode getMouseMode() {
+        return HOGPServer.MouseMode.valueOf(mSharedPreferences.getInt(KEY_MOUSE_MODE, HOGPServer.MouseMode.RELATIVE.getValue()));
+    }
+
+    /**
+     * マウスのモードを設定します.
+     * @param mode マウスモード
+     */
+    public void setMouseMode(final HOGPServer.MouseMode mode) {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putInt(KEY_MOUSE_MODE, mode.getValue());
         editor.apply();
     }
 }

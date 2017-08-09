@@ -10,9 +10,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -21,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPSetting;
 import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
+import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUtils;
 
 import java.util.Set;
@@ -153,10 +156,41 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 }
             }
         });
+
         findViewById(R.id.activity_setting_device_switch_title).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sw.setChecked(!sw.isChecked());
+            }
+        });
+
+        findViewById(R.id.activity_setting_hogp_keyboard_title).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                Switch keyboard = (Switch) findViewById(R.id.activity_setting_hogp_keyboard);
+                keyboard.setChecked(!keyboard.isChecked());
+            }
+        });
+
+        Spinner mouse = (Spinner) findViewById(R.id.activity_setting_hogp_mouse_mode);
+        mouse.setSelection(service.getHOGPSetting().getMouseMode().getValue());
+        mouse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(final AdapterView<?> adapter, final View v, final int position, final long id) {
+                service.getHOGPSetting().setMouseMode(HOGPServer.MouseMode.valueOf(position));
+            }
+
+            @Override
+            public void onNothingSelected(final AdapterView<?> adapter) {
+            }
+        });
+
+        Switch keyboard = (Switch) findViewById(R.id.activity_setting_hogp_keyboard);
+        keyboard.setChecked(service.getHOGPSetting().isEnabledKeyboard());
+        keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                service.getHOGPSetting().setEnabledKeyboard(isChecked);
             }
         });
 
@@ -166,6 +200,8 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 mDeviceAdapter.notifyDataSetChanged();
             }
         }
+
+        setEnabledSetting(isStartHOGPServer());
     }
 
     /**
@@ -180,7 +216,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
             public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
                 HOGPMessageService service = getHOGPMessageService();
                 if (service != null) {
-                    service.setEnabledOuath(isChecked);
+                    service.setEnabledOAuth(isChecked);
                 }
             }
         });
@@ -199,6 +235,13 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
      */
     private void setSwitchUI(final boolean flag) {
         ((Switch) findViewById(R.id.activity_setting_device_switch)).setChecked(flag);
+        setEnabledSetting(flag);
+    }
+
+    private void setEnabledSetting(final boolean flag) {
+        findViewById(R.id.activity_setting_hogp_mouse_mode).setEnabled(!flag);
+        findViewById(R.id.activity_setting_hogp_keyboard).setEnabled(!flag);
+        findViewById(R.id.activity_setting_hogp_keyboard_title).setEnabled(!flag);
     }
 
     /**
@@ -248,6 +291,9 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         } else if (!BleUtils.isBlePeripheralSupported(this)) {
             showNotSupportPeripheral();
             setSwitchUI(false);
+        } else if (!checkHOGPSetting()) {
+            showNotSetFeature();
+            setSwitchUI(false);
         } else {
             try {
                 getHOGPMessageService().startHOGPServer();
@@ -258,6 +304,26 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 setSwitchUI(false);
             }
         }
+    }
+
+    /**
+     * マウス・キーボードの設定状態を確認します.
+     * @return 機能が設定されている場合はtrue、それ以外はfalse
+     */
+    private boolean checkHOGPSetting() {
+        HOGPSetting setting = getHOGPMessageService().getHOGPSetting();
+        return (setting.getMouseMode() != HOGPServer.MouseMode.NONE || setting.isEnabledKeyboard());
+    }
+
+    /**
+     * マウス・キーボードの機能が有効になっていないことを警告するダイアログを表示します.
+     */
+    private void showNotSetFeature() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.activity_setting_hid_not_set_title)
+                .setMessage(R.string.activity_setting_hid_not_set_message)
+                .setPositiveButton(R.string.activity_setting_dialog_ok, null)
+                .show();
     }
 
     /**

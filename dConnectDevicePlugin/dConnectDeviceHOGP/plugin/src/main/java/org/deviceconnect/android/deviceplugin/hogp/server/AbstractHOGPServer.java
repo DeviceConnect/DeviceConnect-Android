@@ -19,8 +19,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -179,22 +177,6 @@ public abstract class AbstractHOGPServer {
         if (mBluetoothLeAdvertiser == null) {
             throw new UnsupportedOperationException("Bluetooth LE Advertising not supported on this device.");
         }
-
-        PackageManager pm = context.getPackageManager();
-        String appName = "";
-        int versionCode = 0;
-        try {
-            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
-            appName = packageInfo.applicationInfo.loadLabel(pm).toString();
-            versionCode = packageInfo.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            if (DEBUG) {
-               Log.w(TAG, "", e);
-            }
-        }
-        setManufacturerName(mApplicationContext.getPackageName());
-        setDeviceName(appName);
-        setSerialNumber("" + versionCode);
     }
 
     /**

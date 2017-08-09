@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPSystemProfile;
@@ -136,7 +138,11 @@ public class HOGPMessageService extends DConnectMessageService {
         return mHOGPSetting;
     }
 
-    public void setEnabledOuath(final boolean flag) {
+    /**
+     * Local OAuthの有効・無効を設定します.
+     * @param flag trueの場合はLocal OAuthを有効、falseの場合は無効
+     */
+    public void setEnabledOAuth(final boolean flag) {
         setUseLocalOAuth(flag);
         mHOGPSetting.setEnabledOAuth(flag);
     }
@@ -165,9 +171,15 @@ public class HOGPMessageService extends DConnectMessageService {
 
         if (DEBUG) {
             Log.i(TAG, "Start the HOGP Server.");
+            Log.i(TAG, "Mouse Mode: " + mHOGPSetting.getMouseMode());
+            Log.i(TAG, "Keyboard: " + mHOGPSetting.isEnabledKeyboard());
         }
 
-        mHOGPServer = new HOGPServer(this);
+        if (mHOGPSetting.getMouseMode() == HOGPServer.MouseMode.NONE && !mHOGPSetting.isEnabledKeyboard()) {
+            throw new RuntimeException("The feature is not set. Please set mouse or keyboard.");
+        }
+
+        mHOGPServer = new HOGPServer(this, mHOGPSetting.getMouseMode(), mHOGPSetting.isEnabledKeyboard(), false);
         mHOGPServer.setOnHOGPServerListener(new AbstractHOGPServer.OnHOGPServerListener() {
             @Override
             public void onConnected(final BluetoothDevice device) {
@@ -197,6 +209,22 @@ public class HOGPMessageService extends DConnectMessageService {
                 service.setOnline(false);
             }
         });
+
+        PackageManager pm = getPackageManager();
+        String appName = "";
+        int versionCode = 0;
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(getPackageName(), 0);
+            appName = packageInfo.applicationInfo.loadLabel(pm).toString();
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            if (DEBUG) {
+                Log.w(TAG, "", e);
+            }
+        }
+        mHOGPServer.setManufacturerName(getPackageName());
+        mHOGPServer.setDeviceName(appName);
+        mHOGPServer.setSerialNumber("" + versionCode);
         mHOGPServer.start();
     }
 

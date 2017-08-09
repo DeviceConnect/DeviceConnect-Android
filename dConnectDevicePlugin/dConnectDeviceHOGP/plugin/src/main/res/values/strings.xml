@@ -17,6 +17,18 @@
     <string name="activity_setting_oauth_switch_message">このプラグインに対してアクセスするときにユーザ認可を求めます。</string>
     <string name="activity_setting_oauth_switch_on">ON</string>
     <string name="activity_setting_oauth_switch_off">OFF</string>
+    <string name="activity_setting_hogp">HOGPサーバ設定</string>
+    <string name="activity_setting_hogp_mouse_title">Mouse</string>
+    <string name="activity_setting_hogp_mouse_message">マウスの機能を提供します。</string>
+    <string-array name="activity_setting_hogp_mouse_mode">
+        <item>None</item>
+        <item>Relative</item>
+        <item>Absolute</item>
+    </string-array>
+    <string name="activity_setting_hogp_keyboard_title">Keyboard</string>
+    <string name="activity_setting_hogp_keyboard_message">キーボードの機能を提供します。</string>
+    <string name="activity_setting_hogp_keyboard_switch_on">ON</string>
+    <string name="activity_setting_hogp_keyboard_switch_off">OFF</string>
     <string name="activity_setting_device_list">デバイス一覧</string>
 
     <string name="activity_setting_bt_enabled_dialog_title">警告</string>
@@ -29,6 +41,8 @@
     <string name="activity_setting_peripheral_not_support_message">Bluetooth Peripheralがサポートされていません。</string>
     <string name="activity_setting_failed_to_start_server_title">エラー</string>
     <string name="activity_setting_failed_to_start_server_message">HOGPサーバの起動に失敗しました。\n</string>
+    <string name="activity_setting_hid_not_set_title">エラー</string>
+    <string name="activity_setting_hid_not_set_message">マウスとキーボードの機能が有効になっていません。\nどちらかの機能を有効にしてください。</string>
     <string name="activity_setting_not_start_server_title">警告</string>
     <string name="activity_setting_not_start_server_message">HOGPサーバが起動していません。</string>
     <string name="activity_setting_device_online">接続</string>

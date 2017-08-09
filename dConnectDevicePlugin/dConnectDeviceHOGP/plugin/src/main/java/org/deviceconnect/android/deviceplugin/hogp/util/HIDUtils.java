@@ -1,13 +1,13 @@
 package org.deviceconnect.android.deviceplugin.hogp.util;
 
+/**
+ * HIDのレポートマップを作成するためのユーティリティクラス.
+ */
 public final class HIDUtils {
 
     private HIDUtils() {
     }
 
-    /**
-     * Main items
-     */
     public static byte INPUT(final int size) {
         return (byte) (0x80 | size);
     }
@@ -28,9 +28,6 @@ public final class HIDUtils {
         return (byte) (0xC0 | size);
     }
 
-    /**
-     * Global items
-     */
     public static byte USAGE_PAGE(final int size) {
         return (byte) (0x04 | size);
     }
@@ -71,9 +68,6 @@ public final class HIDUtils {
         return (byte) (0x94 | size);
     }
 
-    /**
-     * Local items
-     */
     public static byte USAGE(final int size) {
         return (byte) (0x08 | size);
     }

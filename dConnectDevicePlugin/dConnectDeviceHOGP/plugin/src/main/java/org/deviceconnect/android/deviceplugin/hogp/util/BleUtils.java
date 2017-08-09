@@ -11,34 +11,21 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 
 /**
- * Utilities for Bluetooth LE
+ * BLEを操作するためのユーティリティクラス.
  */
 public class BleUtils {
 
     /**
-     * Check if Bluetooth LE device supported on the running environment.
+     * BLEがサポートされているか確認します.
      *
-     * @param context the context
-     * @return true if supported
+     * @param context このアプリケーションが属するコンテキスト
+     * @return サポートされている場合はtrue、それ以外はfalse
      */
     public static boolean isBleSupported(@NonNull final Context context) {
         try {
-            if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) == false) {
-                return false;
-            }
-
-            final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-
-            final BluetoothAdapter bluetoothAdapter;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                bluetoothAdapter = bluetoothManager.getAdapter();
-            } else {
-                bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            }
-
-            if (bluetoothAdapter != null) {
-                return true;
-            }
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 &&
+                    context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) &&
+                    getAdapter(context) != null;
         } catch (final Throwable ignored) {
             // ignore exception
         }
@@ -46,10 +33,10 @@ public class BleUtils {
     }
 
     /**
-     * Check if Bluetooth LE Peripheral mode supported on the running environment.
+     * BLEペリフェラルがサポートされているか確認を行います.
      *
-     * @param context the context
-     * @return true if supported
+     * @param context このアプリケーションが属するコンテキスト
+     * @return サポートされている場合はtrue、それ以外はfalse
      */
     @SuppressLint("NewApi")
     public static boolean isBlePeripheralSupported(@NonNull final Context context) {
@@ -57,57 +44,60 @@ public class BleUtils {
             return false;
         }
 
-        final BluetoothAdapter bluetoothAdapter =  ((BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+        BluetoothAdapter bluetoothAdapter = getAdapter(context);
         return bluetoothAdapter != null && bluetoothAdapter.isMultipleAdvertisementSupported();
     }
 
     /**
-     * Check if bluetooth function enabled
+     * Bluetooth設定が有効になっているか確認を行います.
      *
-     * @param context the context
-     * @return true if bluetooth enabled
+     * @param context このアプリケーションが属するコンテキスト
+     * @return Bluetoothが有効になっている場合はtrue
      */
     public static boolean isBluetoothEnabled(@NonNull final Context context) {
-        final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        if (bluetoothManager == null) {
-            return false;
-        }
-
-        final BluetoothAdapter bluetoothAdapter;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            bluetoothAdapter = bluetoothManager.getAdapter();
-        } else {
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        }
-
+        BluetoothAdapter bluetoothAdapter = getAdapter(context);
         return bluetoothAdapter != null && bluetoothAdapter.isEnabled();
     }
 
+    /**
+     * Bluetoothの名前を取得します.
+     * @param context このアプリケーションが属するコンテキスト
+     * @return Bluetoothの名前、名前が取得できない場合はnullを返却します。
+     */
     public static String getBluetoothName(@NonNull final Context context) {
-        final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        if (bluetoothManager == null) {
-            return null;
-        }
-
-        final BluetoothAdapter bluetoothAdapter;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            bluetoothAdapter = bluetoothManager.getAdapter();
-        } else {
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        }
-
+        BluetoothAdapter bluetoothAdapter = getAdapter(context);
         return bluetoothAdapter != null ? bluetoothAdapter.getName() : null;
     }
 
     /**
-     * Request code for bluetooth enabling
+     * BluetoothAdapterをAndroid OS別に取得します.
+     * @param context このアプリケーションが属するコンテキスト
+     * @return BluetoothAdapterのインスタンス
+     */
+    private static BluetoothAdapter getAdapter(final Context context) {
+        BluetoothAdapter bluetoothAdapter;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+            if (bluetoothManager == null) {
+                return null;
+            }
+            bluetoothAdapter = bluetoothManager.getAdapter();
+        } else {
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        }
+        return bluetoothAdapter;
+    }
+
+    /**
+     * Bluetooth有効リクエストコード.
      */
     public static final int REQUEST_CODE_BLUETOOTH_ENABLE = 0xb1e;
 
     /**
-     * Enables bluetooth function.<br />
-     * the Activity may implement the `onActivityResult` method with the request code `REQUEST_CODE_BLUETOOTH_ENABLE`.
-     *
+     * Bluetoothを有効要求を行います.
+     * <p>
+     * 引数に渡されたActivityにonActivityResultを実装して、REQUEST_CODE_BLUETOOTH_ENABLEのリクエストコードに対する応答の処理を実装します。
+     * </p>
      * @param activity the activity
      */
     public static void enableBluetooth(@NonNull final Activity activity) {

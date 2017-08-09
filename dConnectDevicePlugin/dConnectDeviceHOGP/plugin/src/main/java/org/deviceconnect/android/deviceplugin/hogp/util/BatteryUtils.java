@@ -5,10 +5,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 
+/**
+ * バッテリーの残量を取得するためのユーティリティクラス.
+ */
 public final class BatteryUtils {
 
     private BatteryUtils() {}
 
+    /**
+     * バッテリーの残量を取得します.
+     * @param context コンテキスト
+     * @return バッテリーの残量
+     */
     public static float getBatteryLevel(final Context context) {
         IntentFilter intentfilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, intentfilter);

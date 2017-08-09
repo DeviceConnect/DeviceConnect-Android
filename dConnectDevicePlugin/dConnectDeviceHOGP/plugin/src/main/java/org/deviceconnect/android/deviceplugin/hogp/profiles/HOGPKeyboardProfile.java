@@ -12,6 +12,20 @@ import org.deviceconnect.message.DConnectMessage;
 
 public class HOGPKeyboardProfile extends DConnectProfile {
 
+    /**
+     * 押下されているキーコードを格納する変数.
+     * <p>
+     * 0x00の場合は離されている状態.
+     * </p>
+     * <p>
+     * 配列のサイズは、HOGPServerで定義されたサイズになります。
+     * </p>
+     */
+    private byte[] mKeyCodeList = new byte[6];
+
+    /**
+     * コンストラクタ.
+     */
     public HOGPKeyboardProfile() {
 
         // POST /keyboard

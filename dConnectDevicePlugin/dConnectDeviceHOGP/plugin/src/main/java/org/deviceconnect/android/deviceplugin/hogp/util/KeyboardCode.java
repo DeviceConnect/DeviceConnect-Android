@@ -1,11 +1,33 @@
 package org.deviceconnect.android.deviceplugin.hogp.util;
 
+/**
+ * キーボードのキーコードを扱うユーティリティクラス.
+ */
 public final class KeyboardCode {
-
+    /**
+     * モディファイアーキー無し.
+     */
     public static final int MODIFIER_KEY_NONE = 0;
+
+    /**
+     * CTRLキー.
+     */
     public static final int MODIFIER_KEY_CTRL = 1;
+
+    /**
+     * SHIFTキー.
+     */
     public static final int MODIFIER_KEY_SHIFT = 2;
+
+    /**
+     * ALTキー（オプションキー）.
+     */
     public static final int MODIFIER_KEY_ALT = 4;
+
+    /**
+     * GUIキー（Windowsキー・コマンドキー）.
+     */
+    public static final int MODIFIER_KEY_GUI = 8;
 
     public static final int KEY_F1 = 0x3a;
     public static final int KEY_F2 = 0x3b;
@@ -33,11 +55,13 @@ public final class KeyboardCode {
     public static final int KEY_LEFT_ARROW = 0x50;
     public static final int KEY_DOWN_ARROW = 0x51;
     public static final int KEY_UP_ARROW = 0x52;
+    public static final int KEY_ENTER = 0x28;
+    public static final int KEY_ESC = 0x29;
 
     private KeyboardCode() {}
 
     /**
-     * Modifier code for US Keyboard
+     * 指定された文字からモディファイアーキーを取得します.
      *
      * @param aChar String contains one character
      * @return modifier code
@@ -98,7 +122,7 @@ public final class KeyboardCode {
     }
 
     /**
-     * Key code for US Keyboard
+     * 指定された文字からキーコードを取得します.
      *
      * @param aChar String contains one character
      * @return keyCode

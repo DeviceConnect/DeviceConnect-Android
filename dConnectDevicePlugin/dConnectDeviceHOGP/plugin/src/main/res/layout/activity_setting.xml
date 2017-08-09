@@ -130,6 +130,100 @@
             android:layout_height="wrap_content"
             android:background="#00a0e9"
             android:padding="10dp"
+            android:text="@string/activity_setting_hogp"
+            android:textColor="#FFF"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp">
+
+            <Spinner
+                android:id="@+id/activity_setting_hogp_mouse_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:padding="4dp"
+                android:layout_margin="4dp"
+                android:entries="@array/activity_setting_hogp_mouse_mode" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/activity_setting_hogp_mouse_mode"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="4dp"
+                    android:text="@string/activity_setting_hogp_mouse_title"
+                    android:textColor="#000"
+                    android:textSize="20sp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="4dp"
+                    android:text="@string/activity_setting_hogp_mouse_message"
+                    android:textColor="#888"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#ddd"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp">
+
+            <Switch
+                android:id="@+id/activity_setting_hogp_keyboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_margin="4dp"
+                android:textOff="@string/activity_setting_hogp_keyboard_switch_off"
+                android:textOn="@string/activity_setting_hogp_keyboard_switch_on"/>
+
+            <LinearLayout
+                android:id="@+id/activity_setting_hogp_keyboard_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/activity_setting_hogp_keyboard"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="4dp"
+                    android:text="@string/activity_setting_hogp_keyboard_title"
+                    android:textColor="#000"
+                    android:textSize="20sp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="4dp"
+                    android:text="@string/activity_setting_hogp_keyboard_message"
+                    android:textColor="#888"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#00a0e9"
+            android:padding="10dp"
             android:text="@string/activity_setting_device_list"
             android:textColor="#FFF"/>
 

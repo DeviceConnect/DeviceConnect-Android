@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import java.util.UUID;
 
 /**
- * Utilities for BLE UUID
+ * BLE UUIDの扱うためのユーティリティクラス.
  */
 public final class BleUuidUtils {
 
@@ -50,6 +50,8 @@ public final class BleUuidUtils {
     public static final UUID DESCRIPTOR_REPORT_REFERENCE = BleUuidUtils.fromShortValue(0x2908);
     public static final UUID DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION = BleUuidUtils.fromShortValue(0x2902);
 
+    private BleUuidUtils() {
+    }
 
     /**
      * Parses a UUID string with the format defined by toString().

@@ -496,8 +496,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      */
     private DeviceContainer createContainer(final BluetoothDevice device) {
         DeviceContainer container = new DeviceContainer();
-        container.setName(device.getName());
-        container.setAddress(device.getAddress());
+        container.setName(device.getName(), device.getAddress());
         return container;
     }
 
@@ -510,8 +509,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      */
     private DeviceContainer createContainer(final HeartRateDevice device, final boolean register) {
         DeviceContainer container = new DeviceContainer();
-        container.setName(device.getName());
-        container.setAddress(device.getAddress());
+        container.setName(device.getName(), device.getAddress());
         container.setRegisterFlag(register);
         return container;
     }
@@ -542,13 +540,13 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
             return mName;
         }
 
-        public void setName(final String name) {
+        public void setName(final String name, final String address) {
             if (name == null) {
-                mName = getActivity().getResources().getString(
-                        R.string.heart_rate_setting_default_name);
+                mName = address;
             } else {
                 mName = name;
             }
+            mAddress = address;
         }
 
         public String getAddress() {

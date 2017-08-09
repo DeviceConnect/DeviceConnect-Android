@@ -118,6 +118,14 @@ public class EventBroker {
         return null;
     }
 
+    public void updatePluginAccessToken(final String pluginId, final String newAccessToken) {
+        mTable.updatePluginAccessToken(pluginId, newAccessToken);
+    }
+
+    public void removeSessionForPlugin(final String pluginId) {
+        mTable.removeForPlugin(pluginId);
+    }
+
     public void onEvent(final Intent event) {
         if (isServiceChangeEvent(event)) {
             onServiceChangeEvent(event);

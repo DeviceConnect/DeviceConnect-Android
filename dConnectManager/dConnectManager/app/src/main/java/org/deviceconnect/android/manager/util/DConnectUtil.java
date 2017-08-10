@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.util;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -22,9 +23,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.support.v4.content.res.ResourcesCompat;
+import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectSettings;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.utils.JSONUtils;
@@ -349,5 +354,43 @@ public final class DConnectUtil {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }
+    }
+
+    /**
+     * プラグインのアイコン画像を読み込みます.
+     * @param context コンテキスト
+     * @param plugin
+     * @return プラグインのアイコン画像
+     */
+    public static Drawable loadPluginIcon(final Context context, final DevicePlugin plugin) {
+        return loadPluginIcon(context, plugin.getPackageName(), plugin.getPluginIconId());
+    }
+
+    /**
+     * プラグインのアイコン画像を読み込みます.
+     * @param context コンテキスト
+     * @param packageName プラグインのパッケージ名
+     * @param iconId アイコンのリソースID
+     * @return プラグインのアイコン画像
+     */
+    public static Drawable loadPluginIcon(final Context context,
+                                          final String packageName,
+                                          final Integer iconId) {
+        PackageManager pkgMgr = context.getPackageManager();
+        Drawable icon;
+        if (iconId != null) {
+            icon = ResourcesCompat.getDrawable(context.getResources(), iconId, null);
+        } else {
+            try {
+                ApplicationInfo info = pkgMgr.getApplicationInfo(packageName, 0);
+                icon = pkgMgr.getApplicationIcon(info.packageName);
+            } catch (PackageManager.NameNotFoundException e) {
+                icon = null;
+                if (BuildConfig.DEBUG) {
+                    Log.d("Manager", "Icon is not found.");
+                }
+            }
+        }
+        return icon;
     }
 }

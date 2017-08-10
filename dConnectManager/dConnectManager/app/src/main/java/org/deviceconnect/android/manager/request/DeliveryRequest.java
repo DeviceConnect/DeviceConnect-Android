@@ -9,6 +9,8 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.event.EventBroker;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -23,6 +25,24 @@ import java.util.logging.Logger;
 public class DeliveryRequest extends LocalOAuthRequest {
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
+
+    /** イベント管理クラス. */
+    private final EventBroker mEventBroker;
+
+    /**
+     * コンストラクタ.
+     *
+     * @param eventBroker イベント管理クラス
+     */
+    public DeliveryRequest(final EventBroker eventBroker) {
+        mEventBroker = eventBroker;
+    }
+
+    @Override
+    protected void onAccessTokenUpdated(final DevicePlugin plugin,
+                                        final String newAccessToken) {
+        mEventBroker.updateAccessTokenForPlugin(plugin.getPluginId(), newAccessToken);
+    }
 
     /**
      * 実際の命令を行う.
@@ -57,7 +77,9 @@ public class DeliveryRequest extends LocalOAuthRequest {
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ

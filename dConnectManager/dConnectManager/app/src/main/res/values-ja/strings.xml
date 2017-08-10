@@ -138,6 +138,11 @@
     <string name="activity_deviceplugin_info_settings">設定</string>
     <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
     <string name="activity_deviceplugin_info_profile">プロファイル</string>
+    <string name="activity_deviceplugin_info_connection_type_title">連携タイプ</string>
+    <string name="activity_deviceplugin_info_connection_type_binder">バインダー</string>
+    <string name="activity_deviceplugin_info_connection_type_broadcast">ブロードキャスト</string>
+    <string name="activity_deviceplugin_info_connection_type_included_with_manager">マネージャ同梱</string>
+    <string name="activity_deviceplugin_info_connection_type_unknown">不明</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
@@ -183,6 +188,12 @@
     <string name="webview_js_alert_negative_btn">いいえ</string>
 
     <string name="activity_help_title">ヘルプ</string>
+
+    <!-- ================= Error Messages for UI ================= -->
+    <string name="dconnect_error_default_title">エラー</string>
+    <string name="dconnect_error_plugin_not_enabled">プラグインが無効のため、通信を中止しました。</string>
+    <string name="dconnect_error_plugin_suspended">予期しないエラーのためにプラグインと接続できませんでした。プラグイン開発者にお問い合わせください。</string>
+    <string name="dconnect_error_plugin_not_connected">プラグインとの通信に失敗しました。</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

@@ -65,6 +65,16 @@ public interface IntentDConnectMessage extends DConnectMessage {
     String ACTION_DEVICEPLUGIN_RESET = "org.deviceconnect.action.DEVICEPLUGIN_RESET";
 
     /**
+     * アクション:DEVICEPLUGIN_ENABLED.
+     */
+    String ACTION_DEVICEPLUGIN_ENABLED = "org.deviceconnect.action.DEVICEPLUGIN_ENABLED";
+
+    /**
+     * アクション:DEVICEPLUGIN_DISABLED.
+     */
+    String ACTION_DEVICEPLUGIN_DISABLED = "org.deviceconnect.action.DEVICEPLUGIN_DISABLED";
+
+    /**
      * アクション:KEEPALIVE.
      */
     String ACTION_KEEPALIVE = "org.deviceconnect.action.KEEPALIVE";

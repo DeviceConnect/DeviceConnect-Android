@@ -10,8 +10,9 @@ import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
-import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -162,7 +163,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
         // デバイスプラグインに送信
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return null;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ
@@ -230,7 +233,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(getScope()));
 
         // トークン取得を行う
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return null;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ
@@ -262,11 +267,42 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         return null;
     }
 
+    protected boolean forwardRequest(final Intent request) {
+        if (mDevicePlugin == null) {
+            throw new IllegalStateException("Destination is null.");
+        }
+        try {
+            mDevicePlugin.send(request);
+            return true;
+        } catch (MessagingException e) {
+            switch (e.getReason()) {
+                case NOT_ENABLED:
+                    sendPluginDisabledError();
+                    break;
+                case CONNECTION_SUSPENDED:
+                    sendPluginSuspendedError();
+                    break;
+                default: // NOT_CONNECTED
+                    sendIllegalServerStateError("Failed to send a message to the plugin: " + mDevicePlugin.getPackageName());
+                    break;
+            }
+            return false;
+        }
+    }
+
     /**
      * 実際の命令を行う.
      * @param accessToken アクセストークン
      */
     protected abstract void executeRequest(final String accessToken);
+
+    /**
+     * プラグイン側のアクセストークンを更新したときに呼び出されるコールバック.
+     * @param plugin プラグイン
+     * @param newAccessToken 新しいアクセストークン
+     */
+    protected void onAccessTokenUpdated(final DevicePlugin plugin, final String newAccessToken) {
+    }
 
     /**
      * resultの値をレスポンスのIntentから取得する.
@@ -332,7 +368,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         String origin = getRequestOrigin(mRequest);
 
         if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
-            String accessToken = getAccessToken(origin, serviceId);
+            String accessToken = getAccessTokenForPlugin(origin, serviceId);
             if (accessToken != null) {
                 executeRequest(accessToken);
             } else {
@@ -359,8 +395,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                     }
                 }
 
-                accessToken = getAccessToken(origin, serviceId);
+                accessToken = getAccessTokenForPlugin(origin, serviceId);
                 if (accessToken != null) {
+                    onAccessTokenUpdated(mDevicePlugin, accessToken);
                     executeRequest(accessToken);
                 }
             }
@@ -384,7 +421,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
      * @param serviceId サービスID
      * @return アクセストークン
      */
-    private String getAccessToken(final String origin, final String serviceId) {
+    private String getAccessTokenForPlugin(final String origin, final String serviceId) {
         OAuthData oauth = mLocalOAuth.getOAuthData(origin, serviceId);
         if (oauth != null) {
             return mLocalOAuth.getAccessToken(oauth.getId());
@@ -413,7 +450,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
      * @return プロファイルの一覧
      */
     private String[] getScope() {
-        List<String> list = mDevicePlugin.getSupportProfiles();
+        List<String> list = mDevicePlugin.getSupportProfileNames();
         return list.toArray(new String[list.size()]);
     }
 

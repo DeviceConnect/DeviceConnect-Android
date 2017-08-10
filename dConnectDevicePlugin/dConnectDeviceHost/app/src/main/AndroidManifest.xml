@@ -37,17 +37,6 @@
 
         <!-- d-Connect Host Device Plugin Provider. -->
         <receiver android:name=".HostDeviceProvider">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.name"
-                android:value="@string/app_name_for_device_web_api"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.icon"
-                android:resource="@drawable/ic_launcher"/>
 
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET"/>
@@ -91,7 +80,19 @@
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
-            android:exported="false"/>
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_for_device_web_api"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/ic_launcher"/>
+        </service>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
@@ -145,7 +146,7 @@
 
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
-            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
+            android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
             android:exported="true" >
         </provider>
     </application>

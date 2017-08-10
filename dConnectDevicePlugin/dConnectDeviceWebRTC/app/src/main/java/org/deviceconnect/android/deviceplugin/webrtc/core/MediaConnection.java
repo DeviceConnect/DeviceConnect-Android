@@ -177,8 +177,11 @@ public class MediaConnection {
     public synchronized void close() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "@@@ MediaConnection::close: " + this);
+            Log.d(TAG, "@@@ MediaConnection::close: mOpen=" + mOpen);
         }
-
+        if (!mOpen) {
+            return;
+        }
         mOpen = false;
 
         if (mPeerConnection != null) {

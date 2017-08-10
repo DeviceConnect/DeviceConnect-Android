@@ -6,6 +6,9 @@
  */
 package org.deviceconnect.android.localoauth;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,16 +16,16 @@ import java.util.Map;
  * DevicePlugin.xmlのProfile設定値.
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginXmlProfile {
+public class DevicePluginXmlProfile implements Parcelable {
     
     /** プロファイル. */
-    protected String mProfile;
+    protected final String mProfile;
     
     /** 有効期限(秒). */
-    protected long mExpirePeriod;
+    protected final long mExpirePeriod;
     
     /** ロケール別プロファイル情報. */
-    protected Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
+    protected final Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
 
     /** プロファイル定義ディレクトリのパス. nullの場合は assets/api と同じ扱いとする. */
     private String mSpecPath;
@@ -109,4 +112,46 @@ public class DevicePluginXmlProfile {
     public String getSpecPath() {
         return mSpecPath;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mProfile);
+        dest.writeLong(this.mExpirePeriod);
+        dest.writeInt(this.mProfileLocales.size());
+        for (Map.Entry<String, DevicePluginXmlProfileLocale> entry : this.mProfileLocales.entrySet()) {
+            dest.writeString(entry.getKey());
+            dest.writeParcelable(entry.getValue(), flags);
+        }
+        dest.writeString(this.mSpecPath);
+    }
+
+    protected DevicePluginXmlProfile(Parcel in) {
+        this.mProfile = in.readString();
+        this.mExpirePeriod = in.readLong();
+        int mProfileLocalesSize = in.readInt();
+        this.mProfileLocales = new HashMap<String, DevicePluginXmlProfileLocale>(mProfileLocalesSize);
+        for (int i = 0; i < mProfileLocalesSize; i++) {
+            String key = in.readString();
+            DevicePluginXmlProfileLocale value = in.readParcelable(DevicePluginXmlProfileLocale.class.getClassLoader());
+            this.mProfileLocales.put(key, value);
+        }
+        this.mSpecPath = in.readString();
+    }
+
+    public static final Creator<DevicePluginXmlProfile> CREATOR = new Creator<DevicePluginXmlProfile>() {
+        @Override
+        public DevicePluginXmlProfile createFromParcel(Parcel source) {
+            return new DevicePluginXmlProfile(source);
+        }
+
+        @Override
+        public DevicePluginXmlProfile[] newArray(int size) {
+            return new DevicePluginXmlProfile[size];
+        }
+    };
 }

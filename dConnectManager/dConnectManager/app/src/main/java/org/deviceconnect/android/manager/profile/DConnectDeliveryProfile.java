@@ -11,9 +11,9 @@ import android.content.Intent;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.event.EventBroker;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.request.DeliveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -82,7 +82,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 DevicePlugin plugin = plugins.get(0);
                 mEventBroker.onRequest(request, plugin);
 
-                DeliveryRequest req = new DeliveryRequest();
+                DeliveryRequest req = new DeliveryRequest(mEventBroker);
                 req.setContext(getContext());
                 req.setLocalOAuth(mLocalOAuth);
                 req.setUseAccessToken(isUseLocalOAuth(profileName));

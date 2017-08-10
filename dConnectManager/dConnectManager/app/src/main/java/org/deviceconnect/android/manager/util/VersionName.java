@@ -1,7 +1,10 @@
 package org.deviceconnect.android.manager.util;
 
 
-public class VersionName implements Comparable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class VersionName implements Comparable, Parcelable {
 
     private final int[] mVersion;
 
@@ -70,4 +73,32 @@ public class VersionName implements Comparable {
     public String toString() {
         return mExpression;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeIntArray(this.mVersion);
+        dest.writeString(this.mExpression);
+    }
+
+    protected VersionName(Parcel in) {
+        this.mVersion = in.createIntArray();
+        this.mExpression = in.readString();
+    }
+
+    public static final Creator<VersionName> CREATOR = new Creator<VersionName>() {
+        @Override
+        public VersionName createFromParcel(Parcel source) {
+            return new VersionName(source);
+        }
+
+        @Override
+        public VersionName[] newArray(int size) {
+            return new VersionName[size];
+        }
+    };
 }

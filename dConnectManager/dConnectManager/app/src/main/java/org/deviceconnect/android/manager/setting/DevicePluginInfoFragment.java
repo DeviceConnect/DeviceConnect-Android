@@ -6,9 +6,8 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import android.app.Activity;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -17,6 +16,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,12 +29,12 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
-import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
-import org.deviceconnect.android.manager.DConnectApplication;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.MessagingException;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
@@ -50,11 +51,11 @@ public class DevicePluginInfoFragment extends Fragment {
     /** デバイスプラグインをアンインストールする際のリクエストコード. */
     private static final int REQUEST_CODE = 101;
 
-    /** デバイスプラグインのパッケージ名. */
-    private String mPackageName;
+    /** デバイスプラグイン情報. */
+    private DevicePlugin.Info mPluginInfo;
 
-    /** デバイスプラグインのプラグインID. */
-    private String mPluginId;
+    /** プラグイン有効化フラグ. */
+    private boolean mIsEnabled;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -67,33 +68,23 @@ public class DevicePluginInfoFragment extends Fragment {
                              final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_deviceplugin_info, container, false);
 
-        mPluginId = getArguments().getString(DevicePluginInfoActivity.PLUGIN_ID);
-
-        if (mPluginId == null) {
+        mPluginInfo = getArguments().getParcelable(DevicePluginInfoActivity.PLUGIN_INFO);
+        if (mPluginInfo == null || !getArguments().containsKey(DevicePluginInfoActivity.PLUGIN_ENABLED)) {
             getActivity().finish();
             return view;
         }
 
-        String name = null;
-        Drawable icon = null;
-        String versionName = null;
-        DConnectApplication apps = (DConnectApplication) getActivity().getApplication();
-        DevicePluginManager manager = apps.getDevicePluginManager();
-        for (DevicePlugin plugin : manager.getDevicePlugins()) {
-            if (mPluginId.equals(plugin.getPluginId())) {
-                mPackageName = plugin.getPackageName();
-                name = plugin.getDeviceName();
-                icon = plugin.getPluginIcon();
-                versionName = plugin.getVersionName();
-                break;
-            }
+        if (savedInstanceState != null && savedInstanceState.containsKey(DevicePluginInfoActivity.PLUGIN_ENABLED)) {
+            mIsEnabled = savedInstanceState.getBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED);
+        } else {
+            mIsEnabled = getArguments().getBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED);
         }
-
-        // 指定されたプラグインIDのパッケージが見つからない場合は終了
-        if (mPackageName == null) {
-            getActivity().finish();
-            return view;
-        }
+        String packageName = mPluginInfo.getPackageName();
+        Integer iconId = mPluginInfo.getPluginIconId();
+        String name = mPluginInfo.getDeviceName();
+        Drawable icon = DConnectUtil.loadPluginIcon(getActivity(), packageName, iconId);
+        String versionName = mPluginInfo.getVersionName();
+        String managerPackageName = getActivity().getPackageName();
 
         TextView nameView = (TextView) view.findViewById(R.id.plugin_package_name);
         nameView.setText(name);
@@ -106,6 +97,7 @@ public class DevicePluginInfoFragment extends Fragment {
         versionView.setText(getString(R.string.activity_deviceplugin_info_version) + versionName);
 
         Button settingBtn = (Button) view.findViewById(R.id.plugin_settings_btn);
+        settingBtn.setEnabled(mIsEnabled);
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -119,8 +111,9 @@ public class DevicePluginInfoFragment extends Fragment {
                 openUninstall();
             }
         });
-        deleteBtn.setEnabled(!mPackageName.equals(getActivity().getPackageName()));
+        deleteBtn.setEnabled(!packageName.equals(managerPackageName));
         Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
+        restartBtn.setEnabled(mIsEnabled);
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -128,9 +121,27 @@ public class DevicePluginInfoFragment extends Fragment {
             }
         });
 
+        TextView connectionTypeView = (TextView) view.findViewById(R.id.plugin_connection_type);
+        int resId;
+        switch (mPluginInfo.getConnectionType()) {
+            case BINDER:
+                resId = R.string.activity_deviceplugin_info_connection_type_binder;
+                break;
+            case BROADCAST:
+                resId = R.string.activity_deviceplugin_info_connection_type_broadcast;
+                break;
+            case INTERNAL:
+                resId = R.string.activity_deviceplugin_info_connection_type_included_with_manager;
+                break;
+            default:
+                resId = R.string.activity_deviceplugin_info_connection_type_unknown;
+                break;
+        }
+        connectionTypeView.setText(getString(resId));
+
         LinearLayout mainLayout = (LinearLayout) view.findViewById(R.id.plugin_support_profiles);
 
-        Map<String, DevicePluginXmlProfile> profiles = getSupportedProfiles();
+        Map<String, DevicePluginXmlProfile> profiles = mPluginInfo.getSupportedProfiles();
         if (profiles != null) {
             String locale = Locale.getDefault().getLanguage();
             for (String key : profiles.keySet()) {
@@ -154,6 +165,33 @@ public class DevicePluginInfoFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED, mIsEnabled);
+    }
+
+    private void runOnUiThread(final Runnable r) {
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(r);
+        }
+    }
+
+    void onEnabled(final boolean isEnabled) {
+        mIsEnabled = isEnabled;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Button settingBtn = (Button) getView().findViewById(R.id.plugin_settings_btn);
+                settingBtn.setEnabled(isEnabled);
+                Button restartBtn = (Button) getView().findViewById(R.id.plugin_restart_btn);
+                restartBtn.setEnabled(isEnabled);
+            }
+        });
+    }
+
+    @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (android.R.id.home == item.getItemId()) {
             getActivity().finish();
@@ -166,44 +204,38 @@ public class DevicePluginInfoFragment extends Fragment {
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE) {
-            if (!existApplicationFromPackageName(mPackageName)) {
+            if (!existApplicationFromPackageName(mPluginInfo.getPackageName())) {
                 getActivity().finish();
             }
         }
     }
 
-    /**
-     * Get supported profiles.
-     * @return profiles
-     */
-    private Map<String, DevicePluginXmlProfile> getSupportedProfiles() {
-        return DevicePluginXmlUtil.getSupportProfiles(getActivity(), mPackageName);
+    private DevicePluginManager getPluginManager() {
+        Activity activity = getActivity();
+        if (activity != null && activity instanceof DevicePluginInfoActivity) {
+            DevicePluginInfoActivity infoActivity = (DevicePluginInfoActivity) activity;
+            return infoActivity.getPluginManager();
+        }
+        return null;
     }
 
     /**
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        if (mPackageName == null || mPluginId == null) {
-            return;
+        Activity activity = getActivity();
+        if (activity != null) {
+            Intent request = new Intent(activity, DConnectService.class);
+            request.setAction(DConnectService.ACTION_OPEN_SETTINGS);
+            request.putExtra(DConnectService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
+            activity.startService(request);
         }
+    }
 
-        DConnectApplication app = (DConnectApplication) getActivity().getApplication();
-        List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
-        for (DevicePlugin plugin : plugins) {
-            if (mPackageName.equals(plugin.getPackageName())
-                    && mPluginId.equals(plugin.getPluginId())) {
-                Intent request = new Intent();
-                request.setComponent(plugin.getComponentName());
-                request.setAction(IntentDConnectMessage.ACTION_PUT);
-                SystemProfile.setApi(request, "gotapi");
-                SystemProfile.setProfile(request, SystemProfile.PROFILE_NAME);
-                SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
-                SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
-                request.putExtra("pluginId", plugin.getPluginId());
-                getActivity().sendBroadcast(request);
-                break;
-            }
+    private void showMessagingErrorDialog(final MessagingException e) {
+        Activity activity = getActivity();
+        if (activity != null && activity instanceof BaseSettingActivity) {
+            ((BaseSettingActivity) activity).showMessagingErrorDialog(e);
         }
     }
 
@@ -211,11 +243,7 @@ public class DevicePluginInfoFragment extends Fragment {
      * Open uninstall dialog.
      */
     private void openUninstall() {
-        if (mPackageName == null) {
-            return;
-        }
-
-        Uri uri = Uri.fromParts("package", mPackageName, null);
+        Uri uri = Uri.fromParts("package", mPluginInfo.getPackageName(), null);
         Intent intent = new Intent(Intent.ACTION_DELETE, uri);
         startActivityForResult(intent, REQUEST_CODE);
     }
@@ -237,10 +265,13 @@ public class DevicePluginInfoFragment extends Fragment {
 
             @Override
             protected Void doInBackground(final Void... params) {
-                DConnectApplication app = (DConnectApplication) getActivity().getApplication();
-                List<DevicePlugin> plugins = app.getDevicePluginManager().getDevicePlugins();
+                DevicePluginManager mgr = getPluginManager();
+                if (mgr == null) {
+                    return null;
+                }
+                List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (plugin.getPackageName().equals(mPackageName)
+                    if (plugin.getPackageName().equals(mPluginInfo.getPackageName())
                             && plugin.getStartServiceClassName() != null
                             && plugin.getPluginId() != null) {
                         restartDevicePlugin(plugin);
@@ -270,7 +301,11 @@ public class DevicePluginInfoFragment extends Fragment {
         request.setComponent(plugin.getComponentName());
         request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
         request.putExtra("pluginId", plugin.getPluginId());
-        getActivity().sendBroadcast(request);
+        try {
+            plugin.send(request);
+        } catch (MessagingException e) {
+            showMessagingErrorDialog(e);
+        }
     }
 
     /**

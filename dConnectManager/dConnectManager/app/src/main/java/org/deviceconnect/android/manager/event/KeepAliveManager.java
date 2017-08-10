@@ -12,7 +12,7 @@ import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.Iterator;

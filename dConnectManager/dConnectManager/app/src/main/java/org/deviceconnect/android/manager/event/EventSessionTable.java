@@ -1,7 +1,9 @@
 package org.deviceconnect.android.manager.event;
 
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import android.util.Log;
+
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,6 +40,28 @@ public class EventSessionTable {
     void remove(final EventSession session) {
         synchronized (mEventSessions) {
             mEventSessions.remove(session);
+        }
+    }
+
+    void updateAccessTokenForPlugin(final String pluginId, final String newAccessToken) {
+        synchronized (mEventSessions) {
+            for (EventSession session : mEventSessions) {
+                if (session.getPluginId().equals(pluginId)) {
+                    session.setAccessToken(newAccessToken);
+                }
+            }
+        }
+    }
+
+    void removeForPlugin(final String pluginId) {
+        synchronized (mEventSessions) {
+            for (Iterator<EventSession> it = mEventSessions.iterator(); it.hasNext(); ) {
+                EventSession session = it.next();
+                Log.d("AAA", "removeForPlugin: pluginId = " + pluginId + ", session = " + session.getPluginId() + ", compare = " + session.getPluginId().equals(pluginId));
+                if (session.getPluginId().equals(pluginId)) {
+                    it.remove();
+                }
+            }
         }
     }
 

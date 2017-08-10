@@ -85,7 +85,9 @@ public class ServiceDiscovery extends Authorization {
     private ServiceContainer parseService(final JSONObject obj) throws JSONException {
         ServiceContainer service = new ServiceContainer();
         service.setId(obj.getString(ServiceDiscoveryProfile.PARAM_ID));
-        service.setName(obj.getString(ServiceDiscoveryProfile.PARAM_NAME));
+        if (!obj.isNull(ServiceDiscoveryProfile.PARAM_NAME)) {
+            service.setName(obj.getString(ServiceDiscoveryProfile.PARAM_NAME));
+        }
         if (obj.has(ServiceDiscoveryProfile.PARAM_TYPE)) {
             service.setNetworkType(ServiceDiscoveryProfile.NetworkType.getInstance(obj.getString(ServiceDiscoveryProfile.PARAM_TYPE)));
         } else {

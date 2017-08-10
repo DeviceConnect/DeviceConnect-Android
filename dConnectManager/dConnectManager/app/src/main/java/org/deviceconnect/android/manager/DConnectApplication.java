@@ -22,18 +22,7 @@ import java.util.logging.SimpleFormatter;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApplication extends HostDeviceApplication {
-    /** ドメイン名. */
-    private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
-
-    /** ローカルのドメイン名. */
-    private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
-
-    /** WebSocket管理クラス. */
-    private WebSocketInfoManager mWebSocketInfoManager;
-
-    /** デバイスプラグイン管理クラス. */
-    private DevicePluginManager mDevicePluginManager;
+public class DConnectApplication  extends HostDeviceApplication {
 
     @Override
     public void onCreate() {
@@ -50,30 +39,6 @@ public class DConnectApplication extends HostDeviceApplication {
         }
 
         initialize();
-
-        mDevicePluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
-        mDevicePluginManager.createDevicePluginList();
-
-        mWebSocketInfoManager = new WebSocketInfoManager(this);
-    }
-
-    @Override
-    public void onTerminate() {
-        mWebSocketInfoManager = null;
-        mDevicePluginManager = null;
-        super.onTerminate();
-    }
-
-    public void updateDevicePluginList() {
-        mDevicePluginManager.createDevicePluginList();
-    }
-
-    public WebSocketInfoManager getWebSocketInfoManager() {
-        return mWebSocketInfoManager;
-    }
-
-    public DevicePluginManager getDevicePluginManager() {
-        return mDevicePluginManager;
     }
 
     private void initialize() {

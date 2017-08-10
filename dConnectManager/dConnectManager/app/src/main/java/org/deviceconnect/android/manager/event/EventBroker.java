@@ -14,8 +14,8 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectMessageService;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.request.DiscoveryDeviceRequest;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -116,6 +116,14 @@ public class EventBroker {
             return mLocalOAuth.getAccessToken(oauth.getId());
         }
         return null;
+    }
+
+    public void updateAccessTokenForPlugin(final String pluginId, final String newAccessToken) {
+        mTable.updateAccessTokenForPlugin(pluginId, newAccessToken);
+    }
+
+    public void removeSessionForPlugin(final String pluginId) {
+        mTable.removeForPlugin(pluginId);
     }
 
     public void onEvent(final Intent event) {

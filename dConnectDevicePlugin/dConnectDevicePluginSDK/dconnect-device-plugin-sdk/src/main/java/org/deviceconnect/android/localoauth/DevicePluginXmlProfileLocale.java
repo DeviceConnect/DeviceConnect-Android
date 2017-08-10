@@ -6,11 +6,14 @@
  */
 package org.deviceconnect.android.localoauth;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * DevicePlugin.xmlのプロファイルロケール情報.
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginXmlProfileLocale {
+public class DevicePluginXmlProfileLocale implements Parcelable {
 
     /** ロケール文字列("ja","en"). */
     protected String mLocale;
@@ -20,7 +23,6 @@ public class DevicePluginXmlProfileLocale {
     
     /** ローカライズされたDescription. */
     protected String mDescription;
-
     
     /**
      * コンストラクタ(ロケール文字列指定).
@@ -78,4 +80,33 @@ public class DevicePluginXmlProfileLocale {
         mDescription = description;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mLocale);
+        dest.writeString(this.mName);
+        dest.writeString(this.mDescription);
+    }
+
+    protected DevicePluginXmlProfileLocale(Parcel in) {
+        this.mLocale = in.readString();
+        this.mName = in.readString();
+        this.mDescription = in.readString();
+    }
+
+    public static final Creator<DevicePluginXmlProfileLocale> CREATOR = new Creator<DevicePluginXmlProfileLocale>() {
+        @Override
+        public DevicePluginXmlProfileLocale createFromParcel(Parcel source) {
+            return new DevicePluginXmlProfileLocale(source);
+        }
+
+        @Override
+        public DevicePluginXmlProfileLocale[] newArray(int size) {
+            return new DevicePluginXmlProfileLocale[size];
+        }
+    };
 }

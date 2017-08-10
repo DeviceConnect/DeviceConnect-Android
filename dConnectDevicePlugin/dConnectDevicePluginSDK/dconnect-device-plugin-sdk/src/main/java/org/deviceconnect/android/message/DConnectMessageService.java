@@ -7,14 +7,19 @@
 package org.deviceconnect.android.message;
 
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.ParcelFileDescriptor;
+import android.os.RemoteException;
 
 import org.deviceconnect.android.BuildConfig;
+import org.deviceconnect.android.IDConnectCallback;
+import org.deviceconnect.android.IDConnectPlugin;
 import org.deviceconnect.android.compat.AuthorizationRequestConverter;
 import org.deviceconnect.android.compat.LowerCaseConverter;
 import org.deviceconnect.android.compat.MessageConverter;
@@ -50,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
@@ -67,7 +73,7 @@ import java.util.logging.SimpleFormatter;
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectMessageService extends Service implements DConnectProfileProvider {
-    
+
     /** 
      * LocalOAuthで無視するプロファイル群.
      */
@@ -119,7 +125,20 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private final IBinder mLocalBinder = new LocalBinder();
 
+    private final IBinder mRemoteBinder = new PluginBinder();
+
+    private final Map<String, MessageSender> mBindingSenders = new ConcurrentHashMap<>();
+
+    private final MessageSender mDefaultSender = new MessageSender() {
+        @Override
+        public void send(final Intent message) {
+            sendBroadcast(message);
+        }
+    };
+
     private ScheduledExecutorService mExecutorService;
+
+    private boolean mIsEnabled;
 
     @Override
     public void onCreate() {
@@ -154,11 +173,28 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
         // LocalOAuthの後始末
         LocalOAuth2Main.destroy();
+        // コールバック一覧を削除
+        mBindingSenders.clear();
     }
 
     @Override
     public IBinder onBind(final Intent intent) {
-        return mLocalBinder;
+        mLogger.info("onBind: " + getClass().getName());
+        if (isCalledFromLocal()) {
+            mLogger.info("onBind: Local binder");
+            return mLocalBinder;
+        }
+        mLogger.info("onBind: Remote binder");
+        return mRemoteBinder;
+    }
+
+    private boolean isCalledFromLocal() {
+        return getPackageName().equals(getCallingPackage());
+    }
+
+    private String getCallingPackage() {
+        int uid = Binder.getCallingUid();
+        return getPackageManager().getNameForUid(uid);
     }
 
     @Override
@@ -176,14 +212,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return START_STICKY;
         }
 
+        handleMessage(intent);
+        return START_STICKY;
+    }
+
+    private void handleMessage(final Intent intent) {
+        String action = intent.getAction();
         if (checkRequestAction(action)) {
-            convertRequest(intent);
-            mExecutorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    onRequest(intent, MessageUtils.createResponseIntent(intent));
-                }
-            });
+            onRequest(intent);
         }
 
         if (checkManagerUninstall(intent)) {
@@ -201,7 +237,16 @@ public abstract class DConnectMessageService extends Service implements DConnect
         if (checkDevicePluginReset(action)) {
             onDevicePluginReset();
         }
-        return START_STICKY;
+
+        if (checkDevicePluginEnabled(action)) {
+            mIsEnabled = true;
+            onDevicePluginEnabled();
+        }
+
+        if (checkDevicePluginDisabled(action)) {
+            mIsEnabled = false;
+            onDevicePluginDisabled();
+        }
     }
 
     /**
@@ -355,7 +400,46 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     /**
-     * 受信したリクエストをプロファイルに振り分ける.
+     * プラグイン有効通知を受信したかチェックします.
+     * @param action チェックするアクション
+     * @return プラグイン有効通知でtrue、それ以外はfalse
+     */
+    private boolean checkDevicePluginEnabled(String action) {
+        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_ENABLED.equals(action);
+    }
+
+    /**
+     * プラグイン無効通知を受信したかチェックします.
+     * @param action チェックするアクション
+     * @return プラグイン無効通知でtrue、それ以外はfalse
+     */
+    private boolean checkDevicePluginDisabled(String action) {
+        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_DISABLED.equals(action);
+    }
+
+    private void onRequest(final Intent request) {
+        convertRequest(request);
+        mExecutorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                onRequest(request, MessageUtils.createResponseIntent(request));
+            }
+        });
+    }
+
+    private MessageSender getMessageSender(final Intent message) {
+        ComponentName target = message.getComponent();
+        String targetPackage = target.getPackageName();
+        MessageSender sender = mBindingSenders.get(targetPackage);
+        if (sender != null) {
+            return sender;
+        } else {
+            return mDefaultSender;
+        }
+    }
+
+    /**
+     * ブロードキャストで受信したリクエストをプロファイルに振り分ける.
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
@@ -497,8 +581,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
             mLogger.info("sendResponse Extra: " + response.getExtras());
         }
 
-        getContext().sendBroadcast(response);
-        return true;
+        MessageSender sender = getMessageSender(response);
+        if (sender != null) {
+            sender.send(response);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -527,8 +615,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
             mLogger.info("sendEvent Extra: " + event.getExtras());
         }
 
-        getContext().sendBroadcast(event);
-        return true;
+        MessageSender sender = getMessageSender(event);
+        if (sender != null) {
+            sender.send(event);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -651,19 +743,93 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     /**
+     * Device Connect Managerからプラグイン有効通知を受信した時に呼ばれる処理部.
+     */
+    protected void onDevicePluginEnabled() {
+        mLogger.info("SDK : onEnabled");
+    }
+
+    /**
+     * Device Connect Managerからプラグイン無効通知を受信した時に呼ばれる処理部.
+     */
+    protected void onDevicePluginDisabled() {
+        mLogger.info("SDK : onDisabled");
+    }
+
+    /**
+     * Device Connect Manager側で本プラグインが有効になっているかどうかを取得する.
+     * @return 有効になっている場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    protected boolean isEnabled() {
+        return mIsEnabled;
+    }
+
+    /**
      * Serviceをバインドするためのクラス.
      * <p>
      * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity}で、
      * サービス一覧をを取得するためにバインドされる。
      * </p>
      */
-    public class LocalBinder extends Binder {
+    public class LocalBinder extends IDConnectPlugin.Stub {
+
+        private final IDConnectPlugin.Stub mDelegate = new PluginBinder();
+
         /**
          * DConnectMessageServiceのインスタンスを取得する.
+         * <p>
+         * 本メソッドはDevice Connect Manager内部のみで使用される.
+         * </p>
          * @return DConnectMessageServiceのインスタンス
          */
         public DConnectMessageService getMessageService() {
             return DConnectMessageService.this;
         }
+
+        @Override
+        public void registerCallback(final IDConnectCallback callback) throws RemoteException {
+            mDelegate.registerCallback(callback);
+        }
+
+        @Override
+        public void sendMessage(final Intent message) throws RemoteException {
+            mDelegate.sendMessage(message);
+        }
+
+        @Override
+        public ParcelFileDescriptor readFileDescriptor(final String fileId) throws RemoteException {
+            return mDelegate.readFileDescriptor(fileId);
+        }
+    }
+    
+    private class PluginBinder extends IDConnectPlugin.Stub {
+
+        @Override
+        public void registerCallback(final IDConnectCallback callback) throws RemoteException {
+            mBindingSenders.put(getCallingPackage(), new MessageSender() {
+                @Override
+                public void send(final Intent message) {
+                    try {
+                        callback.sendMessage(message);
+                    } catch (RemoteException e) {
+                        // TODO マネージャへの応答に失敗した場合
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void sendMessage(final Intent message) throws RemoteException {
+            handleMessage(message);
+        }
+
+        @Override
+        public ParcelFileDescriptor readFileDescriptor(final String fileId) throws RemoteException {
+            return null; // 将来的に必要になった場合に実装.
+        }
+    }
+
+    private interface MessageSender {
+        void send(Intent response);
     }
 }

@@ -14,6 +14,7 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectLaunchActivity extends Activity {
+public class DConnectLaunchActivity extends AppCompatActivity {
 
     /**
      * The names of URI scheme for launching Device Connect Manager.
@@ -71,7 +72,7 @@ public class DConnectLaunchActivity extends Activity {
 
     private DConnectSettings mSettings = DConnectSettings.getInstance();
 
-    private Runnable mBehavior;
+    private Task mBehavior;
 
     /** マネージャ本体のサービスがBindされているかどうか. */
     private boolean mIsBind = false;
@@ -80,7 +81,7 @@ public class DConnectLaunchActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
-        getActionBar().hide();
+        getSupportActionBar().hide();
 
         mHmacManager = new HmacManager(this);
         mSettings.load(this);
@@ -101,9 +102,9 @@ public class DConnectLaunchActivity extends Activity {
             if (HOST_START.equals(host)) {
                 preventAutoStop();
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
-                    mBehavior = new Runnable() {
+                    mBehavior = new Task() {
                         @Override
-                        public void run() {
+                        public void onManagerBonded(final DConnectService managerService) {
                             if (mDConnectService != null) {
                                 if (!mDConnectService.isRunning()) {
                                     displayActivity();
@@ -117,9 +118,9 @@ public class DConnectLaunchActivity extends Activity {
                         }
                     };
                 } else if (PATH_SERVER.equals(path)) {
-                    mBehavior = new Runnable() {
+                    mBehavior = new Task() {
                         @Override
-                        public void run() {
+                        public void onManagerBonded(final DConnectService managerService) {
                             startManager();
                             setResult(RESULT_OK);
                             finish();
@@ -131,9 +132,9 @@ public class DConnectLaunchActivity extends Activity {
                 }
             } else if (HOST_STOP.equals(host)) {
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
-                    mBehavior = new Runnable() {
+                    mBehavior = new Task() {
                         @Override
-                        public void run() {
+                        public void onManagerBonded(final DConnectService managerService) {
                             if (mDConnectService != null) {
                                 if (mDConnectService.isRunning()) {
                                     displayActivity();
@@ -147,10 +148,10 @@ public class DConnectLaunchActivity extends Activity {
                         }
                     };
                 } else if (PATH_SERVER.equals(path)) {
-                    mBehavior = new Runnable() {
+                    mBehavior = new Task() {
                         @Override
-                        public void run() {
-                            boolean canStop = !existsConnectedWebSocket();
+                        public void onManagerBonded(final DConnectService managerService) {
+                            boolean canStop = !existsConnectedWebSocket(managerService);
                             int result;
                             if (canStop) {
                                 stopManager();
@@ -274,7 +275,7 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     private void displayActivity() {
-        getActionBar().show();
+        getSupportActionBar().show();
         setContentView(R.layout.activity_dconnect_launcher);
         setTheme(R.style.AppTheme);
         View root = findViewById(R.id.launcher_root);
@@ -294,8 +295,8 @@ public class DConnectLaunchActivity extends Activity {
         }
     }
 
-    private boolean existsConnectedWebSocket() {
-        WebSocketInfoManager mgr = ((DConnectApplication) getApplication()).getWebSocketInfoManager();
+    private boolean existsConnectedWebSocket(final DConnectService managerService) {
+        WebSocketInfoManager mgr = managerService.getWebSocketInfoManager();
         return mgr.getWebSocketInfos().size() > 0;
     }
 
@@ -364,7 +365,7 @@ public class DConnectLaunchActivity extends Activity {
                 @Override
                 public void run() {
                     if (mBehavior != null) {
-                        mBehavior.run();
+                        mBehavior.onManagerBonded(mDConnectService);
                     }
                 }
             });
@@ -375,4 +376,8 @@ public class DConnectLaunchActivity extends Activity {
             mDConnectService = null;
         }
     };
+
+    private interface Task {
+        void onManagerBonded(final DConnectService managerService);
+    }
 }

@@ -11,7 +11,8 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -41,9 +44,6 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
     /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
 
-    /** レスポンスが返ってきた個数. */
-    private int mResponseCount;
-
     /** リクエストコードを格納する配列. */
     private SparseArray<DevicePlugin> mRequestCodeArray = new SparseArray<>();
 
@@ -55,8 +55,10 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
     private CountDownLatch mCountDownLatch;
 
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
     @Override
-    public void setResponse(final Intent response) {
+    public synchronized void setResponse(final Intent response) {
         // リクエストコードを取得
         int requestCode = response.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
@@ -84,12 +86,11 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         }
 
         // レスポンス個数を追加
-        mResponseCount++;
         mCountDownLatch.countDown();
     }
 
     @Override
-    public boolean hasRequestCode(final int requestCode) {
+    public synchronized boolean hasRequestCode(final int requestCode) {
         return mRequestCodeArray.get(requestCode) != null;
     }
 
@@ -103,38 +104,52 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             throw new RuntimeException("mDevicePluginManager is null.");
         }
 
-        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins();
-
-        // 送信用のIntentを作成
-        Intent request = createRequestMessage(mRequest, null);
-
-        // プラグイン側のI/Fに変換
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
-        request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
-
+        final List<DevicePlugin> plugins = mPluginMgr.getEnabledDevicePlugins();
         mCountDownLatch = new CountDownLatch(plugins.size());
 
         for (int i = 0; i < plugins.size(); i++) {
-            DevicePlugin plugin = plugins.get(i);
+            final int index = i;
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    // 送信用のIntentを作成
+                    final Intent request = createRequestMessage(mRequest, null);
 
-            int requestCode = UUID.randomUUID().hashCode();
-            mRequestCodeArray.put(requestCode, plugin);
+                    // プラグイン側のI/Fに変換
+                    request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
+                    request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
+                    request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
 
-            request.setComponent(plugin.getComponentName());
-            request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-            mContext.sendBroadcast(request);
+                    DevicePlugin plugin = plugins.get(index);
+
+                    // リクエストコード発行
+                    int requestCode = UUID.randomUUID().hashCode();
+                    mRequestCodeArray.put(requestCode, plugin);
+
+                    request.setComponent(plugin.getComponentName());
+                    request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+                    try {
+                        plugin.send(request);
+                    } catch (MessagingException e) {
+                        e.printStackTrace();
+                        mCountDownLatch.countDown();
+                    }
+                }
+            });
         }
 
-        try {
-            mCountDownLatch.await(mTimeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            mLogger.warning("Exception occurred in wait.");
+        if (mCountDownLatch.getCount() > 0) {
+            try {
+                mCountDownLatch.await(mTimeout, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                mLogger.warning("Exception occurred in wait.");
+            }
         }
 
-        if (mResponseCount < plugins.size()) {
-            restartDevicePlugins();
-        }
+        // TODO: 応答のなかったプラグインだけを再起動する
+//        if (mResponseCount < plugins.size()) {
+//            restartDevicePlugins();
+//        }
 
         // パラメータを設定する
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);

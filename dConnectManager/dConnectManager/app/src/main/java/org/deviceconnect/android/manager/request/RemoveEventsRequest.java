@@ -9,7 +9,8 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 import android.util.SparseArray;
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -83,7 +84,11 @@ public class RemoveEventsRequest extends DConnectRequest {
 
             request.setComponent(plugin.getComponentName());
             request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-            mContext.sendBroadcast(request);
+            try {
+                plugin.send(request);
+            } catch (MessagingException e) {
+                // NOP.
+            }
         }
 
         // 各デバイスのレスポンスを待つ

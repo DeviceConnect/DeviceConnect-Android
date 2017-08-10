@@ -33,7 +33,7 @@
             android:key="@string/key_settings_list_access_token"
             android:title="@string/activity_settings_list_access_token_list" >
             <intent android:targetPackage="org.deviceconnect.android.manager"
-                    android:targetClass="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" />
+                    android:targetClass="org.deviceconnect.android.manager.setting.AccessTokenListActivity" />
         </PreferenceScreen>
         <CheckBoxPreference
             android:defaultValue="true"

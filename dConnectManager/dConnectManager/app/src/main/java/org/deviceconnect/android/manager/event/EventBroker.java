@@ -118,8 +118,8 @@ public class EventBroker {
         return null;
     }
 
-    public void updatePluginAccessToken(final String pluginId, final String newAccessToken) {
-        mTable.updatePluginAccessToken(pluginId, newAccessToken);
+    public void updateAccessTokenForPlugin(final String pluginId, final String newAccessToken) {
+        mTable.updateAccessTokenForPlugin(pluginId, newAccessToken);
     }
 
     public void removeSessionForPlugin(final String pluginId) {

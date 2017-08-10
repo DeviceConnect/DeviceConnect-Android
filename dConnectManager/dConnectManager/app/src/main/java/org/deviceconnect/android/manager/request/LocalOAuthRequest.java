@@ -297,6 +297,14 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
     protected abstract void executeRequest(final String accessToken);
 
     /**
+     * プラグイン側のアクセストークンを更新したときに呼び出されるコールバック.
+     * @param plugin プラグイン
+     * @param newAccessToken 新しいアクセストークン
+     */
+    protected void onAccessTokenUpdated(final DevicePlugin plugin, final String newAccessToken) {
+    }
+
+    /**
      * resultの値をレスポンスのIntentから取得する.
      * @param response レスポンスのIntent
      * @return resultの値
@@ -360,7 +368,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         String origin = getRequestOrigin(mRequest);
 
         if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
-            String accessToken = getAccessToken(origin, serviceId);
+            String accessToken = getAccessTokenForPlugin(origin, serviceId);
             if (accessToken != null) {
                 executeRequest(accessToken);
             } else {
@@ -387,8 +395,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                     }
                 }
 
-                accessToken = getAccessToken(origin, serviceId);
+                accessToken = getAccessTokenForPlugin(origin, serviceId);
                 if (accessToken != null) {
+                    onAccessTokenUpdated(mDevicePlugin, accessToken);
                     executeRequest(accessToken);
                 }
             }
@@ -412,7 +421,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
      * @param serviceId サービスID
      * @return アクセストークン
      */
-    private String getAccessToken(final String origin, final String serviceId) {
+    private String getAccessTokenForPlugin(final String origin, final String serviceId) {
         OAuthData oauth = mLocalOAuth.getOAuthData(origin, serviceId);
         if (oauth != null) {
             return mLocalOAuth.getAccessToken(oauth.getId());

@@ -82,7 +82,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 DevicePlugin plugin = plugins.get(0);
                 mEventBroker.onRequest(request, plugin);
 
-                DeliveryRequest req = new DeliveryRequest();
+                DeliveryRequest req = new DeliveryRequest(mEventBroker);
                 req.setContext(getContext());
                 req.setLocalOAuth(mLocalOAuth);
                 req.setUseAccessToken(isUseLocalOAuth(profileName));

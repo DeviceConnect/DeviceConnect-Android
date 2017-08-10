@@ -43,7 +43,7 @@ public class EventSessionTable {
         }
     }
 
-    void updatePluginAccessToken(final String pluginId, final String newAccessToken) {
+    void updateAccessTokenForPlugin(final String pluginId, final String newAccessToken) {
         synchronized (mEventSessions) {
             for (EventSession session : mEventSessions) {
                 if (session.getPluginId().equals(pluginId)) {

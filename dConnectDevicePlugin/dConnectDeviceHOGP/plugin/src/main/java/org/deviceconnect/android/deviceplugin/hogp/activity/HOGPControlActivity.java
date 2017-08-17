@@ -1,6 +1,11 @@
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.ActionBar;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.GestureDetector;
@@ -18,7 +23,7 @@ import org.deviceconnect.android.deviceplugin.hogp.util.KeyboardCode;
 /**
  * コントローラ画面用Activity.
  */
-public class HOGPControlActivity extends HOGPBaseActivity {
+public class HOGPControlActivity extends HOGPBaseActivity implements SensorEventListener {
     /**
      * ジェスチャー検出器.
      */
@@ -51,6 +56,9 @@ public class HOGPControlActivity extends HOGPBaseActivity {
      * MotionEventを送信した時間.
      */
     private long mTime;
+
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometerSensor;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -276,6 +284,23 @@ public class HOGPControlActivity extends HOGPBaseActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensorManager.registerListener(this, mAccelerometerSensor, SensorManager.SENSOR_DELAY_UI);
+    }
+
+    @Override
+    protected void onPause() {
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(this);
+        }
+        super.onPause();
+    }
+
+    @Override
     void onServiceConnected() {
         mHOGPServer = (HOGPServer) getHOGPServer();
     }
@@ -346,5 +371,35 @@ public class HOGPControlActivity extends HOGPBaseActivity {
             v1.setVisibility(View.GONE);
             v2.setVisibility(View.VISIBLE);
         }
+    }
+
+    private final float[] gravity = new float[3];
+    private final float[] linear_acceleration = new float[3];
+    private final float[] velocity = new float[3];
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        final float alpha = 0.8f;
+
+        gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
+        gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
+        gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
+
+        linear_acceleration[0] = event.values[0] - gravity[0];
+        linear_acceleration[1] = event.values[1] - gravity[1];
+        linear_acceleration[2] = event.values[2] - gravity[2];
+
+        velocity[0] += linear_acceleration[0];
+        velocity[1] += linear_acceleration[1];
+        velocity[2] += linear_acceleration[2];
+
+        if (getHOGPServer() != null) {
+            ((HOGPServer)getHOGPServer()).sendJoystick((int) (3 * velocity[0]), (int) ( 3 * velocity[1]), (int) (3 * velocity[2]), 0, 0, 0);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }

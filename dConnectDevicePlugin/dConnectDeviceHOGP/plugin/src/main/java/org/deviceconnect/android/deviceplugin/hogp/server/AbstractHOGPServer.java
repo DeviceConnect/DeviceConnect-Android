@@ -97,17 +97,17 @@ public abstract class AbstractHOGPServer {
     private final Map<String, BluetoothDevice> mBluetoothDevicesMap = new HashMap<>();
 
     /**
-     *
+     * マニファクチャー名.
      */
     private byte[] mManufacturerName;
 
     /**
-     *
+     * デバイス名.
      */
     private byte[] mDeviceName;
 
     /**
-     *
+     * シリアルナンバー.
      */
     private byte[] mSerialNumber;
 
@@ -156,7 +156,7 @@ public abstract class AbstractHOGPServer {
      * @param context このインスタンスが属するコンテキスト
      * @throws UnsupportedOperationException BluetoothやBLEがサポートされていない場合に発生
      */
-    public AbstractHOGPServer(final Context context) throws UnsupportedOperationException {
+    AbstractHOGPServer(final Context context) throws UnsupportedOperationException {
         mApplicationContext = context.getApplicationContext();
 
         final BluetoothManager btMgr = (BluetoothManager) mApplicationContext.getSystemService(Context.BLUETOOTH_SERVICE);

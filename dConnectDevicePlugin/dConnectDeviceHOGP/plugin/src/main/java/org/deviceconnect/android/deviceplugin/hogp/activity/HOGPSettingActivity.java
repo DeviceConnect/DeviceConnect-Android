@@ -2,38 +2,31 @@ package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
-import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPSetting;
 import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUtils;
 
-import java.util.Set;
-
 /**
  * 設定画面用Activity.
  */
 public class HOGPSettingActivity extends HOGPBaseActivity {
 
-    private DeviceAdapter mDeviceAdapter;
+//    private DeviceAdapter mDeviceAdapter;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -61,11 +54,11 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 }
             }
         });
-
-        mDeviceAdapter = new DeviceAdapter();
-
-        ListView listView = (ListView) findViewById(R.id.activity_setting_list_view);
-        listView.setAdapter(mDeviceAdapter);
+//
+//        mDeviceAdapter = new DeviceAdapter();
+//
+//        ListView listView = (ListView) findViewById(R.id.activity_setting_list_view);
+//        listView.setAdapter(mDeviceAdapter);
 
         setDeviceName();
     }
@@ -194,12 +187,12 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
             }
         });
 
-        if (server != null) {
-            Set<BluetoothDevice> devices = server.getDevices();
-            if (devices != null) {
-                mDeviceAdapter.notifyDataSetChanged();
-            }
-        }
+//        if (server != null) {
+//            Set<BluetoothDevice> devices = server.getDevices();
+//            if (devices != null) {
+//                mDeviceAdapter.notifyDataSetChanged();
+//            }
+//        }
 
         setEnabledSetting(isStartHOGPServer());
     }
@@ -386,53 +379,53 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
                 .setPositiveButton(R.string.activity_setting_dialog_ok, null)
                 .show();
     }
-
-    /**
-     * 接続されているデバイス一覧を表示するためのAdapter.
-     */
-    private class DeviceAdapter extends BaseAdapter {
-
-        @Override
-        public int getCount() {
-            HOGPMessageService service = getHOGPMessageService();
-            if (service == null) {
-                return 0;
-            }
-            return service.getServiceProvider().getServiceList().size();
-        }
-
-        @Override
-        public Object getItem(final int position) {
-            HOGPMessageService service = getHOGPMessageService();
-            if (service == null) {
-                return 0;
-            }
-            return service.getServiceProvider().getServiceList().get(position);
-        }
-
-        @Override
-        public long getItemId(final int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(final int position, View convertView, final ViewGroup parent) {
-            if (convertView == null) {
-                convertView = getLayoutInflater().inflate(R.layout.item_setting_device, null);
-            }
-
-            TextView nameView = (TextView) convertView.findViewById(R.id.activity_setting_device_name);
-            TextView statusView = (TextView) convertView.findViewById(R.id.activity_setting_device_status);
-
-            HOGPService service = (HOGPService) getItem(position);
-            nameView.setText(service.getName());
-
-            String status = service.isOnline() ? getString(R.string.activity_setting_device_online) :
-                    getString(R.string.activity_setting_device_offline);
-
-            statusView.setText(status);
-
-            return convertView;
-        }
-    }
+//
+//    /**
+//     * 接続されているデバイス一覧を表示するためのAdapter.
+//     */
+//    private class DeviceAdapter extends BaseAdapter {
+//
+//        @Override
+//        public int getCount() {
+//            HOGPMessageService service = getHOGPMessageService();
+//            if (service == null) {
+//                return 0;
+//            }
+//            return service.getServiceProvider().getServiceList().size();
+//        }
+//
+//        @Override
+//        public Object getItem(final int position) {
+//            HOGPMessageService service = getHOGPMessageService();
+//            if (service == null) {
+//                return 0;
+//            }
+//            return service.getServiceProvider().getServiceList().get(position);
+//        }
+//
+//        @Override
+//        public long getItemId(final int position) {
+//            return position;
+//        }
+//
+//        @Override
+//        public View getView(final int position, View convertView, final ViewGroup parent) {
+//            if (convertView == null) {
+//                convertView = getLayoutInflater().inflate(R.layout.item_setting_device, null);
+//            }
+//
+//            TextView nameView = (TextView) convertView.findViewById(R.id.activity_setting_device_name);
+//            TextView statusView = (TextView) convertView.findViewById(R.id.activity_setting_device_status);
+//
+//            HOGPService service = (HOGPService) getItem(position);
+//            nameView.setText(service.getName());
+//
+//            String status = service.isOnline() ? getString(R.string.activity_setting_device_online) :
+//                    getString(R.string.activity_setting_device_offline);
+//
+//            statusView.setText(status);
+//
+//            return convertView;
+//        }
+//    }
 }

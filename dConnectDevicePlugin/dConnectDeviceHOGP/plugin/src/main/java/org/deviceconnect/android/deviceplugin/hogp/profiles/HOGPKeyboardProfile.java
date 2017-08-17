@@ -34,13 +34,15 @@ public class HOGPKeyboardProfile extends DConnectProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = (String) request.getExtras().get("serviceId");
                 String modifier = (String) request.getExtras().get("modifier");
-                Integer keyCode = parseInteger(request, "keyCode");
+                Byte keyCode =  getKeyCode(request, "keyCode");
 
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (keyCode == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "keyCode is invalid.");
                 } else {
-                    sendKeyboard(modifier(modifier), keyCode.byteValue());
+                    sendKeyboard(modifier(modifier), keyCode);
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
@@ -88,6 +90,160 @@ public class HOGPKeyboardProfile extends DConnectProfile {
             }
         });
 
+        // POST /keyboard/del
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "del";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_DEL);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
+        // POST /keyboard/downArrow
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "downArrow";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_DOWN_ARROW);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
+        // POST /keyboard/enter
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "enter";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_ENTER);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
+        // POST /keyboard/esc
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "esc";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_ESC);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
+        // POST /keyboard/leftArrow
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "leftArrow";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_LEFT_ARROW);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
+        // POST /keyboard/rightArrow
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "rightArrow";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_RIGHT_ARROW);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
+        // POST /keyboard/upArrow
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "upArrow";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    sendKeyboard((byte) 0, KeyboardCode.KEY_UP_ARROW);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
+
     }
 
     @Override
@@ -102,6 +258,27 @@ public class HOGPKeyboardProfile extends DConnectProfile {
     private HOGPServer getHOGPServer() {
         HOGPMessageService service = (HOGPMessageService) getContext();
         return (HOGPServer) service.getHOGPServer();
+    }
+
+    /**
+     * リクエストからキーコードを取得します.
+     * <p>
+     *     リクエストにキーコードが入っていない場合にはnullを返却します。
+     *     また、不正な値が入っている場合にもnullを返却します。
+     * </p>
+     * @param request リクエスト
+     * @param name キーコード名
+     * @return キーコード
+     */
+    private Byte getKeyCode(final Intent request, final String name) {
+        String value = (String) request.getExtras().get(name);
+        if (value == null) {
+            return null;
+        }
+        if (value.startsWith("0x")) {
+            return Byte.decode(value);
+        }
+        return parseByte(request, name);
     }
 
     /**

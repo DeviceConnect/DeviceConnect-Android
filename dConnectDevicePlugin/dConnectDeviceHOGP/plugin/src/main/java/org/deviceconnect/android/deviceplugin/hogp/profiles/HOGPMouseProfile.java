@@ -13,14 +13,41 @@ public class HOGPMouseProfile extends DConnectProfile {
 
     public HOGPMouseProfile() {
 
-        // POST /mouse
+        // POST /mouse/absolute
         addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "absolute";
+            }
+
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = (String) request.getExtras().get("serviceId");
-                Integer x = parseInteger(request, "x");
-                Integer y = parseInteger(request, "y");
-                Integer wheel = parseInteger(request, "wheel");
+                Float x = parseFloat(request, "x");
+                Float y = parseFloat(request, "y");
+                Float wheel = parseFloat(request, "wheel");
+                Boolean rightButton = parseBoolean(request, "rightButton");
+                Boolean leftButton = parseBoolean(request, "leftButton");
+                Boolean middleButton = parseBoolean(request, "middleButton");
+
+                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            }
+        });
+
+        // POST /mouse/relative
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "relative";
+            }
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+                Float x = parseFloat(request, "x");
+                Float y = parseFloat(request, "y");
+                Float wheel = parseFloat(request, "wheel");
                 Boolean rightButton = parseBoolean(request, "rightButton");
                 Boolean leftButton = parseBoolean(request, "leftButton");
                 Boolean middleButton = parseBoolean(request, "middleButton");
@@ -30,7 +57,7 @@ public class HOGPMouseProfile extends DConnectProfile {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
                 } else {
                     if (wheel == null) {
-                        wheel = 0;
+                        wheel = 0.0f;
                     }
 
                     if (rightButton == null) {
@@ -45,7 +72,11 @@ public class HOGPMouseProfile extends DConnectProfile {
                         middleButton = false;
                     }
 
-                    server.movePointer(x, y, wheel, leftButton, rightButton, middleButton);
+                    int dx = (int) (x * 127);
+                    int dy = (int) (y * 127);
+                    int dw = (int) (wheel * 127);
+
+                    server.movePointer(dx, dy, dw, leftButton, rightButton, middleButton);
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
@@ -84,6 +115,52 @@ public class HOGPMouseProfile extends DConnectProfile {
             }
         });
 
+        // POST /mouse/doubleClick
+        addApi(new PostApi() {
+            @Override
+            public String getAttribute() {
+                return "doubleClick";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String serviceId = (String) request.getExtras().get("serviceId");
+                String button = (String) request.getExtras().get("button");
+
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else {
+                    boolean leftButton = "left".equals(button);
+                    boolean rightButton = "right".equals(button);
+                    boolean middleButton = "middle".equals(button);
+                    server.movePointer(0, 0, 0, leftButton, rightButton, middleButton);
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    server.movePointer(0, 0, 0, false, false, false);
+
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    server.movePointer(0, 0, 0, leftButton, rightButton, middleButton);
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    server.movePointer(0, 0, 0, false, false, false);
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
+                return true;
+            }
+        });
     }
 
     @Override

@@ -14,223 +14,227 @@
         android:text="@string/activity_setting_device_control_btn"
         android:textColor="#FFF"/>
 
-
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/activity_setting_btn"
-        android:orientation="vertical">
+        android:layout_above="@id/activity_setting_btn">
 
-        <TextView
-            android:id="@+id/activity_setting_device_name"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="@string/activity_setting_default_device_name"
-            android:textColor="#000"
-            android:textSize="20sp"/>
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#00a0e9"
-            android:padding="10dp"
-            android:text="@string/activity_setting_plugin_setting"
-            android:textColor="#FFF"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp">
-
-            <Switch
-                android:id="@+id/activity_setting_device_switch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerInParent="true"
-                android:layout_margin="4dp"
-                android:textOff="@string/activity_setting_switch_off"
-                android:textOn="@string/activity_setting_switch_on"/>
-
-            <LinearLayout
-                android:id="@+id/activity_setting_device_switch_title"
+            <TextView
+                android:id="@+id/activity_setting_device_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/activity_setting_device_switch"
-                android:orientation="vertical">
+                android:padding="16dp"
+                android:text="@string/activity_setting_default_device_name"
+                android:textColor="#000"
+                android:textSize="20sp"/>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_switch_title"
-                    android:textColor="#000"
-                    android:textSize="20sp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_switch_message"
-                    android:textColor="#888"
-                    android:textSize="14sp"/>
-            </LinearLayout>
-
-        </RelativeLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ddd"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp">
-
-            <Switch
-                android:id="@+id/activity_setting_device_oauth_switch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerInParent="true"
-                android:layout_margin="4dp"
-                android:textOff="@string/activity_setting_oauth_switch_off"
-                android:textOn="@string/activity_setting_oauth_switch_on"/>
-
-            <LinearLayout
-                android:id="@+id/activity_setting_device_oauth_title"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/activity_setting_device_oauth_switch"
-                android:orientation="vertical">
+                android:background="#00a0e9"
+                android:padding="10dp"
+                android:text="@string/activity_setting_plugin_setting"
+                android:textColor="#FFF"/>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_oauth_switch_title"
-                    android:textColor="#000"
-                    android:textSize="20sp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_oauth_switch_message"
-                    android:textColor="#888"
-                    android:textSize="14sp"/>
-            </LinearLayout>
-
-        </RelativeLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#00a0e9"
-            android:padding="10dp"
-            android:text="@string/activity_setting_hogp"
-            android:textColor="#FFF"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp">
-
-            <Spinner
-                android:id="@+id/activity_setting_hogp_mouse_mode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerInParent="true"
-                android:padding="4dp"
-                android:layout_margin="4dp"
-                android:entries="@array/activity_setting_hogp_mouse_mode" />
-
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/activity_setting_hogp_mouse_mode"
-                android:orientation="vertical">
+                android:layout_margin="12dp">
 
-                <TextView
+                <Switch
+                    android:id="@+id/activity_setting_device_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="4dp"
+                    android:textOff="@string/activity_setting_switch_off"
+                    android:textOn="@string/activity_setting_switch_on"/>
+
+                <LinearLayout
+                    android:id="@+id/activity_setting_device_switch_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_hogp_mouse_title"
-                    android:textColor="#000"
-                    android:textSize="20sp"/>
+                    android:layout_toLeftOf="@id/activity_setting_device_switch"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_hogp_mouse_message"
-                    android:textColor="#888"
-                    android:textSize="14sp"/>
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_switch_title"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
 
-        </RelativeLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_switch_message"
+                        android:textColor="#888"
+                        android:textSize="14sp"/>
+                </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#ddd"/>
+            </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp">
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ddd"/>
 
-            <Switch
-                android:id="@+id/activity_setting_hogp_keyboard"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerInParent="true"
-                android:layout_margin="4dp"
-                android:textOff="@string/activity_setting_hogp_keyboard_switch_off"
-                android:textOn="@string/activity_setting_hogp_keyboard_switch_on"/>
-
-            <LinearLayout
-                android:id="@+id/activity_setting_hogp_keyboard_title"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toLeftOf="@id/activity_setting_hogp_keyboard"
-                android:orientation="vertical">
+                android:layout_margin="16dp">
 
-                <TextView
+                <Switch
+                    android:id="@+id/activity_setting_device_oauth_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="4dp"
+                    android:textOff="@string/activity_setting_oauth_switch_off"
+                    android:textOn="@string/activity_setting_oauth_switch_on"/>
+
+                <LinearLayout
+                    android:id="@+id/activity_setting_device_oauth_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_hogp_keyboard_title"
-                    android:textColor="#000"
-                    android:textSize="20sp"/>
+                    android:layout_toLeftOf="@id/activity_setting_device_oauth_switch"
+                    android:orientation="vertical">
 
-                <TextView
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_oauth_switch_title"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_oauth_switch_message"
+                        android:textColor="#888"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#00a0e9"
+                android:padding="10dp"
+                android:text="@string/activity_setting_hogp"
+                android:textColor="#FFF"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp">
+
+                <Spinner
+                    android:id="@+id/activity_setting_hogp_mouse_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="4dp"
+                    android:entries="@array/activity_setting_hogp_mouse_mode"
+                    android:padding="4dp"/>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="4dp"
-                    android:text="@string/activity_setting_hogp_keyboard_message"
-                    android:textColor="#888"
-                    android:textSize="14sp"/>
-            </LinearLayout>
+                    android:layout_toLeftOf="@id/activity_setting_hogp_mouse_mode"
+                    android:orientation="vertical">
 
-        </RelativeLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_hogp_mouse_title"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#00a0e9"
-            android:padding="10dp"
-            android:text="@string/activity_setting_device_list"
-            android:textColor="#FFF"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_hogp_mouse_message"
+                        android:textColor="#888"
+                        android:textSize="14sp"/>
+                </LinearLayout>
 
-        <ListView
-            android:id="@+id/activity_setting_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </ListView>
-    </LinearLayout>
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ddd"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp">
+
+                <Switch
+                    android:id="@+id/activity_setting_hogp_keyboard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"
+                    android:layout_margin="4dp"
+                    android:textOff="@string/activity_setting_hogp_keyboard_switch_off"
+                    android:textOn="@string/activity_setting_hogp_keyboard_switch_on"/>
+
+                <LinearLayout
+                    android:id="@+id/activity_setting_hogp_keyboard_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toLeftOf="@id/activity_setting_hogp_keyboard"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_hogp_keyboard_title"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="@string/activity_setting_hogp_keyboard_message"
+                        android:textColor="#888"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#00a0e9"
+                android:padding="10dp"
+                android:text="@string/activity_setting_device_list"
+                android:textColor="#FFF"/>
+
+            <ListView
+                android:id="@+id/activity_setting_list_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </ListView>
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>

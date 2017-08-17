@@ -51,12 +51,13 @@ public final class KeyboardCode {
     public static final int KEY_PAGE_UP = 0x4b;
     public static final int KEY_PAGE_DOWN = 0x4e;
 
-    public static final int KEY_RIGHT_ARROW = 0x4f;
-    public static final int KEY_LEFT_ARROW = 0x50;
-    public static final int KEY_DOWN_ARROW = 0x51;
-    public static final int KEY_UP_ARROW = 0x52;
-    public static final int KEY_ENTER = 0x28;
-    public static final int KEY_ESC = 0x29;
+    public static final byte KEY_RIGHT_ARROW = 0x4f;
+    public static final byte KEY_LEFT_ARROW = 0x50;
+    public static final byte KEY_DOWN_ARROW = 0x51;
+    public static final byte KEY_UP_ARROW = 0x52;
+    public static final byte KEY_ENTER = 0x28;
+    public static final byte KEY_ESC = 0x29;
+    public static final byte KEY_DEL = 0x2A;
 
     private KeyboardCode() {}
 

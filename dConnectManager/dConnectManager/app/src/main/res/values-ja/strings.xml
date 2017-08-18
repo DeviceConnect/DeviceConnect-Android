@@ -5,12 +5,12 @@
     <string name="image_content_description">Image Description</string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
-    <string name="activity_launch_button_launch">Launch</string>
-    <string name="activity_launch_button_stop">Stop</string>
-    <string name="activity_launch_button_cancel">Cancel</string>
-    <string name="activity_launch_button_settings">Settings</string>
-    <string name="activity_launch_message_launch">Please click the below button\nto launch Device Connect Manager.</string>
-    <string name="activity_launch_message_stop">Please click the below button\nto stop Device Connect Manager.</string>
+    <string name="activity_launch_button_launch">起動</string>
+    <string name="activity_launch_button_stop">停止</string>
+    <string name="activity_launch_button_cancel">キャンセル</string>
+    <string name="activity_launch_button_settings">設定</string>
+    <string name="activity_launch_message_launch">Device Connect Managerを起動したい場合は、\n下の「起動」を押してください。</string>
+    <string name="activity_launch_message_stop">Device Connect Managerを停止したい場合は、\n下の「停止」を押してください。</string>
 
     <!-- ================= SettingsActivity ================= -->
 

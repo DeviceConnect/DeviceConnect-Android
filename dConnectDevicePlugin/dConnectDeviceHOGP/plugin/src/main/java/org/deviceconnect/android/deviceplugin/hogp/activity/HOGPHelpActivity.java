@@ -1,3 +1,9 @@
+/*
+ HOGPHelpActivity.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.support.v4.app.Fragment;
@@ -9,6 +15,8 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
 
 /**
  * ヘルプ画面用Activity.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HOGPHelpActivity extends DConnectSettingPageFragmentActivity {
     @Override

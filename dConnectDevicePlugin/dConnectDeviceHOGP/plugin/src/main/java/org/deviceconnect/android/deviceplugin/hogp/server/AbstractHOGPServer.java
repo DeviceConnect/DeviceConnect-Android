@@ -1,3 +1,9 @@
+/*
+ AbstractHOGPServer.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.server;
 
 import android.annotation.TargetApi;
@@ -59,6 +65,11 @@ import static org.deviceconnect.android.deviceplugin.hogp.util.BleUuidUtils.SERV
 import static org.deviceconnect.android.deviceplugin.hogp.util.BleUuidUtils.SERVICE_BLE_HID;
 import static org.deviceconnect.android.deviceplugin.hogp.util.BleUuidUtils.SERVICE_DEVICE_INFORMATION;
 
+/**
+ * HOGPの挙動を行うためのGattServerを実装したクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public abstract class AbstractHOGPServer {
     /**
@@ -82,7 +93,7 @@ public abstract class AbstractHOGPServer {
     private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
 
     /**
-     *
+     * Inputレポートキャラクタリスティック.
      */
     private BluetoothGattCharacteristic mInputReportCharacteristic;
 
@@ -227,7 +238,11 @@ public abstract class AbstractHOGPServer {
      * @param name 変換する文字列
      * @return 変換されたバイト配列
      */
-    private byte[] convertString2Bytes(String name) {
+    private byte[] convertString2Bytes(final String name) {
+        if (name == null) {
+            return new byte[0];
+        }
+
         final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
         if (nameBytes.length > DEVICE_INFO_MAX_LENGTH) {
             final byte[] bytes = new byte[DEVICE_INFO_MAX_LENGTH];
@@ -239,13 +254,16 @@ public abstract class AbstractHOGPServer {
     }
 
     /**
-     * Represents Report Map byte array
+     * レポートマップのキャラクタリスティックの値を取得します.
+     * <p>
+     * ここで返却するレポートマップがHOGPの機能になります。
+     * </p>
      * @return Report Map data
      */
     abstract byte[] getReportMap();
 
     /**
-     * HID Output Report
+     * HID Outputレポートを通知します.
      *
      * @param outputReport the report data
      */
@@ -264,7 +282,7 @@ public abstract class AbstractHOGPServer {
     /**
      * HOGPサーバを開始します.
      */
-    public void start() {
+    public synchronized void start() {
 
         if (mGattServer != null) {
             if (DEBUG) {
@@ -319,7 +337,7 @@ public abstract class AbstractHOGPServer {
     /**
      * HOGPサーバを停止します.
      */
-    public void stop() {
+    public synchronized void stop() {
         stopAdvertising();
     }
 
@@ -356,21 +374,21 @@ public abstract class AbstractHOGPServer {
                     CHARACTERISTIC_MANUFACTURER_NAME,
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED);
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
         {
             final BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(
                     CHARACTERISTIC_MODEL_NUMBER,
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED);
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
         {
             final BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(
                     CHARACTERISTIC_SERIAL_NUMBER,
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED);
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         return service;
@@ -396,7 +414,7 @@ public abstract class AbstractHOGPServer {
         clientCharacteristicConfigurationDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         characteristic.addDescriptor(clientCharacteristicConfigurationDescriptor);
 
-        while (!service.addCharacteristic(characteristic));
+        service.addCharacteristic(characteristic);
 
         return service;
     }
@@ -419,7 +437,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         // Report Map
@@ -429,7 +447,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattCharacteristic.PROPERTY_READ,
                     BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         // Protocol Mode
@@ -440,7 +458,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED | BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED);
             characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         // HID Control Point
@@ -451,7 +469,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED);
             characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         // Input Report
@@ -472,7 +490,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED | BluetoothGattDescriptor.PERMISSION_WRITE_ENCRYPTED);
             characteristic.addDescriptor(reportReferenceDescriptor);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
             mInputReportCharacteristic = characteristic;
         }
 
@@ -489,7 +507,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED | BluetoothGattDescriptor.PERMISSION_WRITE_ENCRYPTED);
             characteristic.addDescriptor(descriptor);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         // Feature Report
@@ -504,7 +522,7 @@ public abstract class AbstractHOGPServer {
                     BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED | BluetoothGattDescriptor.PERMISSION_WRITE_ENCRYPTED);
             characteristic.addDescriptor(descriptor);
 
-            while (!service.addCharacteristic(characteristic));
+            service.addCharacteristic(characteristic);
         }
 
         return service;
@@ -565,6 +583,9 @@ public abstract class AbstractHOGPServer {
                     mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
                 } catch (final IllegalStateException ignored) {
                     // BT Adapter is not turned ON
+                    if (DEBUG) {
+                        Log.d(TAG, "Failed to turn off advertising.", ignored);
+                    }
                 }
 
                 try {
@@ -585,6 +606,9 @@ public abstract class AbstractHOGPServer {
                     }
                 } catch (final IllegalStateException ignored) {
                     // do nothing
+                    if (DEBUG) {
+                        Log.d(TAG, "Failed to stop the gatt server.", ignored);
+                    }
                 }
 
                 mHandlerThread.quit();
@@ -633,7 +657,7 @@ public abstract class AbstractHOGPServer {
                             if (!bondedDevice.getAddress().equals(device.getAddress())) {
                                 // 違うデバイスと接続された場合
                                 if (DEBUG) {
-                                    Log.w(TAG, "Connected to a different device");
+                                    Log.w(TAG, "Connected to a different device. device=" + bondedDevice);
                                 }
                                 return;
                             }
@@ -657,7 +681,7 @@ public abstract class AbstractHOGPServer {
             device.setPairingConfirmation(true);
         } catch (Exception e) {
             if (DEBUG) {
-                Log.d(TAG, e.getMessage(), e);
+                Log.d(TAG, "Failed to set pairing confirmation.", e);
             }
         }
 
@@ -898,12 +922,11 @@ public abstract class AbstractHOGPServer {
             if (DEBUG) {
                 Log.d(TAG, "onServiceAdded status: " + status + ", service: " + service.getUuid());
                 if (status != 0) {
-                    Log.d(TAG, "onServiceAdded Adding Service failed..");
+                    Log.d(TAG, "onServiceAdded Adding Service failed.");
                 }
             }
         }
     };
-
 
     /**
      * HOGPServerにデバイスが接続・切断した時の通知を行うリスナー.

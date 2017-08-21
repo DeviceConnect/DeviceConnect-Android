@@ -1,3 +1,9 @@
+/*
+ HOGPBaseActivity.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.Activity;
@@ -14,10 +20,19 @@ import org.deviceconnect.android.message.DConnectMessageService;
 
 /**
  * HOGPMessageServiceとバインド処理を行うActivity.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HOGPBaseActivity extends Activity {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "HOGP";
+
+    /**
+     * サービスとのバインド状態を管理するフラグ.
+     * <p>
+     * バインドされている場合はtrue。
+     * </p>
+     */
     private boolean mIsBound;
 
     /**

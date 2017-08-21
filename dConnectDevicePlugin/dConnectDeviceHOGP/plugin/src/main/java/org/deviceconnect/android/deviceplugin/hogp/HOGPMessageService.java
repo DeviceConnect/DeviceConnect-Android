@@ -1,3 +1,9 @@
+/*
+ HOGPMessageService.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp;
 
 import android.bluetooth.BluetoothAdapter;
@@ -10,6 +16,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPHogpProfile;
+import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPJoystickProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPKeyboardProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPMouseProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPSystemProfile;
@@ -21,10 +29,19 @@ import org.deviceconnect.android.service.DConnectService;
 
 /**
  * HOGPプラグインの処理を行う.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HOGPMessageService extends DConnectMessageService {
 
+    /**
+     * サービス名.
+     */
     public static final String HOGP_NAME = "HOGP";
+
+    /**
+     * サービスID.
+     */
     public static final String HOGP_SERVICE_ID = "hogp";
 
     /**
@@ -87,11 +104,13 @@ public class HOGPMessageService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        mHOGPSetting = new HOGPSetting(this);
+        mHOGPSetting = new HOGPSetting(getApplicationContext());
 
         DConnectService service = new DConnectService(HOGP_SERVICE_ID);
         service.addProfile(new HOGPMouseProfile());
         service.addProfile(new HOGPKeyboardProfile());
+        service.addProfile(new HOGPJoystickProfile());
+        service.addProfile(new HOGPHogpProfile());
         service.setName(HOGP_NAME);
         service.setOnline(false);
 

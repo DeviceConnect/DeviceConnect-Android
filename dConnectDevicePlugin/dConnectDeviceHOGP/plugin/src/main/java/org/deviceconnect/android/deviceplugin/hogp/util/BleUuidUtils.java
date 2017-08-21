@@ -1,3 +1,9 @@
+/*
+ BleUuidUtils.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.util;
 
 import android.os.ParcelUuid;
@@ -7,41 +13,83 @@ import java.util.UUID;
 
 /**
  * BLE UUIDの扱うためのユーティリティクラス.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public final class BleUuidUtils {
 
     private static final String UUID_LONG_STYLE_PREFIX = "0000";
     private static final String UUID_LONG_STYLE_POSTFIX = "-0000-1000-8000-00805F9B34FB";
 
-    // https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.device_information.xml
-
     /**
-     * Device Information Service.
+     * 格納できる最大文字列数.
      */
-    public static final UUID SERVICE_DEVICE_INFORMATION = BleUuidUtils.fromShortValue(0x180A);
-    public static final UUID CHARACTERISTIC_MANUFACTURER_NAME = BleUuidUtils.fromShortValue(0x2A29);
-    public static final UUID CHARACTERISTIC_MODEL_NUMBER = BleUuidUtils.fromShortValue(0x2A24);
-    public static final UUID CHARACTERISTIC_SERIAL_NUMBER = BleUuidUtils.fromShortValue(0x2A25);
     public static final int DEVICE_INFO_MAX_LENGTH = 20;
 
-    // https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.battery_service.xml
+    /**
+     * Device Information サービス.
+     *
+     * @see <a href="https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.device_information.xml">Device Information サービス</a>
+     */
+    public static final UUID SERVICE_DEVICE_INFORMATION = BleUuidUtils.fromShortValue(0x180A);
 
     /**
-     * Battery Service.
+     * Manufacturer名を格納するキャラクタリスティック.
+     */
+    public static final UUID CHARACTERISTIC_MANUFACTURER_NAME = BleUuidUtils.fromShortValue(0x2A29);
+
+    /**
+     * モデル名を格納するキャラクタリスティック.
+     */
+    public static final UUID CHARACTERISTIC_MODEL_NUMBER = BleUuidUtils.fromShortValue(0x2A24);
+
+    /**
+     * シリアルナンバーを格納するキャラクタリスティック.
+     */
+    public static final UUID CHARACTERISTIC_SERIAL_NUMBER = BleUuidUtils.fromShortValue(0x2A25);
+
+    /**
+     * Battery サービス.
+     *
+     * @see <a href="https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.battery_service.xml">Device Information サービス</a>
      */
     public static final UUID SERVICE_BATTERY = BleUuidUtils.fromShortValue(0x180F);
-    public static final UUID CHARACTERISTIC_BATTERY_LEVEL = BleUuidUtils.fromShortValue(0x2A19);
-
-    // https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.human_interface_device.xml
 
     /**
-     * HID Service.
+     * バッテリー残量を格納するキャラクタリスティック.
+     */
+    public static final UUID CHARACTERISTIC_BATTERY_LEVEL = BleUuidUtils.fromShortValue(0x2A19);
+
+    /**
+     * HID サービス.
+     *
+     * @see <a href="https://www.bluetooth.com/ja-jp/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.human_interface_device.xml">Device Information サービス</a>
      */
     public static final UUID SERVICE_BLE_HID = BleUuidUtils.fromShortValue(0x1812);
+
+    /**
+     * HIDの情報を格納するキャラクタリスティック.
+     */
     public static final UUID CHARACTERISTIC_HID_INFORMATION = BleUuidUtils.fromShortValue(0x2A4A);
+
+    /**
+     * レポートマップを格納するキャラクタリスティック.
+     */
     public static final UUID CHARACTERISTIC_REPORT_MAP = BleUuidUtils.fromShortValue(0x2A4B);
+
+    /**
+     * コントロールポイントを格納するキャラクタリスティック.
+     */
     public static final UUID CHARACTERISTIC_HID_CONTROL_POINT = BleUuidUtils.fromShortValue(0x2A4C);
+
+    /**
+     * レポートを格納するキャラクタリスティック.
+     */
     public static final UUID CHARACTERISTIC_REPORT = BleUuidUtils.fromShortValue(0x2A4D);
+
+    /**
+     * プロトコルモードを格納するキャラクタリスティック.
+     */
     public static final UUID CHARACTERISTIC_PROTOCOL_MODE = BleUuidUtils.fromShortValue(0x2A4E);
 
     /**

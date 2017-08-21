@@ -1,3 +1,9 @@
+/*
+ HOGPControlActivity.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.ActionBar;
@@ -22,6 +28,8 @@ import org.deviceconnect.android.deviceplugin.hogp.util.KeyboardCode;
 
 /**
  * コントローラ画面用Activity.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HOGPControlActivity extends HOGPBaseActivity implements SensorEventListener {
     /**

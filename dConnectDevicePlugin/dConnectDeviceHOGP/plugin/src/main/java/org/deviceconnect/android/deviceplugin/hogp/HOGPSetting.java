@@ -1,3 +1,9 @@
+/*
+ HOGPSetting.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp;
 
 import android.content.Context;
@@ -7,6 +13,8 @@ import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 
 /**
  * HOGPの設定情報を管理するクラス.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HOGPSetting {
 
@@ -44,7 +52,7 @@ public class HOGPSetting {
      * コンストラクタ.
      * @param context コンテキスト
      */
-    public HOGPSetting(final Context context) {
+    HOGPSetting(final Context context) {
         mSharedPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
     }
 

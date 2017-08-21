@@ -1,3 +1,9 @@
+/*
+ HOGPServer.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.server;
 
 import android.content.Context;
@@ -27,6 +33,8 @@ import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.USAGE_PA
 
 /**
  * HOGPサーバ.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class HOGPServer extends AbstractHOGPServer {
 
@@ -284,8 +292,19 @@ public class HOGPServer extends AbstractHOGPServer {
         EMPTY_REPORT[0] = REPORT_ID_KEYBOARD;
     }
 
+    /**
+     * マウスモード.
+     */
     private MouseMode mMouseMode = MouseMode.NONE;
+
+    /**
+     * キーボードフラグ.
+     */
     private boolean mKeyboard;
+
+    /**
+     * ジョイスティックフラグ.
+     */
     private boolean mJoystick;
 
     /**

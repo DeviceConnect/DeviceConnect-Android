@@ -1,3 +1,9 @@
+/*
+ HOGPMouseProfile.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
 import android.content.Intent;
@@ -9,6 +15,11 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.message.DConnectMessage;
 
+/**
+ * Mouseプロファイル.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class HOGPMouseProfile extends DConnectProfile {
 
     public HOGPMouseProfile() {

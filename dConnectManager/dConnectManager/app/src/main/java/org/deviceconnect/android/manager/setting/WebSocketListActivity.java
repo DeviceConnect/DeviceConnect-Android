@@ -119,15 +119,16 @@ public class WebSocketListActivity extends BaseSettingActivity implements AlertD
 
     @Override
     public void onDisconnect(final String origin) {
-        if (getWebSocketInfoManager() != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                WebSocketInfoManager mgr = getWebSocketInfoManager();
+                if (mgr != null) {
+                    mWebSocketInfoAdapter.setWebSocketInfoList(mgr.getWebSocketInfos());
                     mWebSocketInfoAdapter.notifyDataSetChanged();
                 }
-            });
-        }
+            }
+        });
     }
 
     /**

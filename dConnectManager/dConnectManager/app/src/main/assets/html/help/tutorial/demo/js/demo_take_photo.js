@@ -91,7 +91,7 @@ var demoTakePhoto = (function(parent, global) {
 
             if (mPreviewSizes[i].width < minWidth) {
                 option.selected = true;
-                minWidth = mImageSizes[i].width
+                minWidth = mPreviewSizes[i].width
             }
 
             previewSizes.appendChild(option);

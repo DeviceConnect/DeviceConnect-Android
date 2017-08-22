@@ -322,7 +322,7 @@ class LinkingNotifySensor {
     }
 
     private void stopSensors(final LinkingDevice device) {
-        if (containsBattery(device) || containsHumidity(device) ||
+        if (device == null || containsBattery(device) || containsHumidity(device) ||
                 containsOrientation(device) || containsTemperature(device)) {
             return;
         }

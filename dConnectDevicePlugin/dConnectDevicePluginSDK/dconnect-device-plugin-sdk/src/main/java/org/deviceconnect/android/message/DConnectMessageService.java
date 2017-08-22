@@ -226,7 +226,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
             onManagerUninstalled();
         }
 
-        if (checkManagerTerminate(action)) {
+        if (checkManagerLaunched(action)) {
+            onManagerLaunched();
+        }
+
+        if (checkManagerTerminated(action)) {
             onManagerTerminated();
         }
 
@@ -373,11 +377,20 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     /**
+     * Device Connect Manager 起動通知を受信したかをチェックします.
+     * @param action チェックするアクション
+     * @return Manager 起動検知でtrue、それ以外はfalse
+     */
+    private boolean checkManagerLaunched(String action) {
+        return IntentDConnectMessage.ACTION_MANAGER_LAUNCHED.equals(action);
+    }
+
+    /**
      * Device Connect Manager 正常終了通知を受信したかをチェックします.
      * @param action チェックするアクション
      * @return Manager 正常終了検知でtrue、それ以外はfalse
      */
-    private boolean checkManagerTerminate(String action) {
+    private boolean checkManagerTerminated(String action) {
         return IntentDConnectMessage.ACTION_MANAGER_TERMINATED.equals(action);
     }
 
@@ -710,13 +723,23 @@ public abstract class DConnectMessageService extends Service implements DConnect
     }
 
     /**
+     * Device Connect Managerの起動通知を受信した時に呼ばれる処理部.
+     * <p>
+     * Device Connect Managerが起動された場合に処理を行い場合には、このメソッドをオーバーライドして実装を行うこと。
+     * </p>
+     */
+    protected void onManagerLaunched() {
+        mLogger.info("SDK : onManagerLaunched");
+    }
+
+    /**
      * Device Connect Managerの正常終了通知を受信した時に呼ばれる処理部.
      * <p>
      * Device Connect Managerが終了された場合に処理を行い場合には、このメソッドをオーバーライドして実装を行うこと。
      * </p>
      */
     protected void onManagerTerminated() {
-        mLogger.info("SDK : on ManagerTerminated");
+        mLogger.info("SDK : onManagerTerminated");
     }
 
     /**

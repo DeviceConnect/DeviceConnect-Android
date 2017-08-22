@@ -173,6 +173,14 @@ public class HostDeviceService extends DConnectMessageService {
         }
     }
 
+    // Manager起動通知受信時の処理。
+    @Override
+    protected void onManagerLaunched() {
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in : onManagerLaunched");
+        }
+    }
+
     // Manager正常終了通知受信時の処理。
     @Override
     protected void onManagerTerminated() {

@@ -682,6 +682,7 @@ public abstract class DConnectMessageService extends Service
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
         showNotification();
+        sendLaunchedEvent();
     }
 
     private synchronized void startPluginSearch() {
@@ -702,7 +703,7 @@ public abstract class DConnectMessageService extends Service
      * DConnectManagerを停止する.
      */
     protected void stopDConnect() {
-        sendTerminateEvent();
+        sendTerminatedEvent();
         if (mRequestManager != null) {
             mRequestManager.shutdown();
         }
@@ -710,19 +711,37 @@ public abstract class DConnectMessageService extends Service
     }
 
     /**
-     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
+     * 全デバイスプラグインに対して、Device Connect Managerのライフサイクルについての通知を行う.
      */
-    private void sendTerminateEvent() {
+    private void sendManagerEvent(final String action) {
         List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (plugin.getPluginId() != null) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
-                request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+                request.setAction(action);
                 request.putExtra("pluginId", plugin.getPluginId());
-                sendBroadcast(request);
+                try {
+                    plugin.send(request);
+                } catch (MessagingException e) {
+                    mLogger.warning("Failed to send event: action = " + action + ", destination = " + plugin.getComponentName());
+                }
             }
         }
+    }
+
+    /**
+     * 全デバイスプラグインに対して、Device Connect Manager起動通知を行う.
+     */
+    private void sendLaunchedEvent() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_LAUNCHED);
+    }
+
+    /**
+     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
+     */
+    private void sendTerminatedEvent() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
     }
 
     /**

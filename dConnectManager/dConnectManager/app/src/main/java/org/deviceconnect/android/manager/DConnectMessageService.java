@@ -652,6 +652,7 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDeviceLost(final DevicePlugin plugin) {
+        mEventBroker.removeSessionForPlugin(plugin.getPluginId());
         mLocalOAuth.deleteOAuthDatas(plugin.getPluginId());
     }
 

@@ -7,11 +7,6 @@
 package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.ActionBar;
-import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.GestureDetector;
@@ -26,12 +21,15 @@ import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.KeyboardCode;
 
+import static android.view.MotionEvent.ACTION_MOVE;
+import static org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer.ABSOLUTE_MOUSE_SIZE;
+
 /**
  * コントローラ画面用Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class HOGPControlActivity extends HOGPBaseActivity implements SensorEventListener {
+public class HOGPControlActivity extends HOGPBaseActivity {
     /**
      * ジェスチャー検出器.
      */
@@ -65,9 +63,6 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
      */
     private long mTime;
 
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometerSensor;
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,8 +86,16 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
             @Override
             public boolean onSingleTapUp(final MotionEvent e) {
                 if (!mDragFlag && mHOGPServer != null) {
-                    mHOGPServer.movePointer(0, 0, 0, true, false, false);
-                    mHOGPServer.movePointer(0, 0, 0, false, false, false);
+                    switch (mHOGPServer.getMouseMode()) {
+                        case RELATIVE:
+                            mHOGPServer.movePointer(0, 0, 0, true, false, false);
+                            mHOGPServer.movePointer(0, 0, 0, false, false, false);
+                            break;
+                        case ABSOLUTE:
+                            mHOGPServer.movePointer((int) mLastX, (int) mLastY, 0, true, false, false);
+                            mHOGPServer.movePointer((int) mLastX, (int) mLastY, 0, false, false, false);
+                            break;
+                    }
                 }
                 return false;
             }
@@ -108,13 +111,6 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
 
                 Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
                 vibrator.vibrate(80);
-
-                if (mHOGPServer != null) {
-                    mHOGPServer.movePointer((int) (e.getX() - mLastX), (int) (e.getY() - mLastY), 0, true, false, false);
-                }
-
-                mLastX = e.getX();
-                mLastY = e.getY();
             }
 
             @Override
@@ -126,49 +122,14 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
         findViewById(R.id.activity_control_mouse).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(final View view, final MotionEvent motionEvent) {
-                mGestureDetector.onTouchEvent(motionEvent);
-                switch (motionEvent.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_POINTER_DOWN:
-                        mDragFlag = false;
-                        mMaxPointerCount = motionEvent.getPointerCount();
-                        mLastX = motionEvent.getX();
-                        mLastY = motionEvent.getY();
-                        mTime = 0;
-                        return true;
-
-                    case MotionEvent.ACTION_MOVE:
-                        if (System.currentTimeMillis() - mTime < 10) {
-                            return true;
-                        }
-                        mMaxPointerCount = Math.max(mMaxPointerCount, motionEvent.getPointerCount());
-                        if (mHOGPServer != null) {
-                            mHOGPServer.movePointer(
-                                    (int) (motionEvent.getX() - mLastX),
-                                    (int) (motionEvent.getY() - mLastY),
-                                    0,
-                                    mDragFlag, false, false);
-                        }
-                        mLastX = motionEvent.getX();
-                        mLastY = motionEvent.getY();
-                        mTime = System.currentTimeMillis();
-                        return true;
-
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_POINTER_UP:
-                        mDragFlag = false;
-                        if (mHOGPServer != null) {
-                            mHOGPServer.movePointer(
-                                    (int) (motionEvent.getX() - mLastX),
-                                    (int) (motionEvent.getY() - mLastY),
-                                    0,
-                                    false, false, false);
-                        }
-                        mLastX = motionEvent.getX();
-                        mLastY = motionEvent.getY();
+                switch (mHOGPServer.getMouseMode()) {
+                    case RELATIVE:
+                        return moveRelativeMouse(motionEvent);
+                    case ABSOLUTE:
+                        return moveAbsoluteMouse(view, motionEvent);
+                    default:
                         return true;
                 }
-                return true;
             }
         });
 
@@ -294,17 +255,10 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
     @Override
     protected void onResume() {
         super.onResume();
-
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, mAccelerometerSensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override
     protected void onPause() {
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(this);
-        }
         super.onPause();
     }
 
@@ -316,6 +270,110 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
     @Override
     void onServiceDisconnected() {
         mHOGPServer = null;
+    }
+
+    /**
+     * Absolute入力モードのマウスの移動を処理します.
+     * @param view タッチされたView
+     * @param motionEvent タッチイベント
+     * @return
+     */
+    private boolean moveAbsoluteMouse(final View view, final MotionEvent motionEvent) {
+        float width = view.getWidth();
+        float height = view.getHeight();
+
+        mLastX = (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getX() / width);
+        mLastY = (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getY() / height);
+
+        mGestureDetector.onTouchEvent(motionEvent);
+        switch (motionEvent.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                mDragFlag = false;
+                if (mHOGPServer != null) {
+                    mHOGPServer.movePointer(
+                            (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getX() / width),
+                            (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getY() / height),
+                            0,
+                            mDragFlag, false, false);
+                }
+                return true;
+
+            case ACTION_MOVE:
+                if (mHOGPServer != null) {
+                    mHOGPServer.movePointer(
+                            (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getX() / width),
+                            (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getY() / height),
+                            0,
+                            mDragFlag, false, false);
+                }
+                return true;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                mDragFlag = false;
+                if (mHOGPServer != null) {
+                    mHOGPServer.movePointer(
+                            (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getX() / width),
+                            (int) (ABSOLUTE_MOUSE_SIZE * motionEvent.getY() / height),
+                            0,
+                            mDragFlag, false, false);
+                }
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Relative入力モードのマウスの移動を処理します.
+     * @param motionEvent タッチイベント
+     * @return
+     */
+    private boolean moveRelativeMouse(final MotionEvent motionEvent) {
+        mGestureDetector.onTouchEvent(motionEvent);
+        switch (motionEvent.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                mDragFlag = false;
+                mMaxPointerCount = motionEvent.getPointerCount();
+                mLastX = motionEvent.getX();
+                mLastY = motionEvent.getY();
+                mTime = 0;
+                return true;
+
+            case ACTION_MOVE:
+                if (System.currentTimeMillis() - mTime < 10) {
+                    return true;
+                }
+                mMaxPointerCount = Math.max(mMaxPointerCount, motionEvent.getPointerCount());
+                if (mHOGPServer != null) {
+                    mHOGPServer.movePointer(
+                            (int) (motionEvent.getX() - mLastX),
+                            (int) (motionEvent.getY() - mLastY),
+                            0,
+                            mDragFlag, false, false);
+                }
+                mLastX = motionEvent.getX();
+                mLastY = motionEvent.getY();
+                mTime = System.currentTimeMillis();
+                return true;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                mDragFlag = false;
+                if (mHOGPServer != null) {
+                    mHOGPServer.movePointer(
+                            (int) (motionEvent.getX() - mLastX),
+                            (int) (motionEvent.getY() - mLastY),
+                            0,
+                            false, false, false);
+                }
+                mLastX = motionEvent.getX();
+                mLastY = motionEvent.getY();
+                return true;
+        }
+        return true;
     }
 
     /**
@@ -379,35 +437,5 @@ public class HOGPControlActivity extends HOGPBaseActivity implements SensorEvent
             v1.setVisibility(View.GONE);
             v2.setVisibility(View.VISIBLE);
         }
-    }
-
-    private final float[] gravity = new float[3];
-    private final float[] linear_acceleration = new float[3];
-    private final float[] velocity = new float[3];
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        final float alpha = 0.8f;
-
-        gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
-        gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
-        gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
-
-        linear_acceleration[0] = event.values[0] - gravity[0];
-        linear_acceleration[1] = event.values[1] - gravity[1];
-        linear_acceleration[2] = event.values[2] - gravity[2];
-
-        velocity[0] += linear_acceleration[0];
-        velocity[1] += linear_acceleration[1];
-        velocity[2] += linear_acceleration[2];
-
-        if (getHOGPServer() != null) {
-            ((HOGPServer)getHOGPServer()).sendJoystick((int) (3 * velocity[0]), (int) ( 3 * velocity[1]), (int) (3 * velocity[2]), 0, 0, 0);
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 }

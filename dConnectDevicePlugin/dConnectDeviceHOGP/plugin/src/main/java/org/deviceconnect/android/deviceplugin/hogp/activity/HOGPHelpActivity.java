@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import org.deviceconnect.android.deviceplugin.hogp.fragment.HOGPHelp01Fragment;
 import org.deviceconnect.android.deviceplugin.hogp.fragment.HOGPHelp02Fragment;
 import org.deviceconnect.android.deviceplugin.hogp.fragment.HOGPHelp03Fragment;
+import org.deviceconnect.android.deviceplugin.hogp.fragment.HOGPHelp04Fragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
@@ -21,7 +22,7 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
 public class HOGPHelpActivity extends DConnectSettingPageFragmentActivity {
     @Override
     public int getPageCount() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -33,6 +34,8 @@ public class HOGPHelpActivity extends DConnectSettingPageFragmentActivity {
                 return HOGPHelp02Fragment.newInstance();
             case 2:
                 return HOGPHelp03Fragment.newInstance();
+            case 3:
+                return HOGPHelp04Fragment.newInstance();
         }
         return null;
     }

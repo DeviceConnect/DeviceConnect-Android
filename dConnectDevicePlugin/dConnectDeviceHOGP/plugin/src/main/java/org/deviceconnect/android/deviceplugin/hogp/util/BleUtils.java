@@ -85,7 +85,8 @@ public class BleUtils {
     private static BluetoothAdapter getAdapter(final Context context) {
         BluetoothAdapter bluetoothAdapter;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothManager bluetoothManager = (BluetoothManager) context.
+                    getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetoothManager == null) {
                 return null;
             }

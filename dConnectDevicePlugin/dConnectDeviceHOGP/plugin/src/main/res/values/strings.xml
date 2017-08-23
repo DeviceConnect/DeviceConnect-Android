@@ -49,19 +49,24 @@
     <string name="activity_setting_device_offline">切断</string>
 
     <string name="activity_help01_text">設定画面で、HOGPサーバをONにします。ここに表示されるデバイス名を覚えておきます。</string>
-    <string name="activity_help02_text">「Bluetooth」をオンにして、周辺にあるデバイスを検出します。\n
-\n
-検出したデバイスから、同じデバイス名を選択してペアリングを行います。\n
+    <string name="activity_help02_1_text">HOGPサーバに接続したいデバイスの「Bluetooth」をオンにして、周辺にあるデバイスを検出します。</string>
+    <string name="activity_help02_2_text">検出したデバイスから、HOGPサーバと同じデバイス名を選択してペアリングを行います。\n
 ※ 端末によって見た目が変わる可能性がありますのでご注意してください。\n
 \n
-ペアリングの確認画面が表示されますので、「はい」を選んでください。\n
-\n
-また、ペアリングのダイアログが表示されない場合があります。\n
+ペアリングの確認画面が表示されますので、「はい」を選んでください。</string>
+    <string name="activity_help02_3_text">ペアリングのダイアログが表示されない場合があります。\n
 その場合には、通知バーに隠れている可能性がありますので、確認してください。</string>
     <string name="activity_help03_text">ペアリングに成功すると、上記のように表示されます。\n
 「入力デバイスとして接続」されていますので、この状態で操作できるようになります。\n
 \n
 しばらくしても「入力デバイスとして接続」が表示されない場合には接続に失敗していますので、ペアリングを解除して、最初から接続を行ってください。</string>
+    <string name="activity_help04_text">HOGPサーバをOFFにした後やこのデバイスのBluetooth設定を無効した後に、再度有効にして再接続しても動作しないことがあります。\nその場合には一度ペアリングを解除して、最初から接続を行なってください。\n
+    \n
+「入力デバイスとして接続」が表示されたり、消えたりして接続ができない場合には、一度BluetoothをOFF/ONを行ってください。\n
+\n
+「入力デバイスとして接続」となっているのに、操作できない場合には、ペアリングを解除してからもう一度ペアリングを行ってください。\n
+\n
+上記の手順でも接続できない場合には、デバイスを再起動してください。</string>
 
     <string name="activity_control_message">ここをドラッグすることでマウスポインターを動かすことができます。</string>
     <string name="activity_control_key_0">0</string>

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hogp.server;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
 
@@ -19,6 +20,8 @@ import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.END_COLL
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.INPUT;
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.LOGICAL_MAXIMUM;
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.LOGICAL_MINIMUM;
+import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.LSB;
+import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.MSB;
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.OUTPUT;
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.PHYSICAL_MAXIMUM;
 import static org.deviceconnect.android.deviceplugin.hogp.util.HIDUtils.PHYSICAL_MINIMUM;
@@ -92,6 +95,12 @@ public class HOGPServer extends AbstractHOGPServer {
             return mValue;
         }
     }
+
+    /**
+     * マウスのサイズ.
+     */
+    public static final int ABSOLUTE_MOUSE_SIZE = 32767;
+
 
     /**
      * マウスのレポートID.
@@ -366,6 +375,14 @@ public class HOGPServer extends AbstractHOGPServer {
     }
 
     /**
+     * マウスの入力モードを取得します.
+     * @return マウスの入力モード
+     */
+    public MouseMode getMouseMode() {
+        return mMouseMode;
+    }
+
+    /**
      * 指定された配列が0で埋め尽くされているか確認します.
      * @param array 配列
      * @return 全ての要素が0の場合はtrue、それ以外はfalse
@@ -381,7 +398,39 @@ public class HOGPServer extends AbstractHOGPServer {
 
     /**
      * Mouseのレポートを送信します.
-     *
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param dx X座標の移動量 (-1 〜 1)
+     * @param dy Y座標の移動量 (-1 〜 1)
+     * @param wheel wheelの移動量 (-1 〜 1)
+     * @param leftButton 左ボタンが押下されている場合はtrue
+     * @param rightButton 右ボタンが押下されている場合はtrue
+     * @param middleButton 真ん中ボタンが押下されている場合はtrue
+     */
+    public void movePointer(final BluetoothDevice device, float dx, float dy, float wheel, final boolean leftButton, final boolean rightButton, final boolean middleButton) {
+        switch (mMouseMode) {
+            case RELATIVE: {
+                int x = (int) (127 * dx);
+                int y = (int) (127 * dy);
+                int w = (int) (127 * wheel);
+                moveRelativePointer(device, x, y, w, leftButton, rightButton, middleButton);
+            }   break;
+            case ABSOLUTE: {
+                int x = (int) (ABSOLUTE_MOUSE_SIZE * dx);
+                int y = (int) (ABSOLUTE_MOUSE_SIZE * dy);
+                int w = (int) (127 * wheel);
+                moveAbsolutePointer(device, x, y, w, leftButton, rightButton, middleButton);
+            }   break;
+        }
+    }
+
+    /**
+     * Mouseのレポートを送信します.
+     * <p>
+     * 接続されている全デバイスにレポートを送信します。
+     * </p>
      * @param dx X座標の移動量 (-127 〜 127)
      * @param dy Y座標の移動量 (-127 〜 127)
      * @param wheel wheelの移動量 (-127 〜 127)
@@ -390,6 +439,47 @@ public class HOGPServer extends AbstractHOGPServer {
      * @param middleButton 真ん中ボタンが押下されている場合はtrue
      */
     public void movePointer(int dx, int dy, int wheel, final boolean leftButton, final boolean rightButton, final boolean middleButton) {
+        movePointer(null, dx, dy, wheel, leftButton, rightButton, middleButton);
+    }
+
+    /**
+     * Mouseのレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param dx X座標の移動量 (-127 〜 127)
+     * @param dy Y座標の移動量 (-127 〜 127)
+     * @param wheel wheelの移動量 (-127 〜 127)
+     * @param leftButton 左ボタンが押下されている場合はtrue
+     * @param rightButton 右ボタンが押下されている場合はtrue
+     * @param middleButton 真ん中ボタンが押下されている場合はtrue
+     */
+    public void movePointer(final BluetoothDevice device, int dx, int dy, int wheel, final boolean leftButton, final boolean rightButton, final boolean middleButton) {
+        switch (mMouseMode) {
+            case RELATIVE:
+                moveRelativePointer(device, dx, dy, wheel, leftButton, rightButton, middleButton);
+                break;
+            case ABSOLUTE:
+                moveAbsolutePointer(device, dx, dy, wheel, leftButton, rightButton, middleButton);
+                break;
+        }
+    }
+
+    /**
+     * Relative入力モードのMouseレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param dx X座標の移動量 (-127 〜 127)
+     * @param dy Y座標の移動量 (-127 〜 127)
+     * @param wheel wheelの移動量 (-127 〜 127)
+     * @param leftButton 左ボタンが押下されている場合はtrue
+     * @param rightButton 右ボタンが押下されている場合はtrue
+     * @param middleButton 真ん中ボタンが押下されている場合はtrue
+     */
+    private void moveRelativePointer(final BluetoothDevice device, int dx, int dy, int wheel, final boolean leftButton, final boolean rightButton, final boolean middleButton) {
         if (dx > 127) dx = 127;
         if (dx < -127) dx = -127;
         if (dy > 127) dy = 127;
@@ -419,7 +509,7 @@ public class HOGPServer extends AbstractHOGPServer {
             return;
         }
 
-        addInputReport(report);
+        addInputReport(device, report);
 
         mLastMouseReport[0] = report[0];
         mLastMouseReport[1] = report[1];
@@ -429,18 +519,76 @@ public class HOGPServer extends AbstractHOGPServer {
     }
 
     /**
+     * Absolute入力モードのMouseレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param dx X座標の移動量 (-127 〜 127)
+     * @param dy Y座標の移動量 (-127 〜 127)
+     * @param wheel wheelの移動量 (-127 〜 127)
+     * @param leftButton 左ボタンが押下されている場合はtrue
+     * @param rightButton 右ボタンが押下されている場合はtrue
+     * @param middleButton 真ん中ボタンが押下されている場合はtrue
+     */
+    private void moveAbsolutePointer(final BluetoothDevice device, int dx, int dy, int wheel, final boolean leftButton, final boolean rightButton, final boolean middleButton) {
+        if (dx > ABSOLUTE_MOUSE_SIZE) dx = ABSOLUTE_MOUSE_SIZE;
+        if (dx < 0) dx = 0;
+        if (dy > ABSOLUTE_MOUSE_SIZE) dy = ABSOLUTE_MOUSE_SIZE;
+        if (dy < 0) dy = 0;
+        if (wheel > 127) wheel = 127;
+        if (wheel < -127) wheel = -127;
+
+        byte button = 0;
+        if (leftButton) {
+            button |= 1;
+        }
+        if (rightButton) {
+            button |= 2;
+        }
+        if (middleButton) {
+            button |= 4;
+        }
+
+        final byte[] report = new byte[7];
+        report[0] = REPORT_ID_MOUSE;
+        report[1] = (byte) (button & 7);
+        report[2] = LSB(dx);
+        report[3] = MSB(dx);
+        report[4] = LSB(dy);
+        report[5] = MSB(dy);
+        report[6] = (byte) wheel;
+
+        addInputReport(device, report);
+    }
+
+
+    /**
      * キーダウンのレポートを送信します.
      *
      * @param modifier モディファイアキー
      * @param keyCode キーコード
      */
     public void sendKeyDown(final byte modifier, final byte keyCode) {
+        sendKeyDown(null, modifier, keyCode);
+    }
+
+    /**
+     * キーダウンのレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param modifier モディファイアキー
+     * @param keyCode キーコード
+     */
+    public void sendKeyDown(final BluetoothDevice device, final byte modifier, final byte keyCode) {
         final byte[] report = new byte[9];
         report[0] = REPORT_ID_KEYBOARD;
         report[1] = modifier;
         report[2] = 0x00; // Reserved
         report[3] = keyCode;
-        addInputReport(report);
+        addInputReport(device, report);
     }
 
     /**
@@ -450,6 +598,19 @@ public class HOGPServer extends AbstractHOGPServer {
      * @param keyCode キーコード
      */
     public void sendKeyDown(final byte modifier, final byte[] keyCode) {
+        sendKeyDown(null, modifier, keyCode);
+    }
+
+    /**
+     * キーダウンのレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param modifier モディファイアキー
+     * @param keyCode キーコード
+     */
+    public void sendKeyDown(final BluetoothDevice device, final byte modifier, final byte[] keyCode) {
         final byte[] report = new byte[9];
         report[0] = REPORT_ID_KEYBOARD;
         report[1] = modifier;
@@ -457,14 +618,25 @@ public class HOGPServer extends AbstractHOGPServer {
         for (int i = 0; i  < keyCode.length && 3 + i < report.length; i++) {
             report[3 + i] = keyCode[i];
         }
-        addInputReport(report);
+        addInputReport(device, report);
     }
 
     /**
      * キーアップのレポートを送信します.
      */
     public void sendKeyUp() {
-        addInputReport(EMPTY_REPORT);
+        sendKeyUp(null);
+    }
+
+    /**
+     * キーアップのレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     */
+    public void sendKeyUp(final BluetoothDevice device) {
+        addInputReport(device, EMPTY_REPORT);
     }
 
     /**
@@ -477,6 +649,23 @@ public class HOGPServer extends AbstractHOGPServer {
      * @param rz z軸の回転量
      */
     public void sendJoystick(int dx, int dy, int dz, int rx, int ry, int rz) {
+        sendJoystick(null, dx, dy, dz, rx, ry, rz);
+    }
+
+    /**
+     * ジョイスティックのレポートを送信します.
+     * <p>
+     *     deviceがnullの場合には、全てのデバイスに対して送信します.
+     * </p>
+     * @param device 送信するBluetoothDevice
+     * @param dx x軸への移動量
+     * @param dy y軸への移動量
+     * @param dz z軸への移動量
+     * @param rx x軸の回転量
+     * @param ry y軸の回転量
+     * @param rz z軸の回転量
+     */
+    public void sendJoystick(final BluetoothDevice device, int dx, int dy, int dz, int rx, int ry, int rz) {
         if (dx > 127) dx = 127;
         if (dx < -127) dx = -127;
         if (dy > 127) dy = 127;
@@ -494,6 +683,6 @@ public class HOGPServer extends AbstractHOGPServer {
         report[6] = (byte) ry;
         report[7] = (byte) rz;
 
-        addInputReport(report);
+        addInputReport(device, report);
     }
 }

@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
@@ -26,10 +28,14 @@ public class HOGPHogpProfile extends DConnectProfile {
         addApi(new DeleteApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
+                HOGPMessageService service = (HOGPMessageService) getContext();
+                if (service.getHOGPServer() != null) {
+                    service.stopHOGPServer();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP Server is not running.");
+                }
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
@@ -38,14 +44,21 @@ public class HOGPHogpProfile extends DConnectProfile {
         addApi(new PostApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
+                HOGPMessageService service = (HOGPMessageService) getContext();
+                if (service.getHOGPServer() != null) {
+                    response.putExtra("message", "HOGP Server is already running.");
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    try {
+                        service.startHOGPServer();
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } catch (Exception e) {
+                        MessageUtils.setUnknownError(response, "Failed to start HOGP Server. message=" + e.getMessage());
+                    }
+                }
                 return true;
             }
         });
-
     }
 
     @Override

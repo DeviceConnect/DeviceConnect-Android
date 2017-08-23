@@ -59,12 +59,39 @@ public final class KeyboardCode {
     public static final int KEY_PAGE_UP = 0x4b;
     public static final int KEY_PAGE_DOWN = 0x4e;
 
+    /**
+     * 右矢印キー.
+     */
     public static final byte KEY_RIGHT_ARROW = 0x4f;
+
+    /**
+     * 左矢印キー.
+     */
     public static final byte KEY_LEFT_ARROW = 0x50;
+
+    /**
+     * 下矢印キー.
+     */
     public static final byte KEY_DOWN_ARROW = 0x51;
+
+    /**
+     * 上矢印キー.
+     */
     public static final byte KEY_UP_ARROW = 0x52;
+
+    /**
+     * エンターキー.
+     */
     public static final byte KEY_ENTER = 0x28;
+
+    /**
+     * エスケープキー.
+     */
     public static final byte KEY_ESC = 0x29;
+
+    /**
+     * 削除キー.
+     */
     public static final byte KEY_DEL = 0x2A;
 
     private KeyboardCode() {}

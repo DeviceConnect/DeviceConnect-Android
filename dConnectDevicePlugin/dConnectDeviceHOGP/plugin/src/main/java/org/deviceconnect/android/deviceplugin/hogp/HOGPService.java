@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothDevice;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPJoystickProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPKeyboardProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPMouseProfile;
+import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.service.DConnectService;
 
 /**
@@ -29,13 +30,22 @@ public class HOGPService extends DConnectService {
      * コンストラクタ.
      * @param device 接続されているデバイス
      */
-    HOGPService(final BluetoothDevice device) {
+    HOGPService(final BluetoothDevice device, final HOGPSetting setting) {
         super(device.getAddress());
+
         mDevice = device;
 
-        addProfile(new HOGPMouseProfile());
-        addProfile(new HOGPKeyboardProfile());
-        addProfile(new HOGPJoystickProfile());
+        if (setting.getMouseMode() != HOGPServer.MouseMode.NONE) {
+            addProfile(new HOGPMouseProfile());
+        }
+
+        if (setting.isEnabledKeyboard()) {
+            addProfile(new HOGPKeyboardProfile());
+        }
+
+        if (setting.isEnabledJoystick()) {
+            addProfile(new HOGPJoystickProfile());
+        }
     }
 
     @Override

@@ -125,7 +125,7 @@ public abstract class AbstractHOGPServer {
     /**
      * HID Input Report
      */
-    private final Queue<byte[]> mInputReportQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<ReportHolder> mInputReportQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * Bluetoothデバイスの処理を同期的に処理するためのハンドラ.
@@ -271,18 +271,22 @@ public abstract class AbstractHOGPServer {
 
     /**
      * 送信するHIDデータを追加します.
+     * <p>
+     * deviceにnullが指定された場合には接続されているデバイス全てに送信します。
+     * </p>
+     * @param device 送信先のBluetoothデバイス
      * @param inputReport 追加するデータ
      */
-    final void addInputReport(final byte[] inputReport) {
+    final void addInputReport(final BluetoothDevice device, final byte[] inputReport) {
         if (inputReport != null && inputReport.length > 0) {
-            mInputReportQueue.offer(inputReport);
+            mInputReportQueue.offer(new ReportHolder(device, inputReport));
         }
     }
 
     /**
      * HOGPサーバを開始します.
      */
-    public synchronized void start() {
+    public void start() {
 
         if (mGattServer != null) {
             if (DEBUG) {
@@ -291,7 +295,7 @@ public abstract class AbstractHOGPServer {
             return;
         }
 
-        final BluetoothManager btMgr = (BluetoothManager) mApplicationContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothManager btMgr = (BluetoothManager) mApplicationContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mGattServer = btMgr.openGattServer(mApplicationContext, mGattServerCallback);
         if (mGattServer == null) {
             throw new UnsupportedOperationException("mGattServer is null, check Bluetooth is ON.");
@@ -309,20 +313,27 @@ public abstract class AbstractHOGPServer {
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                final byte[] polled = mInputReportQueue.poll();
-                if (polled != null && mInputReportCharacteristic != null) {
-                    mInputReportCharacteristic.setValue(polled);
+                final ReportHolder holder = mInputReportQueue.poll();
+                if (holder != null && mInputReportCharacteristic != null) {
+                    mInputReportCharacteristic.setValue(holder.getReport());
                     mHandler.post(new Runnable() {
+                        private void notifyCharacteristic(final BluetoothDevice device) {
+                            try {
+                                if (mGattServer != null) {
+                                    mGattServer.notifyCharacteristicChanged(device, mInputReportCharacteristic, false);
+                                }
+                            } catch (final Throwable ignored) {
+                                // do nothing.
+                            }
+                        }
                         @Override
                         public void run() {
-                            final Set<BluetoothDevice> devices = getDevices();
-                            for (final BluetoothDevice device : devices) {
-                                try {
-                                    if (mGattServer != null) {
-                                        mGattServer.notifyCharacteristicChanged(device, mInputReportCharacteristic, false);
-                                    }
-                                } catch (final Throwable ignored) {
-                                    // do nothing.
+                            if (holder.getDevice() != null) {
+                                notifyCharacteristic(holder.getDevice());
+                            } else {
+                                Set<BluetoothDevice> devices = getDevices();
+                                for (BluetoothDevice device : devices) {
+                                    notifyCharacteristic(device);
                                 }
                             }
                         }
@@ -337,7 +348,7 @@ public abstract class AbstractHOGPServer {
     /**
      * HOGPサーバを停止します.
      */
-    public synchronized void stop() {
+    public void stop() {
         stopAdvertising();
     }
 
@@ -943,5 +954,46 @@ public abstract class AbstractHOGPServer {
          * @param device 切断したデバイス
          */
         void onDisconnected(BluetoothDevice device);
+    }
+
+    /**
+     * デバイスへのレポートを保持するクラス.
+     */
+    private class ReportHolder {
+        /**
+         * 送信先のBluetoothデバイス.
+         */
+        private BluetoothDevice mDevice;
+
+        /**
+         * 送信するレポート.
+         */
+        private byte[] mReport;
+
+        /**
+         * コンストラクタ.
+         * @param device 送信先のデバイス
+         * @param report 送信するレポート
+         */
+        ReportHolder(final BluetoothDevice device, final byte[] report) {
+            mDevice = device;
+            mReport = report;
+        }
+
+        /**
+         * 送信先のBluetoothデバイスを取得します.
+         * @return Bluetoothデバイス
+         */
+        BluetoothDevice getDevice() {
+            return mDevice;
+        }
+
+        /**
+         * 送信するレポートを取得します.
+         * @return レポート
+         */
+        byte[] getReport() {
+            return mReport;
+        }
     }
 }

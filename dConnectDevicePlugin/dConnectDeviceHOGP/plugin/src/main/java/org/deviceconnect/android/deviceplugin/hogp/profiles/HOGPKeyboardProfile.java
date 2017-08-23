@@ -6,14 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
+import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
+import org.deviceconnect.android.deviceplugin.hogp.HOGPSetting;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.KeyboardCode;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -24,17 +28,6 @@ import org.deviceconnect.message.DConnectMessage;
 public class HOGPKeyboardProfile extends DConnectProfile {
 
     /**
-     * 押下されているキーコードを格納する変数.
-     * <p>
-     * 0x00の場合は離されている状態.
-     * </p>
-     * <p>
-     * 配列のサイズは、HOGPServerで定義されたサイズになります。
-     * </p>
-     */
-    private byte[] mKeyCodeList = new byte[6];
-
-    /**
      * コンストラクタ.
      */
     public HOGPKeyboardProfile() {
@@ -43,13 +36,14 @@ public class HOGPKeyboardProfile extends DConnectProfile {
         addApi(new PostApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String modifier = (String) request.getExtras().get("modifier");
-                Byte keyCode =  getKeyCode(request, "keyCode");
+                byte[] keyCode = getKeyCodes(request, "keyCode");
 
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else if (keyCode == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "keyCode is invalid.");
                 } else {
@@ -69,14 +63,17 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 final String string = (String) request.getExtras().get("string");
 
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else if (string == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "string is null.");
+                } else if (string.matches("^.*[^\\p{ASCII}].*")) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Not ascii character contains.");
                 } else {
                     new Thread(new Runnable() {
                         @Override
@@ -110,11 +107,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_DEL);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -132,11 +129,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_DOWN_ARROW);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -154,11 +151,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_ENTER);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -176,11 +173,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_ESC);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -198,11 +195,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_LEFT_ARROW);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -220,11 +217,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_RIGHT_ARROW);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -242,11 +239,11 @@ public class HOGPKeyboardProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (!getSetting().isEnabledKeyboard()) {
+                    MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else {
                     sendKeyboard((byte) 0, KeyboardCode.KEY_UP_ARROW);
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -263,6 +260,15 @@ public class HOGPKeyboardProfile extends DConnectProfile {
     }
 
     /**
+     * HOGPSettingのインスタンスを取得します.
+     * @return インスタンス
+     */
+    private HOGPSetting getSetting() {
+        HOGPMessageService service = (HOGPMessageService) getContext();
+        return service.getHOGPSetting();
+    }
+
+    /**
      * HOGPサーバを取得します.
      * @return HOGPサーバ
      */
@@ -272,24 +278,44 @@ public class HOGPKeyboardProfile extends DConnectProfile {
     }
 
     /**
-     * リクエストからキーコードを取得します.
-     * <p>
-     *     リクエストにキーコードが入っていない場合にはnullを返却します。
-     *     また、不正な値が入っている場合にもnullを返却します。
-     * </p>
+     * リクエストからキーコードの配列を取得します.
      * @param request リクエスト
-     * @param name キーコード名
-     * @return キーコード
+     * @param name パラメータ名
+     * @return キーコードの配列
      */
-    private Byte getKeyCode(final Intent request, final String name) {
+    private byte[] getKeyCodes(final Intent request, final String name) {
         String value = (String) request.getExtras().get(name);
         if (value == null) {
             return null;
         }
+        try {
+            String[] array = value.split(",");
+            if (array.length > 6) {
+                return null;
+            }
+            byte[] keyCodes = new byte[array.length];
+            for (int i = 0; i < array.length; i++) {
+                keyCodes[i] = getKeyCode(array[i].trim());
+            }
+            return keyCodes;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 文字列からキーコードを取得します.
+     * @param value キーコード
+     * @return キーコード
+     */
+    private Byte getKeyCode(final String value) {
+        if (value == null || value.isEmpty()) {
+            throw new NumberFormatException("value is invalid.");
+        }
         if (value.startsWith("0x")) {
             return Byte.decode(value);
         }
-        return parseByte(request, name);
+        return  Byte.parseByte(value);
     }
 
     /**
@@ -299,13 +325,29 @@ public class HOGPKeyboardProfile extends DConnectProfile {
      */
     private void sendKeyboard(final byte modifier, final byte keyCode) {
         HOGPServer server = getHOGPServer();
-        server.sendKeyDown(modifier, keyCode);
+        server.sendKeyDown(getDevice(), modifier, keyCode);
         try {
             Thread.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        server.sendKeyUp();
+        server.sendKeyUp(getDevice());
+    }
+
+    /**
+     * キーボードイベントを送信します.
+     * @param modifier モディファイアーキー
+     * @param keyCode キーコード
+     */
+    private void sendKeyboard(final byte modifier, final byte[] keyCode) {
+        HOGPServer server = getHOGPServer();
+        server.sendKeyDown(getDevice(), modifier, keyCode);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        server.sendKeyUp(getDevice());
     }
 
     /**
@@ -315,22 +357,37 @@ public class HOGPKeyboardProfile extends DConnectProfile {
      */
     private byte modifier(final String modifier) {
         if (modifier == null) {
-            return 0;
+            return KeyboardCode.MODIFIER_KEY_NONE;
         }
 
-        byte m = 0;
+        byte m = KeyboardCode.MODIFIER_KEY_NONE;
         String[] split = modifier.split(",");
         for (String s : split) {
             if ("ctrl".equals(s)) {
-                m |= 1;
+                m |= KeyboardCode.MODIFIER_KEY_CTRL;
             } else if ("shift".equals(s)) {
-                m |= 2;
+                m |= KeyboardCode.MODIFIER_KEY_SHIFT;
             } else if ("alt".equals(s)) {
-                m |= 4;
+                m |= KeyboardCode.MODIFIER_KEY_ALT;
             } else if ("gui".equals(s)) {
-                m |= 8;
+                m |= KeyboardCode.MODIFIER_KEY_GUI;
             }
         }
         return m;
+    }
+
+    /**
+     * BluetoothDeviceを取得します.
+     * <p>
+     *     BluetoothDeviceが取得できない場合はnullを返却します。
+     * </p>
+     * @return BluetoothDevice
+     */
+    private BluetoothDevice getDevice() {
+        DConnectService service = getService();
+        if (service instanceof HOGPService) {
+            return ((HOGPService) service).getDevice();
+        }
+        return null;
     }
 }

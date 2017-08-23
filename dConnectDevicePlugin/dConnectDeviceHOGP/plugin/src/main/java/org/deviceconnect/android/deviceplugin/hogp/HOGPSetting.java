@@ -44,6 +44,11 @@ public class HOGPSetting {
     private static final String KEY_MOUSE_MODE = "hid_mouse";
 
     /**
+     * ジョイスティックの有効・無効設定を格納するキー.
+     */
+    private static final String KEY_ENABLED_JOYSTICK = "hid_joystick";
+
+    /**
      * 設定を保存するプリファレンス.
      */
     private SharedPreferences mSharedPreferences;
@@ -125,6 +130,24 @@ public class HOGPSetting {
     public void setMouseMode(final HOGPServer.MouseMode mode) {
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putInt(KEY_MOUSE_MODE, mode.getValue());
+        editor.apply();
+    }
+
+    /**
+     * ジョイスティックの有効・無効設定を行います.
+     * @return ジョイスティックの有効・無効
+     */
+    public boolean isEnabledJoystick() {
+        return mSharedPreferences.getBoolean(KEY_ENABLED_JOYSTICK, false);
+    }
+
+    /**
+     * ジョイスティックの有効・無効設定を行います.
+     * @param flag 有効の場合はtrue、無効の場合はfalse
+     */
+    public void setEnabledJoystick(final boolean flag) {
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putBoolean(KEY_ENABLED_JOYSTICK, flag);
         editor.apply();
     }
 }

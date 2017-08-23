@@ -6,13 +6,19 @@
  */
 package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
+import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
+import org.deviceconnect.android.deviceplugin.hogp.HOGPSetting;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
@@ -24,38 +30,27 @@ public class HOGPMouseProfile extends DConnectProfile {
 
     public HOGPMouseProfile() {
 
-        // POST /mouse/absolute
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "absolute";
-            }
-
+        // GET /mouse
+        addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-                Float x = parseFloat(request, "x");
-                Float y = parseFloat(request, "y");
-                Float wheel = parseFloat(request, "wheel");
-                Boolean rightButton = parseBoolean(request, "rightButton");
-                Boolean leftButton = parseBoolean(request, "leftButton");
-                Boolean middleButton = parseBoolean(request, "middleButton");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
+                HOGPServer server = getHOGPServer();
+                if (server == null) {
+                    MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (getSetting().getMouseMode() == HOGPServer.MouseMode.NONE) {
+                    MessageUtils.setNotSupportAttributeError(response, "Mouse is not supported.");
+                } else {
+                    response.putExtra("mouse", createMouseInfo());
+                    setResult(response, DConnectMessage.RESULT_OK);
+                }
                 return true;
             }
         });
 
-        // POST /mouse/relative
+        // POST /mouse
         addApi(new PostApi() {
             @Override
-            public String getAttribute() {
-                return "relative";
-            }
-            @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 Float x = parseFloat(request, "x");
                 Float y = parseFloat(request, "y");
                 Float wheel = parseFloat(request, "wheel");
@@ -66,7 +61,17 @@ public class HOGPMouseProfile extends DConnectProfile {
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (getSetting().getMouseMode() == HOGPServer.MouseMode.NONE) {
+                    MessageUtils.setNotSupportAttributeError(response, "Mouse is not supported.");
                 } else {
+                    if (x == null) {
+                        x = 0.0f;
+                    }
+
+                    if (y == null) {
+                        y = 0.0f;
+                    }
+
                     if (wheel == null) {
                         wheel = 0.0f;
                     }
@@ -83,11 +88,9 @@ public class HOGPMouseProfile extends DConnectProfile {
                         middleButton = false;
                     }
 
-                    int dx = (int) (x * 127);
-                    int dy = (int) (y * 127);
-                    int dw = (int) (wheel * 127);
+                    server.movePointer(getDevice(), x, y, wheel, leftButton, rightButton, middleButton);
 
-                    server.movePointer(dx, dy, dw, leftButton, rightButton, middleButton);
+                    response.putExtra("mouse", createMouseInfo());
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
@@ -103,23 +106,25 @@ public class HOGPMouseProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String button = (String) request.getExtras().get("button");
 
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (getSetting().getMouseMode() == HOGPServer.MouseMode.NONE) {
+                    MessageUtils.setNotSupportAttributeError(response, "Mouse is not supported.");
                 } else {
+                    BluetoothDevice device = getDevice();
                     boolean leftButton = "left".equals(button);
                     boolean rightButton = "right".equals(button);
                     boolean middleButton = "middle".equals(button);
-                    server.movePointer(0, 0, 0, leftButton, rightButton, middleButton);
+                    server.movePointer(device, 0, 0, 0, leftButton, rightButton, middleButton);
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    server.movePointer(0, 0, 0, false, false, false);
+                    server.movePointer(device, 0, 0, 0, false, false, false);
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
@@ -135,23 +140,25 @@ public class HOGPMouseProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String button = (String) request.getExtras().get("button");
 
                 HOGPServer server = getHOGPServer();
                 if (server == null) {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
+                } else if (getSetting().getMouseMode() == HOGPServer.MouseMode.NONE) {
+                    MessageUtils.setNotSupportAttributeError(response, "Mouse is not supported.");
                 } else {
+                    BluetoothDevice device = getDevice();
                     boolean leftButton = "left".equals(button);
                     boolean rightButton = "right".equals(button);
                     boolean middleButton = "middle".equals(button);
-                    server.movePointer(0, 0, 0, leftButton, rightButton, middleButton);
+                    server.movePointer(device, 0, 0, 0, leftButton, rightButton, middleButton);
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    server.movePointer(0, 0, 0, false, false, false);
+                    server.movePointer(device, 0, 0, 0, false, false, false);
 
                     try {
                         Thread.sleep(200);
@@ -159,13 +166,13 @@ public class HOGPMouseProfile extends DConnectProfile {
                         e.printStackTrace();
                     }
 
-                    server.movePointer(0, 0, 0, leftButton, rightButton, middleButton);
+                    server.movePointer(device, 0, 0, 0, leftButton, rightButton, middleButton);
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    server.movePointer(0, 0, 0, false, false, false);
+                    server.movePointer(device, 0, 0, 0, false, false, false);
 
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
@@ -180,11 +187,52 @@ public class HOGPMouseProfile extends DConnectProfile {
     }
 
     /**
+     * マウスの情報を格納したBundleを取得します.
+     * @return マウスの情報を格納したBundle
+     */
+    private Bundle createMouseInfo() {
+        Bundle mouse = new Bundle();
+        switch (getSetting().getMouseMode()) {
+            case ABSOLUTE:
+                mouse.putString("type", "absolute");
+                break;
+            case RELATIVE:
+                mouse.putString("type", "relative");
+                break;
+        }
+        return mouse;
+    }
+
+    /**
+     * HOGPSettingのインスタンスを取得します.
+     * @return インスタンス
+     */
+    private HOGPSetting getSetting() {
+        HOGPMessageService service = (HOGPMessageService) getContext();
+        return service.getHOGPSetting();
+    }
+
+    /**
      * HOGPサーバを取得します.
      * @return HOGPサーバ
      */
     private HOGPServer getHOGPServer() {
         HOGPMessageService service = (HOGPMessageService) getContext();
         return (HOGPServer) service.getHOGPServer();
+    }
+
+    /**
+     * BluetoothDeviceを取得します.
+     * <p>
+     *     BluetoothDeviceが取得できない場合はnullを返却します。
+     * </p>
+     * @return BluetoothDevice
+     */
+    private BluetoothDevice getDevice() {
+        DConnectService service = getService();
+        if (service instanceof HOGPService) {
+            return ((HOGPService) service).getDevice();
+        }
+        return null;
     }
 }

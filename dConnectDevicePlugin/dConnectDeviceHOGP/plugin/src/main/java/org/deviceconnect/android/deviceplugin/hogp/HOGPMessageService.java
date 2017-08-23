@@ -17,9 +17,6 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPHogpProfile;
-import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPJoystickProfile;
-import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPKeyboardProfile;
-import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPMouseProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPSystemProfile;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
@@ -107,13 +104,9 @@ public class HOGPMessageService extends DConnectMessageService {
         mHOGPSetting = new HOGPSetting(getApplicationContext());
 
         DConnectService service = new DConnectService(HOGP_SERVICE_ID);
-        service.addProfile(new HOGPMouseProfile());
-        service.addProfile(new HOGPKeyboardProfile());
-        service.addProfile(new HOGPJoystickProfile());
         service.addProfile(new HOGPHogpProfile());
         service.setName(HOGP_NAME);
-        service.setOnline(false);
-
+        service.setOnline(true);
         getServiceProvider().addService(service);
 
         if (mHOGPSetting.isEnabledServer()) {
@@ -208,6 +201,7 @@ public class HOGPMessageService extends DConnectMessageService {
             Log.i(TAG, "Start the HOGP Server.");
             Log.i(TAG, "Mouse Mode: " + mHOGPSetting.getMouseMode());
             Log.i(TAG, "Keyboard: " + mHOGPSetting.isEnabledKeyboard());
+            Log.i(TAG, "Joystick: " + mHOGPSetting.isEnabledJoystick());
         }
 
         if (mHOGPSetting.getMouseMode() == HOGPServer.MouseMode.NONE && !mHOGPSetting.isEnabledKeyboard()) {
@@ -222,10 +216,11 @@ public class HOGPMessageService extends DConnectMessageService {
                     Log.d(TAG, "Connected the device. " + device.getName());
                 }
 
-                DConnectService service = getServiceProvider().getService(HOGP_SERVICE_ID);
-                if (service != null) {
-                    service.setOnline(true);
-                }
+                DConnectService service = new HOGPService(device, mHOGPSetting);
+                service.setOnline(true);
+
+                getServiceProvider().removeService(device.getAddress());
+                getServiceProvider().addService(service);
             }
 
             @Override
@@ -234,9 +229,9 @@ public class HOGPMessageService extends DConnectMessageService {
                     Log.d(TAG, "Disconnected the device. " + device.getName());
                 }
 
-                DConnectService service = getServiceProvider().getService(HOGP_SERVICE_ID);
+                DConnectService service = getServiceProvider().getService(device.getAddress());
                 if (service != null) {
-                    service.setOnline(!mHOGPServer.getDevices().isEmpty());
+                    service.setOnline(false);
                 }
             }
         });
@@ -270,11 +265,6 @@ public class HOGPMessageService extends DConnectMessageService {
 
             mHOGPServer.stop();
             mHOGPServer = null;
-        }
-
-        DConnectService service = getServiceProvider().getService(HOGP_SERVICE_ID);
-        if (service != null) {
-            service.setOnline(false);
         }
     }
 }

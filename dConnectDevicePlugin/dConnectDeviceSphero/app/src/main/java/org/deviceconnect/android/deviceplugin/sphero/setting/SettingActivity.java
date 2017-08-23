@@ -18,7 +18,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
-import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.DeviceSelectionPageFragment;
 import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.PairingFragment;
 import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.WakeupFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
@@ -90,38 +89,17 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
      */
     private BroadcastReceiver mReceiver;
     
-    /** 
-     * デバイス操作のリスナー.
-     * Fragmentをページングするため、weak参照で持つ。
-     */
-    private WeakReference<DeviceControlListener> mListener;
-    
-    /** 
+   /**
      * ページのクラスリスト.
      */
     @SuppressWarnings("rawtypes")
     private static final Class[] PAGES = {
         WakeupFragment.class,
         PairingFragment.class,
-        DeviceSelectionPageFragment.class,
     };
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_ADD_DEVICE);
-        filter.addAction(ACTION_REMOVE_DEVICE);
-        filter.addAction(ACTION_REMOVE_DEVICE_ALL);
-        filter.addAction(ACTION_ADD_CONNECTED_DEVICE);
-        filter.addAction(ACTION_CONNECTED);
-        filter.addAction(ACTION_DISCONNECTED);
-        filter.addAction(ACTION_ADD_FOUNDED_DEVICE);
-        filter.addAction(ACTION_DELETED);
-
-        mReceiver = new ServiceReceiver();
-        lbm.registerReceiver(mReceiver, filter);
     }
 
     @Override
@@ -149,130 +127,6 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         return page;
     }
 
-    /**
-     * 指定されたアクションを投げる.
-     * 
-     * @param action アクション
-     */
-    private void sendAction(final String action) {
-        Intent i = new Intent(this, SpheroDeviceService.class);
-        i.setAction(action);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-    }
-    
-    /**
-     * 接続済みのデバイス一覧を取得するブロードキャストを投げる.
-     */
-    public void sendGetConnectedDevicesBroadcast() {
-        sendAction(SpheroDeviceService.ACTION_GET_CONNECTED);
-    }
-    /**
-     * 接続されていないデバイス一覧を取得するブロードキャストを投げる.
-     */
-    public void sendGetFoundedDevicesBroadcast() {
-        sendAction(SpheroDeviceService.ACTION_GET_FOUND);
-    }
-
-    /**
-     * 検知開始のブロードキャストを投げる.
-     */
-    public void sendStartDiscoveryBroadcast() {
-        sendAction(SpheroDeviceService.ACTION_START_DISCOVERY);
-    }
-    
-    /**
-     * 検知停止のブロードキャストを投げる.
-     */
-    public void sendStopDiscoveryBroadcast() {
-        sendAction(SpheroDeviceService.ACTION_STOP_DISCOVERY);
-    }
-    
-    /**
-     * 接続のブロードキャストを投げる.
-     * 
-     * @param serviceId サービスID
-     */
-    public void sendConnectBroadcast(final String serviceId) {
-        Intent i = new Intent(this, SpheroDeviceService.class);
-        i.setAction(SpheroDeviceService.ACTION_CONNECT);
-        i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-    }
-
-
-    /**
-     * Spheroを削除するブロードキャストを投げる.
-     * @param serviceId サービスID
-     */
-    public void sendDeleteSpheroBroadcast(final String serviceId) {
-        Intent i = new Intent(this, SpheroDeviceService.class);
-        i.setAction(SpheroDeviceService.ACTION_DELETE_DEVICE);
-        i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-    }
-
-    /**
-     * 接続解除のブロードキャストを投げる.
-     * 
-     * @param serviceId サービスID
-     */
-    public void sendDisonnectBroadcast(final String serviceId) {
-        Intent i = new Intent(this, SpheroDeviceService.class);
-        i.setAction(SpheroDeviceService.ACTION_DISCONNECT);
-        i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-    }
-    
-    /**
-     * リスナーを設定する.
-     * 
-     * @param listener リスナー
-     */
-    public void setDeviceControlListener(final DeviceControlListener listener) {
-        mListener = new WeakReference<SettingActivity.DeviceControlListener>(listener);
-    }
-    
-    /**
-     * サービスからのブロードキャストを受け取るレシーバー.
-     */
-    private class ServiceReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            
-            if (mListener == null || mListener.get() == null) {
-                return;
-            }
-            
-            String action = intent.getAction();
-            if (action.equals(ACTION_ADD_DEVICE)) {
-                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
-                mListener.get().onDeviceFound(sd);
-            } else if (action.equals(ACTION_ADD_FOUNDED_DEVICE)) {
-                List<SpheroParcelable> devices = intent.getParcelableArrayListExtra(EXTRA_DEVICES);
-                for (SpheroParcelable sd : devices) {
-                    mListener.get().onDeviceFound(sd);
-                }
-            } else if (action.equals(ACTION_REMOVE_DEVICE)) {
-                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
-                mListener.get().onDeviceLost(sd);
-            } else if (action.equals(ACTION_REMOVE_DEVICE_ALL)) {
-                mListener.get().onDeviceLostAll();
-            } else if (action.equals(ACTION_ADD_CONNECTED_DEVICE)) {
-                List<Parcelable> devices = intent.getParcelableArrayListExtra(EXTRA_DEVICES);
-                mListener.get().onConnectedDevices(devices);
-            } else if (action.equals(ACTION_CONNECTED)) {
-                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
-                mListener.get().onDeviceConnected(sd);
-            } else if (action.equals(ACTION_DISCONNECTED)) {
-                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
-                mListener.get().onDeviceDisconnected(sd);
-            } else if (action.equals(ACTION_DELETED)) {
-                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
-                mListener.get().onDeviceDeleted(sd);
-            }
-        }
-    }
 
     @Override
     protected void onDestroy() {
@@ -280,55 +134,4 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.unregisterReceiver(mReceiver);
     }
-    
-    /**
-     * デバイスの検知情報などの通知を受けるリスナー.
-     */
-    public interface DeviceControlListener {
-        
-        /**
-         * 接続済みのデバイスを受信した場合に呼び出される.
-         * 
-         * @param devices 接続済みデバイスの一覧。無い場合は空のリストが渡される。
-         */
-        void onConnectedDevices(List<Parcelable> devices);
-        
-        /**
-         * デバイスが見つかった場合に呼び出される.
-         * 
-         * @param device デバイス
-         */
-        void onDeviceFound(SpheroParcelable device);
-        
-        /**
-         * デバイスが消失した場合に呼び出される.
-         * 
-         * @param device デバイス
-         */
-        void onDeviceLost(SpheroParcelable device);
-        
-        /**
-         * すべてのデバイスの消失を通知します.
-         */
-        void onDeviceLostAll();
-        
-        /**
-         * デバイスが接続された場合に呼び出される.
-         * 
-         * @param device デバイス
-         */
-        void onDeviceConnected(SpheroParcelable device);
-        /**
-         * デバイスが切断された場合に呼び出される.
-         *
-         * @param device デバイス
-         */
-        void onDeviceDisconnected(SpheroParcelable device);
-        /**
-         * デバイスが削除された場合に呼び出される.
-         *
-         * @param device デバイス
-         */
-        void onDeviceDeleted(SpheroParcelable device);
-    }
-}
+ }

@@ -54,18 +54,15 @@ import java.util.concurrent.TimeUnit;
  * @author NTT DOCOMO, INC.
  */
 public final class SpheroManager implements DeviceInfo.DeviceSensorListener, DeviceInfo.DeviceCollisionListener {
+    /** TAG. */
+    private static final String TAG = SpheroManager.class.getSimpleName();
 
     /**
      * シングルトンなManagerのインスタンス.
      */
     public static final SpheroManager INSTANCE = new SpheroManager();
 
-    /**
-     * 接続のタイムアウト.
-     */
-    private static final int CONNECTION_TIMEOUT = 30000;
-
-    /**
+     /**
      * 切断のリトライ回数.
      */
     private static final int DISCONNECTION_RETRY_NUM = 50;
@@ -77,7 +74,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
     /**
      * Spheroを見失った際のリトライ回数.
      */
-    private static final int SEARCH_RETRY_NUM = 10;
+    private static final int SEARCH_RETRY_NUM = 5;
 
     /**
      * 1G = {@value} .
@@ -108,10 +105,6 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
      */
     private ConcurrentHashMap<String, DeviceInfo> mDevices;
 
-    /**
-     * 検知中フラグ.
-     */
-    private boolean mIsDiscovering;
 
     /**
      * 検知されたデバイスの一覧. まだ未接続で、検知されただけの状態の一覧.
@@ -127,12 +120,6 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
      * デバイス検知リスナー.
      */
     private DeviceDiscoveryListener mDiscoveryListener;
-
-
-    /**
-     * 接続のロック.
-     */
-    private Object mConnLock;
 
     /**
      * サービス.
@@ -205,7 +192,6 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         discoveryAgent.setMaxConnectedRobots(4);
         mDiscoveryListenerImpl = new DiscoveryListenerImpl();
         discoveryAgent.addRobotStateListener(mDiscoveryListenerImpl);
-        mConnLock = new Object();
         mConnectingTimeoutCount = 0;
         mConnectingFlags = new ConcurrentHashMap<String, Boolean>();
     }
@@ -216,19 +202,12 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
      * @param context コンテキストオブジェクト.
      */
     public synchronized void startDiscovery(final Context context) {
-
-        if (mIsDiscovering) {
-            return;
-        }
-
-        if (BuildConfig.DEBUG) {
-            Log.d("TEST", "start discovery");
-        }
         try {
-            mIsDiscovering = discoveryAgent.startDiscovery(context);
-            scanSphero(true);
+            if (!discoveryAgent.isDiscovering()) {
+                discoveryAgent.startDiscovery(context);
+            }
         } catch (DiscoveryException e) {
-            mIsDiscovering = false;
+            e.printStackTrace();
         }
     }
 
@@ -245,21 +224,10 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
      * 検知を終了する.
      */
     public synchronized void stopDiscovery() {
-
-        if (!mIsDiscovering) {
-            return;
-        }
-
-        if (BuildConfig.DEBUG) {
-            Log.d("TEST", "stop discovery");
-        }
         if (discoveryAgent.isDiscovering()) {
             discoveryAgent.stopDiscovery();
         }
-        mIsDiscovering = false;
-//        if (mFoundDevices != null) {
-//            mFoundDevices.clear();
-//        }
+
     }
 
     /**
@@ -355,18 +323,8 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         }
         DeviceInfo removed = mDevices.remove(id);
         if (removed != null) {
-            final ConvenienceRobot sphero = removed.getDevice();
-            for (int i = 0; i < DISCONNECTION_RETRY_NUM; i++) {
-                if (!sphero.isConnected()) {
-                    break;
-                }
-                sphero.disconnect();
-                try {
-                    Thread.sleep(DISCONNECTION_RETRY_DELAY);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            ConvenienceRobot sphero = removed.getDevice();
+            sphero.disconnect();
         }
     }
 
@@ -409,20 +367,15 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                 DeviceInfo info = mDevices.get(connected.getIdentifier());
                 if (info != null) {
                     cRobot = info.getDevice();
-                    if (BuildConfig.DEBUG) {
-                        Log.d("TEST", "retryConnecting:" + cRobot.isConnected());
-                    }
-                    break;
-                } else {
-                    if (BuildConfig.DEBUG) {
-                        Log.d("TEST", "retryConnecting......");
+
+                    if (cRobot.isConnected()) {
+                        break;
                     }
                 }
-                // Time Out
             } while (mConnectingTimeoutCount < DISCONNECTION_RETRY_NUM);
 
         }
-        return (cRobot != null);
+        return (cRobot != null) && cRobot.isConnected();
 
     }
 
@@ -709,11 +662,9 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         info.setDevice(sphero);
         info.setBackBrightness(1.f);
         sphero.enableStabilization(true);
-        if (BuildConfig.DEBUG) {
-            Log.d("TEST", "connected device : " + sphero.getRobot().getIdentifier());
-        }
         if (!mDevices.contains(sphero.getRobot().getIdentifier())) {
             mDevices.put(sphero.getRobot().getIdentifier(), info);
+
         }
     }
 
@@ -766,35 +717,34 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
             ConvenienceRobot cRobot = new ConvenienceRobot(robot);
             switch (robotChangedStateNotificationType) {
                 case Online:
-                    if (mConnectingFlags.get(cRobot.getRobot().getIdentifier()) == null
-                            || mConnectingFlags.get(cRobot.getRobot().getIdentifier()) != null
-                            && !mConnectingFlags.get(robot.getIdentifier())) { // startDiscovery時は接続しないようにする
-                        cRobot.disconnect();
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("TEST", "online");
-                        }
-                        mConnectingFlags.remove(robot.getIdentifier());
-                        SpheroManager.this.onConnected(cRobot);
-                    }
-                    break;
-                case Connecting:
-                    if (BuildConfig.DEBUG) {
-                        Log.d("TEST", "connecting");
-                    }
-                    mCounting.put(robot.getIdentifier(), 1);
-                    scanSphero(true);
-                    if (getNotConnectedDevice(robot.getIdentifier()) == null) {
-                        mFoundDevices.add(robot);
-                    }
+                    SpheroManager.this.onConnected(cRobot);
                     if (mDiscoveryListener != null) {
                         mDiscoveryListener.onDeviceFound(cRobot);
                     }
+                    // 接続されているデバイスは再接続対象から外す
+                    mCounting.remove(robot.getIdentifier());
+                    if (mCounting.size() == 0) {
+                        scanSphero(false);
+                    }
+                    break;
+                case Connecting:
+                    if (getNotConnectedDevice(robot.getIdentifier()) == null) {
+                        mFoundDevices.add(robot);
+                    }
                     break;
                 case Connected:
-                case Disconnected:
+                    break;
                 case Offline:
+                case Disconnected:
                 case FailedConnect:
+                    mCounting.put(robot.getIdentifier(), 1);
+                    if (mCounting.size() > 0) {
+                        scanSphero(true);
+                    }
+                    if (mDiscoveryListener != null) {
+                        mDiscoveryListener.onDeviceLost(cRobot);
+                    }
+                    break;
                 default:
             }
         }
@@ -878,10 +828,10 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
     }
 
     /**
-     *
-     * @param enable
+     * 再接続用タイマー.
+     * @param enable true:タイマーのスタート false:タイマーのストップ
      */
-    public synchronized void scanSphero(final boolean enable) {
+    private synchronized void scanSphero(final boolean enable) {
         if (enable) {
             if (mScanning || mScanTimerFuture != null) {
                 // scan have already started.
@@ -895,15 +845,15 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                         Integer count = mCounting.get(serviceId);
                         count++;
                         if (BuildConfig.DEBUG) {
-                            Log.d("TEST", "count:" + count);
+                            Log.d(TAG, "retryConnecting:" + count);
                         }
                         mCounting.put(serviceId, count);
                         if (count >= SEARCH_RETRY_NUM) {
                             Robot info = getNotConnectedDevice(serviceId);
                             if (mDiscoveryListener != null
                                     && info != null
-                                    && !info.isConnected()) {
-                                mDiscoveryListener.onDeviceLost(new ConvenienceRobot(info));
+                                    && !info.isOnline()) {
+                                mDiscoveryListener.onDeviceFound(new ConvenienceRobot(info));
                             }
                             mCounting.put(serviceId, 0);
                             if (mCounting.size() == 0) {

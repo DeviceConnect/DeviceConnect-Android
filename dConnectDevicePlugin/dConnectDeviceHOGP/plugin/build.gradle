@@ -6,8 +6,8 @@ dependencies {
 }
 
 repositories {
-    maven { url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
 }
 
 android {

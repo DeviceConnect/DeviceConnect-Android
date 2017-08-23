@@ -84,7 +84,7 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                                 byte keyCode = KeyboardCode.keyCode(a);
                                 sendKeyboard(modifier, keyCode);
                                 try {
-                                    Thread.sleep(50);
+                                    Thread.sleep(60);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }

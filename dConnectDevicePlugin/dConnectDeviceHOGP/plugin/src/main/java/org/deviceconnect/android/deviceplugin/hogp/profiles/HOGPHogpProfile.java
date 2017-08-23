@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.hogp.profiles;
 import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
+import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -35,7 +36,6 @@ public class HOGPHogpProfile extends DConnectProfile {
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP Server is not running.");
                 }
-
                 return true;
             }
         });
@@ -44,12 +44,21 @@ public class HOGPHogpProfile extends DConnectProfile {
         addApi(new PostApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                String mouse = (String) request.getExtras().get("mouse");
+                Boolean keyboard = parseBoolean(request, "keyboard");
+
                 HOGPMessageService service = (HOGPMessageService) getContext();
                 if (service.getHOGPServer() != null) {
                     response.putExtra("message", "HOGP Server is already running.");
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     try {
+                        if (keyboard == null) {
+                            keyboard = false;
+                        }
+                        service.getHOGPSetting().setEnabledKeyboard(keyboard);
+                        service.getHOGPSetting().setMouseMode(getMouseMode(mouse));
+
                         service.startHOGPServer();
                         setResult(response, DConnectMessage.RESULT_OK);
                     } catch (Exception e) {
@@ -64,5 +73,22 @@ public class HOGPHogpProfile extends DConnectProfile {
     @Override
     public String getProfileName() {
         return "hogp";
+    }
+
+    /**
+     * マウスモードを取得します.
+     * @param mode マウスモード
+     * @return マウスモード
+     */
+    private HOGPServer.MouseMode getMouseMode(final String mode) {
+        if (mode == null) {
+            return HOGPServer.MouseMode.NONE;
+        } else if (mode.equalsIgnoreCase("absolute")) {
+            return HOGPServer.MouseMode.ABSOLUTE;
+        } else if (mode.equalsIgnoreCase("relative")) {
+            return HOGPServer.MouseMode.RELATIVE;
+        } else {
+            return HOGPServer.MouseMode.NONE;
+        }
     }
 }

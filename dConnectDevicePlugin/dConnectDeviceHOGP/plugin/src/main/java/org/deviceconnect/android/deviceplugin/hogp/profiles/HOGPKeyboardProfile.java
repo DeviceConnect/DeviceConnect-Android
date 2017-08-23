@@ -8,8 +8,6 @@ package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.os.Handler;
-import android.os.HandlerThread;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
@@ -29,17 +27,10 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class HOGPKeyboardProfile extends DConnectProfile {
 
-    private HandlerThread mHandlerThread;
-    private Handler mHandler;
-
     /**
      * コンストラクタ.
      */
     public HOGPKeyboardProfile() {
-        mHandlerThread = new HandlerThread("HOGP-Keyboard");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
-
         // POST /keyboard
         addApi(new PostApi() {
             @Override
@@ -83,22 +74,12 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                 } else if (string.matches("^.*[^\\p{ASCII}].*")) {
                     MessageUtils.setInvalidRequestParameterError(response, "Not ascii character contains.");
                 } else {
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (int i = 0; i < string.length(); i++) {
-                                String a = String.valueOf(string.charAt(i));
-                                byte modifier = KeyboardCode.modifier(a);
-                                byte keyCode = KeyboardCode.keyCode(a);
-                                sendKeyboard(modifier, keyCode);
-                                try {
-                                    Thread.sleep(60);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    });
+                    for (int i = 0; i < string.length(); i++) {
+                        String a = String.valueOf(string.charAt(i));
+                        byte modifier = KeyboardCode.modifier(a);
+                        byte keyCode = KeyboardCode.keyCode(a);
+                        sendKeyboard(modifier, keyCode);
+                    }
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
@@ -333,11 +314,6 @@ public class HOGPKeyboardProfile extends DConnectProfile {
     private void sendKeyboard(final byte modifier, final byte keyCode) {
         HOGPServer server = getHOGPServer();
         server.sendKeyDown(getDevice(), modifier, keyCode);
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         server.sendKeyUp(getDevice());
     }
 
@@ -349,11 +325,6 @@ public class HOGPKeyboardProfile extends DConnectProfile {
     private void sendKeyboard(final byte modifier, final byte[] keyCode) {
         HOGPServer server = getHOGPServer();
         server.sendKeyDown(getDevice(), modifier, keyCode);
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         server.sendKeyUp(getDevice());
     }
 

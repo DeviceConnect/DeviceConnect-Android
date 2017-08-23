@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothDevice;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPJoystickProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPKeyboardProfile;
 import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPMouseProfile;
+import org.deviceconnect.android.deviceplugin.hogp.profiles.HOGPServiceInformation;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -32,6 +33,7 @@ public class HOGPService extends DConnectService {
      */
     HOGPService(final BluetoothDevice device, final HOGPSetting setting) {
         super(device.getAddress());
+        setNetworkType(NetworkType.BLE);
 
         mDevice = device;
 
@@ -46,6 +48,8 @@ public class HOGPService extends DConnectService {
         if (setting.isEnabledJoystick()) {
             addProfile(new HOGPJoystickProfile());
         }
+
+        addProfile(new HOGPServiceInformation());
     }
 
     @Override

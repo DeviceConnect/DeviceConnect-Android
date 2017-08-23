@@ -73,6 +73,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     /** このクラスが属するコンテキスト. */
     private Context mContext;
 
+    /** WebSocket管理クラス. */
+    private WebSocketInfoManager mWebSocketInfoManager;
+
     /** ファイルを管理するためのクラス. */
     private FileManager mFileMgr;
 
@@ -81,10 +84,11 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
 
     /**
      * コンストラクタ.
-     * @param context このクラスが属するコンテキスト
+     * @param managerService DeviceConnectManager本体サービス
      */
-    DConnectServerEventListenerImpl(final Context context) {
-        mContext = context;
+    DConnectServerEventListenerImpl(final DConnectService managerService) {
+        mContext = managerService;
+        mWebSocketInfoManager = managerService.getWebSocketInfoManager();
     }
 
     /**
@@ -437,8 +441,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
      * @return WebSocketInfoManagerのインスタンス
      */
     private WebSocketInfoManager getWebSocketInfoManager() {
-        DConnectApplication app = (DConnectApplication) ((DConnectService) mContext).getApplication();
-        return app.getWebSocketInfoManager();
+        return mWebSocketInfoManager;
     }
 
     /**

@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,6 +19,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -44,7 +44,7 @@ import java.io.ByteArrayOutputStream;
  *
  * @author NTT DOCOMO, INC.
  */
-public class WebViewActivity extends Activity {
+public class WebViewActivity extends AppCompatActivity {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
 
@@ -104,7 +104,7 @@ public class WebViewActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_view);
 
-        ActionBar actionBar = getActionBar();
+        ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }

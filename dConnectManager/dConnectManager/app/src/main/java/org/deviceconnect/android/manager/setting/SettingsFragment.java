@@ -752,7 +752,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Start all device plugins.
      */
     private void restartDevicePlugins() {
-        RestartingDialogFragment.show(getActivity());
+        RestartingDialogFragment.show((BaseSettingActivity) getActivity());
     }
 
     /**

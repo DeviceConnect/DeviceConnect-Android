@@ -1,7 +1,7 @@
 package org.deviceconnect.android.manager.event;
 
 
-import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 import java.util.ArrayList;
 import java.util.Iterator;

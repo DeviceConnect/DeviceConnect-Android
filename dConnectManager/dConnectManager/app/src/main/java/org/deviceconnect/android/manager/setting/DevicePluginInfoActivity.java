@@ -6,35 +6,95 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.ActionBar;
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.SwitchCompat;
+import android.view.View;
+import android.widget.CompoundButton;
 
+import org.deviceconnect.android.manager.DConnectMessageService;
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.Connection;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Device Connect Manager device plug-in Information Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginInfoActivity extends Activity {
+public class DevicePluginInfoActivity extends BaseSettingActivity {
 
-    /** デバイスプラグインのプラグインIDのキー. */
-    static final String PLUGIN_ID = "pluginId";
+    /** デバイスプラグイン情報のキー. */
+    static final String PLUGIN_INFO = "pluginInfo";
+
+    /** デバイスプラグイン有効フラグのキー. */
+    static final String PLUGIN_ENABLED = "pluginEnabled";
+
+    /** フラグメントのタグ. */
+    private static final String TAG = "info";
+
+    /** プラグイン有効化スイッチ. */
+    private SwitchCompat mStatusSwitch;
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent == null) {
+                return;
+            }
+            String action = intent.getAction();
+            if (Connection.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                String pluginId = intent.getStringExtra(Connection.EXTRA_PLUGIN_ID);
+                if (mPluginInfo.getPluginId().equals(pluginId)) {
+                    final ConnectionState state = intent.getParcelableExtra(Connection.EXTRA_CONNECTION_STATE);
+                    if (state == null) {
+                        return;
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            switch (state) {
+                                case CONNECTING:
+                                    mProgressCircle.setVisibility(View.VISIBLE);
+                                    break;
+                                case CONNECTED:
+                                    mProgressCircle.setVisibility(View.INVISIBLE);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    };
+
+    private DevicePlugin.Info mPluginInfo;
+
+    /** 接続中であることを示すビュー. */
+    private View mProgressCircle;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setTitle(R.string.activity_deviceplugin_info_title);
-        ActionBar actionBar = getActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Connection.ACTION_CONNECTION_STATE_CHANGED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
 
         Intent intent = getIntent();
         if (intent == null) {
@@ -42,23 +102,80 @@ public class DevicePluginInfoActivity extends Activity {
             return;
         }
 
-        String packageName = intent.getStringExtra(PLUGIN_ID);
-        if (packageName == null) {
+        mPluginInfo = intent.getParcelableExtra(PLUGIN_INFO);
+        if (mPluginInfo == null || !intent.hasExtra(PLUGIN_ENABLED)) {
             finish();
             return;
         }
+        final boolean isEnabled;
+        if (savedInstanceState != null && savedInstanceState.containsKey(PLUGIN_ENABLED)) {
+            isEnabled = savedInstanceState.getBoolean(PLUGIN_ENABLED);
+        } else {
+            isEnabled = intent.getBooleanExtra(PLUGIN_ENABLED, true);
+        }
 
-        if (savedInstanceState == null) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);
+            actionBar.setCustomView(R.layout.action_bar_plugin_enable_status);
+
+            mStatusSwitch = (SwitchCompat) actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
+            mStatusSwitch.setChecked(isEnabled);
+            mStatusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(final CompoundButton button, final boolean isOn) {
+                    // 再起動ボタンの有効状態を変更
+                    FragmentManager fm = getSupportFragmentManager();
+                    Fragment f = fm.findFragmentByTag(TAG);
+                    if (f != null && f.isResumed() && f instanceof DevicePluginInfoFragment) {
+                        ((DevicePluginInfoFragment) f).onEnabled(isOn);
+                    }
+
+                    // プラグインの有効状態を変更
+                    requestPluginStateChange(isOn);
+                }
+            });
+
+            mProgressCircle = actionBar.getCustomView().findViewById(R.id.progress_plugin_enable_status);
+        }
+
+        if (!hasSavedInstance()) {
             Fragment f = new DevicePluginInfoFragment();
             Bundle args = new Bundle();
-            args.putString(PLUGIN_ID, packageName);
+            args.putParcelable(PLUGIN_INFO, mPluginInfo);
+            args.putBoolean(PLUGIN_ENABLED, isEnabled);
             f.setArguments(args);
 
-            FragmentManager fm = getFragmentManager();
+            FragmentManager fm = getSupportFragmentManager();
             FragmentTransaction t = fm.beginTransaction();
             t.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            t.add(android.R.id.content, f, "container");
+            t.add(android.R.id.content, f, TAG);
             t.commit();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (mStatusSwitch != null) {
+            outState.putBoolean(PLUGIN_ENABLED, mStatusSwitch.isChecked());
+        }
+    }
+
+    private void requestPluginStateChange(final boolean isOn) {
+        String action = isOn ?
+                DConnectMessageService.ACTION_ENABLE_PLUGIN :
+                DConnectMessageService.ACTION_DISABLE_PLUGIN;
+        Intent request = new Intent(this, DConnectService.class);
+        request.setAction(action);
+        request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
+        startService(request);
+    }
+
+    @Override
+    protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        super.onDestroy();
     }
 }

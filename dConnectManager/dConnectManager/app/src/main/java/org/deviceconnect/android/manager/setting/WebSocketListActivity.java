@@ -6,10 +6,9 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +34,7 @@ import java.util.Locale;
  *
  * @author NTT DOCOMO, INC.
  */
-public class WebSocketListActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener,
+public class WebSocketListActivity extends BaseSettingActivity implements AlertDialogFragment.OnAlertDialogListener,
         WebSocketInfoManager.OnWebSocketEventListener {
 
     /**
@@ -59,13 +58,12 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
         setContentView(R.layout.activity_websocket_list);
 
         setTitle(R.string.activity_settings_manage_websocket);
-        ActionBar actionBar = getActionBar();
+        ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
         mWebSocketInfoAdapter = new WebSocketInfoAdapter();
-        mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
 
         ListView listView = (ListView) findViewById(R.id.activity_websocket_list);
         if (listView != null) {
@@ -80,15 +78,18 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        getWebSocketInfoManager().setOnWebSocketEventListener(this);
+    protected void onManagerBonded() {
+        mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
+        getWebSocketInfoManager().addOnWebSocketEventListener(this);
     }
 
     @Override
-    protected void onPause() {
-        getWebSocketInfoManager().setOnWebSocketEventListener(null);
-        super.onPause();
+    protected void onDestroy() {
+        WebSocketInfoManager mgr = getWebSocketInfoManager();
+        if (mgr != null) {
+            mgr.removeOnWebSocketEventListener(this);
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -140,15 +141,6 @@ public class WebSocketListActivity extends Activity implements AlertDialogFragme
         String negative = getString(R.string.activity_websocket_delete_negative);
         AlertDialogFragment dialog = AlertDialogFragment.create(TAG_DELETE_WEB_SOCKET, title, message, positive, negative);
         dialog.show(getFragmentManager(), TAG_DELETE_WEB_SOCKET);
-    }
-
-    /**
-     * WebSocket管理クラスを取得する.
-     * @return WebSocket管理クラス
-     */
-    private WebSocketInfoManager getWebSocketInfoManager() {
-        DConnectApplication app = (DConnectApplication) getApplication();
-        return app.getWebSocketInfoManager();
     }
 
     /**

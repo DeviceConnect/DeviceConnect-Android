@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.observer.receiver;
 
-import org.deviceconnect.android.observer.DConnectObservationService;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import org.deviceconnect.android.observer.DConnectObservationService;
 
 /**
  * 監視用のブロードキャストを受けるレシーバー.

@@ -57,7 +57,9 @@ public class DeliveryRequest extends LocalOAuthRequest {
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
-        mContext.sendBroadcast(request);
+        if (!forwardRequest(request)) {
+            return;
+        }
 
         if (mResponse == null) {
             // 各デバイスのレスポンスを待つ

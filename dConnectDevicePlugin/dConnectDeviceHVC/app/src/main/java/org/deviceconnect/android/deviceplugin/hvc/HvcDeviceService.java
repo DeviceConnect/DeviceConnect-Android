@@ -380,9 +380,9 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
      */
     private void removeAllDetectEvent() {
         for (HvcCommManager commManager : mHvcCommManagerArray) {
-            /** 全イベント解除. */
+            /* 全イベント解除. */
             commManager.removeAllDetectEvent();
-            /** 全インターバルタイマー削除. */
+            /* 全インターバルタイマー削除. */
             int count = mIntervalTimerInfoArray.size();
             for (int index = (count - 1); index >= 0; index--) {
                 HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
@@ -392,6 +392,84 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
         }
     }
 
+    /**
+     * Search HVC.
+     * @param serviceId HVC's serviceID
+     */
+    public void searchHVC(final String serviceId) {
+
+        // Bluetooth OFF
+        if (mDetector == null || !mDetector.isEnabled()) {
+            if (DEBUG) {
+                Log.d(TAG, "Bluetooth OFF");
+            }
+            return;
+        }
+
+        // search CommManager by serviceId(if not found, add CommManager.).
+        HvcCommManager commManager;
+        synchronized (mHvcCommManagerArray) {
+            commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        }
+
+        if (commManager == null) {
+            // search cache bluetooth device.(if not found, not found service error)
+            BluetoothDevice bluetoothDevice = searchCacheHvcDevice(serviceId);
+            if (bluetoothDevice == null) {
+                if (DEBUG) {
+                    Log.d(TAG, "service not found");
+                }
+                return;
+            }
+
+            // add comm manager.
+            commManager = new HvcCommManager(this, this, serviceId, bluetoothDevice);
+            synchronized (mHvcCommManagerArray) {
+                mHvcCommManagerArray.add(commManager);
+            }
+        }
+
+        final HvcCommManager commManagerFinal = commManager;
+        // get detection process. (if in communication, wait and retry)
+        retryProcInNewThread(HvcConstants.HVC_COMM_RETRY_COUNT, HvcConstants.HVC_COMM_RETRY_INTERVAL,
+                new HvcRetryProcListener() {
+                    @Override
+                    public boolean judgeRetry() {
+                        if (DEBUG) {
+                            Log.d(TAG, "judgeRetry()");
+                        }
+                        // retry(Now in the device communication)
+                        if (commManagerFinal.checkCommBusy()) {
+                            if (DEBUG) {
+                                Log.d(TAG, "retry");
+                            }
+                            return true;
+                        }
+                        // no retry
+                        if (DEBUG) {
+                            Log.d(TAG, "no retry");
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public void procOnNewThread() {
+                        if (DEBUG) {
+                            Log.d(TAG, "proc()");
+                        }
+
+                        // get detection process.
+                        commManagerFinal.detectHVC();
+                    }
+
+                    @Override
+                    public void timeoutProc() {
+                        if (DEBUG) {
+                            Log.d(TAG, "timeoutProc()");
+                        }
+                    }
+                });
+    }
     /**
      * Human Detect Profile get detection.<br>
      * 
@@ -529,6 +607,10 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
         return lostServices;
     }
 
+    /**
+     * Change service status to ON.
+     * @param devices HVC device
+     */
     private void turnOn(final List<BluetoothDevice> devices) {
         for (BluetoothDevice device : devices) {
             DConnectService service = getServiceProvider().getService(device.getAddress());
@@ -536,14 +618,15 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
                 service = new HvcService(device);
                 getServiceProvider().addService(service);
                 // For offline detection.
-                doGetDetectionProc(HumanDetectKind.HUMAN,
-                        HvcDetectRequestUtils.getRequestParams(new Intent(), new Intent(), HumanDetectKind.HUMAN),
-                        new Intent(), HvcCommManager.getServiceId(device.getAddress()));
+                searchHVC(HvcCommManager.getServiceId(device.getAddress()));
             }
             service.setOnline(true);
         }
     }
-
+    /**
+     * Change service status to ON.
+     * @param services HVC device
+     */
     private void turnOff(final List<DConnectService> services) {
         for (DConnectService service : services) {
             service.setOnline(false);

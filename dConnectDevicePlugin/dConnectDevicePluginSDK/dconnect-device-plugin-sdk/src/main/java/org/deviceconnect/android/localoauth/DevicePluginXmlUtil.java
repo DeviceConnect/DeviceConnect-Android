@@ -53,7 +53,8 @@ public final class DevicePluginXmlUtil {
         XmlResourceParser xrp = pluginComponent.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
         try {
             if (xrp != null) {
-                return parseDevicePluginXML(xrp);
+                int xmlId = pluginComponent.metaData.getInt(PLUGIN_META_DATA);
+                return parseDevicePluginXML(xmlId, xrp);
             }
         } catch (XmlPullParserException e) {
             if (BuildConfig.DEBUG) {
@@ -173,13 +174,15 @@ public final class DevicePluginXmlUtil {
 
     /**
      * xml/deviceplugin.xmlの解析を行う.
-     * 
-     * @param xrp xmlパーサ
-     * @throws XmlPullParserException xmlの解析に失敗した場合に発生
-     * @throws IOException xmlの読み込みに失敗した場合
+     *
+     * @param resId XMLファイルのリソースID
+     * @param xrp XMLパーサ
+     * @throws XmlPullParserException XMLファイルの解析に失敗した場合に発生
+     * @throws IOException XMLファイルの読み込みに失敗した場合
      * @return {@link DevicePluginXml}クラスのインスタンス
      */
-    private static DevicePluginXml parseDevicePluginXML(final XmlResourceParser xrp)
+    private static DevicePluginXml parseDevicePluginXML(final int resId,
+                                                        final XmlResourceParser xrp)
             throws XmlPullParserException, IOException {
         Map<String, DevicePluginXmlProfile> list = new HashMap<String, DevicePluginXmlProfile>();
 
@@ -201,7 +204,7 @@ public final class DevicePluginXmlUtil {
 
             if ("deviceplugin-provider".equals(tagName)) {
                 if (eventType == XmlPullParser.START_TAG) {
-                    xml = new DevicePluginXml();
+                    xml = new DevicePluginXml(resId);
                     specPath = xrp.getAttributeValue(null, "spec-path");
                 }
             } else if ("profile".equals(tagName)) {

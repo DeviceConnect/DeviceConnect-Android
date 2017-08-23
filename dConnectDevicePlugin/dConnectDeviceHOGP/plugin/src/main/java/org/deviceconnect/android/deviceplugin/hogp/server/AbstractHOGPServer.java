@@ -310,7 +310,7 @@ public abstract class AbstractHOGPServer {
         addService(setUpBatteryService());
 
         mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(new TimerTask() {
+        mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 final ReportHolder holder = mInputReportQueue.poll();

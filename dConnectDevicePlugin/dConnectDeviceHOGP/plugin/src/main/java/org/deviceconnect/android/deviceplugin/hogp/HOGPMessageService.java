@@ -151,6 +151,7 @@ public class HOGPMessageService extends DConnectMessageService {
     @Override
     protected void onManagerEventTransmitDisconnected(final String origin) {
         // TODO アプリとのWebSocket接続が切断された時に実行したい処理. 実装は任意.
+        // イベントのAPIがないので特に処理は行わない
     }
 
     @Override
@@ -251,6 +252,7 @@ public class HOGPMessageService extends DConnectMessageService {
         mHOGPServer.setManufacturerName(getPackageName());
         mHOGPServer.setDeviceName(appName);
         mHOGPServer.setSerialNumber("" + versionCode);
+        mHOGPServer.setDataSendingRate(10);
         mHOGPServer.start();
     }
 

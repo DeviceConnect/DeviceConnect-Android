@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.hogp.profiles;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.HandlerThread;
 
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPService;
@@ -27,10 +29,16 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class HOGPKeyboardProfile extends DConnectProfile {
 
+    private HandlerThread mHandlerThread;
+    private Handler mHandler;
+
     /**
      * コンストラクタ.
      */
     public HOGPKeyboardProfile() {
+        mHandlerThread = new HandlerThread("HOGP-Keyboard");
+        mHandlerThread.start();
+        mHandler = new Handler(mHandlerThread.getLooper());
 
         // POST /keyboard
         addApi(new PostApi() {
@@ -75,7 +83,7 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                 } else if (string.matches("^.*[^\\p{ASCII}].*")) {
                     MessageUtils.setInvalidRequestParameterError(response, "Not ascii character contains.");
                 } else {
-                    new Thread(new Runnable() {
+                    mHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             for (int i = 0; i < string.length(); i++) {
@@ -90,8 +98,7 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                                 }
                             }
                         }
-                    }).start();
-
+                    });
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;

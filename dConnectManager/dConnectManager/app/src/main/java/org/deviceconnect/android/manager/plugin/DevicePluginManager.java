@@ -268,6 +268,9 @@ public class DevicePluginManager {
         if (metaData.get(PLUGIN_META_DATA) == null) {
             return false;
         }
+        if (!(metaData.get(PLUGIN_META_DATA) instanceof Integer)) {
+            return false;
+        }
         DevicePluginXml xml = DevicePluginXmlUtil.getXml(mContext, compInfo);
         return xml != null;
     }

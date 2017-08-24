@@ -18,6 +18,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
+import android.util.SparseArray;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
@@ -34,6 +35,9 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +119,7 @@ public class DevicePluginManager {
         if (pkgList != null) {
             for (PackageInfo pkg : pkgList) {
                 ComponentInfo[] components = getComponentInfoList(pkg);
+                List<DevicePlugin> plugins = new ArrayList<>();
                 for (ComponentInfo component : components) {
                     String pkgName = component.packageName;
                     String className = component.name;
@@ -126,8 +131,14 @@ public class DevicePluginManager {
                         pluginInfo = getReceiverInfo(pkgMgr, name);
                     }
                     if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
-                        checkAndAddDevicePlugin(name, pkg, pluginInfo);
+                        DevicePlugin plugin = parsePlugin(pkg, pluginInfo);
+                        plugins.add(plugin);
                     }
+                }
+
+                for (DevicePlugin plugin : filterPlugin(plugins)) {
+                    mPlugins.put(plugin.getPluginId(), plugin);
+                    notifyFound(plugin);
                 }
             }
         }
@@ -148,6 +159,7 @@ public class DevicePluginManager {
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
             if (pkg != null) {
                 ComponentInfo[] components = getComponentInfoList(pkg);
+                List<DevicePlugin> plugins = new ArrayList<>();
                 for (ComponentInfo component : components) {
                     String pkgName = component.packageName;
                     String className = component.name;
@@ -159,13 +171,61 @@ public class DevicePluginManager {
                         pluginInfo = getReceiverInfo(pkgMgr, name);
                     }
                     if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
-                        checkAndAddDevicePlugin(name, pkg, pluginInfo);
+                        DevicePlugin plugin = parsePlugin(pkg, pluginInfo);
+                        plugins.add(plugin);
                     }
+                }
+
+                for (DevicePlugin plugin : filterPlugin(plugins)) {
+                    mPlugins.put(plugin.getPluginId(), plugin);
+                    notifyFound(plugin);
                 }
             }
         } catch (NameNotFoundException e) {
             // NOP.
         }
+    }
+
+    /**
+     * 重複したプラグインの宣言をフィルタリングする.
+     *
+     * @param plugins 検出されたプラグインのリスト
+     * @return フィルタリングされたプラグインのリスト
+     */
+    private List<DevicePlugin> filterPlugin(final List<DevicePlugin> plugins) {
+        // 同じプラグイン設定ファイルが指定されているプラグインを見つける。
+        SparseArray<List<DevicePlugin>> array = new SparseArray<>();
+        for (DevicePlugin plugin : plugins) {
+            int key = plugin.getInfo().getPluginXmlId();
+            List<DevicePlugin> list = array.get(key);
+            if (list == null) {
+                list = new ArrayList<>();
+                array.append(key, list);
+            }
+            list.add(plugin);
+        }
+
+        List<DevicePlugin> result = new ArrayList<>();
+        for (int index = 0; index < array.size(); index++) {
+            List<DevicePlugin> list = array.valueAt(index);
+            if (list != null && list.size() > 0) {
+                Collections.sort(list, new Comparator<DevicePlugin>() {
+                    @Override
+                    public int compare(final DevicePlugin p1, final DevicePlugin p2) {
+                        // BroadcastよりもBinderを優先する.
+                        if (p1.getConnectionType() == p2.getConnectionType()) {
+                            return 0;
+                        } else if (p1.getConnectionType() == ConnectionType.BINDER) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    }
+                });
+                result.add(list.get(0));
+            }
+        }
+        return result;
     }
 
     private ComponentInfo[] getComponentInfoList(final PackageInfo pkg) {
@@ -179,23 +239,6 @@ public class DevicePluginManager {
             result.addAll(Arrays.asList(receivers));
         }
         return result.toArray(new ComponentInfo[result.size()]);
-    }
-
-    /**
-     * コンポーネントにデバイスプラグインが存在するかチェックし追加する.
-     * コンポーネントの中にデバイスプラグインがない場合には何もしない。
-     * @param componentName コンポーネント
-     */
-    private void checkAndAddDevicePlugin(final ComponentName componentName, final PackageInfo pkgInfo,
-                                         final ComponentInfo componentInfo) {
-        PackageManager pkgMgr = mContext.getPackageManager();
-        DevicePlugin plugin = parsePlugin(pkgMgr, pkgInfo, componentInfo);
-        if (mConnectionFactory != null) {
-            plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
-            plugin.addConnectionStateListener(mStateListener);
-        }
-        mPlugins.put(plugin.getPluginId(), plugin);
-        notifyFound(plugin);
     }
 
     private ServiceInfo getServiceInfo(final PackageManager pkgMgr, final ComponentName component) {
@@ -229,9 +272,10 @@ public class DevicePluginManager {
         return xml != null;
     }
 
-    private DevicePlugin parsePlugin(final PackageManager pkgMgr,
-                                     final PackageInfo pkgInfo,
+    private DevicePlugin parsePlugin(final PackageInfo pkgInfo,
                                      final ComponentInfo componentInfo) {
+        PackageManager pkgMgr = mContext.getPackageManager();
+
         Bundle metaData = componentInfo.metaData;
         String pluginName = metaData.getString(PLUGIN_META_PLUGIN_NAME);
         if (pluginName == null) {
@@ -271,18 +315,23 @@ public class DevicePluginManager {
             type = ConnectionType.BROADCAST;
         }
 
-        return new DevicePlugin.Builder(mContext)
+        DevicePlugin plugin = new DevicePlugin.Builder(mContext)
             .setPackageName(componentInfo.packageName)
             .setClassName(componentInfo.name)
             .setVersionName(versionName)
             .setPluginId(hash)
             .setDeviceName(pluginName)
             .setStartServiceClassName(startClassName)
-            .setSupportedProfiles(DevicePluginXmlUtil.getSupportProfiles(mContext, componentInfo))
+            .setPluginXml(DevicePluginXmlUtil.getXml(mContext, componentInfo))
             .setPluginSdkVersionName(sdkVersionName)
             .setPluginIconId(iconId)
             .setConnectionType(type)
             .build();
+        if (mConnectionFactory != null) {
+            plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
+            plugin.addConnectionStateListener(mStateListener);
+        }
+        return plugin;
     }
 
     private boolean isSamePackage(final ComponentInfo componentInfo) {

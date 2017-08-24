@@ -113,6 +113,8 @@ public class HOGPMouseProfile extends DConnectProfile {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
                 } else if (getSetting().getMouseMode() == HOGPServer.MouseMode.NONE) {
                     MessageUtils.setNotSupportAttributeError(response, "Mouse is not supported.");
+                } else if (!checkButton(button)) {
+                    MessageUtils.setNotSupportAttributeError(response, "button is invalid.");
                 } else {
                     BluetoothDevice device = getDevice();
                     boolean leftButton = "left".equals(button);
@@ -147,6 +149,8 @@ public class HOGPMouseProfile extends DConnectProfile {
                     MessageUtils.setIllegalDeviceStateError(response, "HOGP server is not running.");
                 } else if (getSetting().getMouseMode() == HOGPServer.MouseMode.NONE) {
                     MessageUtils.setNotSupportAttributeError(response, "Mouse is not supported.");
+                } else if (!checkButton(button)) {
+                    MessageUtils.setNotSupportAttributeError(response, "button is invalid.");
                 } else {
                     BluetoothDevice device = getDevice();
                     boolean leftButton = "left".equals(button);
@@ -224,7 +228,7 @@ public class HOGPMouseProfile extends DConnectProfile {
     /**
      * BluetoothDeviceを取得します.
      * <p>
-     *     BluetoothDeviceが取得できない場合はnullを返却します。
+     * BluetoothDeviceが取得できない場合はnullを返却します。
      * </p>
      * @return BluetoothDevice
      */
@@ -234,5 +238,17 @@ public class HOGPMouseProfile extends DConnectProfile {
             return ((HOGPService) service).getDevice();
         }
         return null;
+    }
+
+    /**
+     * 指定されたbuttonがleft,right,middleに当てはまるか確認します.
+     * @param button ボタン
+     * @return 当てはまる場合はtrue、それ以外はfalse
+     */
+    private boolean checkButton(final String button) {
+        boolean leftButton = "left".equals(button);
+        boolean rightButton = "right".equals(button);
+        boolean middleButton = "middle".equals(button);
+        return leftButton | rightButton | middleButton;
     }
 }

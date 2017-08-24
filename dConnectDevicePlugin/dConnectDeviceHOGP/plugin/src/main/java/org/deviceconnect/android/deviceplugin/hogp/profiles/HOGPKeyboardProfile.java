@@ -35,7 +35,7 @@ public class HOGPKeyboardProfile extends DConnectProfile {
         addApi(new PostApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String modifier = (String) request.getExtras().get("modifier");
+                Byte modifier = modifier((String) request.getExtras().get("modifier"));
                 byte[] keyCode = getKeyCodes(request, "keyCode");
 
                 HOGPServer server = getHOGPServer();
@@ -45,8 +45,10 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                     MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else if (keyCode == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "keyCode is invalid.");
+                } else if (modifier == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "modifier is invalid.");
                 } else {
-                    sendKeyboard(modifier(modifier), keyCode);
+                    sendKeyboard(modifier, keyCode);
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
                 return true;
@@ -71,6 +73,8 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                     MessageUtils.setNotSupportProfileError(response, "Keyboard is not supported.");
                 } else if (string == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "string is null.");
+                } else if (string.isEmpty()) {
+                    MessageUtils.setInvalidRequestParameterError(response, "string is empty.");
                 } else if (string.matches("^.*[^\\p{ASCII}].*")) {
                     MessageUtils.setInvalidRequestParameterError(response, "Not ascii character contains.");
                 } else {
@@ -333,7 +337,7 @@ public class HOGPKeyboardProfile extends DConnectProfile {
      * @param modifier APIの引数で指定されたモディファイアーキー
      * @return 変換されたモディファイアーキー
      */
-    private byte modifier(final String modifier) {
+    private Byte modifier(final String modifier) {
         if (modifier == null) {
             return KeyboardCode.MODIFIER_KEY_NONE;
         }
@@ -349,6 +353,8 @@ public class HOGPKeyboardProfile extends DConnectProfile {
                 m |= KeyboardCode.MODIFIER_KEY_ALT;
             } else if ("gui".equals(s)) {
                 m |= KeyboardCode.MODIFIER_KEY_GUI;
+            } else {
+                return null;
             }
         }
         return m;
@@ -357,7 +363,7 @@ public class HOGPKeyboardProfile extends DConnectProfile {
     /**
      * BluetoothDeviceを取得します.
      * <p>
-     *     BluetoothDeviceが取得できない場合はnullを返却します。
+     * BluetoothDeviceが取得できない場合はnullを返却します。
      * </p>
      * @return BluetoothDevice
      */

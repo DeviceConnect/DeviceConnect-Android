@@ -123,6 +123,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         if (mIsBound) {
             unbindService(mConnection);
             mIsBound = false;
+            mProvider.removeServiceListener(this);
         }
     }
 

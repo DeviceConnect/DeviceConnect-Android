@@ -50,9 +50,9 @@ public class HOGPServiceInformation extends ServiceInformationProfile {
             if (mouse != null) {
                 Bundle pathsObj = mouse.getBundle("paths");
                 if (pathsObj != null) {
-                    Bundle abc = pathsObj.getBundle("/");
-                    if (abc != null) {
-                        Bundle post = abc.getBundle("post");
+                    Bundle path = pathsObj.getBundle("/");
+                    if (path != null) {
+                        Bundle post = path.getBundle("post");
                         if (post != null) {
                             Parcelable[] parameters = post.getParcelableArray("parameters");
                             if (parameters != null) {

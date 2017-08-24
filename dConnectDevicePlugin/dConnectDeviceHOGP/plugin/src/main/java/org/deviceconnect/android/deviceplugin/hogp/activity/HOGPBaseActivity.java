@@ -69,6 +69,10 @@ public class HOGPBaseActivity extends Activity {
     private void unbindService() {
         if (mIsBound) {
             unbindService(mConnection);
+
+            onServiceDisconnected();
+            mHOGPMessageService = null;
+            mIsBound = false;
         }
     }
 
@@ -91,9 +95,9 @@ public class HOGPBaseActivity extends Activity {
             if (DEBUG) {
                 Log.i(TAG, "onServiceDisconnected " + name);
             }
+            HOGPBaseActivity.this.onServiceDisconnected();
             mHOGPMessageService = null;
             mIsBound = false;
-            HOGPBaseActivity.this.onServiceDisconnected();
         }
     };
 

@@ -93,6 +93,37 @@ public class HOGPMessageService extends DConnectMessageService {
                         }
                         break;
                 }
+            } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
+                switch (state) {
+                    case BluetoothDevice.BOND_BONDING:
+                        if (DEBUG) {
+                            Log.d(TAG, "Bond bonding.");
+                        }
+                        break;
+
+                    case BluetoothDevice.BOND_BONDED:
+                        if (DEBUG) {
+                            Log.d(TAG, "Bond bonded.");
+                        }
+                        break;
+
+                    default:
+                        if (DEBUG) {
+                            Log.d(TAG, "Bond error.");
+                        }
+                        try {
+                            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                            if (device != null) {
+                                getServiceProvider().removeService(device.getAddress());
+                            }
+                        } catch (Exception e) {
+                            if (DEBUG) {
+                                Log.e(TAG, "Failed to remove device.", e);
+                            }
+                        }
+                        break;
+                }
             }
         }
     };
@@ -123,6 +154,7 @@ public class HOGPMessageService extends DConnectMessageService {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
     }
 
@@ -263,6 +295,12 @@ public class HOGPMessageService extends DConnectMessageService {
         if (mHOGPServer != null) {
             if (DEBUG) {
                 Log.i(TAG, "Stop the HOGP Server.");
+            }
+
+            for (DConnectService s : getServiceProvider().getServiceList()) {
+                if (s instanceof HOGPService) {
+                    s.setOnline(false);
+                }
             }
 
             mHOGPServer.stop();

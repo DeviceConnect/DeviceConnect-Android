@@ -8,10 +8,10 @@ package org.deviceconnect.android.deviceplugin.hogp.activity;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -30,17 +31,28 @@ import org.deviceconnect.android.deviceplugin.hogp.R;
 import org.deviceconnect.android.deviceplugin.hogp.server.AbstractHOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.server.HOGPServer;
 import org.deviceconnect.android.deviceplugin.hogp.util.BleUtils;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceListener;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 設定画面用Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class HOGPSettingActivity extends HOGPBaseActivity {
+public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectServiceListener {
 
+    /**
+     * デバイスの一覧を格納するアダプタ.
+     */
     private DeviceAdapter mDeviceAdapter;
+
+    /**
+     * ハンドラー.
+     */
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -71,8 +83,8 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
 
         mDeviceAdapter = new DeviceAdapter();
 
-//        ListView listView = (ListView) findViewById(R.id.activity_setting_list_view);
-//        listView.setAdapter(mDeviceAdapter);
+        ListView listView = (ListView) findViewById(R.id.activity_setting_list_view);
+        listView.setAdapter(mDeviceAdapter);
 
         setDeviceName();
     }
@@ -108,7 +120,13 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         if (requestCode == BleUtils.REQUEST_CODE_BLUETOOTH_ENABLE) {
             if (resultCode == RESULT_OK) {
                 setDeviceName();
-                startHOGPServer();
+
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startHOGPServer();
+                    }
+                }, 300);
             }
         }
     }
@@ -118,6 +136,11 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         setHOGPServerUI();
         setLocalOAuthUI();
         findViewById(R.id.activity_setting_btn).setEnabled(true);
+
+        HOGPMessageService service = getHOGPMessageService();
+        if (service != null) {
+            service.getServiceProvider().addServiceListener(this);
+        }
     }
 
     @Override
@@ -126,6 +149,61 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
         sw.setOnCheckedChangeListener(null);
         sw.setEnabled(false);
         findViewById(R.id.activity_setting_btn).setEnabled(false);
+
+        HOGPMessageService service = getHOGPMessageService();
+        if (service != null) {
+            service.getServiceProvider().removeServiceListener(this);
+        }
+    }
+
+    @Override
+    public void onServiceAdded(final DConnectService dConnectService) {
+        updateHOGPService();
+    }
+
+    @Override
+    public void onServiceRemoved(final DConnectService dConnectService) {
+        updateHOGPService();
+    }
+
+    @Override
+    public void onStatusChange(final DConnectService dConnectService) {
+        if (mDeviceAdapter != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mDeviceAdapter != null) {
+                        mDeviceAdapter.notifyDataSetChanged();
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * HOGPサービスを更新します.
+     */
+    private void updateHOGPService() {
+        HOGPMessageService service = getHOGPMessageService();
+        if (service == null) {
+            return;
+        }
+
+        final List<HOGPService> serviceList = new ArrayList<>();
+        for (DConnectService s : service.getServiceProvider().getServiceList()) {
+            if (s instanceof HOGPService) {
+                serviceList.add((HOGPService) s);
+            }
+        }
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mDeviceAdapter != null) {
+                    mDeviceAdapter.setHOGPServiceList(serviceList);
+                }
+            }
+        });
     }
 
     /**
@@ -201,12 +279,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
             }
         });
 
-        if (server != null) {
-            Set<BluetoothDevice> devices = server.getDevices();
-            if (devices != null) {
-                mDeviceAdapter.notifyDataSetChanged();
-            }
-        }
+        updateHOGPService();
 
         setEnabledSetting(isStartHOGPServer());
     }
@@ -322,7 +395,11 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
      * @return 機能が設定されている場合はtrue、それ以外はfalse
      */
     private boolean checkHOGPSetting() {
-        HOGPSetting setting = getHOGPMessageService().getHOGPSetting();
+        HOGPMessageService service = getHOGPMessageService();
+        if (service == null) {
+            return false;
+        }
+        HOGPSetting setting = service.getHOGPSetting();
         return (setting.getMouseMode() != HOGPServer.MouseMode.NONE || setting.isEnabledKeyboard());
     }
 
@@ -403,22 +480,28 @@ public class HOGPSettingActivity extends HOGPBaseActivity {
      */
     private class DeviceAdapter extends BaseAdapter {
 
+        /**
+         * HOGPServiceのリスト.
+         */
+        private List<HOGPService> mHOGPServiceList = new ArrayList<>();
+
+        /**
+         * サービスのリストを設定します.
+         * @param serviceList サービスのリスト
+         */
+        void setHOGPServiceList(final List<HOGPService> serviceList) {
+            mHOGPServiceList = serviceList;
+            notifyDataSetChanged();
+        }
+
         @Override
         public int getCount() {
-            HOGPMessageService service = getHOGPMessageService();
-            if (service == null) {
-                return 0;
-            }
-            return service.getServiceProvider().getServiceList().size() ;
+            return mHOGPServiceList.size();
         }
 
         @Override
         public Object getItem(final int position) {
-            HOGPMessageService service = getHOGPMessageService();
-            if (service == null) {
-                return 0;
-            }
-            return service.getServiceProvider().getServiceList().get(position);
+            return mHOGPServiceList.get(position);
         }
 
         @Override

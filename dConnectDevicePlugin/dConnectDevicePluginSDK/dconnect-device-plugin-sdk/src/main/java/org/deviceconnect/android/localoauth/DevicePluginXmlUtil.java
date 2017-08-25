@@ -124,9 +124,12 @@ public final class DevicePluginXmlUtil {
                         ComponentName component = new ComponentName(pkgName, className);
                         ServiceInfo serviceInfo = pkgMgr.getServiceInfo(component, PackageManager.GET_META_DATA);
                         if (serviceInfo.metaData != null) {
-                            XmlResourceParser xrp = serviceInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
-                            if (xrp != null) {
-                                return serviceInfo;
+                            Object xmlData = serviceInfo.metaData.get(PLUGIN_META_DATA);
+                            if (xmlData instanceof Integer) {
+                                XmlResourceParser xrp = serviceInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+                                if (xrp != null) {
+                                    return serviceInfo;
+                                }
                             }
                         }
                     }
@@ -158,9 +161,12 @@ public final class DevicePluginXmlUtil {
                         ComponentName component = new ComponentName(pkgName, className);
                         ActivityInfo receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
                         if (receiverInfo.metaData != null) {
-                            XmlResourceParser xrp = receiverInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
-                            if (xrp != null) {
-                                return receiverInfo;
+                            Object xmlData = receiverInfo.metaData.get(PLUGIN_META_DATA);
+                            if (xmlData instanceof Integer) {
+                                XmlResourceParser xrp = receiverInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+                                if (xrp != null) {
+                                    return receiverInfo;
+                                }
                             }
                         }
                     }

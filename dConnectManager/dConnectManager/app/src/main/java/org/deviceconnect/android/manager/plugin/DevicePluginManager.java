@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -114,34 +115,96 @@ public class DevicePluginManager {
      */
     public void createDevicePluginList() {
         PackageManager pkgMgr = mContext.getPackageManager();
-        int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
-        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(flag);
-        if (pkgList != null) {
-            for (PackageInfo pkg : pkgList) {
-                ComponentInfo[] components = getComponentInfoList(pkg);
-                List<DevicePlugin> plugins = new ArrayList<>();
-                for (ComponentInfo component : components) {
-                    String pkgName = component.packageName;
-                    String className = component.name;
-                    ComponentName name = new ComponentName(pkgName, className);
-                    ComponentInfo pluginInfo;
-                    if (component instanceof ServiceInfo) {
-                        pluginInfo = getServiceInfo(pkgMgr, name);
-                    } else {
-                        pluginInfo = getReceiverInfo(pkgMgr, name);
-                    }
-                    if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
-                        DevicePlugin plugin = parsePlugin(pkg, pluginInfo);
-                        plugins.add(plugin);
-                    }
-                }
+        Map<String, List<DevicePlugin>> allPlugins = getInstalledPlugins(pkgMgr);
 
-                for (DevicePlugin plugin : filterPlugin(plugins)) {
-                    mPlugins.put(plugin.getPluginId(), plugin);
-                    notifyFound(plugin);
+        for (Map.Entry<String, List<DevicePlugin>> entry : allPlugins.entrySet()) {
+            List<DevicePlugin> pluginListPerPackage = entry.getValue();
+
+            // 重複したプラグインを除外
+            for (DevicePlugin plugin : filterPlugin(pluginListPerPackage)) {
+                mPlugins.put(plugin.getPluginId(), plugin);
+                notifyFound(plugin);
+            }
+        }
+    }
+
+    private Map<String, List<DevicePlugin>> getInstalledPlugins(final PackageManager pkgMgr) {
+        Map<String, List<DevicePlugin>> result = new HashMap<>();
+        List<DevicePlugin> allPlugins = new ArrayList<>();
+        allPlugins.addAll(getInstalledServices(pkgMgr));
+        allPlugins.addAll(getInstalledReceivers(pkgMgr));
+        for (DevicePlugin plugin : allPlugins) {
+            String key = plugin.getPackageName();
+            List<DevicePlugin> list = result.get(key);
+            if (list == null) {
+                list = new ArrayList<>();
+                result.put(key, list);
+            }
+            list.add(plugin);
+        }
+        return result;
+    }
+
+    private List<DevicePlugin> getInstalledPluginsForPackage(final PackageManager pkgMgr,
+                                                             final PackageInfo pkg) {
+        List<DevicePlugin> result = new ArrayList<>();
+        result.addAll(getInstalledServicesForPackage(pkgMgr, pkg));
+        result.addAll(getInstalledReceiversForPackage(pkgMgr, pkg));
+        return result;
+    }
+
+    private List<DevicePlugin> getInstalledServices(final PackageManager pkgMgr) {
+        List<DevicePlugin> result = new ArrayList<>();
+        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_SERVICES);
+        for (PackageInfo pkg : pkgList) {
+            result.addAll(getInstalledServicesForPackage(pkgMgr, pkg));
+        }
+        return result;
+    }
+
+    private List<DevicePlugin> getInstalledServicesForPackage(final PackageManager pkgMgr,
+                                                              final PackageInfo pkg) {
+        List<DevicePlugin> result = new ArrayList<>();
+        if (pkg != null) {
+            ServiceInfo[] array = pkg.services;
+            if (array != null) {
+                for (ServiceInfo info : array) {
+                    ComponentName name = new ComponentName(info.packageName, info.name);
+                    ServiceInfo infoWithMetaData = getServiceInfo(pkgMgr, name);
+                    if (infoWithMetaData != null && isDevicePlugin(infoWithMetaData)) {
+                        result.add(parsePlugin(pkg, infoWithMetaData));
+                    }
                 }
             }
         }
+        return result;
+    }
+
+    private List<DevicePlugin> getInstalledReceivers(final PackageManager pkgMgr) {
+        List<DevicePlugin> result = new ArrayList<>();
+        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_RECEIVERS);
+        for (PackageInfo pkg : pkgList) {
+            result.addAll(getInstalledReceiversForPackage(pkgMgr, pkg));
+        }
+        return result;
+    }
+
+    private List<DevicePlugin> getInstalledReceiversForPackage(final PackageManager pkgMgr,
+                                                               final PackageInfo pkg) {
+        List<DevicePlugin> result = new ArrayList<>();
+        if (pkg != null) {
+            ActivityInfo[] array = pkg.receivers;
+            if (array != null) {
+                for (ActivityInfo info : array) {
+                    ComponentName name = new ComponentName(info.packageName, info.name);
+                    ActivityInfo infoWithMetaData = getReceiverInfo(pkgMgr, name);
+                    if (infoWithMetaData != null && isDevicePlugin(infoWithMetaData)) {
+                        result.add(parsePlugin(pkg, infoWithMetaData));
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -158,24 +221,7 @@ public class DevicePluginManager {
             int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
             if (pkg != null) {
-                ComponentInfo[] components = getComponentInfoList(pkg);
-                List<DevicePlugin> plugins = new ArrayList<>();
-                for (ComponentInfo component : components) {
-                    String pkgName = component.packageName;
-                    String className = component.name;
-                    ComponentName name = new ComponentName(pkgName, className);
-                    ComponentInfo pluginInfo;
-                    if (component instanceof ServiceInfo) {
-                        pluginInfo = getServiceInfo(pkgMgr, name);
-                    } else {
-                        pluginInfo = getReceiverInfo(pkgMgr, name);
-                    }
-                    if (pluginInfo != null && isDevicePlugin(pluginInfo)) {
-                        DevicePlugin plugin = parsePlugin(pkg, pluginInfo);
-                        plugins.add(plugin);
-                    }
-                }
-
+                List<DevicePlugin> plugins = getInstalledPluginsForPackage(pkgMgr, pkg);
                 for (DevicePlugin plugin : filterPlugin(plugins)) {
                     mPlugins.put(plugin.getPluginId(), plugin);
                     notifyFound(plugin);
@@ -228,19 +274,6 @@ public class DevicePluginManager {
         return result;
     }
 
-    private ComponentInfo[] getComponentInfoList(final PackageInfo pkg) {
-        List<ComponentInfo> result = new ArrayList<>();
-        ServiceInfo[] services = pkg.services;
-        if (services != null) {
-            result.addAll(Arrays.asList(services));
-        }
-        ActivityInfo[] receivers = pkg.receivers;
-        if (receivers != null) {
-            result.addAll(Arrays.asList(receivers));
-        }
-        return result.toArray(new ComponentInfo[result.size()]);
-    }
-
     private ServiceInfo getServiceInfo(final PackageManager pkgMgr, final ComponentName component) {
         try {
             return pkgMgr.getServiceInfo(component, PackageManager.GET_META_DATA);
@@ -266,6 +299,9 @@ public class DevicePluginManager {
             return false;
         }
         if (metaData.get(PLUGIN_META_DATA) == null) {
+            return false;
+        }
+        if (!(metaData.get(PLUGIN_META_DATA) instanceof Integer)) {
             return false;
         }
         DevicePluginXml xml = DevicePluginXmlUtil.getXml(mContext, compInfo);

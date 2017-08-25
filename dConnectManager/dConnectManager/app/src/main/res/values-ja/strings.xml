@@ -184,6 +184,9 @@
 
     <!-- ================= Error Messages for UI ================= -->
     <string name="dconnect_error_default_title">エラー</string>
+    <string name="dconnect_error_plugin_not_detected_title">プラグイン検索エラー</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_too_many_packages">プラグインの検索に失敗しました。端末にインストールされているAndroidアプリケーションの数が多い可能性があります。</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_unknown_error">プラグインの検索に失敗しました。</string>
     <string name="dconnect_error_plugin_not_enabled">プラグインが無効のため、通信を中止しました。</string>
     <string name="dconnect_error_plugin_suspended">予期しないエラーのためにプラグインと接続できませんでした。プラグイン開発者にお問い合わせください。</string>
     <string name="dconnect_error_plugin_not_connected">プラグインとの通信に失敗しました。</string>

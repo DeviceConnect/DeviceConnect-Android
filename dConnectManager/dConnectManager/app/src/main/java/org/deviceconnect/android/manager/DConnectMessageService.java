@@ -48,6 +48,9 @@ import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
+import org.deviceconnect.android.manager.setting.ErrorDialogActivity;
+import org.deviceconnect.android.manager.setting.ErrorDialogFragment;
+import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -697,13 +700,38 @@ public abstract class DConnectMessageService extends Service
                 try {
                     mPluginManager.createDevicePluginList();
                 } catch (PluginDetectionException e) {
-                    // TODO: エラーダイアログ表示
-                    throw new RuntimeException(e);
+                    showPluginListError(e);
                 } finally {
                     mIsSearchingPlugins = false;
                 }
             }
         });
+    }
+
+    private void showPluginListError(final PluginDetectionException e) {
+        // エラーメッセージ初期化
+        int messageId;
+        switch (e.getReason()) {
+            case TOO_MANY_PACKAGES:
+                messageId = R.string.dconnect_error_plugin_not_detected_due_to_too_many_packages;
+                break;
+            default:
+                messageId = R.string.dconnect_error_plugin_not_detected_due_to_unknown_error;
+                break;
+        }
+        final String message = getString(messageId);
+        final String title = getString(R.string.dconnect_error_plugin_not_detected_title);
+
+        showErrorDialog(title, message);
+    }
+
+    private void showErrorDialog(final String title, final String message) {
+        Intent intent = new Intent(this, ErrorDialogActivity.class);
+        intent.putExtra(ErrorDialogFragment.EXTRA_TITLE, title);
+        intent.putExtra(ErrorDialogFragment.EXTRA_MESSAGE, message);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     /**

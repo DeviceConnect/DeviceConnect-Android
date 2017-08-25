@@ -15,7 +15,11 @@ public class PluginDetectionException extends Exception {
 
     private final Reason mReason;
 
-    PluginDetectionException(final Throwable throwable, final Reason reason) {
+    public PluginDetectionException(final Reason reason) {
+        mReason = reason;
+    }
+
+    public PluginDetectionException(final Throwable throwable, final Reason reason) {
         super(throwable);
         mReason = reason;
     }

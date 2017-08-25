@@ -184,6 +184,9 @@
 
     <!-- ================= Error Messages for UI ================= -->
     <string name="dconnect_error_default_title">Error</string>
+    <string name="dconnect_error_plugin_not_detected_title">Plug-in Search Error</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_too_many_packages">Failed to search Device Connect Plug-ins. Maybe too many applications are installed on this device.</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_unknown_error">Failed to search Device Connect Plug-ins. </string>
     <string name="dconnect_error_plugin_not_enabled">The plug-in is not enabled.</string>
     <string name="dconnect_error_plugin_suspended">The connection with plug-in is suspended because the plug-in cannot be connected for unexpected error. Please contact the plug-in vendor.</string>
     <string name="dconnect_error_plugin_not_connected">Failed to send an message to the plug-in.</string>

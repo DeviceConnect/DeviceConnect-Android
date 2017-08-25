@@ -76,7 +76,7 @@ public class RestartingDialogFragment extends DialogFragment {
                 try {
                     mgr.createDevicePluginList();
                 } catch (PluginDetectionException e) {
-                    // TODO: エラーダイアログ表示
+                    showErrorMessage(activity, e);
                     return null;
                 }
 
@@ -93,6 +93,37 @@ public class RestartingDialogFragment extends DialogFragment {
                     }
                 }
                 return null;
+            }
+
+            private void showErrorMessage(final BaseSettingActivity activity,
+                                          final PluginDetectionException e) {
+                // エラーメッセージ初期化
+                int messageId;
+                switch (e.getReason()) {
+                    case TOO_MANY_PACKAGES:
+                        messageId = R.string.dconnect_error_plugin_not_detected_due_to_too_many_packages;
+                        break;
+                    default:
+                        messageId = R.string.dconnect_error_plugin_not_detected_due_to_unknown_error;
+                        break;
+                }
+                final String message = activity.getString(messageId);
+                final String title = activity.getString(R.string.dconnect_error_plugin_not_detected_title);
+
+                // エラーダイアログ表示
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mDialog.isResumed()) {
+                            Bundle args = new Bundle();
+                            args.putString(ErrorDialogFragment.EXTRA_TITLE, title);
+                            args.putString(ErrorDialogFragment.EXTRA_MESSAGE, message);
+                            ErrorDialogFragment f = new ErrorDialogFragment();
+                            f.setArguments(args);
+                            f.show(activity.getSupportFragmentManager(), "error");
+                        }
+                    }
+                });
             }
         };
         task.execute();

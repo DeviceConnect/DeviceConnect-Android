@@ -38,6 +38,7 @@ import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.plugin.InternalConnection;
 import org.deviceconnect.android.manager.plugin.MessagingException;
+import org.deviceconnect.android.manager.plugin.PluginDetectionException;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
@@ -693,8 +694,14 @@ public abstract class DConnectMessageService extends Service
         mPluginSearchExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                mPluginManager.createDevicePluginList();
-                mIsSearchingPlugins = false;
+                try {
+                    mPluginManager.createDevicePluginList();
+                } catch (PluginDetectionException e) {
+                    // TODO: エラーダイアログ表示
+                    throw new RuntimeException(e);
+                } finally {
+                    mIsSearchingPlugins = false;
+                }
             }
         });
     }

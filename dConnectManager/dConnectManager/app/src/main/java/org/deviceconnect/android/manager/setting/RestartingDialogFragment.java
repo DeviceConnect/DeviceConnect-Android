@@ -19,6 +19,7 @@ import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.PluginDetectionException;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public class RestartingDialogFragment extends DialogFragment {
         super.onPause();
     }
 
+
     public static void show(final BaseSettingActivity activity) {
         show(activity, null);
     }
@@ -71,7 +73,12 @@ public class RestartingDialogFragment extends DialogFragment {
             @Override
             protected Void doInBackground(final Void... params) {
                 DevicePluginManager mgr = activity.getPluginManager();
-                mgr.createDevicePluginList();
+                try {
+                    mgr.createDevicePluginList();
+                } catch (PluginDetectionException e) {
+                    // TODO: エラーダイアログ表示
+                    return null;
+                }
 
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {

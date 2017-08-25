@@ -37,11 +37,16 @@
         <!-- プラグイン本体サービス -->
         <service
             android:name=".HOGPMessageService"
-            android:exported="false">
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/deviceplugin"/>
         </service>
 
         <!-- プラグイン設定画面 -->
-        <activity android:name=".activity.HOGPSettingActivity" />
+        <activity
+            android:name=".activity.HOGPSettingActivity"
+            android:exported="false"/>
 
         <activity
             android:name=".activity.HOGPControlActivity"

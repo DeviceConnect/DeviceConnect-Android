@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.2.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.0'
 }
 
 repositories {

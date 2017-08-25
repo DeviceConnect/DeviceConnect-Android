@@ -162,7 +162,7 @@ public class BinderConnection extends AbstractConnection {
                 @Override
                 public void onServiceDisconnected(final ComponentName componentName) {
                     mLogger.info("onServiceDisconnected: componentName = " + componentName);
-                    setState(ConnectionState.DISCONNECTED);
+                    setState(ConnectionState.SUSPENDED);
                 }
             };
             boolean canBind = mContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);

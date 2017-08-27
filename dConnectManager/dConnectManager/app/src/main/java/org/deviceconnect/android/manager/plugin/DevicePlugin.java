@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  */
 public class DevicePlugin {
 
-    /** 接続試行回数. */
+    /** 接続リトライ回数. */
     private static final int MAX_CONNECTION_TRY = 5;
 
     /** デバイスプラグイン情報. */
@@ -181,6 +181,14 @@ public class DevicePlugin {
      */
     public Drawable getPluginIcon(final Context context) {
         return DConnectUtil.loadPluginIcon(context, this);
+    }
+
+    public ConnectionError getCurrentConnectionError() {
+        Connection connection = mConnection;
+        if (connection == null) {
+            return null;
+        }
+        return connection.getCurrentError();
     }
 
     /**

@@ -70,29 +70,33 @@ public class BinderConnection extends AbstractConnection {
     }
 
     @Override
-    public void connect() throws ConnectingException {
+    public synchronized void connect() throws ConnectingException {
         mLogger.info("BinderConnection.connect: " + mPluginName.getPackageName());
-
-        synchronized (this) {
-            if (!(ConnectionState.DISCONNECTED == getState() || ConnectionState.SUSPENDED == getState())) {
-                return;
-            }
-            setState(ConnectionState.CONNECTING);
+        if (!(ConnectionState.DISCONNECTED == getState() || ConnectionState.SUSPENDED == getState())) {
+            return;
         }
+        setConnectingState();
 
+        ConnectingResult result;
         try {
             mRunningTask = mExecutor.submit(new ConnectingTask());
-            ConnectingResult result = mRunningTask.get(2, TimeUnit.SECONDS);
-            synchronized (this) {
-                mPlugin = result.mPlugin;
-                mServiceConnection = result.mServiceConnection;
-                mRunningTask = null;
-                setState(ConnectionState.CONNECTED);
-            }
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            e.printStackTrace();
-            setState(ConnectionState.SUSPENDED);
+            result = mRunningTask.get();
+            mRunningTask = null;
+        } catch (InterruptedException e) {
+            setSuspendedState(ConnectionError.CANCELED);
+            throw new ConnectingException("Connection procedure was canceled.");
+        } catch (ExecutionException e) {
+            setSuspendedState(ConnectionError.INTERNAL_ERROR);
             throw new ConnectingException(e);
+        }
+
+        if (result.mError == null) {
+            mPlugin = result.mPlugin;
+            mServiceConnection = result.mServiceConnection;
+            setConnectedState();
+        } else {
+            setSuspendedState(result.mError);
+            throw new ConnectingException("Failed to bind with plugin: " + mPluginName);
         }
     }
 
@@ -105,7 +109,7 @@ public class BinderConnection extends AbstractConnection {
             mContext.unbindService(mServiceConnection);
             mServiceConnection = null;
             mPlugin = null;
-            setState(ConnectionState.DISCONNECTED);
+            setDisconnectedState();
         }
     }
 
@@ -162,21 +166,21 @@ public class BinderConnection extends AbstractConnection {
                 @Override
                 public void onServiceDisconnected(final ComponentName componentName) {
                     mLogger.info("onServiceDisconnected: componentName = " + componentName);
-                    setState(ConnectionState.SUSPENDED);
+                    setSuspendedState(ConnectionError.TERMINATED);
                 }
             };
             boolean canBind = mContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
             if (!canBind) {
-                setState(ConnectionState.DISCONNECTED);
-                throw new ConnectingException("Failed to bind to the plugin: " + mPluginName);
+                result.mError = ConnectionError.NOT_PERMITTED;
+                return result;
             }
 
             synchronized (lockObj) {
-                lockObj.wait();
+                lockObj.wait(2000);
             }
+
             if (!result.mIsComplete) {
-                setState(ConnectionState.DISCONNECTED);
-                throw new ConnectingException("Binder connection timeout");
+                result.mError = ConnectionError.NOT_RESPONDED;
             }
             return result;
         }
@@ -186,5 +190,6 @@ public class BinderConnection extends AbstractConnection {
         boolean mIsComplete;
         IDConnectPlugin mPlugin;
         ServiceConnection mServiceConnection;
+        ConnectionError mError;
     }
 }

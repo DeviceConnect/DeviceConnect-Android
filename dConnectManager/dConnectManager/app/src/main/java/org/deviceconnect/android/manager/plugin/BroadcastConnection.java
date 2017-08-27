@@ -19,7 +19,7 @@ public class BroadcastConnection extends AbstractConnection {
 
     public BroadcastConnection(final Context context, final String pluginId) {
         super(context, pluginId);
-        setState(ConnectionState.CONNECTED);
+        setConnectedState();
     }
 
     @Override

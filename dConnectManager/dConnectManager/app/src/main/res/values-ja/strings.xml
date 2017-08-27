@@ -152,7 +152,7 @@
     <string name="service_observation_msg_no_permission">ファイル読み込み権限が拒否されたため、ポート監視が中断されました。</string>
     <string name="service_web_server">Webサーバ</string>
 
-    <!-- =================     ServiceListActivity     ================= -->
+    <!-- ================= ServiceListActivity ================= -->
     <string name="activity_service_list_search">サービスを検索</string>
     <string name="activity_service_menu_settings">設定</string>
     <string name="activity_service_menu_help">ヘルプ</string>
@@ -176,7 +176,7 @@
     <string name="activity_websocket_delete_positive">はい</string>
     <string name="activity_websocket_delete_negative">いいえ</string>
 
-    <!-- =================     WebViewActivity     ================= -->
+    <!-- ================= WebViewActivity ================= -->
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>
 
@@ -190,6 +190,10 @@
     <string name="dconnect_error_plugin_not_enabled">プラグインが無効のため、通信を中止しました。</string>
     <string name="dconnect_error_plugin_suspended">予期しないエラーのためにプラグインと接続できませんでした。プラグイン開発者にお問い合わせください。</string>
     <string name="dconnect_error_plugin_not_connected">プラグインとの通信に失敗しました。</string>
+    <string name="dconnect_error_connection_not_permitted">接続が許可されませんでした。</string>
+    <string name="dconnect_error_connection_timeout">接続がタイムアウトしました。</string>
+    <string name="dconnect_error_connection_terminated">接続が強制終了しました。</string>
+    <string name="dconnect_error_connection_internal_error">内部エラーにより接続失敗。</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

@@ -3,16 +3,18 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingLeft="8dp"
-    android:paddingRight="8dp"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    android:paddingLeft="4dp"
+    android:paddingRight="12dp"
     android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:id="@+id/devicelist_icon"
         android:layout_weight="0"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_gravity="top"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_gravity="center_vertical"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
         android:layout_marginLeft="12dp"

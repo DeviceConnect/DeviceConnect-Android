@@ -8,8 +8,8 @@
     android:paddingBottom="2dp">
 
     <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
         android:src="@drawable/ic_error_amber"/>
 
     <TextView
@@ -18,6 +18,6 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="3dp"
         android:textColor="#333333"
-        android:textSize="12sp"/>
+        android:textSize="10sp"/>
 
 </LinearLayout>

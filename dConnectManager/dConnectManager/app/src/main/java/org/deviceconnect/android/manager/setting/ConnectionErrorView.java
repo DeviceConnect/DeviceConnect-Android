@@ -24,12 +24,14 @@ import org.deviceconnect.android.manager.plugin.ConnectionError;
  */
 public class ConnectionErrorView extends LinearLayout {
 
+    private static final int DEFAULT_VISIBILITY = View.GONE;
+
     private final TextView mErrorView;
 
     public ConnectionErrorView(final Context context,
                                final @Nullable AttributeSet attrs) {
         super(context, attrs);
-        setVisibility(View.GONE);
+        setVisibility(DEFAULT_VISIBILITY);
 
         View layout = LayoutInflater.from(context).inflate(R.layout.layout_plugin_connection_error, this);
         mErrorView = (TextView) layout.findViewById(R.id.plugin_connection_error_message);
@@ -60,7 +62,7 @@ public class ConnectionErrorView extends LinearLayout {
                 setVisibility(View.VISIBLE);
             }
         } else {
-            setVisibility(View.GONE);
+            setVisibility(DEFAULT_VISIBILITY);
             mErrorView.setText(null);
         }
     }

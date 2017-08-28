@@ -305,19 +305,24 @@ public class DevicePlugin {
      * @throws MessagingException メッセージ送信に失敗した場合
      */
     public synchronized void send(final Intent message) throws MessagingException {
-        if (!isEnabled()) {
-            throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+        try {
+            if (!isEnabled()) {
+                throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+            }
+            switch (mConnection.getState()) {
+                case SUSPENDED:
+                    if (!tryConnection()) {
+                        throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            mConnection.send(message);
+        } catch (MessagingException e) {
+            mLogger.warning("Failed to send message: plugin = " + mInfo.getPackageName() + "/" + mInfo.getClassName());
+            throw e;
         }
-        switch (mConnection.getState()) {
-            case SUSPENDED:
-                if (!tryConnection()) {
-                    throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
-                }
-                break;
-            default:
-                break;
-        }
-        mConnection.send(message);
     }
 
     private void sendEnableState(boolean isEnabled) {

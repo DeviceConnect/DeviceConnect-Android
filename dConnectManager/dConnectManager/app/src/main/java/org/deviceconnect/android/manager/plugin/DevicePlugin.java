@@ -216,6 +216,14 @@ public class DevicePlugin {
     }
 
     /**
+     * プラグインと通信可能な状態かどうかを取得する.
+     * @return 通信可能である場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
+    public boolean canCommunicate() {
+        return isEnabled() && mConnection.getState() == ConnectionState.CONNECTED;
+    }
+
+    /**
      * プラグイン有効状態を設定する.
      * @param isEnabled プラグイン有効状態
      */

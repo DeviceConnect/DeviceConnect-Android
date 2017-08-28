@@ -335,6 +335,12 @@ public class DevicePluginListFragment extends BaseSettingFragment {
             ConnectionErrorView errorView = (ConnectionErrorView) cv.findViewById(R.id.plugin_connection_error_view);
             errorView.showErrorMessage(plugin.getCurrentConnectionError());
 
+            if (plugin.canCommunicate()) {
+                cv.setBackgroundResource(R.color.plugin_list_row_background_color_connected);
+            } else {
+                cv.setBackgroundResource(R.color.plugin_list_row_background_color_not_connected);
+            }
+
             return cv;
         }
 

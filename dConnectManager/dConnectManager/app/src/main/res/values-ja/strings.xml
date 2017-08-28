@@ -192,7 +192,7 @@
     <string name="dconnect_error_plugin_not_connected">プラグインとの通信に失敗しました。</string>
     <string name="dconnect_error_connection_not_permitted">接続が許可されませんでした。</string>
     <string name="dconnect_error_connection_timeout">接続がタイムアウトしました。</string>
-    <string name="dconnect_error_connection_terminated">接続が強制終了しました。</string>
+    <string name="dconnect_error_connection_terminated">接続が切断されました。</string>
     <string name="dconnect_error_connection_internal_error">内部エラーにより接続失敗。</string>
 
     <!-- ================= Chrome for Android ================= -->

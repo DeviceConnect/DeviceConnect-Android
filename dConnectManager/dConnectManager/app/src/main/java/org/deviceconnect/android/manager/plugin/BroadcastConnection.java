@@ -29,12 +29,12 @@ public class BroadcastConnection extends AbstractConnection {
 
     @Override
     public void connect() throws ConnectingException {
-        // NOP.
+        setConnectedState();
     }
 
     @Override
     public void disconnect() {
-        // NOP.
+        setDisconnectedState();
     }
 
     @Override

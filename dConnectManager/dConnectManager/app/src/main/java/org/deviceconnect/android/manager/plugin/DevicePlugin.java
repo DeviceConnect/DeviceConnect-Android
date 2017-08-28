@@ -247,7 +247,8 @@ public class DevicePlugin {
                 tryConnection();
             }
         } else {
-            if (mConnection.getState() == ConnectionState.CONNECTED) {
+            if (mConnection.getState() == ConnectionState.CONNECTED ||
+                mConnection.getState() == ConnectionState.SUSPENDED) {
                 mConnection.disconnect();
             }
         }
@@ -312,6 +313,9 @@ public class DevicePlugin {
     }
 
     private void sendEnableState(boolean isEnabled) {
+        if (mConnection.getState() != ConnectionState.CONNECTED) {
+            return;
+        }
         Intent notification = createNotificationIntent(isEnabled);
         try {
             send(notification);

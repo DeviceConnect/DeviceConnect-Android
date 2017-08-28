@@ -59,6 +59,9 @@ public class ConnectionErrorView extends LinearLayout {
                 mErrorView.setText(message);
                 setVisibility(View.VISIBLE);
             }
+        } else {
+            setVisibility(View.GONE);
+            mErrorView.setText(null);
         }
     }
 }

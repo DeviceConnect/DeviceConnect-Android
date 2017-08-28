@@ -102,6 +102,7 @@ abstract class AbstractConnection implements Connection {
     }
 
     protected void setDisconnectedState() {
+        mError = null;
         setState(ConnectionState.DISCONNECTED);
     }
 

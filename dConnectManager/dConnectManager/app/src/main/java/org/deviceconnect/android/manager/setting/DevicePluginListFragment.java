@@ -27,7 +27,6 @@ import android.widget.TextView;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
@@ -36,8 +35,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
 
@@ -55,12 +52,7 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     private final DevicePluginEventListener mEventListener = new DevicePluginEventListener() {
         @Override
         public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mPluginAdapter.onStateChange(plugin.getPluginId(), state);
-                }
-            });
+            updatePluginList();
         }
 
         @Override
@@ -94,12 +86,12 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     }
 
     @Override
-    public void onDestroyView() {
+    public void onPause() {
         DevicePluginManager mgr = getPluginManager();
         if (mgr != null) {
             mgr.removeEventListener(mEventListener);
         }
-        super.onDestroyView();
+        super.onPause();
     }
 
     @Override

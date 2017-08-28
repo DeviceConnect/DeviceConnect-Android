@@ -55,15 +55,6 @@ public class BinderConnection extends AbstractConnection {
         mCallback = callback;
     }
 
-    public void dispose() {
-        synchronized (this) {
-            if (mRunningTask != null) {
-                mRunningTask.cancel(true);
-            }
-        }
-        disconnect();
-    }
-
     @Override
     public ConnectionType getType() {
         return ConnectionType.BINDER;
@@ -103,12 +94,11 @@ public class BinderConnection extends AbstractConnection {
     @Override
     public void disconnect() {
         synchronized (this) {
-            if (ConnectionState.CONNECTED != getState()) {
-                return;
+            if (ConnectionState.CONNECTED == getState()) {
+                mContext.unbindService(mServiceConnection);
+                mServiceConnection = null;
+                mPlugin = null;
             }
-            mContext.unbindService(mServiceConnection);
-            mServiceConnection = null;
-            mPlugin = null;
             setDisconnectedState();
         }
     }
@@ -166,7 +156,11 @@ public class BinderConnection extends AbstractConnection {
                 @Override
                 public void onServiceDisconnected(final ComponentName componentName) {
                     mLogger.info("onServiceDisconnected: componentName = " + componentName);
-                    setSuspendedState(ConnectionError.TERMINATED);
+                    synchronized (BinderConnection.this) {
+                        mServiceConnection = null;
+                        mPlugin = null;
+                        setSuspendedState(ConnectionError.TERMINATED);
+                    }
                 }
             };
             boolean canBind = mContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);

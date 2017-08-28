@@ -63,8 +63,8 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             if (Connection.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 String pluginId = intent.getStringExtra(Connection.EXTRA_PLUGIN_ID);
                 if (mPluginInfo.getPluginId().equals(pluginId)) {
-                    final ConnectionState state = intent.getParcelableExtra(Connection.EXTRA_CONNECTION_STATE);
-                    final ConnectionError error = intent.getParcelableExtra(Connection.EXTRA_CONNECTION_ERROR);
+                    final ConnectionState state = (ConnectionState) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_STATE);
+                    final ConnectionError error = (ConnectionError) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_ERROR);
                     if (state == null) {
                         return;
                     }

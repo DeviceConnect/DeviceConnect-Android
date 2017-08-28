@@ -22,6 +22,7 @@ import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
+import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -214,6 +215,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
     }
 
     private boolean isSupportedKeepAlive(final DevicePlugin plugin) {
+        if (plugin.getConnectionType() != ConnectionType.BROADCAST) {
+            return false;
+        }
         VersionName version = plugin.getPluginSdkVersionName();
         VersionName match = VersionName.parse("1.1.0");
         return !(version.compareTo(match) == -1);

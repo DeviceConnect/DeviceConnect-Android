@@ -31,6 +31,7 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
@@ -57,6 +58,12 @@ public class DevicePluginInfoFragment extends Fragment {
     /** プラグイン有効化フラグ. */
     private boolean mIsEnabled;
 
+    /** プラグイン接続エラー. */
+    private ConnectionError mError;
+
+    /** プラグイン接続エラー表示. */
+    private ConnectionErrorView mErrorView;
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +86,13 @@ public class DevicePluginInfoFragment extends Fragment {
         } else {
             mIsEnabled = getArguments().getBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED);
         }
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(DevicePluginInfoActivity.CONNECTION_ERROR)) {
+            mError = (ConnectionError) savedInstanceState.getSerializable(DevicePluginInfoActivity.CONNECTION_ERROR);
+        } else {
+            mError = (ConnectionError) getArguments().getSerializable(DevicePluginInfoActivity.CONNECTION_ERROR);
+        }
+
         String packageName = mPluginInfo.getPackageName();
         Integer iconId = mPluginInfo.getPluginIconId();
         String name = mPluginInfo.getDeviceName();
@@ -161,7 +175,15 @@ public class DevicePluginInfoFragment extends Fragment {
                 mainLayout.addView(tv);
             }
         }
+
+        mErrorView = (ConnectionErrorView) view.findViewById(R.id.plugin_connection_error_view);
+        updateErrorState(mError);
+
         return view;
+    }
+
+    public void updateErrorState(final ConnectionError error) {
+        mErrorView.showErrorMessage(error);
     }
 
     @Override
@@ -169,6 +191,7 @@ public class DevicePluginInfoFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         outState.putBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED, mIsEnabled);
+        outState.putSerializable(DevicePluginInfoActivity.CONNECTION_ERROR, mError);
     }
 
     private void runOnUiThread(final Runnable r) {

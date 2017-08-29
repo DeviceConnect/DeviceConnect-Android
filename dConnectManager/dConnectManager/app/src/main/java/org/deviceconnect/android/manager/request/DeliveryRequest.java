@@ -115,21 +115,7 @@ public class DeliveryRequest extends LocalOAuthRequest {
                 sendResponse(mResponse);
             }
         } else {
-            restartDevicePlugin();
             sendTimeout();
-        }
-    }
-
-    /**
-     * Restart a device plugin.
-     */
-    private void restartDevicePlugin() {
-        if (mDevicePlugin.getStartServiceClassName() != null) {
-            // restart a device plug-in.
-            Intent service = new Intent();
-            service.setClassName(mDevicePlugin.getPackageName(),
-                    mDevicePlugin.getStartServiceClassName());
-            getContext().startService(service);
         }
     }
 }

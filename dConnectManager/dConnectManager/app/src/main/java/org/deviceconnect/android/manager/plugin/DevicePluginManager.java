@@ -17,7 +17,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.os.TransactionTooLargeException;
+import android.util.AndroidException;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
@@ -34,8 +38,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -112,10 +114,28 @@ public class DevicePluginManager {
 
     /**
      * アプリ一覧からデバイスプラグイン一覧を作成する.
+     *
+     * @throws PluginDetectionException アプリケーション一覧のサイズが大きすぎて取得できなかった場合
      */
-    public void createDevicePluginList() {
+    public void createDevicePluginList() throws PluginDetectionException {
         PackageManager pkgMgr = mContext.getPackageManager();
-        Map<String, List<DevicePlugin>> allPlugins = getInstalledPlugins(pkgMgr);
+
+        Map<String, List<DevicePlugin>> allPlugins;
+        try {
+            allPlugins = getInstalledPlugins(pkgMgr);
+        } catch (Exception e) {
+            PluginDetectionException.Reason reason;
+            if (Build.VERSION.SDK_INT >= 15) {
+                if (e.getClass() == TransactionTooLargeException.class) {
+                    reason = PluginDetectionException.Reason.TOO_MANY_PACKAGES;
+                } else {
+                    reason = PluginDetectionException.Reason.OTHER;
+                }
+            } else {
+                reason = PluginDetectionException.Reason.OTHER;
+            }
+            throw new PluginDetectionException(e, reason);
+        }
 
         for (Map.Entry<String, List<DevicePlugin>> entry : allPlugins.entrySet()) {
             List<DevicePlugin> pluginListPerPackage = entry.getValue();

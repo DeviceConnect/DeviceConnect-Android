@@ -30,6 +30,12 @@ public interface Connection {
     String EXTRA_CONNECTION_STATE = "connectionState";
 
     /**
+     * アクション ACTION_CONNECTION_STATE_CHANGED で通知する接続エラーのキー.
+     * 値の型は {@link ConnectionError}.
+     */
+    String EXTRA_CONNECTION_ERROR = "connectionError";
+
+    /**
      * アクション ACTION_CONNECTION_STATE_CHANGED で通知するプラグインIDのキー.
      * 値の型は {@link String}.
      */
@@ -89,4 +95,11 @@ public interface Connection {
      */
     void send(Intent message) throws MessagingException;
 
+
+    /**
+     * 現在発生しているエラーがある場合はそれを返す.
+     *
+     * @return 現在発生しているエラー
+     */
+    ConnectionError getCurrentError();
 }

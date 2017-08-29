@@ -55,8 +55,8 @@ android {
 
     productFlavors {
         DeviceWebApi {
-            versionCode 12
-            versionName "2.0.3"
+            versionCode 13
+            versionName "2.1.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/dconnect_icon",
                     appName: "@string/app_name_for_device_web_api"

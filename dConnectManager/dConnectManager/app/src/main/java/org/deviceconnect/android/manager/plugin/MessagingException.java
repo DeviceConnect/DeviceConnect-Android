@@ -8,6 +8,8 @@ package org.deviceconnect.android.manager.plugin;
 
 /**
  * プラグインへのメッセージ送信不可を示すチェック例外.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class MessagingException extends Exception {
 

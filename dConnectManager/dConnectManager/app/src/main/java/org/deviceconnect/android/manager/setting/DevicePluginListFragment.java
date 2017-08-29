@@ -35,8 +35,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
 
@@ -50,19 +48,11 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     /** Adapter. */
     private PluginAdapter mPluginAdapter;
 
-    /** デバイスプラグインを有効・無効にするスレッド. */
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-
     /** デバイスプラグインとの接続状態の変更通知を受信するリスナー. */
     private final DevicePluginEventListener mEventListener = new DevicePluginEventListener() {
         @Override
         public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mPluginAdapter.onStateChange(plugin.getPluginId(), state);
-                }
-            });
+            updatePluginList();
         }
 
         @Override
@@ -96,12 +86,12 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     }
 
     @Override
-    public void onDestroyView() {
+    public void onPause() {
         DevicePluginManager mgr = getPluginManager();
         if (mgr != null) {
             mgr.removeEventListener(mEventListener);
         }
-        super.onDestroyView();
+        super.onPause();
     }
 
     @Override
@@ -193,8 +183,10 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     private void openDevicePluginInformation(final PluginContainer container) {
         Intent intent = new Intent();
         intent.setClass(getActivity(), DevicePluginInfoActivity.class);
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, container.getPluginEntity().getInfo());
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, container.getPluginEntity().isEnabled());
+        DevicePlugin plugin = container.getPluginEntity();
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, plugin.getInfo());
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, plugin.isEnabled());
+        intent.putExtra(DevicePluginInfoActivity.CONNECTION_ERROR, plugin.getCurrentConnectionError());
         startActivity(intent);
     }
 
@@ -339,6 +331,16 @@ public class DevicePluginListFragment extends BaseSettingFragment {
             } else {
                 progressCircle.setVisibility(View.INVISIBLE);
             }
+
+            ConnectionErrorView errorView = (ConnectionErrorView) cv.findViewById(R.id.plugin_connection_error_view);
+            errorView.showErrorMessage(plugin.getCurrentConnectionError());
+
+            if (plugin.canCommunicate()) {
+                cv.setBackgroundResource(R.color.plugin_list_row_background_color_connected);
+            } else {
+                cv.setBackgroundResource(R.color.plugin_list_row_background_color_not_connected);
+            }
+
             return cv;
         }
 

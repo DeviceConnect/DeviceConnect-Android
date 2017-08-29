@@ -24,6 +24,7 @@ import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.Connection;
+import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
@@ -43,6 +44,9 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
     /** デバイスプラグイン有効フラグのキー. */
     static final String PLUGIN_ENABLED = "pluginEnabled";
 
+    /** デバイスプラグイン接続エラーのキー. */
+    static final String CONNECTION_ERROR = "connectionError";
+
     /** フラグメントのタグ. */
     private static final String TAG = "info";
 
@@ -59,22 +63,31 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             if (Connection.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 String pluginId = intent.getStringExtra(Connection.EXTRA_PLUGIN_ID);
                 if (mPluginInfo.getPluginId().equals(pluginId)) {
-                    final ConnectionState state = intent.getParcelableExtra(Connection.EXTRA_CONNECTION_STATE);
+                    final ConnectionState state = (ConnectionState) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_STATE);
+                    final ConnectionError error = (ConnectionError) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_ERROR);
                     if (state == null) {
                         return;
                     }
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            // 接続処理中表示
                             switch (state) {
                                 case CONNECTING:
                                     mProgressCircle.setVisibility(View.VISIBLE);
                                     break;
                                 case CONNECTED:
+                                case SUSPENDED:
                                     mProgressCircle.setVisibility(View.INVISIBLE);
                                     break;
                                 default:
                                     break;
+                            }
+
+                            // 接続エラー表示
+                            DevicePluginInfoFragment infoFragment = getInfoFragment();
+                            if (infoFragment != null) {
+                                infoFragment.updateErrorState(error);
                             }
                         }
                     });
@@ -113,6 +126,13 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         } else {
             isEnabled = intent.getBooleanExtra(PLUGIN_ENABLED, true);
         }
+        final ConnectionError error;
+        if (savedInstanceState != null && savedInstanceState.containsKey(CONNECTION_ERROR)) {
+            error = (ConnectionError) savedInstanceState.getSerializable(CONNECTION_ERROR);
+        } else {
+            error = (ConnectionError) intent.getSerializableExtra(CONNECTION_ERROR);
+        }
+
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -144,6 +164,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             Bundle args = new Bundle();
             args.putParcelable(PLUGIN_INFO, mPluginInfo);
             args.putBoolean(PLUGIN_ENABLED, isEnabled);
+            args.putSerializable(CONNECTION_ERROR, error);
             f.setArguments(args);
 
             FragmentManager fm = getSupportFragmentManager();
@@ -152,6 +173,11 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             t.add(android.R.id.content, f, TAG);
             t.commit();
         }
+    }
+
+    private DevicePluginInfoFragment getInfoFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+        return (DevicePluginInfoFragment) fm.findFragmentByTag(TAG);
     }
 
     @Override

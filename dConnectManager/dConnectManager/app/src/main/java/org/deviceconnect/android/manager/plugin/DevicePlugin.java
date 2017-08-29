@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  */
 public class DevicePlugin {
 
-    /** 接続試行回数. */
+    /** 接続リトライ回数. */
     private static final int MAX_CONNECTION_TRY = 5;
 
     /** デバイスプラグイン情報. */
@@ -183,6 +183,14 @@ public class DevicePlugin {
         return DConnectUtil.loadPluginIcon(context, this);
     }
 
+    public ConnectionError getCurrentConnectionError() {
+        Connection connection = mConnection;
+        if (connection == null) {
+            return null;
+        }
+        return connection.getCurrentError();
+    }
+
     /**
      * 連携タイプを取得する.
      * @return 連携タイプ
@@ -205,6 +213,14 @@ public class DevicePlugin {
      */
     public boolean isEnabled() {
         return mSetting.isEnabled();
+    }
+
+    /**
+     * プラグインと通信可能な状態かどうかを取得する.
+     * @return 通信可能である場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
+    public boolean canCommunicate() {
+        return isEnabled() && mConnection.getState() == ConnectionState.CONNECTED;
     }
 
     /**
@@ -239,7 +255,8 @@ public class DevicePlugin {
                 tryConnection();
             }
         } else {
-            if (mConnection.getState() == ConnectionState.CONNECTED) {
+            if (mConnection.getState() == ConnectionState.CONNECTED ||
+                mConnection.getState() == ConnectionState.SUSPENDED) {
                 mConnection.disconnect();
             }
         }
@@ -288,22 +305,30 @@ public class DevicePlugin {
      * @throws MessagingException メッセージ送信に失敗した場合
      */
     public synchronized void send(final Intent message) throws MessagingException {
-        if (!isEnabled()) {
-            throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+        try {
+            if (!isEnabled()) {
+                throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+            }
+            switch (mConnection.getState()) {
+                case SUSPENDED:
+                    if (!tryConnection()) {
+                        throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            mConnection.send(message);
+        } catch (MessagingException e) {
+            mLogger.warning("Failed to send message: plugin = " + mInfo.getPackageName() + "/" + mInfo.getClassName());
+            throw e;
         }
-        switch (mConnection.getState()) {
-            case SUSPENDED:
-                if (!tryConnection()) {
-                    throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
-                }
-                break;
-            default:
-                break;
-        }
-        mConnection.send(message);
     }
 
     private void sendEnableState(boolean isEnabled) {
+        if (mConnection.getState() != ConnectionState.CONNECTED) {
+            return;
+        }
         Intent notification = createNotificationIntent(isEnabled);
         try {
             send(notification);

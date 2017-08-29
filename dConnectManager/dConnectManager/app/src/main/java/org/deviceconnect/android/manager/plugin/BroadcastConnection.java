@@ -19,7 +19,7 @@ public class BroadcastConnection extends AbstractConnection {
 
     public BroadcastConnection(final Context context, final String pluginId) {
         super(context, pluginId);
-        setState(ConnectionState.CONNECTED);
+        setConnectedState();
     }
 
     @Override
@@ -29,12 +29,12 @@ public class BroadcastConnection extends AbstractConnection {
 
     @Override
     public void connect() throws ConnectingException {
-        // NOP.
+        setConnectedState();
     }
 
     @Override
     public void disconnect() {
-        // NOP.
+        setDisconnectedState();
     }
 
     @Override

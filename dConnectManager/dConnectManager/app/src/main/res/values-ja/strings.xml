@@ -6,12 +6,12 @@
     <string name="image_content_description">Image Description</string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
-    <string name="activity_launch_button_launch">Launch</string>
-    <string name="activity_launch_button_stop">Stop</string>
-    <string name="activity_launch_button_cancel">Cancel</string>
-    <string name="activity_launch_button_settings">Settings</string>
-    <string name="activity_launch_message_launch">Please click the below button\nto launch Device Connect Manager.</string>
-    <string name="activity_launch_message_stop">Please click the below button\nto stop Device Connect Manager.</string>
+    <string name="activity_launch_button_launch">起動</string>
+    <string name="activity_launch_button_stop">停止</string>
+    <string name="activity_launch_button_cancel">キャンセル</string>
+    <string name="activity_launch_button_settings">設定</string>
+    <string name="activity_launch_message_launch">Device Connect Managerを起動したい場合は、\n下の「起動」を押してください。</string>
+    <string name="activity_launch_message_stop">Device Connect Managerを停止したい場合は、\n下の「停止」を押してください。</string>
 
     <!-- ================= SettingsActivity ================= -->
 
@@ -159,7 +159,7 @@
     <string name="service_observation_msg_no_permission">ファイル読み込み権限が拒否されたため、ポート監視が中断されました。</string>
     <string name="service_web_server">Webサーバ</string>
 
-    <!-- =================     ServiceListActivity     ================= -->
+    <!-- ================= ServiceListActivity ================= -->
     <string name="activity_service_list_search">サービスを検索</string>
     <string name="activity_service_menu_settings">設定</string>
     <string name="activity_service_menu_help">ヘルプ</string>
@@ -183,7 +183,7 @@
     <string name="activity_websocket_delete_positive">はい</string>
     <string name="activity_websocket_delete_negative">いいえ</string>
 
-    <!-- =================     WebViewActivity     ================= -->
+    <!-- ================= WebViewActivity ================= -->
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>
 
@@ -191,9 +191,16 @@
 
     <!-- ================= Error Messages for UI ================= -->
     <string name="dconnect_error_default_title">エラー</string>
+    <string name="dconnect_error_plugin_not_detected_title">プラグイン検索エラー</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_too_many_packages">プラグインの検索に失敗しました。端末にインストールされているAndroidアプリケーションの数が多い可能性があります。</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_unknown_error">プラグインの検索に失敗しました。</string>
     <string name="dconnect_error_plugin_not_enabled">プラグインが無効のため、通信を中止しました。</string>
     <string name="dconnect_error_plugin_suspended">予期しないエラーのためにプラグインと接続できませんでした。プラグイン開発者にお問い合わせください。</string>
     <string name="dconnect_error_plugin_not_connected">プラグインとの通信に失敗しました。</string>
+    <string name="dconnect_error_connection_not_permitted">接続が許可されませんでした。</string>
+    <string name="dconnect_error_connection_timeout">接続がタイムアウトしました。</string>
+    <string name="dconnect_error_connection_terminated">接続が切断されました。</string>
+    <string name="dconnect_error_connection_internal_error">内部エラーにより接続失敗。</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

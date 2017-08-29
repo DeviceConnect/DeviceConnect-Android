@@ -38,6 +38,7 @@ import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.plugin.InternalConnection;
 import org.deviceconnect.android.manager.plugin.MessagingException;
+import org.deviceconnect.android.manager.plugin.PluginDetectionException;
 import org.deviceconnect.android.manager.policy.OriginValidator;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
@@ -47,6 +48,8 @@ import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
+import org.deviceconnect.android.manager.setting.ErrorDialogActivity;
+import org.deviceconnect.android.manager.setting.ErrorDialogFragment;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -168,11 +171,8 @@ public abstract class DConnectMessageService extends Service
     /** イベントブローカー. */
     protected EventBroker mEventBroker;
 
-    /** プラグイン検索用スレッド. */
-    private final ExecutorService mPluginSearchExecutor = Executors.newSingleThreadExecutor();
-
-    /** プラグイン有効化用スレッド. */
-    private final ExecutorService mPluginEnableExecutor = Executors.newSingleThreadExecutor();
+    /** スレッドプール. */
+    private final ExecutorService mExecutor = Executors.newFixedThreadPool(10);
 
     /** プラグイン検索中フラグ. */
     private boolean mIsSearchingPlugins;
@@ -307,7 +307,7 @@ public abstract class DConnectMessageService extends Service
         } else if (ACTION_ENABLE_PLUGIN.equals(action)) {
             final DevicePlugin plugin = findPlugin(intent);
             if (plugin != null) {
-                mPluginEnableExecutor.execute(new Runnable() {
+                mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         plugin.enable();
@@ -317,7 +317,7 @@ public abstract class DConnectMessageService extends Service
         } else if (ACTION_DISABLE_PLUGIN.equals(action)) {
             final DevicePlugin plugin = findPlugin(intent);
             if (plugin != null) {
-                mPluginEnableExecutor.execute(new Runnable() {
+                mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         plugin.disable();
@@ -351,11 +351,7 @@ public abstract class DConnectMessageService extends Service
         SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
         SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
         request.putExtra("pluginId", plugin.getPluginId());
-        try {
-            plugin.send(request);
-        } catch (MessagingException e) {
-            mLogger.warning("Failed to open settings window: plugin = " + plugin.getDeviceName());
-        }
+        sendMessage(plugin, request);
     }
 
     /**
@@ -682,6 +678,7 @@ public abstract class DConnectMessageService extends Service
         mOriginValidator = new OriginValidator(this,
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
         showNotification();
+        sendLaunchedEvent();
     }
 
     private synchronized void startPluginSearch() {
@@ -689,40 +686,98 @@ public abstract class DConnectMessageService extends Service
             return;
         }
         mIsSearchingPlugins = true;
-        mPluginSearchExecutor.execute(new Runnable() {
+        mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                mPluginManager.createDevicePluginList();
-                mIsSearchingPlugins = false;
+                try {
+                    mPluginManager.createDevicePluginList();
+                } catch (PluginDetectionException e) {
+                    showPluginListError(e);
+                } finally {
+                    mIsSearchingPlugins = false;
+                }
             }
         });
+    }
+
+    private void showPluginListError(final PluginDetectionException e) {
+        // エラーメッセージ初期化
+        int messageId;
+        switch (e.getReason()) {
+            case TOO_MANY_PACKAGES:
+                messageId = R.string.dconnect_error_plugin_not_detected_due_to_too_many_packages;
+                break;
+            default:
+                messageId = R.string.dconnect_error_plugin_not_detected_due_to_unknown_error;
+                break;
+        }
+        final String message = getString(messageId);
+        final String title = getString(R.string.dconnect_error_plugin_not_detected_title);
+
+        showErrorDialog(title, message);
+    }
+
+    private void showErrorDialog(final String title, final String message) {
+        Intent intent = new Intent(this, ErrorDialogActivity.class);
+        intent.putExtra(ErrorDialogFragment.EXTRA_TITLE, title);
+        intent.putExtra(ErrorDialogFragment.EXTRA_MESSAGE, message);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     /**
      * DConnectManagerを停止する.
      */
     protected void stopDConnect() {
-        sendTerminateEvent();
+        sendTerminatedEvent();
         if (mRequestManager != null) {
             mRequestManager.shutdown();
         }
         hideNotification();
     }
 
+    private void sendMessage(final DevicePlugin plugin, final Intent message) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    plugin.send(message);
+                } catch (MessagingException e) {
+                    mLogger.warning("Failed to send event: action = " + message.getAction() + ", destination = " + plugin.getComponentName());
+                }
+            }
+        });
+    }
+
     /**
-     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
+     * 全デバイスプラグインに対して、Device Connect Managerのライフサイクルについての通知を行う.
      */
-    private void sendTerminateEvent() {
+    private void sendManagerEvent(final String action) {
         List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
             if (plugin.getPluginId() != null) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
-                request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+                request.setAction(action);
                 request.putExtra("pluginId", plugin.getPluginId());
-                sendBroadcast(request);
+                sendMessage(plugin, request);
             }
         }
+    }
+
+    /**
+     * 全デバイスプラグインに対して、Device Connect Manager起動通知を行う.
+     */
+    private void sendLaunchedEvent() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_LAUNCHED);
+    }
+
+    /**
+     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
+     */
+    private void sendTerminatedEvent() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
     }
 
     /**

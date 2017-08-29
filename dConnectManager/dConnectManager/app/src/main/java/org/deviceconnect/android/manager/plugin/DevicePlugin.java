@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
@@ -30,7 +31,7 @@ import java.util.logging.Logger;
  */
 public class DevicePlugin {
 
-    /** 接続試行回数. */
+    /** 接続リトライ回数. */
     private static final int MAX_CONNECTION_TRY = 5;
 
     /** デバイスプラグイン情報. */
@@ -43,7 +44,7 @@ public class DevicePlugin {
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     private DevicePlugin(final Info info,
-                 final DevicePluginSetting setting) {
+                         final DevicePluginSetting setting) {
         mInfo = info;
         mSetting = setting;
     }
@@ -126,16 +127,20 @@ public class DevicePlugin {
      */
     public List<String> getSupportProfileNames() {
         List<String> result = new ArrayList<>();
-        if (mInfo.mSupportedProfiles != null) {
-            for (String profileName : mInfo.mSupportedProfiles.keySet()) {
+        if (mInfo.getSupportedProfiles() != null) {
+            for (String profileName : mInfo.getSupportedProfiles().keySet()) {
                 result.add(profileName);
             }
         }
         return result;
     }
 
+    public boolean isSamePlugin(final DevicePlugin plugin) {
+        return mInfo.getPluginXml().isSamePlugin(plugin.mInfo.getPluginXml());
+    }
+
     public Map<String, DevicePluginXmlProfile> getSupportProfiles() {
-        return new HashMap<>(mInfo.mSupportedProfiles);
+        return new HashMap<>(mInfo.getSupportedProfiles());
     }
 
     /**
@@ -178,6 +183,14 @@ public class DevicePlugin {
         return DConnectUtil.loadPluginIcon(context, this);
     }
 
+    public ConnectionError getCurrentConnectionError() {
+        Connection connection = mConnection;
+        if (connection == null) {
+            return null;
+        }
+        return connection.getCurrentError();
+    }
+
     /**
      * 連携タイプを取得する.
      * @return 連携タイプ
@@ -200,6 +213,14 @@ public class DevicePlugin {
      */
     public boolean isEnabled() {
         return mSetting.isEnabled();
+    }
+
+    /**
+     * プラグインと通信可能な状態かどうかを取得する.
+     * @return 通信可能である場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
+    public boolean canCommunicate() {
+        return isEnabled() && mConnection.getState() == ConnectionState.CONNECTED;
     }
 
     /**
@@ -234,7 +255,8 @@ public class DevicePlugin {
                 tryConnection();
             }
         } else {
-            if (mConnection.getState() == ConnectionState.CONNECTED) {
+            if (mConnection.getState() == ConnectionState.CONNECTED ||
+                mConnection.getState() == ConnectionState.SUSPENDED) {
                 mConnection.disconnect();
             }
         }
@@ -283,22 +305,30 @@ public class DevicePlugin {
      * @throws MessagingException メッセージ送信に失敗した場合
      */
     public synchronized void send(final Intent message) throws MessagingException {
-        if (!isEnabled()) {
-            throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+        try {
+            if (!isEnabled()) {
+                throw new MessagingException(MessagingException.Reason.NOT_ENABLED);
+            }
+            switch (mConnection.getState()) {
+                case SUSPENDED:
+                    if (!tryConnection()) {
+                        throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            mConnection.send(message);
+        } catch (MessagingException e) {
+            mLogger.warning("Failed to send message: plugin = " + mInfo.getPackageName() + "/" + mInfo.getClassName());
+            throw e;
         }
-        switch (mConnection.getState()) {
-            case SUSPENDED:
-                if (!tryConnection()) {
-                    throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
-                }
-                break;
-            default:
-                break;
-        }
-        mConnection.send(message);
     }
 
     private void sendEnableState(boolean isEnabled) {
+        if (mConnection.getState() != ConnectionState.CONNECTED) {
+            return;
+        }
         Intent notification = createNotificationIntent(isEnabled);
         try {
             send(notification);
@@ -385,8 +415,8 @@ public class DevicePlugin {
             return this;
         }
 
-        Builder setSupportedProfiles(final Map<String, DevicePluginXmlProfile> supportedProfiles) {
-            mInfo.mSupportedProfiles = supportedProfiles;
+        Builder setPluginXml(final DevicePluginXml xml) {
+            mInfo.mPluginXml = xml;
             return this;
         }
 
@@ -411,6 +441,8 @@ public class DevicePlugin {
      */
     public static class Info implements Parcelable {
 
+        /** プラグインの設定ファイル. */
+        private DevicePluginXml mPluginXml;
         /** プラグインのパッケージ名. */
         private String mPackageName;
         /** マネージャからのメッセージを受信するJavaクラス名. */
@@ -427,10 +459,12 @@ public class DevicePlugin {
         private String mDeviceName;
         /** プラグインアイコン. */
         private Integer mPluginIconId;
-        /** サポートしているプロファイルのリスト. */
-        private Map<String, DevicePluginXmlProfile> mSupportedProfiles;
         /** 接続タイプ. */
         private ConnectionType mConnectionType;
+
+        public int getPluginXmlId() {
+            return mPluginXml.getResourceId();
+        }
 
         public String getPackageName() {
             return mPackageName;
@@ -464,14 +498,17 @@ public class DevicePlugin {
             return mPluginIconId;
         }
 
+        public DevicePluginXml getPluginXml() {
+            return mPluginXml;
+        }
+
         public Map<String, DevicePluginXmlProfile> getSupportedProfiles() {
-            return mSupportedProfiles;
+            return mPluginXml.getSupportedProfiles();
         }
 
         public ConnectionType getConnectionType() {
             return mConnectionType;
         }
-
 
         @Override
         public int describeContents() {
@@ -480,6 +517,7 @@ public class DevicePlugin {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
+            dest.writeParcelable(this.mPluginXml, flags);
             dest.writeString(this.mPackageName);
             dest.writeString(this.mClassName);
             dest.writeString(this.mStartServiceClassName);
@@ -488,11 +526,6 @@ public class DevicePlugin {
             dest.writeString(this.mPluginId);
             dest.writeString(this.mDeviceName);
             dest.writeValue(this.mPluginIconId);
-            dest.writeInt(this.mSupportedProfiles.size());
-            for (Map.Entry<String, DevicePluginXmlProfile> entry : this.mSupportedProfiles.entrySet()) {
-                dest.writeString(entry.getKey());
-                dest.writeParcelable(entry.getValue(), flags);
-            }
             dest.writeInt(this.mConnectionType == null ? -1 : this.mConnectionType.ordinal());
         }
 
@@ -500,6 +533,7 @@ public class DevicePlugin {
         }
 
         protected Info(Parcel in) {
+            this.mPluginXml = in.readParcelable(DevicePluginXml.class.getClassLoader());
             this.mPackageName = in.readString();
             this.mClassName = in.readString();
             this.mStartServiceClassName = in.readString();
@@ -508,13 +542,6 @@ public class DevicePlugin {
             this.mPluginId = in.readString();
             this.mDeviceName = in.readString();
             this.mPluginIconId = (Integer) in.readValue(Integer.class.getClassLoader());
-            int mSupportedProfilesSize = in.readInt();
-            this.mSupportedProfiles = new HashMap<String, DevicePluginXmlProfile>(mSupportedProfilesSize);
-            for (int i = 0; i < mSupportedProfilesSize; i++) {
-                String key = in.readString();
-                DevicePluginXmlProfile value = in.readParcelable(DevicePluginXmlProfile.class.getClassLoader());
-                this.mSupportedProfiles.put(key, value);
-            }
             int tmpMConnectionType = in.readInt();
             this.mConnectionType = tmpMConnectionType == -1 ? null : ConnectionType.values()[tmpMConnectionType];
         }

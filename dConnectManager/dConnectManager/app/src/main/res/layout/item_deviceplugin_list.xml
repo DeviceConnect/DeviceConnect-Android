@@ -3,18 +3,22 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    android:paddingLeft="4dp"
+    android:paddingRight="12dp"
     android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:id="@+id/devicelist_icon"
         android:layout_weight="0"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
         android:layout_gravity="center_vertical"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
         android:layout_marginLeft="12dp"
-        android:layout_marginRight="8dp"/>
+        android:layout_marginRight="12dp"/>
 
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -23,38 +27,42 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
-        android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:minHeight="?android:attr/listPreferredItemHeightSmall"
-        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/devicelist_package_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="6dp"
+            android:layout_marginBottom="2dp"
             android:ellipsize="end"
             android:gravity="center_vertical"
-            android:maxLines="4"
+            android:maxLines="1"
             android:scrollHorizontally="true"
             android:textAppearance="?android:attr/textAppearanceListItemSmall"
             android:textColor="#000000"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/devicelist_version"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="6dp"
+            android:layout_marginBottom="2dp"
             android:ellipsize="end"
             android:gravity="center_vertical"
-            android:maxLines="4"
+            android:maxLines="1"
             android:scrollHorizontally="true"
             android:textAppearance="?android:attr/textAppearanceListItemSmall"
             android:textColor="#000000"
-            android:textSize="14sp"/>
+            android:textSize="12sp"/>
+
+        <org.deviceconnect.android.manager.setting.ConnectionErrorView
+            android:id="@+id/plugin_connection_error_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"/>
     </LinearLayout>
 
     <include

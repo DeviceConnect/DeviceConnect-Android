@@ -146,11 +146,6 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             }
         }
 
-        // TODO: 応答のなかったプラグインだけを再起動する
-//        if (mResponseCount < plugins.size()) {
-//            restartDevicePlugins();
-//        }
-
         // パラメータを設定する
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         mResponse.putExtra(IntentDConnectMessage.EXTRA_RESULT,
@@ -160,20 +155,5 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
         // レスポンスを返却する
         sendResponse(mResponse);
-    }
-    
-    /**
-     * Restart all device plugins that response did not come back.
-     */
-    private void restartDevicePlugins() {
-        for (int i = 0; i < mRequestCodeArray.size(); i++) {
-            DevicePlugin plugin = mRequestCodeArray.valueAt(i);
-            if (plugin.getStartServiceClassName() != null) {
-                Intent service = new Intent();
-                service.setClassName(plugin.getPackageName(), 
-                        plugin.getStartServiceClassName());
-                getContext().startService(service);
-            }
-        }
     }
 }

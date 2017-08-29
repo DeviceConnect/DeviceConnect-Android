@@ -19,6 +19,7 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
 import org.deviceconnect.android.deviceplugin.hvc.response.HvcResponseUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -267,13 +268,46 @@ public class HvcCommManager {
     }
 
     /**
+     * Detect HVC.
+     * Connection confirmation.
+     */
+    public void detectHVC() {
+
+        // check comm busy.
+        if (checkCommBusy()) {
+            return;
+        }
+
+        // create lister.
+        HvcDetectListener listener = new HvcDetectListener() {
+
+            @Override
+            public void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes) {
+            }
+
+            @Override
+            public void onSetParamError(final int status) {
+            }
+
+            @Override
+            public void onRequestDetectError(final int status) {
+            }
+
+            @Override
+            public void onDetectError(final int status) {
+            }
+        };
+
+        // detect request.
+        commRequestProc(HvcDetectRequestUtils.getRequestParams(new Intent(), new Intent(), HumanDetectKind.HUMAN), listener);
+    }
+    /**
      * get detection process.
      * @param detectKind detectKind
      * @param requestParams requestParams
      * @param response response
      */
-    public void
-    doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
+    public void doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
             final Intent response) {
         
         // check comm busy.

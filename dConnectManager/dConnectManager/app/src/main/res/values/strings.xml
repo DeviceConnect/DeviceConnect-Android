@@ -159,13 +159,13 @@
     <string name="service_observation_msg_no_permission">Port observation was interrupted due to lack of file read permission.</string>
     <string name="service_web_server">Web Server</string>
 
-    <!-- =================     WebViewActivity     ================= -->
+    <!-- ================= WebViewActivity ================= -->
     <string name="webview_js_alert_positive_btn">Yes</string>
     <string name="webview_js_alert_negative_btn">No</string>
 
     <string name="activity_help_title">Help</string>
 
-    <!-- =================     ServiceListActivity     ================= -->
+    <!-- ================= ServiceListActivity ================= -->
     <string name="activity_service_list_search">Search of service</string>
     <string name="activity_service_menu_settings">Settings</string>
     <string name="activity_service_menu_help">Help</string>
@@ -191,9 +191,16 @@
 
     <!-- ================= Error Messages for UI ================= -->
     <string name="dconnect_error_default_title">Error</string>
+    <string name="dconnect_error_plugin_not_detected_title">Plug-in Search Error</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_too_many_packages">Failed to search Device Connect Plug-ins. Maybe too many applications are installed on this device.</string>
+    <string name="dconnect_error_plugin_not_detected_due_to_unknown_error">Failed to search Device Connect Plug-ins. </string>
     <string name="dconnect_error_plugin_not_enabled">The plug-in is not enabled.</string>
     <string name="dconnect_error_plugin_suspended">The connection with plug-in is suspended because the plug-in cannot be connected for unexpected error. Please contact the plug-in vendor.</string>
     <string name="dconnect_error_plugin_not_connected">Failed to send an message to the plug-in.</string>
+    <string name="dconnect_error_connection_not_permitted">Connection is not permitted.</string>
+    <string name="dconnect_error_connection_timeout">Connection was failed due to timeout.</string>
+    <string name="dconnect_error_connection_terminated">Connection was terminated.</string>
+    <string name="dconnect_error_connection_internal_error">Connection was failed due to internal error.</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

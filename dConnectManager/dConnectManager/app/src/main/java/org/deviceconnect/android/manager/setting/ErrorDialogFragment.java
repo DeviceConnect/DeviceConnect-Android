@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import org.deviceconnect.android.manager.R;
  */
 public class ErrorDialogFragment extends DialogFragment {
 
+    public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MESSAGE = "message";
 
     @Override
@@ -30,8 +32,13 @@ public class ErrorDialogFragment extends DialogFragment {
             dismiss();
         }
 
+        String title = args.getString(EXTRA_TITLE);
+        if (title == null) {
+            title = getString(R.string.dconnect_error_default_title);
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(R.string.dconnect_error_default_title));
+        builder.setTitle(title);
         builder.setMessage(args.getString(EXTRA_MESSAGE));
         builder.setPositiveButton(R.string.activity_settings_close, new DialogInterface.OnClickListener() {
             @Override
@@ -40,5 +47,15 @@ public class ErrorDialogFragment extends DialogFragment {
             }
         });
         return builder.create();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.finish();
+        }
     }
 }

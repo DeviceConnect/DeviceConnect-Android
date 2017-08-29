@@ -101,6 +101,14 @@
             </intent-filter>
         </activity>
 
+        <!-- エラーダイアログ用Activity. -->
+        <activity
+            android:name=".setting.ErrorDialogActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.AppCompat.Translucent">
+        </activity>
+
         <!-- キーワード表示用Activity. -->
         <activity
             android:name=".setting.KeywordDialogActivity"

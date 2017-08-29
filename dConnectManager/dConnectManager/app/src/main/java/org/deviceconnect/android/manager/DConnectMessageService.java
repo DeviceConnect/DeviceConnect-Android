@@ -50,7 +50,6 @@ import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
 import org.deviceconnect.android.manager.setting.ErrorDialogActivity;
 import org.deviceconnect.android.manager.setting.ErrorDialogFragment;
-import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -172,11 +171,8 @@ public abstract class DConnectMessageService extends Service
     /** イベントブローカー. */
     protected EventBroker mEventBroker;
 
-    /** プラグイン検索用スレッド. */
-    private final ExecutorService mPluginSearchExecutor = Executors.newSingleThreadExecutor();
-
-    /** プラグイン有効化用スレッド. */
-    private final ExecutorService mPluginEnableExecutor = Executors.newSingleThreadExecutor();
+    /** スレッドプール. */
+    private final ExecutorService mExecutor = Executors.newFixedThreadPool(10);
 
     /** プラグイン検索中フラグ. */
     private boolean mIsSearchingPlugins;
@@ -311,7 +307,7 @@ public abstract class DConnectMessageService extends Service
         } else if (ACTION_ENABLE_PLUGIN.equals(action)) {
             final DevicePlugin plugin = findPlugin(intent);
             if (plugin != null) {
-                mPluginEnableExecutor.execute(new Runnable() {
+                mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         plugin.enable();
@@ -321,7 +317,7 @@ public abstract class DConnectMessageService extends Service
         } else if (ACTION_DISABLE_PLUGIN.equals(action)) {
             final DevicePlugin plugin = findPlugin(intent);
             if (plugin != null) {
-                mPluginEnableExecutor.execute(new Runnable() {
+                mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         plugin.disable();
@@ -355,11 +351,7 @@ public abstract class DConnectMessageService extends Service
         SystemProfile.setInterface(request, SystemProfile.INTERFACE_DEVICE);
         SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
         request.putExtra("pluginId", plugin.getPluginId());
-        try {
-            plugin.send(request);
-        } catch (MessagingException e) {
-            mLogger.warning("Failed to open settings window: plugin = " + plugin.getDeviceName());
-        }
+        sendMessage(plugin, request);
     }
 
     /**
@@ -694,7 +686,7 @@ public abstract class DConnectMessageService extends Service
             return;
         }
         mIsSearchingPlugins = true;
-        mPluginSearchExecutor.execute(new Runnable() {
+        mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -745,6 +737,19 @@ public abstract class DConnectMessageService extends Service
         hideNotification();
     }
 
+    private void sendMessage(final DevicePlugin plugin, final Intent message) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    plugin.send(message);
+                } catch (MessagingException e) {
+                    mLogger.warning("Failed to send event: action = " + message.getAction() + ", destination = " + plugin.getComponentName());
+                }
+            }
+        });
+    }
+
     /**
      * 全デバイスプラグインに対して、Device Connect Managerのライフサイクルについての通知を行う.
      */
@@ -756,11 +761,7 @@ public abstract class DConnectMessageService extends Service
                 request.setComponent(plugin.getComponentName());
                 request.setAction(action);
                 request.putExtra("pluginId", plugin.getPluginId());
-                try {
-                    plugin.send(request);
-                } catch (MessagingException e) {
-                    mLogger.warning("Failed to send event: action = " + action + ", destination = " + plugin.getComponentName());
-                }
+                sendMessage(plugin, request);
             }
         }
     }

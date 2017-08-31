@@ -724,21 +724,10 @@ public abstract class AbstractHOGPServer {
 
     /**
      * 指定されたBluetoothデバイスが切断された時の処理を行います.
-     * <p>
-     * 切断されたデバイスは、再接続処理を行います。
-     * </p>
+     *
      * @param device 切断されたデバイス
      */
     private void disconnectDevice(final BluetoothDevice device) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mGattServer != null) {
-                    mGattServer.connect(device, true);
-                }
-            }
-        });
-
         synchronized (mBluetoothDevicesMap) {
             mBluetoothDevicesMap.remove(device.getAddress());
         }

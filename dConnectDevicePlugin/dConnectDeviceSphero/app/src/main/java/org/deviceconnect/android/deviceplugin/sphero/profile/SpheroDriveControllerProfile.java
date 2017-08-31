@@ -82,7 +82,7 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
             if (info != null) {
-                Integer angle = parseInteger(request, PARAM_ANGLE);
+                Double angle = parseDouble(request, PARAM_ANGLE);
                 if (angle == null || angle < 0 || angle > 360) {
                     MessageUtils.setInvalidRequestParameterError(response);
                 } else {
@@ -136,7 +136,7 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
             if (info != null) {
-                final Integer angle = parseInteger(request, PARAM_ANGLE);
+                final Double angle = parseDouble(request, PARAM_ANGLE);
                 final Double speed = parseDouble(request, PARAM_SPEED);
                 if (angle == null || speed == null || angle < 0 || angle > 360 || speed < 0 || speed > 1.0) {
                     MessageUtils.setInvalidRequestParameterError(response);

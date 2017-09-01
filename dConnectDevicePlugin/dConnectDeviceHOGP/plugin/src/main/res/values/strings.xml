@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name" translatable="true">HOGP (Device Connect Device Plug-in)</string>
+
+    <string name="activity_setting_menu" translatable="true">メニュー</string>
+    <string name="activity_setting_menu_help" translatable="true">ヘルプ</string>
+
+    <string name="activity_setting_device_control_btn" translatable="true">デバイス操作</string>
+    <string name="activity_setting_default_device_name" translatable="true">-</string>
+    <string name="activity_setting_plugin_setting" translatable="true">設定</string>
+    <string name="activity_setting_switch_title" translatable="true">HOGPサーバ</string>
+    <string name="activity_setting_switch_message" translatable="true">外部から入力デバイスとして接続できるようにします。</string>
+    <string name="activity_setting_switch_on" translatable="true">ON</string>
+    <string name="activity_setting_switch_off" translatable="true">OFF</string>
+    <string name="activity_setting_oauth_switch_title" translatable="true">ユーザ認可</string>
+    <string name="activity_setting_oauth_switch_message" translatable="true">このプラグインに対してアクセスするときにユーザ認可を求めます。</string>
+    <string name="activity_setting_oauth_switch_on" translatable="true">ON</string>
+    <string name="activity_setting_oauth_switch_off" translatable="true">OFF</string>
+    <string name="activity_setting_hogp" translatable="true">HOGPサーバ設定</string>
+    <string name="activity_setting_hogp_mouse_title" translatable="true">Mouse</string>
+    <string name="activity_setting_hogp_mouse_message" translatable="true">マウスの機能を提供します。</string>
+    <string-array name="activity_setting_hogp_mouse_mode" translatable="true">
+        <item>None</item>
+        <item>Relative</item>
+        <item>Absolute</item>
+    </string-array>
+    <string name="activity_setting_hogp_keyboard_title" translatable="true">Keyboard</string>
+    <string name="activity_setting_hogp_keyboard_message" translatable="true">キーボードの機能を提供します。</string>
+    <string name="activity_setting_hogp_keyboard_switch_on" translatable="true">ON</string>
+    <string name="activity_setting_hogp_keyboard_switch_off" translatable="true">OFF</string>
+    <string name="activity_setting_device_list" translatable="true">デバイス一覧</string>
+
+    <string name="activity_setting_bt_enabled_dialog_title" translatable="true">警告</string>
+    <string name="activity_setting_bt_enabled_dialog_message" translatable="true">Bluetoothが無効になっています。\n設定を有効にしますか？</string>
+    <string name="activity_setting_dialog_ok" translatable="true">はい</string>
+    <string name="activity_setting_dialog_no" translatable="true">いいえ</string>
+    <string name="activity_setting_ble_not_support_title" translatable="true">警告</string>
+    <string name="activity_setting_ble_not_support_message" translatable="true">Bluetooth Low Energyがサポートされていません。</string>
+    <string name="activity_setting_peripheral_not_support_title" translatable="true">警告</string>
+    <string name="activity_setting_peripheral_not_support_message" translatable="true">Bluetooth Peripheralがサポートされていません。</string>
+    <string name="activity_setting_failed_to_start_server_title" translatable="true">エラー</string>
+    <string name="activity_setting_failed_to_start_server_message" translatable="true">HOGPサーバの起動に失敗しました。\n</string>
+    <string name="activity_setting_hid_not_set_title" translatable="true">エラー</string>
+    <string name="activity_setting_hid_not_set_message" translatable="true">マウスとキーボードの機能が有効になっていません。\nどちらかの機能を有効にしてください。</string>
+    <string name="activity_setting_not_start_server_title" translatable="true">警告</string>
+    <string name="activity_setting_not_start_server_message" translatable="true">HOGPサーバが起動していません。</string>
+    <string name="activity_setting_device_online" translatable="true">接続</string>
+    <string name="activity_setting_device_offline" translatable="true">切断</string>
+
+    <string name="activity_help01_text" translatable="true">設定画面で、HOGPサーバをONにします。ここに表示されるデバイス名を覚えておきます。</string>
+    <string name="activity_help02_1_text" translatable="true">HOGPサーバに接続したいデバイスの「Bluetooth」をオンにして、周辺にあるデバイスを検出します。</string>
+    <string name="activity_help02_2_text" translatable="true">検出したデバイスから、HOGPサーバと同じデバイス名を選択してペアリングを行います。\n
+(※ 端末によって見た目が変わる可能性がありますのでご注意してください。)\n</string>
+    <string name="activity_help02_3_text" translatable="true">ペアリングの確認画面が表示されますので、「はい」を選んでください。\n\n
+また、ペアリングのダイアログが表示されない場合があります。\n
+その場合には、通知バーに隠れている可能性がありますので、確認してください。</string>
+    <string name="activity_help03_text" translatable="true">ペアリングに成功すると、上記のように表示されます。\n
+「入力デバイスとして接続」されていますので、この状態で操作できるようになります。\n
+(※ 端末によって文言が異なることがありますのでご注意してください。)\n
+\n
+しばらくしても「入力デバイスとして接続」が表示されない場合には接続に失敗していますので、ペアリングを解除して、最初から接続を行ってください。\n
+\n
+また、「入力デバイスとして接続」と表示されていても動作しない場合があります。その場合には、ペアリングを解除して、最初から接続を行なってください。\n
+それでも動作しない場合には、相性が悪い可能性がありますので、デバイスを変えて接続してください。</string>
+    <string name="activity_help04_text" translatable="true">HOGPサーバをOFFにした後やこのデバイスのBluetooth設定を無効した後に、再度有効にして再接続しても動作しないことがあります。\nその場合には一度ペアリングを解除して、最初から接続を行なってください。\n
+    \n
+「入力デバイスとして接続」が表示されたり、消えたりして接続ができない場合には、一度BluetoothをOFF→ONを行ってください。\n
+\n
+「入力デバイスとして接続」となっているのに、操作できない場合には、ペアリングを解除してからもう一度ペアリングを行ってください。\n
+\n
+上記の手順でも接続できない場合には、デバイスを再起動してください。</string>
+
+    <string name="activity_control_message" translatable="true">ここをドラッグすることでマウスポインターを動かすことができます。</string>
+    <string name="activity_control_key_0" translatable="true">0</string>
+    <string name="activity_control_key_1" translatable="true">1</string>
+    <string name="activity_control_key_2" translatable="true">2</string>
+    <string name="activity_control_key_3" translatable="true">3</string>
+    <string name="activity_control_key_4" translatable="true">4</string>
+    <string name="activity_control_key_5" translatable="true">5</string>
+    <string name="activity_control_key_6" translatable="true">6</string>
+    <string name="activity_control_key_7" translatable="true">7</string>
+    <string name="activity_control_key_8" translatable="true">8</string>
+    <string name="activity_control_key_9" translatable="true">9</string>
+
+    <string name="activity_control_key_a" translatable="true">a</string>
+    <string name="activity_control_key_b" translatable="true">b</string>
+    <string name="activity_control_key_c" translatable="true">c</string>
+    <string name="activity_control_key_d" translatable="true">d</string>
+    <string name="activity_control_key_e" translatable="true">e</string>
+    <string name="activity_control_key_f" translatable="true">f</string>
+    <string name="activity_control_key_g" translatable="true">g</string>
+    <string name="activity_control_key_h" translatable="true">h</string>
+    <string name="activity_control_key_i" translatable="true">i</string>
+    <string name="activity_control_key_j" translatable="true">j</string>
+    <string name="activity_control_key_k" translatable="true">k</string>
+    <string name="activity_control_key_l" translatable="true">l</string>
+    <string name="activity_control_key_m" translatable="true">m</string>
+    <string name="activity_control_key_n" translatable="true">n</string>
+    <string name="activity_control_key_o" translatable="true">o</string>
+    <string name="activity_control_key_p" translatable="true">p</string>
+    <string name="activity_control_key_q" translatable="true">q</string>
+    <string name="activity_control_key_r" translatable="true">r</string>
+    <string name="activity_control_key_s" translatable="true">s</string>
+    <string name="activity_control_key_t" translatable="true">t</string>
+    <string name="activity_control_key_u" translatable="true">u</string>
+    <string name="activity_control_key_v" translatable="true">v</string>
+    <string name="activity_control_key_w" translatable="true">w</string>
+    <string name="activity_control_key_x" translatable="true">x</string>
+    <string name="activity_control_key_y" translatable="true">y</string>
+    <string name="activity_control_key_z" translatable="true">z</string>
+
+    <string name="activity_control_key_at_mark" translatable="true">\@</string>
+    <string name="activity_control_key_hash" translatable="true">#</string>
+    <string name="activity_control_key_percent" translatable="true">%</string>
+    <string name="activity_control_key_yen" translatable="true">¥</string>
+    <string name="activity_control_key_and" translatable="true">&amp;</string>
+    <string name="activity_control_key_parentheses_start" translatable="true">(</string>
+    <string name="activity_control_key_parentheses_end" translatable="true">)</string>
+    <string name="activity_control_key_hyphen" translatable="true">-</string>
+    <string name="activity_control_key_slash" translatable="true">/</string>
+    <string name="activity_control_key_colon" translatable="true">:</string>
+    <string name="activity_control_key_semicolon" translatable="true">;</string>
+    <string name="activity_control_key_hat" translatable="true">^</string>
+    <string name="activity_control_key_exclamation_mark" translatable="true">!</string>
+    <string name="activity_control_key_question_mark" translatable="true">\?</string>
+    <string name="activity_control_key_asterisk" translatable="true">*</string>
+    <string name="activity_control_key_add" translatable="true">+</string>
+    <string name="activity_control_key_equal" translatable="true">=</string>
+    <string name="activity_control_key_lt" translatable="true">&lt;</string>
+    <string name="activity_control_key_gt" translatable="true">&gt;</string>
+    <string name="activity_control_key_bracket_start" translatable="true">[</string>
+    <string name="activity_control_key_bracket_end" translatable="true">]</string>
+    <string name="activity_control_key_under" translatable="true">_</string>
+    <string name="activity_control_key_dot" translatable="true">.</string>
+    <string name="activity_control_key_comma" translatable="true">,</string>
+
+
+    <string name="activity_control_key_caps" translatable="true">caps</string>
+    <string name="activity_control_key_enter" translatable="true">Enter</string>
+    <string name="activity_control_key_delete" translatable="true">del</string>
+    <string name="activity_control_key_esc" translatable="true">esc</string>
+    <string name="activity_control_key_tab" translatable="true">tab</string>
+    <string name="activity_control_key_up" translatable="true">↑</string>
+    <string name="activity_control_key_down" translatable="true">↓</string>
+    <string name="activity_control_key_left" translatable="true">←</string>
+    <string name="activity_control_key_right" translatable="true">→</string>
+    <string name="activity_control_key_mode" translatable="true">あ/A</string>
+    <string name="activity_control_key_num" translatable="true">123</string>
+</resources>

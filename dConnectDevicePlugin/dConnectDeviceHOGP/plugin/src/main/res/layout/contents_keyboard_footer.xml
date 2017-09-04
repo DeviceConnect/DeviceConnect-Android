@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="horizontal">
+
+    <Button
+        android:id="@+id/activity_control_key_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/hogp_keyboard_margin"
+        android:layout_weight="1"
+        android:background="@drawable/hogp_keyboard_button"
+        android:text="@string/activity_control_key_mode"/>
+
+    <Button
+        android:id="@+id/activity_control_key_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/hogp_keyboard_margin"
+        android:layout_weight="1"
+        android:background="@drawable/hogp_keyboard_button"
+        android:text="@string/activity_control_key_left"/>
+
+    <Button
+        android:id="@+id/activity_control_key_space"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/hogp_keyboard_margin"
+        android:layout_weight="4"
+        android:background="@drawable/hogp_keyboard_button"/>
+
+    <Button
+        android:id="@+id/activity_control_key_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/hogp_keyboard_margin"
+        android:layout_weight="1"
+        android:background="@drawable/hogp_keyboard_button"
+        android:text="@string/activity_control_key_right"/>
+
+    <Button
+        android:id="@+id/activity_control_key_enter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/hogp_keyboard_margin"
+        android:layout_weight="4"
+        android:background="@drawable/hogp_keyboard_button"
+        android:text="@string/activity_control_key_enter"/>
+
+</LinearLayout>

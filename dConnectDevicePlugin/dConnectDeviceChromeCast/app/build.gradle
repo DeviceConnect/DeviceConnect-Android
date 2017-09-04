@@ -51,9 +51,14 @@ android {
     }
 }
 
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
+
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-sdk')
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.1'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:mediarouter-v7:23.4.0'
     compile 'com.google.android.gms:play-services-cast-framework:9.4.0'

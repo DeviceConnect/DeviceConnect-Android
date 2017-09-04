@@ -1,3 +1,1 @@
 include ':dconnect-device-plugin-sdk'
-include 'dconnect-sdk-for-android'
-project(':dconnect-sdk-for-android').projectDir = new File('../../dConnectSDK/dConnectSDKForAndroid/dconnect-sdk-for-android')

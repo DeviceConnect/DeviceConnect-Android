@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+
+dependencies {
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.1'
+}
+
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
+
+android {
+
+    compileSdkVersion 23
+    buildToolsVersion '25.0.0'
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.hogp"
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+    
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}

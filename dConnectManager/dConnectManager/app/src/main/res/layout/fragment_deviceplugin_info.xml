@@ -60,6 +60,12 @@
                     android:textAppearance="?android:attr/textAppearanceListItemSmall"
                     android:textColor="#000000"
                     android:textSize="14sp"/>
+
+                <org.deviceconnect.android.manager.setting.ConnectionErrorView
+                    android:id="@+id/plugin_connection_error_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="6dp"/>
             </LinearLayout>
         </LinearLayout>
 

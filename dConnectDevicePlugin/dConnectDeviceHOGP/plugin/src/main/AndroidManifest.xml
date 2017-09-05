@@ -1,0 +1,60 @@
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.deviceconnect.android.deviceplugin.hogp">
+
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <!-- Device Connect API リクエストのレシーバー -->
+        <receiver
+            android:name=".HOGPMessageServiceProvider"
+            android:enabled="true"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/deviceplugin"/>
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET"/>
+                <action android:name="org.deviceconnect.action.PUT"/>
+                <action android:name="org.deviceconnect.action.POST"/>
+                <action android:name="org.deviceconnect.action.DELETE"/>
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- プラグイン本体サービス -->
+        <service
+            android:name=".HOGPMessageService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/deviceplugin"/>
+        </service>
+
+        <!-- プラグイン設定画面 -->
+        <activity
+            android:name=".activity.HOGPSettingActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activity.HOGPControlActivity"
+            android:exported="false"/>
+
+        <activity
+            android:name=".activity.HOGPHelpActivity"
+            android:exported="false"/>
+    </application>
+
+</manifest>

@@ -40,6 +40,14 @@ abstract class AbstractConnection implements Connection {
     private ConnectionState mState = ConnectionState.DISCONNECTED;
 
     /**
+     * 連携停止の原因となったエラー.
+     *
+     * 接続状態が {@link ConnectionState#SUSPENDED} に遷移する時に設定し、
+     * それ以外の状態に遷移する時は<code>null</code>を設定すること.
+     */
+    private ConnectionError mError;
+
+    /**
      * コンストラクタ.
      * @param context コンテキスト
      * @param pluginId 接続先のプラグインID
@@ -65,13 +73,37 @@ abstract class AbstractConnection implements Connection {
         return mState;
     }
 
+    @Override
+    public ConnectionError getCurrentError() {
+        return mError;
+    }
+
     /**
      * 接続状態を設定する.
      * @param state 遷移先の接続状態
      */
-    void setState(final ConnectionState state) {
+    private void setState(final ConnectionState state) {
         mState = state;
-        notifyStateChange(state);
+        notifyStateChange(state, getCurrentError());
+    }
+
+    protected void setSuspendedState(final ConnectionError error) {
+        mError = error;
+        setState(ConnectionState.SUSPENDED);
+    }
+
+    protected void setConnectedState() {
+        mError = null;
+        setState(ConnectionState.CONNECTED);
+    }
+
+    protected void setConnectingState() {
+        setState(ConnectionState.CONNECTING);
+    }
+
+    protected void setDisconnectedState() {
+        mError = null;
+        setState(ConnectionState.DISCONNECTED);
     }
 
     @Override
@@ -102,15 +134,17 @@ abstract class AbstractConnection implements Connection {
     /**
      * 接続状態変更を通知する.
      * @param state 遷移先の接続状態
+     * @param error 接続エラー
      */
-    private void notifyStateChange(final ConnectionState state) {
+    private void notifyStateChange(final ConnectionState state,
+                                   final ConnectionError error) {
         synchronized (mConnectionStateListeners) {
             if (mConnectionStateListeners.size() > 0) {
                 for (final ConnectionStateListener l : mConnectionStateListeners) {
                     mExecutor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            sendLocalBroadcast(state);
+                            sendLocalBroadcast(state, error);
                             l.onConnectionStateChanged(mPluginId, state);
                         }
                     });
@@ -119,10 +153,12 @@ abstract class AbstractConnection implements Connection {
         }
     }
 
-    private void sendLocalBroadcast(final ConnectionState state) {
+    private void sendLocalBroadcast(final ConnectionState state,
+                                    final ConnectionError error) {
         Intent notification = new Intent(ACTION_CONNECTION_STATE_CHANGED);
         notification.putExtra(EXTRA_PLUGIN_ID, mPluginId);
         notification.putExtra(EXTRA_CONNECTION_STATE, state);
+        notification.putExtra(EXTRA_CONNECTION_ERROR, error);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(notification);
     }
 }

@@ -69,24 +69,18 @@ project.androidVariants.all { variant ->
 }
 
 repositories {
-    maven {
-        url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/'
-    }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-sdk-for-android')
+    compile 'org.deviceconnect:dconnect-sdk-for-android:2.2.2'
     compile 'com.android.support:support-v4:23.1.0'
 
     testCompile 'junit:junit:4.12'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     androidTestCompile 'com.android.support:support-annotations:24.0.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
-}
-
-configurations {
-    all*.exclude group: 'org.deviceconnect', module: 'dconnect-sdk-for-android'
 }
 
 
@@ -97,7 +91,7 @@ def specZipFile = ''
 def apiDir = new File(specOutputDir, 'api')
 
 task downloadZip(type: SpecDownload) {
-    sourceUrl = 'https://github.com/TakayukiHoshi1984/DeviceConnect-Spec/archive/v2.2.1-release-20170324.zip'
+    sourceUrl = 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/v2.2.3-release-20170623.zip'
     target = file("${projectDir}/DeviceConnect-Spec.zip")
     specZipFile = target
 }
@@ -175,7 +169,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '2.3.0'
+            pom.version = '2.3.1'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-device-plugin-sdk'
         }

@@ -59,11 +59,15 @@ android {
         options.encoding = 'UTF-8'
     }
 }
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.+'
-    compile project(':dconnect-device-plugin-sdk')
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.1'
     compile project(':dconnect-server-nano-httpd')
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'

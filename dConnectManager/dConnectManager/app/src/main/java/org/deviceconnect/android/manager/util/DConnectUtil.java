@@ -134,11 +134,11 @@ public final class DConnectUtil {
 
     /**
      * ファイルへのURIを作成する.
+     * @param settings DeviceConnect設定
      * @param uri ファイルへのContentUri
      * @return URI
      */
-    private static String createUri(final String uri) {
-        DConnectSettings settings = DConnectSettings.getInstance();
+    private static String createUri(final DConnectSettings settings, final String uri) {
         StringBuilder builder = new StringBuilder();
         builder.append(settings.isSSL() ? "https://" : "http://");
         builder.append(settings.getHost());
@@ -161,11 +161,12 @@ public final class DConnectUtil {
      * 変換するuriはcontent://から始まるuriのみ変換する。<br/>
      * それ以外のuriは何も処理しない。
      * </p>
-     * 
+     *
+     * @param settings DeviceConnect設定
      * @param root 変換するJSONObject
      * @throws JSONException JSONの解析に失敗した場合
      */
-    private static void convertUri(final JSONObject root) throws JSONException {
+    private static void convertUri(final DConnectSettings settings, final JSONObject root) throws JSONException {
         @SuppressWarnings("unchecked") // Using legacy API
         Iterator<String> it = root.keys();
         while (it.hasNext()) {
@@ -173,11 +174,11 @@ public final class DConnectUtil {
             Object value = root.opt(key);
             if (value instanceof String) {
                 if ("uri".equals(key) && startWithContent((String) value)) {
-                    String u = createUri((String) value);
+                    String u = createUri(settings, (String) value);
                     root.put(key, u);
                 }
             } else if (value instanceof JSONObject) {
-                convertUri((JSONObject) value);
+                convertUri(settings, (JSONObject) value);
             }
         }
     }
@@ -193,14 +194,17 @@ public final class DConnectUtil {
 
     /**
      * BundleからJSONObjectに変換する.
+     *
+     * @param settings DeviceConnect設定
      * @param root JSONObjectに変換したデータを格納するオブジェクト
      * @param b 変換するBundle
      * @throws JSONException JSONへの変換に失敗した場合に発生
      */
     public static void convertBundleToJSON(
+            final DConnectSettings settings,
             final JSONObject root, final Bundle b) throws JSONException {
         JSONUtils.convertBundleToJSON(root, b);
-        convertUri(root);
+        convertUri(settings, root);
     }
 
     /**

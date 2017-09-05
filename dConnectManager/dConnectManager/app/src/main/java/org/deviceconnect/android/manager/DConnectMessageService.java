@@ -228,8 +228,7 @@ public abstract class DConnectMessageService extends Service
         LocalOAuth2Main.initialize(getApplicationContext());
 
         // DConnect設定
-        mSettings = DConnectSettings.getInstance();
-        mSettings.load(this);
+        mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         // ファイル管理クラス
         mFileMgr = new FileManager(this);

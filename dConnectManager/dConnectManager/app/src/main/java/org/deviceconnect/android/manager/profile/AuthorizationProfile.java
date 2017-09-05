@@ -52,8 +52,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             // Local OAuthを使用しない場合にはNot Supportを返却する
-            DConnectSettings settings = DConnectSettings.getInstance();
-            if (!settings.isUseALocalOAuth()) {
+            if (!usesLocalOAuth()) {
                 MessageUtils.setNotSupportProfileError(response);
                 return true;
             }
@@ -79,13 +78,12 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             // Local OAuthを使用しない場合にはNot Supportを返却する
-            DConnectSettings settings = DConnectSettings.getInstance();
-            if (!settings.isUseALocalOAuth()) {
+            if (!usesLocalOAuth()) {
                 MessageUtils.setNotSupportProfileError(response);
                 return true;
             }
 
-            DConnectRequest req = new GetAccessTokenRequest();
+            DConnectRequest req = new GetAccessTokenRequest(getSettings().getKeyword());
             req.setContext(getContext());
             req.setRequest(request);
             req.setResponse(response);
@@ -93,6 +91,14 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             return false;
         }
     };
+
+    private DConnectSettings getSettings() {
+        return ((DConnectMessageService) getContext()).getSettings();
+    }
+
+    private boolean usesLocalOAuth() {
+        return getSettings().isUseALocalOAuth();
+    }
 
     /**
      * 不正なオリジンをもつアプリケーションからリクエストを受信した場合のハンドラー.

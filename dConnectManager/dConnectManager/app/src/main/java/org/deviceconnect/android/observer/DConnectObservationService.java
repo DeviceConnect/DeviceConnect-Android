@@ -96,8 +96,7 @@ public class DConnectObservationService extends Service {
     public void onCreate() {
         super.onCreate();
         stopObservation();
-        DConnectSettings settings = DConnectSettings.getInstance();
-        settings.load(DConnectObservationService.this);
+        DConnectSettings settings = DConnectSettings.getInstance(this);
         mPort = settings.getPort();
         mInterval = settings.getObservationInterval();
         // onDestroyが呼ばれずに死ぬこともあるようなので必ず最初に解除処理を入れる。

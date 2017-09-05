@@ -48,11 +48,13 @@ public final class DConnectSettings {
 
     /**
      * DConnectSettingsのインスタンスを取得する.
+     * @param context コンテキスト
      * @return {@link DConnectSettings}
      */
-    public static synchronized DConnectSettings getInstance() {
+    public static synchronized DConnectSettings getInstance(final Context context) {
         if (sInstance == null) {
             sInstance = new DConnectSettings();
+            sInstance.load(context);
         }
         return sInstance;
     }
@@ -61,7 +63,7 @@ public final class DConnectSettings {
      * SharedPreferencesのデータを読み込む.
      * @param context コンテキスト
      */
-    public void load(final Context context) {
+    private void load(final Context context) {
         mContext = context;
         mPreferences = context.getSharedPreferences(context.getPackageName() + "_preferences",
                 Context.MODE_PRIVATE);

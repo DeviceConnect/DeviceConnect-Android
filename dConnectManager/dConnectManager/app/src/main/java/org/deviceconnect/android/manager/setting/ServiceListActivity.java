@@ -31,6 +31,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
@@ -125,8 +126,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
 
-        mSettings = DConnectSettings.getInstance();
-        mSettings.load(this);
+        mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         if (loadGuideSettings(this)) {
             startGuide();
@@ -420,7 +420,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             return;
         }
 
-        mServiceDiscovery = new ServiceDiscovery(this) {
+        mServiceDiscovery = new ServiceDiscovery(this, mSettings) {
             private DialogFragment mDialog;
 
             @Override

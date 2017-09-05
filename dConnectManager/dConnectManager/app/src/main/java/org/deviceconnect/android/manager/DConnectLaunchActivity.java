@@ -70,7 +70,7 @@ public class DConnectLaunchActivity extends AppCompatActivity {
      */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
-    private DConnectSettings mSettings = DConnectSettings.getInstance();
+    private DConnectSettings mSettings;
 
     private Task mBehavior;
 
@@ -84,7 +84,7 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         getSupportActionBar().hide();
 
         mHmacManager = new HmacManager(this);
-        mSettings.load(this);
+        mSettings = ((DConnectApplication) getApplication()).getSettings();
         processRequest(getIntent());
     }
 

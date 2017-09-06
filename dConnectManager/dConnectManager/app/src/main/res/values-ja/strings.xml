@@ -167,9 +167,6 @@
     <string name="activity_service_list_no_plugin_message">設定画面から「全デバイスプラグインを再起動」を実行してください。</string>
     <string name="activity_service_list_no_plugin_positive">はい</string>
     <string name="activity_service_list_offline_title">デバイス起動</string>
-    <string name="activity_service_list_offline_message">%1sは、接続されていません。\nデバイスプラグインの設定を確認してください。</string>
-    <string name="activity_service_list_offline_positive">設定を開く</string>
-    <string name="activity_service_list_offline_negative">閉じる</string>
 
     <string name="activity_websocket_delete_title">WebSocket削除確認</string>
     <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>

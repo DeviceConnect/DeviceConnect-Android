@@ -25,6 +25,7 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.observer.activity.WarningDialogActivity;
@@ -96,7 +97,7 @@ public class DConnectObservationService extends Service {
     public void onCreate() {
         super.onCreate();
         stopObservation();
-        DConnectSettings settings = DConnectSettings.getInstance(this);
+        DConnectSettings settings = ((DConnectApplication) getApplication()).getSettings();
         mPort = settings.getPort();
         mInterval = settings.getObservationInterval();
         // onDestroyが呼ばれずに死ぬこともあるようなので必ず最初に解除処理を入れる。

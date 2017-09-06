@@ -64,7 +64,7 @@ public class DConnectApplication  extends HostDeviceApplication {
             editor.apply();
         }
 
-        mSettings = DConnectSettings.getInstance(this);
+        mSettings = new DConnectSettings(this);
     }
 
     public DConnectSettings getSettings() {

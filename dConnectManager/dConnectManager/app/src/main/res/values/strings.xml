@@ -173,9 +173,6 @@
     <string name="activity_service_list_no_plugin_message">Please agree to the application authorization displayed at the time of searching the service, or disable Local OAuth on the setting screen.</string>
     <string name="activity_service_list_no_plugin_positive">Yes</string>
     <string name="activity_service_list_offline_title">Connecting device</string>
-    <string name="activity_service_list_offline_message">%1s is not connected.\nConfirm the settings of plugin.</string>
-    <string name="activity_service_list_offline_positive">Open settings</string>
-    <string name="activity_service_list_offline_negative">Close</string>
 
     <string name="activity_websocket_delete_title">Closing WebSocket</string>
     <string name="activity_websocket_delete_message">May this WebSocket be closed?</string>

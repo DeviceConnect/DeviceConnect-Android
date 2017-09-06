@@ -652,7 +652,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
     private void convertResponse(final HttpResponse response, final Intent resp)
             throws JSONException, UnsupportedEncodingException {
         JSONObject root = new JSONObject();
-        DConnectUtil.convertBundleToJSON(root, resp.getExtras());
+        DConnectUtil.convertBundleToJSON(((DConnectService) mContext).getSettings(), root, resp.getExtras());
         response.setContentType(CONTENT_TYPE_JSON);
         response.setBody(root.toString().getBytes("UTF-8"));
     }

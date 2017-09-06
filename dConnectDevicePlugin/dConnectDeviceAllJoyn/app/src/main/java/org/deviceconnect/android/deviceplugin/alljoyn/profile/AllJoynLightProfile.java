@@ -337,7 +337,7 @@ public class AllJoynLightProfile extends LightProfile {
                                               final AllJoynServiceEntity service, final String serviceId, final String lightId,
                                               final Double brightness, final int[] color, final long[] flashing) {
         if (flashing != null) {
-            flashingForController(response, brightness, color, lightId, flashing); //do not check result of flashing
+            flashingForController(response, brightness, color, lightId, flashing, null); //do not check result of flashing
             setResultOK(response);
             sendResponse(response);
         } else {
@@ -761,7 +761,7 @@ public class AllJoynLightProfile extends LightProfile {
         }
 
         if (flashing != null) {
-            flashingForController(response, brightness, color, lightId, flashing); //do not check result of flashing
+            flashingForController(response, brightness, color, lightId, flashing, name); //do not check result of flashing
             setResultOK(response);
             sendResponse(response);
         } else {
@@ -893,7 +893,8 @@ public class AllJoynLightProfile extends LightProfile {
         exe.start(flashing);
     }
 
-    private void flashingForController(final Intent response, final Double brightness, final int[] color, final String lightId, long[] flashing) {
+    private void flashingForController(final Intent response, final Double brightness,
+                                       final int[] color, final String lightId, long[] flashing, final String name) {
         FlashingExecutor exe = mFlashingMap.get(lightId);
         if (exe == null) {
             exe = new FlashingExecutor();
@@ -902,7 +903,7 @@ public class AllJoynLightProfile extends LightProfile {
         exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
             public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
-                changeLightForController(isOn, brightness, color, lightId);
+                changeLightForController(isOn, brightness, color, lightId, name);
                 listener.onComplete();
             }
         });
@@ -965,6 +966,7 @@ public class AllJoynLightProfile extends LightProfile {
                                             + responseCode + ").");
                         }
                     }
+
                 } catch (BusException e) {
                     if (BuildConfig.DEBUG) {
                         Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
@@ -980,7 +982,8 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void changeLightForController(final boolean isOn, final Double brightness, final int[] color, final String lightId) {
+    private void changeLightForController(final boolean isOn, final Double brightness,
+                                          final int[] color, final String lightId, final String name) {
         final AllJoynDeviceApplication app = getApplication();
         final AllJoynServiceEntity service = ((AllJoynService) getService()).getEntity();
 
@@ -1086,6 +1089,15 @@ public class AllJoynLightProfile extends LightProfile {
                         if (BuildConfig.DEBUG) {
                             Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
                                     "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
+                        }
+                    }
+                    if (name != null) {
+                        Lamp.SetLampName_return_value_uss lampNameResponse =
+                                proxy.setLampName(_lightId, name, service.defaultLanguage);
+                        if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to change name (code: " + lampNameResponse.responseCode + ").");
+                            return;
                         }
                     }
                 } catch (BusException e) {

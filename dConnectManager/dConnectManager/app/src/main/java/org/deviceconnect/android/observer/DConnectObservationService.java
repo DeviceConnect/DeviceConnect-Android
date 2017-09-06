@@ -25,7 +25,6 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.observer.activity.WarningDialogActivity;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
@@ -48,6 +47,11 @@ public class DConnectObservationService extends Service {
     public static final String ACTION_START = "org.deviceconnect.android.intent.action.observer.START";
 
     /**
+     * 監視するインターバル.
+     */
+    public static final String PARAM_OBSERVATION_INTERVAL = "org.deviceconnect.android.intent.param.observer.OBSERVATION_INTERVAL";
+
+    /**
      * オブザーバー監視停止アクション.
      */
     public static final String ACTION_STOP = "org.deviceconnect.android.intent.action.observer.STOP";
@@ -63,7 +67,7 @@ public class DConnectObservationService extends Service {
     public static final String PARAM_PACKAGE_NAME = "org.deviceconnect.android.intent.param.observer.PACKAGE_NAME";
 
     /**
-     * 占有されているポート番号.
+     * 監視または占有されているポート番号.
      */
     public static final String PARAM_PORT = "org.deviceconnect.android.intent.param.observer.PORT";
 
@@ -77,16 +81,6 @@ public class DConnectObservationService extends Service {
      */
     private static final int REQUEST_CODE = 0x0F0F0F;
 
-    /**
-     * Device Connect のポート番号.
-     */
-    private int mPort;
-
-    /**
-     * チェックの間隔.
-     */
-    private int mInterval;
-
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -95,11 +89,6 @@ public class DConnectObservationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        stopObservation();
-        DConnectSettings settings = DConnectSettings.getInstance();
-        settings.load(DConnectObservationService.this);
-        mPort = settings.getPort();
-        mInterval = settings.getObservationInterval();
         // onDestroyが呼ばれずに死ぬこともあるようなので必ず最初に解除処理を入れる。
         stopObservation();
     }
@@ -118,7 +107,9 @@ public class DConnectObservationService extends Service {
         }
 
         String action = intent.getAction();
-        if (ACTION_CHECK.equals(action)) {
+        if (ACTION_CHECK.equals(action)
+            && intent.hasExtra(PARAM_PORT)) {
+            final int port = intent.getIntExtra(PARAM_PORT, -1);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -138,7 +129,7 @@ public class DConnectObservationService extends Service {
                         return;
                     }
 
-                    String appPackage = getHoldingAppSocketInfo();
+                    String appPackage = getHoldingAppSocketInfo(port);
                     if (appPackage != null) {
                         stopObservation();
                         Intent i = new Intent();
@@ -146,19 +137,24 @@ public class DConnectObservationService extends Service {
                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION
                                 | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                         i.putExtra(PARAM_PACKAGE_NAME, appPackage);
-                        i.putExtra(PARAM_PORT, mPort);
+                        i.putExtra(PARAM_PORT, port);
                         getApplication().startActivity(i);
                         stopSelf();
                     }
                 }
             }).start();
-        } else if (ACTION_START.equals(action)) {
+        } else if (ACTION_START.equals(action)
+                && intent.hasExtra(PARAM_PORT)
+                && intent.hasExtra(PARAM_OBSERVATION_INTERVAL)
+                && intent.hasExtra(PARAM_RESULT_RECEIVER)) {
+            final int port = intent.getIntExtra(PARAM_PORT, -1);
+            final int interval = intent.getIntExtra(PARAM_OBSERVATION_INTERVAL, -1);
             final ResultReceiver resultReceiver = intent.getParcelableExtra(PARAM_RESULT_RECEIVER);
             if (resultReceiver == null) {
                 return START_STICKY;
             }
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                startObservation();
+                startObservation(port, interval);
                 resultReceiver.send(Activity.RESULT_OK, null);
             } else {
                 PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()),
@@ -166,7 +162,7 @@ public class DConnectObservationService extends Service {
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                startObservation();
+                                startObservation(port, interval);
                                 resultReceiver.send(Activity.RESULT_OK, null);
                             }
 
@@ -186,15 +182,18 @@ public class DConnectObservationService extends Service {
 
     /**
      * 監視を開始する.
+     * @param port ポート番号
+     * @param interval インターバル
      */
-    private synchronized void startObservation() {
+    private synchronized void startObservation(final int port, final long interval) {
         Intent intent = new Intent(this, ObserverReceiver.class);
         intent.setAction(ACTION_CHECK);
+        intent.putExtra(PARAM_PORT, port);
         PendingIntent sender = PendingIntent.getBroadcast(this, REQUEST_CODE, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        am.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + mInterval, mInterval, sender);
+        am.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + interval, interval, sender);
     }
 
     /**
@@ -211,14 +210,15 @@ public class DConnectObservationService extends Service {
 
     /**
      * ポートを占有しているアプリを取得する.
-     * 
+     *
+     * @param port ポート番号
      * @return 占有しているアプリのパッケージ名
      */
-    private String getHoldingAppSocketInfo() {
+    private String getHoldingAppSocketInfo(final int port) {
         ArrayList<AndroidSocket> sockets = SockStatUtil.getSocketList(this);
         String deviceConnectPackageName = getPackageName();
         for (AndroidSocket aSocket : sockets) {
-            if (!aSocket.getAppName().equals(deviceConnectPackageName) && aSocket.getLocalPort() == mPort
+            if (!aSocket.getAppName().equals(deviceConnectPackageName) && aSocket.getLocalPort() == port
                     && aSocket.getState() == SocketState.TCP_LISTEN) {
                 return aSocket.getAppName();
             }

@@ -34,6 +34,13 @@ public class GetAccessTokenRequest extends DConnectRequest {
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
+    /** DeviceConnectManagerに対して設定されているキーワード. */
+    private final String mKeyword;
+
+    public GetAccessTokenRequest(final String keyword) {
+        mKeyword = keyword;
+    }
+
     @Override
     public boolean hasRequestCode(final int requestCode) {
         return false;
@@ -75,7 +82,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
         ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                 .clientId(clientId).scopes(scopes).applicationName(applicationName)
                 .isForDevicePlugin(false)
-                .keyword(DConnectSettings.getInstance().getKeyword())
+                .keyword(mKeyword)
                 .build();
 
         // Local OAuthでAccessTokenを作成する。

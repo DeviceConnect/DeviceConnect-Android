@@ -252,7 +252,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                                 mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
                             }
                             JSONObject root = new JSONObject();
-                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
+                            DConnectUtil.convertBundleToJSON(getSettings(), root, event.getExtras());
                             DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
                             if (webSocket != null && mRESTfulServer.isRunning()) {
                                 webSocket.sendMessage(root.toString());
@@ -341,8 +341,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 if (mSettings.enableWakLock()) {
                     acquireWakeLock();
                 }
-
-                mSettings.load(getApplicationContext());
 
                 mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
                 mWebServerListener.setFileManager(mFileMgr);

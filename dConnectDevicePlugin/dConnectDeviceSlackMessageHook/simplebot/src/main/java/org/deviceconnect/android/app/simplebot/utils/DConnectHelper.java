@@ -560,6 +560,12 @@ public class DConnectHelper {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, "WebSocket occurred a exception. ", e);
                 }
+                auth(new FinishCallback<AuthInfo>() {
+                    @Override
+                    public void onFinish(AuthInfo authInfo, Exception error) {
+                        connectWebSocket();
+                    }
+                });
             }
         });
     }

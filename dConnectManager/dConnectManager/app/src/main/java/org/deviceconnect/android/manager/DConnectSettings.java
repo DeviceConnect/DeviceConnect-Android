@@ -34,36 +34,23 @@ public final class DConnectSettings {
     private SharedPreferences mPreferences;
 
     /** コンテキスト. */
-    private Context mContext;
-
-    /** このクラスの唯一のインスタンス. */
-    private static DConnectSettings sInstance;
+    private final Context mContext;
 
     /**
      * コンストラクタ.
-     * シングルトンにするのでprivateで定義.
+     *
+     * @param context コンテキスト
      */
-    private DConnectSettings() {
-    }
-
-    /**
-     * DConnectSettingsのインスタンスを取得する.
-     * @return {@link DConnectSettings}
-     */
-    public static synchronized DConnectSettings getInstance() {
-        if (sInstance == null) {
-            sInstance = new DConnectSettings();
-        }
-        return sInstance;
+    DConnectSettings(final Context context) {
+        mContext = context;
+        load();
     }
 
     /**
      * SharedPreferencesのデータを読み込む.
-     * @param context コンテキスト
      */
-    public void load(final Context context) {
-        mContext = context;
-        mPreferences = context.getSharedPreferences(context.getPackageName() + "_preferences",
+    public synchronized void load() {
+        mPreferences = mContext.getSharedPreferences(mContext.getPackageName() + "_preferences",
                 Context.MODE_PRIVATE);
 
         String name = getManagerName();

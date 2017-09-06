@@ -47,9 +47,8 @@ public abstract class Authorization extends AsyncTask<Void, Void, List<ServiceCo
     private String mClientId;
     private String mAccessToken;
 
-    public Authorization(final Context context) {
-        mSettings = DConnectSettings.getInstance();
-        mSettings.load(context);
+    public Authorization(final Context context, final DConnectSettings settings) {
+        mSettings = settings;
         load(context);
     }
 

@@ -227,7 +227,7 @@ public class DevicePlugin {
      * プラグイン有効状態を設定する.
      * @param isEnabled プラグイン有効状態
      */
-    private void setEnabled(final boolean isEnabled) {
+    public void setEnabled(final boolean isEnabled) {
         mSetting.setEnabled(isEnabled);
     }
 

@@ -57,7 +57,6 @@ public class EventSessionTable {
         synchronized (mEventSessions) {
             for (Iterator<EventSession> it = mEventSessions.iterator(); it.hasNext(); ) {
                 EventSession session = it.next();
-                Log.d("AAA", "removeForPlugin: pluginId = " + pluginId + ", session = " + session.getPluginId() + ", compare = " + session.getPluginId().equals(pluginId));
                 if (session.getPluginId().equals(pluginId)) {
                     it.remove();
                 }

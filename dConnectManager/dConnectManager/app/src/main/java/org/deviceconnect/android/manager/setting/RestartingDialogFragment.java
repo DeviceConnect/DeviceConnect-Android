@@ -19,6 +19,7 @@ import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.plugin.PluginDetectionException;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -76,7 +77,7 @@ public class RestartingDialogFragment extends DialogFragment {
                 try {
                     mgr.createDevicePluginList();
                 } catch (PluginDetectionException e) {
-                    showErrorMessage(activity, e);
+                    showPluginDetectionErrorDialog(activity, e);
                     return null;
                 }
 
@@ -88,14 +89,25 @@ public class RestartingDialogFragment extends DialogFragment {
                             request.setComponent(plugin.getComponentName());
                             request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
                             request.putExtra("pluginId", plugin.getPluginId());
-                            activity.sendBroadcast(request);
+                            try {
+                                plugin.send(request);
+                            } catch (MessagingException e) {
+                                showMessagingErrorDialog(activity, e);
+                            }
                         }
                     }
                 }
                 return null;
             }
 
-            private void showErrorMessage(final BaseSettingActivity activity,
+            private void showMessagingErrorDialog(final BaseSettingActivity activity,
+                                                  final MessagingException e) {
+                if (activity != null) {
+                    activity.showMessagingErrorDialog(e);
+                }
+            }
+
+            private void showPluginDetectionErrorDialog(final BaseSettingActivity activity,
                                           final PluginDetectionException e) {
                 // エラーメッセージ初期化
                 int messageId;

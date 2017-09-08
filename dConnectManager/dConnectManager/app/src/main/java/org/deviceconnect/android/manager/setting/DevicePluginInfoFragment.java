@@ -295,7 +295,6 @@ public class DevicePluginInfoFragment extends Fragment {
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (plugin.getPackageName().equals(mPluginInfo.getPackageName())
-                            && plugin.getStartServiceClassName() != null
                             && plugin.getPluginId() != null) {
                         restartDevicePlugin(plugin);
                         break;

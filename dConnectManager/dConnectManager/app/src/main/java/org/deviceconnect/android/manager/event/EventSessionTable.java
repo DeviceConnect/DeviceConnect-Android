@@ -1,8 +1,6 @@
 package org.deviceconnect.android.manager.event;
 
 
-import android.util.Log;
-
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 import java.util.ArrayList;

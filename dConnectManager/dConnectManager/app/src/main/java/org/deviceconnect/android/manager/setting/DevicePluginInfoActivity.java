@@ -28,9 +28,6 @@ import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
  * Device Connect Manager device plug-in Information Activity.
  *

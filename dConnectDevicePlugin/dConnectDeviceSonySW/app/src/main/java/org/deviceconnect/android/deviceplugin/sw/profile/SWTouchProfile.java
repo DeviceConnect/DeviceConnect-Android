@@ -432,10 +432,7 @@ public class SWTouchProfile extends TouchProfile {
      */
     private boolean resetTouchEventFlag(final int flag) {
         sFlagTouchEventManage &= ~(flag);
-        if (sFlagTouchEventManage == 0) {
-            return false;
-        }
-        return true;
+        return sFlagTouchEventManage != 0;
     }
 
     private void sendToHostApp(final Intent request) {

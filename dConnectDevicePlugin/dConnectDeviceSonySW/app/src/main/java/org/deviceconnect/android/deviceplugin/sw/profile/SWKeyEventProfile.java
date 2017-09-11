@@ -285,7 +285,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
      */
     private boolean resetKeyEventEventFlag(final int flag) {
         sFlagKeyEventEventManage &= ~(flag);
-        return sFlagKeyEventEventManage == 0;
+        return sFlagKeyEventEventManage != 0;
     }
 
     private void sendToHostApp(final Intent request) {

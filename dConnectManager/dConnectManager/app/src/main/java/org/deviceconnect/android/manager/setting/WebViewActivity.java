@@ -192,7 +192,11 @@ public class WebViewActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (android.R.id.home == item.getItemId()) {
-            finish();
+            if (mWebView != null && mWebView.canGoBack()) {
+                mWebView.goBack();
+            } else {
+                finish();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);

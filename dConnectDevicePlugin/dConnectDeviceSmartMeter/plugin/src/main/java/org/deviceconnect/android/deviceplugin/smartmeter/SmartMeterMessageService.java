@@ -1740,7 +1740,7 @@ public class SmartMeterMessageService extends DConnectMessageService {
                 index -= 2;
             }
         }
-        root.putDoubleArray("integratedpowervalue", integratedpower);
+        root.putDoubleArray("integratedpower", integratedpower);
         root.putInt("count", mGetDateDataCount);
         root.putString("unit", mGetDatePowerUnit);
         root.putString("powerFlow", mGetDatePowerFlow);

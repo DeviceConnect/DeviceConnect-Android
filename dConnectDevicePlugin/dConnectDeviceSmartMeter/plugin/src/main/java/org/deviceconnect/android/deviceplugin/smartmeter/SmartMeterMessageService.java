@@ -87,9 +87,9 @@ public class SmartMeterMessageService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (DEBUG) {
-            android.os.Debug.waitForDebugger();
-        }
+//        if (DEBUG) {
+//            android.os.Debug.waitForDebugger();
+//        }
 
         mPrefUtil = new PrefUtil(this);
         mSmartMeterDBHelper = new SmartMeterDBHelper(getApplicationContext());

@@ -1,0 +1,2 @@
+include ':plugin'
+include ':usb-serial-for-android-0.2.0-SNAPSHOT.aar'

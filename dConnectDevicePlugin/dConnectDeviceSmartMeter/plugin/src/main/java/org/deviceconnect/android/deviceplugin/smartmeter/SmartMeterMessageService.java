@@ -30,7 +30,6 @@ import org.deviceconnect.android.deviceplugin.smartmeter.profiles.SmartMeterPowe
 import org.deviceconnect.android.deviceplugin.smartmeter.profiles.SmartMeterSystemProfile;
 import org.deviceconnect.android.deviceplugin.smartmeter.util.ENLUtil;
 import org.deviceconnect.android.deviceplugin.smartmeter.util.PrefUtil;
-import org.deviceconnect.android.deviceplugin.smartmeter.util.TestUtil;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -1201,10 +1200,6 @@ public class SmartMeterMessageService extends DConnectMessageService {
     /** 未計測判定値(32bit). */
     final int DEF_INT_NO_DATA = 0x7FFFFFFE;
 
-    // TODO: テスト用。テスト後はテストロジックを削除すること.
-    /* テスト用. */
-    int mDebugInstantaneousPower = 0;
-
     /**
      * 瞬時電力量取得.
      * @param unit 電力量単位.
@@ -1253,13 +1248,7 @@ public class SmartMeterMessageService extends DConnectMessageService {
                         if (resultData.mEpc == 0xE7 && resultData.mPdc == 4) {
                             // 瞬時電力量保存.
                             byte[] byTmp = new byte[4];
-                            // TODO: テスト用。テスト後はテストロジックを削除すること.
-                            if (DEBUG) {
-                                int index = mDebugInstantaneousPower % TestUtil.dmyInstantaneousPower.length;
-                                System.arraycopy(TestUtil.dmyInstantaneousPower[index], 0, byTmp, 0, 4);
-                            } else {
-                                System.arraycopy(resultData.mEdt, 0, byTmp, 0, 4);
-                            }
+                            System.arraycopy(resultData.mEdt, 0, byTmp, 0, 4);
 
                             int tmp = ByteBuffer.wrap(byTmp).asIntBuffer().get();
                             if (tmp == DEF_INT_NO_DATA) {
@@ -1275,10 +1264,6 @@ public class SmartMeterMessageService extends DConnectMessageService {
                             instantaneousPower = DEF_INT_NO_DATA;
                         }
                         resultInstantaneousPower(instantaneousPower);
-                    }
-                    // TODO: テスト用。テスト後はテストロジックを削除すること.
-                    if (DEBUG) {
-                        mDebugInstantaneousPower++;
                     }
                 } else if (esv == ENLUtil.ESV_GET_SNA) {
                     // 不可応答.
@@ -1336,10 +1321,6 @@ public class SmartMeterMessageService extends DConnectMessageService {
     final int DEF_SHORT_UNDERFLOW = 0x8000;
     /** 未計測判定値(16bit). */
     final int DEF_SHORT_NO_DATA = 0x7FFE;
-
-    // TODO: テスト用。テスト後はテストロジックを削除すること.
-    /* テスト用. */
-    int mDebugInstantaneousCurrent = 0;
 
     /**
      * 瞬時電流量取得.
@@ -1402,29 +1383,15 @@ public class SmartMeterMessageService extends DConnectMessageService {
 
                             // 瞬時電力量保存.
                             int rPhase;
-                            // TODO: テスト用。テスト後はテストロジックを削除すること.
-                            if (DEBUG) {
-                                int index = mDebugInstantaneousCurrent % TestUtil.dmyInstantaneousCurrent.length;
-                                byte[] tmp = new byte[4];
-                                if ((TestUtil.dmyInstantaneousCurrent[index][0] & 0x80) == 0x80) {
-                                    tmp[0] = tmp[1] = (byte)0xFF;
-                                } else {
-                                    tmp[0] = tmp[1] = (byte)0x00;
-                                }
-                                tmp[2] = TestUtil.dmyInstantaneousCurrent[index][0];
-                                tmp[3] = TestUtil.dmyInstantaneousCurrent[index][1];
-                                rPhase = ByteBuffer.wrap(tmp).asIntBuffer().get();
+                            byte[] tmp = new byte[4];
+                            if ((resultData.mEdt[0] & 0x80) == 0x80) {
+                                tmp[0] = tmp[1] = (byte)0xFF;
                             } else {
-                                byte[] tmp = new byte[4];
-                                if ((resultData.mEdt[0] & 0x80) == 0x80) {
-                                    tmp[0] = tmp[1] = (byte)0xFF;
-                                } else {
-                                    tmp[0] = tmp[1] = (byte)0x00;
-                                }
-                                tmp[2] = resultData.mEdt[0];
-                                tmp[3] = resultData.mEdt[1];
-                                rPhase = ByteBuffer.wrap(tmp).asIntBuffer().get();
+                                tmp[0] = tmp[1] = (byte)0x00;
                             }
+                            tmp[2] = resultData.mEdt[0];
+                            tmp[3] = resultData.mEdt[1];
+                            rPhase = ByteBuffer.wrap(tmp).asIntBuffer().get();
                             if ((rPhase & 0xFFFF) == DEF_SHORT_UNDERFLOW || (rPhase & 0xFFFF) == DEF_SHORT_OVERFLOW || (rPhase & 0xFFFF) == DEF_SHORT_NO_DATA) {
                                 effectiveRPhase = rPhase;
                             } else {
@@ -1432,29 +1399,15 @@ public class SmartMeterMessageService extends DConnectMessageService {
                             }
 
                             int tPhase;
-                            // TODO: テスト用。テスト後はテストロジックを削除すること.
-                            if (DEBUG) {
-                                int index = mDebugInstantaneousCurrent % TestUtil.dmyInstantaneousCurrent.length;
-                                byte[] tmp = new byte[4];
-                                if ((TestUtil.dmyInstantaneousCurrent[index][2] & 0x80) == 0x80) {
-                                    tmp[0] = tmp[1] = (byte)0xFF;
-                                } else {
-                                    tmp[0] = tmp[1] = (byte)0x00;
-                                }
-                                tmp[2] = TestUtil.dmyInstantaneousCurrent[index][2];
-                                tmp[3] = TestUtil.dmyInstantaneousCurrent[index][3];
-                                tPhase = ByteBuffer.wrap(tmp).asIntBuffer().get();
+                            tmp = new byte[4];
+                            if ((resultData.mEdt[2] & 0x80) == 0x80) {
+                                tmp[0] = tmp[1] = (byte)0xFF;
                             } else {
-                                byte[] tmp = new byte[4];
-                                if ((resultData.mEdt[2] & 0x80) == 0x80) {
-                                    tmp[0] = tmp[1] = (byte)0xFF;
-                                } else {
-                                    tmp[0] = tmp[1] = (byte)0x00;
-                                }
-                                tmp[2] = resultData.mEdt[2];
-                                tmp[3] = resultData.mEdt[3];
-                                tPhase = ByteBuffer.wrap(tmp).asIntBuffer().get();
+                                tmp[0] = tmp[1] = (byte)0x00;
                             }
+                            tmp[2] = resultData.mEdt[2];
+                            tmp[3] = resultData.mEdt[3];
+                            tPhase = ByteBuffer.wrap(tmp).asIntBuffer().get();
                             if ((tPhase & 0xFFFF) == DEF_SHORT_UNDERFLOW || (tPhase & 0xFFFF) == DEF_SHORT_OVERFLOW || (tPhase & 0xFFFF) == DEF_SHORT_NO_DATA) {
                                 effectiveTPhase = tPhase;
                             } else {
@@ -1470,11 +1423,6 @@ public class SmartMeterMessageService extends DConnectMessageService {
                     resultInstantaneousCurrent(DEF_SHORT_NO_DATA, DEF_SHORT_NO_DATA);
                 } else {
                     break;
-                }
-
-                // TODO: テスト用。テスト後はテストロジックを削除すること.
-                if (DEBUG) {
-                    mDebugInstantaneousCurrent++;
                 }
                 break;
         }
@@ -1522,10 +1470,6 @@ public class SmartMeterMessageService extends DConnectMessageService {
     private int mIndex = 0;
     /** 積算電力量一時保存用変数. */
     double mDayData[] = new double[96];
-
-    // TODO: テスト用。テスト後はテストロジックを削除すること.
-    /** テスト用インデックス. */
-    int mDebugDayData = 0;
 
     /**
          * 積算電力量取得.
@@ -1646,13 +1590,7 @@ public class SmartMeterMessageService extends DConnectMessageService {
                             byte[] byTmp = new byte[4];
                             int pos = 2;
                             for (int n = 0; n < 48; n++) {
-                                // TODO: テスト用。テスト後はテストロジックを削除すること.
-                                if (DEBUG) {
-                                    int index = mDebugDayData % TestUtil.dmyDayData.length;
-                                    System.arraycopy(TestUtil.dmyDayData[index], pos, byTmp, 0, 4);
-                                } else {
-                                    System.arraycopy(resultData.mEdt, pos, byTmp, 0, 4);
-                                }
+                                System.arraycopy(resultData.mEdt, pos, byTmp, 0, 4);
                                 pos += 4;
                                 int tmp = ByteBuffer.wrap(byTmp).asIntBuffer().get();
                                 if (tmp == DEF_INT_NO_DATA || unitValue == 0) {
@@ -1660,10 +1598,6 @@ public class SmartMeterMessageService extends DConnectMessageService {
                                 } else {
                                     mDayData[mIndex++] = tmp * coeff * unitValue;
                                 }
-                            }
-                            // TODO: テスト用。テスト後はテストロジックを削除すること.
-                            if (DEBUG) {
-                                mDebugDayData++;
                             }
                         } else {
                             for (int n = 0; n < 48; n++) {

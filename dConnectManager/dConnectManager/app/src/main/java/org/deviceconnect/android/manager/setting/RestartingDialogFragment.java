@@ -83,7 +83,7 @@ public class RestartingDialogFragment extends DialogFragment {
 
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (plugin.getPluginId() != null) {
+                    if (plugin.isEnabled() && plugin.getPluginId() != null) {
                         if (packageName == null || packageName.equals(plugin.getPackageName())) {
                             Intent request = new Intent();
                             request.setComponent(plugin.getComponentName());

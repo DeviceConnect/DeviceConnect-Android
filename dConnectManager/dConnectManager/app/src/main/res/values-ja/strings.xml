@@ -167,6 +167,10 @@
     <string name="activity_service_list_no_plugin_message">設定画面から「全デバイスプラグインを再起動」を実行してください。</string>
     <string name="activity_service_list_no_plugin_positive">はい</string>
     <string name="activity_service_list_offline_title">デバイス起動</string>
+    <string name="activity_service_list_plugin_setting_title">プラグイン確認</string>
+    <string name="activity_service_list_plugin_setting_message">プラグインの設定画面を開きますか？</string>
+    <string name="activity_service_list_plugin_setting_positive">はい</string>
+    <string name="activity_service_list_plugin_setting_negative">いいえ</string>
 
     <string name="activity_websocket_delete_title">WebSocket削除確認</string>
     <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>

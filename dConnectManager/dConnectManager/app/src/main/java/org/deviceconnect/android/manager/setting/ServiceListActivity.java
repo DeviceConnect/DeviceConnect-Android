@@ -55,13 +55,20 @@ import java.util.List;
  */
 public class ServiceListActivity extends BaseSettingActivity implements AlertDialogFragment.OnAlertDialogListener {
 
+    /**
+     * デバッグフラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * デバッグ用タグ.
+     */
     private static final String TAG = "Manager";
 
     /**
-     * サービスがオフラインの時に表示するダイアログのタグ名を定義する.
+     * プラグイン設定画面を開くか確認するダイアログのタグ名を定義する.
      */
-    private static final String TAG_OFFLINE = "offline";
+    private static final String TAG_OPEN_PLUGIN_SETTING = "open_plugin_setting";
 
     /**
      * ガイド用の設定を保存するファイル名を定義する.
@@ -149,6 +156,13 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                             openServiceInfo(position);
                         }
                     });
+                    gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                        @Override
+                        public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                            openPluginSetting(position);
+                            return true;
+                        }
+                    });
                 }
 
                 Button btn = (Button) findViewById(R.id.activity_service_list_search_button);
@@ -219,7 +233,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
     @Override
     public void onPositiveButton(final String tag) {
-        if (TAG_OFFLINE.equals(tag)) {
+        if (TAG_OPEN_PLUGIN_SETTING.equals(tag)) {
             openPluginSettings();
         }
     }
@@ -281,12 +295,14 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         }
 
         Button button = (Button) findViewById(R.id.activity_service_guide_button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                nextGuide();
-            }
-        });
+        if (button != null) {
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    nextGuide();
+                }
+            });
+        }
     }
 
     /**
@@ -325,15 +341,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private void visibleGuide() {
         for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
             View view = findViewById(GUIDE_ID_LIST[i]);
-            if (i == mPageIndex) {
-                view.setVisibility(View.VISIBLE);
-                AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
-                    @Override
-                    public void onAnimationEnd(final Animator animation) {
-                    }
-                });
-            } else {
-                view.setVisibility(View.GONE);
+            if (view != null) {
+                if (i == mPageIndex) {
+                    view.setVisibility(View.VISIBLE);
+                    AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
+                        @Override
+                        public void onAnimationEnd(final Animator animation) {
+                        }
+                    });
+                } else {
+                    view.setVisibility(View.GONE);
+                }
             }
         }
     }
@@ -495,6 +513,21 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     /**
+     * プラグインの設定画面を開く確認ダイアログを表示する.
+     * @param position プラグインの位置
+     */
+    private void openPluginSetting(final int position) {
+        mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
+
+        String title = getString(R.string.activity_service_list_plugin_setting_title);
+        String message = getString(R.string.activity_service_list_plugin_setting_message);
+        String positive = getString(R.string.activity_service_list_plugin_setting_positive);
+        String negative = getString(R.string.activity_service_list_plugin_setting_negative);
+        AlertDialogFragment dialog = AlertDialogFragment.create(TAG_OPEN_PLUGIN_SETTING, title, message, positive, negative);
+        dialog.show(getFragmentManager(), TAG_OPEN_PLUGIN_SETTING);
+    }
+
+    /**
      * デバイスプラグインが一つもない場合のダイアログを表示する.
      */
     private void showNoDevicePlugin() {
@@ -532,21 +565,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 break;
             }
         }
-    }
-
-    /**
-     * 指定されたサービスのパッケージ名を取得する.
-     * @param serviceId サービスID
-     * @return パッケージ名
-     */
-    private String getPackageName(final String serviceId) {
-        List<DevicePlugin> list = getPluginManager().getDevicePlugins();
-        for (DevicePlugin plugin : list) {
-            if (serviceId.contains(plugin.getPluginId())) {
-                return plugin.getPackageName();
-            }
-        }
-        return null;
     }
 
     /**

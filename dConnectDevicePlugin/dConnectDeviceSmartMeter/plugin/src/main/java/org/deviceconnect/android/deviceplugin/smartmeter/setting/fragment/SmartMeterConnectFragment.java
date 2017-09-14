@@ -30,6 +30,7 @@ import org.deviceconnect.android.deviceplugin.smartmeter.R;
 import org.deviceconnect.android.deviceplugin.smartmeter.SmartMeterMessageService;
 import org.deviceconnect.android.deviceplugin.smartmeter.param.DongleConst;
 import org.deviceconnect.android.deviceplugin.smartmeter.setting.SmartMeterConnectActivity;
+import org.deviceconnect.android.deviceplugin.smartmeter.setting.SmartMeterSettingActivity;
 import org.deviceconnect.android.deviceplugin.smartmeter.util.PrefUtil;
 
 import java.util.HashMap;
@@ -168,8 +169,10 @@ public class SmartMeterConnectFragment extends Fragment {
                         String bRoutePassword = mPrefUtil.getBRoutePass();
                         if (bRouteId == null || bRouteId.length() == 0) {
                             Toast.makeText(getContext(), R.string.setting_error_b_route_id, Toast.LENGTH_LONG).show();
+                            viewSettingActivity();
                         } else if (bRoutePassword == null || bRoutePassword.length() == 0) {
                             Toast.makeText(getContext(), R.string.setting_error_b_route_password, Toast.LENGTH_LONG).show();
+                            viewSettingActivity();
                         } else {
                             checkAndFinish(bCloseFlag);
                         }
@@ -197,6 +200,14 @@ public class SmartMeterConnectFragment extends Fragment {
             }
         }
     };
+
+    /**
+     * 設定画面表示.
+     */
+    private void viewSettingActivity() {
+        Intent intent = new Intent(getContext(), SmartMeterSettingActivity.class);
+        startActivity(intent);
+    }
 
     /**
      * 終了フラグを確認して、Activityを終了します.

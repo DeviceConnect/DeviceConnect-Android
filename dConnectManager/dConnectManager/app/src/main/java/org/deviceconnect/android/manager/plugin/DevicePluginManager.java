@@ -342,7 +342,6 @@ public class DevicePluginManager {
         String packageName = componentInfo.packageName;
         String className = componentInfo.name;
         String versionName = pkgInfo.versionName;
-        String startClassName = getStartServiceClassName(packageName);
         String hash = md5(packageName + className);
         if (hash == null) {
             throw new RuntimeException("Can't generate md5.");
@@ -377,7 +376,6 @@ public class DevicePluginManager {
             .setVersionName(versionName)
             .setPluginId(hash)
             .setDeviceName(pluginName)
-            .setStartServiceClassName(startClassName)
             .setPluginXml(DevicePluginXmlUtil.getXml(mContext, componentInfo))
             .setPluginSdkVersionName(sdkVersionName)
             .setPluginIconId(iconId)
@@ -714,34 +712,6 @@ public class DevicePluginManager {
             mLogger.warning("Not support MD5.");
         }
         return null;
-    }
-
-    /**
-     * Get a class name of service for start.
-     * @param packageName package name of device plugin
-     * @return class name or null if there are no service for start
-     */
-    private String getStartServiceClassName(final String packageName) {
-        PackageManager pkgMgr = mContext.getPackageManager();
-        try {
-            PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_SERVICES);
-            ServiceInfo[] slist = pkg.services;
-            if (slist != null) {
-                for (ServiceInfo s : slist) {
-                    ComponentName comp = new ComponentName(s.packageName, s.name);
-                    ServiceInfo ss = pkgMgr.getServiceInfo(comp, PackageManager.GET_META_DATA);
-                    if (ss.metaData != null) {
-                        Object value = ss.metaData.get(PLUGIN_META_DATA);
-                        if (value != null && value.equals(VALUE_META_DATA)) {
-                            return s.name;
-                        }
-                    }
-                }
-            }
-            return null;
-        } catch (NameNotFoundException e) {
-            return null;
-        }
     }
 
     public void addEventListener(final DevicePluginEventListener listener) {

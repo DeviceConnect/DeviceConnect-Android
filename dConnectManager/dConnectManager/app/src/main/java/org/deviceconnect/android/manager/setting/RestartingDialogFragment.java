@@ -19,6 +19,7 @@ import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.plugin.PluginDetectionException;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -73,29 +74,33 @@ public class RestartingDialogFragment extends DialogFragment {
             @Override
             protected Void doInBackground(final Void... params) {
                 DevicePluginManager mgr = activity.getPluginManager();
-                try {
-                    mgr.createDevicePluginList();
-                } catch (PluginDetectionException e) {
-                    showErrorMessage(activity, e);
-                    return null;
-                }
-
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (plugin.getStartServiceClassName() != null && plugin.getPluginId() != null) {
+                    if (plugin.isEnabled() && plugin.getPluginId() != null) {
                         if (packageName == null || packageName.equals(plugin.getPackageName())) {
                             Intent request = new Intent();
                             request.setComponent(plugin.getComponentName());
                             request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
                             request.putExtra("pluginId", plugin.getPluginId());
-                            activity.sendBroadcast(request);
+                            try {
+                                plugin.send(request);
+                            } catch (MessagingException e) {
+                                showMessagingErrorDialog(activity, e);
+                            }
                         }
                     }
                 }
                 return null;
             }
 
-            private void showErrorMessage(final BaseSettingActivity activity,
+            private void showMessagingErrorDialog(final BaseSettingActivity activity,
+                                                  final MessagingException e) {
+                if (activity != null) {
+                    activity.showMessagingErrorDialog(e);
+                }
+            }
+
+            private void showPluginDetectionErrorDialog(final BaseSettingActivity activity,
                                           final PluginDetectionException e) {
                 // エラーメッセージ初期化
                 int messageId;

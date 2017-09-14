@@ -112,14 +112,6 @@ public class DevicePlugin {
     public String getDeviceName() {
         return mInfo.mDeviceName;
     }
-    
-    /**
-     * Get a class name of service for restart.
-     * @return class name or null if there are no service for restart
-     */
-    public String getStartServiceClassName() {
-        return mInfo.mStartServiceClassName;
-    }
 
     /**
      * デバイスプラグインがサポートするプロファイルの一覧を取得する.
@@ -227,7 +219,7 @@ public class DevicePlugin {
      * プラグイン有効状態を設定する.
      * @param isEnabled プラグイン有効状態
      */
-    private void setEnabled(final boolean isEnabled) {
+    public void setEnabled(final boolean isEnabled) {
         mSetting.setEnabled(isEnabled);
     }
 
@@ -385,11 +377,6 @@ public class DevicePlugin {
             return this;
         }
 
-        Builder setStartServiceClassName(final String startServiceClassName) {
-            mInfo.mStartServiceClassName = startServiceClassName;
-            return this;
-        }
-
         Builder setVersionName(final String versionName) {
             mInfo.mVersionName = versionName;
             return this;
@@ -447,8 +434,6 @@ public class DevicePlugin {
         private String mPackageName;
         /** マネージャからのメッセージを受信するJavaクラス名. */
         private String mClassName;
-        /** Class name of service for restart. */
-        private String mStartServiceClassName;
         /** デバイスプラグインのバージョン名. */
         private String mVersionName;
         /** プラグインSDKバージョン名. */
@@ -472,10 +457,6 @@ public class DevicePlugin {
 
         public String getClassName() {
             return mClassName;
-        }
-
-        public String getStartServiceClassName() {
-            return mStartServiceClassName;
         }
 
         public String getVersionName() {
@@ -520,7 +501,6 @@ public class DevicePlugin {
             dest.writeParcelable(this.mPluginXml, flags);
             dest.writeString(this.mPackageName);
             dest.writeString(this.mClassName);
-            dest.writeString(this.mStartServiceClassName);
             dest.writeString(this.mVersionName);
             dest.writeParcelable(this.mPluginSdkVersionName, flags);
             dest.writeString(this.mPluginId);
@@ -536,7 +516,6 @@ public class DevicePlugin {
             this.mPluginXml = in.readParcelable(DevicePluginXml.class.getClassLoader());
             this.mPackageName = in.readString();
             this.mClassName = in.readString();
-            this.mStartServiceClassName = in.readString();
             this.mVersionName = in.readString();
             this.mPluginSdkVersionName = in.readParcelable(VersionName.class.getClassLoader());
             this.mPluginId = in.readString();

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="#FFFFFF"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -80,7 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/activity_deviceplugin_info_restart" />
+                android:text="@string/activity_deviceplugin_info_restart"/>
 
             <Button
                 android:id="@+id/plugin_delete_btn"
@@ -94,90 +94,197 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
+            android:text="@string/activity_deviceplugin_info_settings"
             android:textColor="#323232"
-            android:textStyle="bold"
             android:textSize="16sp"
-            android:text="@string/activity_deviceplugin_info_settings"/>
+            android:textStyle="bold"/>
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
-            android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp"
-            android:background="#BBBBBB">
-        </View>
+            android:layout_marginTop="2dp"
+            android:background="#BBBBBB"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="#00FFFFFF">
-            </View>
+                android:background="#00FFFFFF"/>
+
             <Button
                 android:id="@+id/plugin_settings_btn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:layout_weight="1"
-                android:text="@string/activity_deviceplugin_info_open_settings" />
+                android:text="@string/activity_deviceplugin_info_open_settings"/>
         </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
+            android:text="@string/activity_deviceplugin_info_profile"
             android:textColor="#323232"
-            android:textStyle="bold"
             android:textSize="16sp"
-            android:text="@string/activity_deviceplugin_info_profile"/>
+            android:textStyle="bold"/>
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
-            android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp"
-            android:background="#BBBBBB">
-        </View>
+            android:layout_marginTop="2dp"
+            android:background="#BBBBBB"/>
 
         <LinearLayout
             android:id="@+id/plugin_support_profiles"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="4dp"
+            android:paddingBottom="24dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
-            android:paddingBottom="24dp">
+            android:paddingTop="4dp">
         </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
+            android:text="@string/activity_deviceplugin_info_connection_type_title"
             android:textColor="#323232"
-            android:textStyle="bold"
             android:textSize="16sp"
-            android:text="@string/activity_deviceplugin_info_connection_type_title"/>
+            android:textStyle="bold"/>
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
-            android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp"
-            android:background="#BBBBBB">
-        </View>
+            android:layout_marginTop="2dp"
+            android:background="#BBBBBB"/>
 
         <TextView
             android:id="@+id/plugin_connection_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/activity_deviceplugin_info_connection_type_unknown"
-            android:layout_marginTop="4dp"
+            android:layout_marginBottom="24dp"
             android:layout_marginLeft="16dp"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginTop="4dp"
+            android:text="@string/activity_deviceplugin_info_connection_type_unknown"/>
+
+        <LinearLayout
+            android:id="@+id/activity_deviceplugin_info_baud_rate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="@string/activity_deviceplugin_info_baud_rate"
+                android:textColor="#323232"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="2dp"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:background="#BBBBBB"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
+                android:padding="4dp">
+
+                <TextView
+                    android:id="@+id/activity_deviceplugin_info_average_baud_rate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@id/activity_deviceplugin_info_average_baud_rate"
+                    android:layout_toLeftOf="@id/activity_deviceplugin_info_average_baud_rate"
+                    android:text="@string/activity_deviceplugin_info_average_baud_rate"/>
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/activity_deviceplugin_info_worst_request"/>
+
+                <TextView
+                    android:id="@+id/activity_deviceplugin_info_worst_request"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/activity_deviceplugin_info_worst_baud_rate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerInParent="true"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignTop="@id/activity_deviceplugin_info_worst_baud_rate"
+                        android:layout_marginLeft="12dp"
+                        android:layout_toLeftOf="@id/activity_deviceplugin_info_worst_baud_rate"
+                        android:text="@string/activity_deviceplugin_info_worst_baud_rate"/>
+                </RelativeLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:paddingTop="24dp"
+                android:text="@string/activity_deviceplugin_info_baud_rate_history"
+                android:textColor="#323232"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <View
+                android:layout_width="wrap_content"
+                android:layout_height="2dp"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:background="#BBBBBB"/>
+
+            <LinearLayout
+                android:id="@+id/activity_deviceplugin_info_baud_rate_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
+                android:orientation="vertical"/>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

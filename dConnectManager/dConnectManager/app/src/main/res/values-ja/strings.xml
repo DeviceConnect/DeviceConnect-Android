@@ -125,17 +125,25 @@
 
     <!-- ================= DevicePluginInfoActivity ================= -->
     <string name="activity_deviceplugin_info_title">デバイスプラグイン情報</string>
-    <string name="activity_deviceplugin_info_version">バージョン: </string>
+    <string name="activity_deviceplugin_info_version">バージョン: %1$s</string>
     <string name="activity_deviceplugin_info_restart">再起動</string>
     <string name="activity_deviceplugin_info_uninstall">削除</string>
     <string name="activity_deviceplugin_info_settings">設定</string>
     <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
     <string name="activity_deviceplugin_info_profile">プロファイル</string>
+    <string name="activity_deviceplugin_info_profile_name"> ・ %1$s</string>
     <string name="activity_deviceplugin_info_connection_type_title">連携タイプ</string>
     <string name="activity_deviceplugin_info_connection_type_binder">バインダー</string>
     <string name="activity_deviceplugin_info_connection_type_broadcast">ブロードキャスト</string>
     <string name="activity_deviceplugin_info_connection_type_included_with_manager">マネージャ同梱</string>
     <string name="activity_deviceplugin_info_connection_type_unknown">不明</string>
+    <string name="activity_deviceplugin_info_baud_rate">通信速度</string>
+    <string name="activity_deviceplugin_info_average_baud_rate">平均通信速度</string>
+    <string name="activity_deviceplugin_info_worst_request">最遅リクエスト</string>
+    <string name="activity_deviceplugin_info_worst_baud_rate">通信速度</string>
+    <string name="activity_deviceplugin_info_baud_rate_unit">%1$dms</string>
+    <string name="activity_deviceplugin_info_request">リクエスト</string>
+    <string name="activity_deviceplugin_info_baud_rate_history">通信履歴</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>

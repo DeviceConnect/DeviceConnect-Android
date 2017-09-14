@@ -166,9 +166,9 @@ public class SmartMeterConnectFragment extends Fragment {
                         mTextViewCommment.setText(R.string.success_connect_dongle);
                         String bRouteId = mPrefUtil.getBRouteId();
                         String bRoutePassword = mPrefUtil.getBRoutePass();
-                        if (bRouteId.length() == 0) {
+                        if (bRouteId == null || bRouteId.length() == 0) {
                             Toast.makeText(getContext(), R.string.setting_error_b_route_id, Toast.LENGTH_LONG).show();
-                        } else if (bRoutePassword.length() == 0) {
+                        } else if (bRoutePassword == null || bRoutePassword.length() == 0) {
                             Toast.makeText(getContext(), R.string.setting_error_b_route_password, Toast.LENGTH_LONG).show();
                         } else {
                             checkAndFinish(bCloseFlag);

@@ -15,6 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.res.ResourcesCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -202,6 +203,8 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
         mSwitchAction = (Switch) menu.findItem(R.id.activity_service_manager_power).getActionView();
         if (mSwitchAction != null) {
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            mSwitchAction.setPadding((int)(12 * metrics.density), 0, (int)(12 * metrics.density), 0);
             mSwitchAction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {

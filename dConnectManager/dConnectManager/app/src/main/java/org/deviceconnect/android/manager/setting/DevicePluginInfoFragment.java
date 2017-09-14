@@ -29,6 +29,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
@@ -108,7 +109,7 @@ public class DevicePluginInfoFragment extends Fragment {
         }
 
         TextView versionView = (TextView) view.findViewById(R.id.plugin_version);
-        versionView.setText(getString(R.string.activity_deviceplugin_info_version) + versionName);
+        versionView.setText(getString(R.string.activity_deviceplugin_info_version, versionName));
 
         Button settingBtn = (Button) view.findViewById(R.id.plugin_settings_btn);
         settingBtn.setEnabled(mIsEnabled);
@@ -171,13 +172,44 @@ public class DevicePluginInfoFragment extends Fragment {
                     }
                 }
                 TextView tv = new TextView(getActivity());
-                tv.setText(" ・ " + profileName);
+                tv.setText(getString(R.string.activity_deviceplugin_info_profile_name, profileName));
                 mainLayout.addView(tv);
             }
         }
 
         mErrorView = (ConnectionErrorView) view.findViewById(R.id.plugin_connection_error_view);
         updateErrorState(mError);
+
+        if (BuildConfig.DEBUG) {
+            View baud = view.findViewById(R.id.activity_deviceplugin_info_baud_rate);
+            baud.setVisibility(View.VISIBLE);
+
+            TextView average = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_average_baud_rate);
+            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getAverageBaudRate()));
+
+            TextView request = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_request);
+            request.setText(mPluginInfo.getWorstBaudRateRequest());
+
+            TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
+            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getWorstBaudRate()));
+
+            LinearLayout layout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
+            for (int i = mPluginInfo.getBaudRates().size() - 1; i >= 0 ; i--) {
+                DevicePlugin.BaudRate b = mPluginInfo.getBaudRates().get(i);
+
+                View v = inflater.inflate(R.layout.item_baud_rate_list, null);
+                TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);
+                br.setText(b.getRequest());
+
+                TextView bb = (TextView) v.findViewById(R.id.activity_deviceplugin_info_baud_rate);
+                bb.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, b.getBaudRate()));
+
+                TextView d = (TextView) v.findViewById(R.id.activity_deviceplugin_info_date);
+                d.setText(b.getDateString());
+
+                layout.addView(v);
+            }
+        }
 
         return view;
     }
@@ -206,10 +238,13 @@ public class DevicePluginInfoFragment extends Fragment {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Button settingBtn = (Button) getView().findViewById(R.id.plugin_settings_btn);
-                settingBtn.setEnabled(isEnabled);
-                Button restartBtn = (Button) getView().findViewById(R.id.plugin_restart_btn);
-                restartBtn.setEnabled(isEnabled);
+                View view = getView();
+                if (view != null) {
+                    Button settingBtn = (Button) view.findViewById(R.id.plugin_settings_btn);
+                    settingBtn.setEnabled(isEnabled);
+                    Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
+                    restartBtn.setEnabled(isEnabled);
+                }
             }
         });
     }

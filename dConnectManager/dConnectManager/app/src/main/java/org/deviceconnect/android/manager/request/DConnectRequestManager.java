@@ -77,7 +77,7 @@ public class DConnectRequestManager {
      * シングルスレッドで実行するリクエストを追加する.
      * @param request 追加するリクエスト
      */
-    public synchronized void addRequestOnSingleThread(final DConnectRequest request) {
+    synchronized void addRequestOnSingleThread(final DConnectRequest request) {
         if (mSingleExecutor.isShutdown()) {
             return;
         }
@@ -89,7 +89,6 @@ public class DConnectRequestManager {
                 try {
                     request.run();
                 } catch (Throwable e) {
-                    e.printStackTrace();
                     request.sendRuntimeException(e.getMessage());
                     if (BuildConfig.DEBUG) {
                         Log.e("dConnectManager", "runtime", e);

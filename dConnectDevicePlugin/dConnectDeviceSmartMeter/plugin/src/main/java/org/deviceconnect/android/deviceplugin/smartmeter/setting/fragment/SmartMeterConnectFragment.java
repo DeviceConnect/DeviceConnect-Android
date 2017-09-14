@@ -25,10 +25,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.deviceconnect.android.deviceplugin.smartmeter.BuildConfig;
 import org.deviceconnect.android.deviceplugin.smartmeter.R;
 import org.deviceconnect.android.deviceplugin.smartmeter.SmartMeterMessageService;
 import org.deviceconnect.android.deviceplugin.smartmeter.param.DongleConst;
-import org.deviceconnect.android.deviceplugin.smartmeter.setting.SmartMeterSettingActivity;
+import org.deviceconnect.android.deviceplugin.smartmeter.setting.SmartMeterConnectActivity;
 import org.deviceconnect.android.deviceplugin.smartmeter.util.PrefUtil;
 
 import java.util.HashMap;
@@ -39,6 +40,8 @@ import java.util.HashMap;
  * @author NTT DOCOMO, INC.
  */
 public class SmartMeterConnectFragment extends Fragment {
+    /** デバッグフラグ. */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     /** Context. */
     private static Context mContext;
     /** Activity. */
@@ -55,10 +58,6 @@ public class SmartMeterConnectFragment extends Fragment {
     public static final String EXTRA_FINISH_FLAG = "flag";
     /** PrefUtil Instance. */
     private PrefUtil mPrefUtil;
-    /** B Route ID EditText. */
-    private EditText mBrouteId;
-    /** B Route Password EditText. */
-    private EditText mBroutePassword;
 
     @Nullable
     @Override
@@ -71,7 +70,7 @@ public class SmartMeterConnectFragment extends Fragment {
         mActivity = getActivity();
 
         // PrefUtil Instance.
-        mPrefUtil = ((SmartMeterSettingActivity) getContext()).getPrefUtil();
+        mPrefUtil = ((SmartMeterConnectActivity) getContext()).getPrefUtil();
 
         // Set status.
         mActivityStatus = DongleConst.STATUS_ACTIVITY_DISPLAY;
@@ -80,54 +79,6 @@ public class SmartMeterConnectFragment extends Fragment {
         // Textview.
         mTextViewCommment = (TextView) root.findViewById(R.id.textViewComment);
 
-        mBrouteId = (EditText)root.findViewById(R.id.input_b_route_id);
-        mBrouteId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) {
-                    closeSoftwareKeyboard(v);
-                }
-            }
-        });
-        String bRouteId = mPrefUtil.getBRouteId();
-        if (bRouteId != null) {
-            mBrouteId.setText(bRouteId);
-        }
-
-        mBroutePassword = (EditText) root.findViewById(R.id.input_b_route_password);
-        mBroutePassword.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) {
-                    closeSoftwareKeyboard(v);
-                }
-            }
-        });
-        String bRoutePassword = mPrefUtil.getBRoutePass();
-        if (bRoutePassword != null) {
-            mBroutePassword.setText(bRoutePassword);
-        }
-
-        Button okButton = (Button) root.findViewById(R.id.settings_save);
-        okButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String bRouteId = mBrouteId.getText().toString();
-                if (bRouteId.length() == 0) {
-                    Toast.makeText(getContext(), R.string.setting_error_b_route_id, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String bRoutePassword = mBroutePassword.getText().toString();
-                if (bRoutePassword.length() == 0) {
-                    Toast.makeText(getContext(), R.string.setting_error_b_route_password, Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                mPrefUtil.setBRouteId(bRouteId);
-                mPrefUtil.setKeyBRoutePass(bRoutePassword);
-                Toast.makeText(getContext(), R.string.setting_save_complete, Toast.LENGTH_LONG).show();
-            }
-        });
         return root;
     }
 
@@ -182,7 +133,13 @@ public class SmartMeterConnectFragment extends Fragment {
         super.onStop();
 
         if (mUSBResultEvent != null) {
-            mContext.unregisterReceiver(mUSBResultEvent);
+            try {
+                mContext.unregisterReceiver(mUSBResultEvent);
+            } catch (Exception e) {
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
+            }
         }
         mActivityStatus = DongleConst.STATUS_ACTIVITY_PAUSE;
     }
@@ -207,8 +164,8 @@ public class SmartMeterConnectFragment extends Fragment {
                         mTextViewCommment.setText(R.string.failed_connect_dongle);
                     } else if (resultId == DongleConst.SUCCESS_CONNECT_DONGLE) {
                         mTextViewCommment.setText(R.string.success_connect_dongle);
-                        String bRouteId = mBrouteId.getText().toString();
-                        String bRoutePassword = mBroutePassword.getText().toString();
+                        String bRouteId = mPrefUtil.getBRouteId();
+                        String bRoutePassword = mPrefUtil.getBRoutePass();
                         if (bRouteId.length() == 0) {
                             Toast.makeText(getContext(), R.string.setting_error_b_route_id, Toast.LENGTH_LONG).show();
                         } else if (bRoutePassword.length() == 0) {

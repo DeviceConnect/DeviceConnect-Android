@@ -163,6 +163,8 @@
     <!-- ================= WebViewActivity ================= -->
     <string name="webview_js_alert_positive_btn">Yes</string>
     <string name="webview_js_alert_negative_btn">No</string>
+    <string name="webview_menu_settings">Settings</string>
+    <string name="webview_menu_top">Top</string>
 
     <string name="activity_help_title">Help</string>
 

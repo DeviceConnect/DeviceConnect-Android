@@ -188,6 +188,8 @@
     <!-- ================= WebViewActivity ================= -->
     <string name="webview_js_alert_positive_btn">はい</string>
     <string name="webview_js_alert_negative_btn">いいえ</string>
+    <string name="webview_menu_settings">プラグイン設定</string>
+    <string name="webview_menu_top">トップ</string>
 
     <string name="activity_help_title">ヘルプ</string>
 

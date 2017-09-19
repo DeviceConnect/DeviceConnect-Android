@@ -23,6 +23,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsPromptResult;
@@ -36,6 +37,7 @@ import android.widget.EditText;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 import java.io.ByteArrayOutputStream;
 
@@ -57,6 +59,11 @@ public class WebViewActivity extends AppCompatActivity {
      * 表示するタイトルを格納するExtraのキーを定義する.
      */
     public static final String EXTRA_TITLE = "title";
+
+    /**
+     * サービスIDを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_SERVICE_ID = "serviceId";
 
     /**
      * ファイル選択できるMimeTypeを定義する.
@@ -190,6 +197,15 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        Intent intent = getIntent();
+        if (intent != null && intent.getStringExtra(EXTRA_SERVICE_ID) != null) {
+            getMenuInflater().inflate(R.menu.activity_web_view, menu);
+        }
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (android.R.id.home == item.getItemId()) {
             if (mWebView != null && mWebView.canGoBack()) {
@@ -198,6 +214,10 @@ public class WebViewActivity extends AppCompatActivity {
                 finish();
             }
             return true;
+        } else if (R.id.activity_webview_menu_settings == item.getItemId()) {
+            openPluginSettings();
+        } else if (R.id.activity_webview_menu_top == item.getItemId()) {
+            finish();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -271,6 +291,22 @@ public class WebViewActivity extends AppCompatActivity {
         } else {
             super.onActivityResult(requestCode,resultCode, data);
         }
+    }
+
+    /**
+     * プラグインの設定画面を開く.
+     */
+    private void openPluginSettings() {
+        DevicePlugin.Info info = getIntent().getParcelableExtra(DevicePluginInfoActivity.PLUGIN_INFO);
+        boolean enabled = getIntent().getBooleanExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, false);
+        String error = getIntent().getStringExtra(DevicePluginInfoActivity.CONNECTION_ERROR);
+
+        Intent intent = new Intent();
+        intent.setClass(this, DevicePluginInfoActivity.class);
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, info);
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, enabled);
+        intent.putExtra(DevicePluginInfoActivity.CONNECTION_ERROR, error);
+        startActivity(intent);
     }
 
     private static String getPath(final Context context, final Uri uri) {

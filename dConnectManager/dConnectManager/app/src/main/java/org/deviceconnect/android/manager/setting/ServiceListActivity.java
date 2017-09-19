@@ -507,12 +507,39 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      */
     private void openServiceInfo(final int position) {
         mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
+
+        DevicePlugin plugin = findDevice(mSelectedService.getId());
+        if (plugin == null) {
+            return;
+        }
+
         String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
+        intent.putExtra(WebViewActivity.EXTRA_SERVICE_ID, mSelectedService.getId());
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, plugin.getInfo());
+        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, plugin.isEnabled());
+        intent.putExtra(DevicePluginInfoActivity.CONNECTION_ERROR, plugin.getCurrentConnectionError());
         startActivity(intent);
+    }
+
+    /**
+     * 指定されたサービスIDに対応したプラグインを取得します
+     * @param serviceId サービスID
+     * @return プラグイン
+     */
+    private DevicePlugin findDevice(final String serviceId) {
+        DevicePluginManager manager = getPluginManager();
+        if (manager != null) {
+            for (DevicePlugin plugin : manager.getDevicePlugins()) {
+                if (serviceId.contains(plugin.getPluginId())) {
+                    return plugin;
+                }
+            }
+        }
+        return null;
     }
 
     /**

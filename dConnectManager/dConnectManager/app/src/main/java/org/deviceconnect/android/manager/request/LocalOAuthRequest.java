@@ -8,11 +8,13 @@ package org.deviceconnect.android.manager.request;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -130,8 +132,16 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         // リクエストコードを作成する
         mRequestCode = UUID.randomUUID().hashCode();
 
-        // 実行
+        long start = System.currentTimeMillis();
+
         executeRequest();
+
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Plug-in PackageName: " + mDevicePlugin.getPackageName());
+            mLogger.info("Request: " + DConnectUtil.convertRequestToString(mRequest));
+            mLogger.info("ResponseTime: " + (System.currentTimeMillis() - start));
+            mDevicePlugin.addBaudRate(mRequest, (System.currentTimeMillis() - start));
+        }
     }
 
     /**

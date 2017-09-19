@@ -401,4 +401,49 @@ public final class DConnectUtil {
         }
         return icon;
     }
+
+
+    /**
+     * リクエスト用のIntentをデバッグ用の文字列に変換します.
+     * @param intent リクエスト用のIntent
+     * @return デバッグ用の文字列
+     */
+    public static String convertRequestToString(final Intent intent) {
+        StringBuilder sb = new StringBuilder();
+
+        String action = intent.getAction();
+        String api = intent.getStringExtra("api");
+        String profile = intent.getStringExtra("profile");
+        String inter = intent.getStringExtra("interface");
+        String attr = intent.getStringExtra("attribute");
+
+        if (IntentDConnectMessage.ACTION_GET.equals(action)) {
+            sb.append("GET ");
+        } else if (IntentDConnectMessage.ACTION_PUT.equals(action)) {
+            sb.append("PUT ");
+        } else if (IntentDConnectMessage.ACTION_POST.equals(action)) {
+            sb.append("POST ");
+        } else if (IntentDConnectMessage.ACTION_DELETE.equals(action)) {
+            sb.append("DELETE ");
+        }
+
+        if (api != null) {
+            sb.append("/");
+            sb.append(api);
+        }
+        if (profile != null) {
+            sb.append("/");
+            sb.append(profile);
+        }
+        if (inter != null) {
+            sb.append("/");
+            sb.append(inter);
+        }
+        if (attr != null) {
+            sb.append("/");
+            sb.append(attr);
+        }
+
+        return sb.toString();
+    }
 }

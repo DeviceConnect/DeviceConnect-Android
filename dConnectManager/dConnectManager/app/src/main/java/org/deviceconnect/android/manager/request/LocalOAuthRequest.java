@@ -21,7 +21,8 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -245,36 +246,17 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
             if (accessToken != null) {
                 executeRequest(accessToken);
             } else {
-                final AtomicBoolean needAccessToken = new AtomicBoolean(true);
-
                 // 認証を行うリクエスト
-                final OAuthRequest request = new OAuthRequest() {
-                    @Override
-                    public void onFinishAuth(final String accessToken, final boolean need) {
-                        needAccessToken.set(need);
-                        synchronized (this) {
-                            this.notifyAll();
-                        }
-                    }
-                };
+                OAuthRequest request = new OAuthRequest();
                 request.setDevicePluginManager(mPluginMgr);
+                request.setRequestMgr(mRequestMgr);
                 request.setRequest(mRequest);
                 request.setContext(getContext());
                 request.setServiceId(serviceId);
                 request.setOrigin(origin);
+                request.waitForLocalOAuth();
 
-                // OAuthの認証だけは、シングルスレッドで動作させないとおかしな挙動が発生
-                mRequestMgr.addRequestOnSingleThread(request);
-
-                synchronized (request) {
-                    try {
-                        request.wait(mTimeout);
-                    } catch (InterruptedException e) {
-                        mLogger.warning("timeout.");
-                    }
-                }
-
-                if (needAccessToken.get()) {
+                if (request.isNeedAccessToken()) {
                     accessToken = getAccessTokenForPlugin(origin, serviceId);
                     if (accessToken != null) {
                         onAccessTokenUpdated(mDevicePlugin, accessToken);
@@ -372,7 +354,7 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
     /**
      * Local OAuthの処理を行うリクエスト.
      */
-    private abstract class OAuthRequest extends DConnectRequest {
+    private class OAuthRequest extends DConnectRequest {
         /** ロックオブジェクト. */
         private final Object mLockObj = new Object();
         /** 送信元のオリジン. */
@@ -381,6 +363,10 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
         private String mServiceId;
         /** リクエストコード. */
         private int mRequestCode;
+        /** 認証フラグ. */
+        private boolean mNeedAccessToken = true;
+        /** 認証結果を受け取るまで待機するためのオブジェクト. */
+        private CountDownLatch mLatch = new CountDownLatch(1);
 
         /**
          * オリジンを設定する.
@@ -413,6 +399,17 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
 
         @Override
         public void run() {
+            try {
+                authorize();
+            } finally {
+                mLatch.countDown();
+            }
+        }
+
+        /**
+         * Local OAuthの認可処理を行います.
+         */
+        private void authorize() {
             mRequestCode = UUID.randomUUID().hashCode();
 
             OAuthData oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
@@ -421,11 +418,10 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                 if (clientData == null) {
                     // MEMO executeCreateClientの中でレスポンスは返しているので
                     // ここでは何も処理を行わない。
-                    onFinishAuth(null, true);
                     return;
                 } else if (clientData.mClientId == null) {
                     // MEMO プラグインが認証を不要としていた場合の処理
-                    onFinishAuth(null, false);
+                    mNeedAccessToken = false;
                     return;
                 } else {
                     // クライアントデータを保存
@@ -438,18 +434,34 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
             if (accessToken == null) {
                 // 再度アクセストークンを取得してから再度実行
                 accessToken = executeAccessToken(mServiceId, oauth.getClientId());
-                if (accessToken == null) {
-                    // MEMO executeAccessTokenの中でレスポンスは返しているので
-                    // ここでは何も処理を行わない。
-                    onFinishAuth(null, true);
-                    return;
-                } else {
+                if (accessToken != null) {
                     // アクセストークンを保存
                     mLocalOAuth.setAccessToken(oauth.getId(), accessToken);
                 }
             }
+        }
 
-            onFinishAuth(accessToken, true);
+        /**
+         * アクセストークンが必要か確認します.
+         * @return 必要な場合はtrue、不要な場合はfalse
+         */
+        boolean isNeedAccessToken() {
+            return mNeedAccessToken;
+        }
+
+        /**
+         * Local OAuthの実行を待ちます.
+         */
+        void waitForLocalOAuth() {
+            // OAuthの認証だけは、シングルスレッドで動作させないとおかしな挙動が発生
+            mRequestMgr.addRequestOnSingleThread(this);
+
+            // レスポンスが返却されるまで待機
+            try {
+                mLatch.await(mTimeout, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                mLogger.warning("timeout.");
+            }
         }
 
         /**
@@ -600,17 +612,5 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
                 }
             }
         }
-
-        /**
-         * 認証完了通知用メソッド.
-         * <p>
-         * 認証が完了した場合に、このメソッドが呼び出される。
-         * 認証に成功した場合には、アクセストークンが渡される。
-         * 認証に失敗した場合にはnullが渡される。
-         * </p>
-         * @param accessToken アクセストークン
-         * @param needAccessToken アクセストークンが必須
-         */
-        abstract void onFinishAuth(String accessToken, boolean needAccessToken);
-    };
+    }
 }

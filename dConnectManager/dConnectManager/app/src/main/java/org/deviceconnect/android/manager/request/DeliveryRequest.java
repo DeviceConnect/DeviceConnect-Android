@@ -71,10 +71,6 @@ public class DeliveryRequest extends LocalOAuthRequest {
         }
 
         if (!forwardRequest(request)) {
-            // リクエストの送信に失敗した場合
-            Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-            MessageUtils.setUnknownError(response, "Failed to send a request to plug-in.");
-            sendResponse(response);
             return;
         }
 

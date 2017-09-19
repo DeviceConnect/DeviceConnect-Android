@@ -401,6 +401,24 @@ public final class DConnectSettings {
         editor.apply();
     }
 
+    /**
+     * KeepAlive機能状態を取得する.
+     * @return KeepAlive無効はfalse、有効、取得失敗時はtrue
+     */
+    public boolean isEnableKeepAlive() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_event_keep_alive_on_off), true);
+    }
+
+    /**
+     * KeepAlive機能状態を設定する.
+     * @param flag KeepAlive機能状態
+     */
+    public void setKeepAliveFlag(final boolean flag) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_event_keep_alive_on_off), flag);
+        editor.apply();
+    }
+
     @Override
     public String toString() {
         return "{\n" +

@@ -109,6 +109,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         mWebSocketInfoManager.addOnWebSocketEventListener(this);
 
         mKeepAliveManager = new KeepAliveManager(this, mEventSessionTable);
+        mKeepAliveManager.setKeepAliveFunction(mSettings.isEnableKeepAlive());
         mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
             @Override
             public void onPutEventSession(final Intent request, final DevicePlugin plugin) {

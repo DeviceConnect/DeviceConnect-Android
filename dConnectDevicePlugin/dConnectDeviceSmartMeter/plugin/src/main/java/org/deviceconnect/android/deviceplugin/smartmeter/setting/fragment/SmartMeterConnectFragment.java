@@ -206,6 +206,7 @@ public class SmartMeterConnectFragment extends Fragment {
      */
     private void viewSettingActivity() {
         Intent intent = new Intent(getContext(), SmartMeterSettingActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
 

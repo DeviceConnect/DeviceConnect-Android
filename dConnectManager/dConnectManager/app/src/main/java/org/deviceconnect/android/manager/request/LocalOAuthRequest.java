@@ -137,6 +137,9 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
 
     /**
      * プラグインにリクエストを送信します.
+     * <p>
+     * 送信に失敗した場合には、この中で、レスポンスを返却します。
+     * </p>
      * @param request 送信するリクエスト
      * @return 送信結果.送信に成功した場合はtrue、それ以外はfalse。
      */
@@ -414,19 +417,19 @@ public abstract class LocalOAuthRequest extends DConnectRequest {
 
             OAuthData oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
             if (oauth == null) {
-                ClientData authData = executeCreateClient(mServiceId);
-                if (authData == null) {
+                ClientData clientData = executeCreateClient(mServiceId);
+                if (clientData == null) {
                     // MEMO executeCreateClientの中でレスポンスは返しているので
                     // ここでは何も処理を行わない。
                     onFinishAuth(null, true);
                     return;
-                } else if (authData.mClientId == null) {
+                } else if (clientData.mClientId == null) {
                     // MEMO プラグインが認証を不要としていた場合の処理
                     onFinishAuth(null, false);
                     return;
                 } else {
                     // クライアントデータを保存
-                    mLocalOAuth.setOAuthData(mOrigin, mServiceId, authData.mClientId);
+                    mLocalOAuth.setOAuthData(mOrigin, mServiceId, clientData.mClientId);
                     oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
                 }
             }

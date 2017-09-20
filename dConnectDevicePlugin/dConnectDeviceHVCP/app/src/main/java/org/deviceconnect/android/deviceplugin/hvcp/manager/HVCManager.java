@@ -685,6 +685,9 @@ public enum HVCManager {
                                 if (BuildConfig.DEBUG) {
                                     Log.d(TAG, "SET Threshold no response");
                                 }
+                                camera.getThresholdSet().onResponse(buf[1]);
+                                camera.setThresholdSet(null);
+                                mOneShotList.remove(key);
                             }
                         } else if (mType == CMD_SET_SIZE) {
                             if (buf[0] == (byte) 0xfe && camera.getSizeSet() != null) {
@@ -717,11 +720,8 @@ public enum HVCManager {
                             mUsbDriver.write(send, send.length);
                         } catch (IOException e) {
                             if (BuildConfig.DEBUG) {
-                                e.printStackTrace();
+                                Log.e(TAG, "", e);
                             }
-                            mEventList.clear();
-                            mOneShotList.clear();
-                            return;
                         }
                     }
                     mTimer.postDelayed(this, mNowInterval);

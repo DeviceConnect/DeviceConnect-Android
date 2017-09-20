@@ -102,19 +102,9 @@ var util = (function(parent, global) {
 
             mAccessToken = getCookie('accessToken');
 
-            serviceDiscovery(function(services) {
-                var serviceId = getServiceId();
-                for (var i = 0; i < services.length; i++) {
-                    if (serviceId === services[i].id) {
-                        var service = services[i];
-                        serviceInformation(function(json) {
-                            openWebSocketIfNeeded();
-                            callback(service.name, json);
-                        });
-                        return;
-                    }
-                }
-                alert('指定されたサービスが見つかりません。\n serviceId=' + serviceId);
+            serviceInformation(function(json) {
+                openWebSocketIfNeeded();
+                callback(null, json);
             });
         });
     }

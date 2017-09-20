@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,19 +47,13 @@ import java.util.Map;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginInfoFragment extends Fragment {
+public class DevicePluginInfoFragment extends BaseSettingFragment {
 
     /** デバイスプラグインをアンインストールする際のリクエストコード. */
     private static final int REQUEST_CODE = 101;
 
     /** デバイスプラグイン情報. */
     private DevicePlugin.Info mPluginInfo;
-
-    /** プラグイン有効化フラグ. */
-    private boolean mIsEnabled;
-
-    /** プラグイン接続エラー. */
-    private ConnectionError mError;
 
     /** プラグイン接続エラー表示. */
     private ConnectionErrorView mErrorView;
@@ -74,25 +67,23 @@ public class DevicePluginInfoFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_deviceplugin_info, container, false);
+        return inflater.inflate(R.layout.fragment_deviceplugin_info, container, false);
+    }
 
-        mPluginInfo = getArguments().getParcelable(DevicePluginInfoActivity.PLUGIN_INFO);
-        if (mPluginInfo == null || !getArguments().containsKey(DevicePluginInfoActivity.PLUGIN_ENABLED)) {
-            getActivity().finish();
-            return view;
+    /**
+     * プラグイン情報を更新する.
+     * @param plugin 更新するプラグイン
+     */
+    public void updateInfo(final DevicePlugin plugin) {
+        View view = getView();
+        if (view == null) {
+            return;
         }
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(DevicePluginInfoActivity.PLUGIN_ENABLED)) {
-            mIsEnabled = savedInstanceState.getBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED);
-        } else {
-            mIsEnabled = getArguments().getBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED);
-        }
+        mPluginInfo = plugin.getInfo();
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(DevicePluginInfoActivity.CONNECTION_ERROR)) {
-            mError = (ConnectionError) savedInstanceState.getSerializable(DevicePluginInfoActivity.CONNECTION_ERROR);
-        } else {
-            mError = (ConnectionError) getArguments().getSerializable(DevicePluginInfoActivity.CONNECTION_ERROR);
-        }
+        boolean isEnabled = plugin.isEnabled();
+        ConnectionError error = plugin.getCurrentConnectionError();
 
         String packageName = mPluginInfo.getPackageName();
         Integer iconId = mPluginInfo.getPluginIconId();
@@ -112,13 +103,14 @@ public class DevicePluginInfoFragment extends Fragment {
         versionView.setText(getString(R.string.activity_deviceplugin_info_version, versionName));
 
         Button settingBtn = (Button) view.findViewById(R.id.plugin_settings_btn);
-        settingBtn.setEnabled(mIsEnabled);
+        settingBtn.setEnabled(isEnabled);
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 openSettings();
             }
         });
+
         Button deleteBtn = (Button) view.findViewById(R.id.plugin_delete_btn);
         deleteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,8 +119,9 @@ public class DevicePluginInfoFragment extends Fragment {
             }
         });
         deleteBtn.setEnabled(!packageName.equals(managerPackageName));
+
         Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
-        restartBtn.setEnabled(mIsEnabled);
+        restartBtn.setEnabled(isEnabled);
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -178,7 +171,7 @@ public class DevicePluginInfoFragment extends Fragment {
         }
 
         mErrorView = (ConnectionErrorView) view.findViewById(R.id.plugin_connection_error_view);
-        updateErrorState(mError);
+        updateErrorState(error);
 
         if (BuildConfig.DEBUG) {
             View baud = view.findViewById(R.id.activity_deviceplugin_info_baud_rate);
@@ -192,6 +185,8 @@ public class DevicePluginInfoFragment extends Fragment {
 
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
             worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getWorstBaudRate()));
+
+            LayoutInflater inflater = getLayoutInflater(null);
 
             LinearLayout layout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
             for (int i = mPluginInfo.getBaudRates().size() - 1; i >= 0 ; i--) {
@@ -210,22 +205,20 @@ public class DevicePluginInfoFragment extends Fragment {
                 layout.addView(v);
             }
         }
-
-        return view;
     }
 
+    /**
+     * 接続のエラー状態を更新する.
+     * @param error エラー
+     */
     public void updateErrorState(final ConnectionError error) {
         mErrorView.showErrorMessage(error);
     }
 
-    @Override
-    public void onSaveInstanceState(final Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        outState.putBoolean(DevicePluginInfoActivity.PLUGIN_ENABLED, mIsEnabled);
-        outState.putSerializable(DevicePluginInfoActivity.CONNECTION_ERROR, mError);
-    }
-
+    /**
+     * 指定されたRunnableをUIスレッドで動作させる.
+     * @param r 実行するRunnable
+     */
     private void runOnUiThread(final Runnable r) {
         Activity activity = getActivity();
         if (activity != null) {
@@ -233,8 +226,11 @@ public class DevicePluginInfoFragment extends Fragment {
         }
     }
 
+    /**
+     * ボタンの有効・無効を設定する.
+     * @param isEnabled 有効の場合はtrue、それ以外はfalse
+     */
     void onEnabled(final boolean isEnabled) {
-        mIsEnabled = isEnabled;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -268,13 +264,18 @@ public class DevicePluginInfoFragment extends Fragment {
         }
     }
 
-    private DevicePluginManager getPluginManager() {
-        Activity activity = getActivity();
-        if (activity != null && activity instanceof DevicePluginInfoActivity) {
-            DevicePluginInfoActivity infoActivity = (DevicePluginInfoActivity) activity;
-            return infoActivity.getPluginManager();
+    @Override
+    protected void onManagerBonded() {
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null) {
+            String pluginId = getArguments().getString(DevicePluginInfoActivity.EXTRA_PLUGIN_ID);
+            if (pluginId != null) {
+                DevicePlugin plugin = mgr.getDevicePlugin(pluginId);
+                if (plugin != null) {
+                    updateInfo(plugin);
+                }
+            }
         }
-        return null;
     }
 
     /**
@@ -290,6 +291,10 @@ public class DevicePluginInfoFragment extends Fragment {
         }
     }
 
+    /**
+     * エラーメッセージを表示する.
+     * @param e エラーを格納した例外
+     */
     private void showMessagingErrorDialog(final MessagingException e) {
         Activity activity = getActivity();
         if (activity != null && activity instanceof BaseSettingActivity) {

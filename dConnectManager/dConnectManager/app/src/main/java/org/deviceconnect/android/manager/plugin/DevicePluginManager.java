@@ -19,9 +19,7 @@ import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.os.TransactionTooLargeException;
-import android.util.AndroidException;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;

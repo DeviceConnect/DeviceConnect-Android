@@ -37,7 +37,6 @@ import android.widget.EditText;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 import java.io.ByteArrayOutputStream;
 
@@ -47,8 +46,10 @@ import java.io.ByteArrayOutputStream;
  * @author NTT DOCOMO, INC.
  */
 public class WebViewActivity extends AppCompatActivity {
+    /**
+     * デバッグフフラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "Manager";
 
     /**
      * 表示するHTMLへのURLを格納するExtraのキーを定義する.
@@ -64,6 +65,11 @@ public class WebViewActivity extends AppCompatActivity {
      * サービスIDを格納するExtraのキーを定義する.
      */
     public static final String EXTRA_SERVICE_ID = "serviceId";
+
+    /**
+     * プラグインIDを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_PLUGIN_ID = "pluginId";
 
     /**
      * ファイル選択できるMimeTypeを定義する.
@@ -276,7 +282,7 @@ public class WebViewActivity extends AppCompatActivity {
                 cursor.close();
             }
 
-            String imgPath = getPath(this, selectedImage);
+            String imgPath = getPath(selectedImage);
 
             BitmapFactory.Options options;
             options = new BitmapFactory.Options();
@@ -297,19 +303,20 @@ public class WebViewActivity extends AppCompatActivity {
      * プラグインの設定画面を開く.
      */
     private void openPluginSettings() {
-        DevicePlugin.Info info = getIntent().getParcelableExtra(DevicePluginInfoActivity.PLUGIN_INFO);
-        boolean enabled = getIntent().getBooleanExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, false);
-        String error = getIntent().getStringExtra(DevicePluginInfoActivity.CONNECTION_ERROR);
+        String pluginId = getIntent().getStringExtra(EXTRA_PLUGIN_ID);
 
         Intent intent = new Intent();
         intent.setClass(this, DevicePluginInfoActivity.class);
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, info);
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, enabled);
-        intent.putExtra(DevicePluginInfoActivity.CONNECTION_ERROR, error);
+        intent.putExtra(DevicePluginInfoActivity.EXTRA_PLUGIN_ID, pluginId);
         startActivity(intent);
     }
 
-    private static String getPath(final Context context, final Uri uri) {
+    /**
+     * ファイルパスを取得する.
+     * @param uri URI
+     * @return ファイルパス
+     */
+    private static String getPath(final Uri uri) {
         if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }

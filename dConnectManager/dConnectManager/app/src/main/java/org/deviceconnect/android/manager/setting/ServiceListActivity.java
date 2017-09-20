@@ -519,9 +519,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
         intent.putExtra(WebViewActivity.EXTRA_SERVICE_ID, mSelectedService.getId());
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_INFO, plugin.getInfo());
-        intent.putExtra(DevicePluginInfoActivity.PLUGIN_ENABLED, plugin.isEnabled());
-        intent.putExtra(DevicePluginInfoActivity.CONNECTION_ERROR, plugin.getCurrentConnectionError());
+        intent.putExtra(WebViewActivity.EXTRA_PLUGIN_ID, plugin.getPluginId());
         startActivity(intent);
     }
 

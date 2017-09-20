@@ -200,3 +200,31 @@ div.test {
 input, select {
     vertical-align: middle;
 }
+
+label {
+    animation-name: fadeIn;
+    animation-duration: 0.3s;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-out;
+    animation-fill-mode: backwards;
+}
+
+.ac_menu div.ac_content {
+    animation-name: fadeIn;
+    animation-duration: 0.3s;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-out;
+    animation-fill-mode: backwards;
+}
+
+@keyframes fadeIn {
+    from {
+        transform:translateY(300px);
+        opacity: 0.0;
+    }
+
+    to {
+        transform:translateY(0px);
+        opacity: 1.0;
+    }
+}

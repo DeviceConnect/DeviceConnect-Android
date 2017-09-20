@@ -25,6 +25,8 @@ var main = (function(parent, global) {
         'connection' : 'images/icon33_connect6.png',
     };
 
+    var delay = 0;
+
     function init() {
         util.init(function(name, json) {
             createProfileList(json.supports);
@@ -39,8 +41,10 @@ var main = (function(parent, global) {
         var data = {
             'url' : url,
             'content' : content,
-            'icon' : icon
+            'icon' : icon,
+            'delay' : delay
         };
+        delay += 0.08;
         return util.createTemplate('profileCell', data);
     }
 

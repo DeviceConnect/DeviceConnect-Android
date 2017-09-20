@@ -17,7 +17,7 @@
     <script id="profileCell" type="text/x-template">
         <a href="{#url}">
             <div class="grid">
-                <div>
+                <div style="animation-delay: {#delay}s;">
                     <img class="icon" src="{#icon}"><br>
                     <div class="profileName">{#content}</div>
                 </div>
@@ -25,7 +25,7 @@
         </a>
     </script>
 
-    <title>デバイス確認画面</title>
+    <title>サービス確認画面</title>
 </head>
 <body onload="main.init()">
     <div id="profileList"></div>

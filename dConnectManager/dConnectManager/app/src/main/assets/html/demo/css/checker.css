@@ -203,7 +203,7 @@ input, select {
 
 label {
     animation-name: fadeIn;
-    animation-duration: 0.5s;
+    animation-duration: 0.3s;
     animation-iteration-count: 1;
     animation-timing-function: ease-out;
     animation-fill-mode: backwards;
@@ -211,7 +211,7 @@ label {
 
 .ac_menu div.ac_content {
     animation-name: fadeIn;
-    animation-duration: 0.5s;
+    animation-duration: 0.3s;
     animation-iteration-count: 1;
     animation-timing-function: ease-out;
     animation-fill-mode: backwards;
@@ -219,7 +219,7 @@ label {
 
 @keyframes fadeIn {
     from {
-        transform:translateY(400px);
+        transform:translateY(300px);
         opacity: 0.0;
     }
 

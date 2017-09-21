@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:layout_margin="12dp"
+              android:padding="4dp"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
@@ -10,6 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ellipsize="end"
+        android:maxLines="1"
         android:layout_margin="2dp"
         android:scrollHorizontally="true"
         android:textAppearance="?android:attr/textAppearanceListItemSmall"
@@ -23,6 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="24dp"
         android:ellipsize="end"
+        android:maxLines="1"
         android:scrollHorizontally="true"
         android:textAppearance="?android:attr/textAppearanceListItemSmall"
         android:textColor="#000000"

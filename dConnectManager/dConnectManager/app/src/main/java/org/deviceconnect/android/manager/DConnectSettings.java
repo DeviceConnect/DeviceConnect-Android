@@ -34,36 +34,23 @@ public final class DConnectSettings {
     private SharedPreferences mPreferences;
 
     /** コンテキスト. */
-    private Context mContext;
-
-    /** このクラスの唯一のインスタンス. */
-    private static DConnectSettings sInstance;
+    private final Context mContext;
 
     /**
      * コンストラクタ.
-     * シングルトンにするのでprivateで定義.
+     *
+     * @param context コンテキスト
      */
-    private DConnectSettings() {
-    }
-
-    /**
-     * DConnectSettingsのインスタンスを取得する.
-     * @return {@link DConnectSettings}
-     */
-    public static synchronized DConnectSettings getInstance() {
-        if (sInstance == null) {
-            sInstance = new DConnectSettings();
-        }
-        return sInstance;
+    DConnectSettings(final Context context) {
+        mContext = context;
+        load();
     }
 
     /**
      * SharedPreferencesのデータを読み込む.
-     * @param context コンテキスト
      */
-    public void load(final Context context) {
-        mContext = context;
-        mPreferences = context.getSharedPreferences(context.getPackageName() + "_preferences",
+    public synchronized void load() {
+        mPreferences = mContext.getSharedPreferences(mContext.getPackageName() + "_preferences",
                 Context.MODE_PRIVATE);
 
         String name = getManagerName();
@@ -411,6 +398,24 @@ public final class DConnectSettings {
     public void setKeyword(final String keyword) {
         SharedPreferences.Editor editor = mPreferences.edit();
         editor.putString(mContext.getString(R.string.key_settings_dconn_keyword), keyword);
+        editor.apply();
+    }
+
+    /**
+     * KeepAlive機能状態を取得する.
+     * @return KeepAlive無効はfalse、有効、取得失敗時はtrue
+     */
+    public boolean isEnableKeepAlive() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_event_keep_alive_on_off), true);
+    }
+
+    /**
+     * KeepAlive機能状態を設定する.
+     * @param flag KeepAlive機能状態
+     */
+    public void setKeepAliveFlag(final boolean flag) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_event_keep_alive_on_off), flag);
         editor.apply();
     }
 

@@ -8,19 +8,12 @@
         android:title="@string/app_name"/>
 
     <item
-        app:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_preferences"
-        android:title="@string/activity_launch_button_settings">
-        <menu>
-            <item
-                android:id="@+id/activity_service_menu_item_settings"
-                app:showAsAction="never"
-                android:title="@string/activity_service_menu_settings"/>
+        android:id="@+id/activity_service_menu_item_settings"
+        app:showAsAction="never"
+        android:title="@string/activity_service_menu_settings"/>
 
-            <item
-                android:id="@+id/activity_service_menu_item_help"
-                app:showAsAction="never"
-                android:title="@string/activity_service_menu_help"/>
-        </menu>
-    </item>
+    <item
+        android:id="@+id/activity_service_menu_item_help"
+        app:showAsAction="never"
+        android:title="@string/activity_service_menu_help"/>
 </menu>

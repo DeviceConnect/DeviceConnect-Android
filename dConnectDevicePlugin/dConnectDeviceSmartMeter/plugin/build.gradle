@@ -1,0 +1,66 @@
+apply plugin: 'com.android.application'
+
+dependencies {
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.0'
+    compile 'com.hoho.android:usb-serial-for-android:0.2.0-SNAPSHOT@aar'
+}
+
+repositories {
+    maven { url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+}
+
+android {
+
+    compileSdkVersion 23
+    buildToolsVersion '25.0.0'
+
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
+        }
+        version = version.empty ? "1.0.0" : version
+        return "${version}"
+    }
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.smartmeter"
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName getVersionName()
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+    
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}

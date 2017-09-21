@@ -39,19 +39,11 @@ public class DeliveryRequest extends LocalOAuthRequest {
     }
 
     @Override
-    protected void onAccessTokenUpdated(final DevicePlugin plugin,
-                                        final String newAccessToken) {
+    protected void onAccessTokenUpdated(final DevicePlugin plugin, final String newAccessToken) {
         mEventBroker.updateAccessTokenForPlugin(plugin.getPluginId(), newAccessToken);
     }
 
-    /**
-     * 実際の命令を行う.
-     * 
-     * 有効期限切れの場合には、アクセストークンを取得してから
-     * 再度リクエストを実行する。
-     * 
-     * @param accessToken アクセストークン
-     */
+    @Override
     protected void executeRequest(final String accessToken) {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
@@ -77,6 +69,7 @@ public class DeliveryRequest extends LocalOAuthRequest {
         if (accessToken != null) {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
+
         if (!forwardRequest(request)) {
             return;
         }

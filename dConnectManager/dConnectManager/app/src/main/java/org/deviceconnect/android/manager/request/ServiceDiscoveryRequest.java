@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -131,7 +132,6 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
                     try {
                         plugin.send(request);
                     } catch (MessagingException e) {
-                        e.printStackTrace();
                         mCountDownLatch.countDown();
                     }
                 }
@@ -146,6 +146,11 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             }
         }
 
+        // レスポンスの無かったプラグインのログを出力
+        if (BuildConfig.DEBUG) {
+            outputNotRespondedPlugins(mRequestCodeArray);
+        }
+
         // パラメータを設定する
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         mResponse.putExtra(IntentDConnectMessage.EXTRA_RESULT,
@@ -155,5 +160,20 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
         // レスポンスを返却する
         sendResponse(mResponse);
+    }
+
+    private void outputNotRespondedPlugins(final SparseArray<DevicePlugin> notRespondedPlugins) {
+        if (notRespondedPlugins.size() > 0) {
+            String notRespondedLog = "Not responded plug-in(s) for service discovery: \n";
+            for (int index = 0; index < notRespondedPlugins.size(); index++) {
+                DevicePlugin plugin = notRespondedPlugins.valueAt(index);
+                if (plugin != null) {
+                    notRespondedLog += " - " + plugin.getDeviceName() + "\n";
+                }
+            }
+            mLogger.warning(notRespondedLog);
+        } else {
+            mLogger.info("All plug-in(s) responded for service discovery.");
+        }
     }
 }

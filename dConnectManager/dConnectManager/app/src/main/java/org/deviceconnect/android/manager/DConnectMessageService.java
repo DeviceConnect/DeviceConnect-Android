@@ -183,7 +183,7 @@ public abstract class DConnectMessageService extends Service
             if (BuildConfig.DEBUG) {
                 mLogger.info("IDConnectCallback.sendMessage: from = " + getCallingPackage());
             }
-            handleMessage(message);
+            handleExternalMessage(message);
         }
     };
 
@@ -228,8 +228,7 @@ public abstract class DConnectMessageService extends Service
         LocalOAuth2Main.initialize(getApplicationContext());
 
         // DConnect設定
-        mSettings = DConnectSettings.getInstance();
-        mSettings.load(this);
+        mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         // ファイル管理クラス
         mFileMgr = new FileManager(this);
@@ -264,10 +263,6 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        if (!mRunningFlag) {
-            return START_NOT_STICKY;
-        }
-
         if (intent == null) {
             mLogger.warning("intent is null.");
             return START_STICKY;
@@ -279,11 +274,50 @@ public abstract class DConnectMessageService extends Service
             return START_STICKY;
         }
 
-        handleMessage(intent);
+        if (handleInternalMessage(intent)) {
+            return START_NOT_STICKY;
+        }
+
+        if (!mRunningFlag) {
+            return START_NOT_STICKY;
+        }
+
+        handleExternalMessage(intent);
         return START_STICKY;
     }
 
-    private void handleMessage(final Intent intent) {
+    private boolean handleInternalMessage(final Intent intent) {
+        String action = intent.getAction();
+        if (ACTION_ENABLE_PLUGIN.equals(action)) {
+            final DevicePlugin plugin = findPlugin(intent);
+            if (plugin != null) {
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        plugin.enable();
+                    }
+                });
+            }
+            return true;
+        } else if (ACTION_DISABLE_PLUGIN.equals(action)) {
+            final DevicePlugin plugin = findPlugin(intent);
+            if (plugin != null) {
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        plugin.disable();
+                    }
+                });
+            }
+            return true;
+        } else if (ACTION_OPEN_SETTINGS.equals(action)) {
+            openSettings(intent);
+            return true;
+        }
+        return false;
+    }
+
+    private void handleExternalMessage(final Intent intent) {
         String action = intent.getAction();
         String scheme = intent.getScheme();
         if (SCHEME_LAUNCH.equals(scheme)) {
@@ -304,28 +338,6 @@ public abstract class DConnectMessageService extends Service
         } else if (ACTION_PACKAGE_REMOVED.equals(action)) {
             String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
             mPluginManager.checkAndRemoveDevicePlugin(packageName);
-        } else if (ACTION_ENABLE_PLUGIN.equals(action)) {
-            final DevicePlugin plugin = findPlugin(intent);
-            if (plugin != null) {
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        plugin.enable();
-                    }
-                });
-            }
-        } else if (ACTION_DISABLE_PLUGIN.equals(action)) {
-            final DevicePlugin plugin = findPlugin(intent);
-            if (plugin != null) {
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        plugin.disable();
-                    }
-                });
-            }
-        } else if (ACTION_OPEN_SETTINGS.equals(action)) {
-            openSettings(intent);
         }
     }
 

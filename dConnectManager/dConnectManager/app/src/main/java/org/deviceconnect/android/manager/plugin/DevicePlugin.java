@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.format.DateFormat;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
@@ -20,7 +21,7 @@ import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -47,6 +48,10 @@ public class DevicePlugin {
                          final DevicePluginSetting setting) {
         mInfo = info;
         mSetting = setting;
+
+        mInfo.mAverageBaudRate = mSetting.getAverageBaudRate();
+        mInfo.mWorstBaudRate = mSetting.getWorstBaudRate();
+        mInfo.mWorstBaudRateRequest = mSetting.getWorstRequest();
     }
 
     /**
@@ -112,14 +117,6 @@ public class DevicePlugin {
     public String getDeviceName() {
         return mInfo.mDeviceName;
     }
-    
-    /**
-     * Get a class name of service for restart.
-     * @return class name or null if there are no service for restart
-     */
-    public String getStartServiceClassName() {
-        return mInfo.mStartServiceClassName;
-    }
 
     /**
      * デバイスプラグインがサポートするプロファイルの一覧を取得する.
@@ -135,12 +132,72 @@ public class DevicePlugin {
         return result;
     }
 
-    public boolean isSamePlugin(final DevicePlugin plugin) {
-        return mInfo.getPluginXml().isSamePlugin(plugin.mInfo.getPluginXml());
+    /**
+     * 通信速度を保持します.
+     * @param request 通信を行ったリクエスト
+     * @param baudRate 通信時間
+     */
+    public void addBaudRate(final Intent request, final long baudRate) {
+        long averageBaudRate = getAverageBaudRate();
+        long worstBaudRate = getWorstBaudRate();
+        String path = DConnectUtil.convertRequestToString(request);
+        if (averageBaudRate == 0) {
+            setAverageBaudRate(baudRate);
+        } else {
+            setAverageBaudRate((baudRate + averageBaudRate) / 2);
+        }
+        if (worstBaudRate < baudRate) {
+            setWorstBaudRate(baudRate);
+            setWorstBaudRateRequest(path);
+        }
+
+        mInfo.mBaudRates.add(new BaudRate(path, baudRate, System.currentTimeMillis()));
+        if (mInfo.mBaudRates.size() > 10) {
+            mInfo.mBaudRates.remove(0);
+        }
     }
 
-    public Map<String, DevicePluginXmlProfile> getSupportProfiles() {
-        return new HashMap<>(mInfo.getSupportedProfiles());
+    /**
+     * 平均通信速度を取得します.
+     * @return 平均の通信速度
+     */
+    private long getAverageBaudRate() {
+        return mInfo.mAverageBaudRate;
+    }
+
+    /**
+     * 平均の通信速度を設定します.
+     * @param averageBaudRate 平均の通信速度
+     */
+    private void setAverageBaudRate(final long averageBaudRate) {
+        mInfo.mAverageBaudRate = averageBaudRate;
+        mSetting.setAverageBaudRate(averageBaudRate);
+    }
+
+    /**
+     * 最遅通信速度を取得します.
+     * @return 最遅通信速度
+     */
+    private long getWorstBaudRate() {
+        return mInfo.mWorstBaudRate;
+    }
+
+    /**
+     * 最遅通信速度を設定します.
+     * @param worstBaudRate 最遅通信速度
+     */
+    private void setWorstBaudRate(final long worstBaudRate) {
+        mInfo.mWorstBaudRate = worstBaudRate;
+        mSetting.setWorstBaudRate(worstBaudRate);
+    }
+
+    /**
+     * 最遅通信速度のリクエストを設定します.
+     * @param worstBaudRateRequest 最遅通信速度のリクエスト
+     */
+    private void setWorstBaudRateRequest(final String worstBaudRateRequest) {
+        mInfo.mWorstBaudRateRequest = worstBaudRateRequest;
+        mSetting.setWorstRequest(worstBaudRateRequest);
     }
 
     /**
@@ -227,7 +284,7 @@ public class DevicePlugin {
      * プラグイン有効状態を設定する.
      * @param isEnabled プラグイン有効状態
      */
-    private void setEnabled(final boolean isEnabled) {
+    public void setEnabled(final boolean isEnabled) {
         mSetting.setEnabled(isEnabled);
     }
 
@@ -385,11 +442,6 @@ public class DevicePlugin {
             return this;
         }
 
-        Builder setStartServiceClassName(final String startServiceClassName) {
-            mInfo.mStartServiceClassName = startServiceClassName;
-            return this;
-        }
-
         Builder setVersionName(final String versionName) {
             mInfo.mVersionName = versionName;
             return this;
@@ -447,8 +499,6 @@ public class DevicePlugin {
         private String mPackageName;
         /** マネージャからのメッセージを受信するJavaクラス名. */
         private String mClassName;
-        /** Class name of service for restart. */
-        private String mStartServiceClassName;
         /** デバイスプラグインのバージョン名. */
         private String mVersionName;
         /** プラグインSDKバージョン名. */
@@ -462,6 +512,26 @@ public class DevicePlugin {
         /** 接続タイプ. */
         private ConnectionType mConnectionType;
 
+        /**
+         * 平均の通信速度.
+         */
+        private long mAverageBaudRate;
+
+        /**
+         * 最遅の通信速度.
+         */
+        private long mWorstBaudRate;
+
+        /**
+         * 最遅通信のリクエスト.
+         */
+        private String mWorstBaudRateRequest = "None";
+
+        /**
+         * 通信履歴.
+         */
+        private List<BaudRate> mBaudRates = new LinkedList<>();
+
         public int getPluginXmlId() {
             return mPluginXml.getResourceId();
         }
@@ -472,10 +542,6 @@ public class DevicePlugin {
 
         public String getClassName() {
             return mClassName;
-        }
-
-        public String getStartServiceClassName() {
-            return mStartServiceClassName;
         }
 
         public String getVersionName() {
@@ -510,6 +576,38 @@ public class DevicePlugin {
             return mConnectionType;
         }
 
+        /**
+         * 平均通信速度を取得します.
+         * @return 平均通信速度
+         */
+        public long getAverageBaudRate() {
+            return mAverageBaudRate;
+        }
+
+        /**
+         * 最遅通信速度を取得します.
+         * @return 最遅通信速度
+         */
+        public long getWorstBaudRate() {
+            return mWorstBaudRate;
+        }
+
+        /**
+         * 最遅通信のリクエストを取得します.
+         * @return 最遅通信のリクエスト
+         */
+        public String getWorstBaudRateRequest() {
+            return mWorstBaudRateRequest;
+        }
+
+        /**
+         * 通信履歴を取得します.
+         * @return 通信履歴
+         */
+        public List<BaudRate> getBaudRates() {
+            return mBaudRates;
+        }
+
         @Override
         public int describeContents() {
             return 0;
@@ -520,13 +618,21 @@ public class DevicePlugin {
             dest.writeParcelable(this.mPluginXml, flags);
             dest.writeString(this.mPackageName);
             dest.writeString(this.mClassName);
-            dest.writeString(this.mStartServiceClassName);
             dest.writeString(this.mVersionName);
             dest.writeParcelable(this.mPluginSdkVersionName, flags);
             dest.writeString(this.mPluginId);
             dest.writeString(this.mDeviceName);
             dest.writeValue(this.mPluginIconId);
             dest.writeInt(this.mConnectionType == null ? -1 : this.mConnectionType.ordinal());
+            dest.writeLong(this.mAverageBaudRate);
+            dest.writeString(this.mWorstBaudRateRequest);
+            dest.writeLong(this.mWorstBaudRate);
+            dest.writeInt(this.mBaudRates.size());
+            for (int i = 0; i < mBaudRates.size(); i++) {
+                dest.writeString(mBaudRates.get(i).getRequest());
+                dest.writeLong(mBaudRates.get(i).getBaudRate());
+                dest.writeLong(mBaudRates.get(i).getDate());
+            }
         }
 
         public Info() {
@@ -536,7 +642,6 @@ public class DevicePlugin {
             this.mPluginXml = in.readParcelable(DevicePluginXml.class.getClassLoader());
             this.mPackageName = in.readString();
             this.mClassName = in.readString();
-            this.mStartServiceClassName = in.readString();
             this.mVersionName = in.readString();
             this.mPluginSdkVersionName = in.readParcelable(VersionName.class.getClassLoader());
             this.mPluginId = in.readString();
@@ -544,6 +649,16 @@ public class DevicePlugin {
             this.mPluginIconId = (Integer) in.readValue(Integer.class.getClassLoader());
             int tmpMConnectionType = in.readInt();
             this.mConnectionType = tmpMConnectionType == -1 ? null : ConnectionType.values()[tmpMConnectionType];
+            this.mAverageBaudRate = in.readLong();
+            this.mWorstBaudRateRequest = in.readString();
+            this.mWorstBaudRate = in.readLong();
+            int size = in.readInt();
+            for (int i = 0; i < size; i++) {
+                String request = in.readString();
+                long baudRate = in.readLong();
+                long date = in.readLong();
+                mBaudRates.add(new BaudRate(request, baudRate, date));
+            }
         }
 
         public static final Creator<Info> CREATOR = new Creator<Info>() {
@@ -557,5 +672,68 @@ public class DevicePlugin {
                 return new Info[size];
             }
         };
+    }
+
+    /**
+     * 通信履歴.
+     */
+    public static class BaudRate {
+        /**
+         * 通信するリクエストのパス.
+         */
+        String mRequest;
+
+        /**
+         * 通信時間.
+         */
+        long mBaudRate;
+
+        /**
+         * 通信日付.
+         */
+        long mDate;
+
+        /**
+         * 通信履歴.
+         * @param request リクエストのパス
+         * @param baudRate 通信時間
+         */
+        BaudRate(final String request, final long baudRate, final long date) {
+            mRequest = request;
+            mBaudRate = baudRate;
+            mDate = date;
+        }
+
+        /**
+         * リクエストのパスを取得します.
+         * @return リクエストのパス
+         */
+        public String getRequest() {
+            return mRequest;
+        }
+
+        /**
+         * 通信時間を取得します.
+         * @return 通信時間
+         */
+        public long getBaudRate() {
+            return mBaudRate;
+        }
+
+        /**
+         * 日付を取得します.
+         * @return 日付
+         */
+        public long getDate() {
+            return mDate;
+        }
+
+        /**
+         * 日付の文字列を取得します.
+         * @return 日付
+         */
+        public String getDateString() {
+            return DateFormat.format("yyyy/MM/dd kk:mm:ss", mDate).toString();
+        }
     }
 }

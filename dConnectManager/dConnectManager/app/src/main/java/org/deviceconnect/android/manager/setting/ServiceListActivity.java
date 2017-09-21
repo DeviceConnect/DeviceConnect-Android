@@ -15,6 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.res.ResourcesCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,6 +32,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
@@ -54,13 +56,20 @@ import java.util.List;
  */
 public class ServiceListActivity extends BaseSettingActivity implements AlertDialogFragment.OnAlertDialogListener {
 
+    /**
+     * デバッグフラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * デバッグ用タグ.
+     */
     private static final String TAG = "Manager";
 
     /**
-     * サービスがオフラインの時に表示するダイアログのタグ名を定義する.
+     * プラグイン設定画面を開くか確認するダイアログのタグ名を定義する.
      */
-    private static final String TAG_OFFLINE = "offline";
+    private static final String TAG_OPEN_PLUGIN_SETTING = "open_plugin_setting";
 
     /**
      * ガイド用の設定を保存するファイル名を定義する.
@@ -125,8 +134,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
 
-        mSettings = DConnectSettings.getInstance();
-        mSettings.load(this);
+        mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         if (loadGuideSettings(this)) {
             startGuide();
@@ -147,6 +155,13 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                         @Override
                         public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                             openServiceInfo(position);
+                        }
+                    });
+                    gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                        @Override
+                        public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                            openPluginSetting(position);
+                            return true;
                         }
                     });
                 }
@@ -188,6 +203,8 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
         mSwitchAction = (Switch) menu.findItem(R.id.activity_service_manager_power).getActionView();
         if (mSwitchAction != null) {
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            mSwitchAction.setPadding((int)(12 * metrics.density), 0, (int)(12 * metrics.density), 0);
             mSwitchAction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
@@ -219,7 +236,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
     @Override
     public void onPositiveButton(final String tag) {
-        if (TAG_OFFLINE.equals(tag)) {
+        if (TAG_OPEN_PLUGIN_SETTING.equals(tag)) {
             openPluginSettings();
         }
     }
@@ -281,12 +298,14 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         }
 
         Button button = (Button) findViewById(R.id.activity_service_guide_button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                nextGuide();
-            }
-        });
+        if (button != null) {
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    nextGuide();
+                }
+            });
+        }
     }
 
     /**
@@ -325,15 +344,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private void visibleGuide() {
         for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
             View view = findViewById(GUIDE_ID_LIST[i]);
-            if (i == mPageIndex) {
-                view.setVisibility(View.VISIBLE);
-                AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
-                    @Override
-                    public void onAnimationEnd(final Animator animation) {
-                    }
-                });
-            } else {
-                view.setVisibility(View.GONE);
+            if (view != null) {
+                if (i == mPageIndex) {
+                    view.setVisibility(View.VISIBLE);
+                    AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
+                        @Override
+                        public void onAnimationEnd(final Animator animation) {
+                        }
+                    });
+                } else {
+                    view.setVisibility(View.GONE);
+                }
             }
         }
     }
@@ -420,7 +441,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             return;
         }
 
-        mServiceDiscovery = new ServiceDiscovery(this) {
+        mServiceDiscovery = new ServiceDiscovery(this, mSettings) {
             private DialogFragment mDialog;
 
             @Override
@@ -482,25 +503,56 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
     /**
      * サービスの確認画面を開く.
-     * @param position 開くサービスの
+     * @param position 開くサービスの紐付いているポジション
      */
     private void openServiceInfo(final int position) {
         mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
-        if (mSelectedService.isOnline()) {
-            String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
-            Intent intent = new Intent();
-            intent.setClass(this, WebViewActivity.class);
-            intent.putExtra(WebViewActivity.EXTRA_URL, url);
-            intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
-            startActivity(intent);
-        } else {
-            String title = getString(R.string.activity_service_list_offline_title);
-            String message = getString(R.string.activity_service_list_offline_message, mSelectedService.getName());
-            String positive = getString(R.string.activity_service_list_offline_positive);
-            String negative = getString(R.string.activity_service_list_offline_negative);
-            AlertDialogFragment dialog = AlertDialogFragment.create(TAG_OFFLINE, title, message, positive, negative);
-            dialog.show(getFragmentManager(), TAG_OFFLINE);
+
+        DevicePlugin plugin = findDevice(mSelectedService.getId());
+        if (plugin == null) {
+            return;
         }
+
+        String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
+        Intent intent = new Intent();
+        intent.setClass(this, WebViewActivity.class);
+        intent.putExtra(WebViewActivity.EXTRA_URL, url);
+        intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
+        intent.putExtra(WebViewActivity.EXTRA_SERVICE_ID, mSelectedService.getId());
+        intent.putExtra(WebViewActivity.EXTRA_PLUGIN_ID, plugin.getPluginId());
+        startActivity(intent);
+    }
+
+    /**
+     * 指定されたサービスIDに対応したプラグインを取得します
+     * @param serviceId サービスID
+     * @return プラグイン
+     */
+    private DevicePlugin findDevice(final String serviceId) {
+        DevicePluginManager manager = getPluginManager();
+        if (manager != null) {
+            for (DevicePlugin plugin : manager.getDevicePlugins()) {
+                if (serviceId.contains(plugin.getPluginId())) {
+                    return plugin;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * プラグインの設定画面を開く確認ダイアログを表示する.
+     * @param position プラグインの位置
+     */
+    private void openPluginSetting(final int position) {
+        mSelectedService = (ServiceContainer) mServiceAdapter.getItem(position);
+
+        String title = getString(R.string.activity_service_list_plugin_setting_title);
+        String message = getString(R.string.activity_service_list_plugin_setting_message);
+        String positive = getString(R.string.activity_service_list_plugin_setting_positive);
+        String negative = getString(R.string.activity_service_list_plugin_setting_negative);
+        AlertDialogFragment dialog = AlertDialogFragment.create(TAG_OPEN_PLUGIN_SETTING, title, message, positive, negative);
+        dialog.show(getFragmentManager(), TAG_OPEN_PLUGIN_SETTING);
     }
 
     /**
@@ -541,21 +593,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 break;
             }
         }
-    }
-
-    /**
-     * 指定されたサービスのパッケージ名を取得する.
-     * @param serviceId サービスID
-     * @return パッケージ名
-     */
-    private String getPackageName(final String serviceId) {
-        List<DevicePlugin> list = getPluginManager().getDevicePlugins();
-        for (DevicePlugin plugin : list) {
-            if (serviceId.contains(plugin.getPluginId())) {
-                return plugin.getPackageName();
-            }
-        }
-        return null;
     }
 
     /**

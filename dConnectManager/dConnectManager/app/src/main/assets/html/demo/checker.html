@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="css/checker.css" type="text/css" />
 
     <script id="command" type="text/x-template">
-        <label for="{#nav}" onclick="return onToggleIcon(this, '{#nav}')">
+        <label for="{#nav}" onclick="return onToggleIcon(this, '{#nav}')" style="animation-delay: {#delay}s;">
             {#title}
             <img class="minus" src="images/icon_minus.png">
             <img class="plus" src="images/icon_plus.png">
         </label>
         <input type="checkbox" id="{#nav}" class="bellows" />
-        <div class="ac_content">
+        <div class="ac_content" style="animation-delay: {#delay}s;">
             {#content}
         </div>
     </script>
@@ -139,6 +139,7 @@
             </tr>
         </table>
     </script>
+
     <script id="request" type="text/x-template">
         <div class="request">
             <span>リクエスト</span>
@@ -163,7 +164,7 @@
     <script type="text/javascript" src="js/dconnectsdk-2.2.0.js"></script>
     <script type="text/javascript" src="js/util.js"></script>
     <script type="text/javascript" src="js/checker.js"></script>
-    <title>デバイス確認画面</title>
+    <title>サービス確認画面</title>
 </head>
 <body onload="main.init()">
 <div id="main" class="ac_menu"></div>

@@ -50,6 +50,11 @@ public enum ConnectionError {
      *
      * 接続処理が完了する前に内部的なエラーが発生したため、接続処理を中断した.
      */
-    INTERNAL_ERROR
+    INTERNAL_ERROR,
+
+    /**
+     * タイムアウトが発生することがある.
+     */
+    TIMEOUT
 
 }

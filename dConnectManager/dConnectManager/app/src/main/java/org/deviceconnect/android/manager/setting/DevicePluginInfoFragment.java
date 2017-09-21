@@ -34,6 +34,7 @@ import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.DevicePluginReport;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -174,23 +175,25 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         updateErrorState(error);
 
         if (BuildConfig.DEBUG) {
+            DevicePluginReport report = plugin.getReport();
+
             View baud = view.findViewById(R.id.activity_deviceplugin_info_baud_rate);
             baud.setVisibility(View.VISIBLE);
 
             TextView average = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_average_baud_rate);
-            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getAverageBaudRate()));
+            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, report.getAverageBaudRate()));
 
             TextView request = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_request);
-            request.setText(mPluginInfo.getWorstBaudRateRequest());
+            request.setText(report.getWorstBaudRateRequest());
 
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
-            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getWorstBaudRate()));
+            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, report.getWorstBaudRate()));
 
             LayoutInflater inflater = getLayoutInflater(null);
 
             LinearLayout layout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
-            for (int i = mPluginInfo.getBaudRates().size() - 1; i >= 0 ; i--) {
-                DevicePlugin.BaudRate b = mPluginInfo.getBaudRates().get(i);
+            for (int i = report.getBaudRates().size() - 1; i >= 0 ; i--) {
+                DevicePluginReport.BaudRate b = report.getBaudRates().get(i);
 
                 View v = inflater.inflate(R.layout.item_baud_rate_list, null);
                 TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);

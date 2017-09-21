@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -68,6 +67,10 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             return;
         }
 
+        DevicePlugin plugin = mRequestCodeArray.get(requestCode);
+        plugin.clearServiceDiscoveryTimeout();
+        mRequestCodeArray.remove(requestCode);
+
         // エラーが返ってきた場合には、サービスには登録しない。
         int result = response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1);
         if (result == IntentDConnectMessage.RESULT_OK) {
@@ -75,14 +78,12 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             Parcelable[] services = response.getParcelableArrayExtra(
                     ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             if (services != null) {
-                DevicePlugin plugin = mRequestCodeArray.get(requestCode);
                 for (Parcelable p : services) {
                     Bundle b = (Bundle) p;
                     String id = b.getString(ServiceDiscoveryProfile.PARAM_ID);
                     b.putString(ServiceDiscoveryProfile.PARAM_ID, mPluginMgr.appendServiceId(plugin, id));
                     mServices.add(b);
                 }
-                mRequestCodeArray.remove(requestCode);
             }
         }
 
@@ -147,9 +148,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         }
 
         // レスポンスの無かったプラグインのログを出力
-        if (BuildConfig.DEBUG) {
-            outputNotRespondedPlugins(mRequestCodeArray);
-        }
+        outputNotRespondedPlugins(mRequestCodeArray);
 
         // パラメータを設定する
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
@@ -168,6 +167,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             for (int index = 0; index < notRespondedPlugins.size(); index++) {
                 DevicePlugin plugin = notRespondedPlugins.valueAt(index);
                 if (plugin != null) {
+                    plugin.reportServiceDiscoveryTimeout(mRequest);
                     notRespondedLog += " - " + plugin.getDeviceName() + "\n";
                 }
             }

@@ -53,6 +53,9 @@ public class ConnectionErrorView extends LinearLayout {
                 case INTERNAL_ERROR:
                     messageId = R.string.dconnect_error_connection_internal_error;
                     break;
+                case TIMEOUT:
+                    messageId = R.string.dconnect_error_service_discovery_timeout;
+                    break;
                 default:
                     break;
             }

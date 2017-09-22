@@ -69,7 +69,7 @@ public class PrefUtil {
      * Set B Route Password.
      * @param bRoutePass B Route Password.
      */
-    public void setKeyBRoutePass(final String bRoutePass) {
+    public void setBRoutePass(final String bRoutePass) {
         putValue(KEY_B_ROUTE_PASS, bRoutePass);
     }
 
@@ -77,7 +77,7 @@ public class PrefUtil {
      * Set Access IPv6 Address.
      * @param accessIpv6 IPv6 Address.
      */
-    public void setKeyAccessIpv6(final String accessIpv6) {
+    public void setAccessIpv6(final String accessIpv6) {
         putValue(KEY_ACCESS_IPV6, accessIpv6);
     }
 

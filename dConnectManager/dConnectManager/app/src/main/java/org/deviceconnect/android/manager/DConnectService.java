@@ -72,6 +72,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
     /** RESTfulサーバ. */
     private DConnectServer mRESTfulServer;
 
+    /** RESTfulサーバのインスタンスへのアクセスについて同期をとるオブジェクト. */
+    private final Object mRESTfulServerLock = new Object();
+
     /** RESTfulサーバからのイベントを受領するリスナー. */
     private DConnectServerEventListenerImpl mWebServerListener;
 
@@ -109,6 +112,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         mWebSocketInfoManager.addOnWebSocketEventListener(this);
 
         mKeepAliveManager = new KeepAliveManager(this, mEventSessionTable);
+        mKeepAliveManager.setKeepAliveFunction(mSettings.isEnableKeepAlive());
         mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
             @Override
             public void onPutEventSession(final Intent request, final DevicePlugin plugin) {
@@ -236,40 +240,66 @@ public class DConnectService extends DConnectMessageService implements WebSocket
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            mEventSender.execute(new Runnable() {
-                @Override
-                public void run() {
-                    String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
-                    if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                        WebSocketInfo info = getWebSocketInfo(key);
-                        if (info == null) {
-                            mLogger.warning("sendMessage: webSocket is not found: key = " + key);
-                            return;
-                        }
-
-                        try {
-                            if (BuildConfig.DEBUG) {
-                                mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
-                            }
-                            JSONObject root = new JSONObject();
-                            DConnectUtil.convertBundleToJSON(getSettings(), root, event.getExtras());
-                            DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
-                            if (webSocket != null && mRESTfulServer.isRunning()) {
-                                webSocket.sendMessage(root.toString());
-                            } else {
-                                if (mWebServerListener != null) {
-                                    mWebServerListener.onWebSocketDisconnected(webSocket);
-                                }
-                            }
-                        } catch (JSONException e) {
-                            mLogger.warning("JSONException in sendMessage: " + e.toString());
-                        }
+            if (isCurrentUIThread()) {
+                mEventSender.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendEventToWebSocket(event);
                     }
-                }
-            });
+                });
+            } else {
+                sendEventToWebSocket(event);
+            }
         } else {
             super.sendEvent(receiver, event);
         }
+    }
+
+    /**
+     * WebSocketにイベントを送信します.
+     *
+     * @param event イベントを格納したIntent
+     */
+    private void sendEventToWebSocket(final Intent event) {
+        String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
+        if (key == null) {
+            mLogger.warning("sendMessage: key is not specified.");
+            return;
+        }
+        synchronized (mRESTfulServerLock) {
+            if (mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                WebSocketInfo info = getWebSocketInfo(key);
+                if (info == null) {
+                    mLogger.warning("sendMessage: webSocket is not found: key = " + key);
+                    return;
+                }
+                try {
+                    DConnectWebSocket webSocket = mRESTfulServer.getWebSocket(info.getRawId());
+                    if (webSocket != null) {
+                        JSONObject root = new JSONObject();
+                        DConnectUtil.convertBundleToJSON(getSettings(), root, event.getExtras());
+                        webSocket.sendMessage(root.toString());
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
+                        }
+                    } else {
+                        if (mWebServerListener != null) {
+                            mWebServerListener.onWebSocketDisconnected(webSocket);
+                        }
+                    }
+                } catch (JSONException e) {
+                    mLogger.warning("JSONException in sendMessage: " + e.toString());
+                }
+            }
+        }
+    }
+
+    /**
+     * 現在のスレッドがUIスレッドか判定します.
+     * @return UIスレッドの場合はtrue、それ以外の場合はfalse
+     */
+    private boolean isCurrentUIThread() {
+        return Thread.currentThread().equals(getMainLooper().getThread());
     }
 
     /**
@@ -342,7 +372,13 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                     acquireWakeLock();
                 }
 
-                mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this);
+                mWebServerListener = new DConnectServerEventListenerImpl(DConnectService.this) {
+                    @Override
+                    public void onServerLaunched() {
+                        super.onServerLaunched();
+                        mRunningFlag = true;
+                    }
+                };
                 mWebServerListener.setFileManager(mFileMgr);
 
                 DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
@@ -363,13 +399,13 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                     mLogger.info("DConnectSettings: " + mSettings.toString());
                 }
 
-                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
-                mRESTfulServer.setServerEventListener(mWebServerListener);
-                mRESTfulServer.start();
-
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mWiFiReceiver, filter);
+
+                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
+                mRESTfulServer.setServerEventListener(mWebServerListener);
+                mRESTfulServer.start();
             }
         });
     }
@@ -383,10 +419,12 @@ public class DConnectService extends DConnectMessageService implements WebSocket
             public void run() {
                 releaseWakeLock();
 
-                if (mRESTfulServer != null) {
-                    unregisterReceiver(mWiFiReceiver);
-                    mRESTfulServer.shutdown();
-                    mRESTfulServer = null;
+                synchronized (mRESTfulServerLock) {
+                    if (mRESTfulServer != null) {
+                        unregisterReceiver(mWiFiReceiver);
+                        mRESTfulServer.shutdown();
+                        mRESTfulServer = null;
+                    }
                 }
 
                 if (BuildConfig.DEBUG) {
@@ -401,7 +439,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     public synchronized void startInternal() {
         if (!mRunningFlag) {
-            mRunningFlag = true;
             startDConnect();
             startRESTfulServer();
         }

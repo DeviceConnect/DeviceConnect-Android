@@ -1,6 +1,8 @@
 
 var main = (function(parent, global) {
 
+    var delay = 0;
+
     function init() {
         util.init(function(name, json) {
             createSupportApis(json);
@@ -346,8 +348,10 @@ var main = (function(parent, global) {
         var data = {
             'title': method.toUpperCase() + ' ' + createDConnectPath(basePath, path),
             'nav' : method + '_' + path,
-            'content' : createParameter(method, basePath, path, param['x-type'], param.parameters)
+            'content' : createParameter(method, basePath, path, param['x-type'], param.parameters),
+            'delay' : delay
         };
+        delay += 0.1;
         return util.createTemplate('command', data);
     }
 

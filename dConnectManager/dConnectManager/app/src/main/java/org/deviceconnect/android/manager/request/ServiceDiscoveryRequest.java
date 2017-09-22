@@ -68,7 +68,6 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         }
 
         DevicePlugin plugin = mRequestCodeArray.get(requestCode);
-        plugin.clearServiceDiscoveryTimeout();
         mRequestCodeArray.remove(requestCode);
 
         // エラーが返ってきた場合には、サービスには登録しない。
@@ -114,6 +113,8 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             mExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
+                    // TODO: DiscoveryRequestForPlugin オブジェクトで実行するようにする.
+
                     // 送信用のIntentを作成
                     final Intent request = createRequestMessage(mRequest, null);
 
@@ -167,13 +168,19 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             for (int index = 0; index < notRespondedPlugins.size(); index++) {
                 DevicePlugin plugin = notRespondedPlugins.valueAt(index);
                 if (plugin != null) {
-                    plugin.reportServiceDiscoveryTimeout(mRequest);
                     notRespondedLog += " - " + plugin.getDeviceName() + "\n";
                 }
             }
             mLogger.warning(notRespondedLog);
         } else {
             mLogger.info("All plug-in(s) responded for service discovery.");
+        }
+    }
+
+    private static class DiscoveryRequestForPlugin extends DConnectPluginRequest {
+
+        @Override
+        public void run() {
         }
     }
 }

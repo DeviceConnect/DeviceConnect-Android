@@ -34,7 +34,7 @@ import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
-import org.deviceconnect.android.manager.plugin.DevicePluginReport;
+import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -84,7 +84,6 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         mPluginInfo = plugin.getInfo();
 
         boolean isEnabled = plugin.isEnabled();
-        ConnectionError error = plugin.getCurrentConnectionError();
 
         String packageName = mPluginInfo.getPackageName();
         Integer iconId = mPluginInfo.getPluginIconId();
@@ -172,35 +171,37 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         }
 
         mErrorView = (ConnectionErrorView) view.findViewById(R.id.plugin_connection_error_view);
-        updateErrorState(error);
+        mErrorView.showErrorMessage(plugin);
 
         if (BuildConfig.DEBUG) {
-            DevicePluginReport report = plugin.getReport();
+            CommunicationHistory history = plugin.getHistory();
 
             View baud = view.findViewById(R.id.activity_deviceplugin_info_baud_rate);
             baud.setVisibility(View.VISIBLE);
 
             TextView average = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_average_baud_rate);
-            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, report.getAverageBaudRate()));
+            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getAverageBaudRate()));
 
             TextView request = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_request);
-            request.setText(report.getWorstBaudRateRequest());
+            request.setText(history.getWorstBaudRateRequest());
 
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
-            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, report.getWorstBaudRate()));
+            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getWorstBaudRate()));
 
             LayoutInflater inflater = getLayoutInflater(null);
 
             LinearLayout layout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
-            for (int i = report.getBaudRates().size() - 1; i >= 0 ; i--) {
-                DevicePluginReport.BaudRate b = report.getBaudRates().get(i);
+            layout.removeAllViews();
+            List<CommunicationHistory.Info> list = history.getRespondedCommunications();
+            for (int i = list.size() - 1; i >= 0 ; i--) {
+                CommunicationHistory.Info b = list.get(i);
 
                 View v = inflater.inflate(R.layout.item_baud_rate_list, null);
                 TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);
                 br.setText(b.getRequest());
 
                 TextView bb = (TextView) v.findViewById(R.id.activity_deviceplugin_info_baud_rate);
-                bb.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, b.getBaudRate()));
+                bb.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, b.getRoundTripTime()));
 
                 TextView d = (TextView) v.findViewById(R.id.activity_deviceplugin_info_date);
                 d.setText(b.getDateString());

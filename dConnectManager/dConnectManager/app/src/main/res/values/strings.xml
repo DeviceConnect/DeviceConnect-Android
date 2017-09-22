@@ -205,7 +205,7 @@
     <string name="dconnect_error_connection_timeout">Connection was failed due to timeout.</string>
     <string name="dconnect_error_connection_terminated">Connection was terminated.</string>
     <string name="dconnect_error_connection_internal_error">Connection was failed due to internal error.</string>
-    <string name="dconnect_error_service_discovery_timeout">Response timeout happened.</string>
+    <string name="dconnect_error_response_timeout">Response timeout happened.</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

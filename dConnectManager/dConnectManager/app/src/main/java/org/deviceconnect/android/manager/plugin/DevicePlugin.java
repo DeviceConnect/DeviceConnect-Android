@@ -15,6 +15,7 @@ import android.os.Parcelable;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -38,7 +39,7 @@ public class DevicePlugin {
     /** デバイスプラグイン設定. */
     private final DevicePluginSetting mSetting;
     /** デバイスプラグイン統計レポート. */
-    private final DevicePluginReport mReport;
+    private final CommunicationHistory mReport;
     /** 接続管理クラス. */
     private Connection mConnection;
     /** ロガー. */
@@ -46,7 +47,7 @@ public class DevicePlugin {
 
     private DevicePlugin(final Info info,
                          final DevicePluginSetting setting,
-                         final DevicePluginReport report) {
+                         final CommunicationHistory report) {
         mInfo = info;
         mSetting = setting;
         mReport = report;
@@ -73,7 +74,7 @@ public class DevicePlugin {
      * デバイスプラグイン統計データを取得する.
      * @return デバイスプラグイン統計データ
      */
-    public DevicePluginReport getReport() {
+    public CommunicationHistory getHistory() {
         return mReport;
     }
 
@@ -139,53 +140,40 @@ public class DevicePlugin {
         return result;
     }
 
-    /**
-     * サービス検索タイムアウトを記録する.
-     * @param request タイムアウトの発生したリクエスト
-     */
-    public void reportServiceDiscoveryTimeout(final Intent request) {
+    public void reportRoundTrip(final Intent request, final long start, final long end) {
         String path = DConnectUtil.convertRequestToString(request);
-        mReport.addServiceDiscoveryTimeout(path);
+        CommunicationHistory.Info info = new CommunicationHistory.Info(path, start, end);
+        mReport.add(info);
+
+        // 統計を取る.
+        if (calculatesStats()) {
+            mLogger.info("Plug-in PackageName: " + getPackageName());
+            mLogger.info("Request: " + DConnectUtil.convertRequestToString(request));
+            mLogger.info("ResponseTime: " + (end - start));
+
+            long baudRate = info.getRoundTripTime();
+            long averageBaudRate = getAverageBaudRate();
+            long worstBaudRate = getWorstBaudRate();
+            if (averageBaudRate == 0) {
+                setAverageBaudRate(baudRate);
+            } else {
+                setAverageBaudRate((baudRate + averageBaudRate) / 2);
+            }
+            if (worstBaudRate < baudRate) {
+                setWorstBaudRate(baudRate);
+                setWorstBaudRateRequest(path);
+            }
+        }
     }
 
-    /**
-     * サービス検索タイムアウトの履歴があるかどうかを確認する.
-     * @return ある場合は<code>true</code>、そうでない場合は<code>false</code>
-     */
-    public boolean hasServiceDiscoveryTimeout() {
-        return mReport.getServiceDiscoveryTimeoutList().size() > 0;
+    private boolean calculatesStats() {
+        return BuildConfig.DEBUG;
     }
 
-    /**
-     * サービス検索タイムアウトの履歴を全削除する.
-     */
-    public void clearServiceDiscoveryTimeout() {
-        mReport.clearServiceDiscoveryTimeoutList();
-    }
-
-    /**
-     * 通信速度を保持します.
-     * @param request 通信を行ったリクエスト
-     * @param baudRate 通信時間
-     */
-    public void addBaudRate(final Intent request, final long baudRate) {
-        long averageBaudRate = getAverageBaudRate();
-        long worstBaudRate = getWorstBaudRate();
+    public void reportResponseTimeout(final Intent request, final long start) {
         String path = DConnectUtil.convertRequestToString(request);
-        if (averageBaudRate == 0) {
-            setAverageBaudRate(baudRate);
-        } else {
-            setAverageBaudRate((baudRate + averageBaudRate) / 2);
-        }
-        if (worstBaudRate < baudRate) {
-            setWorstBaudRate(baudRate);
-            setWorstBaudRateRequest(path);
-        }
-
-        mReport.mBaudRates.add(new DevicePluginReport.BaudRate(path, baudRate, System.currentTimeMillis()));
-        if (mReport.mBaudRates.size() > 10) {
-            mReport.mBaudRates.remove(0);
-        }
+        CommunicationHistory.Info info = new CommunicationHistory.Info(path, start);
+        mReport.add(info);
     }
 
     /**
@@ -273,14 +261,7 @@ public class DevicePlugin {
         if (connection == null) {
             return null;
         }
-        ConnectionError error = connection.getCurrentError();
-        if (error != null) {
-            return error;
-        }
-        if (hasServiceDiscoveryTimeout()) {
-            return ConnectionError.TIMEOUT;
-        }
-        return null;
+        return connection.getCurrentError();
     }
 
     /**
@@ -519,7 +500,7 @@ public class DevicePlugin {
         DevicePlugin build() {
             String pluginId = mInfo.mPluginId;
             DevicePluginSetting setting = new DevicePluginSetting(mContext, pluginId);
-            DevicePluginReport report = new DevicePluginReport(mContext, pluginId);
+            CommunicationHistory report = new CommunicationHistory(mContext, pluginId);
             return new DevicePlugin(mInfo, setting, report);
         }
     }

@@ -205,7 +205,7 @@
     <string name="dconnect_error_connection_timeout">接続がタイムアウトしました。</string>
     <string name="dconnect_error_connection_terminated">接続が切断されました。</string>
     <string name="dconnect_error_connection_internal_error">内部エラーにより接続失敗。</string>
-    <string name="dconnect_error_service_discovery_timeout">サービス検索でタイムアウト発生。</string>
+    <string name="dconnect_error_response_timeout">サービス検索でタイムアウト発生。</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

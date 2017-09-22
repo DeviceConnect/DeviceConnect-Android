@@ -15,7 +15,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
+import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
 /**
  * プラグインとの接続に関するエラーの表示.
@@ -37,6 +39,23 @@ public class ConnectionErrorView extends LinearLayout {
         mErrorView = (TextView) layout.findViewById(R.id.plugin_connection_error_message);
     }
 
+    public void showErrorMessage(final DevicePlugin plugin) {
+        ConnectionError error = plugin.getCurrentConnectionError();
+        if (error != null) {
+            showErrorMessage(error);
+            return;
+        }
+
+        CommunicationHistory history = plugin.getHistory();
+        if (history.getNotRespondedCommunications().size() > 0) {
+            showErrorMessage(R.string.dconnect_error_response_timeout);
+            return;
+        }
+
+        setVisibility(DEFAULT_VISIBILITY);
+        mErrorView.setText(null);
+    }
+
     public void showErrorMessage(final ConnectionError error) {
         if (error != null) {
             int messageId = -1;
@@ -53,20 +72,18 @@ public class ConnectionErrorView extends LinearLayout {
                 case INTERNAL_ERROR:
                     messageId = R.string.dconnect_error_connection_internal_error;
                     break;
-                case TIMEOUT:
-                    messageId = R.string.dconnect_error_service_discovery_timeout;
-                    break;
                 default:
                     break;
             }
-            if (messageId != -1) {
-                String message = getContext().getString(messageId);
-                mErrorView.setText(message);
-                setVisibility(View.VISIBLE);
-            }
-        } else {
-            setVisibility(DEFAULT_VISIBILITY);
-            mErrorView.setText(null);
+            showErrorMessage(messageId);
+        }
+    }
+
+    private void showErrorMessage(final int messageId) {
+        if (messageId != -1) {
+            String message = getContext().getString(messageId);
+            mErrorView.setText(message);
+            setVisibility(View.VISIBLE);
         }
     }
 }

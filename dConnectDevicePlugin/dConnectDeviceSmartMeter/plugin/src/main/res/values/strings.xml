@@ -7,6 +7,8 @@
     <string name="can_not_open_usb" translatable="false">USBデバイスが開けませんでした。</string>
     <string name="page_1" translatable="false">USB Dongle 接続設定</string>
     <string name="setting_message_1_1" translatable="false">USB DongleとAndroidをUSB接続します。あらかじめBルート認証IDとパスワードを設定してください。</string>
+    <string name="connect_page_1" translatable="false">USB Dongle 接続状態</string>
+    <string name="connect_message_1_1" translatable="false">USB DongleのUSB接続状態を表示します。</string>
     <string name="button_back" translatable="false">USBデバイスへの接続画面に戻る</string>
     <string name="open_usb" translatable="false">USBをオープンしました。</string>
     <string name="not_connect" translatable="false">USB Dongleが接続されていません。</string>

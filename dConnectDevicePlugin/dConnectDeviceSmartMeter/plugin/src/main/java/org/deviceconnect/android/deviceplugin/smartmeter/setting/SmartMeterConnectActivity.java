@@ -1,25 +1,28 @@
 /*
-SmartMeterSettingActivity
+SmartMeterConnectActivity
 Copyright (c) 2017 NTT DOCOMO,INC.
 Released under the MIT license
 http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.smartmeter.setting;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.smartmeter.BuildConfig;
-import org.deviceconnect.android.deviceplugin.smartmeter.setting.fragment.SmartMeterSettingFragment;
+import org.deviceconnect.android.deviceplugin.smartmeter.setting.fragment.SmartMeterConnectFragment;
 import org.deviceconnect.android.deviceplugin.smartmeter.util.PrefUtil;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
- * 設定用Activity.
+ * 接続状況表示Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class SmartMeterSettingActivity extends DConnectSettingPageFragmentActivity {
+public class SmartMeterConnectActivity extends DConnectSettingPageFragmentActivity {
+    /** デバッグフラグ. */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     /** PrefUtil Instance. */
     private PrefUtil mPrefUtil;
     /** サービスID. */
@@ -32,7 +35,7 @@ public class SmartMeterSettingActivity extends DConnectSettingPageFragmentActivi
      */
     @SuppressWarnings("rawtypes")
     private static final Class[] PAGES = {
-            SmartMeterSettingFragment.class,
+            SmartMeterConnectFragment.class,
     };
 
     @Override
@@ -71,12 +74,12 @@ public class SmartMeterSettingActivity extends DConnectSettingPageFragmentActivi
         try {
             page = (Fragment) PAGES[position].newInstance();
         } catch (InstantiationException e) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 e.printStackTrace();
             }
             page = null;
         } catch (IllegalAccessException e) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 e.printStackTrace();
             }
             page = null;

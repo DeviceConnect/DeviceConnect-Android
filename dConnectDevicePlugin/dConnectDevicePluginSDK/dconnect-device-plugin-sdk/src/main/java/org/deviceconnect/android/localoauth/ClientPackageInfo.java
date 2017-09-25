@@ -26,7 +26,7 @@ public class ClientPackageInfo {
      * @param packageInfo   パッケージ情報
      * @param clientId      クライアントID
      */
-    public ClientPackageInfo(final PackageInfoOAuth packageInfo, final String clientId) {
+    ClientPackageInfo(final PackageInfoOAuth packageInfo, final String clientId) {
         mPackageInfo = packageInfo;
         mClientId = clientId;
     }

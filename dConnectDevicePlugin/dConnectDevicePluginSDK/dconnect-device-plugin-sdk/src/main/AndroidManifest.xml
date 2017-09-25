@@ -1,18 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
-    package="org.deviceconnect.android"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1"
-    android:versionName="1.0">
-
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19"/>
+    package="org.deviceconnect.android">
 
     <application>
-        <!--
-        The following activities will be merged into a module that depends on this library.
-        -->
+        <!-- The following activities will be merged into a module that depends on this library. -->
         <activity
             android:name=".activity.IntentHandlerActivity"
             android:exported="false"
@@ -32,14 +24,14 @@
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity"
             android:excludeFromRecents="true"
-            android:exported="false">
-        </activity>
+            android:exported="false"/>
 
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
             android:exported="false"/>
 
-        <meta-data android:name="org.deviceconnect.android.deviceplugin.sdk"
-                   android:resource="@xml/pluginsdk" />
+        <meta-data
+            android:name="org.deviceconnect.android.deviceplugin.sdk"
+            android:resource="@xml/pluginsdk"/>
     </application>
 </manifest>

@@ -1,16 +1,5 @@
 package org.deviceconnect.android.localoauth.fragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.ScopeUtil;
-import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteClient;
-import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
-import org.restlet.ext.oauth.PackageInfoOAuth;
-import org.restlet.ext.oauth.internal.Scope;
-
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -34,6 +23,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.localoauth.ScopeUtil;
+import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteClient;
+import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
+import org.restlet.ext.oauth.PackageInfoOAuth;
+import org.restlet.ext.oauth.internal.Scope;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * アクセストークン一覧を表示するFragment.
@@ -112,11 +112,7 @@ public class AccessTokenListFragment extends Fragment {
                 mListAdapter.deleteAll();
             }
         })
-        .setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-            }
-        })
+        .setNegativeButton(strNegative, null)
         .setCancelable(true);
         
         AlertDialog alertDialog = builder.create();
@@ -341,9 +337,7 @@ public class AccessTokenListFragment extends Fragment {
      * @param token 削除するトークンデータ
      */
     private void openDeleteTokenDialog(final SQLiteToken token) {
-        String applicationName = token.getApplicationName();
-
-        String strTitle = applicationName;
+        String strTitle = token.getApplicationName();
         String strGuidance = getString(R.string.access_token_delete_guidance);
         String strPositive = getString(R.string.access_token_delete_positive);
         String strNegative = getString(R.string.access_token_delete_negative);
@@ -355,11 +349,9 @@ public class AccessTokenListFragment extends Fragment {
                     public void onClick(final DialogInterface dialog, final int which) {
                         mListAdapter.deleteToken(token);
                     }
-                }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                    }
-                }).setCancelable(true);
+                })
+                .setNegativeButton(strNegative, null)
+                .setCancelable(true);
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }

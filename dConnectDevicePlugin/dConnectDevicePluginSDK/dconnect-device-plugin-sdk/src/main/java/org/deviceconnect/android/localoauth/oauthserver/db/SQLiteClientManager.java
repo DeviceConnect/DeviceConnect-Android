@@ -33,20 +33,20 @@
 
 package org.deviceconnect.android.localoauth.oauthserver.db;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.os.Bundle;
 
 import org.restlet.ext.oauth.PackageInfoOAuth;
 import org.restlet.ext.oauth.internal.AbstractClientManager;
 import org.restlet.ext.oauth.internal.Client;
 import org.restlet.ext.oauth.internal.Client.ClientType;
 
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.os.Bundle;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * SQLite版ClientManager(RestletのMemoryClientManagerをベースに実装).
@@ -56,14 +56,13 @@ public class SQLiteClientManager extends AbstractClientManager {
     /**
      * DBオブジェクト.
      */
-    private SQLiteDatabase mDb = null;
-    
+    private SQLiteDatabase mDb;
+
     /**
-     * DBオブジェクトを設定する.
-     * 
+     * コンストラクタ.
      * @param db DBオブジェクト
      */
-    public void setDb(final SQLiteDatabase db) {
+    public SQLiteClientManager(final SQLiteDatabase db) {
         mDb = db;
     }
 
@@ -202,8 +201,7 @@ public class SQLiteClientManager extends AbstractClientManager {
      */
     public int countClients() {
         if (mDb != null) {
-            int count = dbCountClients();
-            return count;
+            return dbCountClients();
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -367,7 +365,7 @@ public class SQLiteClientManager extends AbstractClientManager {
                 int i = 0;
                 for (String strWhereKey : whereKeys) {
                     String[] splitData = strWhereKey.split(",");
-                    if (splitData == null || splitData.length != 2) {
+                    if (splitData.length != 2) {
                         throw new IllegalArgumentException("whereは { <データタイプ>,<whereキー> } の書式で設定して下さい。");
                     }
                     String whereDataType = splitData[0];
@@ -398,5 +396,4 @@ public class SQLiteClientManager extends AbstractClientManager {
 
         return selection;
     }
-
 }

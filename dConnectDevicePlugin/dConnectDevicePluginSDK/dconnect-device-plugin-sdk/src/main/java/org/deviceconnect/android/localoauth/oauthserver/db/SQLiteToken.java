@@ -33,14 +33,14 @@
 
 package org.deviceconnect.android.localoauth.oauthserver.db;
 
-import java.util.Calendar;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 
 import org.restlet.ext.oauth.internal.Scope;
 import org.restlet.ext.oauth.internal.ServerToken;
 
-import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import java.util.Calendar;
 
 /**
  * token.
@@ -341,7 +341,6 @@ public class SQLiteToken implements ServerToken {
         dbUpdate(db, values, mId);
     }
 
-    
     /**
      * 有効期限表示文字列を返す.
      * @return 有効期限表示文字列
@@ -450,9 +449,6 @@ public class SQLiteToken implements ServerToken {
      * @return true: 初回アクセスである / false: 初回アクセスではない 
      */
     public boolean isFirstAccess() {
-        if (mRegistrationDate > 0 && mAccessDate > 0 && mRegistrationDate == mAccessDate) {
-            return true;
-        }
-        return false;
+        return (mRegistrationDate > 0 && mAccessDate > 0 && mRegistrationDate == mAccessDate);
     }
 }

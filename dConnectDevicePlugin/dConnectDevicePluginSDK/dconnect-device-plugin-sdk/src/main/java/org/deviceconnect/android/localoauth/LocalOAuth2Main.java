@@ -705,7 +705,6 @@ public final class LocalOAuth2Main {
             switch (msg.what) {
             // 承認確認画面Activityから受け取ったメッセージを処理する
             case MSG_CONFIRM_APPROVAL: // arg1:スレッドID / arg2:承認(=1) 拒否(=0)
-                Log.w("ABC", "handleMessage");
                 LocalOAuth2Main.processApproval((long) msg.arg1, (msg.arg2 == ConfirmAuthActivity.APPROVAL));
                 break;
                 

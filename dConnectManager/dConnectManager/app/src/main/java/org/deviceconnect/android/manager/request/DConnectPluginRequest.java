@@ -25,7 +25,7 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
     DevicePlugin mDevicePlugin;
 
     /** ロックオブジェクト. */
-    final Object mLockObj = new Object();
+    private final Object mLockObj = new Object();
 
     /** リクエストコード. */
     protected int mRequestCode;
@@ -36,9 +36,20 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
     /** リクエスト完了時刻. */
     private long mEndDateTime;
 
+    /** 通信履歴を保存するかどうかのフラグ. */
+    private boolean mIsReportedRoundTripFrag = true;
+
     @Override
     public boolean hasRequestCode(final int requestCode) {
         return mRequestCode == requestCode;
+    }
+
+    /**
+     * 通信履歴を保存するかどうかのフラグを設定する.
+     * @param isReported 通信履歴を保存する場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
+    public void setReportedRoundTrip(final boolean isReported) {
+        mIsReportedRoundTripFrag = isReported;
     }
 
     /**
@@ -101,18 +112,20 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
         } finally {
             mEndDateTime = getCurrentDateTime();
             if (forwarded) {
-                reportHistory(responded);
+                reportHistory(request, responded);
             }
         }
     }
 
-    private void reportHistory(final boolean responded) {
+    private void reportHistory(final Intent request, final boolean responded) {
         long start = mStartDateTime;
         long end = mEndDateTime;
         if (responded) {
-            mDevicePlugin.reportRoundTrip(mRequest, start, end);
+            if (mIsReportedRoundTripFrag) {
+                mDevicePlugin.reportRoundTrip(request, start, end);
+            }
         } else {
-            mDevicePlugin.reportResponseTimeout(mRequest, start);
+            mDevicePlugin.reportResponseTimeout(request, start);
         }
     }
 

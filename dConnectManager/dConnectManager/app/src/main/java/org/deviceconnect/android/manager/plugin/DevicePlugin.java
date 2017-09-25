@@ -18,6 +18,7 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class DevicePlugin {
     /** デバイスプラグイン設定. */
     private final DevicePluginSetting mSetting;
     /** デバイスプラグイン統計レポート. */
-    private final CommunicationHistory mReport;
+    private final CommunicationHistory mHistory;
     /** 接続管理クラス. */
     private Connection mConnection;
     /** ロガー. */
@@ -50,7 +51,7 @@ public class DevicePlugin {
                          final CommunicationHistory report) {
         mInfo = info;
         mSetting = setting;
-        mReport = report;
+        mHistory = report;
     }
 
     /**
@@ -59,7 +60,7 @@ public class DevicePlugin {
     synchronized void dispose() {
         mConnection.disconnect();
         mSetting.clear();
-        mReport.clear();
+        mHistory.clear();
     }
 
     /**
@@ -75,7 +76,7 @@ public class DevicePlugin {
      * @return デバイスプラグイン統計データ
      */
     public CommunicationHistory getHistory() {
-        return mReport;
+        return mHistory;
     }
 
     /**
@@ -140,10 +141,20 @@ public class DevicePlugin {
         return result;
     }
 
+    /**
+     * 指定されたリクエストのラウンドトリップ時間を記録する.
+     *
+     * デバッグビルド時は、ラウンドトリップ時間についての統計とその永続化も行う.
+     *
+     * @param request プラグインへ送信したリクエスト
+     * @param start リクエスト送信時刻
+     * @param end レスポンス受信時刻
+     */
     public void reportRoundTrip(final Intent request, final long start, final long end) {
+        String serviceId = getServiceId(request);
         String path = DConnectUtil.convertRequestToString(request);
-        CommunicationHistory.Info info = new CommunicationHistory.Info(path, start, end);
-        mReport.add(info);
+        CommunicationHistory.Info info = new CommunicationHistory.Info(serviceId, path, start, end);
+        mHistory.add(info);
 
         // 統計を取る.
         if (calculatesStats()) {
@@ -171,9 +182,13 @@ public class DevicePlugin {
     }
 
     public void reportResponseTimeout(final Intent request, final long start) {
+        String serviceId = getServiceId(request);
         String path = DConnectUtil.convertRequestToString(request);
-        CommunicationHistory.Info info = new CommunicationHistory.Info(path, start);
-        mReport.add(info);
+        mHistory.add(new CommunicationHistory.Info(serviceId, path, start));
+    }
+
+    private static String getServiceId(final Intent request) {
+        return request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
     }
 
     /**
@@ -181,7 +196,7 @@ public class DevicePlugin {
      * @return 平均の通信速度
      */
     private long getAverageBaudRate() {
-        return mReport.getAverageBaudRate();
+        return mHistory.getAverageBaudRate();
     }
 
     /**
@@ -189,7 +204,7 @@ public class DevicePlugin {
      * @param averageBaudRate 平均の通信速度
      */
     private void setAverageBaudRate(final long averageBaudRate) {
-        mReport.setAverageBaudRate(averageBaudRate);
+        mHistory.setAverageBaudRate(averageBaudRate);
     }
 
     /**
@@ -197,7 +212,7 @@ public class DevicePlugin {
      * @return 最遅通信速度
      */
     private long getWorstBaudRate() {
-        return mReport.getWorstBaudRate();
+        return mHistory.getWorstBaudRate();
     }
 
     /**
@@ -205,7 +220,7 @@ public class DevicePlugin {
      * @param worstBaudRate 最遅通信速度
      */
     private void setWorstBaudRate(final long worstBaudRate) {
-        mReport.setWorstBaudRate(worstBaudRate);
+        mHistory.setWorstBaudRate(worstBaudRate);
     }
 
     /**
@@ -213,7 +228,7 @@ public class DevicePlugin {
      * @param worstBaudRateRequest 最遅通信速度のリクエスト
      */
     private void setWorstBaudRateRequest(final String worstBaudRateRequest) {
-        mReport.setWorstBaudRateRequest(worstBaudRateRequest);
+        mHistory.setWorstBaudRateRequest(worstBaudRateRequest);
     }
 
     /**

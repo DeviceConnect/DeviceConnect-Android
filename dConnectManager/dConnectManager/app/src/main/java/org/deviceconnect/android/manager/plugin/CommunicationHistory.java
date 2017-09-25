@@ -21,8 +21,6 @@ import java.util.List;
  */
 public class CommunicationHistory {
 
-    // TODO: 統計データは別クラスにする
-
     /** デフォルトの最大履歴サイズ. */
     private static final int DEFAULT_HISTORY_MAX_SIZE = 10;
 
@@ -172,7 +170,12 @@ public class CommunicationHistory {
      */
     public static class Info {
 
-        // TODO: サービスIDを保持.
+        /**
+         * サービスID.
+         *
+         * NOTE: プラグイン自体へのリクエストの場合は <code>null</code> となる.
+         */
+        final String mServiceId;
 
         /**
          * リクエストのパス.
@@ -190,20 +193,25 @@ public class CommunicationHistory {
          */
         final long mEnd;
 
-        Info(final String path, final long start, final long end) {
+        Info(final String serviceId, final String path, final long start, final long end) {
             if (end > 0 && start > end){
                 throw new IllegalArgumentException("`end` is must be larger than `start` if no timeout.");
             }
+            mServiceId= serviceId;
             mRequestPath = path;
             mStart = start;
             mEnd = end;
         }
 
-        Info(final String path, final long start) {
-            this(path, start, -1);
+        Info(final String serviceId, final String path, final long start) {
+            this(serviceId, path, start, -1);
         }
 
-        public String getRequest() {
+        public String getServiceId() {
+            return mServiceId;
+        }
+
+        public String getRequestPath() {
             return mRequestPath;
         }
 
@@ -239,12 +247,5 @@ public class CommunicationHistory {
             return DateFormat.format("yyyy/MM/dd kk:mm:ss", mStart).toString();
         }
 
-    }
-
-    /**
-     * 通信履歴のフィルター.
-     */
-    public interface Filter {
-        boolean filter(Info info);
     }
 }

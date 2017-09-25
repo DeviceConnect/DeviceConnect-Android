@@ -28,11 +28,6 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  */
 public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
-    /**
-     * タイムアウト時間を定義. (8秒)
-     */
-    private static final int TIMEOUT = 8000;
-
     /** デバイスプラグイン管理クラス. */
     private DevicePluginManager mDevicePluginManager;
 
@@ -56,7 +51,7 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             ServiceDiscoveryRequest req = new ServiceDiscoveryRequest();
             req.setContext(getContext());
             req.setRequest(request);
-            req.setTimeout(TIMEOUT);
+            req.setTimeout(ServiceDiscoveryRequest.TIMEOUT);
             req.setDevicePluginManager(mDevicePluginManager);
             ((DConnectMessageService) getContext()).addRequest(req);
             return false;

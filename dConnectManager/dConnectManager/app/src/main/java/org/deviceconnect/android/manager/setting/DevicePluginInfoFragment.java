@@ -190,15 +190,15 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
 
             LayoutInflater inflater = getLayoutInflater(null);
 
-            LinearLayout layout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
-            layout.removeAllViews();
-            List<CommunicationHistory.Info> list = history.getRespondedCommunications();
-            for (int i = list.size() - 1; i >= 0 ; i--) {
-                CommunicationHistory.Info b = list.get(i);
+            LinearLayout baudRateListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
+            baudRateListLayout.removeAllViews();
+            List<CommunicationHistory.Info> baudRateList = history.getRespondedCommunications();
+            for (int i = baudRateList.size() - 1; i >= 0 ; i--) {
+                CommunicationHistory.Info b = baudRateList.get(i);
 
                 View v = inflater.inflate(R.layout.item_baud_rate_list, null);
                 TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);
-                br.setText(b.getRequest());
+                br.setText(b.getRequestPath());
 
                 TextView bb = (TextView) v.findViewById(R.id.activity_deviceplugin_info_baud_rate);
                 bb.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, b.getRoundTripTime()));
@@ -206,7 +206,23 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
                 TextView d = (TextView) v.findViewById(R.id.activity_deviceplugin_info_date);
                 d.setText(b.getDateString());
 
-                layout.addView(v);
+                baudRateListLayout.addView(v);
+            }
+
+            LinearLayout timeoutListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_timeout_list);
+            timeoutListLayout.removeAllViews();
+            List<CommunicationHistory.Info> timeoutList = history.getNotRespondedCommunications();
+            for (int i = timeoutList.size() - 1; i >= 0 ; i--) {
+                CommunicationHistory.Info t = timeoutList.get(i);
+
+                View v = inflater.inflate(R.layout.item_timeout_list, null);
+                TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);
+                br.setText(t.getRequestPath());
+
+                TextView d = (TextView) v.findViewById(R.id.activity_deviceplugin_info_date);
+                d.setText(t.getDateString());
+
+                timeoutListLayout.addView(v);
             }
         }
     }

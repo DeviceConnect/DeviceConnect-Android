@@ -172,6 +172,7 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
                 request.setServiceId(serviceId);
                 request.setOrigin(origin);
                 request.setLocalOAuth(mLocalOAuth);
+                request.setReportedRoundTrip(false);
                 request.waitForLocalOAuth();
 
                 if (request.isNeedAccessToken()) {

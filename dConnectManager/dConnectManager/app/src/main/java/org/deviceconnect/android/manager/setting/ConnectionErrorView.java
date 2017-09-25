@@ -19,6 +19,8 @@ import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 
+import java.util.List;
+
 /**
  * プラグインとの接続に関するエラーの表示.
  *
@@ -47,8 +49,21 @@ public class ConnectionErrorView extends LinearLayout {
         }
 
         CommunicationHistory history = plugin.getHistory();
-        if (history.getNotRespondedCommunications().size() > 0) {
-            showErrorMessage(R.string.dconnect_error_response_timeout);
+        List<CommunicationHistory.Info> timeouts = history.getNotRespondedCommunications();
+        List<CommunicationHistory.Info> responses = history.getRespondedCommunications();
+        if (timeouts.size() > 0) {
+            CommunicationHistory.Info timeout = timeouts.get(timeouts.size() - 1);
+            boolean showsWarning;
+            if (responses.size() > 0) {
+                CommunicationHistory.Info response = responses.get(responses.size() - 1);
+                showsWarning = response.getStartTime() < timeout.getStartTime();
+            } else {
+                showsWarning = true;
+            }
+            // NOTE: 最も直近のリクエストについて応答タイムアウトが発生した場合のみ下記のエラーを表示.
+            if (showsWarning) {
+                showErrorMessage(R.string.dconnect_error_response_timeout);
+            }
             return;
         }
 

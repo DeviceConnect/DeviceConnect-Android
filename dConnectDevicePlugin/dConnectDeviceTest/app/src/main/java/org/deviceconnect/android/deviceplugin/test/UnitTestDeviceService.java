@@ -70,6 +70,15 @@ public class UnitTestDeviceService extends DConnectMessageService {
     }
 
     @Override
+    public void onRequest(final Intent request, final Intent response) {
+        boolean timeout = request.hasExtra("_timeout");
+        if (timeout) {
+            return;
+        }
+        super.onRequest(request, response);
+    }
+
+    @Override
     protected SystemProfile getSystemProfile() {
         return new TestSystemProfile();
     }

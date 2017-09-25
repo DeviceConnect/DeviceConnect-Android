@@ -144,7 +144,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         Set<BluetoothDevice> pairedDevices = adapter.getBondedDevices();
         for (BluetoothDevice device : pairedDevices) {
-            if (device.getName().contains("Sphero")) {
+            if (device.getName() != null && device.getName().contains("Sphero")) {
                 PermissionUtility.requestPermissions(SpheroDeviceService.this, mHandler,
                         BleUtils.BLE_PERMISSIONS,
                         new PermissionUtility.PermissionRequestCallback() {

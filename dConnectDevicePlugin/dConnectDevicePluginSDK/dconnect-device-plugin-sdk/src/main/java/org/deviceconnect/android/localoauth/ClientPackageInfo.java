@@ -19,8 +19,7 @@ public class ClientPackageInfo {
     
     /** クライアントID. */
     private String mClientId;
-    
-    
+
     /**
      * コンストラクタ.
      * @param packageInfo   パッケージ情報

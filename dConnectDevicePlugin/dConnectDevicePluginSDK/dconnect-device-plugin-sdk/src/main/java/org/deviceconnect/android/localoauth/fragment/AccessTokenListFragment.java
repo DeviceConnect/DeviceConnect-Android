@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,6 +34,7 @@ import org.restlet.ext.oauth.PackageInfoOAuth;
 import org.restlet.ext.oauth.internal.Scope;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -124,12 +126,10 @@ public class AccessTokenListFragment extends Fragment {
      * @return アクセストークンのリスト
      */
     private List<SQLiteToken> loadTokens() {
-        ArrayList<SQLiteToken> tokenList = new ArrayList<SQLiteToken>();
+        ArrayList<SQLiteToken> tokenList = new ArrayList<>();
         SQLiteToken[] tokens = LocalOAuth2Main.getAccessTokens();
         if (tokens != null) {
-            for (SQLiteToken token : tokens) {
-                tokenList.add(token);
-            }
+            tokenList.addAll(Arrays.asList(tokens));
         }
         return tokenList;
     }
@@ -138,11 +138,13 @@ public class AccessTokenListFragment extends Fragment {
      * トークンデータがありませんのViewの表示・非表示を設定する.
      */
     private void setVisibleCommentView() {
-        View commentView = getView().findViewById(R.id.noTokenView);
-        if (mListAdapter.getCount() == 0) {
-            commentView.setVisibility(View.VISIBLE);
-        } else {
-            commentView.setVisibility(View.GONE);
+        if (getView() != null) {
+            View commentView = getView().findViewById(R.id.noTokenView);
+            if (mListAdapter.getCount() == 0) {
+                commentView.setVisibility(View.VISIBLE);
+            } else {
+                commentView.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -161,7 +163,7 @@ public class AccessTokenListFragment extends Fragment {
          * @param textViewResourceId textViewResourceId
          * @param tokens トークン配列
          */
-        public AccessTokenListAdapter(final Context context, final int textViewResourceId,
+        AccessTokenListAdapter(final Context context, final int textViewResourceId,
                 final List<SQLiteToken> tokens) {
             super(context, textViewResourceId, tokens);
             mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -175,11 +177,11 @@ public class AccessTokenListFragment extends Fragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            final SQLiteToken token = (SQLiteToken) getItem(position);
+            final SQLiteToken token = getItem(position);
 
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.access_token_list_item, (ViewGroup) null);
+                view = mInflater.inflate(R.layout.access_token_list_item, parent, false);
             }
 
             // アプリケーション名
@@ -272,7 +274,11 @@ public class AccessTokenListFragment extends Fragment {
             }
         }
         if (icon == null) {
-            icon = getResources().getDrawable(R.drawable.ic_action_labels);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
+                icon = getResources().getDrawable(R.drawable.ic_action_labels);
+            } else {
+                icon = getResources().getDrawable(R.drawable.ic_action_labels, null);
+            }
         }
         return icon;
     }
@@ -284,7 +290,7 @@ public class AccessTokenListFragment extends Fragment {
      * @return not null: パッケージアイコン / null: パッケージが見つからない
      */
     private Drawable getPackageIcon(final Context context, final String packageName) {
-        PackageManager pm = getActivity().getPackageManager();
+        PackageManager pm = context.getPackageManager();
         try {
             return pm.getApplicationIcon(packageName);
         } catch (NameNotFoundException e) {

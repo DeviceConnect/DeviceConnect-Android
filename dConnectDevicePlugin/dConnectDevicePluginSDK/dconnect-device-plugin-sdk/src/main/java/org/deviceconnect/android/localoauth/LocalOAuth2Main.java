@@ -42,7 +42,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Base64;
-import android.util.Log;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity;
@@ -152,7 +151,7 @@ public final class LocalOAuth2Main {
      * </p>
      */
     private static boolean sBound;
-    
+
     /** メッセンジャー. */
     private static Messenger sMessenger = new Messenger(new ApprovalHandler(Looper.getMainLooper()));
 
@@ -712,7 +711,9 @@ public final class LocalOAuth2Main {
                 long checkThreadId = (long) msg.arg1;
                 // キューにthreadIdが存在するか判定(1:true / 0:false)
                 int result = 0;
-                if (dequeueRequest(checkThreadId, false) != null) {
+                ConfirmAuthRequest request = dequeueRequest(checkThreadId, false);
+                if (request != null) {
+                    request.stopTimer();
                     result = 1;
                 }
                 // Activityに例外発生を通知する(Activityを閉じる)

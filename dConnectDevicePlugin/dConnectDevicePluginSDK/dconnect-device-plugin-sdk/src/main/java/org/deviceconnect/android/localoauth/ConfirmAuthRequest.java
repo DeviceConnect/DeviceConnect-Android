@@ -144,7 +144,7 @@ class ConfirmAuthRequest {
                 }
             };
             mTimeoutTimer = new Timer(true);
-            mTimeoutTimer.schedule(timerTask, 60 * 1000);
+            mTimeoutTimer.schedule(timerTask, 10 * 1000);
         }
     }
 

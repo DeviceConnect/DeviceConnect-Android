@@ -1162,14 +1162,16 @@ public final class LocalOAuth2Main {
      * @return not null: 取得したリクエスト / null: キューにデータなし
      */
     private static ConfirmAuthRequest pickupRequest() {
-        ConfirmAuthRequest request = null;
         synchronized (sLockForRequestQueue) {
-            int requestCount = sRequestQueue.size();
-            if (requestCount > 0) {
-                request = sRequestQueue.get(0);
+            while (sRequestQueue.size() > 0) {
+                ConfirmAuthRequest request = sRequestQueue.get(0);
+                if (System.currentTimeMillis() - request.getRequestTime() < 60 * 1000) {
+                    return request;
+                }
+                sRequestQueue.remove(0);
             }
         }
-        return request;
+        return null;
     }
 
     /**
@@ -1245,6 +1247,10 @@ public final class LocalOAuth2Main {
      * @param request リクエストデータ
      */
     private static void startConfirmAuthActivity(final ConfirmAuthRequest request) {
+        if (request == null) {
+            return;
+        }
+
         android.content.Context context = request.getConfirmAuthParams().getContext();
         long threadId = request.getThreadId();
         ConfirmAuthParams params = request.getConfirmAuthParams();
@@ -1253,13 +1259,14 @@ public final class LocalOAuth2Main {
         // Activity起動(許可・拒否の結果は、ApprovalHandlerへ送られる)
         Intent intent = new Intent();
         intent.setClass(params.getContext(), ConfirmAuthActivity.class);
-        intent.putExtra(ConfirmAuthActivity.EXTRA_THREADID, threadId);
+        intent.putExtra(ConfirmAuthActivity.EXTRA_THREAD_ID, threadId);
         if (params.getServiceId() != null) {
-            intent.putExtra(ConfirmAuthActivity.EXTRA_DEVICEID, params.getServiceId());
+            intent.putExtra(ConfirmAuthActivity.EXTRA_SERVICE_ID, params.getServiceId());
         }
-        intent.putExtra(ConfirmAuthActivity.EXTRA_APPLICATIONNAME, params.getApplicationName());
+        intent.putExtra(ConfirmAuthActivity.EXTRA_APPLICATION_NAME, params.getApplicationName());
         intent.putExtra(ConfirmAuthActivity.EXTRA_SCOPES, params.getScopes());
         intent.putExtra(ConfirmAuthActivity.EXTRA_DISPLAY_SCOPES, displayScopes);
+        intent.putExtra(ConfirmAuthActivity.EXTRA_REQUEST_TIME, request.getRequestTime());
         intent.putExtra(ConfirmAuthActivity.EXTRA_IS_FOR_DEVICEPLUGIN, params.isForDevicePlugin());
         if (!params.isForDevicePlugin()) {
             intent.putExtra(ConfirmAuthActivity.EXTRA_PACKAGE_NAME, context.getPackageName());

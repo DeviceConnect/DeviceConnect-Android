@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.localoauth;
 
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,7 +26,7 @@ class ConfirmAuthRequest {
     private PublishAccessTokenListener mPublishAccessTokenListener;
     
     /** リクエスト時間. */
-    private Date mRequestTime;
+    private long mRequestTime;
     
     /** 表示スコープ名配列. */
     private String[] mDisplayScopes;
@@ -48,7 +47,7 @@ class ConfirmAuthRequest {
      * @param displayScopes 表示用スコープ名配列
      */
     private ConfirmAuthRequest(final long threadId, final ConfirmAuthParams confirmAuthParams,
-            final PublishAccessTokenListener publishAccessTokenListener, final Date requestTime,
+            final PublishAccessTokenListener publishAccessTokenListener, final long requestTime,
             final String[] displayScopes) {
         mThreadId = threadId;
         mConfirmAuthParams = confirmAuthParams;
@@ -68,7 +67,7 @@ class ConfirmAuthRequest {
     ConfirmAuthRequest(final long threadId, final ConfirmAuthParams confirmAuthParams,
             final PublishAccessTokenListener publishAccessTokenListener,
             final String[] displayScopes) {
-        this(threadId, confirmAuthParams, publishAccessTokenListener, new Date(), displayScopes);
+        this(threadId, confirmAuthParams, publishAccessTokenListener, System.currentTimeMillis(), displayScopes);
     }
 
     /**
@@ -101,7 +100,7 @@ class ConfirmAuthRequest {
      * 
      * @return リクエスト時間
      */
-    Date getRequestTime() {
+    long getRequestTime() {
         return mRequestTime;
     }
     

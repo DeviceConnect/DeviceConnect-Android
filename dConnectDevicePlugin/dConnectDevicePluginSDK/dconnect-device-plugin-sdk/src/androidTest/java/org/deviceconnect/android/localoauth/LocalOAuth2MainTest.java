@@ -423,7 +423,7 @@ public class LocalOAuth2MainTest {
         assertThat(info, is(notNullValue()));
         assertThat(info.getPackageInfo(), is(notNullValue()));
         assertThat(info.getPackageInfo().getPackageName(), is(origin));
-        assertThat(info.getPackageInfo().getServiceId(), is(serviceId));
+//        assertThat(info.getPackageInfo().getServiceId(), is(serviceId));
     }
 
     @Test

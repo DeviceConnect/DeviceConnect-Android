@@ -16,14 +16,14 @@ import org.deviceconnect.android.R;
  * 認証確認画面.
  * <p>
  * ・Intentに下記のパラメータを指定して起動すること。<br>
- * - EXTRA_THREADID : ServiceのスレッドIDを設定する。<br>
- * - EXTRA_APPLICATIONNAME : アプリケーション名を設定する。<br>
+ * - EXTRA_THREAD_ID : ServiceのスレッドIDを設定する。<br>
+ * - EXTRA_APPLICATION_NAME : アプリケーション名を設定する。<br>
  * - EXTRA_SCOPES : スコープを設定する。<br>
  * - EXTRA_DISPLAY_SCOPES : 表示スコープを設定する。<br>
  * - EXTRA_MESSAGEID :
  * 許可／拒否のステータスを、BindされたServiceにMessage通知する際に使用するメッセージIDを設定する。<br>
  * Messageのarg1にスレッドIDを、arg2に承認ステータス(1なら許可/0なら拒否)を返す。<br>
- * - EXTRA_DEVICEID : サービスID(デバイスプラグインの場合のみ設定する)<br>
+ * - EXTRA_SERVICE_ID : サービスID(デバイスプラグインの場合のみ設定する)<br>
  * - EXTRA_IS_FOR_DEVICEPLUGIN : デバイスプラグインの認証確認画面の場合はtrueを、アプリの場合はfalseを設定する。<br>
  * - EXTRA_SERVICE_PACKAGE_NAME : Messageを受信するServiceのパッケージ名.<br>
  * </p>
@@ -32,10 +32,10 @@ import org.deviceconnect.android.R;
 public class ConfirmAuthActivity extends Activity {
 
     /** EXTRA: 呼び出し元のスレッドID. */
-    public static final String EXTRA_THREADID = "thread_id";
+    public static final String EXTRA_THREAD_ID = "thread_id";
 
     /** EXTRA: アプリケーション名(例: "SW2デバイスプラグイン", "Twitterイベントプラグイン"). */
-    public static final String EXTRA_APPLICATIONNAME = "application_name";
+    public static final String EXTRA_APPLICATION_NAME = "application_name";
 
     /** EXTRA: パッケージ名. */
     public static final String EXTRA_PACKAGE_NAME = "package_name";
@@ -53,7 +53,10 @@ public class ConfirmAuthActivity extends Activity {
     public static final String EXTRA_IS_FOR_DEVICEPLUGIN = "isForDeviceplugin";
 
     /** EXTRA: サービスID(デバイスプラグインの場合のみ設定する). */
-    public static final String EXTRA_DEVICEID = "serviceId";
+    public static final String EXTRA_SERVICE_ID = "serviceId";
+
+    /** EXTRA: リクエストされた時間. */
+    public static final String EXTRA_REQUEST_TIME = "request_time";
 
     /** 承認を表す定数. */
     public static final int APPROVAL = 1;

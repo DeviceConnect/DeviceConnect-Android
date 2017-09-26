@@ -7,6 +7,7 @@
 package org.deviceconnect.android.localoauth.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.ComponentName;
 import android.content.Context;
@@ -49,6 +50,9 @@ public class ConfirmAuthFragment extends Fragment {
     /** 自動クリック処理を実行するまでの時間[msec]. テスト用。 */
     private static final long AUTO_CLICK_WAIT_TIME = 1000;
 
+    /** デフォルトのタイムアウト時間(msec)を定義. */
+    private static final int DEFAULT_TIMEOUT = 60 * 1000;
+
     /** 自動クリック用タイマー. テスト用。 */
     private Timer mAutoClickTimer;
 
@@ -67,18 +71,23 @@ public class ConfirmAuthFragment extends Fragment {
     /** Flag indicating whether we have done response. */
     private boolean mDoneResponse;
 
+    /** タイムアウト監視. */
+    private Timer mTimeoutTimer;
+
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
 
         Intent intent = getActivity().getIntent();
-        mThreadId = intent.getLongExtra(ConfirmAuthActivity.EXTRA_THREADID, -1);
-        String applicationName = intent.getStringExtra(ConfirmAuthActivity.EXTRA_APPLICATIONNAME);
+        mThreadId = intent.getLongExtra(ConfirmAuthActivity.EXTRA_THREAD_ID, -1);
+        String applicationName = intent.getStringExtra(ConfirmAuthActivity.EXTRA_APPLICATION_NAME);
         String packageName = intent.getStringExtra(ConfirmAuthActivity.EXTRA_PACKAGE_NAME);
         String keyword = intent.getStringExtra(ConfirmAuthActivity.EXTRA_KEYWORD);
         String[] displayScopes = intent.getStringArrayExtra(ConfirmAuthActivity.EXTRA_DISPLAY_SCOPES);
         String expirePeriod = toStringExpiredPeriod();
         boolean isForPlugin = intent.getBooleanExtra(ConfirmAuthActivity.EXTRA_IS_FOR_DEVICEPLUGIN, true);
+        long requestTime = intent.getLongExtra(ConfirmAuthActivity.EXTRA_REQUEST_TIME, System.currentTimeMillis());
+        long timeout = DEFAULT_TIMEOUT - (System.currentTimeMillis() - requestTime);
 
         int layoutId;
         if (isForPlugin) {
@@ -145,6 +154,13 @@ public class ConfirmAuthFragment extends Fragment {
             }
         });
 
+        if (timeout > 0) {
+            startTimeoutTimer(timeout);
+        } else {
+            // タイムアウトになっているので、Activityを閉じる
+            getActivity().finish();
+        }
+
         return view;
     }
 
@@ -161,6 +177,7 @@ public class ConfirmAuthFragment extends Fragment {
     @Override
     public void onPause() {
         cancelAutoClickTimer();
+        stopTimeoutTimer();
         notApprovalProc();
         if (mBound) {
             getActivity().unbindService(mConnection);
@@ -304,6 +321,7 @@ public class ConfirmAuthFragment extends Fragment {
     /**
      * 自動クリックタイマーを開始する.
      * <p>
+     * デバッグ用メソッド.<br>
      * {@link LocalOAuth2Main#isAutoTestMode()}がfalseの場合には開始しない。
      * </p>
      */
@@ -332,11 +350,44 @@ public class ConfirmAuthFragment extends Fragment {
 
     /**
      * 自動クリックタイマーを停止する.
+     * <p>
+     * デバッグ用メソッド.<br>
+     * </p>
      */
     private void cancelAutoClickTimer() {
         if (mAutoClickTimer != null) {
             mAutoClickTimer.cancel();
             mAutoClickTimer = null;
+        }
+    }
+
+    /**
+     * リクエストが実行するまでのタイムアウトを開始する.
+     * @param timeout タイムアウト時間(ms)
+     */
+    private void startTimeoutTimer(final long timeout) {
+        if (mTimeoutTimer == null) {
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    Activity a = getActivity();
+                    if (a != null) {
+                        a.finish();
+                    }
+                }
+            };
+            mTimeoutTimer = new Timer(true);
+            mTimeoutTimer.schedule(timerTask, timeout);
+        }
+    }
+
+    /**
+     * タイムアウト用のタイマーを停止する.
+     */
+    private void stopTimeoutTimer() {
+        if (mTimeoutTimer != null) {
+            mTimeoutTimer.cancel();
+            mTimeoutTimer = null;
         }
     }
 }

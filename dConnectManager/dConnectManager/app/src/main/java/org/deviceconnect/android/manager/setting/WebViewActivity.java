@@ -23,6 +23,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsPromptResult;
@@ -45,8 +46,10 @@ import java.io.ByteArrayOutputStream;
  * @author NTT DOCOMO, INC.
  */
 public class WebViewActivity extends AppCompatActivity {
+    /**
+     * デバッグフフラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "Manager";
 
     /**
      * 表示するHTMLへのURLを格納するExtraのキーを定義する.
@@ -57,6 +60,16 @@ public class WebViewActivity extends AppCompatActivity {
      * 表示するタイトルを格納するExtraのキーを定義する.
      */
     public static final String EXTRA_TITLE = "title";
+
+    /**
+     * サービスIDを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_SERVICE_ID = "serviceId";
+
+    /**
+     * プラグインIDを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_PLUGIN_ID = "pluginId";
 
     /**
      * ファイル選択できるMimeTypeを定義する.
@@ -190,10 +203,27 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        Intent intent = getIntent();
+        if (intent != null && intent.getStringExtra(EXTRA_SERVICE_ID) != null) {
+            getMenuInflater().inflate(R.menu.activity_web_view, menu);
+        }
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (android.R.id.home == item.getItemId()) {
-            finish();
+            if (mWebView != null && mWebView.canGoBack()) {
+                mWebView.goBack();
+            } else {
+                finish();
+            }
             return true;
+        } else if (R.id.activity_webview_menu_settings == item.getItemId()) {
+            openPluginSettings();
+        } else if (R.id.activity_webview_menu_top == item.getItemId()) {
+            finish();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -252,7 +282,7 @@ public class WebViewActivity extends AppCompatActivity {
                 cursor.close();
             }
 
-            String imgPath = getPath(this, selectedImage);
+            String imgPath = getPath(selectedImage);
 
             BitmapFactory.Options options;
             options = new BitmapFactory.Options();
@@ -269,7 +299,24 @@ public class WebViewActivity extends AppCompatActivity {
         }
     }
 
-    private static String getPath(final Context context, final Uri uri) {
+    /**
+     * プラグインの設定画面を開く.
+     */
+    private void openPluginSettings() {
+        String pluginId = getIntent().getStringExtra(EXTRA_PLUGIN_ID);
+
+        Intent intent = new Intent();
+        intent.setClass(this, DevicePluginInfoActivity.class);
+        intent.putExtra(DevicePluginInfoActivity.EXTRA_PLUGIN_ID, pluginId);
+        startActivity(intent);
+    }
+
+    /**
+     * ファイルパスを取得する.
+     * @param uri URI
+     * @return ファイルパス
+     */
+    private static String getPath(final Uri uri) {
         if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }

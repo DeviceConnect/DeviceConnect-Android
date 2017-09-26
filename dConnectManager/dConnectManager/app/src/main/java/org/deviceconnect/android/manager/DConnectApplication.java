@@ -24,6 +24,11 @@ import java.util.logging.SimpleFormatter;
  */
 public class DConnectApplication  extends HostDeviceApplication {
 
+    /**
+     * Device Connect システム設定.
+     */
+    private DConnectSettings mSettings;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -57,5 +62,11 @@ public class DConnectApplication  extends HostDeviceApplication {
             editor.putString(getString(R.string.key_settings_dconn_uuid), DConnectUtil.createUuid());
             editor.apply();
         }
+
+        mSettings = new DConnectSettings(this);
+    }
+
+    public DConnectSettings getSettings() {
+        return mSettings;
     }
 }

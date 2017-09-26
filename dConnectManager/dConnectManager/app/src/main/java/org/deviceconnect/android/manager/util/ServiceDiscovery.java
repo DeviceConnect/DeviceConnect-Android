@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -22,8 +23,8 @@ public class ServiceDiscovery extends Authorization {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
 
-    public ServiceDiscovery(final Context context) {
-        super(context);
+    public ServiceDiscovery(final Context context, final DConnectSettings settings) {
+        super(context, settings);
     }
 
     @Override

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/activity_control_key_q"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_q"/>
+
+        <Button
+            android:id="@+id/activity_control_key_w"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_w"/>
+
+        <Button
+            android:id="@+id/activity_control_key_e"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_e"/>
+
+        <Button
+            android:id="@+id/activity_control_key_r"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_r"/>
+
+        <Button
+            android:id="@+id/activity_control_key_t"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_t"/>
+
+        <Button
+            android:id="@+id/activity_control_key_y"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_y"/>
+
+        <Button
+            android:id="@+id/activity_control_key_u"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_u"/>
+
+        <Button
+            android:id="@+id/activity_control_key_i"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_i"/>
+
+        <Button
+            android:id="@+id/activity_control_key_o"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_o"/>
+
+        <Button
+            android:id="@+id/activity_control_key_p"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_p"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/activity_control_key_a"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_a"/>
+
+        <Button
+            android:id="@+id/activity_control_key_s"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_s"/>
+
+        <Button
+            android:id="@+id/activity_control_key_d"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_d"/>
+
+        <Button
+            android:id="@+id/activity_control_key_f"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_f"/>
+
+        <Button
+            android:id="@+id/activity_control_key_g"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_g"/>
+
+        <Button
+            android:id="@+id/activity_control_key_h"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_h"/>
+
+        <Button
+            android:id="@+id/activity_control_key_j"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_j"/>
+
+        <Button
+            android:id="@+id/activity_control_key_k"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_k"/>
+
+        <Button
+            android:id="@+id/activity_control_key_l"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_l"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ToggleButton
+            android:id="@+id/activity_control_key_caps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOff="@string/activity_control_key_caps"
+            android:textOn="@string/activity_control_key_caps"/>
+
+        <Button
+            android:id="@+id/activity_control_key_z"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_z"/>
+
+        <Button
+            android:id="@+id/activity_control_key_x"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_x"/>
+
+        <Button
+            android:id="@+id/activity_control_key_c"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_c"/>
+
+        <Button
+            android:id="@+id/activity_control_key_v"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_v"/>
+
+        <Button
+            android:id="@+id/activity_control_key_b"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_b"/>
+
+        <Button
+            android:id="@+id/activity_control_key_n"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_n"/>
+
+        <Button
+            android:id="@+id/activity_control_key_m"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:layout_weight="1"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_m"/>
+
+        <Button
+            android:id="@+id/activity_control_key_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/hogp_keyboard_margin"
+            android:background="@drawable/hogp_keyboard_button"
+            android:text="@string/activity_control_key_delete"/>
+    </LinearLayout>
+
+</LinearLayout>

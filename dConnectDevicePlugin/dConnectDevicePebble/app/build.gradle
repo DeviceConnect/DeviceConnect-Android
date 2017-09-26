@@ -69,9 +69,13 @@ repositories {
     mavenCentral()
     maven { url "https://oss.sonatype.org/content/groups/public/" }
 }
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-sdk')
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.1'
     compile 'com.getpebble:pebblekit:3.1.0@aar'
 }

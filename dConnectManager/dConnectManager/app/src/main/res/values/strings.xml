@@ -132,17 +132,25 @@
 
     <!-- ================= DevicePluginInfoActivity ================= -->
     <string name="activity_deviceplugin_info_title">device plug-in info</string>
-    <string name="activity_deviceplugin_info_version">version: </string>
+    <string name="activity_deviceplugin_info_version">version: %1$s</string>
     <string name="activity_deviceplugin_info_restart">Restart</string>
     <string name="activity_deviceplugin_info_uninstall">Delete</string>
     <string name="activity_deviceplugin_info_settings">Settings</string>
     <string name="activity_deviceplugin_info_open_settings">Open settings</string>
     <string name="activity_deviceplugin_info_profile">Profile</string>
+    <string name="activity_deviceplugin_info_profile_name"> ・ %1$s</string>
     <string name="activity_deviceplugin_info_connection_type_title">Connection Type</string>
     <string name="activity_deviceplugin_info_connection_type_binder">Binder</string>
     <string name="activity_deviceplugin_info_connection_type_broadcast">Broadcast</string>
     <string name="activity_deviceplugin_info_connection_type_included_with_manager">Included</string>
     <string name="activity_deviceplugin_info_connection_type_unknown">Unknown</string>
+    <string name="activity_deviceplugin_info_baud_rate">Baud Rate</string>
+    <string name="activity_deviceplugin_info_average_baud_rate">Average Baud Rate</string>
+    <string name="activity_deviceplugin_info_worst_request">Slowest Request</string>
+    <string name="activity_deviceplugin_info_worst_baud_rate">Baud Rate</string>
+    <string name="activity_deviceplugin_info_baud_rate_unit">%1$dms</string>
+    <string name="activity_deviceplugin_info_request">Request</string>
+    <string name="activity_deviceplugin_info_baud_rate_history">Baud Rate History</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
@@ -162,6 +170,8 @@
     <!-- ================= WebViewActivity ================= -->
     <string name="webview_js_alert_positive_btn">Yes</string>
     <string name="webview_js_alert_negative_btn">No</string>
+    <string name="webview_menu_settings">Settings</string>
+    <string name="webview_menu_top">Top</string>
 
     <string name="activity_help_title">Help</string>
 
@@ -180,9 +190,10 @@
     <string name="activity_service_list_no_plugin_message">Please agree to the application authorization displayed at the time of searching the service, or disable Local OAuth on the setting screen.</string>
     <string name="activity_service_list_no_plugin_positive">Yes</string>
     <string name="activity_service_list_offline_title">Connecting device</string>
-    <string name="activity_service_list_offline_message">%1s is not connected.\nConfirm the settings of plugin.</string>
-    <string name="activity_service_list_offline_positive">Open settings</string>
-    <string name="activity_service_list_offline_negative">Close</string>
+    <string name="activity_service_list_plugin_setting_title">Confirming plugins</string>
+    <string name="activity_service_list_plugin_setting_message">Do you want to open the plugin setting?</string>
+    <string name="activity_service_list_plugin_setting_positive">Yes</string>
+    <string name="activity_service_list_plugin_setting_negative">Cancel</string>
 
     <string name="activity_websocket_delete_title">Closing WebSocket</string>
     <string name="activity_websocket_delete_message">May this WebSocket be closed?</string>

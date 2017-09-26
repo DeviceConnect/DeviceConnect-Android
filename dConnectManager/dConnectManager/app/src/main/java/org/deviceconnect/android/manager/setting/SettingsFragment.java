@@ -33,6 +33,7 @@ import android.support.annotation.NonNull;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.DConnectWebService;
@@ -557,9 +558,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private void switchObserver(final boolean checked) {
         Intent intent = new Intent();
+        DConnectSettings settings = ((DConnectApplication) getActivity().getApplication()).getSettings();
         intent.setClass(getActivity(), ObserverReceiver.class);
         if (checked) {
             intent.setAction(DConnectObservationService.ACTION_START);
+            intent.putExtra(DConnectObservationService.PARAM_PORT, settings.getPort());
+            intent.putExtra(DConnectObservationService.PARAM_OBSERVATION_INTERVAL, settings.getObservationInterval());
             intent.putExtra(DConnectObservationService.PARAM_RESULT_RECEIVER,
                     new ResultReceiver(new Handler()) {
                         @Override

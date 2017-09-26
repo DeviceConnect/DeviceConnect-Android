@@ -27,9 +27,7 @@ import org.deviceconnect.android.manager.plugin.Connection;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
 /**
  * Device Connect Manager device plug-in Information Activity.
@@ -38,14 +36,10 @@ import java.util.concurrent.Executors;
  */
 public class DevicePluginInfoActivity extends BaseSettingActivity {
 
-    /** デバイスプラグイン情報のキー. */
-    static final String PLUGIN_INFO = "pluginInfo";
-
-    /** デバイスプラグイン有効フラグのキー. */
-    static final String PLUGIN_ENABLED = "pluginEnabled";
-
-    /** デバイスプラグイン接続エラーのキー. */
-    static final String CONNECTION_ERROR = "connectionError";
+    /**
+     * プラグインIDを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_PLUGIN_ID = "pluginId";
 
     /** フラグメントのタグ. */
     private static final String TAG = "info";
@@ -62,7 +56,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             String action = intent.getAction();
             if (Connection.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 String pluginId = intent.getStringExtra(Connection.EXTRA_PLUGIN_ID);
-                if (mPluginInfo.getPluginId().equals(pluginId)) {
+                if (getPluginId() != null && getPluginId().equals(pluginId)) {
                     final ConnectionState state = (ConnectionState) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_STATE);
                     final ConnectionError error = (ConnectionError) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_ERROR);
                     if (state == null) {
@@ -96,8 +90,6 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         }
     };
 
-    private DevicePlugin.Info mPluginInfo;
-
     /** 接続中であることを示すビュー. */
     private View mProgressCircle;
 
@@ -115,24 +107,11 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             return;
         }
 
-        mPluginInfo = intent.getParcelableExtra(PLUGIN_INFO);
-        if (mPluginInfo == null || !intent.hasExtra(PLUGIN_ENABLED)) {
+        String pluginId = getIntent().getStringExtra(EXTRA_PLUGIN_ID);
+        if (pluginId == null) {
             finish();
             return;
         }
-        final boolean isEnabled;
-        if (savedInstanceState != null && savedInstanceState.containsKey(PLUGIN_ENABLED)) {
-            isEnabled = savedInstanceState.getBoolean(PLUGIN_ENABLED);
-        } else {
-            isEnabled = intent.getBooleanExtra(PLUGIN_ENABLED, true);
-        }
-        final ConnectionError error;
-        if (savedInstanceState != null && savedInstanceState.containsKey(CONNECTION_ERROR)) {
-            error = (ConnectionError) savedInstanceState.getSerializable(CONNECTION_ERROR);
-        } else {
-            error = (ConnectionError) intent.getSerializableExtra(CONNECTION_ERROR);
-        }
-
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -140,7 +119,6 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             actionBar.setCustomView(R.layout.action_bar_plugin_enable_status);
 
             mStatusSwitch = (SwitchCompat) actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
-            mStatusSwitch.setChecked(isEnabled);
             mStatusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(final CompoundButton button, final boolean isOn) {
@@ -162,9 +140,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         if (!hasSavedInstance()) {
             Fragment f = new DevicePluginInfoFragment();
             Bundle args = new Bundle();
-            args.putParcelable(PLUGIN_INFO, mPluginInfo);
-            args.putBoolean(PLUGIN_ENABLED, isEnabled);
-            args.putSerializable(CONNECTION_ERROR, error);
+            args.putString(EXTRA_PLUGIN_ID, pluginId);
             f.setArguments(args);
 
             FragmentManager fm = getSupportFragmentManager();
@@ -175,18 +151,25 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         }
     }
 
-    private DevicePluginInfoFragment getInfoFragment() {
-        FragmentManager fm = getSupportFragmentManager();
-        return (DevicePluginInfoFragment) fm.findFragmentByTag(TAG);
+    @Override
+    protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        super.onDestroy();
     }
 
     @Override
-    protected void onSaveInstanceState(final Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        if (mStatusSwitch != null) {
-            outState.putBoolean(PLUGIN_ENABLED, mStatusSwitch.isChecked());
+    protected void onManagerBonded() {
+        if (isBonded()) {
+            DevicePlugin plugin = findDevicePluginById(getPluginId());
+            if (plugin != null && mStatusSwitch != null) {
+                mStatusSwitch.setChecked(plugin.isEnabled());
+            }
         }
+    }
+
+    private DevicePluginInfoFragment getInfoFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+        return (DevicePluginInfoFragment) fm.findFragmentByTag(TAG);
     }
 
     private void requestPluginStateChange(final boolean isOn) {
@@ -195,13 +178,19 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
                 DConnectMessageService.ACTION_DISABLE_PLUGIN;
         Intent request = new Intent(this, DConnectService.class);
         request.setAction(action);
-        request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
+        request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, getPluginId());
         startService(request);
     }
 
-    @Override
-    protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
-        super.onDestroy();
+    private DevicePlugin findDevicePluginById(final String pluginId) {
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null && pluginId != null) {
+            return mgr.getDevicePlugin(pluginId);
+        }
+        return null;
+    }
+
+    private String getPluginId() {
+        return getIntent().getStringExtra(EXTRA_PLUGIN_ID);
     }
 }

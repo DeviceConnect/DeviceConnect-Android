@@ -60,8 +60,7 @@ public class DConnectWebService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        mSettings = DConnectSettings.getInstance();
-        mSettings.load(this);
+        mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isWebServerStartFlag()) {
@@ -85,8 +84,6 @@ public class DConnectWebService extends Service {
      */
     public synchronized void startWebServer() {
         if (mWebServer == null) {
-            mSettings.load(this);
-
             DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
             builder.port(mSettings.getWebPort())
                     .documentRootPath(mSettings.getDocumentRootPath());

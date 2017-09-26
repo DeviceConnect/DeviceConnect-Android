@@ -325,9 +325,9 @@ public class AccessTokenListFragment extends Fragment {
      * @param token トークンデータ
      */
     private void openAccessTokenDescription(final SQLiteToken token) {
-        AccessTokenDescriptionFramgent f = new AccessTokenDescriptionFramgent();
+        AccessTokenDescriptionFragment f = new AccessTokenDescriptionFragment();
         Bundle bundle = new Bundle();
-        bundle.putString(AccessTokenDescriptionFramgent.EXTRA_CLIENT_ID, 
+        bundle.putString(AccessTokenDescriptionFragment.EXTRA_CLIENT_ID,
                 token.getClientId());
         f.setArguments(bundle);
         FragmentManager fm = getActivity().getFragmentManager();

@@ -30,7 +30,7 @@ import java.util.List;
  * アクセストークンの詳細情報を表示するFragment.
  * @author NTT DOCOMO, INC.
  */
-public class AccessTokenDescriptionFramgent extends Fragment {
+public class AccessTokenDescriptionFragment extends Fragment {
 
     /** Extra: クライアントID. */
     static final String EXTRA_CLIENT_ID = "clientID";

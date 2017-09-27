@@ -254,7 +254,8 @@ public final class LocalOAuth2Main {
         if (sDbHelper != null) {
             sDbHelper.close();
         }
-        
+
+        sDb = null;
         sUserManager = null;
         sClientManager = null;
         sTokenManager = null;

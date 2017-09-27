@@ -1,3 +1,9 @@
+/*
+ LocalOAuth2MainTest.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.localoauth;
 
 import android.content.Context;
@@ -26,6 +32,11 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+/**
+ * LocalOAuth2Mainの単体テスト.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @RunWith(AndroidJUnit4.class)
 public class LocalOAuth2MainTest {
 
@@ -532,6 +543,40 @@ public class LocalOAuth2MainTest {
         assertThat(result.isExistClientId(), is(false));
         assertThat(result.isExistScope(), is(false));
         assertThat(result.isNotExpired(), is(false));
+    }
+
+    @Test
+    public void LocalOAuth2Main_destroyAllAccessToken() {
+        final String origin = "test_delete_all_access_token";
+        final String serviceId = "test_service_id_access_token";
+        final String[] scopes = {
+                "serviceDiscovery"
+        };
+        AccessTokenData data = createAccessToken(origin, serviceId, scopes);
+
+        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        assertThat(result, is(notNullValue()));
+        assertThat(result.checkResult(), is(true));
+        assertThat(result.isExistAccessToken(), is(true));
+        assertThat(result.isExistClientId(), is(true));
+        assertThat(result.isExistScope(), is(true));
+        assertThat(result.isNotExpired(), is(true));
+
+        ClientPackageInfo clientPackageInfo = LocalOAuth2Main.findClientPackageInfoByAccessToken(data.getAccessToken());
+        assertThat(clientPackageInfo, is(notNullValue()));
+
+        LocalOAuth2Main.destroyAllAccessToken();
+
+        result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        assertThat(result, is(notNullValue()));
+        assertThat(result.checkResult(), is(false));
+        assertThat(result.isExistAccessToken(), is(false));
+        assertThat(result.isExistClientId(), is(false));
+        assertThat(result.isExistScope(), is(false));
+        assertThat(result.isNotExpired(), is(false));
+
+        Client client = LocalOAuth2Main.findClientByClientId(clientPackageInfo.getClientId());
+        assertThat(client, is(notNullValue()));
     }
 
     private AccessTokenData createAccessToken(final String origin, final String serviceId, final String[] scopes) {

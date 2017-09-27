@@ -61,8 +61,8 @@ android {
 
     productFlavors {
         DeviceWebApi {
-            versionCode 6
-            versionName "1.2.0"
+            versionCode 7
+            versionName "1.2.1"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",
                     appName: "@string/app_name_for_device_web_api"

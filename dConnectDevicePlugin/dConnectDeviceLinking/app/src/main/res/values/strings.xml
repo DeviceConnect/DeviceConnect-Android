@@ -2,8 +2,8 @@
 <resources>
     <string name="linking_app_name" translatable="false">Linking (Device Web API device plug-in)</string>
 
-    <string name="activity_linking_ok">OK</string>
-    <string name="activity_linking_cancel">Cancel</string>
+    <string name="activity_linking_ok" translatable="false">OK</string>
+    <string name="activity_linking_cancel" translatable="false">Cancel</string>
 
     <string name="activity_linking_confirm_title" translatable="false">ConfirmActivity</string>
     <string name="activity_linking_confirm_message" translatable="false">Linkingアプリに接続しています...</string>

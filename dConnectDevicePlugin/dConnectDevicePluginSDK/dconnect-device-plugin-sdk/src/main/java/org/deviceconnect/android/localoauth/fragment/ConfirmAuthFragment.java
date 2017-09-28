@@ -179,14 +179,16 @@ public class ConfirmAuthFragment extends Fragment {
         cancelAutoClickTimer();
         stopTimeoutTimer();
         notApprovalProc();
-        if (mBound) {
+        try {
             getActivity().unbindService(mConnection);
+        } catch (Exception e) {
+            // ignore
         }
         super.onPause();
     }
 
     /** Class for interacting with the main interface of the service. */
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName className, final IBinder service) {
             mService = new Messenger(service);
@@ -274,7 +276,7 @@ public class ConfirmAuthFragment extends Fragment {
      * </p>
      */
     public synchronized void approvalProc() {
-        if (mDoneResponse || !mBound) {
+        if (mDoneResponse) {
             return;
         }
         sendMessage(true);
@@ -289,7 +291,7 @@ public class ConfirmAuthFragment extends Fragment {
      * </p>
      */
     public synchronized void notApprovalProc() {
-        if (mDoneResponse || !mBound) {
+        if (mDoneResponse) {
             return;
         }
         sendMessage(false);

@@ -144,6 +144,7 @@
     <string name="activity_deviceplugin_info_baud_rate_unit">%1$dms</string>
     <string name="activity_deviceplugin_info_request">Request</string>
     <string name="activity_deviceplugin_info_baud_rate_history">Baud Rate History</string>
+    <string name="activity_deviceplugin_info_timeout_history">Timeout History</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
@@ -205,6 +206,7 @@
     <string name="dconnect_error_connection_timeout">Connection was failed due to timeout.</string>
     <string name="dconnect_error_connection_terminated">Connection was terminated.</string>
     <string name="dconnect_error_connection_internal_error">Connection was failed due to internal error.</string>
+    <string name="dconnect_error_response_timeout">Response timeout happened.</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

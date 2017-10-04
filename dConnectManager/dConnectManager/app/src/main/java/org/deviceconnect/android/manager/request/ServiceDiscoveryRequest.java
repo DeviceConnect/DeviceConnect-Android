@@ -12,6 +12,7 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -39,6 +40,12 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public class ServiceDiscoveryRequest extends DConnectRequest {
+
+    /**
+     * タイムアウト時間を定義. (8秒)
+     */
+    public static final int TIMEOUT = 8000;
+
     /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
 
@@ -56,43 +63,9 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
     private CountDownLatch mCountDownLatch;
 
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-
-    @Override
-    public synchronized void setResponse(final Intent response) {
-        // リクエストコードを取得
-        int requestCode = response.getIntExtra(
-                IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
-        if (requestCode == -1) {
-            mLogger.warning("Illegal requestCode. requestCode=" + requestCode);
-            return;
-        }
-
-        // エラーが返ってきた場合には、サービスには登録しない。
-        int result = response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1);
-        if (result == IntentDConnectMessage.RESULT_OK) {
-            // 送られてきたサービスIDにデバイスプラグインのIDを付加して保存
-            Parcelable[] services = response.getParcelableArrayExtra(
-                    ServiceDiscoveryProfileConstants.PARAM_SERVICES);
-            if (services != null) {
-                DevicePlugin plugin = mRequestCodeArray.get(requestCode);
-                for (Parcelable p : services) {
-                    Bundle b = (Bundle) p;
-                    String id = b.getString(ServiceDiscoveryProfile.PARAM_ID);
-                    b.putString(ServiceDiscoveryProfile.PARAM_ID, mPluginMgr.appendServiceId(plugin, id));
-                    mServices.add(b);
-                }
-                mRequestCodeArray.remove(requestCode);
-            }
-        }
-
-        // レスポンス個数を追加
-        mCountDownLatch.countDown();
-    }
-
     @Override
     public synchronized boolean hasRequestCode(final int requestCode) {
-        return mRequestCodeArray.get(requestCode) != null;
+        return false;
     }
 
     @Override
@@ -109,33 +82,13 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         mCountDownLatch = new CountDownLatch(plugins.size());
 
         for (int i = 0; i < plugins.size(); i++) {
-            final int index = i;
-            mExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    // 送信用のIntentを作成
-                    final Intent request = createRequestMessage(mRequest, null);
-
-                    // プラグイン側のI/Fに変換
-                    request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
-                    request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
-                    request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
-
-                    DevicePlugin plugin = plugins.get(index);
-
-                    // リクエストコード発行
-                    int requestCode = UUID.randomUUID().hashCode();
-                    mRequestCodeArray.put(requestCode, plugin);
-
-                    request.setComponent(plugin.getComponentName());
-                    request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-                    try {
-                        plugin.send(request);
-                    } catch (MessagingException e) {
-                        mCountDownLatch.countDown();
-                    }
-                }
-            });
+            DiscoveryRequestForPlugin request = new DiscoveryRequestForPlugin();
+            request.setContext(mContext);
+            request.setRequest(mRequest);
+            request.setDevicePluginManager(mPluginMgr);
+            request.setDestination(plugins.get(i));
+            request.setTimeout(TIMEOUT);
+            ((DConnectMessageService) mContext).addRequest(request);
         }
 
         if (mCountDownLatch.getCount() > 0) {
@@ -174,6 +127,56 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             mLogger.warning(notRespondedLog);
         } else {
             mLogger.info("All plug-in(s) responded for service discovery.");
+        }
+    }
+
+    private class DiscoveryRequestForPlugin extends DConnectPluginRequest {
+
+        @Override
+        public void run() {
+            // リクエストコード発行
+            mRequestCode = UUID.randomUUID().hashCode();
+            mRequestCodeArray.put(mRequestCode, mDevicePlugin);
+
+            // 送信用のIntentを作成
+            final Intent request = createRequestMessage(mRequest, null);
+
+            // GotAPI-5 I/F仕様のパスに変換
+            request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
+            request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
+            request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
+            request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
+            request.setComponent(mDevicePlugin.getComponentName());
+            sendRequest(request);
+        }
+
+        @Override
+        protected void onResponseReceived(final Intent request, final Intent response) {
+            // エラーが返ってきた場合には、サービスには登録しない。
+            int result = response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1);
+            if (result == IntentDConnectMessage.RESULT_OK) {
+                // 送られてきたサービスIDにデバイスプラグインのIDを付加して保存
+                Parcelable[] services = response.getParcelableArrayExtra(
+                        ServiceDiscoveryProfileConstants.PARAM_SERVICES);
+                if (services != null) {
+                    for (Parcelable p : services) {
+                        Bundle b = (Bundle) p;
+                        String id = b.getString(ServiceDiscoveryProfile.PARAM_ID);
+                        b.putString(ServiceDiscoveryProfile.PARAM_ID, mPluginMgr.appendServiceId(mDevicePlugin, id));
+                        mServices.add(b);
+                    }
+                }
+            }
+
+            // レスポンス個数を追加
+            mCountDownLatch.countDown();
+            mRequestCodeArray.remove(mRequestCode);
+        }
+
+        @Override
+        protected void onMessagingError(final MessagingException e) {
+            mCountDownLatch.countDown();
+            mRequestCodeArray.remove(mRequestCode);
         }
     }
 }

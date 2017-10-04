@@ -70,45 +70,38 @@ public class DeliveryRequest extends LocalOAuthRequest {
             request.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
         }
 
-        if (!forwardRequest(request)) {
+        sendRequest(request);
+    }
+
+    @Override
+    protected void onResponseReceived(final Intent request, final Intent response) {
+        int result = getResult(mResponse);
+        if (result == DConnectMessage.RESULT_OK) {
+            sendResponse(mResponse);
             return;
         }
 
-        if (mResponse == null) {
-            // 各デバイスのレスポンスを待つ
-            waitForResponse();
-        }
-
-        // レスポンスを解析して、処理を行う
-        if (mResponse != null) {
-            int result = getResult(mResponse);
-            if (result == DConnectMessage.RESULT_ERROR) {
-                mRetryCount++;
-                int errorCode = getErrorCode(mResponse);
-                if (mRetryCount < MAX_RETRY_COUNT 
-                        && errorCode == DConnectMessage.ErrorCode.NOT_FOUND_CLIENT_ID.getCode()) {
-                    // クライアントIDが発見できなかった場合は、dConnectManagerとデバイスプラグインで
-                    // 一致していないので、dConnectManagerのローカルに保存しているclientIdを削除
-                    // してから、再度デバイスプラグインにクライアントIDの作成を要求を行う.
-                    String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-                    String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-                    if (serviceId != null) {
-                        mLocalOAuth.deleteOAuthData(origin, serviceId);
-                    }
-                    executeRequest();
-                } else if (mRetryCount < MAX_RETRY_COUNT 
-                        && errorCode == DConnectMessage.ErrorCode.EXPIRED_ACCESS_TOKEN.getCode()) {
-                    // アクセストークンの有効期限切れ
-                    mLocalOAuth.deleteAccessToken(accessToken);
-                    executeRequest();
-                } else {
-                    sendResponse(mResponse);
-                }
-            } else {
-                sendResponse(mResponse);
+        mRetryCount++;
+        int errorCode = getErrorCode(mResponse);
+        if (mRetryCount < MAX_RETRY_COUNT
+                && errorCode == DConnectMessage.ErrorCode.NOT_FOUND_CLIENT_ID.getCode()) {
+            // クライアントIDが発見できなかった場合は、dConnectManagerとデバイスプラグインで
+            // 一致していないので、dConnectManagerのローカルに保存しているclientIdを削除
+            // してから、再度デバイスプラグインにクライアントIDの作成を要求を行う.
+            String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+            String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            if (serviceId != null) {
+                mLocalOAuth.deleteOAuthData(origin, serviceId);
             }
+            executeRequest();
+        } else if (mRetryCount < MAX_RETRY_COUNT
+                && errorCode == DConnectMessage.ErrorCode.EXPIRED_ACCESS_TOKEN.getCode()) {
+            // アクセストークンの有効期限切れ
+            String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+            mLocalOAuth.deleteAccessToken(accessToken);
+            executeRequest();
         } else {
-            sendTimeout();
+            sendResponse(mResponse);
         }
     }
 }

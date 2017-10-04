@@ -27,21 +27,6 @@ class DevicePluginSetting {
     /** 設定キー: 有効状態. */
     private static final String KEY_ENABLED = "enabled";
 
-    /**
-     * 設定キー: 平均通信時間.
-     */
-    private static final String KEY_AVERAGE_BAUD_RATE = "average_baud_rate";
-
-    /**
-     * 設定キー: 最遅通信時間.
-     */
-    private static final String KEY_WORST_BAUD_RATE = "worst_baud_rate";
-
-    /**
-     * 設定キー: 最遅通信時間のリクエスト.
-     */
-    private static final String KEY_WORST_REQUEST = "worst_request";
-
     /** デバイスプラグイン設定を永続化するオブジェクト. */
     private final SharedPreferences mPreferences;
 
@@ -77,53 +62,5 @@ class DevicePluginSetting {
      */
     void clear() {
         mPreferences.edit().clear().apply();
-    }
-
-    /**
-     * 平均通信時間を保存します.
-     * @param baudRate 保存する平均通信時間
-     */
-    void setAverageBaudRate(final long baudRate) {
-        mPreferences.edit().putLong(KEY_AVERAGE_BAUD_RATE, baudRate).apply();
-    }
-
-    /**
-     * 平均通信時間を取得します.
-     * @return 平均通信時間
-     */
-    long getAverageBaudRate() {
-        return mPreferences.getLong(KEY_AVERAGE_BAUD_RATE, 0);
-    }
-
-    /**
-     * 最遅通信時間を保存します.
-     * @param baudRate 最遅通信時間
-     */
-    void setWorstBaudRate(final long baudRate) {
-        mPreferences.edit().putLong(KEY_WORST_BAUD_RATE, baudRate).apply();
-    }
-
-    /**
-     * 最遅通信時間を取得します.
-     * @return 最遅通信時間
-     */
-    long getWorstBaudRate() {
-        return mPreferences.getLong(KEY_WORST_BAUD_RATE, 0);
-    }
-
-    /**
-     * 最遅通信時間のリクエストを保存します.
-     * @param request 最遅通信時間のリクエスト
-     */
-    void setWorstRequest(final String request) {
-        mPreferences.edit().putString(KEY_WORST_REQUEST, request).apply();
-    }
-
-    /**
-     * 最遅通信時間のリクエストを取得します.
-     * @return 最遅通信時間のリクエスト
-     */
-    String getWorstRequest() {
-        return mPreferences.getString(KEY_WORST_REQUEST, "None");
     }
 }

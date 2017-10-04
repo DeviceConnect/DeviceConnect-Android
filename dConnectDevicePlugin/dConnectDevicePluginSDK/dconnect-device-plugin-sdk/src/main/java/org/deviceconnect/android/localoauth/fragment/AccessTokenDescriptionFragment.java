@@ -1,15 +1,5 @@
 package org.deviceconnect.android.localoauth.fragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.ScopeUtil;
-import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
-import org.restlet.ext.oauth.internal.Client;
-import org.restlet.ext.oauth.internal.Scope;
-
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -25,11 +15,22 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.localoauth.ScopeUtil;
+import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
+import org.restlet.ext.oauth.internal.Client;
+import org.restlet.ext.oauth.internal.Scope;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * アクセストークンの詳細情報を表示するFragment.
  * @author NTT DOCOMO, INC.
  */
-public class AccessTokenDescriptionFramgent extends Fragment {
+public class AccessTokenDescriptionFragment extends Fragment {
 
     /** Extra: クライアントID. */
     static final String EXTRA_CLIENT_ID = "clientID";
@@ -38,7 +39,7 @@ public class AccessTokenDescriptionFramgent extends Fragment {
     private SQLiteToken mToken;
 
     /** スコープを表示するアダプタ. */
-    private ScopeListAdapter mScopeListAdater;
+    private ScopeListAdapter mScopeListAdapter;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -53,7 +54,7 @@ public class AccessTokenDescriptionFramgent extends Fragment {
         Client client = LocalOAuth2Main.findClientByClientId(clientId);
         mToken = LocalOAuth2Main.getAccessToken(client);
 
-        mScopeListAdater = new ScopeListAdapter(getActivity(), 0, getScopeList());
+        mScopeListAdapter = new ScopeListAdapter(getActivity(), 0, getScopeList());
 
         View view = inflater.inflate(R.layout.access_token_item_fragment, container, false);
 
@@ -61,7 +62,7 @@ public class AccessTokenDescriptionFramgent extends Fragment {
         textView.setText(mToken.getApplicationName());
 
         ListView listView = (ListView) view.findViewById(R.id.listViewScope);
-        listView.setAdapter(mScopeListAdater);
+        listView.setAdapter(mScopeListAdapter);
 
         Button okBtn = (Button) view.findViewById(R.id.buttonOk);
         okBtn.setOnClickListener(new OnClickListener() {
@@ -83,14 +84,11 @@ public class AccessTokenDescriptionFramgent extends Fragment {
      * @return スコープリスト
      */
     private List<Scope> getScopeList() {
-        List<Scope> scopeList = new ArrayList<Scope>();
         Scope[] scopes = mToken.getScope();
         if (scopes != null) {
-            for (Scope scope : scopes) {
-                scopeList.add(scope);
-            }
+            return Arrays.asList(scopes);
         }
-        return scopeList;
+        return new ArrayList<>();
     }
 
     /**
@@ -105,7 +103,7 @@ public class AccessTokenDescriptionFramgent extends Fragment {
      * スコープListView用Adapter.
      */
     private class ScopeListAdapter extends ArrayAdapter<Scope> {
-        /** LayoutInflator. */
+        /** LayoutInflater. */
         private LayoutInflater mInflater;
         /** スコープ配列. */
         private List<Scope> mScopes;
@@ -116,8 +114,7 @@ public class AccessTokenDescriptionFramgent extends Fragment {
          * @param textViewResourceId textViewResourceId
          * @param scopes スコープ配列
          */
-        public ScopeListAdapter(final Context context, final int textViewResourceId,
-                final List<Scope> scopes) {
+        ScopeListAdapter(final Context context, final int textViewResourceId, final List<Scope> scopes) {
             super(context, textViewResourceId, scopes);
             mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             mScopes = scopes;
@@ -130,11 +127,11 @@ public class AccessTokenDescriptionFramgent extends Fragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            Scope scope = (Scope) getItem(position);
+            Scope scope = getItem(position);
 
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.access_token_item_scope, (ViewGroup) null);
+                view = mInflater.inflate(R.layout.access_token_item_scope, null);
             }
 
             // スコープ名表示(日本語表示できる場合は日本語表示する)
@@ -145,7 +142,7 @@ public class AccessTokenDescriptionFramgent extends Fragment {
                 textView.setText(strScope);
             }
 
-            /* 有効期限 */
+            // 有効期限
             TextView textViewExpirePeriod = (TextView) view.findViewById(R.id.textViewExpirePeriod);
             if (scope != null) {
                 String expirePeriod = scope.getStrExpirePeriod();

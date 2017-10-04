@@ -23,7 +23,7 @@ public class AccessTokenScope {
      * @param scope スコープ名
      * @param expirePeriod 有効期限[秒]
      */
-    public AccessTokenScope(final String scope, final long expirePeriod) {
+    AccessTokenScope(final String scope, final long expirePeriod) {
         mScope = scope;
         mExpirePeriod = expirePeriod;
     }

@@ -33,10 +33,9 @@
 
 package org.deviceconnect.android.localoauth.oauthserver.db;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 
 import org.deviceconnect.android.localoauth.LocalOAuth2Settings;
 import org.deviceconnect.android.localoauth.oauthserver.SampleUser;
@@ -49,9 +48,10 @@ import org.restlet.ext.oauth.internal.Client;
 import org.restlet.ext.oauth.internal.Scope;
 import org.restlet.ext.oauth.internal.Token;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SQLiteTokenManager extends AbstractTokenManager {
 
@@ -61,14 +61,13 @@ public class SQLiteTokenManager extends AbstractTokenManager {
     /**
      * DBオブジェクト.
      */
-    private SQLiteDatabase mDb = null;
+    private SQLiteDatabase mDb;
 
     /**
-     * DBオブジェクトを設定する.
-     * 
+     * コンストラクタ.
      * @param db DBオブジェクト
      */
-    public void setDb(final SQLiteDatabase db) {
+    public SQLiteTokenManager(final SQLiteDatabase db) {
         mDb = db;
     }
 
@@ -85,7 +84,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public Token generateToken(final Client client, final String username, final Scope[] scopes,
             final String applicationName) throws OAuthException {
-    
+
         /* scopesのtimestampを現在時刻に設定する */
         long currentTime = System.currentTimeMillis();
         for (Scope s : scopes) {
@@ -197,20 +196,6 @@ public class SQLiteTokenManager extends AbstractTokenManager {
     }
 
     /**
-     * リフレッシュトークン（本APIは使用禁止です）.
-     * 
-     * @param client クライアント
-     * @param refreshToken リフレッシュトークン
-     * @param scope スコープ
-     * @return トークン
-     * @throws OAuthException OAuth例外
-     */
-    public Token refreshToken(final Client client, final String refreshToken, final String[] scope)
-            throws OAuthException {
-        throw new OAuthException(OAuthError.invalid_grant, "本APIは使用できません.", null);
-    }
-
-    /**
      * セッション保存.
      * @param session セッション
      * @return セッションコード
@@ -275,8 +260,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
         if (mDb != null) {
             String selection = SQLiteToken.USERS_USERID_FIELD + "=?";
             String[] selectionArgs = { String.valueOf(LocalOAuthOpenHelper.USERS_USER_ID) };
-            SQLiteToken[] tokens = dbLoadTokens(mDb, selection, selectionArgs);
-            return tokens;
+            return dbLoadTokens(mDb, selection, selectionArgs);
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -292,8 +276,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
         if (mDb != null) {
             String selection = SQLiteToken.CLIENTID_FIELD + "=?";
             String[] selectionArgs = { client.getClientId() };
-            SQLiteToken[] tokens = dbLoadTokens(mDb, selection, selectionArgs);
-            return tokens;
+            return dbLoadTokens(mDb, selection, selectionArgs);
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -455,9 +438,8 @@ public class SQLiteTokenManager extends AbstractTokenManager {
                             token.setClientId(c.getString(clientIdColumnIndex));
                         }
 
-                        final int usersUserIdColumnindex = c.getColumnIndex(SQLiteToken.USERS_USERID_FIELD);
-                        if (!c.isNull(usersUserIdColumnindex)) {
-                            // long userId = c.getLong(usersUserIdColumnindex);
+                        final int usersUserIdColumnIndex = c.getColumnIndex(SQLiteToken.USERS_USERID_FIELD);
+                        if (!c.isNull(usersUserIdColumnIndex)) {
                             token.setUsername(SampleUser.USERNAME);
                         }
 
@@ -516,8 +498,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      * @return SQLiteProfile配列
      */
     private List<SQLiteProfile> dbLoadProfiles(final SQLiteDatabase db) {
-
-        List<SQLiteProfile> profiles = new ArrayList<SQLiteProfile>();
+        List<SQLiteProfile> profiles = new ArrayList<>();
 
         String tables = LocalOAuthOpenHelper.PROFILES_TABLE;
         String[] columns = SQLiteProfile.PROFILE_ALL_FIELIDS;
@@ -570,7 +551,6 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      * @return not null: プロファイル名が一致するプロファイルデータが存在すればそのポインタを返す。 null: 存在しない。
      */
     private SQLiteProfile findProfileByProfileName(final List<SQLiteProfile> profiles, final String profileName) {
-
         for (SQLiteProfile profile : profiles) {
             if (profileName.equals(profile.getProfileName())) {
                 return profile;
@@ -741,7 +721,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
     /**
      * SQLiteScopeにProfile名を付けたクラス.
      */
-    class SQLiteScopeInfo extends SQLiteScopeDb {
+    private class SQLiteScopeInfo extends SQLiteScopeDb {
         
         /** プロファイル名.*/
         private String mProfileName;
@@ -754,7 +734,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
          * @param expirePeriod 有効期限
          * @param profileName プロファイル名
          */
-        public SQLiteScopeInfo(final long tokensTokenId, final long profilesProfileId, final long timestamp,
+        SQLiteScopeInfo(final long tokensTokenId, final long profilesProfileId, final long timestamp,
                 final long expirePeriod, final String profileName) {
             super(tokensTokenId, profilesProfileId, timestamp, expirePeriod);
             mProfileName = profileName;
@@ -775,6 +755,5 @@ public class SQLiteTokenManager extends AbstractTokenManager {
         public void setProfileName(final String profileName) {
             mProfileName = profileName;
         }
-        
     }
 }

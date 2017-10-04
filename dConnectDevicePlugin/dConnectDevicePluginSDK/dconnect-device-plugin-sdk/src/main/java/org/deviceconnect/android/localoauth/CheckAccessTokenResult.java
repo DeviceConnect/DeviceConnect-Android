@@ -32,7 +32,7 @@ public class CheckAccessTokenResult {
      * @param isExistScope true: スコープあり / false: スコープなし
      * @param isNotExpired true: 有効期限内 / false: 有効期限切れ
      */
-    public CheckAccessTokenResult(final boolean isExistClientId, final boolean isExistAccessToken, 
+    CheckAccessTokenResult(final boolean isExistClientId, final boolean isExistAccessToken,
             final boolean isExistScope, final boolean isNotExpired) {
         mIsExistClientId = isExistClientId;
         mIsExistAccessToken = isExistAccessToken;

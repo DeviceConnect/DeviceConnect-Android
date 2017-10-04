@@ -1,16 +1,5 @@
 package org.deviceconnect.android.localoauth.fragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.ScopeUtil;
-import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteClient;
-import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
-import org.restlet.ext.oauth.PackageInfoOAuth;
-import org.restlet.ext.oauth.internal.Scope;
-
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -20,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,6 +24,18 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.localoauth.ScopeUtil;
+import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteClient;
+import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
+import org.restlet.ext.oauth.PackageInfoOAuth;
+import org.restlet.ext.oauth.internal.Scope;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * アクセストークン一覧を表示するFragment.
@@ -112,11 +114,7 @@ public class AccessTokenListFragment extends Fragment {
                 mListAdapter.deleteAll();
             }
         })
-        .setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-            }
-        })
+        .setNegativeButton(strNegative, null)
         .setCancelable(true);
         
         AlertDialog alertDialog = builder.create();
@@ -128,12 +126,10 @@ public class AccessTokenListFragment extends Fragment {
      * @return アクセストークンのリスト
      */
     private List<SQLiteToken> loadTokens() {
-        ArrayList<SQLiteToken> tokenList = new ArrayList<SQLiteToken>();
+        ArrayList<SQLiteToken> tokenList = new ArrayList<>();
         SQLiteToken[] tokens = LocalOAuth2Main.getAccessTokens();
         if (tokens != null) {
-            for (SQLiteToken token : tokens) {
-                tokenList.add(token);
-            }
+            tokenList.addAll(Arrays.asList(tokens));
         }
         return tokenList;
     }
@@ -142,11 +138,13 @@ public class AccessTokenListFragment extends Fragment {
      * トークンデータがありませんのViewの表示・非表示を設定する.
      */
     private void setVisibleCommentView() {
-        View commentView = getView().findViewById(R.id.noTokenView);
-        if (mListAdapter.getCount() == 0) {
-            commentView.setVisibility(View.VISIBLE);
-        } else {
-            commentView.setVisibility(View.GONE);
+        if (getView() != null) {
+            View commentView = getView().findViewById(R.id.noTokenView);
+            if (mListAdapter.getCount() == 0) {
+                commentView.setVisibility(View.VISIBLE);
+            } else {
+                commentView.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -165,7 +163,7 @@ public class AccessTokenListFragment extends Fragment {
          * @param textViewResourceId textViewResourceId
          * @param tokens トークン配列
          */
-        public AccessTokenListAdapter(final Context context, final int textViewResourceId,
+        AccessTokenListAdapter(final Context context, final int textViewResourceId,
                 final List<SQLiteToken> tokens) {
             super(context, textViewResourceId, tokens);
             mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -179,11 +177,11 @@ public class AccessTokenListFragment extends Fragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            final SQLiteToken token = (SQLiteToken) getItem(position);
+            final SQLiteToken token = getItem(position);
 
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.access_token_list_item, (ViewGroup) null);
+                view = mInflater.inflate(R.layout.access_token_list_item, parent, false);
             }
 
             // アプリケーション名
@@ -276,7 +274,11 @@ public class AccessTokenListFragment extends Fragment {
             }
         }
         if (icon == null) {
-            icon = getResources().getDrawable(R.drawable.ic_action_labels);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
+                icon = getResources().getDrawable(R.drawable.ic_action_labels);
+            } else {
+                icon = getResources().getDrawable(R.drawable.ic_action_labels, null);
+            }
         }
         return icon;
     }
@@ -288,7 +290,7 @@ public class AccessTokenListFragment extends Fragment {
      * @return not null: パッケージアイコン / null: パッケージが見つからない
      */
     private Drawable getPackageIcon(final Context context, final String packageName) {
-        PackageManager pm = getActivity().getPackageManager();
+        PackageManager pm = context.getPackageManager();
         try {
             return pm.getApplicationIcon(packageName);
         } catch (NameNotFoundException e) {
@@ -323,9 +325,9 @@ public class AccessTokenListFragment extends Fragment {
      * @param token トークンデータ
      */
     private void openAccessTokenDescription(final SQLiteToken token) {
-        AccessTokenDescriptionFramgent f = new AccessTokenDescriptionFramgent();
+        AccessTokenDescriptionFragment f = new AccessTokenDescriptionFragment();
         Bundle bundle = new Bundle();
-        bundle.putString(AccessTokenDescriptionFramgent.EXTRA_CLIENT_ID, 
+        bundle.putString(AccessTokenDescriptionFragment.EXTRA_CLIENT_ID,
                 token.getClientId());
         f.setArguments(bundle);
         FragmentManager fm = getActivity().getFragmentManager();
@@ -341,9 +343,7 @@ public class AccessTokenListFragment extends Fragment {
      * @param token 削除するトークンデータ
      */
     private void openDeleteTokenDialog(final SQLiteToken token) {
-        String applicationName = token.getApplicationName();
-
-        String strTitle = applicationName;
+        String strTitle = token.getApplicationName();
         String strGuidance = getString(R.string.access_token_delete_guidance);
         String strPositive = getString(R.string.access_token_delete_positive);
         String strNegative = getString(R.string.access_token_delete_negative);
@@ -355,11 +355,9 @@ public class AccessTokenListFragment extends Fragment {
                     public void onClick(final DialogInterface dialog, final int which) {
                         mListAdapter.deleteToken(token);
                     }
-                }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                    }
-                }).setCancelable(true);
+                })
+                .setNegativeButton(strNegative, null)
+                .setCancelable(true);
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }

@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.localoauth;
 
+import android.content.Context;
+
+import org.restlet.ext.oauth.internal.Scope;
+
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-
-import org.restlet.ext.oauth.internal.Scope;
-
-import android.content.Context;
 
 /**
  * スコープ用Util.
@@ -63,8 +63,7 @@ public final class ScopeUtil {
      * @return ArrayList<String>の配列
      */
     public static ArrayList<String> scopesToStrings(final ArrayList<Scope> scopes) {
-        
-        ArrayList<String> strScopes = new ArrayList<String>();
+        ArrayList<String> strScopes = new ArrayList<>();
         int c = scopes.size();
         for (int i = 0; i < c; i++) {
             strScopes.add(scopes.get(i).toString());

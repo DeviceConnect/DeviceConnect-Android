@@ -177,6 +177,12 @@ public abstract class DConnectMessageService extends Service
     /** プラグイン検索中フラグ. */
     private boolean mIsSearchingPlugins;
 
+    /** プロダクト名. */
+    private String mProductName;
+
+    /** バージョン名. */
+    private String mVersionName;
+
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
         public void sendMessage(final Intent message) throws RemoteException {
@@ -200,6 +206,9 @@ public abstract class DConnectMessageService extends Service
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mProductName = getString(R.string.app_name);
+        mVersionName = DConnectUtil.getVersionName(this);
 
         // プラグイン管理クラスの初期化
         mPluginManager = new DevicePluginManager(this, LOCALHOST_DCONNECT);
@@ -488,8 +497,8 @@ public abstract class DConnectMessageService extends Service
      */
     private void executeRequest(final Intent request, final Intent response) {
         // リクエストにDeviceConnectManagerの情報を付加する
-        request.putExtra(DConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
-        request.putExtra(DConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
+        request.putExtra(DConnectMessage.EXTRA_PRODUCT, mProductName);
+        request.putExtra(DConnectMessage.EXTRA_VERSION, mVersionName);
 
         DConnectProfile profile = getProfile(request);
         if (profile != null && !isDeliveryRequest(request)) {
@@ -845,8 +854,8 @@ public abstract class DConnectMessageService extends Service
 
         Intent intent = new Intent(response);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-        intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
-        intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
+        intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, mProductName);
+        intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, mVersionName);
 
         // HMAC生成
         String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);

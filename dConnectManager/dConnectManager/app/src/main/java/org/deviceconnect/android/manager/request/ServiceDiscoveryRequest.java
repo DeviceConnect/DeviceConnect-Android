@@ -88,7 +88,6 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             request.setDevicePluginManager(mPluginMgr);
             request.setDestination(plugins.get(i));
             request.setTimeout(TIMEOUT);
-            request.setReportedRoundTrip(false);
             ((DConnectMessageService) mContext).addRequest(request);
         }
 

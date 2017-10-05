@@ -1,4 +1,3 @@
-
 # HOGPプラグインについて
 
 HOGP(HID over GATT Profile)とは、Bluetooth low energyを使用してマウスやキーボードなどを接続するためのプロファイルです。

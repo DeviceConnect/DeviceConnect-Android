@@ -68,7 +68,7 @@ PUT /gotapi/connection/ble?serviceId=[HOSTのサービスID]
 ## デバイスとのペアリング
 
 HOGPサーバが有効化されるとマウス・キーボードとしてBluetoothデバイスが公開されます。<br>
-Android端末やMacBookなどから、HOGPサーバの端末をを見つけてペアリングを行なってください。<br>
+Android端末やMacBookなどから、HOGPサーバの端末を見つけてペアリングを行なってください。<br>
 端末のデバイス名を確認するには、Android端末の設定画面からBluetooth設定を開き、メニューから「この機器の名前を変更」を選択することでできます。
 
 MacBookから接続する場合は、「システム環境設定」→「マウス」→「Bluetoothマウスを設定」を開きます。
@@ -126,7 +126,7 @@ POST /gotapi/mouse?serviceId=[操作する端末のID]&x=0&y=0
 POST /gotapi/mouse?serviceId=[操作する端末のID]&x=0.5&y=0.5
 ```
 
-Android端末では、absoluteがサポートされていませんので、動作しませんのご注意ください。
+Android端末では、absoluteがサポートされていませんので動作しません。ご注意ください。
 
 ### マウスクリック
 

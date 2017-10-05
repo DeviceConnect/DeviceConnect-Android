@@ -99,7 +99,7 @@ curl  -X GET \
 |dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
 |dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
 |dConnectDeviceHitoe|Hitoeのデバイスプラグイン。|
-|dConnectDeviceHOGP|[HOGPのデバイスプラグイン。](dConnectDevicePlugin/dConnectDeviceHOGP/README.md)|
+|dConnectDeviceHOGP|[HOGPのデバイスプラグイン。](dConnectDevicePlugin/dConnectDeviceHOGP)|
 |dConnectDeviceHost|Androidのデバイスプラグイン。|
 |dConnectDeviceHue|Hueのデバイスプラグイン。|
 |dConnectDeviceHVC|HVC-Cのデバイスプラグイン。|

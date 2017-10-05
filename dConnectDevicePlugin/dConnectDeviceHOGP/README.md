@@ -17,9 +17,7 @@ Android Studio 2.2.1以上
 - HOGPMessageService.java
 
 ## ビルドマニュアル
-
-- [HOGPビルドマニュアル](wiki/HOGP-Build)
-
+- [HOGPビルドマニュアル](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 
 # HOGPプラグインの使用方法
 HOGPプラグインの使用法について簡単に説明を行います。

@@ -97,6 +97,7 @@ If the following response is returned, you can check that Device Connect Manager
 |dConnectDeviceFaBo|Device Plug-in for FaBo.|
 |dConnectDeviceHeartRate|Device Plug-in for HeartRate such as Mio Alpha.|
 |dConnectDeviceHitoe|Device Plug-in for Hitoe.|
+|dConnectDeviceHOGP|Device Plug-in for HOGP.|
 |dConnectDeviceHost|Device Plug-in for Android.|
 |dConnectDeviceHue|Device Plug-in for Hue.|
 |dConnectDeviceHVC|Device Plug-in for HVC-C.|
@@ -167,6 +168,7 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
+* [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)

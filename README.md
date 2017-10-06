@@ -113,6 +113,7 @@ curl  -X GET \
 |[dConnectDeviceSonyCamera](dConnectDevicePlugin/dConnectDeviceSonyCamera)|QX10などのSonyCameraのデバイスプラグイン。|
 |[dConnectDeviceSonySW](dConnectDevicePlugin/dConnectDeviceSonySW)|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
 |[dConnectDeviceSlackMessageHook](dConnectDevicePlugin/dConnectDeviceSlackMessageHook)|Slackのプラグイン。|
+|[dConnectDeviceSmartMeter](dConnectDevicePlugin/dConnectDeviceSmartMeter)|SmartMeterのデバイスプラグイン。|
 |[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Spheroのデバイスプラグイン。|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|

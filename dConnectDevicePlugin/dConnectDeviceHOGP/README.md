@@ -1,23 +1,19 @@
 # HOGPプラグインについて
 
-HOGP(HID over GATT Profile)とは、Bluetooth low energyを使用してマウスやキーボードなどを接続するためのプロファイルです。
-
 このHOGPプラグインでは、HOGPを実装して、RESTfulから接続先のマウスやキーボードを操作するための機能を提供します。
+
+HOGP(HID over GATT Profile)とは、Bluetooth low energyを使用してマウスやキーボードなどを接続するためのプロファイルです。
 
 ## 開発環境
 Android Studio 2.2.1以上
 
-## サポートするプロファイル
-- hogp
-
-## 要実装箇所
-下記のjavaファイルにTODOを記載しています。プラグインの要件に合わせて実装してください。
-
-- HOGPHogpProfile.java
-- HOGPMessageService.java
-
 ## ビルドマニュアル
 - [HOGPビルドマニュアル](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
+
+## サポートするプロファイル
+- hogp
+- mouse
+- keyboard
 
 # HOGPプラグインの使用方法
 HOGPプラグインの使用法について簡単に説明を行います。

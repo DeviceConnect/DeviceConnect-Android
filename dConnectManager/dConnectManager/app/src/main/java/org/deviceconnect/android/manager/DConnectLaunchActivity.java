@@ -92,8 +92,21 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         return mSettings.allowExternalStartAndStop();
     }
 
+    private boolean forcedShow(final Intent intent) {
+        return intent != null && intent.getData() == null;
+    }
+
     private void processRequest(final Intent intent) {
-        if (intent != null && isSchemeForLaunch(intent.getScheme())) {
+        if (forcedShow(intent)) {
+            preventAutoStop();
+            mBehavior = new Task() {
+                @Override
+                public void onManagerBonded(final DConnectService managerService) {
+                    displayActivity();
+                }
+            };
+            bindManagerService();
+        } else if (intent != null && isSchemeForLaunch(intent.getScheme())) {
             updateHMACKey(intent);
 
             Uri uri = intent.getData();

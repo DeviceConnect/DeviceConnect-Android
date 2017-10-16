@@ -30,10 +30,13 @@
 
         <service
             android:name=".SlackMessageHookDeviceService"
-            android:exported="false" >
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_slackmessagehook" />
         </service>
 
-        <!-- 再起動用のServcie. -->
+        <!-- 再起動用のService. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
             android:exported="true" >

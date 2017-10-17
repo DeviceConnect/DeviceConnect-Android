@@ -27,16 +27,18 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="34dp"
             android:gravity="center_horizontal"
-            android:text="@string/activity_launch_message_launch"
+            android:text="@string/activity_launch_message_waiting_for_initialization"
             android:textColor="#00a0e9"
             android:textSize="16sp"/>
 
         <LinearLayout
+            android:id="@+id/buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center_horizontal"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="invisible">
 
             <Button
                 android:id="@+id/button_manager_launcher_cancel"

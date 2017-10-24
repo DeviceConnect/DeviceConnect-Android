@@ -10,6 +10,7 @@
     <string name="activity_launch_button_stop">停止</string>
     <string name="activity_launch_button_cancel">キャンセル</string>
     <string name="activity_launch_button_settings">設定</string>
+    <string name="activity_launch_message_waiting_for_initialization">Device Connect システム初期化中&#8230;</string>
     <string name="activity_launch_message_launch">Device Connect Managerを起動したい場合は、\n下の「起動」を押してください。</string>
     <string name="activity_launch_message_stop">Device Connect Managerを停止したい場合は、\n下の「停止」を押してください。</string>
 
@@ -151,6 +152,7 @@
     <string name="activity_deviceplugin_info_baud_rate_unit">%1$dms</string>
     <string name="activity_deviceplugin_info_request">リクエスト</string>
     <string name="activity_deviceplugin_info_baud_rate_history">通信履歴</string>
+    <string name="activity_deviceplugin_info_timeout_history">応答タイムアウト履歴</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
@@ -212,6 +214,7 @@
     <string name="dconnect_error_connection_timeout">接続がタイムアウトしました。</string>
     <string name="dconnect_error_connection_terminated">接続が切断されました。</string>
     <string name="dconnect_error_connection_internal_error">内部エラーにより接続失敗。</string>
+    <string name="dconnect_error_response_timeout">応答タイムアウト発生。</string>
 
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>

@@ -99,6 +99,7 @@ curl  -X GET \
 |dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
 |dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
 |dConnectDeviceHitoe|Hitoeのデバイスプラグイン。|
+|[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
 |dConnectDeviceHost|Androidのデバイスプラグイン。|
 |dConnectDeviceHue|Hueのデバイスプラグイン。|
 |dConnectDeviceHVC|HVC-Cのデバイスプラグイン。|
@@ -168,6 +169,7 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
+* [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)

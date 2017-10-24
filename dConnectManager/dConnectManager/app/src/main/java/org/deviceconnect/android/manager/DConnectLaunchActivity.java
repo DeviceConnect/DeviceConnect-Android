@@ -92,26 +92,34 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         return mSettings.allowExternalStartAndStop();
     }
 
+    private boolean forcedShow(final Intent intent) {
+        return intent != null && intent.getData() == null;
+    }
+
     private void processRequest(final Intent intent) {
-        if (intent != null && isSchemeForLaunch(intent.getScheme())) {
+        if (forcedShow(intent)) {
+            displayActivity();
+            mBehavior = new Task() {
+                @Override
+                public void onManagerBonded(final DConnectService managerService) {
+                    toggleButton(managerService.isRunning());
+                }
+            };
+            bindManagerService();
+        } else if (intent != null && isSchemeForLaunch(intent.getScheme())) {
             updateHMACKey(intent);
 
             Uri uri = intent.getData();
             String host = uri.getHost();
             String path = uri.getPath();
             if (HOST_START.equals(host)) {
-                preventAutoStop();
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
+                    displayActivity();
                     mBehavior = new Task() {
                         @Override
                         public void onManagerBonded(final DConnectService managerService) {
-                            if (mDConnectService != null) {
-                                if (!mDConnectService.isRunning()) {
-                                    displayActivity();
-                                } else {
-                                    setResult(RESULT_OK);
-                                    finish();
-                                }
+                            if (managerService.isRunning()) {
+                                toggleButton(true);
                             } else {
                                 finish();
                             }
@@ -132,16 +140,12 @@ public class DConnectLaunchActivity extends AppCompatActivity {
                 }
             } else if (HOST_STOP.equals(host)) {
                 if (!allowExternalStartAndStop() || PATH_ROOT.equals(path) || PATH_ACTIVITY.equals(path)) {
+                    displayActivity();
                     mBehavior = new Task() {
                         @Override
                         public void onManagerBonded(final DConnectService managerService) {
-                            if (mDConnectService != null) {
-                                if (mDConnectService.isRunning()) {
-                                    displayActivity();
-                                } else {
-                                    setResult(RESULT_OK);
-                                    finish();
-                                }
+                            if (managerService.isRunning()) {
+                                toggleButton(true);
                             } else {
                                 finish();
                             }
@@ -280,6 +284,7 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         setTheme(R.style.AppTheme);
         View root = findViewById(R.id.launcher_root);
         root.setVisibility(View.VISIBLE);
+        mLogger.info("Displayed launch activity.");
 
         Button cancelButton = (Button) findViewById(R.id.button_manager_launcher_cancel);
         cancelButton.setOnClickListener(new View.OnClickListener() {
@@ -289,10 +294,6 @@ public class DConnectLaunchActivity extends AppCompatActivity {
                 finish();
             }
         });
-
-        if (mDConnectService != null) {
-            toggleButton(mDConnectService.isRunning());
-        }
     }
 
     private boolean existsConnectedWebSocket(final DConnectService managerService) {
@@ -306,6 +307,8 @@ public class DConnectLaunchActivity extends AppCompatActivity {
      * @param isLaunched <code>true</code> if Device Connect Manager is running, otherwise <code>false</code>
      */
     private void toggleButton(final boolean isLaunched) {
+        findViewById(R.id.buttons).setVisibility(View.VISIBLE);
+
         TextView messageView = (TextView) findViewById(R.id.text_manager_launcher_message);
         Button launchOrStopButton = (Button) findViewById(R.id.button_manager_launcher_launch_or_stop);
         if (messageView == null || launchOrStopButton == null) {
@@ -360,6 +363,8 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
+            preventAutoStop();
+
             mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             runOnUiThread(new Runnable() {
                 @Override

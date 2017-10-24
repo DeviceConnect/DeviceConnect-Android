@@ -205,7 +205,7 @@ public class SQLiteClient implements Client {
      * @return リダイレクトURIs
      */
     public String[] getRedirectURIs() {
-        String[] redirectURIs = new String[] {LocalOAuth2Main.DUMMY_REDIRECTURI};
+        String[] redirectURIs = new String[] {LocalOAuth2Main.DUMMY_REDIRECT_URI};
         return redirectURIs;
     }
 

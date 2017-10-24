@@ -24,7 +24,7 @@ public class ClientData {
      * @param clientId クライアントID
      * @param clientSecret クライアントシークレット
      */
-    public ClientData(final String clientId, final String clientSecret) {
+    ClientData(final String clientId, final String clientSecret) {
         mClientId = clientId;
         mClientSecret = clientSecret;
     }

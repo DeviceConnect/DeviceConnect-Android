@@ -88,7 +88,7 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
                         + "errorCode=" + errorCode + " errorMessage=" + errorMsg);
             }
         } else {
-            sendTimeout();
+            sendTimeoutError();
         }
     }
 

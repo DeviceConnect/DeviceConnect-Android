@@ -256,11 +256,5 @@ public class HostDeviceApplication extends LinkingApplication {
         } else {
             logger.setLevel(Level.OFF);
         }
-
-        // start accept service
-        Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.setClass(this, HostDeviceProvider.class);
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfile.PROFILE_NAME);
-        sendBroadcast(request);
     }
 }

@@ -47,7 +47,7 @@ public final class HitoeConstants {
     /** ECG Chart update cycle time. */
     public static final int ECG_CHART_UPDATE_CYCLE_TIME = 40;
     /** Acceleration chart update cycle time. */
-    public static final int ACC_CHART_UPDATE_CYCLE_TIME = 40;
+    public static final int ACC_CHART_UPDATE_CYCLE_TIME = 100;
     /** HeartRate text update cycle time. */
     public static final int HR_TEXT_UPDATE_CYCLE_TIME = 1000;
     /** Stress Estimation update cycle time. */

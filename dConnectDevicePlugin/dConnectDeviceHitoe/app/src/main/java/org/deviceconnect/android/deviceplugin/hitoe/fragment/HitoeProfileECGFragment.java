@@ -183,7 +183,6 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
      * @param ecg ecg data
      */
     private void setECG(final long timestamp, final double ecg) {
-
         if (mECGList.get(0).getItemCount() == 0) {
             mMinX = timestamp;
             mMaxX = timestamp + MAX_RANGE;
@@ -191,18 +190,16 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
 
         if (timestamp > mMaxX || mECGList.get(0).getItemCount() > MAX_RANGE / 40) {
             this.mECGList.get(0).clear();
-
             mMinX = timestamp;
             mMaxX = timestamp + MAX_RANGE;
         }
         mECGList.get(0).add(timestamp, ecg / 1000);
-
     }
 
     /**
      * Update chart.
      */
-    private void updateChart() {
+    private synchronized void updateChart() {
         mXYMultipleSeriesRenderer.setXAxisMin(mMinX);
         mXYMultipleSeriesRenderer.setXAxisMax(mMaxX);
 
@@ -212,7 +209,7 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
     /**
      * Clear chart.
      */
-    private void clear() {
+    private synchronized void clear() {
         this.mECGList.get(0).clear();
         mGraphicalView.repaint();
     }

@@ -53,8 +53,8 @@ android {
 
     productFlavors {
         DeviceConnect {
-            versionCode 5
-            versionName "1.0.4"
+            versionCode 6
+            versionName "1.0.5"
             manifestPlaceholders = [
                     appIcon: "@mipmap/dconnect_icon",
                     appName: "@string/app_name"
@@ -62,8 +62,8 @@ android {
         }
 
         DeviceWebApi {
-            versionCode 6
-            versionName "1.1.1"
+            versionCode 7
+            versionName "1.1.2"
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher",
                     appName: "@string/app_name_for_device_web_api"

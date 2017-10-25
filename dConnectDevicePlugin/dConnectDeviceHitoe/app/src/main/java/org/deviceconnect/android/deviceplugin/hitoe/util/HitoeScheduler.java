@@ -6,8 +6,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by hoshit on 2016/06/30.
+ * Hitoe Scheduler.
+ *
+ * @author NTT DOCOMO, INC.
  */
+
 public class HitoeScheduler {
 
     /**

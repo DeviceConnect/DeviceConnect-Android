@@ -118,8 +118,8 @@ public class DConnectLaunchActivity extends AppCompatActivity {
                     mBehavior = new Task() {
                         @Override
                         public void onManagerBonded(final DConnectService managerService) {
-                            if (managerService.isRunning()) {
-                                toggleButton(true);
+                            if (!managerService.isRunning()) {
+                                toggleButton(false);
                             } else {
                                 finish();
                             }

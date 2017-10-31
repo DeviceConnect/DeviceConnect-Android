@@ -188,16 +188,16 @@ public class HostDeviceRecorderManager {
         Bundle record = new Bundle();
         switch (state) {
             case RECORDING:
-                record.putString(MediaStreamRecordingProfile.PARAM_STATE, MediaStreamRecordingProfileConstants.RecordingState.RECORDING.getValue());
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.RECORDING);
                 break;
             case INACTTIVE:
-                record.putString(MediaStreamRecordingProfile.PARAM_STATE, MediaStreamRecordingProfileConstants.RecordingState.STOP.getValue());
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.STOP);
                 break;
             case ERROR:
-                record.putString(MediaStreamRecordingProfile.PARAM_STATE, MediaStreamRecordingProfileConstants.RecordingState.ERROR.getValue());
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.ERROR);
                 break;
             default:
-                record.putString(MediaStreamRecordingProfile.PARAM_STATE, MediaStreamRecordingProfileConstants.RecordingState.UNKNOWN.getValue());
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.UNKNOWN);
                 break;
         }
         record.putString(MediaStreamRecordingProfile.PARAM_URI, uri);

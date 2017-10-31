@@ -29,6 +29,8 @@ import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
+import java.util.List;
+
 /**
  * Device Connect Manager device plug-in Information Activity.
  *
@@ -41,11 +43,19 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
      */
     public static final String EXTRA_PLUGIN_ID = "pluginId";
 
+    /**
+     * プラグインのパッケージ名を格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_PACKAGE_NAME = "packageName";
+
     /** フラグメントのタグ. */
     private static final String TAG = "info";
 
     /** プラグイン有効化スイッチ. */
     private SwitchCompat mStatusSwitch;
+
+    /** プラグインID. */
+    private String mPluginId;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -56,7 +66,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             String action = intent.getAction();
             if (Connection.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 String pluginId = intent.getStringExtra(Connection.EXTRA_PLUGIN_ID);
-                if (getPluginId() != null && getPluginId().equals(pluginId)) {
+                if (mPluginId != null && mPluginId.equals(pluginId)) {
                     final ConnectionState state = (ConnectionState) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_STATE);
                     final ConnectionError error = (ConnectionError) intent.getSerializableExtra(Connection.EXTRA_CONNECTION_ERROR);
                     if (state == null) {
@@ -93,10 +103,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
     /** 接続中であることを示すビュー. */
     private View mProgressCircle;
 
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    private void init() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Connection.ACTION_CONNECTION_STATE_CHANGED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
@@ -107,11 +114,12 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             return;
         }
 
-        String pluginId = getIntent().getStringExtra(EXTRA_PLUGIN_ID);
-        if (pluginId == null) {
+        DevicePlugin plugin = findDevicePlugin();
+        if (plugin == null) {
             finish();
             return;
         }
+        mPluginId = plugin.getPluginId();
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -133,6 +141,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
                     requestPluginStateChange(isOn);
                 }
             });
+            mStatusSwitch.setChecked(plugin.isEnabled());
 
             mProgressCircle = actionBar.getCustomView().findViewById(R.id.progress_plugin_enable_status);
         }
@@ -140,7 +149,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         if (!hasSavedInstance()) {
             Fragment f = new DevicePluginInfoFragment();
             Bundle args = new Bundle();
-            args.putString(EXTRA_PLUGIN_ID, pluginId);
+            args.putString(EXTRA_PLUGIN_ID, plugin.getPluginId());
             f.setArguments(args);
 
             FragmentManager fm = getSupportFragmentManager();
@@ -159,12 +168,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
 
     @Override
     protected void onManagerBonded() {
-        if (isBonded()) {
-            DevicePlugin plugin = findDevicePluginById(getPluginId());
-            if (plugin != null && mStatusSwitch != null) {
-                mStatusSwitch.setChecked(plugin.isEnabled());
-            }
-        }
+        init();
     }
 
     private DevicePluginInfoFragment getInfoFragment() {
@@ -178,7 +182,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
                 DConnectMessageService.ACTION_DISABLE_PLUGIN;
         Intent request = new Intent(this, DConnectService.class);
         request.setAction(action);
-        request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, getPluginId());
+        request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, mPluginId);
         startService(request);
     }
 
@@ -190,7 +194,30 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         return null;
     }
 
-    private String getPluginId() {
-        return getIntent().getStringExtra(EXTRA_PLUGIN_ID);
+    private DevicePlugin findDevicePluginByPackageName(final String packageName) {
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null && packageName != null) {
+            List<DevicePlugin> plugins = mgr.getDevicePlugins();
+            for (DevicePlugin plugin : plugins) {
+                if (packageName.equals(plugin.getPackageName())) {
+                    return plugin;
+                }
+            }
+        }
+        return null;
+    }
+
+    private DevicePlugin findDevicePlugin() {
+        Intent intent = getIntent();
+        if (intent == null) {
+            return null;
+        }
+        String pluginId = intent.getStringExtra(EXTRA_PLUGIN_ID);
+        if (pluginId != null) {
+            return findDevicePluginById(pluginId);
+        } else {
+            String packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME);
+            return findDevicePluginByPackageName(packageName);
+        }
     }
 }

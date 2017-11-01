@@ -7,7 +7,7 @@ Device Connect SDK for Android では以下の機能を提供します。
 
 - Device Connect Managerの生存確認
 - Device Connect Managerの開始・停止
-- Device Connect Managerの認証
+- Device Connect Managerの認可
 - Device Connect Managerからのサービス一覧取得
 - Device Connect Managerへのリクエスト送信
 - WebSocketの接続管理
@@ -67,7 +67,7 @@ if (response.getResult() == DConnectMessage.RESULT_OK) {
 #### 非同期実行
 
 非同期で呼び出す場合には、引数にDConnectSDK.OnResponseListenerを指定します。<br>
-DConnectSDK内部でスレッドを作成して、命令を実行しますので、リスナーの呼び出しすスレッドはUIスレッドではありません。UI操作を行う場合にはご注意ください。
+DConnectSDK内部でスレッドを作成して、命令を実行しますので、リスナーの呼び出すスレッドはUIスレッドではありません。UIを操作する場合には、ご注意ください。
 
 ```Java
 sdk.availability(new DConnectSDK.OnResponseListener() {
@@ -89,15 +89,15 @@ sdk.startManager(context);
 このメソッドは、URIスキームを用いてDevice Connect Managerを起動します。<br>
 同じ端末にインストールされているDevice Connect Manager以外は起動できません。
 
-### Device Connect Managerの認証
+### Device Connect Managerの認可
 
-Device Connect Managerを使用するためには、Managerから認証を行い、アクセストークンを取得する必要があります。
+Device Connect Managerを使用するためには、Managerから認可を行い、アクセストークンを取得する必要があります。
 
 アクセストークンの取得には以下のメソッドを使用します。
 
 > DConnectSDK#authorization(appName, scopes)
 > 
-> - appName: アプリケーション名をしてします。
+> - appName: アプリケーション名を指定します。
 > - scopes: 使用するプロファイルの一覧を指定します。
 
 #### 同期実行
@@ -148,7 +148,7 @@ if (response.getResult() != DConnectMessage.RESULT_OK) {
     ErrorCode errorCode = DConnectMessage.ErrorCode.getInstance(response.getInt("errorCode"));
     switch (errorCode) {
         case AUTHORIZATION:
-            // 認証エラー
+            // 認可エラー
             break;
         case EXPIRED_ACCESS_TOKEN:
             // 有効期限切れ

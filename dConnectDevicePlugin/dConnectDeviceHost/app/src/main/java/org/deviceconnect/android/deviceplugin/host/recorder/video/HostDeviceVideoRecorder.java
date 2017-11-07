@@ -213,7 +213,7 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }
-
+        mState = RecorderState.RECORDING;
         mNowRecordingFileName = generateVideoFileName();
         Intent intent = new Intent();
         intent.setClass(mContext, VideoRecorderActivity.class);

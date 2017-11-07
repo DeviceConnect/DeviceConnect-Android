@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
         def version
@@ -40,7 +40,7 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
-
+    flavorDimensions "default"
     productFlavors {
         product {
             buildConfigField "boolean", "IS_TEST", "false"

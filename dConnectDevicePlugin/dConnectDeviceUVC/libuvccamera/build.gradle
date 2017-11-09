@@ -22,11 +22,7 @@ android {
             jni.srcDirs = []
         }
     }
-    externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
-        }
-    }
+
 }
 
 dependencies {

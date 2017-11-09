@@ -52,6 +52,9 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
             add("audio/3gp");
         }
     };
+    /** 現在録音中のファイル名. */
+    private String mNowRecordingFileName;
+    private RecorderState mState;
     public HostDeviceAudioRecorder(final Context context) {
         mContext = context;
     }
@@ -63,7 +66,7 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
 
     @Override
     public void clean() {
-        stopRecording();
+        stopRecording(null);
     }
 
     @Override
@@ -152,21 +155,23 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
-    public synchronized void startRecording(final RecordingListener listener) {
+    public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }
 
-        final String filename = generateAudioFileName();
+        mNowRecordingFileName = generateAudioFileName();
         Intent intent = new Intent();
         intent.setClass(mContext, AudioRecorderActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(AudioConst.EXTRA_FINE_NAME, filename);
+        intent.putExtra(VideoConst.EXTRA_RECORDER_ID, getId());
+        intent.putExtra(VideoConst.EXTRA_SERVICE_ID, serviceId);
+        intent.putExtra(AudioConst.EXTRA_FILE_NAME, mNowRecordingFileName);
         intent.putExtra(AudioConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 if (resultCode == Activity.RESULT_OK) {
-                    listener.onRecorded(HostDeviceAudioRecorder.this, filename);
+                    listener.onRecorded(HostDeviceAudioRecorder.this, mNowRecordingFileName);
                 } else {
                     String msg =
                         resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
@@ -178,10 +183,19 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
-    public synchronized void stopRecording() {
+    public synchronized void stopRecording(final StoppingListener listener) {
         Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
         intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
         mContext.sendBroadcast(intent);
+        mState = RecorderState.INACTTIVE;
+        if (listener != null) {
+            if (mNowRecordingFileName != null) {
+                listener.onStopped(this, mNowRecordingFileName);
+            } else {
+                listener.onFailed(this, "Failed to Stop recording.");
+            }
+        }
+        mNowRecordingFileName = null;
     }
 
     @Override

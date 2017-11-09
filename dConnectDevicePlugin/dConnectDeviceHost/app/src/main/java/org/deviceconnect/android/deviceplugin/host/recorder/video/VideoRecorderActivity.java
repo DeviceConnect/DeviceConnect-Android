@@ -90,6 +90,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
     /** 開始インテント。 */
     private Intent mIntent;
 
+    /** 録画中のServiceId. */
+    private String mServiceId;
+
     /** コールバック。 */
     private ResultReceiver mCallback;
 
@@ -139,6 +142,7 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             finish();
             return;
         }
+        mServiceId = mIntent.getStringExtra(VideoConst.EXTRA_SERVICE_ID);
         sendRecordingEvent();
 
         if (!mIsInitialized) {
@@ -199,6 +203,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         Intent intent = new Intent(VideoConst.SEND_VIDEO_TO_HOSTDP);
         intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
         intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
+        intent.putExtra(VideoConst.EXTRA_FILE_NAME, mFileName);
+        intent.putExtra(VideoConst.EXTRA_SERVICE_ID, mServiceId);
         sendBroadcast(intent);
     }
 

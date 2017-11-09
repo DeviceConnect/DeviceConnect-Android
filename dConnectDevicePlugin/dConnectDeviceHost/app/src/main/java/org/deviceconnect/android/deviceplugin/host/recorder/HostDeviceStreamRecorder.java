@@ -16,9 +16,9 @@ public interface HostDeviceStreamRecorder extends HostDeviceRecorder {
 
     boolean canPauseRecording();
 
-    void startRecording(RecordingListener listener);
+    void startRecording(String serviceId, RecordingListener listener);
 
-    void stopRecording();
+    void stopRecording(StoppingListener listener);
 
     void pauseRecording();
 
@@ -28,5 +28,8 @@ public interface HostDeviceStreamRecorder extends HostDeviceRecorder {
         void onRecorded(HostDeviceStreamRecorder recorder, String fileName);
         void onFailed(HostDeviceStreamRecorder recorder, String errorMessage);
     }
-
+    interface StoppingListener {
+        void onStopped(HostDeviceStreamRecorder recorder, String fileName);
+        void onFailed(HostDeviceStreamRecorder recorder, String errorMessage);
+    }
 }

@@ -51,6 +51,8 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
             add("video/3gp");
         }
     };
+    /** 現在録画中のファイル名. */
+    private String mNowRecordingFileName;
 
     /**
      * デフォルトのプレビューサイズの閾値を定義.
@@ -116,7 +118,7 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
 
     @Override
     public void clean() {
-        stopRecording();
+        stopRecording(null);
     }
 
     @Override
@@ -207,25 +209,26 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
-    public synchronized void startRecording(final RecordingListener listener) {
+    public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }
-
-        final String filename = generateVideoFileName();
+        mState = RecorderState.RECORDING;
+        mNowRecordingFileName = generateVideoFileName();
         Intent intent = new Intent();
         intent.setClass(mContext, VideoRecorderActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(VideoConst.EXTRA_RECORDER_ID, getId());
         intent.putExtra(VideoConst.EXTRA_CAMERA_ID, mCameraId);
-        intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
+        intent.putExtra(VideoConst.EXTRA_SERVICE_ID, serviceId);
+        intent.putExtra(VideoConst.EXTRA_FILE_NAME, mNowRecordingFileName);
         intent.putExtra(VideoConst.EXTRA_PICTURE_SIZE, getPictureSize());
         intent.putExtra(VideoConst.EXTRA_FRAME_RATE, (int) getMaxFrameRate());
         intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
             @Override
             protected void onReceiveResult(final int resultCode, final Bundle resultData) {
                 if (resultCode == Activity.RESULT_OK) {
-                    listener.onRecorded(HostDeviceVideoRecorder.this, filename);
+                    listener.onRecorded(HostDeviceVideoRecorder.this, mNowRecordingFileName);
                 } else {
                     String msg =
                         resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
@@ -237,10 +240,19 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
-    public synchronized void stopRecording() {
+    public synchronized void stopRecording(final StoppingListener listener) {
         Intent intent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEO);
         intent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP);
         mContext.sendBroadcast(intent);
+        mState = RecorderState.INACTTIVE;
+        if (listener != null) {
+            if (mNowRecordingFileName != null) {
+                listener.onStopped(this, mNowRecordingFileName);
+            } else {
+                listener.onFailed(this, "Failed to Stop recording.");
+            }
+        }
+        mNowRecordingFileName = null;
     }
 
     @Override

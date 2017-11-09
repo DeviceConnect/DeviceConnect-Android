@@ -51,7 +51,7 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
-
+    flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
             versionCode 26

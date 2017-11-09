@@ -50,9 +50,10 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-
+    flavorDimensions "DeviceConnect", "DeviceWebApi"
     productFlavors {
         DeviceConnect {
+            dimension 'DeviceConnect'
             versionCode 6
             versionName "1.0.5"
             manifestPlaceholders = [
@@ -62,6 +63,7 @@ android {
         }
 
         DeviceWebApi {
+            dimension 'DeviceWebApi'
             versionCode 7
             versionName "1.1.2"
             manifestPlaceholders = [

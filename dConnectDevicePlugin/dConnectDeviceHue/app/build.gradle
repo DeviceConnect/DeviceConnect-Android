@@ -50,7 +50,7 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-
+    flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
             versionCode 10

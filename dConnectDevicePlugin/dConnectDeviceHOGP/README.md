@@ -1,23 +1,19 @@
 # HOGPプラグインについて
 
-HOGP(HID over GATT Profile)とは、Bluetooth low energyを使用してマウスやキーボードなどを接続するためのプロファイルです。
-
 このHOGPプラグインでは、HOGPを実装して、RESTfulから接続先のマウスやキーボードを操作するための機能を提供します。
+
+HOGP(HID over GATT Profile)とは、Bluetooth low energyを使用してマウスやキーボードなどを接続するためのプロファイルです。
 
 ## 開発環境
 Android Studio 2.2.1以上
 
-## サポートするプロファイル
-- hogp
-
-## 要実装箇所
-下記のjavaファイルにTODOを記載しています。プラグインの要件に合わせて実装してください。
-
-- HOGPHogpProfile.java
-- HOGPMessageService.java
-
 ## ビルドマニュアル
 - [HOGPビルドマニュアル](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
+
+## サポートするプロファイル
+- hogp
+- mouse
+- keyboard
 
 # HOGPプラグインの使用方法
 HOGPプラグインの使用法について簡単に説明を行います。
@@ -75,6 +71,10 @@ MacBookから接続する場合は、「システム環境設定」→「マウ�
 Android端末から接続する場合は、端末の設定画面からBluetoothを開きます。
 使用可能なデバイスからHOGPサーバを起動している端末を選択してペアリングを行います。
 
+Android端末でペアリングを行う場合に、ペアリング確認ダイアログが画面に表示されないことがあります。<br>
+その場合には、通知バーに登録されていますので、そちらをクリックしてダイアログを表示してください。<br>
+通知バーにもペアリング確認ダイアログがない場合には、もう一度最初からペアリングを行なってください。
+
 ## デバイスIDの取得
 
 接続ができた後は、Service Discoveryを行うことで接続しているデバイスを発見することができます。
@@ -86,7 +86,7 @@ Android端末から接続する場合は、端末の設定画面からBluetooth�
 マウスとして接続した場合には、マウスカーソルの移動やマウスクリックをAPIで行うことができます。
 
 ### relativeの場合
-relativeの場合には、相対的にマウスカーソルを移動します。x,yに指定した値の分だけ現在のカーソルの位置から移動します。
+relativeの場合には、相対的にマウスカーソルを移動します。x,yに指定した値の分だけ現在のカーソルの位置から移動します。<br>
 移動量は、-1.0から1.0の範囲が指定することができます。<br>
 
 右下に移動する場合には以下のようにxとyを指定します。
@@ -126,13 +126,31 @@ POST /gotapi/mouse?serviceId=[操作する端末のID]&x=0.5&y=0.5
 
 Android端末では、absoluteがサポートされていませんので動作しません。ご注意ください。
 
+### マウスホイール
+
+マウスホイールでスクロールする場合には、以下のAPIで行います。<br>
+wheelに指定した分だけ現在の位置からスクロールします。<br>
+移動量は、-1.0から1.0の範囲が指定することができます。<br>
+
+```http
+POST /gotapi/mouse?serviceId=[操作する端末のID]&wheel=0.1
+```
+
+ホイールの回転の向きは、OSや設定によって異なりますので、ご注意ください。<br>
+
 ### マウスクリック
 
 クリックする場合には、以下のAPIで行います。<br>
-マウスカーソルがある位置でマウスクリックを行います。
+マウスカーソルがある位置でマウスの左クリックを行います。
 
 ```http
-POST /gotapi/mouse/click?serviceId=[操作する端末のサービスID]
+POST /gotapi/mouse/click?serviceId=[操作する端末のサービスID]&left=true
+```
+
+右クリックを行う場合には、right=trueを指定します。
+
+```http
+POST /gotapi/mouse/click?serviceId=[操作する端末のサービスID]&right=true
 ```
 
 ### マウス長押し
@@ -168,13 +186,19 @@ leftButton=trueを送った後にleftButton=falseを送らないとマウスの�
 ただし、入力される側の端末がテキストエディタなどにフォーカスがあっていない場合には何も処理されませんのご注意ください。
 
 HIDの文字コードで入力したい場合には、以下のAPIを使用します。<br>
-keyCodeには、HIDで定義されているキーコードを指定します。
+keyCodeには、HIDで定義されているキーコードを指定します。<br>
 modifyには、shift,alt,gui,ctrlを指定します。
 
 以下のAPIを実行すると「A」が入力されます。
 
 ```http
 POST /gotapi/keyboard?serviceId=[操作する端末のサービスID]&keyCode=0x04&modify=shift
+```
+
+以下のように、modifyは、カンマ区切りで送ることでモディファイキーの同時押しとして送ることができます。
+
+```http
+POST /gotapi/keyboard?serviceId=[操作する端末のサービスID]&keyCode=0x04&modify=shift,ctrl
 ```
 
 HIDのキーコードでは分かりづらいので、ASCII文字列で入力できるように以下のAPIを定義しています。<br>
@@ -191,7 +215,7 @@ POST /gotapi/keyboard/del?serviceId=[操作する端末のサービスID]
 ```
 
 エスケープする場合には、以下のAPIを使用します。<br>
-Android端末の場合には、バックキーと同じ効果がありますので、画面を閉じたりなどの処理が行えます。
+Android端末の場合には、バックキーと同じ効果がありますので、画面を閉じるなどの処理が行えます。
 
 ```http
 POST /gotapi/keyboard/esc?serviceId=[操作する端末のサービスID]

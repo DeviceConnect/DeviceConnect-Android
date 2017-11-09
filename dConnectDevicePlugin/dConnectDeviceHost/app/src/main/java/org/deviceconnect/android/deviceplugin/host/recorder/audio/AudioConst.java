@@ -54,9 +54,13 @@ public final class AudioConst {
 
     /** Resume. */
     public static final String EXTRA_NAME_AUDIO_RECORD_RESUME = "resume";
+    /** ServiceのID. */
+    public static final String EXTRA_SERVICE_ID = "serviceId";
+    /** 使用するレコーダーのID. */
+    public static final String EXTRA_RECORDER_ID = "recorderId";
 
     /** ファイル名. */
-    public static final String EXTRA_FINE_NAME = "filename";
+    public static final String EXTRA_FILE_NAME = "filename";
 
     /** コールバック */
     public static final String EXTRA_CALLBACK = "callback";

@@ -266,7 +266,43 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
     };
+    private final DConnectApi mPutOnRecordingChangeApi = new PutApi() {
 
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_RECORDING_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnRecordingChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_ON_RECORDING_CHANGE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                setResult(response, DConnectMessage.RESULT_ERROR);
+            }
+            return true;
+        }
+    };
     private final DConnectApi mPostTakePhotoApi = new PostApi() {
 
         @Override
@@ -461,7 +497,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    recorder.startRecording(new HostDeviceStreamRecorder.RecordingListener() {
+                    recorder.startRecording(getServiceID(request), new HostDeviceStreamRecorder.RecordingListener() {
                         @Override
                         public void onRecorded(final HostDeviceStreamRecorder recorder, final String fileName) {
                             FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
@@ -469,14 +505,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setPath(response, "/" + fileName);
                             setUri(response, mgr.getContentUri() + "/" + fileName);
                             sendResponse(response);
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mgr.getContentUri() + "/" + fileName,
+                                    "/" + fileName, recorder.getMimeType(), null);
                         }
 
                         @Override
-                        public void onFailed(final HostDeviceStreamRecorder recorder, final String errorMesage) {
-                            MessageUtils.setIllegalServerStateError(response, errorMesage);
+                        public void onFailed(final HostDeviceStreamRecorder recorder, final String errorMessage) {
+                            MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostDeviceRecorder.RecorderState.ERROR,"",
+                                    "", recorder.getMimeType(), errorMessage);
                         }
-                    });                }
+                    });
+                }
 
                 @Override
                 public void onFail(@NonNull String deniedPermission) {
@@ -519,10 +560,27 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 @Override
                 public void onSuccess() {
 
-                    recorder.stopRecording();
+                    recorder.stopRecording(new HostDeviceStreamRecorder.StoppingListener() {
+                        @Override
+                        public void onStopped(HostDeviceStreamRecorder recorder, String fileName) {
+                            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setPath(response, "/" + fileName);
+                            setUri(response, mgr.getContentUri() + "/" + fileName);
+                            sendResponse(response);
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mgr.getContentUri() + "/" + fileName,
+                                    "/" + fileName, recorder.getMimeType(), null);
+                        }
 
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
+                        @Override
+                        public void onFailed(HostDeviceStreamRecorder recorder, String errorMessage) {
+                            MessageUtils.setIllegalServerStateError(response, errorMessage);
+                            sendResponse(response);
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostDeviceRecorder.RecorderState.ERROR,"",
+                                    "", recorder.getMimeType(), errorMessage);
+                        }
+                    });
+
                 }
 
                 @Override
@@ -647,6 +705,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         addApi(mPutStopApi);
         addApi(mPutPauseApi);
         addApi(mPutResumeApi);
+        addApi(mPutOnRecordingChangeApi);
+        addApi(mDeleteOnRecordingChangeApi);
     }
 
     private void init(final PermissionUtility.PermissionRequestCallback callback) {
@@ -698,6 +758,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
         return false;
     }
+
 
     /**
      * MIMEタイプを設定する.

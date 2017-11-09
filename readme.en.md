@@ -90,47 +90,47 @@ If the following response is returned, you can check that Device Connect Manager
 ## Device Plugin
 | Project Name|Content  |
 |:-----------|:---------|
-|dConnectDeviceAllJoyn|Device Plug-in for AllJoyn.|
-|dConnectDeviceAWSIoT|Plug-in for AWSIoT.|
-|dConnectDeviceChromeCast|Device Plug-in for ChromeCast.|
-|dConnectDeviceFPLUG|Device Plug-in for F-PLUG.|
-|dConnectDeviceFaBo|Device Plug-in for FaBo.|
-|dConnectDeviceHeartRate|Device Plug-in for HeartRate such as Mio Alpha.|
-|dConnectDeviceHitoe|Device Plug-in for Hitoe.|
-|dConnectDeviceHOGP|Device Plug-in for HOGP.|
-|dConnectDeviceHost|Device Plug-in for Android.|
-|dConnectDeviceHue|Device Plug-in for Hue.|
-|dConnectDeviceHVC|Device Plug-in for HVC-C.|
-|dConnectDeviceHVCC2W|Device Plug-in for HVC-C2W.|
-|dConnectDeviceHVCP|Device Plug-in for HVC-P.|
-|dConnectDeviceIRKit|Device Plug-in for IRKit.|
-|dConnectDeviceKadecot|Device Plug-in for Kadecot.|
-|dConnectDeviceLinking|Device Plug-in for Linking.|
-|dConnectDevicePebble|Device Plug-in for Pebble.|
-|dConnectDeviceSonyCamera|Device Plug-in for SonyCamera such as QX10.|
-|dConnectDeviceSonySW|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
-|dConnectDeviceSlackMessageHook|Plug-in for Slack.|
-|dConnectDeviceSphero|Device Plug-in for Sphero.|
-|dConnectDeviceTheta|Device Plug-in for THETA.|
-|dConnectDeviceUVC|Device Plug-in for UVC Camera.|
-|dConnectDeviceAndroidWear|Device Plug-in for AndroidWear.|
-|dConnectDeviceWebRTC|Device Plug-in for WebRTC.|
-|dConnectDeviceTest|Device Plug-in for test of DeviceConnect.|
-|dConnectDevicePluginSDK|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
+|[dConnectDeviceAllJoyn](dConnectDevicePlugin/dConnectDeviceAllJoyn)|Device Plug-in for AllJoyn.|
+|[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|Device Plug-in for AndroidWear.|
+|[dConnectDeviceAWSIoT](dConnectDevicePlugin/dConnectDeviceAWSIot)|Plug-in for AWSIoT.|
+|[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Device Plug-in for ChromeCast.|
+|[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|Device Plug-in for FaBo.|
+|[dConnectDeviceFPLUG](dConnectDevicePlugin/dConnectDeviceFPLUG)|Device Plug-in for F-PLUG.|
+|[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Device Plug-in for HeartRate such as Mio Alpha.|
+|[dConnectDeviceHitoe](dConnectDevicePlugin/dConnectDeviceHitoe)|Device Plug-in for Hitoe.|
+|[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|Device Plug-in for HOGP.|
+|[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Device Plug-in for Android.|
+|[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Device Plug-in for Hue.|
+|[dConnectDeviceHVC](dConnectDevicePlugin/dConnectDeviceHVC)|Device Plug-in for HVC-C.|
+|[dConnectDeviceHVCC2W](dConnectDevicePlugin/dConnectDeviceHVCC2W)|Device Plug-in for HVC-C2W.|
+|[dConnectDeviceHVCP](dConnectDevicePlugin/dConnectDeviceHVCP)|Device Plug-in for HVC-P.|
+|[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|Device Plug-in for IRKit.|
+|[dConnectDeviceKadecot](dConnectDevicePlugin/dConnectDeviceKadecot)|Device Plug-in for Kadecot.|
+|[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Device Plug-in for Linking.|
+|[dConnectDevicePebble](dConnectDevicePlugin/dConnectDevicePebble)|Device Plug-in for Pebble.|
+|[dConnectDeviceSlackMessageHook](dConnectDevicePlugin/dConnectDeviceSlackMessageHook)|Plug-in for Slack.|
+|[dConnectDeviceSmartMeter](dConnectDevicePlugin/dConnectDeviceSmartMeter)|Plug-in for Smart Meter.|
+|[dConnectDeviceSonyCamera](dConnectDevicePlugin/dConnectDeviceSonyCamera)|Device Plug-in for SonyCamera such as QX10.|
+|[dConnectDeviceSonySW](dConnectDevicePlugin/dConnectDeviceSonySW)|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
+|[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Device Plug-in for Sphero.|
+|[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|Device Plug-in for THETA.|
+|[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|Device Plug-in for UVC Camera.|
+|[dConnectDeviceWebRTC](dConnectDevicePlugin/dConnectDeviceWebRTC)|Device Plug-in for WebRTC.|
+|[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|Device Plug-in for test of DeviceConnect.|
+|[dConnectDevicePluginSDK](dConnectDevicePlugin/dConnectDevicePluginSDK)|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
 
 ## Device Connect Manager
 | Project Name | Content  |
 |:-----------|:---------|
-|dConnectManager|Platform body of DeviceConnect.|
-|dConnectManagerTest|Test of DeviceConnectManager.|
-|dConnectServer|Server interface library of DeviceConnect.|
-|dConnectServerNanoHttpd|Server of the body of the DeviceConnect.|
+|[dConnectManager](dConnectManager/dConnectManager)|Platform body of DeviceConnect.|
+|[dConnectServer](dConnectManager/dConnectServer)|Server interface library of DeviceConnect.|
+|[dConnectServerNanoHttpd](dConnectManager/dConnectServerNanoHttpd)|Server of the body of the DeviceConnect.|
 
 ## Device Connect SDK
 | Project Name | Content |
 |:-----------|:---------|
 |dConnectApp|DeviceConnect operation check for app.|
-|dConnectSDKForAndroid|SDK of DeviceConnect. DevicePlugin development and SDK to be used for application development.|
+|[dConnectSDKForAndroid](dConnectSDK/dConnectSDKForAndroid)|SDK of DeviceConnect. DevicePlugin development and SDK to be used for application development.|
 
 # Development of DeviceConnect app
 

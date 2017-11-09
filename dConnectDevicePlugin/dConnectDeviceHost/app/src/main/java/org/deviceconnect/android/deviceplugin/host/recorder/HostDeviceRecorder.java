@@ -56,7 +56,8 @@ public interface HostDeviceRecorder {
     enum RecorderState {
         INACTTIVE,
         PAUSED,
-        RECORDING
+        RECORDING,
+        ERROR
     }
 
     class PictureSize implements Parcelable {

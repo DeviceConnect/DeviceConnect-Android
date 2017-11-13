@@ -12,7 +12,7 @@ package org.deviceconnect.android.profile.spec;
  *
  * @author NTT DOCOMO, INC.
  */
-public class NumberDataSpec extends DConnectDataSpec {
+public class NumberDataSpec extends EnumerableDataSpec<Double> {
 
     private final DataFormat mFormat;
     private Double mMaximum;
@@ -165,7 +165,7 @@ public class NumberDataSpec extends DConnectDataSpec {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder {
+    public static class Builder extends EnumerableDataSpec.Builder<Double, Builder> {
 
         private DataFormat mFormat;
         private Double mMaximum;
@@ -232,11 +232,20 @@ public class NumberDataSpec extends DConnectDataSpec {
                 mFormat = DataFormat.FLOAT;
             }
             NumberDataSpec spec = new NumberDataSpec(mFormat);
-            spec.setMaximum(mMaximum);
-            spec.setExclusiveMaximum(mExclusiveMaximum);
-            spec.setMinimum(mMinimum);
-            spec.setExclusiveMinimum(mExclusiveMinimum);
+            if (mEnumList != null) {
+                spec.setEnum(mEnumList);
+            } else {
+                spec.setMaximum(mMaximum);
+                spec.setExclusiveMaximum(mExclusiveMaximum);
+                spec.setMinimum(mMinimum);
+                spec.setExclusiveMinimum(mExclusiveMinimum);
+            }
             return spec;
+        }
+
+        @Override
+        protected Builder getThis() {
+            return this;
         }
     }
 

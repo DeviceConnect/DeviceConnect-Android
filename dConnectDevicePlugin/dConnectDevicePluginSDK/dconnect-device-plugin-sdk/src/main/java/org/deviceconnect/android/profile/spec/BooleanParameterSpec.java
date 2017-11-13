@@ -12,7 +12,7 @@ package org.deviceconnect.android.profile.spec;
  *
  * @author NTT DOCOMO, INC.
  */
-public class BooleanParameterSpec extends DConnectParameterSpec {
+public class BooleanParameterSpec extends EnumerableParameterSpec<Boolean, BooleanDataSpec> {
 
     /**
      * コンストラクタ.
@@ -26,7 +26,7 @@ public class BooleanParameterSpec extends DConnectParameterSpec {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder extends BaseBuilder<Builder> {
+    public static class Builder extends EnumerableParameterSpec.Builder<Boolean, Builder> {
 
         /**
          * {@link BooleanParameterSpec}のインスタンスを生成する.
@@ -36,6 +36,7 @@ public class BooleanParameterSpec extends DConnectParameterSpec {
             BooleanParameterSpec spec = new BooleanParameterSpec();
             spec.setName(mName);
             spec.setRequired(mIsRequired);
+            spec.setEnum(mEnum);
             return spec;
         }
 

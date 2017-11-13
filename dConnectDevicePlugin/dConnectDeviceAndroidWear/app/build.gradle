@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    google()
 }
 
 dependencies {
@@ -16,7 +17,7 @@ dependencies {
 android {
 
     compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
         def version

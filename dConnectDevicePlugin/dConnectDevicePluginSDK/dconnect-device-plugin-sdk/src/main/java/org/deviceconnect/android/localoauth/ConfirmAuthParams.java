@@ -82,19 +82,6 @@ public class ConfirmAuthParams {
 
     /**
      * コンストラクタ.
-     */
-    public ConfirmAuthParams() {
-        mContext = null;
-        mApplicationName = null;
-        mClientId = null;
-        mServiceId = null;
-        mScope = null;
-        mIsForDevicePlugin = true;
-        mKeyword = null;
-    }
-
-    /**
-     * コンストラクタ.
      * 
      * @param builder ビルダー
      */

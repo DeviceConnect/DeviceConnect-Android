@@ -161,36 +161,64 @@ public abstract class DConnectRequest {
      * プラグイン無効エラーレスポンスを返却する.
      */
     protected void sendPluginDisabledError() {
+        sendResponse(createPluginDisabledError());
+    }
+
+    /**
+     * プラグイン無効エラーレスポンスを作成する.
+     */
+    protected Intent createPluginDisabledError() {
         Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         MessageUtils.setPluginDisabledError(response);
-        sendResponse(response);
+        return response;
     }
 
     /**
      * プラグイン連携中止エラーレスポンスを返却する.
      */
     protected void sendPluginSuspendedError() {
-        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-        MessageUtils.setPluginSuspendedError(response);
-        sendResponse(response);
+        sendResponse(createPluginSuspendedError());
     }
 
     /**
-     * タイムアウトのレスポンスを返却する.
+     * プラグイン連携中止エラーレスポンスを作成する.
      */
-    protected void sendTimeout() {
+    protected Intent createPluginSuspendedError() {
+        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+        MessageUtils.setPluginSuspendedError(response);
+        return response;
+    }
+
+    /**
+     * タイムアウトエラーのレスポンスを返却する.
+     */
+    protected void sendTimeoutError() {
+        sendResponse(createTimeoutError());
+    }
+
+    /**
+     * タイムアウトエラーのレスポンスを作成する.
+     */
+    protected Intent createTimeoutError() {
         Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         MessageUtils.setTimeoutError(response);
-        sendResponse(response);
+        return response;
     }
 
     /**
      * 不明なエラーレスポンスを返却する.
      */
     protected void sendIllegalServerStateError(final String message) {
+        sendResponse(createIllegalServerStateError(message));
+    }
+
+    /**
+     * 不明なエラーレスポンスを作成する.
+     */
+    protected Intent createIllegalServerStateError(final String message) {
         Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         MessageUtils.setIllegalServerStateError(response, message);
-        sendResponse(response);
+        return response;
     }
 
     /**
@@ -198,9 +226,17 @@ public abstract class DConnectRequest {
      * @param message エラーメッセージ
      */
     protected void sendRuntimeException(final String message) {
+        sendResponse(createRuntimeException(message));
+    }
+
+    /**
+     * 実行時エラーが発生したことを通知するためのレスポンスを作成する.
+     * @param message エラーメッセージ
+     */
+    protected Intent createRuntimeException(final String message) {
         Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         MessageUtils.setUnknownError(response, message);
-        sendResponse(response);
+        return response;
     }
 
     /**

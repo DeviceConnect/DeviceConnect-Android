@@ -92,45 +92,47 @@ curl  -X GET \
 ## デバイスプラグイン
 | プロジェクト名|内容  |
 |:-----------|:---------|
-|dConnectDeviceAllJoyn|AllJoynのデバイスプラグイン。|
-|dConnectDeviceAWSIoT|AWSIoTのプラグイン。|
-|dConnectDeviceChromeCast|Chromecastのデバイスプラグイン。 |
-|dConnectDeviceFPLUG|F-PLUGのデバイスプラグイン。|
-|dConnectDeviceFaBo|FaBoのデバイスプラグイン。|
-|dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
-|dConnectDeviceHitoe|Hitoeのデバイスプラグイン。|
-|dConnectDeviceHost|Androidのデバイスプラグイン。|
-|dConnectDeviceHue|Hueのデバイスプラグイン。|
-|dConnectDeviceHVC|HVC-Cのデバイスプラグイン。|
-|dConnectDeviceHVCC2W|HVC-C2Wのデバイスプラグイン。|
-|dConnectDeviceHVCP|HVC-Pのデバイスプラグイン。|
-|dConnectDeviceIRKit|IRKitのデバイスプラグイン。|
-|dConnectDeviceKadecot|Kadecotのデバイスプラグイン。|
-|dConnectDeviceLinking|Linkingのデバイスプラグイン。|
-|dConnectDevicePebble|Pebbleのデバイスプラグイン。|
-|dConnectDeviceSonyCamera|QX10などのSonyCameraのデバイスプラグイン。|
-|dConnectDeviceSonySW|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
-|dConnectDeviceSlackMessageHook|Slackのプラグイン。|
-|dConnectDeviceSphero|Spheroのデバイスプラグイン。|
-|dConnectDeviceTheta|THETAのデバイスプラグイン。|
-|dConnectDeviceUVC|UVCカメラのデバイスプラグイン。|
-|dConnectDeviceAndroidWear|AndroidWearのデバイスプラグイン。|
-|dConnectDeviceWebRTC|WebRTCのデバイスプラグイン。|
-|dConnectDeviceTest|DeviceConnectのテスト用のデバイスプラグイン。|
-|dConnectDevicePluginSDK|DevicePluginを作成するためのSDK。<br>dConnectSDKForAndroidが必要。|
+|[dConnectDeviceAllJoyn](dConnectDevicePlugin/dConnectDeviceAllJoyn)|AllJoynのデバイスプラグイン。|
+|[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|AndroidWearのデバイスプラグイン。|
+|[dConnectDeviceAWSIoT](dConnectDevicePlugin/dConnectDeviceAWSIot)|AWSIoTのプラグイン。|
+|[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Chromecastのデバイスプラグイン。 |
+|[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|FaBoのデバイスプラグイン。|
+|[dConnectDeviceFPLUG](dConnectDevicePlugin/dConnectDeviceFPLUG)|F-PLUGのデバイスプラグイン。|
+|[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Mio AlphaなどのHeartRateのデバイスプラグイン。|
+|[dConnectDeviceHitoe](dConnectDevicePlugin/dConnectDeviceHitoe)|Hitoeのデバイスプラグイン。|
+|[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
+|[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Androidのデバイスプラグイン。|
+|[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Hueのデバイスプラグイン。|
+|[dConnectDeviceHVC](dConnectDevicePlugin/dConnectDeviceHVC)|HVC-Cのデバイスプラグイン。|
+|[dConnectDeviceHVCC2W](dConnectDevicePlugin/dConnectDeviceHVCC2W)|HVC-C2Wのデバイスプラグイン。|
+|[dConnectDeviceHVCP](dConnectDevicePlugin/dConnectDeviceHVCP)|HVC-Pのデバイスプラグイン。|
+|[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|IRKitのデバイスプラグイン。|
+|[dConnectDeviceKadecot](dConnectDevicePlugin/dConnectDeviceKadecot)|Kadecotのデバイスプラグイン。|
+|[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Linkingのデバイスプラグイン。|
+|[dConnectDevicePebble](dConnectDevicePlugin/dConnectDevicePebble)|Pebbleのデバイスプラグイン。|
+|[dConnectDeviceSonyCamera](dConnectDevicePlugin/dConnectDeviceSonyCamera)|QX10などのSonyCameraのデバイスプラグイン。|
+|[dConnectDeviceSonySW](dConnectDevicePlugin/dConnectDeviceSonySW)|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
+|[dConnectDeviceSlackMessageHook](dConnectDevicePlugin/dConnectDeviceSlackMessageHook)|Slackのプラグイン。|
+|[dConnectDeviceSmartMeter](dConnectDevicePlugin/dConnectDeviceSmartMeter)|SmartMeterのデバイスプラグイン。|
+|[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Spheroのデバイスプラグイン。|
+|[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
+|[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
+|[dConnectDeviceWebRTC](dConnectDevicePlugin/dConnectDeviceWebRTC)|WebRTCのデバイスプラグイン。|
+|[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|DeviceConnectのテスト用のデバイスプラグイン。|
+|[dConnectDevicePluginSDK](dConnectDevicePlugin/dConnectDevicePluginSDK)|DevicePluginを作成するためのSDK。<br>dConnectSDKForAndroidが必要。|
 
 ## Device Connect Manager
 | プロジェクト名|内容  |
 |:-----------|:---------|
-|dConnectManager| DeviceConnectのプラットフォーム本体。|
-|dConnectServer|DeviceConnectのWebサーバのインターフェースを定義したライブラリ。|
-|dConnectServerNanoHttpd|dConnectServerのインターフェースを実装したWebサーバのライブラリ。|
+|[dConnectManager](dConnectManager/dConnectManager)| DeviceConnectのプラットフォーム本体。|
+|[dConnectServer](dConnectManager/dConnectServer)|DeviceConnectのWebサーバのインターフェースを定義したライブラリ。|
+|[dConnectServerNanoHttpd](dConnectManager/dConnectServerNanoHttpd)|dConnectServerのインターフェースを実装したWebサーバのライブラリ。|
 
 ## Device Connect SDK
 | プロジェクト名|内容  |
 |:-----------|:---------|
 |dConnectApp| DeviceConnectの動作確認用アプリ。|
-|dConnectSDKForAndroid| DeviceConnectのSDK。DevicePlugin開発とアプリ開発用に使用するSDK。|
+|[dConnectSDKForAndroid](dConnectSDK/dConnectSDKForAndroid)| DeviceConnectのSDK。DevicePlugin開発とアプリ開発用に使用するSDK。|
 
 
 # Device Connectアプリケーションの開発
@@ -168,6 +170,7 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
+* [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)

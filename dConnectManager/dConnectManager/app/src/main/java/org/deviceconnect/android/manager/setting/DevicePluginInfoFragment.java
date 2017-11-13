@@ -34,6 +34,7 @@ import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -83,7 +84,6 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         mPluginInfo = plugin.getInfo();
 
         boolean isEnabled = plugin.isEnabled();
-        ConnectionError error = plugin.getCurrentConnectionError();
 
         String packageName = mPluginInfo.getPackageName();
         Integer iconId = mPluginInfo.getPluginIconId();
@@ -171,38 +171,58 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         }
 
         mErrorView = (ConnectionErrorView) view.findViewById(R.id.plugin_connection_error_view);
-        updateErrorState(error);
+        mErrorView.showErrorMessage(plugin);
 
         if (BuildConfig.DEBUG) {
+            CommunicationHistory history = plugin.getHistory();
+
             View baud = view.findViewById(R.id.activity_deviceplugin_info_baud_rate);
             baud.setVisibility(View.VISIBLE);
 
             TextView average = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_average_baud_rate);
-            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getAverageBaudRate()));
+            average.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getAverageBaudRate()));
 
             TextView request = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_request);
-            request.setText(mPluginInfo.getWorstBaudRateRequest());
+            request.setText(history.getWorstBaudRateRequest());
 
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
-            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, mPluginInfo.getWorstBaudRate()));
+            worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getWorstBaudRate()));
 
             LayoutInflater inflater = getLayoutInflater(null);
 
-            LinearLayout layout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
-            for (int i = mPluginInfo.getBaudRates().size() - 1; i >= 0 ; i--) {
-                DevicePlugin.BaudRate b = mPluginInfo.getBaudRates().get(i);
+            LinearLayout baudRateListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
+            baudRateListLayout.removeAllViews();
+            List<CommunicationHistory.Info> baudRateList = history.getRespondedCommunications();
+            for (int i = baudRateList.size() - 1; i >= 0 ; i--) {
+                CommunicationHistory.Info b = baudRateList.get(i);
 
                 View v = inflater.inflate(R.layout.item_baud_rate_list, null);
                 TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);
-                br.setText(b.getRequest());
+                br.setText(b.getRequestPath());
 
                 TextView bb = (TextView) v.findViewById(R.id.activity_deviceplugin_info_baud_rate);
-                bb.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, b.getBaudRate()));
+                bb.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, b.getRoundTripTime()));
 
                 TextView d = (TextView) v.findViewById(R.id.activity_deviceplugin_info_date);
                 d.setText(b.getDateString());
 
-                layout.addView(v);
+                baudRateListLayout.addView(v);
+            }
+
+            LinearLayout timeoutListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_timeout_list);
+            timeoutListLayout.removeAllViews();
+            List<CommunicationHistory.Info> timeoutList = history.getNotRespondedCommunications();
+            for (int i = timeoutList.size() - 1; i >= 0 ; i--) {
+                CommunicationHistory.Info t = timeoutList.get(i);
+
+                View v = inflater.inflate(R.layout.item_timeout_list, null);
+                TextView br = (TextView) v.findViewById(R.id.activity_deviceplugin_info_request);
+                br.setText(t.getRequestPath());
+
+                TextView d = (TextView) v.findViewById(R.id.activity_deviceplugin_info_date);
+                d.setText(t.getDateString());
+
+                timeoutListLayout.addView(v);
             }
         }
     }

@@ -10,7 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.smartmeter.BuildConfig;
-import org.deviceconnect.android.deviceplugin.smartmeter.setting.fragment.SmartMeterConnectFragment;
+import org.deviceconnect.android.deviceplugin.smartmeter.setting.fragment.SmartMeterSettingFragment;
 import org.deviceconnect.android.deviceplugin.smartmeter.util.PrefUtil;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
@@ -32,7 +32,7 @@ public class SmartMeterSettingActivity extends DConnectSettingPageFragmentActivi
      */
     @SuppressWarnings("rawtypes")
     private static final Class[] PAGES = {
-            SmartMeterConnectFragment.class,
+            SmartMeterSettingFragment.class,
     };
 
     @Override

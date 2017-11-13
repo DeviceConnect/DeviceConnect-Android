@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
         def version
@@ -16,7 +16,7 @@ android {
     }
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.sphero"
-        minSdkVersion 14
+        minSdkVersion 18
         targetSdkVersion 23
         versionCode 1
         versionName getVersionName()

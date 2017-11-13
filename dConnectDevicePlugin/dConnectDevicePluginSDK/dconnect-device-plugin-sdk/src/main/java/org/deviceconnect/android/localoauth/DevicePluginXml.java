@@ -42,14 +42,6 @@ public class DevicePluginXml implements Parcelable {
     }
 
     /**
-     * コンストラクタ.
-     * @deprecated 別のコンストラクタ DevicePluginXml(int) を使用することを推奨
-     */
-    public DevicePluginXml() {
-        this(-1);
-    }
-
-    /**
      * XMLリソースIDを取得する.
      * @return XMLリソースID
      */
@@ -101,7 +93,7 @@ public class DevicePluginXml implements Parcelable {
     protected DevicePluginXml(Parcel in) {
         this.mSpecPath = in.readString();
         int mSupportedProfilesSize = in.readInt();
-        this.mSupportedProfiles = new HashMap<String, DevicePluginXmlProfile>(mSupportedProfilesSize);
+        this.mSupportedProfiles = new HashMap<>(mSupportedProfilesSize);
         for (int i = 0; i < mSupportedProfilesSize; i++) {
             String key = in.readString();
             DevicePluginXmlProfile value = in.readParcelable(DevicePluginXmlProfile.class.getClassLoader());

@@ -3,7 +3,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 14
@@ -22,11 +22,7 @@ android {
             jni.srcDirs = []
         }
     }
-    externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
-        }
-    }
+
 }
 
 dependencies {

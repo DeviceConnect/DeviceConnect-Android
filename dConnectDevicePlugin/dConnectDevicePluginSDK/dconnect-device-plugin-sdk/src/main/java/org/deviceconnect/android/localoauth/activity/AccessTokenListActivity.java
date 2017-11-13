@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.localoauth.activity;
 
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.fragment.AccessTokenListFragment;
-
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+
+import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.fragment.AccessTokenListFragment;
 
 /**
  * アクセストークン一覧Activity.
@@ -23,7 +23,9 @@ public class AccessTokenListActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.access_token);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getActionBar() != null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         if (savedInstanceState == null) {
             AccessTokenListFragment f = new AccessTokenListFragment();

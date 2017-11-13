@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
         def version
@@ -38,8 +38,6 @@ android {
         exclude 'META-INF/DEPENDENCIES.txt'
     }
 
-    productFlavors {
-    }
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'

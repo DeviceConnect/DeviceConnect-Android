@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.os.Build;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
@@ -20,7 +21,11 @@ import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudi
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCast;
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -173,6 +178,42 @@ public class HostDeviceRecorderManager {
         }
     }
 
+    public void sendEventForRecordingChange(final String serviceId, final HostDeviceRecorder.RecorderState state,
+                                             final String uri, final String path,
+                                             final String mimeType, final String errorMessage) {
+        List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
+                MediaStreamRecordingProfile.PROFILE_NAME, null,
+                MediaStreamRecordingProfile.ATTRIBUTE_ON_RECORDING_CHANGE);
+
+        Bundle record = new Bundle();
+        switch (state) {
+            case RECORDING:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.RECORDING);
+                break;
+            case INACTTIVE:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.STOP);
+                break;
+            case ERROR:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.ERROR);
+                break;
+            default:
+                MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.UNKNOWN);
+                break;
+        }
+        record.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+        record.putString(MediaStreamRecordingProfile.PARAM_PATH, path);
+        record.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, mimeType);
+        if (errorMessage != null) {
+            record.putString(MediaStreamRecordingProfile.PARAM_ERROR_MESSAGE, errorMessage);
+        }
+
+        for (Event evt : evts) {
+            Intent intent = EventManager.createEventMessage(evt);
+            intent.putExtra(MediaStreamRecordingProfile.PARAM_MEDIA, record);
+            mHostDeviceService.sendEvent(intent, evt.getAccessToken());
+        }
+    }
+
     private boolean isSupportedMediaProjection() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
@@ -197,12 +238,23 @@ public class HostDeviceRecorderManager {
                 String target = intent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
                 HostDeviceRecorder.RecorderState state =
                         (HostDeviceRecorder.RecorderState) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
-                if (target != null && state != null) {
-                    HostDeviceVideoRecorder videoRecorder = getVideoRecorder(target);
-                    if (videoRecorder != null) {
-                        videoRecorder.setState(state);
-                    }
+                String serviceId = intent.getStringExtra(VideoConst.EXTRA_SERVICE_ID);
+                String fileName = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
+                String uri = "";
+                if (fileName != null) {
+                    FileManager mgr = mHostDeviceService.getFileManager();
+                    uri = mgr.getContentUri() + "/" + fileName;
+                    fileName = "/" + fileName;
+                } else {
+                    fileName = "";
                 }
+                if (target != null && state != null) {
+                    HostDeviceStreamRecorder streamer = getStreamRecorder(target);
+                    sendEventForRecordingChange(serviceId, state, uri,
+                            fileName, streamer.getMimeType(), null);
+                }
+
+
             }
         }
     };

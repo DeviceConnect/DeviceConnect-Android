@@ -29,6 +29,8 @@ import android.view.Window;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -47,6 +49,9 @@ public class AudioRecorderActivity extends Activity {
     /** ファイル名. */
     private String mFileName;
 
+    /** サービスID. */
+    private String mServiceId;
+
     /** フォルダURI. */
     private File mFile;
 
@@ -55,7 +60,8 @@ public class AudioRecorderActivity extends Activity {
 
     /** 開始インテント */
     private Intent mIntent;
-
+    /** 本アクティビティを起動したレコーダーID. */
+    private String mRecorderId;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,7 +135,9 @@ public class AudioRecorderActivity extends Activity {
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
 
-        mFileName = mIntent.getStringExtra(AudioConst.EXTRA_FINE_NAME);
+        mFileName = mIntent.getStringExtra(AudioConst.EXTRA_FILE_NAME);
+        mServiceId = mIntent.getStringExtra(AudioConst.EXTRA_SERVICE_ID);
+        mRecorderId = mIntent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
         if (mFileName != null) {
             mFile = new File(fileMgr.getBasePath(), mFileName);
             mMediaRecorder.setOutputFile(mFile.toString());
@@ -192,6 +200,7 @@ public class AudioRecorderActivity extends Activity {
             mMediaRecorder.release();
             mMediaRecorder = null;
         }
+        sendRecorderStateEvent(HostDeviceRecorder.RecorderState.INACTTIVE);
     }
 
     @Override
@@ -203,13 +212,23 @@ public class AudioRecorderActivity extends Activity {
         }
         return true;
     }
-
+    private void sendRecorderStateEvent(final HostDeviceRecorder.RecorderState state) {
+        Intent intent = new Intent(VideoConst.SEND_VIDEO_TO_HOSTDP);
+        intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
+        intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
+        intent.putExtra(VideoConst.EXTRA_FILE_NAME, mFileName);
+        intent.putExtra(VideoConst.EXTRA_SERVICE_ID, mServiceId);
+        sendBroadcast(intent);
+    }
     /**
      * 受信用Receiver.
      */
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
+            if (intent.getAction() == null) {
+                return;
+            }
             if (intent.getAction().equals((AudioConst.SEND_HOSTDP_TO_AUDIO))) {
                 String videoAction = intent.getStringExtra(AudioConst.EXTRA_NAME);
                 if (videoAction.equals(AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP)) {

@@ -174,8 +174,8 @@ public class IntegerDataSpec extends EnumerableDataSpec<Long> {
 
     private boolean validateRange(final long value) {
         if (getEnum() != null) {
-            for (long e : getEnum()) {
-                if (e == value) {
+            for (Long e : getEnum()) {
+                if (e != null && e == value) {
                     return true;
                 }
             }

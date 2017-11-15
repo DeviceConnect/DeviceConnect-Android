@@ -150,14 +150,23 @@ public class NumberDataSpec extends EnumerableDataSpec<Double> {
     }
 
     private boolean validateRange(final double value) {
-        boolean isValid = true;
-        if (getMaximum() != null) {
-            isValid &= isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
+        if (getEnum() != null) {
+            for (Double e : getEnum()) {
+                if (e != null && e == value) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            boolean isValid = true;
+            if (getMaximum() != null) {
+                isValid &= isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
+            }
+            if (getMinimum() != null) {
+                isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
+            }
+            return isValid;
         }
-        if (getMinimum() != null) {
-            isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
-        }
-        return isValid;
     }
 
     /**

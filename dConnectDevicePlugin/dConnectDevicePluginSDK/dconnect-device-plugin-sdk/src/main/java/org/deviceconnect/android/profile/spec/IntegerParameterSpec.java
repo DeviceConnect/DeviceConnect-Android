@@ -198,9 +198,9 @@ public class IntegerParameterSpec extends EnumerableParameterSpec<Long, IntegerD
                 spec.setEnum(mEnum);
             } else {
                 spec.setMaximum(mMaximum);
-                spec.setExclusiveMaximum(mExclusiveMaximum);
+                spec.setExclusiveMaximum(mExclusiveMaximum != null ? mExclusiveMaximum : false);
                 spec.setMinimum(mMinimum);
-                spec.setExclusiveMinimum(mExclusiveMinimum);
+                spec.setExclusiveMinimum(mExclusiveMinimum != null ? mExclusiveMinimum : false);
             }
             return spec;
         }

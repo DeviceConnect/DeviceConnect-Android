@@ -316,6 +316,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             builder.setMinimum(dataSpec.getMinimum());
             builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
             builder.setExclusiveMinimum(dataSpec.isExclusiveMinimum());
+            builder.setEnum(dataSpec.getEnum());
             return builder.build();
         }
     }

@@ -13,6 +13,14 @@ import static org.junit.Assert.assertThat;
 public class BooleanDataSpecTest {
 
     @Test
+    public void testValidate_Default() {
+        BooleanDataSpec.Builder builder = new BooleanDataSpec.Builder();
+        BooleanDataSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate(true), is(equalTo(true)));
+    }
+
+    @Test
     public void testValidate_Enum_Defined() {
         BooleanDataSpec.Builder builder = new BooleanDataSpec.Builder();
         builder.setEnum(new Boolean[] {true});

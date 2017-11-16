@@ -13,6 +13,24 @@ import static org.junit.Assert.assertThat;
 public class StringParameterSpecTest {
 
     @Test
+    public void testValidate_Mandatory_Default() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("a"), is(equalTo(true)));
+    }
+
+    @Test
+    public void testValidate_Optional_Default() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(false);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate(null), is(equalTo(true)));
+    }
+
+    @Test
     public void testValidate_Mandatory_Enum_Defined() {
         StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
         builder.setRequired(true);
@@ -37,6 +55,90 @@ public class StringParameterSpecTest {
         StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
         builder.setRequired(false);
         builder.setEnum(new String[] {"a", "b", "c"});
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate(null), is(equalTo(true)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_Max_OK() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMaxLength(5);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("12345"), is(equalTo(true)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_Max_TooLong() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMaxLength(5);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("12345x"), is(equalTo(false)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_Min_OK() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMinLength(5);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("12345"), is(equalTo(true)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_Min_TooShort() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMinLength(5);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("1234"), is(equalTo(false)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_MaxMin_OK() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMaxLength(5);
+        builder.setMinLength(1);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("12345"), is(equalTo(true)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_MaxMin_TooLong() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMaxLength(5);
+        builder.setMinLength(1);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate("12345x"), is(equalTo(false)));
+    }
+
+    @Test
+    public void testValidate_Mandatory_Length_MaxMin_TooShort() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(true);
+        builder.setMaxLength(5);
+        builder.setMinLength(1);
+        StringParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate(""), is(equalTo(false)));
+    }
+
+    @Test
+    public void testValidate_Optional_Length_MaxMin_TooShort() {
+        StringParameterSpec.Builder builder = new StringParameterSpec.Builder();
+        builder.setRequired(false);
+        builder.setMaxLength(5);
+        builder.setMinLength(1);
         StringParameterSpec dataSpec = builder.build();
 
         assertThat(dataSpec.validate(null), is(equalTo(true)));

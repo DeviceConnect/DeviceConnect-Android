@@ -13,6 +13,24 @@ import static org.junit.Assert.assertThat;
 public class BooleanParameterSpecTest {
 
     @Test
+    public void testValidate_Mandatory_Default() {
+        BooleanParameterSpec.Builder builder = new BooleanParameterSpec.Builder();
+        builder.setRequired(true);
+        BooleanParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate(true), is(equalTo(true)));
+    }
+
+    @Test
+    public void testValidate_Optional_Default() {
+        BooleanParameterSpec.Builder builder = new BooleanParameterSpec.Builder();
+        builder.setRequired(false);
+        BooleanParameterSpec dataSpec = builder.build();
+
+        assertThat(dataSpec.validate(null), is(equalTo(true)));
+    }
+
+    @Test
     public void testValidate_Mandatory_Enum_Defined() {
         BooleanParameterSpec.Builder builder = new BooleanParameterSpec.Builder();
         builder.setRequired(true);

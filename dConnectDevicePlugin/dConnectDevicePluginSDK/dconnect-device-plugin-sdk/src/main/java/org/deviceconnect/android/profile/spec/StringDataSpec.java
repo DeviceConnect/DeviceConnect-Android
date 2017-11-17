@@ -15,14 +15,13 @@ import java.util.regex.Pattern;
  *
  * @author NTT DOCOMO, INC.
  */
-public class StringDataSpec extends DConnectDataSpec {
+public class StringDataSpec extends EnumerableDataSpec<String> {
 
     private static final Pattern RGB_PATTERN = Pattern.compile("[0-9a-fA-F]{6}");
 
     private final DataFormat mFormat;
     private Integer mMaxLength;
     private Integer mMinLength;
-    private String[] mEnumList;
 
     /**
      * コンストラクタ.
@@ -77,17 +76,10 @@ public class StringDataSpec extends DConnectDataSpec {
     /**
      * 定数一覧を取得する.
      * @return 定数の配列
+     * @deprecated getEnum() を使用してください.
      */
     public String[] getEnumList() {
-        return mEnumList;
-    }
-
-    /**
-     * 定数一覧を設定する.
-     * @param enumList 定数の配列
-     */
-    void setEnumList(final String[] enumList) {
-        mEnumList = enumList;
+        return getEnum();
     }
 
     @Override
@@ -99,6 +91,17 @@ public class StringDataSpec extends DConnectDataSpec {
             return false;
         }
         String param = (String) obj;
+
+        String[] enumList = getEnum();
+        if (enumList != null) {
+            for (String enumValue : enumList) {
+                if (param.equals(enumValue)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         switch (getFormat()) {
             case TEXT:
                 return validateLength(param);
@@ -131,12 +134,11 @@ public class StringDataSpec extends DConnectDataSpec {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder {
+    public static class Builder extends EnumerableDataSpec.Builder<String, Builder> {
 
         private DataFormat mFormat;
         private Integer mMaxLength;
         private Integer mMinLength;
-        private String[] mEnumList;
 
         /**
          * データのフォーマット指定を設定する.
@@ -172,6 +174,7 @@ public class StringDataSpec extends DConnectDataSpec {
          * 定数一覧を取得する.
          * @param enumList 定数の配列
          * @return ビルダー自身のインスタンス
+         * @deprecated setEnum() を使用してください.
          */
         public Builder setEnumList(final String[] enumList) {
             mEnumList = enumList;
@@ -188,12 +191,17 @@ public class StringDataSpec extends DConnectDataSpec {
             }
             StringDataSpec spec = new StringDataSpec(mFormat);
             if (mEnumList != null) {
-                spec.setEnumList(mEnumList);
+                spec.setEnum(mEnumList);
             } else {
                 spec.setMaxLength(mMaxLength);
                 spec.setMinLength(mMinLength);
             }
             return spec;
+        }
+
+        @Override
+        protected Builder getThis() {
+            return this;
         }
     }
 

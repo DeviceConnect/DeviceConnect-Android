@@ -12,7 +12,7 @@ package org.deviceconnect.android.profile.spec;
  *
  * @author NTT DOCOMO, INC.
  */
-public class NumberDataSpec extends DConnectDataSpec {
+public class NumberDataSpec extends EnumerableDataSpec<Double> {
 
     private final DataFormat mFormat;
     private Double mMaximum;
@@ -150,14 +150,23 @@ public class NumberDataSpec extends DConnectDataSpec {
     }
 
     private boolean validateRange(final double value) {
-        boolean isValid = true;
-        if (getMaximum() != null) {
-            isValid &= isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
+        if (getEnum() != null) {
+            for (Double e : getEnum()) {
+                if (e != null && e == value) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            boolean isValid = true;
+            if (getMaximum() != null) {
+                isValid &= isExclusiveMaximum() ? (getMaximum() > value) : (getMaximum() >= value);
+            }
+            if (getMinimum() != null) {
+                isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
+            }
+            return isValid;
         }
-        if (getMinimum() != null) {
-            isValid &= isExclusiveMinimum() ? (getMinimum() < value) : (getMinimum() <= value);
-        }
-        return isValid;
     }
 
     /**
@@ -165,7 +174,7 @@ public class NumberDataSpec extends DConnectDataSpec {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder {
+    public static class Builder extends EnumerableDataSpec.Builder<Double, Builder> {
 
         private DataFormat mFormat;
         private Double mMaximum;
@@ -232,11 +241,20 @@ public class NumberDataSpec extends DConnectDataSpec {
                 mFormat = DataFormat.FLOAT;
             }
             NumberDataSpec spec = new NumberDataSpec(mFormat);
-            spec.setMaximum(mMaximum);
-            spec.setExclusiveMaximum(mExclusiveMaximum);
-            spec.setMinimum(mMinimum);
-            spec.setExclusiveMinimum(mExclusiveMinimum);
+            if (mEnumList != null) {
+                spec.setEnum(mEnumList);
+            } else {
+                spec.setMaximum(mMaximum);
+                spec.setExclusiveMaximum(mExclusiveMaximum);
+                spec.setMinimum(mMinimum);
+                spec.setExclusiveMinimum(mExclusiveMinimum);
+            }
             return spec;
+        }
+
+        @Override
+        protected Builder getThis() {
+            return this;
         }
     }
 

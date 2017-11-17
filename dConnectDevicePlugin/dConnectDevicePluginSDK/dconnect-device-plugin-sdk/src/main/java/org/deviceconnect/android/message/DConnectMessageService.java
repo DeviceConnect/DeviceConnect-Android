@@ -144,10 +144,18 @@ public abstract class DConnectMessageService extends Service implements DConnect
     public void onCreate() {
         super.onCreate();
         setLogLevel();
-        EventManager.INSTANCE.setController(getEventCacheController());
 
+        // イベント管理クラスの初期化
+        EventCacheController ctrl = getEventCacheController();
+        if (ctrl == null) {
+            ctrl = getDefaultEventCacheController();
+        }
+        EventManager.INSTANCE.setController(ctrl);
+
+        // プラグインの提供するAPIの仕様を取得
         mPluginSpec = loadPluginSpec();
 
+        // サービス管理クラスの初期化
         DConnectServiceManager serviceManager = new DConnectServiceManager();
         serviceManager.setPluginSpec(mPluginSpec);
         serviceManager.setContext(getContext());
@@ -220,34 +228,20 @@ public abstract class DConnectMessageService extends Service implements DConnect
         String action = intent.getAction();
         if (checkRequestAction(action)) {
             onRequest(intent);
-        }
-
-        if (checkManagerUninstall(intent)) {
+        } else if (checkManagerUninstall(intent)) {
             onManagerUninstalled();
-        }
-
-        if (checkManagerLaunched(action)) {
+        } else if (checkManagerLaunched(action)) {
             onManagerLaunched();
-        }
-
-        if (checkManagerTerminated(action)) {
+        } else if (checkManagerTerminated(action)) {
             onManagerTerminated();
-        }
-
-        if (checkManagerEventTransmitDisconnect(action)) {
+        } else if (checkManagerEventTransmitDisconnect(action)) {
             onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN));
-        }
-
-        if (checkDevicePluginReset(action)) {
+        } else if (checkDevicePluginReset(action)) {
             onDevicePluginReset();
-        }
-
-        if (checkDevicePluginEnabled(action)) {
+        } else if (checkDevicePluginEnabled(action)) {
             mIsEnabled = true;
             onDevicePluginEnabled();
-        }
-
-        if (checkDevicePluginDisabled(action)) {
+        } else if (checkDevicePluginDisabled(action)) {
             mIsEnabled = false;
             onDevicePluginDisabled();
         }
@@ -708,6 +702,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * @return EventCacheControllerのインスタンス
      */
     protected EventCacheController getEventCacheController() {
+        return getDefaultEventCacheController();
+    }
+
+    private EventCacheController getDefaultEventCacheController() {
         return new MemoryCacheController();
     }
 
@@ -835,7 +833,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
                     try {
                         callback.sendMessage(message);
                     } catch (RemoteException e) {
-                        // TODO マネージャへの応答に失敗した場合
+                        mLogger.warning("Failed to send message to Device Connect Manager: message = " +
+                            e.getMessage());
                     }
                 }
             });

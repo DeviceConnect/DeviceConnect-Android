@@ -12,7 +12,7 @@ package org.deviceconnect.android.profile.spec;
  *
  * @author NTT DOCOMO, INC.
  */
-public class StringParameterSpec extends DConnectParameterSpec<StringDataSpec> {
+public class StringParameterSpec extends EnumerableParameterSpec<String, StringDataSpec> {
 
     /**
      * コンストラクタ.
@@ -65,17 +65,10 @@ public class StringParameterSpec extends DConnectParameterSpec<StringDataSpec> {
     /**
      * 定数一覧を取得する.
      * @return 定数の配列
+     * @deprecated getEnum() を使用してください.
      */
     public String[] getEnumList() {
         return mDataSpec.getEnumList();
-    }
-
-    /**
-     * 定数一覧を設定する.
-     * @param enumList 定数の配列
-     */
-    void setEnumList(final String[] enumList) {
-        mDataSpec.setEnumList(enumList);
     }
 
     /**
@@ -83,12 +76,11 @@ public class StringParameterSpec extends DConnectParameterSpec<StringDataSpec> {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder extends BaseBuilder<Builder> {
+    public static class Builder extends EnumerableParameterSpec.Builder<String, Builder> {
 
         private DataFormat mFormat;
         private Integer mMaxLength;
         private Integer mMinLength;
-        private String[] mEnumList;
 
         /**
          * データのフォーマット指定を設定する.
@@ -124,9 +116,10 @@ public class StringParameterSpec extends DConnectParameterSpec<StringDataSpec> {
          * 定数一覧を取得する.
          * @param enumList 定数の配列
          * @return ビルダー自身のインスタンス
+         * @deprecated setEnum(String[]) を使用してください.
          */
         public Builder setEnumList(final String[] enumList) {
-            mEnumList = enumList;
+            mEnum = enumList;
             return this;
         }
 
@@ -141,8 +134,8 @@ public class StringParameterSpec extends DConnectParameterSpec<StringDataSpec> {
             StringParameterSpec spec = new StringParameterSpec(mFormat);
             spec.setName(mName);
             spec.setRequired(mIsRequired);
-            if (mEnumList != null) {
-                spec.setEnumList(mEnumList);
+            if (mEnum != null) {
+                spec.setEnum(mEnum);
             } else {
                 spec.setMaxLength(mMaxLength);
                 spec.setMinLength(mMinLength);

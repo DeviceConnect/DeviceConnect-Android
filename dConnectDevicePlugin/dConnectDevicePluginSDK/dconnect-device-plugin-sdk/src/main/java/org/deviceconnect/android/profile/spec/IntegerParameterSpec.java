@@ -12,7 +12,7 @@ package org.deviceconnect.android.profile.spec;
  *
  * @author NTT DOCOMO, INC.
  */
-public class IntegerParameterSpec extends DConnectParameterSpec<IntegerDataSpec> {
+public class IntegerParameterSpec extends EnumerableParameterSpec<Long, IntegerDataSpec> {
 
     /**
      * コンストラクタ.
@@ -97,17 +97,10 @@ public class IntegerParameterSpec extends DConnectParameterSpec<IntegerDataSpec>
     /**
      * 定数一覧を取得する.
      * @return 定数の配列
+     * @deprecated getEnum() を使用してください.
      */
     public long[] getEnumList() {
         return mDataSpec.getEnumList();
-    }
-
-    /**
-     * 定数一覧を設定する.
-     * @param enumList 定数の配列
-     */
-    void setEnumList(final long[] enumList) {
-        mDataSpec.setEnumList(enumList);
     }
 
     /**
@@ -115,14 +108,13 @@ public class IntegerParameterSpec extends DConnectParameterSpec<IntegerDataSpec>
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder extends BaseBuilder<Builder> {
+    public static class Builder extends EnumerableParameterSpec.Builder<Long, Builder> {
 
         private DataFormat mFormat;
         private Long mMaximum;
         private Long mMinimum;
         private Boolean mExclusiveMaximum;
         private Boolean mExclusiveMinimum;
-        private long[] mEnumList;
 
         /**
          * データのフォーマット指定を設定する.
@@ -178,10 +170,17 @@ public class IntegerParameterSpec extends DConnectParameterSpec<IntegerDataSpec>
          * 定数一覧を取得する.
          * @param enumList 定数の配列
          * @return ビルダー自身のインスタンス
+         * @deprecated setEnum(Long[]) を使用してください.
          */
         public Builder setEnumList(final long[] enumList) {
-            mEnumList = enumList;
-            return this;
+            Long[] array = null;
+            if (enumList != null) {
+                array = new Long[enumList.length];
+                for (int i = 0; i < enumList.length; i++) {
+                    array[i] = enumList[i];
+                }
+            }
+            return setEnum(array);
         }
 
         /**
@@ -195,11 +194,14 @@ public class IntegerParameterSpec extends DConnectParameterSpec<IntegerDataSpec>
             IntegerParameterSpec spec = new IntegerParameterSpec(mFormat);
             spec.setName(mName);
             spec.setRequired(mIsRequired);
-            spec.setEnumList(mEnumList);
-            spec.setMaximum(mMaximum);
-            spec.setExclusiveMaximum(mExclusiveMaximum);
-            spec.setMinimum(mMinimum);
-            spec.setExclusiveMinimum(mExclusiveMinimum);
+            if (mEnum != null) {
+                spec.setEnum(mEnum);
+            } else {
+                spec.setMaximum(mMaximum);
+                spec.setExclusiveMaximum(mExclusiveMaximum != null ? mExclusiveMaximum : false);
+                spec.setMinimum(mMinimum);
+                spec.setExclusiveMinimum(mExclusiveMinimum != null ? mExclusiveMinimum : false);
+            }
             return spec;
         }
 

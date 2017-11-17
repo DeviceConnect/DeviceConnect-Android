@@ -12,7 +12,7 @@ package org.deviceconnect.android.profile.spec;
  *
  * @author NTT DOCOMO, INC.
  */
-public class BooleanDataSpec extends DConnectDataSpec {
+public class BooleanDataSpec extends EnumerableDataSpec<Boolean> {
 
     private final String TRUE = "true";
     private final String FALSE = "false";
@@ -29,6 +29,17 @@ public class BooleanDataSpec extends DConnectDataSpec {
         if (obj == null) {
             return true;
         }
+
+        Boolean[] enumList = getEnum();
+        if (enumList != null) {
+            for (Boolean enumValue : enumList) {
+                if (enumValue != null && enumValue.equals(obj)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         if (obj instanceof String) {
             String strParam = (String) obj;
             return TRUE.equalsIgnoreCase(strParam) || FALSE.equalsIgnoreCase(strParam);
@@ -43,15 +54,21 @@ public class BooleanDataSpec extends DConnectDataSpec {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder {
+    public static class Builder extends EnumerableDataSpec.Builder<Boolean, Builder> {
 
         /**
          * {@link BooleanDataSpec}のインスタンスを生成する.
          * @return {@link BooleanDataSpec}のインスタンス
          */
         public BooleanDataSpec build() {
-            return new BooleanDataSpec();
+            BooleanDataSpec spec = new BooleanDataSpec();
+            spec.setEnum(mEnumList);
+            return spec;
         }
 
+        @Override
+        protected Builder getThis() {
+            return this;
+        }
     }
 }

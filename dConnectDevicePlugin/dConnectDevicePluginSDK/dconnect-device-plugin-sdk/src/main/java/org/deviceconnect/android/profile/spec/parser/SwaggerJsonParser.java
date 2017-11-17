@@ -267,11 +267,14 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
 
         @Override
         public DConnectParameterSpec parseJson(final JSONObject json) throws JSONException {
+            BooleanDataSpec dataSpec = (BooleanDataSpec) BOOLEAN_ITEMS_PARSER.parseJson(json);
+
             BooleanParameterSpec.Builder builder = new BooleanParameterSpec.Builder();
             builder.setName(json.getString(KEY_NAME));
             if (json.has(KEY_REQUIRED)) {
                 builder.setRequired(json.getBoolean(KEY_REQUIRED));
             }
+            builder.setEnum(dataSpec.getEnum());
             return builder.build();
         }
     }
@@ -292,7 +295,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             builder.setMinimum(dataSpec.getMinimum());
             builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
             builder.setExclusiveMinimum(dataSpec.isExclusiveMinimum());
-            builder.setEnumList(dataSpec.getEnumList());
+            builder.setEnum(dataSpec.getEnum());
             return builder.build();
         }
     }
@@ -313,6 +316,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             builder.setMinimum(dataSpec.getMinimum());
             builder.setExclusiveMaximum(dataSpec.isExclusiveMaximum());
             builder.setExclusiveMinimum(dataSpec.isExclusiveMinimum());
+            builder.setEnum(dataSpec.getEnum());
             return builder.build();
         }
     }
@@ -331,7 +335,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             builder.setFormat(dataSpec.getFormat());
             builder.setMaxLength(dataSpec.getMaxLength());
             builder.setMinLength(dataSpec.getMinLength());
-            builder.setEnumList(dataSpec.getEnumList());
+            builder.setEnum(dataSpec.getEnum());
             return builder.build();
         }
     }
@@ -409,7 +413,16 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
 
         @Override
         public DConnectDataSpec parseJson(final JSONObject json) throws JSONException {
-            return new BooleanDataSpec.Builder().build();
+            BooleanDataSpec.Builder builder = new BooleanDataSpec.Builder();
+            if (json.has(KEY_ENUM)) {
+                JSONArray array = json.getJSONArray(KEY_ENUM);
+                Boolean[] enumList = new Boolean[array.length()];
+                for (int i = 0; i < array.length(); i++) {
+                    enumList[i] = array.getBoolean(i);
+                }
+                builder.setEnum(enumList);
+            }
+            return builder.build();
         }
     }
 
@@ -439,11 +452,11 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             }
             if (json.has(KEY_ENUM)) {
                 JSONArray array = json.getJSONArray(KEY_ENUM);
-                long[] enumList = new long[array.length()];
+                Long[] enumList = new Long[array.length()];
                 for (int i = 0; i < array.length(); i++) {
                     enumList[i] = array.getLong(i);
                 }
-                builder.setEnumList(enumList);
+                builder.setEnum(enumList);
             }
             return builder.build();
         }
@@ -473,6 +486,14 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
             if (json.has(KEY_EXCLUSIVE_MINIMUM)) {
                 builder.setExclusiveMinimum(json.getBoolean(KEY_EXCLUSIVE_MINIMUM));
             }
+            if (json.has(KEY_ENUM)) {
+                JSONArray array = json.getJSONArray(KEY_ENUM);
+                Double[] enumList = new Double[array.length()];
+                for (int i = 0; i < array.length(); i++) {
+                    enumList[i] = array.getDouble(i);
+                }
+                builder.setEnum(enumList);
+            }
             return builder.build();
         }
     }
@@ -501,7 +522,7 @@ class SwaggerJsonParser implements DConnectProfileSpecJsonParser, DConnectSpecCo
                 for (int i = 0; i < array.length(); i++) {
                     enumList[i] = array.getString(i);
                 }
-                builder.setEnumList(enumList);
+                builder.setEnum(enumList);
             }
             return builder.build();
         }

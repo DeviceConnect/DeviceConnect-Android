@@ -7,19 +7,21 @@
 package org.deviceconnect.android.profile.spec;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Integer型データの仕様.
  *
  * @author NTT DOCOMO, INC.
  */
-public class IntegerDataSpec extends DConnectDataSpec {
+public class IntegerDataSpec extends EnumerableDataSpec<Long> {
 
     private final DataFormat mFormat;
     private Long mMaximum;
     private Long mMinimum;
     private Boolean mExclusiveMaximum;
     private Boolean mExclusiveMinimum;
-    private long[] mEnumList;
 
     /**
      * コンストラクタ.
@@ -106,17 +108,21 @@ public class IntegerDataSpec extends DConnectDataSpec {
     /**
      * 定数一覧を取得する.
      * @return 定数の配列
+     * @deprecated getEnum() を使用してください.
      */
     public long[] getEnumList() {
-        return mEnumList;
-    }
-
-    /**
-     * 定数一覧を設定する.
-     * @param enumList 定数の配列
-     */
-    void setEnumList(final long[] enumList) {
-        mEnumList = enumList;
+        Long[] cache = getEnum();
+        List<Long> nonNullList = new ArrayList<>();
+        for (Long value : cache) {
+            if (value != null) {
+                nonNullList.add(value);
+            }
+        }
+        long[] result = new long[nonNullList.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = nonNullList.get(i);
+        }
+        return result;
     }
 
     @Override
@@ -167,9 +173,9 @@ public class IntegerDataSpec extends DConnectDataSpec {
     }
 
     private boolean validateRange(final long value) {
-        if (getEnumList() != null) {
-            for (long e : getEnumList()) {
-                if (e == value) {
+        if (getEnum() != null) {
+            for (Long e : getEnum()) {
+                if (e != null && e == value) {
                     return true;
                 }
             }
@@ -191,14 +197,13 @@ public class IntegerDataSpec extends DConnectDataSpec {
      *
      * @author NTT DOCOMO, INC.
      */
-    public static class Builder {
+    public static class Builder extends EnumerableDataSpec.Builder<Long, Builder> {
 
         private DataFormat mFormat;
         private Long mMaximum;
         private Long mMinimum;
         private Boolean mExclusiveMaximum;
         private Boolean mExclusiveMinimum;
-        private long[] mEnumList;
 
         /**
          * データのフォーマット指定を設定する.
@@ -254,9 +259,17 @@ public class IntegerDataSpec extends DConnectDataSpec {
          * 定数一覧を取得する.
          * @param enumList 定数の配列
          * @return ビルダー自身のインスタンス
+         * @deprecated setEnum(Long[]) を使用してください.
          */
         public Builder setEnumList(final long[] enumList) {
-            mEnumList = enumList;
+            Long[] result = null;
+            if (enumList != null) {
+                result = new Long[enumList.length];
+                for (int i = 0; i < enumList.length; i++) {
+                    result[i] = enumList[i];
+                }
+            }
+            mEnumList = result;
             return this;
         }
 
@@ -269,12 +282,20 @@ public class IntegerDataSpec extends DConnectDataSpec {
                 mFormat = DataFormat.INT32;
             }
             IntegerDataSpec spec = new IntegerDataSpec(mFormat);
-            spec.setEnumList(mEnumList);
-            spec.setMaximum(mMaximum);
-            spec.setExclusiveMaximum(mExclusiveMaximum);
-            spec.setMinimum(mMinimum);
-            spec.setExclusiveMinimum(mExclusiveMinimum);
+            if (mEnumList != null) {
+                spec.setEnum(mEnumList);
+            } else {
+                spec.setMaximum(mMaximum);
+                spec.setExclusiveMaximum(mExclusiveMaximum);
+                spec.setMinimum(mMinimum);
+                spec.setExclusiveMinimum(mExclusiveMinimum);
+            }
             return spec;
+        }
+
+        @Override
+        protected Builder getThis() {
+            return this;
         }
     }
 

@@ -177,9 +177,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 }
 
                 DConnectService managerService = getManagerService();
-                if (mSwitchAction != null) {
-                    mSwitchAction.setChecked(managerService.isRunning());
+                if (mSwitchAction == null) {
+                    mSwitchAction = (Switch) findViewById(R.id.activity_service_list_manager_switch);
+                    mSwitchAction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                            switchDConnectServer(isChecked);
+                        }
+                    });
                 }
+                mSwitchAction.setChecked(managerService.isRunning());
+
                 if (managerService.isRunning()) {
                     reloadServiceList();
                 }
@@ -201,7 +209,12 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_service_list, menu);
 
-        mSwitchAction = (Switch) menu.findItem(R.id.activity_service_manager_power).getActionView();
+        MenuItem managerSwitch = menu.findItem(R.id.activity_service_manager_power);
+        if (managerSwitch == null) {
+            return super.onCreateOptionsMenu(menu);
+        }
+
+        mSwitchAction = (Switch) managerSwitch.getActionView();
         if (mSwitchAction != null) {
             DisplayMetrics metrics = getResources().getDisplayMetrics();
             mSwitchAction.setPadding((int)(12 * metrics.density), 0, (int)(12 * metrics.density), 0);

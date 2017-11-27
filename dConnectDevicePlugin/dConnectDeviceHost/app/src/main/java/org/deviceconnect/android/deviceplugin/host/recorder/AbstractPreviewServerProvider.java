@@ -23,17 +23,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
  *
  * @author NTT DOCOMO, INC.
  */
-public abstract class HostDevicePreviewServer implements HostDeviceRecorder {
-
-    /**
-     * オーバーレイ削除用アクションを定義.
-     */
-    public static final String DELETE_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.DELETE_PREVIEW";
-
-    /**
-     * カメラを識別するIDのキー名を定義.
-     */
-    public static final String EXTRA_CAMERA_ID = "cameraId";
+public abstract class AbstractPreviewServerProvider implements PreviewServerProvider, HostDeviceRecorder {
 
     /**
      * コンテキスト.
@@ -50,21 +40,17 @@ public abstract class HostDevicePreviewServer implements HostDeviceRecorder {
      * @param context コンテキスト
      * @param notificationId 通知ID
      */
-    public HostDevicePreviewServer(final Context context, final int notificationId) {
+    public AbstractPreviewServerProvider(final Context context, final int notificationId) {
         mContext = context;
         mNotificationId = notificationId;
     }
 
-    /**
-     * サーバを開始します.
-     * @param callback 開始結果を通知するコールバック
-     */
-    public abstract void startWebServer(OnWebServerStartCallback callback);
-
-    /**
-     * サーバを停止します.
-     */
-    public abstract void stopWebServer();
+    @Override
+    public void stopWebServers() {
+        for (PreviewServer server : getServers()) {
+            server.stopWebServer();
+        }
+    }
 
     /**
      * NotificationIdを取得します.
@@ -121,22 +107,5 @@ public abstract class HostDevicePreviewServer implements HostDeviceRecorder {
         intent.setAction(DELETE_PREVIEW_ACTION);
         intent.putExtra(EXTRA_CAMERA_ID, getId());
         return PendingIntent.getService(mContext, getNotificationId(), intent, 0);
-    }
-
-    /**
-     * Callback interface used to receive the result of starting a web server.
-     */
-    public interface OnWebServerStartCallback {
-        /**
-         * Called when a web server successfully started.
-         *
-         * @param uri An ever-updating, static image URI.
-         */
-        void onStart(String uri);
-
-        /**
-         * Called when a web server failed to start.
-         */
-        void onFail();
     }
 }

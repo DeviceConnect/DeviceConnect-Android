@@ -12,9 +12,9 @@ import android.hardware.Camera;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import static org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera
  * @author NTT DOCOMO, INC.
  */
 @SuppressWarnings("deprecation")
-public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements HostDevicePhotoRecorder {
+public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider implements HostDevicePhotoRecorder {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "HOST";
@@ -68,7 +68,7 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
         }
     };
 
-    private CameraOverlay mCameraOverlay;
+    private final CameraOverlay mCameraOverlay;
 
     private String mMimeType;
 
@@ -82,11 +82,9 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
 
     private final List<PictureSize> mSupportedPreviewSizes = new ArrayList<>();
 
-    private final Object mLockObj = new Object();
-
-    private MixedReplaceMediaServer mServer;
-
     private RecorderState mState;
+
+    private final List<PreviewServer> mPreviewServers;
 
     public HostDeviceCameraRecorder(final Context context, final int cameraId,
                                     final CameraFacing facing, final FileManager fileMgr) {
@@ -97,15 +95,19 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
         mMimeType = mMimeTypes.get(0);
         mState = RecorderState.INACTTIVE;
 
-        if (mCameraOverlay == null) {
-            mCameraOverlay = new CameraOverlay(context, cameraId);
-        } else {
-            if (DEBUG) {
-                Log.d(TAG, "CameraOverlay create fail.");
-            }
-        }
+        mCameraOverlay = new CameraOverlay(context, cameraId);
         mCameraOverlay.setFileManager(fileMgr);
         mCameraOverlay.setFacingDirection(facing == CameraFacing.FRONT ? FACING_DIRECTION_FRONT : FACING_DIRECTION_BACK);
+
+        mPreviewServers = new ArrayList<>();
+        mPreviewServers.add(new CameraPreviewMJPEGServer(mCameraOverlay, this));
+    }
+
+    @Override
+    public List<PreviewServer> getServers() {
+        synchronized (this) {
+            return new ArrayList<>(mPreviewServers);
+        }
     }
 
     @Override
@@ -144,7 +146,11 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
 
     @Override
     public void clean() {
-        stopWebServer();
+        synchronized (this) {
+            for (PreviewServer server : mPreviewServers) {
+                server.stopWebServer();
+            }
+        }
     }
 
     @Override
@@ -263,54 +269,6 @@ public class HostDeviceCameraRecorder extends HostDevicePreviewServer implements
     @Override
     public boolean isUseFlashLight() {
         return mCameraOverlay != null && mCameraOverlay.isUseFlashLight();
-    }
-
-
-    @Override
-    public void startWebServer(final OnWebServerStartCallback callback) {
-        synchronized (mLockObj) {
-            if (mServer == null) {
-                mServer = new MixedReplaceMediaServer();
-                mServer.setServerName("HostDevicePlugin Server");
-                mServer.setContentType("image/jpg");
-                final String ip = mServer.start();
-
-                if (!mCameraOverlay.isShow()) {
-                    mCameraOverlay.show(new CameraOverlay.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            sendNotification();
-                            mCameraOverlay.setPreviewMode(true);
-                            mCameraOverlay.setServer(mServer);
-                            callback.onStart(ip);
-                        }
-
-                        @Override
-                        public void onFail() {
-                            callback.onFail();
-                        }
-                    });
-                } else {
-                    mCameraOverlay.setPreviewMode(true);
-                    mCameraOverlay.setServer(mServer);
-                    callback.onStart(ip);
-                }
-            } else {
-                callback.onStart(mServer.getUrl());
-            }
-        }
-    }
-
-    @Override
-    public void stopWebServer() {
-        synchronized (mLockObj) {
-            if (mServer != null) {
-                mServer.stop();
-                mServer = null;
-            }
-            mCameraOverlay.hide();
-            hideNotification();
-        }
     }
 
     /**

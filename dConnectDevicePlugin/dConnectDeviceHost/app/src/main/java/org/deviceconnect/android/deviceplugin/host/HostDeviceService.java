@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.BuildConfig;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
@@ -36,8 +35,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -152,7 +151,7 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        if (HostDevicePreviewServer.DELETE_PREVIEW_ACTION.equals(action)) {
+        if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
             return stopWebServer(intent);
         } else if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
             return onReceivedOutGoingCall(intent);
@@ -226,7 +225,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private int stopWebServer(final Intent intent) {
-        mRecorderMgr.stopWebServer(intent.getStringExtra(HostDevicePreviewServer.EXTRA_CAMERA_ID));
+        mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
         return START_STICKY;
     }
 

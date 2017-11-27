@@ -28,8 +28,9 @@ import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -49,7 +50,7 @@ import static android.R.attr.max;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(21)
-public class HostDeviceScreenCast extends HostDevicePreviewServer implements HostDevicePhotoRecorder {
+public class HostDeviceScreenCast extends AbstractPreviewServerProvider implements HostDevicePhotoRecorder, PreviewServer {
 
     static final String RESULT_DATA = "result_data";
 
@@ -150,6 +151,13 @@ public class HostDeviceScreenCast extends HostDevicePreviewServer implements Hos
         }
         mPreviewSize = mSupportedPreviewSizes.get(0);
         mPictureSize = mSupportedPictureSizes.get(num - 1);
+    }
+
+    @Override
+    public List<PreviewServer> getServers() {
+        List<PreviewServer> servers = new ArrayList<>();
+        servers.add(this);
+        return servers;
     }
 
     @Override

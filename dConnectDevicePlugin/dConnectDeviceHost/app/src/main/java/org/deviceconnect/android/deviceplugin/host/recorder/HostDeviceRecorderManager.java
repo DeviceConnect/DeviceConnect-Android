@@ -147,13 +147,13 @@ public class HostDeviceRecorderManager {
         return null;
     }
 
-    public HostDevicePreviewServer getPreviewServer(final String id) {
+    public PreviewServerProvider getPreviewServerProvider(final String id) {
         if (id == null) {
-            return (HostDevicePreviewServer) mDefaultPhotoRecorder;
+            return (AbstractPreviewServerProvider) mDefaultPhotoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePreviewServer) {
-                return (HostDevicePreviewServer) recorder;
+            if (id.equals(recorder.getId()) && recorder instanceof PreviewServerProvider) {
+                return (AbstractPreviewServerProvider) recorder;
             }
         }
         return null;
@@ -173,8 +173,8 @@ public class HostDeviceRecorderManager {
             return;
         }
         HostDeviceRecorder recorder = getRecorder(id);
-        if (recorder != null && recorder instanceof HostDevicePreviewServer) {
-            ((HostDevicePreviewServer)recorder).stopWebServer();
+        if (recorder != null && recorder instanceof PreviewServerProvider) {
+            ((PreviewServerProvider) recorder).stopWebServers();
         }
     }
 

@@ -35,7 +35,6 @@ import org.deviceconnect.android.service.DConnectServiceProvider;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -112,6 +111,10 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         unbindMessageService();
     }
 
+    private boolean hasManual() {
+        return mManualActivity != null;
+    }
+
     private void bindMessageService() {
         if (!mIsBound) {
             Intent intent = new Intent(getApplicationContext(), getMessageServiceClass());
@@ -123,6 +126,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         if (mIsBound) {
             unbindService(mConnection);
             mIsBound = false;
+            mProvider.removeServiceListener(this);
         }
     }
 
@@ -192,6 +196,9 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
         FragmentManager mgr = getSupportFragmentManager();
         FragmentTransaction transaction = mgr.beginTransaction();
         ViewerFragment fragment = new ViewerFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(ViewerFragment.EXTRA_HAS_MANUAL, hasManual());
+        fragment.setArguments(args);
         if (enablesItemClick()) {
             fragment.mOnClickServiceListener = mOnClickServiceListener;
         }
@@ -386,11 +393,19 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
 
     public static class ViewerFragment extends AbstractViewerFragment {
 
+        public static final String EXTRA_HAS_MANUAL = "hasManual";
+
         private OnClickServiceListener mOnClickServiceListener;
 
         @Override
         public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                                  final Bundle savedInstanceState) {
+            boolean hasManual = false;
+            Bundle args = getArguments();
+            if (args != null) {
+                hasManual = args.getBoolean(EXTRA_HAS_MANUAL, false);
+            }
+
             View root = inflater.inflate(R.layout.fragment_service_list_viewer, container, false);
 
             mListAdapter = new ServiceListAdapter(getContext(), getServiceContainers(), false);
@@ -413,12 +428,16 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
             mNoServiceView = root.findViewById(R.id.device_connect_service_list_message_no_service);
 
             Button newServiceButton = (Button) root.findViewById(R.id.device_connect_service_list_button_add_service);
-            newServiceButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    ((DConnectServiceListActivity) getActivity()).showSettingActivity();
-                }
-            });
+            if (hasManual) {
+                newServiceButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(final View v) {
+                        ((DConnectServiceListActivity) getActivity()).showSettingActivity();
+                    }
+                });
+            } else {
+                newServiceButton.setVisibility(View.GONE);
+            }
 
             mRemoveServiceButton = (Button) root.findViewById(R.id.device_connect_service_list_button_remove_service);
             mRemoveServiceButton.setOnClickListener(new View.OnClickListener() {

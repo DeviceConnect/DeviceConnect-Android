@@ -8,7 +8,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName '1.1.0'
+        versionName '2.3.2'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -83,6 +83,15 @@ dependencies {
     androidTestCompile 'com.android.support.test:runner:0.5'
 }
 
+// プラグインSDKのバージョンをpluginsdk.xmlに反映
+task setPluginSDKVersion(type: Copy) {
+    from 'src/template/pluginsdk.xml'
+    into 'src/main/res/xml'
+    expand([
+            version: android.defaultConfig.versionName
+    ])
+}
+preBuild.dependsOn setPluginSDKVersion
 
 // DeviceConnect-Specからjsonファイルをダウンロード
 
@@ -91,7 +100,7 @@ def specZipFile = ''
 def apiDir = new File(specOutputDir, 'api')
 
 task downloadZip(type: SpecDownload) {
-    sourceUrl = 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/v2.2.3-release-20170623.zip'
+    sourceUrl = 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/v2.2.5-release-20171130.zip'
     target = file("${projectDir}/DeviceConnect-Spec.zip")
     specZipFile = target
 }
@@ -169,7 +178,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '2.3.1'
+            pom.version = android.defaultConfig.versionName
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-device-plugin-sdk'
         }

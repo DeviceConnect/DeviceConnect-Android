@@ -84,7 +84,7 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
 
     private RecorderState mState;
 
-    private final List<PreviewServer> mPreviewServers;
+    private final List<CameraPreviewServer> mPreviewServers;
 
     public HostDeviceCameraRecorder(final Context context, final int cameraId,
                                     final CameraFacing facing, final FileManager fileMgr) {
@@ -100,13 +100,13 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
         mCameraOverlay.setFacingDirection(facing == CameraFacing.FRONT ? FACING_DIRECTION_FRONT : FACING_DIRECTION_BACK);
 
         mPreviewServers = new ArrayList<>();
-        mPreviewServers.add(new CameraMJPEGPreviewServer(mCameraOverlay, this));
+        mPreviewServers.add(new CameraMJPEGPreviewServer(context, mCameraOverlay, this));
     }
 
     @Override
     public List<PreviewServer> getServers() {
         synchronized (this) {
-            return new ArrayList<>(mPreviewServers);
+            return new ArrayList<PreviewServer>(mPreviewServers);
         }
     }
 

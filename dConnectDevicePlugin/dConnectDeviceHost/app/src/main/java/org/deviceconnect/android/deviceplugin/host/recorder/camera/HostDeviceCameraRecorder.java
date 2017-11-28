@@ -100,7 +100,7 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
         mCameraOverlay.setFacingDirection(facing == CameraFacing.FRONT ? FACING_DIRECTION_FRONT : FACING_DIRECTION_BACK);
 
         mPreviewServers = new ArrayList<>();
-        mPreviewServers.add(new CameraPreviewMJPEGServer(mCameraOverlay, this));
+        mPreviewServers.add(new CameraMJPEGPreviewServer(mCameraOverlay, this));
     }
 
     @Override

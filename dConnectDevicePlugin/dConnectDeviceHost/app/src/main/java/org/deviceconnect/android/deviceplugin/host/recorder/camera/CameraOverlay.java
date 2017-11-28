@@ -32,7 +32,6 @@ import android.view.WindowManager;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -203,12 +202,20 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         super.finalize();
     }
 
+    // TODO 排他処理を管理するメソッドを実装する。
+
     public synchronized boolean setPreviewCallback(final CameraPreviewCallback callback) {
         if (mPreviewCallback != null) {
             return false;
         }
         mPreviewCallback = callback;
         return true;
+    }
+
+    public synchronized void removePreviewCallback(final CameraPreviewCallback callback) {
+        if (mPreviewCallback == callback) {
+            mPreviewCallback = null;
+        }
     }
 
     /**
@@ -720,5 +727,4 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mFlashLightState = false;
         mUseFlashLight = false;
     }
-
 }

@@ -115,6 +115,7 @@ class CameraMJPEGPreviewServer implements CameraPreviewServer {
                 mServer.stop();
                 mServer = null;
             }
+            mCameraOverlay.removePreviewCallback(this);
             mCameraOverlay.hide();
             mServerProvider.hideNotification();
         }

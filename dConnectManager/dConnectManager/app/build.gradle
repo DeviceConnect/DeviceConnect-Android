@@ -54,8 +54,8 @@ android {
     flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
-            versionCode 26
-            versionName "2.2.3"
+            versionCode 27
+            versionName "2.2.4"
             buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help-dwa/index.html\""
             buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
         }

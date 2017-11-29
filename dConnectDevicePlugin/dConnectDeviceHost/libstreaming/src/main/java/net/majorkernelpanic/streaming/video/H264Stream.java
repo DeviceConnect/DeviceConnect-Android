@@ -21,6 +21,7 @@
 package net.majorkernelpanic.streaming.video;
 
 import android.graphics.ImageFormat;
+import android.hardware.Camera;
 import android.util.Base64;
 
 import net.majorkernelpanic.streaming.Session;
@@ -48,9 +49,10 @@ public class H264Stream extends VideoStream {
 	/**
 	 * Constructs the H.264 stream.
 	 * @param cameraId Can be either CameraInfo.CAMERA_FACING_BACK or CameraInfo.CAMERA_FACING_FRONT
+	 * @param camera
 	 */
-	public H264Stream(int cameraId) {
-		super(cameraId);
+	public H264Stream(int cameraId, Camera camera) {
+		super(cameraId, camera);
 		mMimeType = "video/avc";
 		mCameraImageFormat = ImageFormat.NV21;
 		mPacketizer = new H264Packetizer();
@@ -96,9 +98,7 @@ public class H264Stream extends VideoStream {
      * and determines the pps and sps. Should not be called by the UI thread.
      **/
 	private MP4Config testMediaCodecAPI() throws RuntimeException, IOException {
-		createCamera();
-		updateCamera();
-        EncoderDebugger debugger = EncoderDebugger.debug(mSettings, mQuality.resX, mQuality.resY);
+		EncoderDebugger debugger = EncoderDebugger.debug(mSettings, mQuality.resX, mQuality.resY);
         return new MP4Config(debugger.getB64SPS(), debugger.getB64PPS());
 	}
 	

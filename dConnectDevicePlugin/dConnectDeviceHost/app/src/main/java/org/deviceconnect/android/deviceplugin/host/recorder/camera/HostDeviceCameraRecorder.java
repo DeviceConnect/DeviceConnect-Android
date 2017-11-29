@@ -101,6 +101,7 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
 
         mPreviewServers = new ArrayList<>();
         mPreviewServers.add(new CameraMJPEGPreviewServer(context, mCameraOverlay, this));
+        mPreviewServers.add(new CameraRTSPPreviewServer(context, mCameraOverlay, this));
     }
 
     @Override

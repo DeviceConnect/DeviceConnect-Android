@@ -6,18 +6,45 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.Context;
 import android.hardware.Camera;
 
+import net.majorkernelpanic.streaming.Session;
+import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
+import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
+import net.majorkernelpanic.streaming.video.VideoQuality;
+
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+
+import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
 
 
-public class CameraRTSPPreviewServer implements CameraPreviewServer {
+class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegate {
 
     private static final String MIME_TYPE = "video/x-rtp";
 
+    private static final String SERVER_NAME = "Android Host Camera RTSP Server";
+
+    private final AbstractPreviewServerProvider mServerProvider;
+
     private final Object mLockObj = new Object();
 
+    private final CameraOverlay mCameraOverlay;
+
+    private final Context mContext;
+
     private RtspServer mRtspServer;
+
+    CameraRTSPPreviewServer(final Context context,
+                            final CameraOverlay cameraOverlay,
+                            final AbstractPreviewServerProvider serverProvider) {
+        mContext = context;
+        mCameraOverlay = cameraOverlay;
+        mServerProvider = serverProvider;
+    }
 
     @Override
     public String getMimeType() {
@@ -27,17 +54,98 @@ public class CameraRTSPPreviewServer implements CameraPreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         synchronized (mLockObj) {
-
+            if (mRtspServer == null) {
+                mRtspServer = new RtspServerImpl(SERVER_NAME);
+                mRtspServer.setPort(RtspServer.DEFAULT_PORT);
+                mRtspServer.setDelegate(this);
+                mRtspServer.start();
+            }
+            String uri = "rtsp://localhost:" + mRtspServer.getPort();
+            callback.onStart(uri);
         }
     }
 
     @Override
     public void stopWebServer() {
+        synchronized (mLockObj) {
+            if (mRtspServer != null) {
+                mRtspServer.stop();
+                mRtspServer = null;
 
+                mCameraOverlay.removePreviewCallback(this);
+                mCameraOverlay.hide();
+                mServerProvider.hideNotification();
+            }
+        }
     }
 
     @Override
-    public void onPreviewFrame(final Camera camera, final int cameraId, final Preview preview, final byte[] frame, final int facingDirection) {
+    public void onPreviewFrame(final Camera camera, final int cameraId, final Preview preview,
+                               final byte[] frame, final int facingDirection) {
+        // NOP.
+    }
 
+    @Override
+    public Session generateSession(final String uri, final Socket client) {
+        if (!showCameraOverlay()) {
+            return null;
+        }
+
+        HostDeviceRecorder.PictureSize previewSize = mCameraOverlay.getPreviewSize();
+
+        VideoQuality videoQuality = new VideoQuality();
+        videoQuality.resX = previewSize.getWidth();
+        videoQuality.resY = previewSize.getHeight();
+        videoQuality.bitrate = 1024 * 1024;
+        videoQuality.framerate = (int) mCameraOverlay.getPreviewMaxFrameRate();
+
+        SessionBuilder builder = SessionBuilder.getInstance();
+        builder.setContext(mContext);
+        builder.setAudioEncoder(SessionBuilder.AUDIO_NONE);
+        builder.setVideoEncoder(SessionBuilder.VIDEO_H264);
+        builder.setVideoQuality(videoQuality);
+        builder.setCamera(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera());
+
+        Session session = builder.build();
+        session.setOrigin(client.getLocalAddress().getHostAddress());
+        if (session.getDestination() == null) {
+            session.setDestination(client.getInetAddress().getHostAddress());
+        }
+        return session;
+    }
+
+    private boolean showCameraOverlay() {
+        if (!mCameraOverlay.isShow()) {
+            if (!mCameraOverlay.setPreviewCallback(this)) {
+                return false;
+            }
+
+            final CountDownLatch lock = new CountDownLatch(1);
+            final Preview[] result = new Preview[1];
+            mCameraOverlay.show(new CameraOverlay.Callback() {
+                @Override
+                public void onSuccess(final Preview preview) {
+                    mServerProvider.sendNotification();
+                    mCameraOverlay.setPreviewMode(true);
+                    result[0] = preview;
+                    lock.countDown();
+                }
+
+                @Override
+                public void onFail() {
+                    lock.countDown();
+                }
+            });
+            try {
+                lock.await();
+            } catch (InterruptedException e) {
+                return false;
+            }
+            return result[0] != null;
+        } else {
+            mCameraOverlay.setPreviewCallback(this);
+            mCameraOverlay.setPreviewMode(true);
+            return true;
+        }
     }
 }

@@ -201,7 +201,7 @@ public class Session {
 	/** You probably don't need to use that directly, use the {@link SessionBuilder}. */
     synchronized void removeVideoTrack() {
 		if (mVideoStream != null) {
-			mVideoStream.stopPreview();
+			mVideoStream.stop();
 			mVideoStream = null;
 		}
 	}
@@ -542,53 +542,6 @@ public class Session {
 		syncStop(0);
 		syncStop(1);
 		postSessionStopped();
-	}
-
-	/**
-	 * Asynchronously starts the camera preview. <br />
-	 * You should of course pass a {@link SurfaceView} to {@link #setSurfaceView(SurfaceView)}
-	 * before calling this method. Otherwise, the {@link Callback#onSessionError(int, int, Exception)}
-	 * callback will be called with {@link #ERROR_INVALID_SURFACE}.
-	 */
-	public void startPreview() {
-		mHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				if (mVideoStream != null) {
-					try {
-						mVideoStream.startPreview();
-						postPreviewStarted();
-						mVideoStream.configure();
-					} catch (CameraInUseException e) {
-						postError(ERROR_CAMERA_ALREADY_IN_USE , STREAM_VIDEO, e);
-					} catch (ConfNotSupportedException e) {
-						postError(ERROR_CONFIGURATION_NOT_SUPPORTED , STREAM_VIDEO, e);
-					} catch (InvalidSurfaceException e) {
-						postError(ERROR_INVALID_SURFACE , STREAM_VIDEO, e);
-					} catch (RuntimeException e) {
-						postError(ERROR_OTHER, STREAM_VIDEO, e);
-					} catch (StorageUnavailableException e) {
-						postError(ERROR_STORAGE_NOT_READY, STREAM_VIDEO, e);
-					} catch (IOException e) {
-						postError(ERROR_OTHER, STREAM_VIDEO, e);
-					}
-				}
-			}
-		});
-	}
-
-	/**
-	 * Asynchronously stops the camera preview.
-	 */
-	public void stopPreview() {
-		mHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				if (mVideoStream != null) {
-					mVideoStream.stopPreview();
-				}
-			}
-		});
 	}
 
 	/**

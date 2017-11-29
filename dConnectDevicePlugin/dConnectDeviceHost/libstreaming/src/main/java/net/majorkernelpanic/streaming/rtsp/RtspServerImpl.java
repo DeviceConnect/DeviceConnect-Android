@@ -45,6 +45,18 @@ public class RtspServerImpl implements RtspServer {
     private final Map<Session, Object> mSessions = new WeakHashMap<>(2);
     private final List<CallbackListener> mCallbackListeners = new LinkedList<>();
     private String mName;
+    private final Delegate mDefaultDelegate = new Delegate() {
+        @Override
+        public Session generateSession(final String uri, final Socket client) {
+            Session session = parse(uri);
+            session.setOrigin(client.getLocalAddress().getHostAddress());
+            if (session.getDestination() == null) {
+                session.setDestination(client.getInetAddress().getHostAddress());
+            }
+            return session;
+        }
+    };
+    private Delegate mDelegate;
 
     public RtspServerImpl(final String name) {
         mName = name;
@@ -67,6 +79,15 @@ public class RtspServerImpl implements RtspServer {
         synchronized (mCallbackListeners) {
             mCallbackListeners.remove(listener);
         }
+    }
+
+    @Override
+    public void setDelegate(final Delegate delegate) {
+        mDelegate = delegate;
+    }
+
+    private Delegate getDelegate() {
+        return mDelegate != null ? mDelegate : mDefaultDelegate;
     }
 
     @Override
@@ -139,11 +160,11 @@ public class RtspServerImpl implements RtspServer {
         return bitrate;
     }
 
-    private void postMessage(int id) {
+    private void postMessage(Message message) {
         synchronized (mCallbackListeners) {
             if (mCallbackListeners.size() > 0) {
                 for (CallbackListener cl : mCallbackListeners) {
-                    cl.onMessage(this, id);
+                    cl.onMessage(this, message);
                 }
             }
         }
@@ -157,22 +178,6 @@ public class RtspServerImpl implements RtspServer {
                 }
             }
         }
-    }
-
-    /**
-     * By default the RTSP uses {@link UriParser} to parse the URI requested by the client
-     * but you can change that behavior by override this mMethod.
-     * @param uri The uri that the client has requested
-     * @param client The socket associated to the client
-     * @return A proper session
-     */
-    private Session generateSession(final String uri, final Socket client) throws IllegalStateException, IOException {
-        Session session = parse(uri);
-        session.setOrigin(client.getLocalAddress().getHostAddress());
-        if (session.getDestination() == null) {
-            session.setDestination(client.getInetAddress().getHostAddress());
-        }
-        return session;
     }
 
     private RtspResponse createResponseForRequest(final RtspRequest request) {
@@ -279,7 +284,7 @@ public class RtspServerImpl implements RtspServer {
             boolean streaming = isStreaming();
             mSession.syncStop();
             if (streaming && !isStreaming()) {
-                postMessage(MESSAGE_STREAMING_STOPPED);
+                postMessage(Message.STREAMING_STOPPED);
             }
             mSession.release();
 
@@ -292,7 +297,9 @@ public class RtspServerImpl implements RtspServer {
 
         RtspResponse processRequest(final RtspRequest request) throws IllegalStateException, IOException {
             RtspResponse response = createResponseForRequest(request);
+            // TODO メソッドを enum で定義する
             String method = request.getMethod();
+            Delegate delegate = getDelegate();
 
 			/* ********************************************************************************** */
 			/* ********************************* Method DESCRIBE ******************************** */
@@ -300,7 +307,7 @@ public class RtspServerImpl implements RtspServer {
             if (method.equalsIgnoreCase("DESCRIBE")) {
 
                 // Parse the requested URI and configure the session
-                mSession = generateSession(request.getUri(), mClient);
+                mSession = delegate.generateSession(request.getUri(), mClient);
                 mSessions.put(mSession, null);
                 mSession.syncConfigure();
 
@@ -370,7 +377,7 @@ public class RtspServerImpl implements RtspServer {
                 boolean streaming = isStreaming();
                 mSession.syncStart(trackId);
                 if (!streaming && isStreaming()) {
-                    postMessage(MESSAGE_STREAMING_STARTED);
+                    postMessage(Message.STREAMING_STARTED);
                 }
 
                 response.attributes = "Transport: RTP/AVP/UDP;"+(InetAddress.getByName(destination).isMulticastAddress()?"multicast":"unicast")+
@@ -443,7 +450,7 @@ public class RtspServerImpl implements RtspServer {
      * @param uri The URI
      * @return A Session configured according to the URI
      */
-    private static Session parse(String uri) {
+    private static Session parse(final String uri) {
         SessionBuilder builder = SessionBuilder.getInstance().clone();
         byte audioApi = 0;
         byte videoApi = 0;
@@ -456,16 +463,16 @@ public class RtspServerImpl implements RtspServer {
             for (NameValuePair param : params) {
 
                 // CAMERA -> the client can choose between the front facing camera and the back facing camera
-                if (param.getName().equalsIgnoreCase("camera")) {
-                    if (param.getValue().equalsIgnoreCase("back"))
-                        builder.setCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
-                    else if (param.getValue().equalsIgnoreCase("front"))
-                        builder.setCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
-                }
+//                if (param.getName().equalsIgnoreCase("camera")) {
+//                    if (param.getValue().equalsIgnoreCase("back"))
+//                        builder.setCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
+//                    else if (param.getValue().equalsIgnoreCase("front"))
+//                        builder.setCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
+//                }
 
                 // MULTICAST -> the stream will be sent to a multicast group
                 // The default mutlicast address is 228.5.6.7, but the client can specify another
-                else if (param.getName().equalsIgnoreCase("multicast")) {
+                if (param.getName().equalsIgnoreCase("multicast")) {
                     if (param.getValue()!=null) {
                         try {
                             InetAddress addr = InetAddress.getByName(param.getValue());

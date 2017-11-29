@@ -29,6 +29,7 @@ import net.majorkernelpanic.streaming.video.H264Stream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
 import net.majorkernelpanic.streaming.video.VideoStream;
 import android.content.Context;
+import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.preference.PreferenceManager;
 
@@ -66,7 +67,8 @@ public class SessionBuilder {
 	private Context mContext;
 	private int mVideoEncoder = VIDEO_H264;
 	private int mAudioEncoder = AUDIO_AMRNB;
-	private int mCamera = CameraInfo.CAMERA_FACING_BACK;
+	private int mCameraId = CameraInfo.CAMERA_FACING_BACK;
+	private Camera mCamera;
 	private int mTimeToLive = 64;
 	private int mOrientation = 0;
 	private SurfaceView mSurfaceView = null;
@@ -110,8 +112,9 @@ public class SessionBuilder {
 		case AUDIO_AAC:
 			AACStream stream = new AACStream();
 			session.addAudioTrack(stream);
-			if (mContext!=null) 
-				stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+			if (mContext != null) {
+                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+            }
 			break;
 		case AUDIO_AMRNB:
 			session.addAudioTrack(new AMRNBStream());
@@ -120,9 +123,10 @@ public class SessionBuilder {
 
 		switch (mVideoEncoder) {
 		case VIDEO_H264:
-			H264Stream stream = new H264Stream(mCamera);
-			if (mContext!=null) 
-				stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+			H264Stream stream = new H264Stream(mCameraId, mCamera);
+			if (mContext != null) {
+                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+            }
 			session.addVideoTrack(stream);
 			break;
 		}
@@ -130,7 +134,9 @@ public class SessionBuilder {
 		if (session.getVideoTrack() != null) {
 			VideoStream video = session.getVideoTrack();
 			video.setVideoQuality(mVideoQuality);
-			video.setSurfaceView(mSurfaceView);
+			if (mSurfaceView != null) {
+			    video.setSurfaceView(mSurfaceView);
+            }
 			video.setPreviewOrientation(mOrientation);
 			video.setDestinationPorts(5006);
 		}
@@ -189,8 +195,9 @@ public class SessionBuilder {
 		return this;
 	}
 
-	public SessionBuilder setCamera(int camera) {
-		mCamera = camera;
+	public SessionBuilder setCamera(int cameraId, Camera camera) {
+		mCameraId = cameraId;
+        mCamera = camera;
 		return this;
 	}
 
@@ -241,9 +248,9 @@ public class SessionBuilder {
 		return mAudioEncoder;
 	}
 
-	/** Returns the id of the {@link android.hardware.Camera} set with {@link #setCamera(int)}. */
+	/** Returns the id of the {@link android.hardware.Camera} set with {@link #setCamera(int,Camera)}. */
 	public int getCamera() {
-		return mCamera;
+		return mCameraId;
 	}
 
 	/** Returns the video encoder set with {@link #setVideoEncoder(int)}. */
@@ -280,7 +287,7 @@ public class SessionBuilder {
 		.setPreviewOrientation(mOrientation)
 		.setVideoQuality(mVideoQuality)
 		.setVideoEncoder(mVideoEncoder)
-		.setCamera(mCamera)
+		.setCamera(mCameraId, mCamera)
 		.setTimeToLive(mTimeToLive)
 		.setAudioEncoder(mAudioEncoder)
 		.setAudioQuality(mAudioQuality)

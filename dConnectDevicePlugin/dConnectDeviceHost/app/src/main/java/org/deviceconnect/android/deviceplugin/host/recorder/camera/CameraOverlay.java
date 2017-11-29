@@ -231,6 +231,14 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mFacingDirection = dir;
     }
 
+    public int getCameraId() {
+        return mCameraId;
+    }
+
+    public Camera getCamera() {
+        return mCamera;
+    }
+
     public HostDeviceRecorder.PictureSize getPictureSize() {
         return mPictureSize;
     }
@@ -267,6 +275,10 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      */
     public void setFileManager(final FileManager mgr) {
         mFileMgr = mgr;
+    }
+
+    public Preview getPreview() {
+        return mPreview;
     }
 
     /**

@@ -50,6 +50,8 @@ public class IRKitRegisterIRFragment extends Fragment  {
     private IRKitDevice mDevice;
     /** DB helper. */
     private IRKitDBHelper mDBHelper;
+    /** Progressが表示されているか. */
+    private boolean mIsShowing;
 
     @SuppressLint("InflateParams")
     @Override
@@ -65,6 +67,9 @@ public class IRKitRegisterIRFragment extends Fragment  {
         registerIR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (mIsShowing) {
+                    return;
+                }
                 showProgress();
                 List<IRKitDevice> devices = getIRKitDevices();
                 mDevice = null;
@@ -175,6 +180,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
      * 赤外線照射中のダイアログを出す。
      */
     private void showProgress() {
+        mIsShowing = true;
         mIndView = new ProgressDialog(getActivity());
         mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mIndView.setCancelable(false);
@@ -189,6 +195,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
         if (mIndView != null) {
             mIndView.dismiss();
         }
+        mIsShowing = false;
     }
 
     /**

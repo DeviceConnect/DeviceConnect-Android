@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 
@@ -181,20 +182,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
     @Override
     public void onDisconnect(final String origin) {
-        List<DevicePlugin> plugins = getPluginManager().getDevicePlugins();
-        for (DevicePlugin plugin : plugins) {
-            String serviceId = plugin.getPluginId();
-            Intent request = new Intent();
-            request.setComponent(plugin.getComponentName());
-            request.setAction(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT);
-            request.putExtra(SystemProfileConstants.PARAM_PLUGIN_ID, serviceId);
-            request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, origin);
-            try {
-                plugin.send(request);
-            } catch (MessagingException e) {
-                mLogger.info("Failed to send the notification: ACTION_EVENT_TRANSMIT_DISCONNECT");
-            }
-        }
+        Bundle extras = new Bundle();
+        extras.putString(IntentDConnectMessage.EXTRA_ORIGIN, origin);
+        sendManagerEvent(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT, extras);
     }
 
     private void onKeepAliveCommand(final Intent intent) {

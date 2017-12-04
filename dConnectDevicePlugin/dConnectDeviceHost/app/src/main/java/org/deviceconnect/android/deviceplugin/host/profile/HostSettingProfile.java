@@ -17,6 +17,7 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import android.content.Context;
 import android.content.Intent;
@@ -39,11 +40,6 @@ public class HostSettingProfile extends SettingProfile {
     /** Light Levelの最大値. */
     private static final int MAX_LIGHT_LEVEL = 255;
 
-    /**
-     * 日付フォーマット.
-     */
-    private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'",
-            Locale.getDefault());
 
     private final DConnectApi mGetSoundVolumeApi = new GetApi() {
 
@@ -108,7 +104,7 @@ public class HostSettingProfile extends SettingProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            setDate(response, mDateFormat.format(new Date()));
+            setDate(response, RFC3339DateUtils.nowTimeStampString());
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }

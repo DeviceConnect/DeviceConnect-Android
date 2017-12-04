@@ -40,17 +40,21 @@ class RtspRequest {
         request.mUri = matcher.group(2);
 
         // Parsing headers of the request
+        StringBuilder requestLines = new StringBuilder("");
         while ((line = input.readLine()) != null && line.length() > 3) {
             matcher = regexHeader.matcher(line);
             matcher.find();
             request.mHeaders.put(matcher.group(1).toLowerCase(Locale.US),matcher.group(2));
+
+            requestLines.append(line).append("\n");
         }
-        if (line == null) {
-            throw new SocketException("Client disconnected");
-        }
+//        if (line == null) {
+//            throw new SocketException("Client disconnected");
+//        }
 
         // It's not an error, it's just easier to follow what's happening in logcat with the request in red
         Log.e(TAG,request.mMethod + " " + request.mUri);
+        Log.e(TAG,requestLines.toString());
 
         return request;
     }

@@ -110,6 +110,16 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private ServiceContainer mSelectedService;
 
     /**
+     * サービスのリスト表示.
+     */
+    GridView mServiceListGridView;
+
+    /**
+     * サービスリストの再読み込みボタン.
+     */
+    Button mButtonReloadServiceList;
+
+    /**
      * ハンドラ.
      */
     private Handler mHandler = new Handler();
@@ -134,6 +144,9 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
 
+        mServiceListGridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
+        mButtonReloadServiceList = (Button) findViewById(R.id.activity_service_list_search_button);
+
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         if (loadGuideSettings(this)) {
@@ -148,16 +161,15 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             public void run() {
                 mServiceAdapter = new ServiceAdapter(getPluginManager());
 
-                GridView gridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
-                if (gridView != null) {
-                    gridView.setAdapter(mServiceAdapter);
-                    gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                if (mServiceListGridView != null) {
+                    mServiceListGridView.setAdapter(mServiceAdapter);
+                    mServiceListGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                             openServiceInfo(position);
                         }
                     });
-                    gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    mServiceListGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                         @Override
                         public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                             openPluginSetting(position);
@@ -166,9 +178,8 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     });
                 }
 
-                Button btn = (Button) findViewById(R.id.activity_service_list_search_button);
-                if (btn != null) {
-                    btn.setOnClickListener(new View.OnClickListener() {
+                if (mButtonReloadServiceList != null) {
+                    mButtonReloadServiceList.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(final View v) {
                             reloadServiceList();

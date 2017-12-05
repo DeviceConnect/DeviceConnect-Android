@@ -2,13 +2,15 @@ apply plugin: 'com.android.application'
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
     google()
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.1'
-    compile 'com.android.support:multidex:1.0.1'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'com.android.support:multidex:1.0.2'
     compile 'com.google.android.gms:play-services:11.0.2'
 
     wearApp project(':wear-app')

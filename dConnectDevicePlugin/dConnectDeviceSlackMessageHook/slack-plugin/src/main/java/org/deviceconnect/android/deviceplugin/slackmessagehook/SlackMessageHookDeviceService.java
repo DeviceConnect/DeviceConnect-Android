@@ -26,6 +26,7 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,8 +47,6 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
     /** サービスID */
     public static final String SERVICE_ID = "SlackMessageHook";
-    /** タイムスタンプのフォーマット. */
-    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHMMSS.sssZ", Locale.getDefault());
 
     /** メッセージ履歴保持時間（秒） */
     private static final int MESSAGE_HOLD_LIMIT = 60;
@@ -182,7 +181,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             // TimeStampは少数以下切り捨て
             double time = ts;
             message.putLong("timeStamp", (long)time * 1000);
-            message.putString("timeStampString", timeStampToText((long) time * 1000));
+            message.putString("timeStampString", RFC3339DateUtils.toString((long) time * 1000));
             // 送信者情報を変換
             SlackManager.ListInfo info = mUserMap.get(user);
             if (info != null) {
@@ -328,7 +327,4 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
             }
         }
     };
-    private static String timeStampToText(final long timeStamp) {
-        return SIMPLE_DATE_FORMAT.format(new Date(timeStamp));
-    }
 }

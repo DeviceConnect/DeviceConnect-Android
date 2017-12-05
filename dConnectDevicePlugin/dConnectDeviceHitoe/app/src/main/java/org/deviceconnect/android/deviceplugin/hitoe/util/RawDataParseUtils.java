@@ -16,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.data.TargetDeviceData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
 import org.deviceconnect.profile.PoseEstimationProfileConstants;
 import org.deviceconnect.profile.WalkStateProfileConstants;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -123,7 +124,7 @@ public final class RawDataParseUtils {
             String[] list = val.split(HitoeConstants.COMMA, -1);
             long timestamp = Long.parseLong(list[0]);
             String[] ecgList = list[1].split(HitoeConstants.COLON, -1);
-            String date = nowTimeStampString(timestamp);
+            String date = RFC3339DateUtils.toString(timestamp);
             heart.setValue(Float.parseFloat(ecgList[0]));
             heart.setTimeStamp(timestamp);
             heart.setTimeStampString(date);
@@ -158,7 +159,7 @@ public final class RawDataParseUtils {
         double lfhf = Double.parseDouble(stressList[1]);
         stress.setLFHFValue(lfhf);
         stress.setTimeStamp(timestamp);
-        stress.setTimeStampString(nowTimeStampString(timestamp));
+        stress.setTimeStampString(RFC3339DateUtils.toString(timestamp));
         return stress;
     }
 
@@ -182,7 +183,7 @@ public final class RawDataParseUtils {
             return pose;
         }
         pose.setTimeStamp(timestamp);
-        pose.setTimeStampString(nowTimeStampString(timestamp));
+        pose.setTimeStampString(RFC3339DateUtils.toString(timestamp));
 
         String type = poseList[1];
 
@@ -230,7 +231,7 @@ public final class RawDataParseUtils {
             return data;
         }
         data.setTimeStamp(timestamp);
-        data.setTimeStampString(nowTimeStampString(timestamp));
+        data.setTimeStampString(RFC3339DateUtils.toString(timestamp));
         data.setStep(Integer.parseInt(walkList[1]));
         if (walkList[4].equals("Walking")) {
             data.setState(WalkStateProfileConstants.WalkState.Walking);
@@ -289,7 +290,7 @@ public final class RawDataParseUtils {
         heart.setUnit(unit);
         heart.setUnitCode(unitCode);
         heart.setTimeStamp(Long.parseLong(hrValue[0]));
-        heart.setTimeStampString(nowTimeStampString(Long.parseLong(hrValue[0])));
+        heart.setTimeStampString(RFC3339DateUtils.toString(Long.parseLong(hrValue[0])));
         return heart;
 
     }
@@ -305,14 +306,4 @@ public final class RawDataParseUtils {
         return val.split(",", -1);
     }
 
-    /**
-     * Now TimeStamp String.
-     * @param now now timestamp
-     * @return timestamp string
-     */
-    private static String nowTimeStampString(final long now) {
-        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss.SSSZZZ");
-        df.setTimeZone(TimeZone.getDefault());
-        return df.format(new Date(System.currentTimeMillis()));
-    }
-}
+ }

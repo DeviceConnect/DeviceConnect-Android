@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.message.MessageUtils;

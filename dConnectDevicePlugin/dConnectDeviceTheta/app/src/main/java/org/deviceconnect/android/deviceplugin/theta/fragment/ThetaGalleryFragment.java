@@ -49,8 +49,11 @@ import org.deviceconnect.android.deviceplugin.theta.data.ThetaObjectStorage;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView;
 import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -777,7 +780,8 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             holder.mThumbnail.setImageResource(R.drawable.theta_gallery_thumb);
             holder.mThumbnail.setTag(data.getFileName());
             holder.mLoading.setVisibility(View.VISIBLE);
-            String dateString = data.getCreationTime();
+            Date date = RFC3339DateUtils.toDate(data.getCreationTime());
+            String dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date);
             holder.mDate.setText(dateString);
             if (data.isImage()) {
                 holder.mType.setImageResource(R.drawable.theta_data_img);

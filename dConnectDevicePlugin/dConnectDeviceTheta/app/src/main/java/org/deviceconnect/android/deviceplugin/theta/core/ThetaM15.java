@@ -15,6 +15,8 @@ import com.theta360.lib.ptpip.entity.ObjectInfo;
 import com.theta360.lib.ptpip.entity.PtpObject;
 import com.theta360.lib.ptpip.eventlistener.PtpipEventListener;
 
+import org.deviceconnect.utils.RFC3339DateUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -427,6 +429,7 @@ class ThetaM15 extends AbstractThetaDevice {
             try {
                 dateTime = AFTER_FORMAT.format(BEFORE_FORMAT.parse(date));
                 mDateTimeUnix = AFTER_FORMAT.parse(dateTime).getTime();
+                dateTime = RFC3339DateUtils.toString(BEFORE_FORMAT.parse(date));
             } catch (ParseException e) {
                 dateTime = "";
                 mDateTimeUnix = 0;

@@ -130,6 +130,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private Switch mSwitchAction;
 
     /**
+     * Device Connect Managerの起動スイッチのリスナー
+     */
+    private final CompoundButton.OnCheckedChangeListener mSwitchActionListener =
+            new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                    switchDConnectServer(isChecked);
+                }
+            };
+
+    /**
      * ガイドの表示ページ.
      */
     private int mPageIndex;
@@ -146,6 +157,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
         mServiceListGridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
         mButtonReloadServiceList = (Button) findViewById(R.id.activity_service_list_search_button);
+        mSwitchAction = (Switch) findViewById(R.id.activity_service_list_manager_switch);
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
@@ -188,16 +200,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 }
 
                 DConnectService managerService = getManagerService();
-                if (mSwitchAction == null) {
-                    mSwitchAction = (Switch) findViewById(R.id.activity_service_list_manager_switch);
-                    mSwitchAction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                            switchDConnectServer(isChecked);
-                        }
-                    });
+                if (mSwitchAction != null) {
+                    mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
+                    mSwitchAction.setChecked(managerService.isRunning());
                 }
-                mSwitchAction.setChecked(managerService.isRunning());
 
                 if (managerService.isRunning()) {
                     reloadServiceList();
@@ -225,16 +231,13 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             return super.onCreateOptionsMenu(menu);
         }
 
-        mSwitchAction = (Switch) managerSwitch.getActionView();
-        if (mSwitchAction != null) {
+        Switch switchAction = (Switch) managerSwitch.getActionView();
+        if (switchAction != null) {
+            mSwitchAction = switchAction;
+
             DisplayMetrics metrics = getResources().getDisplayMetrics();
-            mSwitchAction.setPadding((int)(12 * metrics.density), 0, (int)(12 * metrics.density), 0);
-            mSwitchAction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                    switchDConnectServer(isChecked);
-                }
-            });
+            mSwitchAction.setPadding((int) (12 * metrics.density), 0, (int) (12 * metrics.density), 0);
+            mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
 
             DConnectService managerService = getManagerService();
             if (managerService != null) {

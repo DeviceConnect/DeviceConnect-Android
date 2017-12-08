@@ -154,8 +154,13 @@ public class SpheroProfile extends DConnectProfile {
     /**
      * パラメータ : {@value} .
      */
-    public static final String PARAM_IMPACT_TIMESTAMP = "impactTimestamp";
-    
+    public static final String PARAM_IMPACT_TIMESTAMP = "impactTimeStamp";
+
+    /**
+     * パラメータ : {@value} .
+     */
+    public static final String PARAM_IMPACT_TIMESTAMPSTRING = "impactTimeStampString";
+
     /**
      * パラメータ : {@value} .
      */

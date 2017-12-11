@@ -4,7 +4,7 @@ var demoTakePhoto = (function(parent, global) {
     var mMediaRecorders;
     var mImageSizes;
     var mPreviewSizes;
-    var mPreviewFlag;
+    var mPreviewTarget;
 
     function init() {
         util.init(function(service) {
@@ -118,7 +118,7 @@ var demoTakePhoto = (function(parent, global) {
     }
 
     function stopPreview(callback) {
-        var target = document.recorder.target.value;
+        var target = mPreviewTarget;
 
         var builder = new dConnect.URIBuilder();
         builder.setProfile('mediastreamrecording');
@@ -134,7 +134,7 @@ var demoTakePhoto = (function(parent, global) {
                 setTimeout(callback, 2000);
             }
         }, function(errorCode, errorMessage) {
-            util.showAlert('プレビュー停止に失敗しました。', errorCode, errorMessage);
+            console.log('プレビュー停止に失敗しました。' + errorCode + ":" + errorMessage);
         });
     }
 
@@ -169,7 +169,7 @@ var demoTakePhoto = (function(parent, global) {
     }
 
     function onTakePhoto() {
-        var target = document.recorder.target.value;
+        var target = mPreviewTarget;
 
         var builder = new dConnect.URIBuilder();
         builder.setProfile('mediastreamrecording');
@@ -189,14 +189,21 @@ var demoTakePhoto = (function(parent, global) {
     parent.onTakePhoto = onTakePhoto;
 
     function onStartPreview() {
-        startPreview();
-        mPreviewFlag = true;
+        if (mPreviewTarget) {
+            stopPreview(function() {
+                mPreviewTarget = document.recorder.target.value;
+                startPreview();
+            });
+        } else {
+            mPreviewTarget = document.recorder.target.value;
+            startPreview();
+        }
     }
     parent.onStartPreview = onStartPreview;
 
     function onStopPreview() {
-        mPreviewFlag = false;
         stopPreview(null);
+        mPreviewTarget = undefined;
     }
     parent.onStopPreview = onStopPreview;
 
@@ -234,7 +241,7 @@ var demoTakePhoto = (function(parent, global) {
             builder.addParameter('mimeType', 'image/png');
             var uri = builder.build();
             dConnect.put(uri, null, null, function(json) {
-                if (mPreviewFlag) {
+                if (mPreviewTarget) {
                     startPreview();
                 }
             }, function(errorCode, errorMessage) {

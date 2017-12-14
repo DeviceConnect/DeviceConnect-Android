@@ -58,7 +58,8 @@ public class RtpSocket implements Runnable {
 
 	private SenderReport mReport;
 	
-	private Semaphore mBufferRequested, mBufferCommitted;
+	private Semaphore mBufferRequested;
+	private Semaphore mBufferCommitted;
 	private Thread mThread;
 
 	private int mTransport;
@@ -277,36 +278,42 @@ public class RtpSocket implements Runnable {
 		try {
 			// Caches mCacheSize milliseconds of the stream in the FIFO.
 			Thread.sleep(mCacheSize);
-			long delta = 0;
-			while (mBufferCommitted.tryAcquire(4,TimeUnit.SECONDS)) {
-				if (mOldTimestamp != 0) {
+
+			while (mBufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {
+				final int offset = mBufferOut;
+				final long currentTime = mTimestamps[offset];
+				final long oldTime = mOldTimestamp;
+				final DatagramPacket packet = mPackets[offset];
+
+				if (oldTime != 0) {
 					// We use our knowledge of the clock rate of the stream and the difference between two timestamps to
 					// compute the time lapse that the packet represents.
-					if ((mTimestamps[mBufferOut]-mOldTimestamp)>0) {
-						stats.push(mTimestamps[mBufferOut]-mOldTimestamp);
-						long d = stats.average()/1000000;
-						//Log.d(TAG,"delay: "+d+" d: "+(mTimestamps[mBufferOut]-mOldTimestamp)/1000000);
+					final long delta = currentTime - oldTime;
+					if (delta > 0) {
+						stats.push(delta);
+						long d = stats.averageMilliSeconds();
+
+						//Log.d(TAG,"delta: " + d);
+
 						// We ensure that packets are sent at a constant and suitable rate no matter how the RtpSocket is used.
-						if (mCacheSize>0) Thread.sleep(d);
-					} else if ((mTimestamps[mBufferOut]-mOldTimestamp)<0) {
-						Log.e(TAG, "TS: "+mTimestamps[mBufferOut]+" OLD: "+mOldTimestamp);
-					}
-					delta += mTimestamps[mBufferOut]-mOldTimestamp;
-					if (delta>500000000 || delta<0) {
-						//Log.d(TAG,"permits: "+mBufferCommitted.availablePermits());
-						delta = 0;
+						if (mCacheSize > 0) {
+							Thread.sleep(d);
+						}
 					}
 				}
-				mReport.update(mPackets[mBufferOut].getLength(), (mTimestamps[mBufferOut]/100L)*(mClock/1000L)/10000L);
-				mOldTimestamp = mTimestamps[mBufferOut];
-				if (mCount++>30) {
+				mReport.update(packet.getLength(), (currentTime / 100L)*(mClock/1000L)/10000L);
+				mOldTimestamp = currentTime;
+
+				if (mCount++ > 30) {
 					if (mTransport == TRANSPORT_UDP) {
-						mSocket.send(mPackets[mBufferOut]);
+						mSocket.send(packet);
 					} else {
 						sendTCP();
 					}
 				}
-				if (++mBufferOut>=mBufferCount) mBufferOut = 0;
+				if (++mBufferOut >= mBufferCount) {
+					mBufferOut = 0;
+				}
 				mBufferRequested.release();
 			}
 		} catch (Exception e) {
@@ -388,8 +395,10 @@ public class RtpSocket implements Runnable {
 		}
 		
 		public int average() {
-			long delta = 0, sum = 0;
-			for (int i=0;i<mSize;i++) {
+			long delta = 0;
+			long sum = 0;
+
+			for (int i = 0; i < mSize; i++) {
 				sum += mSum[i];
 				delta += mElapsed[i];
 			}
@@ -404,7 +413,9 @@ public class RtpSocket implements Runnable {
 
 		public final static String TAG = "Statistics";
 		
-		private int count=500, c = 0;
+		private final int count;
+
+		private int c = 0;
 		private float m = 0, q = 0;
 		private long elapsed = 0;
 		private long start = 0;
@@ -412,12 +423,12 @@ public class RtpSocket implements Runnable {
 		private long period = 6000000000L;
 		private boolean initoffset = false;
 
-		public Statistics(int count, long period) {
+		Statistics(int count, long period) {
 			this.count = count;
-			this.period = period*1000000L; 
+			this.period = period * 1000000L;
 		}
 		
-		public void push(long value) {
+		void push(long value) {
 			duration += value;
 			elapsed += value;
 			if (elapsed>period) {
@@ -441,9 +452,9 @@ public class RtpSocket implements Runnable {
 			}
 		}
 		
-		public long average() {
-			long l = (long)m-2000000;
-			return l>0 ? l : 0;
+		long averageMilliSeconds() {
+			long l = (long) m - 2000000;
+			return l > 0 ? (l / 1000000) : 0;
 		}
 
 	}

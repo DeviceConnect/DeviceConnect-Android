@@ -229,7 +229,7 @@ public abstract class VideoStream extends MediaStream {
 		MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", mQuality.resX, mQuality.resY);
 		mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, mQuality.bitrate);
 		mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, mQuality.framerate);	
-		mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,debugger.getEncoderColorFormat());
+		mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, debugger.getEncoderColorFormat());
 		mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
 		mMediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
 		mMediaCodec.start();
@@ -246,7 +246,7 @@ public abstract class VideoStream extends MediaStream {
 				now = System.nanoTime()/1000;
 				if (i++>3) {
 					i = 0;
-					Log.d(TAG,"Measured: " + (1000000L / (now-oldNow)) + " fps.");
+					Log.d(TAG,"Measured: " + (1000000L / (now - oldNow)) + " fps.");
 				}
 				try {
 					int bufferIndex = mMediaCodec.dequeueInputBuffer(500000);
@@ -262,7 +262,7 @@ public abstract class VideoStream extends MediaStream {
 						Log.e(TAG,"No buffer available !");
 					}
 				} finally {
-					mCamera.addCallbackBuffer(data);
+					camera.addCallbackBuffer(data);
 				}				
 			}
 		};

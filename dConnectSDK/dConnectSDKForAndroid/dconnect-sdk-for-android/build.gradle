@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
@@ -14,7 +15,6 @@ dependencies {
 android {
     compileSdkVersion 23
     buildToolsVersion '26.0.2'
-
 
     defaultConfig {
         minSdkVersion 14
@@ -103,7 +103,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '2.2.2'
+            pom.version = '2.2.3'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-sdk-for-android'
         }

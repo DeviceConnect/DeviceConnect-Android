@@ -50,6 +50,11 @@ public class PebbleSettingProfile extends SettingProfile {
                         if (date == null) {
                             MessageUtils.setTimeoutError(response);
                         } else {
+                            if (date.charAt(date.length() - 5) == '+'
+                                    || date.charAt(date.length() - 5) == '-') {
+                                //ISO8601形式で日付データがくるので、「:」を入れRFC3339形式にする
+                                date = date.substring(0, date.length() - 2) + ":" + date.substring(date.length() - 2, date.length());
+                            }
                             setResult(response, DConnectMessage.RESULT_OK);
                             setDate(response, date);
                         }

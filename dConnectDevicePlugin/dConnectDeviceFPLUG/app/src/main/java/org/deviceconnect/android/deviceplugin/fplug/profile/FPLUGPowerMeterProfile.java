@@ -22,6 +22,7 @@ import org.deviceconnect.android.profile.PowerMeterProfileConstants;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -36,8 +37,6 @@ import java.util.Locale;
  */
 public class FPLUGPowerMeterProfile extends PowerMeterProfile {
 
-    private final static String RFC_3339 = "yyyy-MM-dd'T'HH:mm:ssZ";
-
     private final DConnectApi mGetIntegratedPowerValueApi = new GetApi() {
 
         @Override
@@ -51,7 +50,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
             String date = request.getStringExtra(PARAM_DATE);
             Calendar calendar;
             if (date != null) {
-                calendar = createCalendar(date);
+                calendar = RFC3339DateUtils.toCalendar(date);
                 if (calendar == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "date parse error");
                     sendResultError(response);
@@ -136,23 +135,6 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
     public FPLUGPowerMeterProfile() {
         addApi(mGetIntegratedPowerValueApi);
         addApi(mGetInstantaneousPowerValueApi);
-    }
-
-    private Calendar createCalendar(String date) {
-        if (BuildConfig.DEBUG) {
-            Log.d("Settings", "date:" + date);
-        }
-        SimpleDateFormat format = new SimpleDateFormat(RFC_3339, Locale.US);
-
-        Date converted;
-        try {
-            converted = new Date(format.parse(date).getTime());
-        } catch (java.text.ParseException e) {
-            return null;
-        }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(converted);
-        return calendar;
     }
 
     private void sendResultOK(Intent response) {

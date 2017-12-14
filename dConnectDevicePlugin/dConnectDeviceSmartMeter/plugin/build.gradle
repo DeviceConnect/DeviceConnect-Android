@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.0'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
     compile 'com.hoho.android:usb-serial-for-android:0.2.0-SNAPSHOT@aar'
 }
 
@@ -10,6 +10,8 @@ repositories {
     maven { url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
     maven { url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
 }
 
 android {

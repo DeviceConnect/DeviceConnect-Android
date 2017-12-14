@@ -52,6 +52,8 @@ repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
     maven { url "https://raw.githubusercontent.com/FaBoPlatform/FaBo-Serial-Kit/master/repository/" }
     maven { url 'https://raw.githubusercontent.com/FaBoPlatform/STK500-Android/master/stk500/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
 }
 
 dependencies {

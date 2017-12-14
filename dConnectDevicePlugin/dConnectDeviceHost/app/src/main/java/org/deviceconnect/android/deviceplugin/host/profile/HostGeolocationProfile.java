@@ -33,11 +33,9 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Locale;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -314,8 +312,7 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
         Bundle position = new Bundle();
         setCoordinates(position, coordinates);
         setTimeStamp(position, location.getTime());
-        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss.SSSZZZ", Locale.getDefault());
-        setTimeStampString(position, df.format(location.getTime()));
+        setTimeStampString(position, RFC3339DateUtils.toString(location.getTime()));
         mLocationCache = position;
         mLocationLastTime = location.getTime();
 

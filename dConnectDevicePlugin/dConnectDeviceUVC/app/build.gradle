@@ -55,10 +55,12 @@ android {
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.1'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
     compile project(':libuvccamera')
 }

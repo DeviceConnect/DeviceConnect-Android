@@ -6,6 +6,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.osc.OscCommand;
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscEntry;
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscSession;
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscState;
+import org.deviceconnect.utils.RFC3339DateUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -379,7 +380,7 @@ class ThetaS extends AbstractThetaDevice {
 
             Date date = parseDate(dateTime);
             if (date != null) {
-                mDateTime = AFTER_FORMAT.format(date);
+                mDateTime = RFC3339DateUtils.toString(date);
                 mDateTimeUnix = date.getTime();
             } else {
                 mDateTime = "";

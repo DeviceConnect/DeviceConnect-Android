@@ -99,8 +99,7 @@ public class H264Packetizer extends AbstractPacketizer implements Runnable {
 	}	
 
 	public void run() {
-		long duration = 0;
-		Log.d(TAG,"H264 packetizer started !");
+		//Log.d(TAG,"H264 packetizer started !");
 		stats.reset();
 		count = 0;
 
@@ -122,13 +121,13 @@ public class H264Packetizer extends AbstractPacketizer implements Runnable {
 				// We read a NAL units from the input stream and we send them
 				send();
 				// We measure how long it took to receive NAL units from the phone
-				duration = System.nanoTime() - oldtime;
+				long duration = System.nanoTime() - oldtime;
 
 				stats.push(duration);
+
 				// Computes the average duration of a NAL unit
 				delay = stats.average();
-				//Log.d(TAG,"duration: "+duration/1000000+" delay: "+delay/1000000);
-
+				Log.d(TAG,"duration: " + (duration / 1000000) + "ms, delay: " + (delay / 1000000) + " ms.");
 			}
 		} catch (IOException e) {
 		} catch (InterruptedException e) {}

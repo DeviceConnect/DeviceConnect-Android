@@ -96,7 +96,7 @@ class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegat
         VideoQuality videoQuality = new VideoQuality();
         videoQuality.resX = previewSize.getWidth();
         videoQuality.resY = previewSize.getHeight();
-        videoQuality.bitrate = 1024 * 1024;
+        videoQuality.bitrate = mCameraOverlay.getPreviewBitRate();
         videoQuality.framerate = (int) mCameraOverlay.getPreviewMaxFrameRate();
 
         SessionBuilder builder = SessionBuilder.getInstance();

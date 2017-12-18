@@ -225,6 +225,16 @@ public class HostDeviceScreenCast extends AbstractPreviewServerProvider implemen
     }
 
     @Override
+    public int getPreviewBitRate() {
+        return 0; // TODO ビットレートの取得
+    }
+
+    @Override
+    public void setPreviewBitRate(int bitRate) {
+        // TODO ビットレートの設定
+    }
+
+    @Override
     public List<PictureSize> getSupportedPreviewSizes() {
         return mSupportedPreviewSizes;
     }

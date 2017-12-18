@@ -72,6 +72,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** Default Maximum Frame Rate. */
     private static final double DEFAULT_MAX_FPS = 10.0d;
 
+    /** プレビューのビットレートのデフォルト値. */
+    private static final int DEFAULT_PREVIEW_BIT_RATE = 256 * 1024; //バイト
+
     /** 日付のフォーマット. */
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
@@ -128,6 +131,11 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * プレビューのFPS.
      */
     private double mMaxFps;
+
+    /**
+     * プレビューのビットレート.
+     */
+    private int mPreviewBitRate;
 
     /**
      * JPEGのクォリティ.
@@ -193,6 +201,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mCameraId = cameraId;
 
         mMaxFps = DEFAULT_MAX_FPS;
+        mPreviewBitRate = DEFAULT_PREVIEW_BIT_RATE;
         setPreviewFrameRate(mMaxFps);
     }
 
@@ -262,6 +271,14 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     public double getPreviewMaxFrameRate() {
         return mMaxFps;
+    }
+
+    public void setPreviewBitRate(final int bitRate) {
+        mPreviewBitRate = bitRate;
+    }
+
+    public int getPreviewBitRate() {
+        return mPreviewBitRate;
     }
 
     public void setJpegQuality(final int jpegQuality) {

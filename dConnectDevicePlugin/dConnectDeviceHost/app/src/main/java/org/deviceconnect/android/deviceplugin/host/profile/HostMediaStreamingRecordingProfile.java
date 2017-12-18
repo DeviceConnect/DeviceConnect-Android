@@ -161,6 +161,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewWidth = getPreviewWidth(request);
             Integer previewHeight = getPreviewHeight(request);
             Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
+            Integer previewBitRate = parseInteger(request, "previewBitRate");;
 
             HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -205,6 +206,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 }
                 recorder.setMaxFrameRate(previewMaxFrameRate);
             }
+
+            if (previewBitRate != null) {
+                if (!(recorder instanceof AbstractPreviewServerProvider)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
+                    return;
+                }
+                recorder.setPreviewBitRate(previewBitRate);
+            }
+
             setResult(response, DConnectMessage.RESULT_OK);
         }
 

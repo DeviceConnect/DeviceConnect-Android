@@ -729,19 +729,22 @@ public class EncoderDebugger {
 
 	}
 
+	private static final long TIMEOUT = 6000000; //3000000;
+
 	/**
 	 * @param withPrefix If set to true, the decoder will be fed with NALs preceeded with 0x00000001.
 	 * @return How long it took to decode all the NALs
 	 */
 	private long decode(boolean withPrefix) {
 		int n = 0, i = 0, j = 0;
-		long elapsed = 0, now = timestamp();
+		long elapsed = 0;
+		long now = timestamp();
 		int decInputIndex = 0, decOutputIndex = 0;
 		ByteBuffer[] decInputBuffers = mDecoder.getInputBuffers();
 		ByteBuffer[] decOutputBuffers = mDecoder.getOutputBuffers();
 		BufferInfo info = new BufferInfo();
 
-		while (elapsed<3000000) {
+		while (elapsed < TIMEOUT) {
 
 			// Feeds the decoder with a NAL unit
 			if (i<NB_ENCODED) {

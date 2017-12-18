@@ -210,6 +210,16 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
     }
 
     @Override
+    public int getPreviewBitRate() {
+        return mCameraOverlay.getPreviewBitRate();
+    }
+
+    @Override
+    public void setPreviewBitRate(int bitRate) {
+        mCameraOverlay.setPreviewBitRate(bitRate);
+    }
+
+    @Override
     public List<PictureSize> getSupportedPictureSizes() {
         return mSupportedPictureSizes;
     }

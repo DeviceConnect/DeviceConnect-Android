@@ -8,7 +8,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName '2.3.2'
+        versionName '2.3.3'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -70,11 +70,12 @@ project.androidVariants.all { variant ->
 
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-sdk-for-android:2.2.2'
+    compile 'org.deviceconnect:dconnect-sdk-for-android:2.2.3'
     compile 'com.android.support:support-v4:23.1.0'
 
     testCompile 'junit:junit:4.12'
@@ -100,8 +101,8 @@ def specZipFile = ''
 def apiDir = new File(specOutputDir, 'api')
 
 task downloadZip(type: SpecDownload) {
-    sourceUrl = 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/v2.2.5-release-20171130.zip'
-    target = file("${projectDir}/DeviceConnect-Spec.zip")
+    sourceUrl = 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/master.zip'
+    target = file("${projectDir}/master.zip")
     specZipFile = target
 }
 

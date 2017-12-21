@@ -1176,7 +1176,7 @@ public enum IRKitManager {
         /**
          * インターバルの初期値. (秒)
          */
-        private static final long INITIAL_INTERVAL = 8;
+        private static final long INITIAL_INTERVAL = 60;
 
         /** 
          * インターバル. (秒)

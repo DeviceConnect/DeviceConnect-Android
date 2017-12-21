@@ -110,6 +110,16 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private ServiceContainer mSelectedService;
 
     /**
+     * サービスのリスト表示.
+     */
+    GridView mServiceListGridView;
+
+    /**
+     * サービスリストの再読み込みボタン.
+     */
+    Button mButtonReloadServiceList;
+
+    /**
      * ハンドラ.
      */
     private Handler mHandler = new Handler();
@@ -118,6 +128,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      * Device Connect Managerの起動スイッチ.
      */
     private Switch mSwitchAction;
+
+    /**
+     * Device Connect Managerの起動スイッチのリスナー
+     */
+    private final CompoundButton.OnCheckedChangeListener mSwitchActionListener =
+            new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+                    switchDConnectServer(isChecked);
+                }
+            };
 
     /**
      * ガイドの表示ページ.
@@ -134,6 +155,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
 
+        mServiceListGridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
+        mButtonReloadServiceList = (Button) findViewById(R.id.activity_service_list_search_button);
+        mSwitchAction = (Switch) findViewById(R.id.activity_service_list_manager_switch);
+
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
         if (loadGuideSettings(this)) {
@@ -148,16 +173,15 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             public void run() {
                 mServiceAdapter = new ServiceAdapter(getPluginManager());
 
-                GridView gridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
-                if (gridView != null) {
-                    gridView.setAdapter(mServiceAdapter);
-                    gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                if (mServiceListGridView != null) {
+                    mServiceListGridView.setAdapter(mServiceAdapter);
+                    mServiceListGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                             openServiceInfo(position);
                         }
                     });
-                    gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    mServiceListGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                         @Override
                         public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                             openPluginSetting(position);
@@ -166,9 +190,8 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     });
                 }
 
-                Button btn = (Button) findViewById(R.id.activity_service_list_search_button);
-                if (btn != null) {
-                    btn.setOnClickListener(new View.OnClickListener() {
+                if (mButtonReloadServiceList != null) {
+                    mButtonReloadServiceList.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(final View v) {
                             reloadServiceList();
@@ -178,8 +201,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
                 DConnectService managerService = getManagerService();
                 if (mSwitchAction != null) {
+                    mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
                     mSwitchAction.setChecked(managerService.isRunning());
                 }
+
                 if (managerService.isRunning()) {
                     reloadServiceList();
                 }
@@ -201,16 +226,18 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_service_list, menu);
 
-        mSwitchAction = (Switch) menu.findItem(R.id.activity_service_manager_power).getActionView();
-        if (mSwitchAction != null) {
+        MenuItem managerSwitch = menu.findItem(R.id.activity_service_manager_power);
+        if (managerSwitch == null) {
+            return super.onCreateOptionsMenu(menu);
+        }
+
+        Switch switchAction = (Switch) managerSwitch.getActionView();
+        if (switchAction != null) {
+            mSwitchAction = switchAction;
+
             DisplayMetrics metrics = getResources().getDisplayMetrics();
-            mSwitchAction.setPadding((int)(12 * metrics.density), 0, (int)(12 * metrics.density), 0);
-            mSwitchAction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                    switchDConnectServer(isChecked);
-                }
-            });
+            mSwitchAction.setPadding((int) (12 * metrics.density), 0, (int) (12 * metrics.density), 0);
+            mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
 
             DConnectService managerService = getManagerService();
             if (managerService != null) {

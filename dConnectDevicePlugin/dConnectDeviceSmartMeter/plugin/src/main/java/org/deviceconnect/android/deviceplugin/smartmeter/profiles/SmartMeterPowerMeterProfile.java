@@ -17,6 +17,7 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -190,7 +191,7 @@ public class SmartMeterPowerMeterProfile extends DConnectProfile {
                 // APIの日付パラメータ解析
                 Calendar calendar;
                 if (date != null) {
-                    calendar = createCalendar(date);
+                    calendar = RFC3339DateUtils.toCalendar(date);
                     if (calendar == null) {
                         MessageUtils.setInvalidRequestParameterError(response, "date parse error");
                         sendResultError(response);
@@ -279,85 +280,6 @@ public class SmartMeterPowerMeterProfile extends DConnectProfile {
     @Override
     public String getProfileName() {
         return "powerMeter";
-    }
-
-    /** 日付フォーマット定義. */
-    private final static String RFC_3339 = "yyyy-MM-dd'T'HH:mm:ssZ";
-    private final static String RFC_3339_OPT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ";
-
-    /**
-     * 日付生成.
-     * @param date 生成する日時文字列.
-     * @return Calendarオブジェクト / エラー発生時はnull.
-     */
-    private Calendar createCalendar(String date) {
-        if (BuildConfig.DEBUG) {
-            Log.d("Settings", "date:" + date);
-        }
-
-        Date converted;
-        // TimeZone表記が"Z"の場合
-        if (date.endsWith("Z")) {
-            try {
-                SimpleDateFormat format = new SimpleDateFormat(RFC_3339, Locale.JAPANESE);
-                format.setTimeZone(TimeZone.getTimeZone("Asia/Tokyo"));
-                converted = new Date(format.parse(date).getTime());
-            } catch (java.text.ParseException pe) {
-                SimpleDateFormat format = new SimpleDateFormat(RFC_3339_OPT, Locale.JAPANESE);
-                format.setTimeZone(TimeZone.getTimeZone("Asia/Tokyo"));
-                format.setLenient(true);
-                try {
-                    converted = new Date(format.parse(date).getTime());
-                } catch (ParseException e) {
-                    return null;
-                }
-            }
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(converted);
-            return calendar;
-        }
-
-        // TimeZoneが文字列表記されている場合、TimeZone分離
-        String dateString;
-        String timeZone;
-        if (date.lastIndexOf('+') == -1) {
-            try {
-                dateString = date.substring(0, date.lastIndexOf('-'));
-                timeZone = date.substring(date.lastIndexOf('-'));
-            } catch (Exception e) {
-                return null;
-            }
-        } else {
-            try {
-                dateString = date.substring(0, date.lastIndexOf('+'));
-                timeZone = date.substring(date.lastIndexOf('+'));
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        //timeZoneから":"を除去
-        try {
-            timeZone = timeZone.substring(0, timeZone.indexOf(':')) + timeZone.substring(timeZone.indexOf(':') + 1);
-        } catch (Exception e) {
-            return null;
-        }
-        String tmp = dateString + timeZone;
-        try {
-            SimpleDateFormat format = new SimpleDateFormat(RFC_3339, Locale.JAPANESE);
-            converted = new Date(format.parse(tmp).getTime());
-        } catch (java.text.ParseException pe) {
-            SimpleDateFormat format = new SimpleDateFormat(RFC_3339_OPT, Locale.JAPANESE);
-            format.setLenient(true);
-            try {
-                converted = new Date(format.parse(tmp).getTime());
-            } catch (ParseException e) {
-                return null;
-            }
-        }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(converted);
-        return calendar;
     }
 
     /**

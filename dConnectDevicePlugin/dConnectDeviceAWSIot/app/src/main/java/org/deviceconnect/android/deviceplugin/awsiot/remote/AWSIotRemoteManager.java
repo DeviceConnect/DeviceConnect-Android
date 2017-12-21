@@ -182,7 +182,11 @@ public class AWSIotRemoteManager {
                         @Override
                         public String convertUri(final String uri) {
                             Uri u = Uri.parse(uri);
-                            return createWebServer(remote, u.getAuthority(), u.getPath() + "?" + u.getEncodedQuery());
+                            String path = u.getPath() + "?" + u.getEncodedQuery();
+                            if (u.getEncodedQuery() == null) {
+                                path = u.getPath();
+                            }
+                            return createWebServer(remote, u.getAuthority(), path);
                         }
                     });
                     mResponse.putExtras(b);
@@ -259,7 +263,11 @@ public class AWSIotRemoteManager {
                             @Override
                             public String convertUri(final String uri) {
                                 Uri u = Uri.parse(uri);
-                                return createWebServer(remote, u.getAuthority(), u.getPath() + "?" + u.getEncodedQuery());
+                                String path = u.getPath() + "?" + u.getEncodedQuery();
+                                if (u.getEncodedQuery() == null) {
+                                    path = u.getPath();
+                                }
+                                return createWebServer(remote, u.getAuthority(), path);
                             }
                         });
                         mServices.add(service);

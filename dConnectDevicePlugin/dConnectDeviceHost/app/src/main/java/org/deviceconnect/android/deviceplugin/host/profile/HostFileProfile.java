@@ -28,9 +28,9 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,9 +56,6 @@ public class HostFileProfile extends FileProfile {
 
     /** FileManager. */
     private FileManager mFileManager;
-
-    /** SimpleDataFormat. */
-    private SimpleDateFormat mDataFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
@@ -494,7 +491,7 @@ public class HostFileProfile extends FileProfile {
                         Long size = parentDir.length();
                         String mineType = "folder/dir";
                         int filetype = 1;
-                        String date = mDataFormat.format(parentDir.lastModified());
+                        String date = RFC3339DateUtils.toString(parentDir.lastModified());
                         FileAttribute fa = new FileAttribute(path, name, mineType, filetype, size, date);
                         respParam = addResponseParamToArray(fa, respParam);
                         resp.add((Bundle) respParam.clone());
@@ -791,7 +788,7 @@ public class HostFileProfile extends FileProfile {
                 name = "unknown";
             }
             Long size = file.length();
-            String date = mDataFormat.format(file.lastModified());
+            String date = RFC3339DateUtils.toString(file.lastModified());
             int filetype = 0;
             String mimetype = null;
             if (file.isFile()) {

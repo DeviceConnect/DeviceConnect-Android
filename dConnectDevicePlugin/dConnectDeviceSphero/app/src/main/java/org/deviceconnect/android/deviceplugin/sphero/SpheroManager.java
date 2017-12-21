@@ -34,6 +34,7 @@ import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -649,6 +650,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         collision.putBundle(SpheroProfile.PARAM_IMPACT_POWER, impactPower);
         collision.putFloat(SpheroProfile.PARAM_IMPACT_SPEED, data.getImpactSpeed());
         collision.putLong(SpheroProfile.PARAM_IMPACT_TIMESTAMP, data.getTimeStamp().getTime());
+        collision.putString(SpheroProfile.PARAM_IMPACT_TIMESTAMPSTRING, RFC3339DateUtils.toString(data.getTimeStamp().getTime()));
         return collision;
     }
 

@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
@@ -774,17 +775,48 @@ public abstract class DConnectMessageService extends Service
     /**
      * 全デバイスプラグインに対して、Device Connect Managerのライフサイクルについての通知を行う.
      */
-    private void sendManagerEvent(final String action) {
+    public void sendManagerEvent(final String action, final Bundle extras) {
         List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
+        List<DevicePlugin> skipped = new ArrayList<>();
         for (DevicePlugin plugin : plugins) {
+            if (!plugin.isEnabled()) {
+                skipped.add(plugin);
+                continue;
+            }
             if (plugin.getPluginId() != null) {
-                Intent request = new Intent();
+                Intent request = new Intent(action);
                 request.setComponent(plugin.getComponentName());
-                request.setAction(action);
+                if (extras != null) {
+                    request.putExtras(extras);
+                }
                 request.putExtra("pluginId", plugin.getPluginId());
                 sendMessage(plugin, request);
             }
         }
+        if (BuildConfig.DEBUG) {
+            String message =  "Skipped sending " + action + ": " + skipped.size() + " plugin(s)";
+            if (skipped.size() > 0) {
+                message += " below\n" + listPluginsForLogger(skipped);
+            }
+            mLogger.info(message);
+        }
+    }
+
+    private void sendManagerEvent(final String action) {
+        sendManagerEvent(action, null);
+    }
+
+    private static String listPluginsForLogger(final List<DevicePlugin> plugins) {
+        final String MARKER = " - ";
+        StringBuilder exp = new StringBuilder("");
+        for (DevicePlugin plugin : plugins) {
+            exp.append(MARKER)
+               .append(plugin.getDeviceName())
+               .append(" (")
+               .append(plugin.getComponentName())
+               .append(")\n");
+        }
+        return exp.toString();
     }
 
     /**

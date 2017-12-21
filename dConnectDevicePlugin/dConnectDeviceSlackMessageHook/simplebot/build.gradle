@@ -69,11 +69,12 @@ android {
 }
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-sdk-for-android:2.2.+'
+    compile 'org.deviceconnect:dconnect-sdk-for-android:2.2.3'
     compile 'com.android.support:support-v4:23.1.0'
     compile 'com.x5dev:chunk-templates:3.2.2'
     compile 'org.cheffo:jeplite:0.8.7a'

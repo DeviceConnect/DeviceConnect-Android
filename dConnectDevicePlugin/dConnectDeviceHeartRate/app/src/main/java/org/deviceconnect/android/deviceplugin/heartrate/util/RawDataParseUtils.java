@@ -11,6 +11,7 @@ package org.deviceconnect.android.deviceplugin.heartrate.util;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
 import org.deviceconnect.android.deviceplugin.heartrate.data.health.HeartData;
 import org.deviceconnect.android.deviceplugin.heartrate.data.health.TargetDeviceData;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -102,19 +103,9 @@ public final class RawDataParseUtils {
         heart.setUnitCode(unitCode);
         long timestamp = System.currentTimeMillis();
         heart.setTimeStamp(timestamp);
-        heart.setTimeStampString(nowTimeStampString(timestamp));
+        heart.setTimeStampString(RFC3339DateUtils.toString(timestamp));
         return heart;
 
     }
 
-    /**
-     * Now TimeStamp String.
-     * @param now now timestamp
-     * @return timestamp string
-     */
-    private static String nowTimeStampString(final long now) {
-        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss.SSSZZZ");
-        df.setTimeZone(TimeZone.getDefault());
-        return df.format(new Date(System.currentTimeMillis()));
-    }
 }

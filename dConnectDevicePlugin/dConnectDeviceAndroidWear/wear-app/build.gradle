@@ -8,8 +8,8 @@ android {
         applicationId "org.deviceconnect.android.deviceplugin.wear"
         minSdkVersion 20
         targetSdkVersion 25
-        versionCode 7
-        versionName '1.2.1'
+        versionCode 8
+        versionName '1.2.2'
     }
     signingConfigs {
         releaseConfig {

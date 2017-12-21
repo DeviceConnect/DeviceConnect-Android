@@ -20,6 +20,7 @@ import org.deviceconnect.android.profile.SettingProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.utils.RFC3339DateUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -33,8 +34,6 @@ import java.util.Locale;
  */
 public class FPLUGSettingProfile extends SettingProfile {
 
-    private final static String RFC_3339 = "yyyy-MM-dd'T'HH:mm:ssZ";
-
     private final DConnectApi mPutDateApi = new PutApi() {
         @Override
         public String getAttribute() {
@@ -46,7 +45,7 @@ public class FPLUGSettingProfile extends SettingProfile {
             String serviceId = getServiceID(request);
             String date = getDate(request);
 
-            Calendar calendar = createCalendar(date);
+            Calendar calendar =  RFC3339DateUtils.toCalendar(date);
             if (calendar == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "date parse error");
                 sendResultError(response);
@@ -86,31 +85,6 @@ public class FPLUGSettingProfile extends SettingProfile {
         addApi(mPutDateApi);
     }
 
-    /**
-     * F-PLUGに対応した日付のフォーマットになっているかの確認.
-     * <pre>
-     *     例)
-     *     2010-09-05T08:30:00.000+03:00
-     * </pre>
-     * @param date
-     * @return
-     */
-    private Calendar createCalendar(String date) {
-        if (BuildConfig.DEBUG) {
-            Log.d("Settings", "date:" + date);
-        }
-        SimpleDateFormat format = new SimpleDateFormat(RFC_3339, Locale.US);
-
-        Date converted;
-        try {
-            converted = new Date(format.parse(date).getTime());
-        } catch (java.text.ParseException e) {
-            return null;
-        }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(converted);
-        return calendar;
-    }
 
     private void sendResultOK(Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);

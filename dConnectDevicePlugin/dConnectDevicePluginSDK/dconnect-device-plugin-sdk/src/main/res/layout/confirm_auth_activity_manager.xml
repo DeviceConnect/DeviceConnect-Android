@@ -147,7 +147,10 @@
                 android:layout_weight="1"
                 android:background="@drawable/confirm_auth_approval_button"
                 android:text="@string/notapproval"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white">
+                <requestFocus />
+            </Button>
+
 
             <Button
                 android:id="@+id/buttonApproval"

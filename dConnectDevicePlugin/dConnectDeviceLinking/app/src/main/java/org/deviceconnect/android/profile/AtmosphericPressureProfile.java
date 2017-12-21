@@ -8,6 +8,8 @@ package org.deviceconnect.android.profile;
 
 import android.content.Intent;
 
+import org.deviceconnect.utils.RFC3339DateUtils;
+
 public class AtmosphericPressureProfile extends DConnectProfile implements AtmosphericPressureProfileConstants {
     @Override
     public String getProfileName() {
@@ -20,6 +22,6 @@ public class AtmosphericPressureProfile extends DConnectProfile implements Atmos
 
     public static void setTimeStamp(final Intent response, final long timeStamp) {
         response.putExtra(PARAM_TIME_STAMP, timeStamp);
-        response.putExtra(PARAM_TIME_STAMP_STRING, Util.timeStampToText(timeStamp));
+        response.putExtra(PARAM_TIME_STAMP_STRING, RFC3339DateUtils.toString(timeStamp));
     }
 }

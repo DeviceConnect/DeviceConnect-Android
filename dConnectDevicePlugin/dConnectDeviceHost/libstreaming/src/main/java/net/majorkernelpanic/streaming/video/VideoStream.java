@@ -142,7 +142,7 @@ public abstract class VideoStream extends MediaStream {
 		mRequestedOrientation = orientation;
 		mUpdated = false;
 	}
-	
+
 	/** 
 	 * Sets the configuration of the stream. You can call this method at any time 
 	 * and changes will take effect next time you call {@link #configure()}.
@@ -263,7 +263,7 @@ public abstract class VideoStream extends MediaStream {
 					}
 				} finally {
 					camera.addCallbackBuffer(data);
-				}				
+				}
 			}
 		};
 		

@@ -13,6 +13,7 @@ import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
+import net.majorkernelpanic.streaming.video.H264Stream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
@@ -99,12 +100,10 @@ class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegat
         videoQuality.bitrate = mCameraOverlay.getPreviewBitRate();
         videoQuality.framerate = (int) mCameraOverlay.getPreviewMaxFrameRate();
 
-        SessionBuilder builder = SessionBuilder.getInstance();
+        SessionBuilder builder = new SessionBuilder();
         builder.setContext(mContext);
-        builder.setAudioEncoder(SessionBuilder.AUDIO_NONE);
-        builder.setVideoEncoder(SessionBuilder.VIDEO_H264);
+        builder.setVideoStream(new H264Stream(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera()));
         builder.setVideoQuality(videoQuality);
-        builder.setCamera(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera());
 
         Session session = builder.build();
         session.setOrigin(client.getLocalAddress().getHostAddress());

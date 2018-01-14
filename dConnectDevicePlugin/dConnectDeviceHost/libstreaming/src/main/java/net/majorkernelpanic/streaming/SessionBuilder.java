@@ -20,82 +20,32 @@
 
 package net.majorkernelpanic.streaming;
 
-import net.majorkernelpanic.streaming.audio.AACStream;
-import net.majorkernelpanic.streaming.audio.AMRNBStream;
-import net.majorkernelpanic.streaming.audio.AudioQuality;
-import net.majorkernelpanic.streaming.audio.AudioStream;
-import net.majorkernelpanic.streaming.gl.SurfaceView;
-import net.majorkernelpanic.streaming.video.H264Stream;
-import net.majorkernelpanic.streaming.video.VideoQuality;
-import net.majorkernelpanic.streaming.video.VideoStream;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
-import android.preference.PreferenceManager;
 
-/**
- * Call {@link #getInstance()} to get access to the SessionBuilder.
- */
+import net.majorkernelpanic.streaming.audio.AudioQuality;
+import net.majorkernelpanic.streaming.audio.AudioStream;
+import net.majorkernelpanic.streaming.gl.SurfaceView;
+import net.majorkernelpanic.streaming.video.VideoQuality;
+import net.majorkernelpanic.streaming.video.VideoStream;
+
 public class SessionBuilder {
 
 	public final static String TAG = "SessionBuilder";
-
-	/** Can be used with {@link #setVideoEncoder}. */
-	public final static int VIDEO_NONE = 0;
-
-	/** Can be used with {@link #setVideoEncoder}. */
-	public final static int VIDEO_H264 = 1;
-
-	/**
-     * Can be used with {@link #setVideoEncoder}.
-	 * @deprecated
-	 */
-	public final static int VIDEO_H263 = 2;
-
-	/** Can be used with {@link #setAudioEncoder}. */
-	public final static int AUDIO_NONE = 0;
-
-	/** Can be used with {@link #setAudioEncoder}. */
-	public final static int AUDIO_AMRNB = 3;
-
-	/** Can be used with {@link #setAudioEncoder}. */
-	public final static int AUDIO_AAC = 5;
 
 	// Default configuration
 	private VideoQuality mVideoQuality = VideoQuality.DEFAULT_VIDEO_QUALITY;
 	private AudioQuality mAudioQuality = AudioQuality.DEFAULT_AUDIO_QUALITY;
 	private Context mContext;
-	private int mVideoEncoder = VIDEO_H264;
-	private int mAudioEncoder = AUDIO_AMRNB;
-	private int mCameraId = CameraInfo.CAMERA_FACING_BACK;
-	private Camera mCamera;
+	private VideoStream mVideoStream;
+	private AudioStream mAudioStream;
 	private int mTimeToLive = 64;
 	private int mOrientation = 0;
 	private SurfaceView mSurfaceView = null;
 	private String mOrigin = null;
 	private String mDestination = null;
 	private Session.Callback mCallback = null;
-
-	// Removes the default public constructor
-	private SessionBuilder() {}
-
-	// The SessionManager implements the singleton pattern
-	private static volatile SessionBuilder sInstance = null; 
-
-	/**
-	 * Returns a reference to the {@link SessionBuilder}.
-	 * @return The reference to the {@link SessionBuilder}
-	 */
-	public static SessionBuilder getInstance() {
-		if (sInstance == null) {
-			synchronized (SessionBuilder.class) {
-				if (sInstance == null) {
-					SessionBuilder.sInstance = new SessionBuilder();
-				}
-			}
-		}
-		return sInstance;
-	}	
 
 	/**
 	 * Creates a new {@link Session}.
@@ -108,27 +58,33 @@ public class SessionBuilder {
 		session.setTimeToLive(mTimeToLive);
 		session.setCallback(mCallback);
 
-		switch (mAudioEncoder) {
-		case AUDIO_AAC:
-			AACStream stream = new AACStream();
-			session.addAudioTrack(stream);
-			if (mContext != null) {
-                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
-            }
-			break;
-		case AUDIO_AMRNB:
-			session.addAudioTrack(new AMRNBStream());
-			break;
+//		switch (mAudioEncoder) {
+//		case AUDIO_AAC:
+//			AACStream stream = new AACStream();
+//			session.addAudioTrack(stream);
+//			if (mContext != null) {
+//                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+//            }
+//			break;
+//		case AUDIO_AMRNB:
+//			session.addAudioTrack(new AMRNBStream());
+//			break;
+//		}
+		if (mAudioStream != null) {
+			session.addAudioTrack(mAudioStream);
 		}
 
-		switch (mVideoEncoder) {
-		case VIDEO_H264:
-			H264Stream stream = new H264Stream(mCameraId, mCamera);
-			if (mContext != null) {
-                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
-            }
-			session.addVideoTrack(stream);
-			break;
+//		switch (mVideoEncoder) {
+//		case VIDEO_H264:
+//			H264Stream stream = new H264Stream(mCameraId, mCamera);
+//			if (mContext != null) {
+//                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+//            }
+//			session.addVideoTrack(stream);
+//			break;
+//		}
+		if (mVideoStream != null) {
+			session.addVideoTrack(mVideoStream);
 		}
 
 		if (session.getVideoTrack() != null) {
@@ -176,10 +132,9 @@ public class SessionBuilder {
 		mVideoQuality = quality.clone();
 		return this;
 	}
-	
-	/** Sets the audio encoder. */
-	public SessionBuilder setAudioEncoder(int encoder) {
-		mAudioEncoder = encoder;
+
+	public SessionBuilder setAudioStream(AudioStream stream) {
+		mAudioStream = stream;
 		return this;
 	}
 	
@@ -189,15 +144,8 @@ public class SessionBuilder {
 		return this;
 	}
 
-	/** Sets the default video encoder. */
-	public SessionBuilder setVideoEncoder(int encoder) {
-		mVideoEncoder = encoder;
-		return this;
-	}
-
-	public SessionBuilder setCamera(int cameraId, Camera camera) {
-		mCameraId = cameraId;
-        mCamera = camera;
+	public SessionBuilder setVideoStream(VideoStream stream) {
+		mVideoStream = stream;
 		return this;
 	}
 
@@ -243,21 +191,6 @@ public class SessionBuilder {
 		return mOrigin;
 	}
 
-	/** Returns the audio encoder set with {@link #setAudioEncoder(int)}. */
-	public int getAudioEncoder() {
-		return mAudioEncoder;
-	}
-
-	/** Returns the id of the {@link android.hardware.Camera} set with {@link #setCamera(int,Camera)}. */
-	public int getCamera() {
-		return mCameraId;
-	}
-
-	/** Returns the video encoder set with {@link #setVideoEncoder(int)}. */
-	public int getVideoEncoder() {
-		return mVideoEncoder;
-	}
-
 	/** Returns the VideoQuality set with {@link #setVideoQuality(VideoQuality)}. */
 	public VideoQuality getVideoQuality() {
 		return mVideoQuality;
@@ -286,10 +219,9 @@ public class SessionBuilder {
 		.setSurfaceView(mSurfaceView)
 		.setPreviewOrientation(mOrientation)
 		.setVideoQuality(mVideoQuality)
-		.setVideoEncoder(mVideoEncoder)
-		.setCamera(mCameraId, mCamera)
+		.setVideoStream(mVideoStream)
 		.setTimeToLive(mTimeToLive)
-		.setAudioEncoder(mAudioEncoder)
+		.setAudioStream(mAudioStream)
 		.setAudioQuality(mAudioQuality)
 		.setContext(mContext)
 		.setCallback(mCallback);

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.preference.PreferenceManager;
 
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
@@ -15,6 +16,7 @@ import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
 import net.majorkernelpanic.streaming.video.H264Stream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
+import net.majorkernelpanic.streaming.video.VideoStream;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
@@ -100,9 +102,12 @@ class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegat
         videoQuality.bitrate = mCameraOverlay.getPreviewBitRate();
         videoQuality.framerate = (int) mCameraOverlay.getPreviewMaxFrameRate();
 
+        VideoStream videoStream = new H264Stream(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera());
+        videoStream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
+
         SessionBuilder builder = new SessionBuilder();
         builder.setContext(mContext);
-        builder.setVideoStream(new H264Stream(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera()));
+        builder.setVideoStream(videoStream);
         builder.setVideoQuality(videoQuality);
 
         Session session = builder.build();

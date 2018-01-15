@@ -1,13 +1,19 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
@@ -102,13 +108,17 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
 
         private Thread mStreamingThread;
 
+        private BroadcastReceiver mConfigChangeReceiver;
+
         boolean isStarted() {
             return mIsStarted;
         }
 
         synchronized void start() {
             if (!isStarted()) {
-                HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
+                registerConfigChangeReceiver();
+
+                HostDeviceRecorder.PictureSize size = getRotatedSize();
                 int w = size.getWidth();
                 int h = size.getHeight();
                 mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
@@ -142,7 +152,10 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
                                     Thread.sleep(interval);
                                 }
                             }
+                        } catch (InterruptedException e) {
+                            // NOP.
                         } catch (Throwable e) {
+                            e.printStackTrace();
                             mLogger.warning("MediaProjection is broken." + e.getMessage());
                             stopWebServer();
                         }
@@ -154,6 +167,30 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
             }
         }
 
+        private int getRotation() {
+            WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+            Display display = wm.getDefaultDisplay();
+            return display.getRotation();
+        }
+
+        private HostDeviceRecorder.PictureSize getRotatedSize() {
+            HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
+            int w;
+            int h;
+            switch (getRotation()) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    w = size.getWidth();
+                    h = size.getHeight();
+                    break;
+                default:
+                    w = size.getHeight();
+                    h = size.getWidth();
+                    break;
+            }
+            return new HostDeviceRecorder.PictureSize(w, h);
+        }
+
         synchronized void stop() {
             if (isStarted()) {
                 mStreamingThread.interrupt();
@@ -162,7 +199,32 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
                 mImageReader = null;
                 mScreenCast.stopCast();
                 mScreenCast = null;
+                unregisterConfigChangeReceiver();
                 mIsStarted = false;
+            }
+        }
+
+        private synchronized void restart() {
+            stop();
+            start();
+        }
+
+        private void registerConfigChangeReceiver() {
+            mConfigChangeReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(final Context context, final Intent intent) {
+                    restart();
+                }
+            };
+            IntentFilter filter = new IntentFilter(
+                    "android.intent.action.CONFIGURATION_CHANGED");
+            mContext.registerReceiver(mConfigChangeReceiver, filter);
+        }
+
+        private void unregisterConfigChangeReceiver() {
+            if (mConfigChangeReceiver != null) {
+                mContext.unregisterReceiver(mConfigChangeReceiver);
+                mConfigChangeReceiver = null;
             }
         }
     }

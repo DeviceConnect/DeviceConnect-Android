@@ -23,8 +23,6 @@ public abstract class AbstractScreenCast implements ScreenCast {
     HostDeviceRecorder.PictureSize mDisplaySize;
     VirtualDisplay mDisplay;
 
-    private BroadcastReceiver mConfigChangeReceiver;
-
     AbstractScreenCast(final Context context,
                        final MediaProjection mediaProjection,
                        final HostDeviceRecorder.PictureSize size) {
@@ -44,7 +42,6 @@ public abstract class AbstractScreenCast implements ScreenCast {
     @Override
     public synchronized void startCast() {
         if (mDisplay == null) {
-            registerConfigChangeReceiver();
             mDisplay = createVirtualDisplay();
         }
     }
@@ -54,13 +51,7 @@ public abstract class AbstractScreenCast implements ScreenCast {
         if (mDisplay != null) {
             mDisplay.release();
             mDisplay = null;
-            unregisterConfigChangeReceiver();
         }
-    }
-
-    private synchronized void restartCast() {
-        stopCast();
-        startCast();
     }
 
     VirtualDisplay.Callback getDisplayCallback() {
@@ -81,22 +72,5 @@ public abstract class AbstractScreenCast implements ScreenCast {
 
     protected abstract VirtualDisplay createVirtualDisplay();
 
-    private void registerConfigChangeReceiver() {
-        mConfigChangeReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                restartCast();
-            }
-        };
-        IntentFilter filter = new IntentFilter(
-                "android.intent.action.CONFIGURATION_CHANGED");
-        mContext.registerReceiver(mConfigChangeReceiver, filter);
-    }
 
-    private void unregisterConfigChangeReceiver() {
-        if (mConfigChangeReceiver != null) {
-            mContext.unregisterReceiver(mConfigChangeReceiver);
-            mConfigChangeReceiver = null;
-        }
-    }
 }

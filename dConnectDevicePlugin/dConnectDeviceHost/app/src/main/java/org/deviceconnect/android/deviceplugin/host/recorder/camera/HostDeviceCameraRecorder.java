@@ -11,10 +11,12 @@ import android.content.Context;
 import android.hardware.Camera;
 import android.util.Log;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.util.ArrayList;
@@ -251,6 +253,21 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
             }
         }
         return false;
+    }
+
+    @Override
+    public void requestPermission(final PermissionCallback callback) {
+        CapabilityUtil.requestPermissions(getContext(), new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onAllowed();
+            }
+
+            @Override
+            public void onFail(final String deniedPermission) {
+                callback.onDisallowed();
+            }
+        });
     }
 
     @Override

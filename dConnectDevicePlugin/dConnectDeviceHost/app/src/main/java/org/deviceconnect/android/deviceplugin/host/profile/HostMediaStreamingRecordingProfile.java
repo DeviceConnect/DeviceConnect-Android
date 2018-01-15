@@ -410,9 +410,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            init(new PermissionUtility.PermissionRequestCallback() {
+            serverProvider.requestPermission(new PreviewServerProvider.PermissionCallback() {
                 @Override
-                public void onSuccess() {
+                public void onAllowed() {
+                    mRecorderMgr.initialize();
+
                     // ライト点灯中なら消灯処理を実施.
                     checkCameraLightState();
 
@@ -459,7 +461,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 }
 
                 @Override
-                public void onFail(final String deniedPermission) {
+                public void onDisallowed() {
                     MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
                     sendResponse(response);
                 }

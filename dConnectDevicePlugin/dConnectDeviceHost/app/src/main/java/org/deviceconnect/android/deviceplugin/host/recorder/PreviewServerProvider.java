@@ -21,6 +21,13 @@ public interface PreviewServerProvider {
      */
     String EXTRA_CAMERA_ID = "cameraId";
 
+    void requestPermission(PermissionCallback callback);
+
+    interface PermissionCallback {
+        void onAllowed();
+        void onDisallowed();
+    }
+
     List<PreviewServer> getServers();
 
     void stopWebServers();

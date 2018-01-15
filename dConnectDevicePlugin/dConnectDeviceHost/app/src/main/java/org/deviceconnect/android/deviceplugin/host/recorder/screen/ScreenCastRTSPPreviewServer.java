@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 
-public class ScreenCastRTSPPreviewServer implements PreviewServer, RtspServer.Delegate {
+class ScreenCastRTSPPreviewServer implements PreviewServer, RtspServer.Delegate {
 
     private static final String MIME_TYPE = "video/x-rtp";
 
@@ -53,26 +53,16 @@ public class ScreenCastRTSPPreviewServer implements PreviewServer, RtspServer.De
 
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
-        mScreenCastMgr.requestPermission(new ScreenCastManager.PermissionCallback() {
-            @Override
-            public void onAllowed() {
-                synchronized (mLockObj) {
-                    if (mRtspServer == null) {
-                        mRtspServer = new RtspServerImpl(SERVER_NAME);
-                        mRtspServer.setPort(20000);
-                        mRtspServer.setDelegate(ScreenCastRTSPPreviewServer.this);
-                        mRtspServer.start();
-                    }
-                    String uri = "rtsp://localhost:" + mRtspServer.getPort();
-                    callback.onStart(uri);
-                }
+        synchronized (mLockObj) {
+            if (mRtspServer == null) {
+                mRtspServer = new RtspServerImpl(SERVER_NAME);
+                mRtspServer.setPort(20000);
+                mRtspServer.setDelegate(ScreenCastRTSPPreviewServer.this);
+                mRtspServer.start();
             }
-
-            @Override
-            public void onDisallowed() {
-                callback.onFail();
-            }
-        });
+            String uri = "rtsp://localhost:" + mRtspServer.getPort();
+            callback.onStart(uri);
+        }
     }
 
     @Override
@@ -95,7 +85,7 @@ public class ScreenCastRTSPPreviewServer implements PreviewServer, RtspServer.De
             videoQuality.resX = previewSize.getWidth();
             videoQuality.resY = previewSize.getHeight();
             videoQuality.bitrate = mServerProvider.getPreviewBitRate();
-            videoQuality.framerate = 30; //(int) mServerProvider.getPreviewMaxFrameRate(); //TODO
+            videoQuality.framerate = (int) mServerProvider.getMaxFrameRate();
 
             SurfaceVideoStream videoStream = new SurfaceH264Stream(prefs, videoQuality);
             mScreenCast = mScreenCastMgr.createScreenCast(videoStream.getInputSurface(), previewSize);

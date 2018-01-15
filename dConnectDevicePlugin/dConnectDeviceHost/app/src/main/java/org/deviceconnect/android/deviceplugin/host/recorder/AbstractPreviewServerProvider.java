@@ -108,4 +108,8 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         intent.putExtra(EXTRA_CAMERA_ID, getId());
         return PendingIntent.getService(mContext, getNotificationId(), intent, 0);
     }
+
+    public Context getContext() {
+        return mContext;
+    }
 }

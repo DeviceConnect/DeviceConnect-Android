@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
@@ -17,7 +18,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 
 @TargetApi(21)
-public class ScreenCastManager {
+class ScreenCastManager {
 
     private static final String RESULT_DATA = "result_data";
 
@@ -79,16 +80,18 @@ public class ScreenCastManager {
         mContext.startActivity(intent);
     }
 
-    public void takePhoto(final HostDevicePhotoRecorder.OnPhotoEventListener listener) {
-        // TODO スクリーンショット撮影機能を実装。
-        listener.onFailedTakePhoto("Not implemented yet.");
-    }
-
-    public ScreenCast createScreenCast(final Surface outputSurface, final HostDeviceRecorder.PictureSize size) {
+    public SurfaceScreenCast createScreenCast(final Surface outputSurface, final HostDeviceRecorder.PictureSize size) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
         }
-        return new ScreenCast(mContext, mMediaProjection, outputSurface, size);
+        return new SurfaceScreenCast(mContext, mMediaProjection, outputSurface, size);
+    }
+
+    public ImageScreenCast createScreenCast(final ImageReader imageReader, final HostDeviceRecorder.PictureSize size) {
+        if (mMediaProjection == null) {
+            throw new IllegalStateException("Media Projection is not allowed.");
+        }
+        return new ImageScreenCast(mContext, mMediaProjection, imageReader, size);
     }
 
     interface PermissionCallback {

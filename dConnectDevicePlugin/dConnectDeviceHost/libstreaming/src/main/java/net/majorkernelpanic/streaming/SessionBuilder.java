@@ -76,7 +76,7 @@ public class SessionBuilder {
 
 //		switch (mVideoEncoder) {
 //		case VIDEO_H264:
-//			H264Stream stream = new H264Stream(mCameraId, mCamera);
+//			CameraH264Stream stream = new CameraH264Stream(mCameraId, mCamera);
 //			if (mContext != null) {
 //                stream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
 //            }
@@ -107,7 +107,7 @@ public class SessionBuilder {
 	}
 
 	/** 
-	 * Access to the context is needed for the H264Stream class to store some stuff in the SharedPreferences.
+	 * Access to the context is needed for the CameraH264Stream class to store some stuff in the SharedPreferences.
 	 * Note that you should pass the Application context, not the context of an Activity.
 	 **/
 	public SessionBuilder setContext(Context context) {

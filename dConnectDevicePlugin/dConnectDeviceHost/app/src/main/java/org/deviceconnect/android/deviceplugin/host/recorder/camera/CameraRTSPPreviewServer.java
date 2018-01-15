@@ -14,7 +14,7 @@ import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
-import net.majorkernelpanic.streaming.video.H264Stream;
+import net.majorkernelpanic.streaming.video.CameraH264Stream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
 import net.majorkernelpanic.streaming.video.VideoStream;
 
@@ -102,7 +102,7 @@ class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegat
         videoQuality.bitrate = mCameraOverlay.getPreviewBitRate();
         videoQuality.framerate = (int) mCameraOverlay.getPreviewMaxFrameRate();
 
-        VideoStream videoStream = new H264Stream(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera());
+        VideoStream videoStream = new CameraH264Stream(mCameraOverlay.getCameraId(), mCameraOverlay.getCamera());
         videoStream.setPreferences(PreferenceManager.getDefaultSharedPreferences(mContext));
 
         SessionBuilder builder = new SessionBuilder();

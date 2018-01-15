@@ -49,9 +49,9 @@ public class PermissionReceiverActivity extends Activity {
         }
 
         Bundle response = new Bundle();
-        response.putParcelable(HostDeviceScreenCast.RESULT_DATA, data);
+        response.putParcelable(HostDeviceScreenCastRecorder.RESULT_DATA, data);
 
-        ResultReceiver callback = getIntent().getParcelableExtra(HostDeviceScreenCast.EXTRA_CALLBACK);
+        ResultReceiver callback = getIntent().getParcelableExtra(HostDeviceScreenCastRecorder.EXTRA_CALLBACK);
         callback.send(Activity.RESULT_OK, response);
         finish();
     }

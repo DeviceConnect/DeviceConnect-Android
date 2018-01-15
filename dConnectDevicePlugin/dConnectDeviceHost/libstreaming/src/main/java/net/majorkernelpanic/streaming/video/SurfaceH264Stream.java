@@ -20,6 +20,7 @@
 
 package net.majorkernelpanic.streaming.video;
 
+import android.content.SharedPreferences;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.util.Base64;
@@ -33,28 +34,12 @@ import net.majorkernelpanic.streaming.rtp.H264Packetizer;
 import java.io.IOException;
 import java.net.InetAddress;
 
-/**
- * A class for streaming H.264 from the camera of an android device using RTP.
- * You should use a {@link Session} instantiated with {@link SessionBuilder} instead of using this class directly.
- * Call {@link #setDestinationAddress(InetAddress)}, {@link #setDestinationPorts(int)} and {@link #setVideoQuality(VideoQuality)}
- * to configure the stream. You can then call {@link #start()} to start the RTP stream.
- * Call {@link #stop()} to stop the stream.
- */
-public class H264Stream extends VideoStream {
+public class SurfaceH264Stream extends SurfaceVideoStream {
 
-    private final static String TAG = "H264Stream";
+    private MP4Config mConfig;
 
-	private MP4Config mConfig;
-
-	/**
-	 * Constructs the H.264 stream.
-	 * @param cameraId Can be either CameraInfo.CAMERA_FACING_BACK or CameraInfo.CAMERA_FACING_FRONT
-	 * @param camera
-	 */
-	public H264Stream(int cameraId, Camera camera) {
-		super(cameraId, camera);
-		mMimeType = "video/avc";
-		mCameraImageFormat = ImageFormat.NV21;
+	public SurfaceH264Stream(final SharedPreferences prefs, final VideoQuality quality) throws IOException {
+		super(prefs, quality);
 		mPacketizer = new H264Packetizer();
 	}
 
@@ -62,7 +47,9 @@ public class H264Stream extends VideoStream {
 	 * Returns a description of the stream using SDP. It can then be included in an SDP file.
 	 */
 	public synchronized String getSessionDescription() throws IllegalStateException {
-		if (mConfig == null) throw new IllegalStateException("You need to call configure() first !");
+		if (mConfig == null) {
+			throw new IllegalStateException("You need to call configure() first !");
+		}
 		return "m=video "+String.valueOf(getDestinationPorts()[0])+" RTP/AVP 96\r\n" +
 		"a=rtpmap:96 H264/90000\r\n" +
 		"a=fmtp:96 packetization-mode=1;profile-level-id="+mConfig.getProfileLevel()+";sprop-parameter-sets="+mConfig.getB64SPS()+","+mConfig.getB64PPS()+";\r\n";
@@ -70,14 +57,14 @@ public class H264Stream extends VideoStream {
 
 	/**
 	 * Starts the stream.
-	 * This will also open the camera and display the preview if {@link #startPreview()} has not already been called.
+	 * This will also open the camera and display the preview if {@link #start()} ()} has not already been called.
 	 */
 	public synchronized void start() throws IllegalStateException, IOException {
 		if (!mStreaming) {
 			configure();
 			byte[] pps = Base64.decode(mConfig.getB64PPS(), Base64.NO_WRAP);
 			byte[] sps = Base64.decode(mConfig.getB64SPS(), Base64.NO_WRAP);
-			((H264Packetizer)mPacketizer).setStreamParameters(pps, sps);
+			((H264Packetizer) mPacketizer).setStreamParameters(pps, sps);
 			super.start();
 		}
 	}
@@ -89,7 +76,6 @@ public class H264Stream extends VideoStream {
 	public synchronized void configure() throws IllegalStateException, IOException {
 		super.configure();
 		mMode = mRequestedMode;
-		mQuality = mRequestedQuality.clone();
 		mConfig = testMediaCodecAPI();
 	}
 

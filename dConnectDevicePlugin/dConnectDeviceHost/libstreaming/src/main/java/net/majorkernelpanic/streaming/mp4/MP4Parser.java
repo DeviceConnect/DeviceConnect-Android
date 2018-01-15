@@ -33,7 +33,7 @@ import android.util.Log;
 /**
  * Parse an mp4 file.
  * An mp4 file contains a tree where each node has a name and a size.
- * This class is used by H264Stream.java to determine the SPS and PPS parameters of a short video recorded by the phone.
+ * This class is used by CameraH264Stream.java to determine the SPS and PPS parameters of a short video recorded by the phone.
  */
 public class MP4Parser {
 

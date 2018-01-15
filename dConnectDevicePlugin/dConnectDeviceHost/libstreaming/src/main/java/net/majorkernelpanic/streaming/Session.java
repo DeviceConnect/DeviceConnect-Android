@@ -20,7 +20,6 @@
 
 package net.majorkernelpanic.streaming;
 
-import android.hardware.Camera.CameraInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -79,7 +78,7 @@ public class Session {
 	/** 
 	 * The internal storage of the phone is not ready. 
 	 * libstreaming tried to store a test file on the sdcard but couldn't.
-	 * See H264Stream and AACStream to find out why libstreaming would want to something like that. 
+	 * See CameraH264Stream and AACStream to find out why libstreaming would want to something like that.
 	 */
 	public final static int ERROR_STORAGE_NOT_READY = 0x02;
 
@@ -266,7 +265,7 @@ public class Session {
 	/**
 	 * Sets a Surface to show a preview of recorded media (video). <br />
 	 * You can call this method at any time and changes will take 
-	 * effect next time you call {@link #start()} or {@link #startPreview()}.
+	 * effect next time you call {@link #start()}.
 	 */
 	public void setSurfaceView(final SurfaceView view) {
 		mHandler.post(new Runnable() {
@@ -542,15 +541,6 @@ public class Session {
 		syncStop(0);
 		syncStop(1);
 		postSessionStopped();
-	}
-
-	/**
-	 * Returns the id of the camera currently selected. <br />
-	 * It can be either {@link CameraInfo#CAMERA_FACING_BACK} or 
-	 * {@link CameraInfo#CAMERA_FACING_FRONT}.
-	 */
-	public int getCamera() {
-		return mVideoStream != null ? mVideoStream.getCamera() : 0;
 	}
 
 	/** Deletes all existing tracks & release associated resources. */

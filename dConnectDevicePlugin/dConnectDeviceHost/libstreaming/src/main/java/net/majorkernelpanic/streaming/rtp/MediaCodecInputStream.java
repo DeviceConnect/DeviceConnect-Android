@@ -69,11 +69,10 @@ public class MediaCodecInputStream extends InputStream {
 		int min = 0;
 
 		try {
-			if (mBuffer==null) {
+			if (mBuffer == null) {
 				while (!Thread.interrupted() && !mClosed) {
 					mIndex = mMediaCodec.dequeueOutputBuffer(mBufferInfo, 500000);
-					if (mIndex>=0 ){
-						//Log.d(TAG,"Index: "+mIndex+" Time: "+mBufferInfo.presentationTimeUs+" size: "+mBufferInfo.size);
+					if (mIndex >= 0){
 						mBuffer = mBuffers[mIndex];
 						mBuffer.position(0);
 						break;
@@ -81,22 +80,22 @@ public class MediaCodecInputStream extends InputStream {
 						mBuffers = mMediaCodec.getOutputBuffers();
 					} else if (mIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
 						mMediaFormat = mMediaCodec.getOutputFormat();
-						Log.i(TAG,mMediaFormat.toString());
+						Log.i(TAG, mMediaFormat.toString());
 					} else if (mIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
 						Log.v(TAG,"No buffer available...");
-						//return 0;
 					} else {
-						Log.e(TAG,"Message: "+mIndex);
-						//return 0;
+						Log.e(TAG,"Message: " + mIndex);
 					}
 				}			
 			}
 			
-			if (mClosed) throw new IOException("This InputStream was closed");
+			if (mClosed) {
+				throw new IOException("This InputStream was closed");
+			}
 			
 			min = length < mBufferInfo.size - mBuffer.position() ? length : mBufferInfo.size - mBuffer.position(); 
 			mBuffer.get(buffer, offset, min);
-			if (mBuffer.position()>=mBufferInfo.size) {
+			if (mBuffer.position() >= mBufferInfo.size) {
 				mMediaCodec.releaseOutputBuffer(mIndex, false);
 				mBuffer = null;
 			}

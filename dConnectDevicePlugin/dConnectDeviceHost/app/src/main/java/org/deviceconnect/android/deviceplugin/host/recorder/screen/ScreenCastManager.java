@@ -14,7 +14,6 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.view.Surface;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 
 @TargetApi(21)

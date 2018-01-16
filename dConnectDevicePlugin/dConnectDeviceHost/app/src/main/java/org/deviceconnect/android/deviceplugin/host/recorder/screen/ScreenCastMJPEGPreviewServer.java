@@ -7,17 +7,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
-import android.media.Image;
 import android.media.ImageReader;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.Display;
-import android.view.Surface;
-import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
@@ -25,17 +18,13 @@ import java.util.logging.Logger;
 
 
 @TargetApi(21)
-class ScreenCastMJPEGPreviewServer implements PreviewServer {
+class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     private static final String MIME_TYPE = "video/x-mjpeg";
 
     private final Logger mLogger = Logger.getLogger("host.dplugin");
 
-    private final AbstractPreviewServerProvider mServerProvider;
-
     private final Object mLockObj = new Object();
-
-    private final Context mContext;
 
     private final ScreenCastManager mScreenCastMgr;
 
@@ -58,8 +47,7 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
     ScreenCastMJPEGPreviewServer(final Context context,
                                  final AbstractPreviewServerProvider serverProvider,
                                  final ScreenCastManager screenCastMgr) {
-        mContext = context;
-        mServerProvider = serverProvider;
+        super(context, serverProvider);
         mScreenCastMgr = screenCastMgr;
         mPreview = new ScreenCaster();
     }
@@ -98,6 +86,15 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
         }
     }
 
+    @Override
+    protected void onConfigChange() {
+        synchronized (mLockObj) {
+            if (mPreview != null) {
+                mPreview.restart();
+            }
+        }
+    }
+
     private class ScreenCaster {
 
         private boolean mIsStarted;
@@ -108,8 +105,6 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
 
         private Thread mStreamingThread;
 
-        private BroadcastReceiver mConfigChangeReceiver;
-
         boolean isStarted() {
             return mIsStarted;
         }
@@ -118,7 +113,7 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
             if (!isStarted()) {
                 registerConfigChangeReceiver();
 
-                HostDeviceRecorder.PictureSize size = getRotatedSize();
+                HostDeviceRecorder.PictureSize size = getRotatedPreviewSize();
                 int w = size.getWidth();
                 int h = size.getHeight();
                 mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
@@ -167,30 +162,6 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
             }
         }
 
-        private int getRotation() {
-            WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-            Display display = wm.getDefaultDisplay();
-            return display.getRotation();
-        }
-
-        private HostDeviceRecorder.PictureSize getRotatedSize() {
-            HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
-            int w;
-            int h;
-            switch (getRotation()) {
-                case Surface.ROTATION_0:
-                case Surface.ROTATION_180:
-                    w = size.getWidth();
-                    h = size.getHeight();
-                    break;
-                default:
-                    w = size.getHeight();
-                    h = size.getWidth();
-                    break;
-            }
-            return new HostDeviceRecorder.PictureSize(w, h);
-        }
-
         synchronized void stop() {
             if (isStarted()) {
                 mStreamingThread.interrupt();
@@ -204,28 +175,9 @@ class ScreenCastMJPEGPreviewServer implements PreviewServer {
             }
         }
 
-        private synchronized void restart() {
+        synchronized void restart() {
             stop();
             start();
-        }
-
-        private void registerConfigChangeReceiver() {
-            mConfigChangeReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(final Context context, final Intent intent) {
-                    restart();
-                }
-            };
-            IntentFilter filter = new IntentFilter(
-                    "android.intent.action.CONFIGURATION_CHANGED");
-            mContext.registerReceiver(mConfigChangeReceiver, filter);
-        }
-
-        private void unregisterConfigChangeReceiver() {
-            if (mConfigChangeReceiver != null) {
-                mContext.unregisterReceiver(mConfigChangeReceiver);
-                mConfigChangeReceiver = null;
-            }
         }
     }
 }

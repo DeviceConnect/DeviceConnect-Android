@@ -781,7 +781,12 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             holder.mThumbnail.setTag(data.getFileName());
             holder.mLoading.setVisibility(View.VISIBLE);
             Date date = RFC3339DateUtils.toDate(data.getCreationTime());
-            String dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date);
+            String dateString = null;
+            if (date != null) {
+                dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date);
+            } else {
+                dateString = data.getCreationTime();
+            }
             holder.mDate.setText(dateString);
             if (data.isImage()) {
                 holder.mType.setImageResource(R.drawable.theta_data_img);

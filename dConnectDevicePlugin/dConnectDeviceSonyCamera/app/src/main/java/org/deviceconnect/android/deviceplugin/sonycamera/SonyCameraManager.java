@@ -490,10 +490,11 @@ public class SonyCameraManager {
             public void run() {
                 try {
                     JSONObject replyJson;
-                    if (movement.equals("max")) {
+                    String move = movement.replaceAll("in-", "");
+                    if (move.equals("max")) {
                         replyJson = mRemoteApi.actZoom(direction, "start");
                     } else {
-                        replyJson = mRemoteApi.actZoom(direction, movement);
+                        replyJson = mRemoteApi.actZoom(direction, move);
                     }
 
                     if (isErrorReply(replyJson)) {

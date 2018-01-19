@@ -93,8 +93,8 @@ public class SonyCameraZoomProfile extends CameraProfile {
             }
         }
 
-        if (!movement.equals("start")) {
-            if (!movement.equals("stop")) {
+        if (!movement.equals("in-start")) {
+            if (!movement.equals("in-stop")) {
                 if (!movement.equals("1shot")) {
                     if (!movement.equals("max")) {
                         MessageUtils.setInvalidRequestParameterError(response);

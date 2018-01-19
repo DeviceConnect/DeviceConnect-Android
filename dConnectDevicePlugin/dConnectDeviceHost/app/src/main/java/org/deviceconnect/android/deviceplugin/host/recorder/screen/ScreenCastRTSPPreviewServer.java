@@ -23,7 +23,7 @@ import java.net.SocketTimeoutException;
 
 class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements RtspServer.Delegate {
 
-    private static final String MIME_TYPE = "video/x-rtp";
+    static final String MIME_TYPE = "video/x-rtp";
 
     private static final String SERVER_NAME = "Android Host Screen RTSP Server";
 

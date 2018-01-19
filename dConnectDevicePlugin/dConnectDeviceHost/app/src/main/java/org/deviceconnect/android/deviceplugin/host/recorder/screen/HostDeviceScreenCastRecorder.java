@@ -68,7 +68,9 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
      */
     private List<String> mMimeTypes = new ArrayList<String>() {
         {
-            add(MIME_TYPE);
+            add("image/png");
+            add(ScreenCastMJPEGPreviewServer.MIME_TYPE);
+            add(ScreenCastRTSPPreviewServer.MIME_TYPE);
         }
     };
 

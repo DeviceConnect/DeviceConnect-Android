@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 @TargetApi(21)
 class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
-    private static final String MIME_TYPE = "video/x-mjpeg";
+    static final String MIME_TYPE = "video/x-mjpeg";
 
     private final Logger mLogger = Logger.getLogger("host.dplugin");
 

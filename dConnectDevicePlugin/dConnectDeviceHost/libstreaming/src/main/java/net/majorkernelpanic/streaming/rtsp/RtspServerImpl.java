@@ -85,17 +85,25 @@ public class RtspServerImpl implements RtspServer {
     }
 
     @Override
-    public synchronized void start() {
+    public synchronized boolean start() {
         if (mServerThread == null) {
-            try {
-                mServerThread = new ServerThread();
-                mServerThread.start();
-            } catch (IOException e) {
-                mServerThread = null;
-                Log.e(TAG,"Port already in use !");
-                postError(e, Error.BIND_FAILED);
+            for (int num = 0; ; num++) {
+                try {
+                    mServerThread = new ServerThread(mPort + num);
+                    mServerThread.start();
+                    mPort += num;
+                    return true;
+                } catch (IOException e) {
+                    if (num >= 1000) {
+                        mServerThread = null;
+                        Log.e(TAG,"Port already in use !");
+                        postError(e, Error.BIND_FAILED);
+                        return false;
+                    }
+                }
             }
         }
+        return false;
     }
 
     @Override
@@ -169,8 +177,8 @@ public class RtspServerImpl implements RtspServer {
 
         private final ServerSocket mServerSocket;
 
-        ServerThread() throws IOException {
-            mServerSocket = new ServerSocket(mPort);
+        ServerThread(final int port) throws IOException {
+            mServerSocket = new ServerSocket(port);
         }
 
         @Override

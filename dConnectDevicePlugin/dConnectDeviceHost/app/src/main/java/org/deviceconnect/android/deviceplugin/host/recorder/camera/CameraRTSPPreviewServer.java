@@ -61,7 +61,10 @@ class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegat
                 mRtspServer = new RtspServerImpl(SERVER_NAME);
                 mRtspServer.setPort(RtspServer.DEFAULT_PORT);
                 mRtspServer.setDelegate(this);
-                mRtspServer.start();
+                if (!mRtspServer.start()) {
+                    callback.onFail();
+                    return;
+                }
             }
             String uri = "rtsp://localhost:" + mRtspServer.getPort();
             callback.onStart(uri);

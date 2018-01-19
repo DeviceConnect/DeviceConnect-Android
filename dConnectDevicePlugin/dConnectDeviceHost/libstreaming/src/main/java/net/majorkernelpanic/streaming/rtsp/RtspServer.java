@@ -47,7 +47,7 @@ public interface RtspServer {
 
     String getName();
 
-    void start();
+    boolean start();
 
     void stop();
 }

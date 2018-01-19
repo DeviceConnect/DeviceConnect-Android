@@ -275,7 +275,6 @@ public abstract class MediaStream implements Stream {
 
 		mPacketizer.setTimeToLive(mTTL);
 
-		Log.d(TAG, "********* Mode: " + mMode);
         encodeWithMediaCodec();
 	}
 

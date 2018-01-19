@@ -224,10 +224,10 @@ public abstract class CameraVideoStream extends VideoStream {
 			public void onPreviewFrame(byte[] data, Camera camera) {
 				oldNow = now;
 				now = System.nanoTime()/1000;
-				if (i++>3) {
-					i = 0;
-					Log.d(TAG,"Measured: " + (1000000L / (now - oldNow)) + " fps.");
-				}
+//				if (i++>3) {
+//					i = 0;
+//					Log.d(TAG,"Measured: " + (1000000L / (now - oldNow)) + " fps.");
+//				}
 				try {
 					int bufferIndex = mMediaCodec.dequeueInputBuffer(500000);
 					if (bufferIndex >= 0) {

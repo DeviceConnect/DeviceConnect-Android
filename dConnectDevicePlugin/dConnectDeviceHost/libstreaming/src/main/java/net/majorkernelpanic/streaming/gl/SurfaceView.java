@@ -116,7 +116,6 @@ public class SurfaceView extends android.view.SurfaceView implements Runnable, O
 	}
 
 	public void startGLThread() {
-		Log.d(TAG,"Thread started.");
 		if (mTextureManager == null) {
 			mTextureManager = new TextureManager();
 		}

@@ -90,6 +90,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setRecorderPreviewWidth(info, size.getWidth());
                             setRecorderPreviewHeight(info, size.getHeight());
                             setRecorderPreviewMaxFrameRate(info, recorder.getMaxFrameRate());
+                            info.putInt("previewBitRate", recorder.getPreviewBitRate() / 1024);
                         }
                         setRecorderConfig(info, "");
                         recorders.add(info);
@@ -212,7 +213,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
                     return;
                 }
-                recorder.setPreviewBitRate(previewBitRate);
+                recorder.setPreviewBitRate(previewBitRate * 1024);
             }
 
             setResult(response, DConnectMessage.RESULT_OK);

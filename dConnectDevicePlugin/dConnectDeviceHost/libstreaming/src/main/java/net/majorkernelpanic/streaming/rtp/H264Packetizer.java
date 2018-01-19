@@ -112,7 +112,7 @@ public class H264Packetizer extends AbstractPacketizer implements Runnable {
 			cacheSize = 400;
 		}
 		socket.setCacheSize(cacheSize);
-		Log.d(TAG, "Cache size: " + cacheSize);
+		//Log.d(TAG, "Cache size: " + cacheSize);
 
 		try {
 			while (!Thread.interrupted()) {
@@ -127,7 +127,7 @@ public class H264Packetizer extends AbstractPacketizer implements Runnable {
 
 				// Computes the average duration of a NAL unit
 				delay = stats.average();
-				Log.d(TAG,"duration: " + (duration / 1000000) + "ms, delay: " + (delay / 1000000) + " ms.");
+				//Log.d(TAG,"duration: " + (duration / 1000000) + "ms, delay: " + (delay / 1000000) + " ms.");
 			}
 		} catch (IOException e) {
 		} catch (InterruptedException e) {}
@@ -179,7 +179,7 @@ public class H264Packetizer extends AbstractPacketizer implements Runnable {
 		// The stream already contains NAL unit type 7 or 8, we don't need 
 		// to add them to the stream ourselves
 		if (type == 7 || type == 8) {
-			Log.v(TAG,"SPS or PPS present in the stream.");
+			//Log.v(TAG,"SPS or PPS present in the stream.");
 			count++;
 			if (count>4) {
 				sps = null;

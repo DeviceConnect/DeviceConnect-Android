@@ -67,6 +67,8 @@ public class HostDeviceCameraRecorder extends AbstractPreviewServerProvider impl
     private List<String> mMimeTypes = new ArrayList<String>() {
         {
             add("image/png");
+            add("video/x-mjpeg");
+            add("video/x-rtp");
         }
     };
 

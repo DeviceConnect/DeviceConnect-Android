@@ -22,6 +22,7 @@ import org.deviceconnect.android.deviceplugin.hvcp.manager.data.HVCCameraInfo;
 import org.deviceconnect.android.deviceplugin.hvcp.manager.data.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvcp.manager.data.OkaoResult;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -43,7 +44,7 @@ public enum HVCManager {
     /** TAG. */
     private static final String TAG = "HVCManager";
     /** Okao Execute Command. */
-    private static final String OKAO_EXECUTE = "FE040300FF0102";
+    private static final String OKAO_EXECUTE = "FE040300FF0100";
 
     /** Option parameter:{@value}. */
     public static final String PARAM_OPTIONS_EYE = "eye";
@@ -145,12 +146,12 @@ public enum HVCManager {
     /**
      * HVC-P detect camera width[pixels].
      */
-    public static final int HVC_P_CAMERA_WIDTH = 320;
+    public static final int HVC_P_CAMERA_WIDTH = 640;
 
     /**
      * HVC-P detect camera height[pixels].
      */
-    public static final int HVC_P_CAMERA_HEIGHT = 240;
+    public static final int HVC_P_CAMERA_HEIGHT = 480;
     /** HVC-P body min size. */
     private static final int HVC_P_BODY_MIN_SIZE = 30; //20〜8192
     /** HVC-P body max size. */
@@ -445,7 +446,7 @@ public enum HVCManager {
             default:
         }
         mType = CMD_OKAO_EXECUTE;
-        sendCommand(OKAO_EXECUTE, new Long(1));
+        sendCommand(OKAO_EXECUTE, 1L);
     }
 
     /**
@@ -488,7 +489,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set threshold cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(1));
+        sendCommand(cmdThreshold.toString(), 1L);
 
     }
 
@@ -546,7 +547,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set size cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(50));
+        sendCommand(cmdThreshold.toString(), 50L);
 
     }
     /**
@@ -625,20 +626,38 @@ public enum HVCManager {
             @Override
             public void run() {
                 try {
-                    byte buf[] = new byte[32768];
-                    int num = mUsbDriver.read(buf, buf.length);
-
-                    if (num > 0) {
-                        int buf_pos = 0;
-                        for (int i = 0; i + buf_pos < num; i++) {
-                            //if(i!=0 && (i%62)==0)buf0_pos+=2;
-                            buf[i] = buf[i + buf_pos];
-                            if (((i + 63) % 62) == 0) {
-                                buf_pos += 2;
+                    byte buf[] = new byte[512];
+                    int num = mUsbDriver.read(buf, 1000);
+                    if (num <= 0) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        int offset = 0;
+                        while (buf[offset] != (byte) 0xFE) {
+                            offset++;
+                            if (offset >= buf.length - 1) {
+                                mTimer.postDelayed(this, mNowInterval);
+                                return;
                             }
                         }
-                        num -= buf_pos;
-                        num += 2;
+                        offset++;
+                        if (buf[offset] == 0x00) {
+                            // 成功
+                            baos.write(buf, offset, num - offset);
+                        } else {
+                            mTimer.postDelayed(this, mNowInterval);
+                            return;
+                        }
+                        offset++;
+                        int dataLength = ((buf[offset+3] & 0xFF) << 24) | ((buf[offset+2] & 0xFF) << 16) |
+                                ((buf[offset+1] & 0xFF) << 8) | (buf[offset] & 0xFF);
+                        offset += 4;
+                        int remaining = dataLength - (num - offset);
+                        while (remaining > 0) {
+                            int len = mUsbDriver.read(buf, 1000);
+                            baos.write(buf, 0, len);
+                            remaining -= len;
+                        }
+
+                        buf = baos.toByteArray();
                     }
                     for (String key : mServices.keySet()) {
                         HVCCameraInfo camera = mServices.get(key);
@@ -717,7 +736,7 @@ public enum HVCManager {
                     if (mType == CMD_OKAO_EXECUTE) {
                         byte send[] = hex2bin(OKAO_EXECUTE);
                         try {
-                            mUsbDriver.write(send, send.length);
+                            mUsbDriver.write(send, 1000);
                         } catch (IOException e) {
                             if (BuildConfig.DEBUG) {
                                 Log.e(TAG, "", e);
@@ -739,17 +758,18 @@ public enum HVCManager {
             result.setNumberOfHand(buf[7]);
             result.setNumberOfFace(buf[8]);
             if (BuildConfig.DEBUG) {
+                Log.d(TAG, "binary:" + bin2hex(buf));
                 Log.d(TAG, "body:" + result.getNumberOfBody());
                 Log.d(TAG, "hand:" + result.getNumberOfHand());
                 Log.d(TAG, "face:" + result.getNumberOfFace());
             }
             for (int i = 0; i < result.getNumberOfBody(); i++) {
-                result.getBodyX()[i] = (buf[10 + 11 * i] & 0xff) + ((buf[10 + 11 * i + 1] & 0xff) << 8);
-                result.getBodyY()[i] = (buf[10 + 11 * i + 2] & 0xff) + ((buf[10 + 11 * i + 3] & 0xff) << 8);
-                result.getBodySize()[i] = (buf[10 + 11 * i + 4] & 0xff) + ((buf[10 + 11 * i + 5] & 0xff) << 8);
-                result.getBodyDetectConfidence()[i] = (buf[10 + 11 * i + 6] & 0xff) + ((buf[10 + 11 * i + 7] & 0xff) << 8);
+                result.getBodyX()[i] = (buf[10 + 8 * i] & 0xff) + ((buf[10 + 8 * i + 1] & 0xff) << 8);
+                result.getBodyY()[i] = (buf[10 + 8 * i + 2] & 0xff) + ((buf[10 + 8 * i + 3] & 0xff) << 8);
+                result.getBodySize()[i] = (buf[10 + 8 * i + 4] & 0xff) + ((buf[10 + 8 * i + 5] & 0xff) << 8);
+                result.getBodyDetectConfidence()[i] = (buf[10 + 8 * i + 6] & 0xff) + ((buf[10 + 8 * i + 7] & 0xff) << 8);
                 if (BuildConfig.DEBUG) {
-                    String bodyDebug = "[body" + result.getNumberOfBody() + "]"
+                    String bodyDebug = "[body" + i + "]"
                             + "| x:" + result.getBodyX()[i]
                             + "| y:" + result.getBodyY()[i]
                             + "| size:" + result.getBodySize()[i]
@@ -759,12 +779,12 @@ public enum HVCManager {
             }
 
             for (int i = 0; i < result.getNumberOfHand(); i++) {
-                result.getHandX()[i] = (buf[10 + 11 * (result.getNumberOfBody() + i)] & 0xff) + ((buf[10 + 11 * (result.getNumberOfBody() + i) + 1] & 0xff) << 8);
-                result.getHandY()[i] = (buf[10 + 11 * (result.getNumberOfBody() + i) + 2] & 0xff) + ((buf[10 + 11 * (result.getNumberOfBody() + i) + 3] & 0xff) << 8);
-                result.getHandSize()[i] = (buf[10 + 11 * (result.getNumberOfBody() + i) + 4] & 0xff) + ((buf[10 + 11 * (result.getNumberOfBody() + i) + 5] & 0xff) << 8);
-                result.getHandDetectConfidence()[i] = (buf[10 + 11 * (result.getNumberOfBody() + i) + 6] & 0xff) + ((buf[10 + 11 * (result.getNumberOfBody() + i) + 7] & 0xff) << 8);
+                result.getHandX()[i] = (buf[10 + 8 * (result.getNumberOfBody() + i)] & 0xff) + ((buf[10 + 8 * (result.getNumberOfBody() + i) + 1] & 0xff) << 8);
+                result.getHandY()[i] = (buf[10 + 8 * (result.getNumberOfBody() + i) + 2] & 0xff) + ((buf[10 + 8 * (result.getNumberOfBody() + i) + 3] & 0xff) << 8);
+                result.getHandSize()[i] = (buf[10 + 8 * (result.getNumberOfBody() + i) + 4] & 0xff) + ((buf[10 + 8 * (result.getNumberOfBody() + i) + 5] & 0xff) << 8);
+                result.getHandDetectConfidence()[i] = (buf[10 + 8 * (result.getNumberOfBody() + i) + 6] & 0xff) + ((buf[10 + 8 * (result.getNumberOfBody() + i) + 7] & 0xff) << 8);
                 if (BuildConfig.DEBUG) {
-                    String handDebug = "[hand" + result.getNumberOfHand() + "]"
+                    String handDebug = "[hand" + i + "]"
                             + "| x:" + result.getHandX()[i]
                             + "| y:" + result.getHandY()[i]
                             + "| size:" + result.getHandSize()[i]
@@ -774,46 +794,54 @@ public enum HVCManager {
             }
 
             for (int i = 0; i < result.getNumberOfFace(); i++) {
-                result.getFaceX()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i)] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 1] & 0xff) << 8);
-                result.getFaceY()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 2] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 3] & 0xff) << 8);
-                result.getFaceSize()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 4] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 5] & 0xff) << 8);
-                result.getFaceDetectConfidence()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 6] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 7] & 0xff) << 8);
+                result.getFaceX()[i] = (long) ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i] & 0xff)
+                        | ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 1] & 0xff) << 8)) & 0xffff;
+                result.getFaceY()[i] = (long) ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 2] & 0xff)
+                        | ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 3] & 0xff) << 8)) & 0xffff;
+                result.getFaceSize()[i] = (long) ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 4] & 0xff)
+                        | ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 5] & 0xff) << 8)) & 0xffff;
+                result.getFaceDetectConfidence()[i] = (long) ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 6] & 0xff)
+                        | ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 7] & 0xff) << 8)) & 0xffff;
 
-                result.getFaceDirectionLR()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i)] + 8 & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 9] & 0xff) << 8);
-                result.getFaceDirectionUD()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 10] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 11] & 0xff) << 8);
-                result.getFaceDirectionSlope()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 12] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 13] & 0xff) << 8);
-                result.getFaceDirectionConfidence()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 14] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 15] & 0xff) << 8);
+                result.getFaceDirectionLR()[i] = (long)  (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 8] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 9] & 0xff) << 8);
+                result.getFaceDirectionUD()[i] = (long)  (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 10] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 8] & 0xff) << 8);
+                result.getFaceDirectionSlope()[i] = (long)  (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 12] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 13] & 0xff) << 8);
+                result.getFaceDirectionConfidence()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 14] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 15] & 0xff) << 8);
 
-                result.getAge()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 16] & 0xff);
-                result.getAgeConfidence()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 17] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 18] & 0xff) << 8);
+                result.getAge()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 16] & 0xff);
+                result.getAgeConfidence()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 17] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 18] & 0xff) << 8);
 
-                result.getGender()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 19] & 0xff);
-                result.getGenderConfidence()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 20] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 21] & 0xff) << 8);
+                result.getGender()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 19] & 0xff);
+                result.getGenderConfidence()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 20] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 21] & 0xff) << 8);
 
-                result.getGazeLR()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 22] & 0xff);
-                result.getGazeUD()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 23] & 0xff);
-                result.getBlinkLeft()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 24] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 25] & 0xff) << 8);
-                result.getBlinkRight()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 26] & 0xff)
-                        + ((buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 27] & 0xff) << 8);
+                result.getGazeLR()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 22] & 0xff);
+                result.getGazeUD()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 23] & 0xff);
+                result.getBlinkLeft()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 24] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 25] & 0xff) << 8);
+                result.getBlinkRight()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 26] & 0xff)
+                        + ((buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 27] & 0xff) << 8);
 
-                result.getExpressionUnknown()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 28] & 0xff);
-                result.getExpressionSmile()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 29] & 0xff);
-                result.getExpressionSurprise()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 30] & 0xff);
-                result.getExpressionMad()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 31] & 0xff);
-                result.getExpressionSad()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 32] & 0xff);
-                result.getExpressionConfidence()[i] = (buf[10 + 11 * (result.getNumberOfBody() + result.getNumberOfHand() + i) + 33] & 0xff);
-
+                result.getExpressionUnknown()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand())+ 34 * i + 28] & 0xff);
+                result.getExpressionSmile()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 29] & 0xff);
+                result.getExpressionSurprise()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 30] & 0xff);
+                result.getExpressionMad()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 31] & 0xff);
+                result.getExpressionSad()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 32] & 0xff);
+                result.getExpressionConfidence()[i] = (long) (buf[10 + 8 * (result.getNumberOfBody() + result.getNumberOfHand()) + 34 * i + 33] & 0xff);
+                if (BuildConfig.DEBUG) {
+                    String faceDebug =
+                            "[face" + i + "]"
+                            + "| x:" + result.getFaceX()[i]
+                            + "| y:" + result.getFaceY()[i]
+                            + "| size:" + result.getFaceSize()[i]
+                            + "| Confidence:" + result.getFaceDirectionConfidence()[i] + "\n";
+                    Log.d(TAG, faceDebug);
+                }
             }
 
         }
@@ -824,7 +852,7 @@ public enum HVCManager {
      * Send Command.
      *
      * @param stCommand
-     *            Command String Example) FF00AE11
+     *            Command String Example) FF00AE8
      * @param interval Interval
      */
     private void sendCommand(final String stCommand, final Long interval) {

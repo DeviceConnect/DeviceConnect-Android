@@ -235,7 +235,7 @@ public abstract class HumanDetectionProfile extends DConnectProfile implements H
         if (!checkExistRequestData(request, PARAM_NOSE_THRESHOLD)) {
             return null;
         }
-        Double noseThreshold = parseDouble(request, PARAM_EYE_THRESHOLD);
+        Double noseThreshold = parseDouble(request, PARAM_NOSE_THRESHOLD);
         if (noseThreshold == null) {
             throw new NumberFormatException(ERROR_NOSE_THRESHOLD_DIFFERENT_TYPE);
         }
@@ -323,7 +323,7 @@ public abstract class HumanDetectionProfile extends DConnectProfile implements H
         if (!checkExistRequestData(request, PARAM_GENDER_THRESHOLD)) {
             return null;
         }
-        Double genderThreshold = parseDouble(request, PARAM_AGE_THRESHOLD);
+        Double genderThreshold = parseDouble(request, PARAM_GENDER_THRESHOLD);
         if (genderThreshold == null) {
             throw new NumberFormatException(ERROR_GENDER_THRESHOLD_DIFFERENT_TYPE);
         }

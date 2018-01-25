@@ -21,7 +21,10 @@ android {
         targetSdkVersion 24
         versionCode 1
         versionName getVersionName()
-
+        manifestPlaceholders = [
+                appIcon: "@mipmap/dconnect_icon",
+                appName: "@string/app_name"
+        ]
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,7 +44,28 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
+    flavorDimensions  "DeviceWebApi","DeviceConnect"
+    productFlavors {
+        DeviceConnect {
+            dimension 'DeviceConnect'
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/dconnect_icon",
+                    appName: "@string/app_name"
+            ]
+        }
 
+        DeviceWebApi {
+            dimension 'DeviceWebApi'
+            versionCode 1
+            versionName "1.0.0"
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_launcher",
+                    appName: "@string/app_name_for_device_web_api"
+            ]
+        }
+    }
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }

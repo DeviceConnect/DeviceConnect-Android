@@ -1,12 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.deviceconnect.android.deviceplugin.fabo">
+          package="org.deviceconnect.android.deviceplugin.fabo"
+          xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.usb.host"/>
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
+        tools:replace="icon, label"
+        android:icon="${appIcon}"
+        android:label="${appName}"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 

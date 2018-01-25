@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">FaBo (Device Connect Device Plug-in)</string>
 
+    <string name="app_name_for_device_web_api" translatable="false">FaBo (Device Web API Plug-in)</string>
     <string name="not_found_arduino" translatable="false">Arduino Unoが見つかりませんでした。</string>
     <string name="can_not_connet_usb" translatable="false">USBデバイスに接続できませんでした。</string>
     <string name="can_not_open_usb" translatable="false">USBデバイスが開けませんでした。</string>

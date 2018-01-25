@@ -3,7 +3,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/dconnect_icon"
+        android:icon="@mipmap/dconnect_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">

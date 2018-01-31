@@ -42,7 +42,7 @@ class ThetaDeviceFactory {
     private static ThetaDeviceModel parseModel(final String ssId) {
         if (ssId.startsWith("THETAXN")) {
             return ThetaDeviceModel.THETA_M15;
-        } else if (ssId.startsWith("THETAXS")) {
+        } else if (ssId.startsWith("THETAXS") || ssId.startsWith("THETAYJ")) {
             return ThetaDeviceModel.THETA_S;
         } else if ( ssId.startsWith("THETAYL")) {
             return ThetaDeviceModel.THETA_V;

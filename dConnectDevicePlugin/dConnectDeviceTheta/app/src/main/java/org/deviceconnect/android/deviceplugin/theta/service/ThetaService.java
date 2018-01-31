@@ -22,6 +22,7 @@ public class ThetaService extends DConnectService {
         addProfile(new ThetaFileProfile(client, fileMgr));
         switch (device.getModel()) {
             case THETA_S:
+            case THETA_V:
                 addProfile(new ThetaSMediaStreamRecordingProfile(client, fileMgr));
                 break;
             case THETA_M15:

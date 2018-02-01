@@ -66,5 +66,9 @@
             android:key="@string/key_settings_dconn_keyword"
             android:summary="@string/activity_settings_default_keyword"
             android:title="@string/activity_settings_keyword" />
+        <PreferenceScreen
+            android:key="@string/key_settings_export_server_certificate"
+            android:title="@string/activity_settings_export_server_certificate">
+        </PreferenceScreen>
     </PreferenceCategory>
 </PreferenceScreen>

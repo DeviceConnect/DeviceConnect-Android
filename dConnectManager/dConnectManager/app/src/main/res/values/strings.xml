@@ -67,6 +67,7 @@
     <string name="activity_settings_manager_terminate_title">Manager termination notification in to the device plug-ins</string>
     <string name="activity_settings_manager_terminate_message">Processing</string>
     <string name="activity_settings_manage_websocket">List of WebSocket</string>
+    <string name="activity_settings_export_server_certificate">Export server certificate</string>
     <string name="activity_settings_name">Name</string>
     <string name="activity_settings_uuid">UUID</string>
     <string name="activity_settings_manager_name_visible">Show Manager\'s name</string>

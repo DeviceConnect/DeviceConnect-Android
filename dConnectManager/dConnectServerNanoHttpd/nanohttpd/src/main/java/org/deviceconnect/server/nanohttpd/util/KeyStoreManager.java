@@ -21,9 +21,31 @@
 
 package org.deviceconnect.server.nanohttpd.util;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
+
+import com.google.fix.PRNGFixes;
+
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.X509Extensions;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.deviceconnect.server.nanohttpd.BuildConfig;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.KeyPair;
@@ -32,8 +54,11 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.logging.Logger;
 
@@ -43,17 +68,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-
-import org.deviceconnect.server.nanohttpd.BuildConfig;
-
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.os.Build;
-import android.provider.Settings;
-import android.util.Log;
-
-import com.google.fix.PRNGFixes;
-import com.google.polo.ssl.SslUtil;
+import javax.security.auth.x500.X500Principal;
 
 /**
  * キーストア・マネージャー. クライアントとサーバの証明書を管理する.
@@ -134,8 +149,9 @@ public final class KeyStoreManager {
         mContext = context;
         if (fromFile) {
             loadKeyStore();
-            if (hasLocalIdentityAlias()) {
+            if (!hasLocalIdentityAlias()) {
                 generateAppCertificate();
+                storeKeyStore();
             }
         } else {
             createKeyStore();
@@ -162,7 +178,7 @@ public final class KeyStoreManager {
                 Log.v(LOG_TAG, "Generating certificate ...");
             }
             String commonName = getCertificateName(getUniqueId());
-            X509Certificate cert = SslUtil.generateX509V3Certificate(keyPair, commonName);
+            X509Certificate cert = generateX509V3Certificate(keyPair, commonName);
             Certificate[] chain = {cert};
             if (BuildConfig.DEBUG) {
                 Log.v(LOG_TAG, "Adding key to keystore  ...");
@@ -175,6 +191,41 @@ public final class KeyStoreManager {
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException("Unable to create identity KeyStore", e);
         }
+    }
+
+    private X509Certificate generateX509V3Certificate(final KeyPair keyPair,
+                                                     final String commonName,
+                                                     final Date notBefore,
+                                                     final Date notAfter,
+                                                     final BigInteger serialNumber) throws GeneralSecurityException {
+        Security.addProvider(new BouncyCastleProvider());
+        X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
+        X500Principal principal = new X500Principal(commonName);
+        generator.setSerialNumber(serialNumber);
+        generator.setIssuerDN(principal);
+        generator.setSubjectDN(principal);
+        generator.setNotBefore(notBefore);
+        generator.setNotAfter(notAfter);
+        generator.setPublicKey(keyPair.getPublic());
+        generator.setSignatureAlgorithm("SHA256WithRSAEncryption");
+        generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(true));
+        generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(160));
+        generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
+        generator.addExtension(X509Extensions.SubjectAlternativeName, false, new GeneralNames(new DERSequence(new ASN1Encodable[] {
+                new GeneralName(GeneralName.dNSName, "localhost"),
+                //new GeneralName(GeneralName.iPAddress, ipAddress) //TODO ローカルIPアドレスを追加
+        })));
+        return generator.generateX509Certificate(keyPair.getPrivate(), "BC");
+    }
+
+    private X509Certificate generateX509V3Certificate(final KeyPair keyPair, String commonName) throws GeneralSecurityException {
+        Calendar var2 = Calendar.getInstance();
+        var2.set(2009, 0, 1);
+        Date var3 = new Date(var2.getTimeInMillis());
+        var2.set(2099, 0, 1);
+        Date var4 = new Date(var2.getTimeInMillis());
+        BigInteger serialNumber = BigInteger.valueOf(Math.abs(System.currentTimeMillis()));
+        return generateX509V3Certificate(keyPair, commonName, var3, var4, serialNumber);
     }
 
     /**
@@ -381,5 +432,18 @@ public final class KeyStoreManager {
                     + e.toString());
         }
         return retval;
+    }
+
+    /**
+     * デフォルトのエイリアスに対するサーバー証明書を取得する.
+     *
+     * @return サーバー証明書. まだ作成されていない場合は null.
+     */
+    public Certificate getCertificate() {
+        try {
+            return mKeyStore.getCertificate(LOCAL_IDENTITY_ALIAS);
+        } catch (KeyStoreException e) {
+            return null;
+        }
     }
 }

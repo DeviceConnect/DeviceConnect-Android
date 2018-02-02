@@ -15,6 +15,8 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.security.KeyChain;
+import android.util.Log;
 
 import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
@@ -34,10 +36,14 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.GeneralSecurityException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -94,6 +100,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
     /** WakeLockのインスタンス. */
     private PowerManager.WakeLock mWakeLock;
 
+    /** キーストア管理オブジェクト. */
+    private KeyStoreManager mKeyStoreMgr;
+
     /** バインドするためのクラス. */
     private final IBinder mLocalBinder = new LocalBinder();
 
@@ -133,6 +142,12 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 new ServiceDiscoveryConverter(),
                 new ServiceInformationConverter()
         };
+        try {
+            mKeyStoreMgr = new KeyStoreManager();
+            mKeyStoreMgr.initialize(getApplicationContext(), true);
+        } catch (GeneralSecurityException e) {
+            mLogger.warning("Failed to load a server certificate: " + e.getMessage());
+        }
 
         if (mSettings.isManagerStartFlag()) {
             startInternal();
@@ -376,7 +391,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mWiFiReceiver, filter);
 
-                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
+                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext(), mKeyStoreMgr);
                 mRESTfulServer.setServerEventListener(mWebServerListener);
                 mRESTfulServer.start();
             }
@@ -463,6 +478,27 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     public boolean isRunning() {
         return mRunningFlag;
+    }
+
+    /**
+     * サーバ証明書を「信頼できる証明書」としてインストールする.
+     *
+     * インストール前にユーザーに対して、認可ダイアログが表示される.
+     * 認可されない場合は、インストールされない.
+     */
+    public void installCertificate() {
+        Certificate certificate = mKeyStoreMgr.getCertificate();
+        if (certificate != null) {
+            try {
+                Intent installIntent = KeyChain.createInstallIntent();
+                installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Manager");
+                installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, certificate.getEncoded());
+                startActivity(installIntent);
+            } catch (CertificateEncodingException e) {
+                mLogger.severe("Failed to encode server certificate: " + e.getMessage());
+            }
+        }
     }
 
     /**

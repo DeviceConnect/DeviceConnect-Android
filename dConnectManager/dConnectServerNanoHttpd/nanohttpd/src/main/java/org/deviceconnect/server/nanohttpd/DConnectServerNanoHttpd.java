@@ -159,6 +159,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private Context mContext;
 
     /**
+     * キーストア管理オブジェクト.
+     */
+    private KeyStoreManager mKeyStoreMgr;
+
+    /**
      * Keep-Aliveの状態定数.
      *
      * @author NTT DOCOMO, INC.
@@ -180,14 +185,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      *
      * @param config  サーバー設定。
      * @param context コンテキストオブジェクト。
+     * @param keyStoreManager キーストア管理オブジェクト。
      */
-    public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context) {
+    public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context,
+                                   final KeyStoreManager keyStoreManager) {
         super(config);
 
         if (context == null) {
-            throw new IllegalArgumentException("Context must not be null.");
+            throw new IllegalArgumentException("context must not be null.");
         }
         mContext = context;
+
+        if (config.isSsl() && keyStoreManager == null) {
+            throw new IllegalArgumentException("keyStoreManager must not be null if SSL is enabled.");
+        }
+        mKeyStoreMgr = keyStoreManager;
 
         if (BuildConfig.DEBUG) {
             Handler handler = new AndroidHandler(TAG);
@@ -295,17 +307,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @return 読み込み成功時はSSLServerSocketFactoryを、その他はnullを返す。
      */
     private SSLServerSocketFactory createServerSocketFactory() {
-        SSLServerSocketFactory retVal = null;
+        SSLServerSocketFactory retVal;
         do {
-            KeyStoreManager storeManager = new KeyStoreManager();
-            try {
-                storeManager.initialize(mContext, false);
-            } catch (GeneralSecurityException e) {
-                mLogger.warning("Exception in the DConnectServerNanoHttpd#createServerSocketFactory() method. "
-                        + e.toString());
-                break;
-            }
-            retVal = storeManager.getServerSocketFactory();
+            retVal = mKeyStoreMgr.getServerSocketFactory();
         } while (false);
         return retVal;
     }

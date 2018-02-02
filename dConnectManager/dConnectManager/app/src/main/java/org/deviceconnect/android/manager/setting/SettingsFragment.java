@@ -416,7 +416,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
         } else if (getString(R.string.key_settings_export_server_certificate).equals(preference.getKey())) {
-
+            // TODO 指定されたパス(SDカード上)に証明書をエクスポートする。
+        } else if (getString(R.string.key_settings_install_server_certificate).equals(preference.getKey())) {
+            mDConnectService.installCertificate();
         }
         showIPAddress();
 

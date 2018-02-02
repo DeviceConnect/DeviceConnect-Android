@@ -95,7 +95,7 @@ public class DConnectWebService extends Service {
                 mLogger.info("Document Root: " + mSettings.getDocumentRootPath());
             }
 
-            mWebServer = new DConnectServerNanoHttpd(builder.build(), this);
+            mWebServer = new DConnectServerNanoHttpd(builder.build(), this, null);
             mWebServer.start();
             showNotification();
 

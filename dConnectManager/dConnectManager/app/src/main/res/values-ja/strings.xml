@@ -68,6 +68,7 @@
     <string name="activity_settings_manager_terminate_message">処理中</string>
     <string name="activity_settings_manage_websocket">WebSocket管理</string>
     <string name="activity_settings_export_server_certificate">サーバ証明書出力</string>
+    <string name="activity_settings_install_server_certificate">サーバ証明書インストール</string>
     <string name="activity_settings_name">名前</string>
     <string name="activity_settings_uuid">UUID</string>
     <string name="activity_settings_manager_name_visible">Managerの名前を表示</string>

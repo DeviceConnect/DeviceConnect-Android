@@ -41,6 +41,7 @@ import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -498,6 +499,19 @@ public class DConnectService extends DConnectMessageService implements WebSocket
             } catch (CertificateEncodingException e) {
                 mLogger.severe("Failed to encode server certificate: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * サーバ証明書をSDカード上に出力する.
+     *
+     * @param dirPath 出力先のディレクトリへのパス
+     */
+    public void exportCertificate(final String dirPath) {
+        try {
+            mKeyStoreMgr.exportServerCertificate(dirPath);
+        } catch (IOException e) {
+            mLogger.severe("Failed to export server certificate: " + e.getMessage());
         }
     }
 

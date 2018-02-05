@@ -68,6 +68,9 @@
     <string name="activity_settings_manager_terminate_message">処理中</string>
     <string name="activity_settings_manage_websocket">WebSocket管理</string>
     <string name="activity_settings_export_server_certificate">サーバ証明書出力</string>
+    <string name="activity_settings_export_server_certificate_dialog_path_title">出力先フォルダ</string>
+    <string name="activity_settings_export_server_certificate_dialog_button_export">出力する</string>
+    <string name="activity_settings_export_server_certificate_dialog_button_cancel">キャンセル</string>
     <string name="activity_settings_install_server_certificate">サーバ証明書インストール</string>
     <string name="activity_settings_name">名前</string>
     <string name="activity_settings_uuid">UUID</string>

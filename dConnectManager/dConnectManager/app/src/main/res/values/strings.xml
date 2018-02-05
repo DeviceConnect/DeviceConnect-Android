@@ -68,6 +68,9 @@
     <string name="activity_settings_manager_terminate_message">Processing</string>
     <string name="activity_settings_manage_websocket">List of WebSocket</string>
     <string name="activity_settings_export_server_certificate">Export server certificate</string>
+    <string name="activity_settings_export_server_certificate_dialog_path_title">Directory Path</string>
+    <string name="activity_settings_export_server_certificate_dialog_button_export">Export</string>
+    <string name="activity_settings_export_server_certificate_dialog_button_cancel">Cancel</string>
     <string name="activity_settings_install_server_certificate">Install server certificate</string>
     <string name="activity_settings_name">Name</string>
     <string name="activity_settings_uuid">UUID</string>

@@ -25,6 +25,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Base64;
 import android.util.Log;
 
 import com.google.fix.PRNGFixes;
@@ -42,6 +43,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.deviceconnect.server.nanohttpd.BuildConfig;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -56,6 +58,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -444,6 +447,38 @@ public final class KeyStoreManager {
             return mKeyStore.getCertificate(LOCAL_IDENTITY_ALIAS);
         } catch (KeyStoreException e) {
             return null;
+        }
+    }
+
+    /**
+     * SDカード上にサーバー証明書を出力する.
+     *
+     * @param dirPath 出力先のディレクトリへのパス
+     * @throws IOException 出力に失敗した場合
+     */
+    public void exportServerCertificate(final String dirPath) throws IOException {
+        Certificate certificate = getCertificate();
+        if (certificate == null) {
+            throw new IOException("server certificate is not created yet.");
+        }
+
+        FileOutputStream fos = null;
+        try {
+            String filepath = dirPath + File.separator + "certificate.pem";
+            fos = new FileOutputStream(filepath);
+            final String cert_begin = "-----BEGIN CERTIFICATE-----\n";
+            final String end_cert = "-----END CERTIFICATE-----";
+            byte[] derCert = certificate.getEncoded();
+            String pemCert = cert_begin + Base64.encodeToString(derCert, Base64.DEFAULT) + end_cert;
+            byte[] pem = pemCert.getBytes();
+            fos.write(pem);
+            fos.flush();
+        } catch (CertificateEncodingException e) {
+            throw new IOException("Failed to encode server certificate: " + e.getMessage());
+        } finally {
+            if (fos != null) {
+                fos.close();
+            }
         }
     }
 }

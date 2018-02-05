@@ -47,6 +47,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
@@ -81,17 +82,20 @@ public final class KeyStoreManager {
     /** タグ. */
     private static final String LOG_TAG = "KeyStoreManager";
 
+    /** キーストアのアルゴリズム指定. */
+    private static final String KEYSTORE_TYPE = "PKCS12";
+
     /**
      * キーストアのファイル名.
      */
-    private static final String KEYSTORE_FILENAME = "keystore.bks";
+    private static final String KEYSTORE_FILENAME = "keystore.p12";
 
     /**
      * キーストアのパスワード.
      * 
      * TODO パスワード文字列について要検証.
      */
-    private static final char[] KEYSTORE_PASSWORD = "sjdlf'%Rli\"SHglk29ugsld??AfjL+D-".toCharArray();
+    private static final char[] KEYSTORE_PASSWORD = "0000".toCharArray();
 
     /**
      * Alias for the remote controller (local) identity in the {@link KeyStore}.
@@ -216,7 +220,7 @@ public final class KeyStoreManager {
         generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
         generator.addExtension(X509Extensions.SubjectAlternativeName, false, new GeneralNames(new DERSequence(new ASN1Encodable[] {
                 new GeneralName(GeneralName.dNSName, "localhost"),
-                //new GeneralName(GeneralName.iPAddress, ipAddress) //TODO ローカルIPアドレスを追加
+                //new GeneralName(GeneralName.iPAddress, "ipAddress") //TODO ローカルIPアドレスを追加
         })));
         return generator.generateX509Certificate(keyPair.getPrivate(), "BC");
     }
@@ -237,7 +241,7 @@ public final class KeyStoreManager {
     public void loadKeyStore() {
         KeyStore keyStore;
         try {
-            keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         } catch (KeyStoreException e) {
             throw new IllegalStateException("Unable to get default instance of KeyStore", e);
         }
@@ -276,7 +280,7 @@ public final class KeyStoreManager {
      * @throws GeneralSecurityException General Security Exception
      */
     public void createKeyStore() throws GeneralSecurityException {
-        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         try {
             keyStore.load(null, KEYSTORE_PASSWORD);
         } catch (IOException e) {
@@ -292,8 +296,28 @@ public final class KeyStoreManager {
     public synchronized void storeKeyStore() {
         try {
             FileOutputStream fos = mContext.openFileOutput(KEYSTORE_FILENAME, Context.MODE_PRIVATE);
-            mKeyStore.store(fos, KEYSTORE_PASSWORD);
-            fos.close();
+            storeKeyStore(fos);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to store keyStore", e);
+        }
+    }
+
+    /**
+     * キーストアを指定のファイルパスに出力する.
+     *
+     * @param dirPath 出力先のディレクトリへのパス
+     * @throws IOException ファイル出力に失敗した場合
+     */
+    public synchronized void storeKeyStoreToDirectory(final String dirPath) throws IOException {
+        String filepath = dirPath + File.separator + "deviceconnect.p12";
+        FileOutputStream fos = new FileOutputStream(filepath);
+        storeKeyStore(fos);
+    }
+
+    private void storeKeyStore(final OutputStream output) {
+        try {
+            mKeyStore.store(output, KEYSTORE_PASSWORD);
+            output.close();
         } catch (IOException e) {
             throw new IllegalStateException("Unable to store keyStore", e);
         } catch (GeneralSecurityException e) {
@@ -451,12 +475,14 @@ public final class KeyStoreManager {
     }
 
     /**
-     * SDカード上にサーバー証明書を出力する.
+     * SDカード上にサーバー証明書をPEM形式で出力する.
+     *
+     * 非公開鍵は保存されない.
      *
      * @param dirPath 出力先のディレクトリへのパス
      * @throws IOException 出力に失敗した場合
      */
-    public void exportServerCertificate(final String dirPath) throws IOException {
+    public void storeServerCertificateToDirectory(final String dirPath) throws IOException {
         Certificate certificate = getCertificate();
         if (certificate == null) {
             throw new IOException("server certificate is not created yet.");

@@ -509,7 +509,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     public void exportCertificate(final String dirPath) {
         try {
-            mKeyStoreMgr.exportServerCertificate(dirPath);
+            mKeyStoreMgr.storeKeyStoreToDirectory(dirPath);
         } catch (IOException e) {
             mLogger.severe("Failed to export server certificate: " + e.getMessage());
         }

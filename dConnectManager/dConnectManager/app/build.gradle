@@ -24,6 +24,10 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
         buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
+        manifestPlaceholders = [
+                appIcon: "@drawable/icon",
+                appName: "@string/app_name"
+        ]
     }
 
     packagingOptions {
@@ -56,6 +60,10 @@ android {
         DeviceWebApi {
             versionCode 28
             versionName "2.2.5"
+            manifestPlaceholders = [
+                    appIcon: "@drawable/icon",
+                    appName: "@string/app_name"
+            ]
             buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help-dwa/index.html\""
             buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
         }

@@ -24,6 +24,8 @@ class ThetaDeviceFactory {
                 }
             case THETA_S:
                 return new ThetaS(ssId);
+            case THETA_V:
+                return new ThetaV(ssId);
             default:
                 return null;
         }
@@ -40,8 +42,10 @@ class ThetaDeviceFactory {
     private static ThetaDeviceModel parseModel(final String ssId) {
         if (ssId.startsWith("THETAXN")) {
             return ThetaDeviceModel.THETA_M15;
-        } else if (ssId.startsWith("THETAXS")) {
+        } else if (ssId.startsWith("THETAXS") || ssId.startsWith("THETAYJ")) {
             return ThetaDeviceModel.THETA_S;
+        } else if ( ssId.startsWith("THETAYL")) {
+            return ThetaDeviceModel.THETA_V;
         } else {
             return ThetaDeviceModel.UNKNOWN;
         }

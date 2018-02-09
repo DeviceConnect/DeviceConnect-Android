@@ -25,7 +25,7 @@ public class SphericalImageLiveView extends SphericalImageView {
         if (device == null) {
             throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_THETA);
         }
-        if (device.getModel() != ThetaDeviceModel.THETA_S) {
+        if (device.getModel() == ThetaDeviceModel.THETA_M15) {
             throw new ThetaDeviceException(ThetaDeviceException.NOT_SUPPORTED_FEATURE);
         }
         mViewApi.startLiveView(device, mParam, mRenderer);

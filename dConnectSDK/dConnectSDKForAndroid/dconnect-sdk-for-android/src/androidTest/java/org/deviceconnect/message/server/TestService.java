@@ -39,10 +39,6 @@ public class TestService extends Service {
         if (mServiceCallback != null) {
             mServiceCallback.onReceivedRequest(this, intent);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder builder = new Notification.Builder(this, "test_channel_id");
-            startForeground(1, builder.build());
-        }
         return super.onStartCommand(intent, flags, startId);
     }
 

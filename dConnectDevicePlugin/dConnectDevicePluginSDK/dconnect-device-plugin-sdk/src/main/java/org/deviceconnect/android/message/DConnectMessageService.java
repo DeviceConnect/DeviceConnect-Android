@@ -214,18 +214,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_GENERAL_ID,
-                    getResources().getString(R.string.device_connect_channel),
-                    NotificationManager.IMPORTANCE_DEFAULT);
-
-            NotificationManager manager = (NotificationManager)
-                    getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.createNotificationChannel(channel);
-            Notification.Builder builder = new Notification.Builder(this, CHANNEL_GENERAL_ID);
-            startForeground(DCONNECT_DEVICEPLUGIN_MESSAGE_ID, builder.build());
-        }
         if (intent == null) {
             mLogger.warning("request intent is null.");
             return START_STICKY;

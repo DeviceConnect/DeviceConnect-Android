@@ -135,14 +135,6 @@
 
         <!-- 各アプリやデバイスプラグインからのDConnectMessageを受領するためのBroadcastReceiver. -->
         <receiver android:name=".DConnectBroadcastReceiver">
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET"/>
-                <action android:name="org.deviceconnect.action.PUT"/>
-                <action android:name="org.deviceconnect.action.POST"/>
-                <action android:name="org.deviceconnect.action.DELETE"/>
-                <action android:name="org.deviceconnect.action.RESPONSE"/>
-                <action android:name="org.deviceconnect.action.EVENT"/>
-            </intent-filter>
         </receiver>
 
         <!-- アプリケーションのインストールやアンインストールといったイベントを受領するためのBroadcastReceiver. -->

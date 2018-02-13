@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.theta.core.wifi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 /**
  * WiFi State Receiver.
@@ -20,7 +21,11 @@ public class WifiStateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         intent.setClass(context, WifiStateService.class);
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
 }

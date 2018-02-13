@@ -325,24 +325,17 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
                     Point size = getDisplaySize();
                     int pt = (int) (5 * getScaledDensity());
-                    WindowManager.LayoutParams l;
+                    int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        l = new WindowManager.LayoutParams(pt, pt,
-                                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                                PixelFormat.TRANSLUCENT);
-                    } else {
-                        l = new WindowManager.LayoutParams(pt, pt,
-                                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                                PixelFormat.TRANSLUCENT);
+                        type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
                     }
+                    WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
+                                type,
+                                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                                PixelFormat.TRANSLUCENT);
                     l.x = -size.x / 2;
                     l.y = -size.y / 2;
                     mWinMgr.addView(mPreview, l);

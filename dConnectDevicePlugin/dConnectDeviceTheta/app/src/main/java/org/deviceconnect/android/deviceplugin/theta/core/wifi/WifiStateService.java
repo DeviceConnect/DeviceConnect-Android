@@ -1,10 +1,12 @@
 package org.deviceconnect.android.deviceplugin.theta.core.wifi;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.IBinder;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
@@ -49,6 +51,10 @@ public class WifiStateService extends Service {
                 default:
                     break;
             }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder builder = new Notification.Builder(this, "theta_wifi_state_id");
+            startForeground(1, builder.build());
         }
         return START_STICKY;
     }

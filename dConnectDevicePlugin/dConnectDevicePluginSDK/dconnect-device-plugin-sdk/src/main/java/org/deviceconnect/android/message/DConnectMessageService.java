@@ -6,12 +6,16 @@
  */
 package org.deviceconnect.android.message;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
@@ -20,6 +24,7 @@ import android.os.RemoteException;
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.IDConnectPlugin;
+import org.deviceconnect.android.R;
 import org.deviceconnect.android.compat.AuthorizationRequestConverter;
 import org.deviceconnect.android.compat.LowerCaseConverter;
 import org.deviceconnect.android.compat.MessageConverter;
@@ -85,7 +90,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /** プロファイル仕様定義ファイルの拡張子. */
     private static final String SPEC_FILE_EXTENSION = ".json";
-
+    private static final String CHANNEL_GENERAL_ID = "org.deviceconnect.android.device.plugin";
+    private static final int DCONNECT_DEVICEPLUGIN_MESSAGE_ID = 1;
     /**
      * ロガー.
      */
@@ -208,7 +214,18 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_GENERAL_ID,
+                    getResources().getString(R.string.device_connect_channel),
+                    NotificationManager.IMPORTANCE_DEFAULT);
 
+            NotificationManager manager = (NotificationManager)
+                    getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
+            Notification.Builder builder = new Notification.Builder(this, CHANNEL_GENERAL_ID);
+            startForeground(DCONNECT_DEVICEPLUGIN_MESSAGE_ID, builder.build());
+        }
         if (intent == null) {
             mLogger.warning("request intent is null.");
             return START_STICKY;
@@ -221,6 +238,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         handleMessage(intent);
+
         return START_STICKY;
     }
 

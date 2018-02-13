@@ -46,7 +46,10 @@
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService"
-            android:exported="false" >
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_kadecot" />
         </service>
 
         <provider

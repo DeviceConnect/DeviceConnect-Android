@@ -69,7 +69,7 @@ repositories {
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
     compile project(':dconnect-server-nano-httpd')
     androidTestCompile 'com.android.support:support-annotations:26.1.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -84,7 +84,7 @@ android.testVariants.all { variant ->
         description = "Generates Javadoc for JUnit"
         source = variant.javaCompiler.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompiler.classpath.files) + files(ext.androidJar)
+        classpath = files(variant.javaCompiler.classpath) + files(ext.androidJar)
         destinationDir = new File("${project.getRootDir()}/DeviceConnectManager-JUnit-Javadoc/")
 
         options {

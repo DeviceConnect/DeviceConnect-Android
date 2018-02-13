@@ -12,6 +12,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 import java.util.logging.Logger;
 
@@ -51,7 +52,11 @@ public abstract class DConnectMessageServiceProvider<T extends Service> extends 
 
         Intent service = new Intent(intent);
         service.setClass(context, getServiceClass());
-        context.startService(service);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(service);
+        } else {
+            context.startService(service);
+        }
     }
 
     /**

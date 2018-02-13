@@ -6,6 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.theta;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.util.Log;
+
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
 
@@ -13,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
+import org.deviceconnect.android.deviceplugin.theta.core.wifi.WifiStateEventListener;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
@@ -45,11 +56,33 @@ public class ThetaDeviceService extends DConnectMessageService
     private ThetaDeviceClient mClient;
     private FileManager mFileMgr;
     private ThetaMediaStreamRecordingProfile mThetaMediaStreamRecording;
-
+    private WifiStateEventListener mListener;
+    private BroadcastReceiver mWifiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
+                WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+                mListener.onNetworkChanged(wifiInfo);
+            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+                switch (state) {
+                    case WifiManager.WIFI_STATE_DISABLED:
+                        mListener.onWiFiDisabled();
+                        break;
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        mListener.onWiFiEnabled();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
     @Override
     public void onCreate() {
         super.onCreate();
-
+        mListener = ((ThetaDeviceApplication) getApplication()).getDeviceManager();
         ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
         mDeviceMgr = app.getDeviceManager();
         mDeviceMgr.registerDeviceEventListener(this);
@@ -60,10 +93,16 @@ public class ThetaDeviceService extends DConnectMessageService
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
         getServiceProvider().addService(new ThetaImageService(app.getHeadTracker()));
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        registerReceiver(mWifiReceiver, filter);
     }
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(mWifiReceiver);
         mDeviceMgr.unregisterDeviceEventListener(this);
         try {
             PtpipInitiator.close();
@@ -139,10 +178,10 @@ public class ThetaDeviceService extends DConnectMessageService
      * リソースリセット処理.
      */
     private void resetPluginResource() {
-        /** 全イベント削除. */
+        /* 全イベント削除. */
         EventManager.INSTANCE.removeAll();
 
-        /** 記録処理・プレビュー停止 */
+        /* 記録処理・プレビュー停止 */
 
         if (mThetaMediaStreamRecording != null) {
             mThetaMediaStreamRecording.forcedStopRecording();

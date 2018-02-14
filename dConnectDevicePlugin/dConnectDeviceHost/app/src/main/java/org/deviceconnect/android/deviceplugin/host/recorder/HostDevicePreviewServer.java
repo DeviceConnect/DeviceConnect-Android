@@ -8,11 +8,13 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
@@ -88,10 +90,21 @@ public abstract class HostDevicePreviewServer implements HostDeviceRecorder {
      */
     public void sendNotification() {
         PendingIntent contentIntent = createPendingIntent();
-        Notification notification = createNotification(contentIntent);
+        Notification notification = createNotification(contentIntent, null);
         notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_AUTO_CANCEL;
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = mContext.getResources().getString(R.string.overlay_preview_channel_id);
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    mContext.getResources().getString(R.string.overlay_preview_content_title),
+                    NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription(mContext.getResources().getString(R.string.overlay_preview_content_message));
+            manager.createNotificationChannel(channel);
+            notification = createNotification(contentIntent, channelId);
+        }
         manager.notify(getId(), getNotificationId(), notification);
     }
 
@@ -100,16 +113,33 @@ public abstract class HostDevicePreviewServer implements HostDeviceRecorder {
      * @param pendingIntent Notificationがクリックされたときに起動するIntent
      * @return Notification
      */
-    private Notification createNotification(final PendingIntent pendingIntent) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
-        builder.setContentIntent(pendingIntent);
-        builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
-        builder.setSmallIcon(R.drawable.dconnect_icon);
-        builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
-        builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
-        builder.setWhen(System.currentTimeMillis());
-        builder.setAutoCancel(false);
-        return builder.build();
+    private Notification createNotification(final PendingIntent pendingIntent, final String channelId) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            builder.setSmallIcon(R.drawable.dconnect_icon);
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
+            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setWhen(System.currentTimeMillis());
+            builder.setAutoCancel(false);
+            return builder.build();
+        } else {
+            Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
+            builder.setSmallIcon(iconType);
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
+            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setWhen(System.currentTimeMillis());
+            builder.setAutoCancel(false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId != null) {
+                builder.setChannelId(channelId);
+            }
+            return builder.build();
+        }
     }
 
     /**

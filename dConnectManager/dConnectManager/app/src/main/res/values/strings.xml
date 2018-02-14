@@ -212,4 +212,13 @@
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 
+    <!-- ================= DConnectMessageService ================= -->
+    <string name="dconnect_service_on_channel_id">org.deviceconnect.android.manager.service</string>
+    <string name="dconnect_service_on_channel_title">Device Connect Message Service</string>
+    <string name="dconnect_service_on_channel_desc">This is a service for sending and receiving DeviceConnect messages.</string>
+
+    <!-- ================= DConnectWebService ================= -->
+    <string name="web_service_on_channel_id">org.deviceconnect.android.manager.webserver</string>
+    <string name="web_service_on_channel_title">Device Connect Web Server</string>
+    <string name="web_service_on_channel_desc">It is a WebServer for placing HTML for DeviceConnect.</string>
 </resources>

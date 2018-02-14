@@ -6,6 +6,9 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
@@ -853,16 +856,40 @@ public abstract class DConnectMessageService extends Service
         Intent notificationIntent = new Intent(getApplicationContext(), SettingActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 getApplicationContext(), 0, notificationIntent, 0);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-        builder.setContentIntent(pendingIntent);
-        builder.setTicker(getString(R.string.app_name));
-        builder.setContentTitle(getString(R.string.app_name));
-        builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
-        int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                R.drawable.icon : R.drawable.on_icon;
-        builder.setSmallIcon(iconType);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(getString(R.string.app_name));
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
 
-        startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        } else {
+            Notification.Builder builder = new Notification.Builder(getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(getString(R.string.app_name));
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = getApplicationContext().getResources().getString(R.string.dconnect_service_on_channel_id);
+                NotificationChannel channel = new NotificationChannel(
+                        channelId,
+                        getApplicationContext().getResources().getString(R.string.dconnect_service_on_channel_title),
+                        NotificationManager.IMPORTANCE_LOW);
+                channel.setDescription(getApplicationContext().getResources().getString(R.string.dconnect_service_on_channel_desc));
+                NotificationManager mNotification = (NotificationManager) getApplicationContext()
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotification.createNotificationChannel(channel);
+                builder.setChannelId(channelId);
+            }
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        }
     }
 
     /**

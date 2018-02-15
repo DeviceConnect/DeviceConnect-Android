@@ -43,6 +43,9 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -136,6 +139,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     };
 
+    private KeyStoreManager mKeyStoreMgr;
+
     private ScheduledExecutorService mExecutorService;
 
     private boolean mIsEnabled;
@@ -164,6 +169,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
+
+        // キーストア管理クラスの初期化
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), getKeyStoreFileName());
 
         // 認証プロファイルの追加
         addProfile(new AuthorizationProfile(this));
@@ -245,6 +253,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
             mIsEnabled = false;
             onDevicePluginDisabled();
         }
+    }
+
+    protected String getKeyStoreFileName() {
+        return "keystore.p12";
+    }
+
+    protected final void requestKeyStore(final KeyStoreCallback callback) {
+        mKeyStoreMgr.requestKeyStore(callback);
     }
 
     /**

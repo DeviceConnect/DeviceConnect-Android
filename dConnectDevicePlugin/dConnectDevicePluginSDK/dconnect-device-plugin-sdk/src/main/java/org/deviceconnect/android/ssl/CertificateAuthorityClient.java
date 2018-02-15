@@ -1,0 +1,109 @@
+package org.deviceconnect.android.ssl;
+
+
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.RemoteException;
+
+import org.bouncycastle.asn1.pkcs.CertificationRequest;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+/**
+ * ローカル証明書認証局へAIDL経由でアクセスする機能を提供する.
+ */
+class CertificateAuthorityClient {
+
+    private final Context mContext;
+
+    private final ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder binder) {
+            synchronized (mLock) {
+                mLocalCA = ICertificateAuthority.Stub.asInterface(binder);
+                mLock.notifyAll();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            synchronized (mLock) {
+                mLocalCA = null;
+            }
+        }
+    };
+
+    private final ComponentName mLocalCAName;
+
+    private ICertificateAuthority mLocalCA;
+
+    private final Object mLock = new Object();
+
+    private final Logger mLogger = Logger.getLogger("LocalCA");
+
+    CertificateAuthorityClient(final Context context, final ComponentName name) {
+        mContext = context;
+        mLocalCAName = name;
+    }
+
+    private void bindLocalCA() throws InterruptedException {
+        Intent intent = new Intent().setComponent(mLocalCAName);
+        mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        synchronized (mLock) {
+            if (mLocalCA == null) {
+                mLock.wait(1000);
+            }
+        }
+    }
+
+    void dispose() {
+        if (mLocalCA != null) {
+            mContext.unbindService(mConnection);
+        }
+    }
+
+    void executeCertificateRequest(final CertificationRequest request,
+                                   final CertificateCallback callback) {
+        try {
+            bindLocalCA();
+            ICertificateAuthority localCA = mLocalCA;
+            if (localCA == null) {
+                mLogger.log(Level.SEVERE, "Failed to bind local certificate authority service.");
+                callback.onError();
+                return;
+            }
+            byte[] x509 = localCA.requestCertificate(request.getEncoded());
+            if (x509 == null) {
+                mLogger.log(Level.SEVERE, "x509 is null.");
+                callback.onError();
+                return;
+            }
+            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            Certificate cert = factory.generateCertificate(new ByteArrayInputStream(x509));
+            callback.onCreate(cert);
+        } catch (InterruptedException e) {
+            mLogger.log(Level.SEVERE, "Failed to generate server certificate.", e);
+            callback.onError();
+        } catch (RemoteException e) {
+            mLogger.log(Level.SEVERE, "Failed to generate server certificate.", e);
+            callback.onError();
+        } catch (IOException e) {
+            mLogger.log(Level.SEVERE, "Failed to generate server certificate.", e);
+            callback.onError();
+        } catch (CertificateException e) {
+            mLogger.log(Level.SEVERE, "Failed to generate server certificate.", e);
+            callback.onError();
+        }
+    }
+
+}

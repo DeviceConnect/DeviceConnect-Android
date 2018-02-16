@@ -162,7 +162,9 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(isCA));
         generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(160));
         generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
-        generator.addExtension(X509Extensions.SubjectAlternativeName, false, generalNames);
+        if (generalNames != null) {
+            generator.addExtension(X509Extensions.SubjectAlternativeName, false, generalNames);
+        }
         return generator.generateX509Certificate(keyPair.getPrivate(), "BC");
     }
 

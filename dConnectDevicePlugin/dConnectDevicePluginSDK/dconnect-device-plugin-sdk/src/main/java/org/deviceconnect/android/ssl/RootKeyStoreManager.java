@@ -77,12 +77,7 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
         KeyPairGenerator kg = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = kg.generateKeyPair();
         X500Principal subject = new X500Principal("CN=" + mSubjectName);
-        GeneralNames generalNames = new GeneralNames(new DERSequence(new ASN1Encodable[] {
-                new GeneralName(GeneralName.dNSName, "localhost"),
-                new GeneralName(GeneralName.iPAddress, "0.0.0.0"),
-                new GeneralName(GeneralName.iPAddress, "127.0.0.1")
-        }));
-        Certificate cert = generateX509V3Certificate(keyPair, subject, subject, generalNames,true);
+        Certificate cert = generateX509V3Certificate(keyPair, subject, subject, null,true);
         Certificate[] chain = {cert};
         mKeyStore.setKeyEntry(mSubjectName, keyPair.getPrivate(), null, chain);
     }

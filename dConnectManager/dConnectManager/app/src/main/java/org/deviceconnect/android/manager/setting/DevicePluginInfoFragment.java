@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -188,7 +189,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
             worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getWorstBaudRate()));
 
-            LayoutInflater inflater = getLayoutInflater(null);
+            LayoutInflater inflater = getLayoutInflater();
 
             LinearLayout baudRateListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
             baudRateListLayout.removeAllViews();
@@ -402,7 +403,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         }
 
         final PackageManager pm = getActivity().getPackageManager();
-        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.GET_DISABLED_COMPONENTS;
+        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.MATCH_DISABLED_COMPONENTS;
         final List<ApplicationInfo> installedAppList = pm.getInstalledApplications(flags);
         for (ApplicationInfo app : installedAppList) {
             if (app.packageName.equals(packageName)) {
@@ -420,12 +421,16 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String title = getString(R.string.activity_settings_restart_device_plugin_title);
             String msg = getString(R.string.activity_settings_restart_device_plugin_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View v = inflater.inflate(R.layout.dialog_progress, null);
+            TextView titleView = v.findViewById(R.id.title);
+            TextView messageView = v.findViewById(R.id.message);
+            titleView.setText(title);
+            messageView.setText(msg);
+            builder.setView(v);
+
+            return builder.create();
         }
 
         @Override

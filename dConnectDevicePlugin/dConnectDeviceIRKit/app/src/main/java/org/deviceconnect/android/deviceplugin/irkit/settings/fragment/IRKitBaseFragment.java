@@ -14,6 +14,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
@@ -27,7 +29,7 @@ public class IRKitBaseFragment extends Fragment {
     /**
      * インジケーター.
      */
-    private ProgressDialog mIndView;
+    private AlertDialog mIndView;
     
     @Override
     public View onCreateView(final LayoutInflater inflater, 
@@ -35,11 +37,14 @@ public class IRKitBaseFragment extends Fragment {
             final Bundle savedInstanceState) {
         setRetainInstance(true);
 
-        mIndView = new ProgressDialog(getActivity());
-        mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mIndView.setCancelable(false);
-        mIndView.setMessage(getString(R.string.ind_message_prepare));
-        
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(getString(R.string.ind_message_prepare_title));
+        messageView.setText(getString(R.string.ind_message_prepare));
+        mIndView = builder.setView(v).create();
+
         return null;
     }
 
@@ -101,15 +106,18 @@ public class IRKitBaseFragment extends Fragment {
      * インジケーターを表示する.
      */
     protected void showProgress() {
-        if (mIndView != null) {
-            mIndView.show();
-        } else {
-            mIndView = new ProgressDialog(getActivity());
-            mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        if (mIndView == null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View v = inflater.inflate(R.layout.dialog_progress, null);
+            TextView titleView = v.findViewById(R.id.title);
+            TextView messageView = v.findViewById(R.id.message);
+            titleView.setText(getString(R.string.ind_message_prepare_title));
+            messageView.setText(getString(R.string.ind_message_prepare));
+            mIndView = builder.setView(v).create();
             mIndView.setCancelable(false);
-            mIndView.setMessage(getString(R.string.ind_message_prepare));
-            mIndView.show();
         }
+        mIndView.show();
     }
 
     /**

@@ -68,9 +68,13 @@ public class IRKitEndingFragment extends IRKitBaseFragment implements OnClickLis
         if (a == null) {
             return;
         }
-
-        showProgress();
-        v.setEnabled(false);
+        a.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                showProgress();
+                v.setEnabled(false);
+            }
+        });
         IRKitManager.INSTANCE.connectIRKitToWiFi(a.getSSID(), a.getPassword(), a.getSecType(), a.getDeviceKey(),
                 new IRKitConnectionCallback() {
 

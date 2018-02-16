@@ -30,7 +30,7 @@ class CertificateAuthority {
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
     CertificateAuthority(final Context context,
-                                final String keyStorePath) {
+                         final String keyStorePath) {
         mRootKeyStoreMgr = new RootKeyStoreManager(context, keyStorePath);
     }
 

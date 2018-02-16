@@ -35,6 +35,11 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
     }
 
     @Override
+    protected String getDefaultAlias() {
+        return ALIAS;
+    }
+
+    @Override
     public void requestKeyStore(final KeyStoreCallback callback) {
         mExecutor.execute(new Runnable() {
             @Override
@@ -70,7 +75,7 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
     private void generateSelfSignedCertificate() throws GeneralSecurityException {
         KeyPairGenerator kg = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = kg.generateKeyPair();
-        String commonName = getCertificateName(getUniqueId());
+        String commonName = "CN=localhost"; //getCertificateName(getUniqueId());
         Certificate cert = generateX509V3Certificate(keyPair, commonName);
         Certificate[] chain = {cert};
         mKeyStore.setKeyEntry(ALIAS, keyPair.getPrivate(), null, chain);

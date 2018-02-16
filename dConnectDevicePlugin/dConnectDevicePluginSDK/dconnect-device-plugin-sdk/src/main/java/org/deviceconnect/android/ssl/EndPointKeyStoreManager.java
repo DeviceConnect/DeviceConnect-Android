@@ -57,11 +57,17 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
     }
 
     EndPointKeyStoreManager(final Context context, final String keyStorePath,
-                                   final ComponentName rootCA) {
+                            final ComponentName rootCA) {
         super(context, keyStorePath);
         mRootCA = rootCA;
     }
 
+    @Override
+    protected String getDefaultAlias() {
+        return DEFAULT_CERTIFICATE_ALIAS;
+    }
+
+    @Override
     public void requestKeyStore(final KeyStoreCallback callback) {
         mExecutor.execute(new Runnable() {
             @Override
@@ -78,13 +84,14 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                         mLogger.info("Generated key pair.");
                         mLogger.info("Executing certificate request...");
                         final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
-                        localCA.executeCertificateRequest(createCSR(keyPair), new CertificateCallback() {
+                        localCA.executeCertificateRequest(createCSR(keyPair), new CertificateRequestCallback() {
                             @Override
-                            public void onCreate(final Certificate certificate) {
+                            public void onCreate(final Certificate cert) {
                                 mLogger.info("Generated server certificate");
 
                                 try {
-                                    mKeyStore.setCertificateEntry(alias, certificate);
+                                    Certificate[] chain = {cert};
+                                    mKeyStore.setKeyEntry(alias, keyPair.getPrivate(), null, chain);
                                     saveKeyStore();
                                     mLogger.info("Saved server certificate");
                                     callback.onSuccess(mKeyStore);
@@ -129,7 +136,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         values.add(new X509Extension(true, new DEROctetString(new KeyUsage(160))));
         values.add(new X509Extension(true, new DEROctetString(new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth))));
         values.add(new X509Extension(false, new DEROctetString(new GeneralNames(new DERSequence(new ASN1Encodable[] {
-                new GeneralName(GeneralName.dNSName, "localhost")
+                new GeneralName(GeneralName.dNSName, "localhost"),
+                new GeneralName(GeneralName.iPAddress, "192.168.2.16")
         })))));
         final X509Extensions x509Extensions = new X509Extensions(objectIDs, values);
         final X509Attribute x509Attribute = new X509Attribute(

@@ -16,7 +16,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -26,6 +28,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
@@ -75,6 +78,32 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         }
     }
 
+    @Override
+    public Certificate getCertificate() {
+        try {
+            return mKeyStore.getCertificate(getDefaultAlias());
+        } catch (KeyStoreException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void exportKeyStore(final File outputFile) throws IOException {
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream(outputFile);;
+            saveKeyStore(out);
+        } catch (GeneralSecurityException e) {
+            throw new IOException("Failed to export keystore.", e);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    protected abstract String getDefaultAlias();
+
     public KeyStore createKeyStore() throws GeneralSecurityException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         try {
@@ -108,7 +137,11 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     }
 
     void saveKeyStore() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-        mKeyStore.store(mContext.openFileOutput(mKeyStoreFilePath, Context.MODE_PRIVATE), KEYSTORE_PASSWORD);
+        saveKeyStore(mContext.openFileOutput(mKeyStoreFilePath, Context.MODE_PRIVATE));
+    }
+
+    void saveKeyStore(final OutputStream out) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+        mKeyStore.store(out, KEYSTORE_PASSWORD);
     }
 
     private X509Certificate generateX509V3Certificate(final KeyPair keyPair,
@@ -130,7 +163,8 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(160));
         generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
         generator.addExtension(X509Extensions.SubjectAlternativeName, false, new GeneralNames(new DERSequence(new ASN1Encodable[] {
-                new GeneralName(GeneralName.dNSName, "localhost")
+                new GeneralName(GeneralName.dNSName, "localhost"),
+                new GeneralName(GeneralName.iPAddress, "192.168.2.16")
         })));
         return generator.generateX509Certificate(keyPair.getPrivate(), "BC");
     }

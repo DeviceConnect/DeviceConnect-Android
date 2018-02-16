@@ -29,9 +29,9 @@ public abstract class CertificateAuthorityService extends Service {
             @Override
             public byte[] requestCertificate(final byte[] certificateRequest) throws RemoteException {
                 // TODO パッケージ取得処理
-                if (!allowsPackage(null)) {
-                    return null;
-                }
+//                if (!allowsPackage(null)) {
+//                    return null;
+//                }
                 return mLocalCA.requestCertificate(certificateRequest);
             }
         };

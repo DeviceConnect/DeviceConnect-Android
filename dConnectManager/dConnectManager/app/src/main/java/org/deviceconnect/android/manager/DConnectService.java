@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.security.KeyChain;
-import android.util.Log;
 
 import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
@@ -27,28 +26,37 @@ import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
-import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
-import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * dConnect Manager本体.
@@ -60,6 +68,11 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      * WakeLockのタグを定義する.
      */
     private static final String TAG_WAKE_LOCK = "DeviceConnectManager";
+
+    /**
+     * キーストアファイル名.
+     */
+    private static final String KEYSTORE_FILE_NAME = "manager.p12";
 
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
@@ -143,12 +156,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 new ServiceDiscoveryConverter(),
                 new ServiceInformationConverter()
         };
-        try {
-            mKeyStoreMgr = new KeyStoreManager();
-            mKeyStoreMgr.initialize(getApplicationContext(), true);
-        } catch (GeneralSecurityException e) {
-            mLogger.warning("Failed to load a server certificate: " + e.getMessage());
-        }
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), KEYSTORE_FILE_NAME);
 
         if (mSettings.isManagerStartFlag()) {
             startInternal();
@@ -370,7 +378,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 };
                 mWebServerListener.setFileManager(mFileMgr);
 
-                DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
+                final DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
                 builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
                         .documentRootPath(getFilesDir().getAbsolutePath())
                         .cachePath(mFileMgr.getBasePath().getAbsolutePath());
@@ -392,11 +400,42 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mWiFiReceiver, filter);
 
-                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext(), mKeyStoreMgr);
-                mRESTfulServer.setServerEventListener(mWebServerListener);
-                mRESTfulServer.start();
+                mKeyStoreMgr.requestKeyStore(new KeyStoreCallback() {
+                    @Override
+                    public void onSuccess(final KeyStore keyStore) {
+                        try {
+                            SSLServerSocketFactory factory = createSSLServerSocketFactory(keyStore);
+                            mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext(), factory);
+                            mRESTfulServer.setServerEventListener(mWebServerListener);
+                            mRESTfulServer.start();
+                        } catch (GeneralSecurityException e) {
+                            mLogger.log(Level.SEVERE, "Failed to start HTTPS server.", e);
+                        }
+                    }
+
+                    @Override
+                    public void onError(final KeyStoreError error) {
+                        mLogger.log(Level.SEVERE, "Failed to start HTTPS server: " + error.name());
+                    }
+                });
+
             }
         });
+    }
+
+    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore)
+        throws GeneralSecurityException {
+        SSLContext sslContext = SSLContext.getInstance("TLSv1");
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, "".toCharArray());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        sslContext.init(
+                keyManagerFactory.getKeyManagers(),
+                trustManagerFactory.getTrustManagers(),
+                new SecureRandom()
+        );
+        return sslContext.getServerSocketFactory();
     }
 
     /**
@@ -509,7 +548,13 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     public void exportCertificate(final String dirPath) {
         try {
-            mKeyStoreMgr.storeKeyStoreToDirectory(dirPath);
+            File dir = new File(dirPath);
+            if (!dir.exists()) {
+                if (!dir.mkdirs()) {
+                   throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
+                }
+            }
+            mKeyStoreMgr.exportKeyStore(new File(dir, "keystore.p12"));
         } catch (IOException e) {
             mLogger.severe("Failed to export server certificate: " + e.getMessage());
         }

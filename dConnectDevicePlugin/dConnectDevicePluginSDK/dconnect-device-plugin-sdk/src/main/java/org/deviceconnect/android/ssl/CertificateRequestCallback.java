@@ -3,7 +3,7 @@ package org.deviceconnect.android.ssl;
 
 import java.security.cert.Certificate;
 
-interface CertificateCallback {
+interface CertificateRequestCallback {
 
     void onCreate(Certificate certificate);
 

@@ -20,7 +20,19 @@ import java.util.logging.Logger;
 
 
 /**
- * ローカル証明書認証局へAIDL経由でアクセスする機能を提供する.
+ * ローカル認証局へAIDL経由でアクセスする機能を提供する.
+ *
+ * <p>
+ * ローカル認証局に対して証明書要求を送信する場合は、
+ * {@link #executeCertificateRequest(CertificationRequest, CertificateRequestCallback)}
+ * を実行する. 実行すると、指定したAndroidサービスとのバインド後、証明書要求が送信される.
+ * </p>
+ *
+ * <p>
+ * {@link CertificateRequestCallback} から証明書要求を取得した後は、
+ * かならず {@link #dispose()} によってバインドを解除すること.
+ * 解除しない場合は、メモリリークの原因となる.
+ * </p>
  */
 class CertificateAuthorityClient {
 
@@ -56,14 +68,9 @@ class CertificateAuthorityClient {
         mLocalCAName = name;
     }
 
-    private void bindLocalCA() throws InterruptedException {
+    private boolean bindLocalCA() throws InterruptedException {
         Intent intent = new Intent().setComponent(mLocalCAName);
-        mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        synchronized (mLock) {
-            if (mLocalCA == null) {
-                mLock.wait(1000);
-            }
-        }
+        return mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     void dispose() {
@@ -73,12 +80,20 @@ class CertificateAuthorityClient {
     }
 
     void executeCertificateRequest(final CertificationRequest request,
-                                   final CertificateCallback callback) {
+                                   final CertificateRequestCallback callback) {
         try {
-            bindLocalCA();
+            if(!bindLocalCA()) {
+                mLogger.severe("Local CA service (" + mLocalCAName + ") is not available.");
+                callback.onError();
+            }
+            synchronized (mLock) {
+                if (mLocalCA == null) {
+                    mLock.wait(5000);
+                }
+            }
             ICertificateAuthority localCA = mLocalCA;
             if (localCA == null) {
-                mLogger.log(Level.SEVERE, "Failed to bind local certificate authority service.");
+                mLogger.log(Level.SEVERE, "Failed to bind local CA service.");
                 callback.onError();
                 return;
             }

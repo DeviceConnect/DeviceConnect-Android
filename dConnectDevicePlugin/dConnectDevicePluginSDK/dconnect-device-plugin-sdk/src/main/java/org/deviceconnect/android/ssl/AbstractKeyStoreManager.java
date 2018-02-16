@@ -79,9 +79,9 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     }
 
     @Override
-    public Certificate getCertificate() {
+    public Certificate getCertificate(final String alias) {
         try {
-            return mKeyStore.getCertificate(getDefaultAlias());
+            return mKeyStore.getCertificate(alias);
         } catch (KeyStoreException e) {
             return null;
         }
@@ -101,8 +101,6 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
             }
         }
     }
-
-    protected abstract String getDefaultAlias();
 
     public KeyStore createKeyStore() throws GeneralSecurityException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
@@ -145,38 +143,41 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     }
 
     private X509Certificate generateX509V3Certificate(final KeyPair keyPair,
-                                                      final String commonName,
+                                                      final X500Principal subject,
+                                                      final X500Principal issuer,
                                                       final Date notBefore,
                                                       final Date notAfter,
-                                                      final BigInteger serialNumber) throws GeneralSecurityException {
+                                                      final BigInteger serialNumber,
+                                                      final GeneralNames generalNames,
+                                                      final boolean isCA) throws GeneralSecurityException {
         Security.addProvider(new BouncyCastleProvider());
         X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
-        X500Principal principal = new X500Principal(commonName);
         generator.setSerialNumber(serialNumber);
-        generator.setIssuerDN(principal);
-        generator.setSubjectDN(principal);
+        generator.setIssuerDN(issuer);
+        generator.setSubjectDN(subject);
         generator.setNotBefore(notBefore);
         generator.setNotAfter(notAfter);
         generator.setPublicKey(keyPair.getPublic());
         generator.setSignatureAlgorithm("SHA256WithRSAEncryption");
-        generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(true));
+        generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(isCA));
         generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(160));
         generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
-        generator.addExtension(X509Extensions.SubjectAlternativeName, false, new GeneralNames(new DERSequence(new ASN1Encodable[] {
-                new GeneralName(GeneralName.dNSName, "localhost"),
-                new GeneralName(GeneralName.iPAddress, "192.168.2.16")
-        })));
+        generator.addExtension(X509Extensions.SubjectAlternativeName, false, generalNames);
         return generator.generateX509Certificate(keyPair.getPrivate(), "BC");
     }
 
     @Override
-    public X509Certificate generateX509V3Certificate(final KeyPair keyPair, final String commonName) throws GeneralSecurityException {
+    public X509Certificate generateX509V3Certificate(final KeyPair keyPair,
+                                                     final X500Principal subject,
+                                                     final X500Principal issuer,
+                                                     final GeneralNames generalNames,
+                                                     final boolean isCA) throws GeneralSecurityException {
         Calendar var2 = Calendar.getInstance();
         var2.set(2009, 0, 1);
         Date var3 = new Date(var2.getTimeInMillis());
         var2.set(2099, 0, 1);
         Date var4 = new Date(var2.getTimeInMillis());
         BigInteger serialNumber = BigInteger.valueOf(Math.abs(System.currentTimeMillis()));
-        return generateX509V3Certificate(keyPair, commonName, var3, var4, serialNumber);
+        return generateX509V3Certificate(keyPair, subject, issuer, var3, var4, serialNumber, generalNames, isCA);
     }
 }

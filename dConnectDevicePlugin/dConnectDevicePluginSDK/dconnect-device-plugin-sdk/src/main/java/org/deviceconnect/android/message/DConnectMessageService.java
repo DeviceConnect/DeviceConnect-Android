@@ -259,8 +259,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return "keystore.p12";
     }
 
-    protected final void requestKeyStore(final KeyStoreCallback callback) {
-        mKeyStoreMgr.requestKeyStore(callback);
+    protected final void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
+        mKeyStoreMgr.requestKeyStore(ipAddress, callback);
     }
 
     /**

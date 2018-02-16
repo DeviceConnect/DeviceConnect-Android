@@ -44,38 +44,46 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
     private static final ComponentName DEFAULT_ROOT_CA = new ComponentName("org.deviceconnect.android.manager",
             "org.deviceconnect.android.manager.ssl.DConnectCertificateAuthorityService");
 
-    private static final String DEFAULT_CERTIFICATE_ALIAS = "DeviceConnect End Point";
-
     private final ComponentName mRootCA;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
-    public EndPointKeyStoreManager(final Context context, final String keyStorePath) {
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     * @param keyStorePath キーストアの保存先
+     */
+    public EndPointKeyStoreManager(final Context context,
+                                   final String keyStorePath) {
         this(context, keyStorePath, DEFAULT_ROOT_CA);
     }
 
-    EndPointKeyStoreManager(final Context context, final String keyStorePath,
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     * @param keyStorePath キーストアの保存先
+     * @param rootCA 証明書要求の送信先
+     */
+    EndPointKeyStoreManager(final Context context,
+                            final String keyStorePath,
                             final ComponentName rootCA) {
         super(context, keyStorePath);
         mRootCA = rootCA;
     }
 
     @Override
-    protected String getDefaultAlias() {
-        return DEFAULT_CERTIFICATE_ALIAS;
-    }
-
-    @Override
-    public void requestKeyStore(final KeyStoreCallback callback) {
+    public void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final String alias = DEFAULT_CERTIFICATE_ALIAS;
+                    final String alias = ipAddress;
                     if (mKeyStore.containsAlias(alias)) {
-                        mLogger.info("Certificate is cached: " + DEFAULT_CERTIFICATE_ALIAS);
+                        mLogger.info("Certificate is cached for alias: " + alias);
                         callback.onSuccess(mKeyStore);
                     } else {
                         mLogger.info("Generating key pair...");
@@ -84,7 +92,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                         mLogger.info("Generated key pair.");
                         mLogger.info("Executing certificate request...");
                         final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
-                        localCA.executeCertificateRequest(createCSR(keyPair), new CertificateRequestCallback() {
+                        final GeneralName name = new GeneralName(GeneralName.iPAddress, ipAddress);
+                        localCA.executeCertificateRequest(createCSR(keyPair, ipAddress, name), new CertificateRequestCallback() {
                             @Override
                             public void onCreate(final Certificate cert) {
                                 mLogger.info("Generated server certificate");
@@ -113,7 +122,6 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                         });
                     }
                 } catch (KeyStoreException e) {
-                    e.printStackTrace();
                     callback.onError(KeyStoreError.BROKEN_KEYSTORE);
                 } catch (GeneralSecurityException e) {
                     callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
@@ -122,9 +130,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         });
     }
 
-    private PKCS10CertificationRequest createCSR(final KeyPair keyPair) throws GeneralSecurityException {
+    private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,
+                                                        final String commonName,
+                                                        final GeneralName generalName) throws GeneralSecurityException {
         final String signatureAlgorithm = "SHA256WithRSAEncryption";
-        final X500Principal principal = new X500Principal("CN=localhost");
+        final X500Principal principal = new X500Principal("CN=" + commonName);
 
         final Vector<DERObjectIdentifier> objectIDs = new Vector<>();
         objectIDs.add(X509Extensions.BasicConstraints);
@@ -137,7 +147,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         values.add(new X509Extension(true, new DEROctetString(new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth))));
         values.add(new X509Extension(false, new DEROctetString(new GeneralNames(new DERSequence(new ASN1Encodable[] {
                 new GeneralName(GeneralName.dNSName, "localhost"),
-                new GeneralName(GeneralName.iPAddress, "192.168.2.16")
+                generalName
         })))));
         final X509Extensions x509Extensions = new X509Extensions(objectIDs, values);
         final X509Attribute x509Attribute = new X509Attribute(

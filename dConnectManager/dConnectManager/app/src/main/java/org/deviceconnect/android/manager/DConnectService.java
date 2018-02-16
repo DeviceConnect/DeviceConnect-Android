@@ -26,6 +26,7 @@ import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.ssl.DConnectCertificateAuthorityService;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -43,8 +44,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -400,7 +403,8 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mWiFiReceiver, filter);
 
-                mKeyStoreMgr.requestKeyStore(new KeyStoreCallback() {
+                String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
+                mKeyStoreMgr.requestKeyStore(ipAddress, new KeyStoreCallback() {
                     @Override
                     public void onSuccess(final KeyStore keyStore) {
                         try {
@@ -425,9 +429,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
     private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore)
         throws GeneralSecurityException {
-        SSLContext sslContext = SSLContext.getInstance("TLSv1");
+        SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "".toCharArray());
+        keyManagerFactory.init(keyStore, "0000".toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
         sslContext.init(
@@ -527,18 +531,36 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      * 認可されない場合は、インストールされない.
      */
     public void installCertificate() {
-        Certificate certificate = mKeyStoreMgr.getCertificate();
+        Certificate certificate = loadRootCertificate();
         if (certificate != null) {
             try {
                 Intent installIntent = KeyChain.createInstallIntent();
                 installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Manager");
+                installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Root CA");
                 installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, certificate.getEncoded());
                 startActivity(installIntent);
             } catch (CertificateEncodingException e) {
                 mLogger.severe("Failed to encode server certificate: " + e.getMessage());
             }
         }
+    }
+
+    private Certificate loadRootCertificate() {
+        String keystoreFile = DConnectCertificateAuthorityService.KEYSTORE_NAME;
+        String issuerName = DConnectCertificateAuthorityService.ISSUER_NAME;
+        try {
+            InputStream in = openFileInput(keystoreFile);
+            KeyStore rootKeystore = KeyStore.getInstance("PKCS12");
+            rootKeystore.load(in, "0000".toCharArray());
+            return rootKeystore.getCertificate(issuerName);
+        } catch (IOException e) {
+            mLogger.log(Level.SEVERE, "Failed to open keystore of Root CA: " + keystoreFile, e);
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to get a certificate from keystore of Root CA: " + keystoreFile, e);
+        } catch (Throwable e) {
+            mLogger.log(Level.SEVERE, "Failed to get a certificate from keystore of Root CA: " + keystoreFile, e);
+        }
+        return null;
     }
 
     /**

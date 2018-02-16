@@ -2,11 +2,13 @@ package org.deviceconnect.android.ssl;
 
 
 import android.content.Context;
-import android.os.Build;
-import android.provider.Settings;
-import android.util.Log;
 
 import com.google.fix.PRNGFixes;
+
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -18,34 +20,33 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreManager {
+import javax.security.auth.x500.X500Principal;
 
-    static final String ALIAS = "RootCA";
+class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreManager {
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
+    private final String mSubjectName;
+
     RootKeyStoreManager(final Context context,
+                        final String subjectName,
                         final String keyStorePath) {
         super(context, keyStorePath);
+        mSubjectName = subjectName;
 
         // Java Cryptography Architectureの乱数種に関するセキュリティ問題への対処.
         PRNGFixes.apply();
     }
 
     @Override
-    protected String getDefaultAlias() {
-        return ALIAS;
-    }
-
-    @Override
-    public void requestKeyStore(final KeyStoreCallback callback) {
+    public void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Certificate cert = mKeyStore.getCertificate(ALIAS);
+                    Certificate cert = mKeyStore.getCertificate(ipAddress);
                     if (cert != null) {
                         callback.onSuccess(mKeyStore);
                         return;
@@ -75,31 +76,14 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
     private void generateSelfSignedCertificate() throws GeneralSecurityException {
         KeyPairGenerator kg = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = kg.generateKeyPair();
-        String commonName = "CN=localhost"; //getCertificateName(getUniqueId());
-        Certificate cert = generateX509V3Certificate(keyPair, commonName);
+        X500Principal subject = new X500Principal("CN=" + mSubjectName);
+        GeneralNames generalNames = new GeneralNames(new DERSequence(new ASN1Encodable[] {
+                new GeneralName(GeneralName.dNSName, "localhost"),
+                new GeneralName(GeneralName.iPAddress, "0.0.0.0"),
+                new GeneralName(GeneralName.iPAddress, "127.0.0.1")
+        }));
+        Certificate cert = generateX509V3Certificate(keyPair, subject, subject, generalNames,true);
         Certificate[] chain = {cert};
-        mKeyStore.setKeyEntry(ALIAS, keyPair.getPrivate(), null, chain);
-    }
-
-    /**
-     * Get Unique ID.
-     * @return Unique ID
-     */
-    private String getUniqueId() {
-        String id = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
-        // null ANDROID_ID is possible on emulator
-        return id != null ? id : "emulator";
-    }
-
-    /**
-     * Returns the name that should be used in a new certificate.
-     * <p>
-     * The format is:
-     * "CN=Device Connect-server/PRODUCT/DEVICE/MODEL/unique identifier"
-     * @param id ID
-     * @return Certificate Name
-     */
-    private static String getCertificateName(final String id) {
-        return "CN=Device Connect-server/" + Build.PRODUCT + "/" + Build.DEVICE + "/" + Build.MODEL + "/" + id;
+        mKeyStore.setKeyEntry(mSubjectName, keyPair.getPrivate(), null, chain);
     }
 }

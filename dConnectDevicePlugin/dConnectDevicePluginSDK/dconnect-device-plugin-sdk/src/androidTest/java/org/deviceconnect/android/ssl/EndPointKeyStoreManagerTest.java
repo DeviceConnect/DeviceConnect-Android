@@ -45,7 +45,7 @@ public class EndPointKeyStoreManagerTest {
         final KeyStore[] result = new KeyStore[1];
 
         KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, authorityName);
-        mgr.requestKeyStore(new KeyStoreCallback() {
+        mgr.requestKeyStore("0.0.0.0", new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore) {
                 result[0] = keyStore;

@@ -19,7 +19,7 @@ public abstract class CertificateAuthorityService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        mLocalCA = new CertificateAuthority(getApplicationContext(), "root.p12");
+        mLocalCA = new CertificateAuthority(getApplicationContext(), getIssuerName(), getKeyStoreFileName());
     }
 
     @Nullable
@@ -35,6 +35,14 @@ public abstract class CertificateAuthorityService extends Service {
                 return mLocalCA.requestCertificate(certificateRequest);
             }
         };
+    }
+
+    protected String getIssuerName() {
+        return "Device Connect Root CA";
+    }
+
+    protected String getKeyStoreFileName() {
+        return "keystore.p12";
     }
 
     protected boolean allowsPackage(final String packageName) {

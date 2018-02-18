@@ -77,6 +77,11 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     private static final String KEYSTORE_FILE_NAME = "manager.p12";
 
+    /**
+     * 証明書のエイリアス.
+     */
+    private static final String CERTIFICATE_ALIAS = "manager";
+
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
     public static final String EXTRA_WEBSOCKET_ID = "webSocketId";

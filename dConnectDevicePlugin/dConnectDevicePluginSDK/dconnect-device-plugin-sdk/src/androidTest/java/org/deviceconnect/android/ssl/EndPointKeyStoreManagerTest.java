@@ -44,7 +44,7 @@ public class EndPointKeyStoreManagerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         final KeyStore[] result = new KeyStore[1];
 
-        KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, authorityName);
+        KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, context.getPackageName(), authorityName);
         mgr.requestKeyStore("0.0.0.0", new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore) {

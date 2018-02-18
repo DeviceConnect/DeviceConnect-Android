@@ -19,13 +19,17 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.util.IPAddress;
 import org.bouncycastle.x509.X509Attribute;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStoreException;
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,11 +48,15 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
     private static final ComponentName DEFAULT_ROOT_CA = new ComponentName("org.deviceconnect.android.manager",
             "org.deviceconnect.android.manager.ssl.DConnectCertificateAuthorityService");
 
+    private final String mAlias;
+
     private final ComponentName mRootCA;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final Logger mLogger = Logger.getLogger("LocalCA");
+
+    private final List<String> mIPAddresses = new ArrayList<>();
 
     /**
      * コンストラクタ.
@@ -58,7 +66,19 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      */
     public EndPointKeyStoreManager(final Context context,
                                    final String keyStorePath) {
-        this(context, keyStorePath, DEFAULT_ROOT_CA);
+        this(context, keyStorePath, context.getPackageName());
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     * @param keyStorePath キーストアの保存先
+     */
+    public EndPointKeyStoreManager(final Context context,
+                                   final String keyStorePath,
+                                   final String alias) {
+        this(context, keyStorePath, alias, DEFAULT_ROOT_CA);
     }
 
     /**
@@ -70,9 +90,20 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      */
     EndPointKeyStoreManager(final Context context,
                             final String keyStorePath,
+                            final String alias,
                             final ComponentName rootCA) {
         super(context, keyStorePath);
         mRootCA = rootCA;
+        mAlias = alias;
+    }
+
+    private boolean hasIPAddress(final String ipAddress) {
+        for (String address : mIPAddresses) {
+            if (address.equals(ipAddress)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -82,7 +113,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
             public void run() {
                 try {
                     final String alias = ipAddress;
-                    if (mKeyStore.containsAlias(alias)) {
+                    if (hasIPAddress(ipAddress)) {
                         mLogger.info("Certificate is cached for alias: " + alias);
                         callback.onSuccess(mKeyStore);
                     } else {
@@ -99,8 +130,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                                 mLogger.info("Generated server certificate");
 
                                 try {
-                                    Certificate[] chain = {cert};
-                                    mKeyStore.setKeyEntry(alias, keyPair.getPrivate(), null, chain);
+                                    setCertificate(cert, keyPair.getPrivate());
                                     saveKeyStore();
                                     mLogger.info("Saved server certificate");
                                     callback.onSuccess(mKeyStore);
@@ -128,6 +158,15 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                 }
             }
         });
+    }
+
+    private String getAlias() {
+        return mAlias;
+    }
+
+    private void setCertificate(final Certificate cert, final PrivateKey privateKey) throws KeyStoreException {
+        Certificate[] chain = {cert};
+        mKeyStore.setKeyEntry(getAlias(), privateKey, null, chain);
     }
 
     private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,

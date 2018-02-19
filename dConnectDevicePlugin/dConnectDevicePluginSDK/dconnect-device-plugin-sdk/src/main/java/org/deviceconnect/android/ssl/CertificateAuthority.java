@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -59,58 +60,69 @@ class CertificateAuthority {
         mIssuerName = issuerName;
     }
 
-    byte[] requestCertificate(final byte[] pkcs10) {
-        final Certificate[] certificate = new Certificate[1];
+    byte[] getRootCertificate() {
+        final KeyStore[] keyStore = new KeyStore[1];
         final KeyStoreError[] errors = new KeyStoreError[1];
         final CountDownLatch lock = new CountDownLatch(1);
 
         // キーストア取得
         mRootKeyStoreMgr.requestKeyStore(mIssuerName, new KeyStoreCallback() {
             @Override
-            public void onSuccess(final KeyStore keyStore) {
-                try {
-                    // 証明書要求を解析
-                    PKCS10CertificationRequest request = new PKCS10CertificationRequest(pkcs10);
-                    CertificationRequestInfo requestInfo = request.getCertificationRequestInfo();
-
-                    PrivateKey signingKey = mRootKeyStoreMgr.getPrivateKey(mIssuerName);
-                    KeyPair keyPair = new KeyPair(request.getPublicKey(), signingKey);
-                    X500Principal subject = new X500Principal("CN=localhost");
-                    X500Principal issuer = new X500Principal("CN=" + mIssuerName);
-                    GeneralNames generalNames = parseSANs(request);
-                    certificate[0] = mRootKeyStoreMgr.generateX509V3Certificate(keyPair, subject, issuer, generalNames, false);
-                } catch (Exception e) {
-                    // NOP.
-                    mLogger.log(Level.SEVERE, "Failed to generate keystore: ", e);
-                } finally {
-                    // スレッドブロックを解除
-                    lock.countDown();
-                }
+            public void onSuccess(final KeyStore result) {
+                mLogger.severe("Got Root CA keystore: subject = issuer = " + mIssuerName);
+                keyStore[0] = result;
+                lock.countDown();
             }
-
             @Override
             public void onError(final KeyStoreError error) {
                 mLogger.severe("Failed to get keystore: " + error);
                 errors[0] = error;
-
-                // スレッドブロックを解除
                 lock.countDown();
             }
         });
-
         try {
             lock.await(10, TimeUnit.SECONDS);
-            if (certificate[0] == null && errors[0] == null) {
+            if (keyStore[0] == null && errors[0] == null) {
                 mLogger.log(Level.SEVERE, "Timeout was occurred for keystore generation.");
+                return null;
             }
-            Certificate result = certificate[0];
-            if (result != null) {
-                return result.getEncoded();
+            if (keyStore[0] != null) {
+                Certificate rootCert = keyStore[0].getCertificate(mIssuerName);
+                if (rootCert != null) {
+                    return rootCert.getEncoded();
+                } else {
+                    throw new IllegalStateException("Fix bug.");
+                }
             }
         } catch (InterruptedException e) {
-            mLogger.log(Level.SEVERE, "Failed to encode certificate to byte array: ", e);
-        } catch (CertificateEncodingException e) {
-            mLogger.log(Level.SEVERE, "Failed to encode certificate to byte array: ", e);
+            mLogger.log(Level.SEVERE, "Failed to encode certificate to byte array.", e);
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to get certificate from keystore.", e);
+        }
+        return null;
+    }
+
+    byte[] requestCertificate(final byte[] pkcs10) {
+        try {
+            if (getRootCertificate() == null) {
+                return null;
+            }
+
+            // 証明書要求を解析
+            PKCS10CertificationRequest request = new PKCS10CertificationRequest(pkcs10);
+            PrivateKey signingKey = mRootKeyStoreMgr.getPrivateKey(mIssuerName);
+            KeyPair keyPair = new KeyPair(request.getPublicKey(), signingKey);
+            X500Principal subject = new X500Principal("CN=localhost");
+            X500Principal issuer = new X500Principal("CN=" + mIssuerName);
+            GeneralNames generalNames = parseSANs(request);
+
+            // 証明書発行
+            Certificate certificate = mRootKeyStoreMgr.generateX509V3Certificate(keyPair, subject, issuer, generalNames, false);
+            return certificate.getEncoded();
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to generate certificate to byte array.", e);
+        } catch (IOException e) {
+            mLogger.log(Level.SEVERE, "Failed to parse SANs in certificate.", e);
         }
         return null;
     }

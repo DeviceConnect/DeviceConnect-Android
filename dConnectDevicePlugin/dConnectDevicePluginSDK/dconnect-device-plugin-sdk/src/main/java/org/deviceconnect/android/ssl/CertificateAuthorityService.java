@@ -28,11 +28,13 @@ public abstract class CertificateAuthorityService extends Service {
         return new ICertificateAuthority.Stub() {
             @Override
             public byte[] requestCertificate(final byte[] certificateRequest) throws RemoteException {
-                // TODO パッケージ取得処理
-//                if (!allowsPackage(null)) {
-//                    return null;
-//                }
+                // NOTE: 将来的に必要になったら、ここで呼び出し元によって証明書署名要求の可否を判定.
                 return mLocalCA.requestCertificate(certificateRequest);
+            }
+
+            @Override
+            public byte[] getRootCertificate() throws RemoteException {
+                return mLocalCA.getRootCertificate();
             }
         };
     }
@@ -43,9 +45,5 @@ public abstract class CertificateAuthorityService extends Service {
 
     protected String getKeyStoreFileName() {
         return "keystore.p12";
-    }
-
-    protected boolean allowsPackage(final String packageName) {
-        return true;
     }
 }

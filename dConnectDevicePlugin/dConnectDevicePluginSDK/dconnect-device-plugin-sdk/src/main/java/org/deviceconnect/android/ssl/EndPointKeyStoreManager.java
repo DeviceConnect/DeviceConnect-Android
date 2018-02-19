@@ -5,23 +5,14 @@ import android.content.ComponentName;
 import android.content.Context;
 
 import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
-import org.bouncycastle.asn1.pkcs.CertificationRequest;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
-import org.bouncycastle.util.IPAddress;
-import org.bouncycastle.x509.X509Attribute;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -35,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -179,11 +169,12 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
 
                         localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
                             @Override
-                            public void onCreate(final Certificate cert) {
+                            public void onCreate(final Certificate cert, final Certificate rootCert) {
                                 mLogger.info("Generated server certificate");
 
                                 try {
-                                    setCertificate(cert, keyPair.getPrivate());
+                                    Certificate[] chain = {cert, rootCert};
+                                    setCertificate(chain, keyPair.getPrivate());
                                     saveKeyStore();
                                     mLogger.info("Saved server certificate");
                                     mIPAddresses.add(ipAddress);
@@ -218,9 +209,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         return mAlias;
     }
 
-    private void setCertificate(final Certificate cert, final PrivateKey privateKey) throws KeyStoreException {
-        Certificate[] chain = {cert};
-        mKeyStore.setKeyEntry(getAlias(), privateKey, null, chain);
+    private void setCertificate(final Certificate[] certChain, final PrivateKey privateKey) throws KeyStoreException {
+        mKeyStore.setKeyEntry(getAlias(), privateKey, null, certChain);
     }
 
     private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,

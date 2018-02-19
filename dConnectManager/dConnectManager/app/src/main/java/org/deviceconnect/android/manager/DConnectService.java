@@ -569,11 +569,11 @@ public class DConnectService extends DConnectMessageService implements WebSocket
     }
 
     /**
-     * サーバ証明書をSDカード上に出力する.
+     * キーストアをSDカード上のファイルとして出力する.
      *
      * @param dirPath 出力先のディレクトリへのパス
      */
-    public void exportCertificate(final String dirPath) {
+    public void exportKeyStore(final String dirPath) {
         try {
             File dir = new File(dirPath);
             if (!dir.exists()) {

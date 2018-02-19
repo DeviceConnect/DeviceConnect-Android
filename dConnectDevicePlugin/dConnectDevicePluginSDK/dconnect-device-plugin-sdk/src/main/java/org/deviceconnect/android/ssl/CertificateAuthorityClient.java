@@ -68,9 +68,34 @@ class CertificateAuthorityClient {
         mLocalCAName = name;
     }
 
-    private boolean bindLocalCA() throws InterruptedException {
+    private boolean bindLocalCA() {
         Intent intent = new Intent().setComponent(mLocalCAName);
         return mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private ICertificateAuthority fetchLocalCA(final CertificateRequestCallback callback)
+        throws InterruptedException {
+        if(!bindLocalCA()) {
+            mLogger.severe("Local CA service (" + mLocalCAName + ") is not available.");
+            callback.onError();
+        }
+        synchronized (mLock) {
+            if (mLocalCA == null) {
+                mLock.wait(5000);
+            }
+        }
+        ICertificateAuthority localCA = mLocalCA;
+        if (localCA == null) {
+            mLogger.log(Level.SEVERE, "Failed to bind local CA service.");
+            callback.onError();
+            return null;
+        }
+        return localCA;
+    }
+
+    private Certificate decodeX509Certificate(final byte[] data) throws CertificateException {
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        return factory.generateCertificate(new ByteArrayInputStream(data));
     }
 
     void dispose() {
@@ -82,30 +107,23 @@ class CertificateAuthorityClient {
     void executeCertificateRequest(final CertificationRequest request,
                                    final CertificateRequestCallback callback) {
         try {
-            if(!bindLocalCA()) {
-                mLogger.severe("Local CA service (" + mLocalCAName + ") is not available.");
-                callback.onError();
-            }
-            synchronized (mLock) {
-                if (mLocalCA == null) {
-                    mLock.wait(5000);
-                }
-            }
-            ICertificateAuthority localCA = mLocalCA;
+            ICertificateAuthority localCA = fetchLocalCA(callback);
             if (localCA == null) {
-                mLogger.log(Level.SEVERE, "Failed to bind local CA service.");
+                return;
+            }
+            byte[] cert = localCA.requestCertificate(request.getEncoded());
+            if (cert == null) {
+                mLogger.log(Level.SEVERE, "end-point certificate is null.");
                 callback.onError();
                 return;
             }
-            byte[] x509 = localCA.requestCertificate(request.getEncoded());
-            if (x509 == null) {
-                mLogger.log(Level.SEVERE, "x509 is null.");
+            byte[] rootCert = localCA.getRootCertificate();
+            if (rootCert == null) {
+                mLogger.log(Level.SEVERE, "root certificate is null.");
                 callback.onError();
                 return;
             }
-            CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            Certificate cert = factory.generateCertificate(new ByteArrayInputStream(x509));
-            callback.onCreate(cert);
+            callback.onCreate(decodeX509Certificate(cert), decodeX509Certificate(rootCert));
         } catch (InterruptedException e) {
             mLogger.log(Level.SEVERE, "Failed to generate server certificate.", e);
             callback.onError();

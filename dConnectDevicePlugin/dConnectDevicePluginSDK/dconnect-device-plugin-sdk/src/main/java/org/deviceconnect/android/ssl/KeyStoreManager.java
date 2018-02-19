@@ -39,6 +39,8 @@ public interface KeyStoreManager {
     /**
      * キーストアを外部ファイルに出力する.
      *
+     * ルートCA証明書も同梱する.
+     *
      * @param outputFile 出力先となるファイル
      * @throws IOException 出力に失敗した場合
      */

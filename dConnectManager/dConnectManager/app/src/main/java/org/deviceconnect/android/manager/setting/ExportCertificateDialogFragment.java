@@ -38,7 +38,7 @@ public class ExportCertificateDialogFragment extends DialogFragment {
                             final String exportPath = exportPathEdit.getText().toString();
                             DConnectService service = ((SettingActivity) activity).getManagerService();
                             if (service != null) {
-                                service.exportCertificate(exportPath);
+                                service.exportKeyStore(exportPath);
                             }
                         }
                     }

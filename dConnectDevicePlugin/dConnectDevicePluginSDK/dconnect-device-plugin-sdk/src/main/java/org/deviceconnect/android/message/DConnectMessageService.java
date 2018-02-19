@@ -309,7 +309,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         requestAndNotifyKeyStore(getCurrentIPAddress());
     }
 
-    @
+
     private String getCurrentIPAddress() {
         Context appContext = getContext().getApplicationContext();
         int state = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_WIFI_STATE);

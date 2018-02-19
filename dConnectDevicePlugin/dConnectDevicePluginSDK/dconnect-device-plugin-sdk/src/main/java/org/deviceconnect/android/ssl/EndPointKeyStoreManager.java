@@ -9,6 +9,7 @@ import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.asn1.pkcs.CertificationRequest;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
@@ -28,7 +29,11 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -95,6 +100,41 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         super(context, keyStorePath);
         mRootCA = rootCA;
         mAlias = alias;
+        restoreIPAddress(alias);
+    }
+
+    private void restoreIPAddress(final String alias) {
+        mLogger.log(Level.INFO, "Restoring IP Addresses...: alias = " + alias);
+        try {
+            Certificate certificate = mKeyStore.getCertificate(alias);
+            if (certificate == null) {
+                mLogger.info("Certificate is not stored yet: alias = " + alias);
+                return;
+            }
+            if (certificate instanceof X509Certificate) {
+                X509Certificate x509 = (X509Certificate) certificate;
+                Collection<List<?>> names = x509.getSubjectAlternativeNames();
+                if (names != null) {
+                    for (Iterator<List<?>> it = names.iterator(); it.hasNext(); ) {
+                        List<?> list = it.next();
+                        for (Object obj : list) {
+                            if (obj instanceof GeneralName) {
+                                GeneralName generalName = (GeneralName) obj;
+                                mLogger.info("GeneralName: name = " + generalName.getName().getClass() + ", generalName.getName()");
+                            }
+                        }
+                    }
+                } else {
+                    mLogger.log(Level.INFO, "No SANs is defined in certificate.");
+                }
+            } else {
+                mLogger.log(Level.SEVERE, "Certificate format is not X.509: class = " + certificate.getClass());
+            }
+        } catch (CertificateParsingException e) {
+            mLogger.log(Level.WARNING, "Failed to parse IP Addresses of certificate.", e);
+        } catch (KeyStoreException e) {
+            mLogger.log(Level.WARNING, "Failed to restore IP Addresses.", e);
+        }
     }
 
     private boolean hasIPAddress(final String ipAddress) {
@@ -111,6 +151,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
                 try {
                     final String alias = ipAddress;
                     if (hasIPAddress(ipAddress)) {
@@ -123,8 +164,20 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                         mLogger.info("Generated key pair.");
                         mLogger.info("Executing certificate request...");
                         final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
-                        final GeneralName name = new GeneralName(GeneralName.iPAddress, ipAddress);
-                        localCA.executeCertificateRequest(createCSR(keyPair, ipAddress, name), new CertificateRequestCallback() {
+
+                        final List<ASN1Encodable> names = new ArrayList<>();
+                        names.add(new GeneralName(GeneralName.iPAddress, ipAddress));
+                        for (String cache : mIPAddresses) {
+                            if (!cache.equals(ipAddress)) {
+                                names.add(new GeneralName(GeneralName.iPAddress, cache));
+                            }
+                        }
+                        names.add(new GeneralName(GeneralName.iPAddress, "0.0.0.0"));
+                        names.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
+                        names.add(new GeneralName(GeneralName.dNSName, "localhost"));
+                        GeneralNames generalNames = new GeneralNames(new DERSequence(names.toArray(new ASN1Encodable[names.size()])));
+
+                        localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
                             @Override
                             public void onCreate(final Certificate cert) {
                                 mLogger.info("Generated server certificate");
@@ -133,6 +186,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                                     setCertificate(cert, keyPair.getPrivate());
                                     saveKeyStore();
                                     mLogger.info("Saved server certificate");
+                                    mIPAddresses.add(ipAddress);
                                     callback.onSuccess(mKeyStore);
                                 } catch (Exception e) {
                                     mLogger.log(Level.SEVERE, "Failed to save server certificate", e);
@@ -171,33 +225,24 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
 
     private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,
                                                         final String commonName,
-                                                        final GeneralName generalName) throws GeneralSecurityException {
+                                                        final GeneralNames generalNames) throws GeneralSecurityException {
         final String signatureAlgorithm = "SHA256WithRSAEncryption";
-        final X500Principal principal = new X500Principal("CN=" + commonName);
-
-        final Vector<DERObjectIdentifier> objectIDs = new Vector<>();
-        objectIDs.add(X509Extensions.BasicConstraints);
-        objectIDs.add(X509Extensions.KeyUsage);
-        objectIDs.add(X509Extensions.ExtendedKeyUsage);
-        objectIDs.add(X509Extensions.SubjectAlternativeName);
-        final Vector<X509Extension> values = new Vector<>();
-        values.add(new X509Extension(true, new DEROctetString(new BasicConstraints(/* isCA*/ true ))));
-        values.add(new X509Extension(true, new DEROctetString(new KeyUsage(160))));
-        values.add(new X509Extension(true, new DEROctetString(new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth))));
-        values.add(new X509Extension(false, new DEROctetString(new GeneralNames(new DERSequence(new ASN1Encodable[] {
-                new GeneralName(GeneralName.dNSName, "localhost"),
-                generalName
-        })))));
-        final X509Extensions x509Extensions = new X509Extensions(objectIDs, values);
-        final X509Attribute x509Attribute = new X509Attribute(
-                PKCSObjectIdentifiers.pkcs_9_at_extensionRequest.getId(),
-                new DERSet(x509Extensions));
-
+        final X500Principal principal = new X500Principal("CN=" + commonName + ", O=Device Connect Project, L=N/A, ST=N/A, C=JP");
+        DERSequence sanExtension= new DERSequence(new ASN1Encodable[] {
+                X509Extensions.SubjectAlternativeName,
+                new DEROctetString(generalNames)
+        });
+        DERSet extensions = new DERSet(new DERSequence(sanExtension));
+        DERSequence extensionRequest = new DERSequence(new ASN1Encodable[] {
+                PKCSObjectIdentifiers.pkcs_9_at_extensionRequest,
+                extensions
+        });
+        DERSet attributes = new DERSet(extensionRequest);
         return new PKCS10CertificationRequest(
                 signatureAlgorithm,
                 principal,
                 keyPair.getPublic(),
-                new DERSet(x509Attribute),
+                attributes,
                 keyPair.getPrivate());
     }
 }

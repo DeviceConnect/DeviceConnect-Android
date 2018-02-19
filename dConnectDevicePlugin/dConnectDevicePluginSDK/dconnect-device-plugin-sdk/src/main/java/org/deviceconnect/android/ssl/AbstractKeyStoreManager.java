@@ -33,6 +33,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -54,6 +56,8 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
 
     private final String mKeyStoreFilePath;
 
+    private final Logger mLogger = Logger.getLogger("LocalCA");
+
     /**
      * コンストラクタ.
      *
@@ -69,11 +73,14 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
             // NOTE: PKCS12 は　API Level 1 からサポートされている. よって、ここには入らない.
             throw new IllegalStateException(KEYSTORE_TYPE + " is not supported.", e);
         }
-        if (isSavedKeyStore()) {
+        boolean isSavedKeyStore = isSavedKeyStore();
+        mLogger.info("isSavedKeyStore: " + isSavedKeyStore);
+        if (isSavedKeyStore) {
             try {
                 loadKeyStore();
+                mLogger.info("Loaded keystore: path = " + mKeyStoreFilePath);
             } catch (Exception e) {
-                throw new IllegalStateException("Failed to load saved keystore: " + keyStorePath, e);
+                mLogger.log(Level.SEVERE, "Failed to load keystore: path = " + mKeyStoreFilePath, e);
             }
         }
     }

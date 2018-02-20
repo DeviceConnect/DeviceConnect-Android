@@ -26,6 +26,7 @@ import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.MessagingException;
+import org.deviceconnect.android.manager.receiver.PackageManageReceiver;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -96,6 +97,10 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
     /** バインドするためのクラス. */
     private final IBinder mLocalBinder = new LocalBinder();
+    /** インストールされたPlug-inの情報を取得するためのReceiver. */
+    private final PackageManageReceiver mPackageReceiver = new PackageManageReceiver();
+    /** DConnectのメッセージを取得するためのReceiver. */
+    private final DConnectBroadcastReceiver mDConnectMessageReceiver = new DConnectBroadcastReceiver();
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -137,12 +142,29 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         if (mSettings.isManagerStartFlag()) {
             startInternal();
         }
+        // Plug-in情報受付用のIntent-filter
+        IntentFilter packageFilter = new IntentFilter();
+        packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packageFilter.addDataScheme("package");
+        registerReceiver(mPackageReceiver, packageFilter);
+        // DConnectMessageの受付用のIntent-filter
+        IntentFilter messageFilter = new IntentFilter();
+        messageFilter.addAction("org.deviceconnect.action.GET");
+        messageFilter.addAction("org.deviceconnect.action.PUT");
+        messageFilter.addAction("org.deviceconnect.action.POST");
+        messageFilter.addAction("org.deviceconnect.action.DELETE");
+        messageFilter.addAction("org.deviceconnect.action.RESPONSE");
+        messageFilter.addAction("org.deviceconnect.action.EVENT");
+        registerReceiver(mDConnectMessageReceiver, messageFilter);
     }
 
     @Override
     public void onDestroy() {
         mWebSocketInfoManager.removeOnWebSocketEventListener(this);
-
+        unregisterReceiver(mDConnectMessageReceiver);
+        unregisterReceiver(mPackageReceiver);
         stopRESTfulServer();
         super.onDestroy();
     }
@@ -410,6 +432,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     public synchronized void startInternal() {
         if (!mRunningFlag) {
+            mRunningFlag = true;
             startDConnect();
             startRESTfulServer();
         }

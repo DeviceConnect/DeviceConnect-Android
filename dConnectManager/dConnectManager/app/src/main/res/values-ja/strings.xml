@@ -153,7 +153,7 @@
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 
@@ -222,4 +222,6 @@
     <string name="web_service_on_channel_title">Device Connect Web Server</string>
     <string name="web_service_on_channel_desc">DeviceConnect用のHTMLを配置しておくためのWebServerです。</string>
 
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
 </resources>

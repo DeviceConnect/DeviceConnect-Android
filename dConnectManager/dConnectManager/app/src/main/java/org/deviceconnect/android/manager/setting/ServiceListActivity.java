@@ -525,6 +525,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, getString(R.string.activity_help_title));
+        intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
         startActivity(intent);
     }
 
@@ -545,11 +546,11 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         }
 
         String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
-        url += "&ssl=" + (isSSL ? "on" : "off");
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
+        intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
         intent.putExtra(WebViewActivity.EXTRA_SERVICE_ID, mSelectedService.getId());
         intent.putExtra(WebViewActivity.EXTRA_PLUGIN_ID, plugin.getPluginId());
         startActivity(intent);

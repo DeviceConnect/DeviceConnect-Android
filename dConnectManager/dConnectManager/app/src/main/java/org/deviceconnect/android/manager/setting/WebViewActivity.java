@@ -46,6 +46,7 @@ import java.io.ByteArrayOutputStream;
  * @author NTT DOCOMO, INC.
  */
 public class WebViewActivity extends AppCompatActivity {
+
     /**
      * デバッグフフラグ.
      */
@@ -60,6 +61,11 @@ public class WebViewActivity extends AppCompatActivity {
      * 表示するタイトルを格納するExtraのキーを定義する.
      */
     public static final String EXTRA_TITLE = "title";
+
+    /**
+     * SSL通信フラグを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_SSL = "ssl";
 
     /**
      * サービスIDを格納するExtraのキーを定義する.
@@ -87,7 +93,17 @@ public class WebViewActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_FROM_JS = 2;
 
     /**
-     * ファイル洗濯用のコールバック.
+     * SSL通信を有効にすることを示す定数.
+     */
+    public static final String SSL_ON = "on";
+
+    /**
+     * SSL通信を無効にすることを示す定数.
+     */
+    public static final String SSL_OFF = "off";
+
+    /**
+     * ファイル選択用のコールバック.
      * <p>
      * Android OS 5.0未満の端末では、こちらを使う。
      * </p>
@@ -95,7 +111,7 @@ public class WebViewActivity extends AppCompatActivity {
     private ValueCallback<Uri> mUploadMessage;
 
     /**
-     * ファイル洗濯用のコールバック.
+     * ファイル選択用のコールバック.
      * <p>
      * Android OS 5.0以上の端末では、こちらを使う。
      * </p>
@@ -111,6 +127,11 @@ public class WebViewActivity extends AppCompatActivity {
      * 一時中断フラグ.
      */
     private boolean mPauseFlag;
+
+    /**
+     * SSL通信フラグ.
+     */
+    private String mSSL;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -138,6 +159,9 @@ public class WebViewActivity extends AppCompatActivity {
         if (title != null) {
             setTitle(title);
         }
+
+        boolean ssl = intent.getBooleanExtra(EXTRA_SSL, false);
+        mSSL = ssl ? SSL_ON : SSL_OFF;
 
         mWebView = (WebView) findViewById(R.id.activity_web_view);
         if (mWebView != null) {
@@ -172,7 +196,25 @@ public class WebViewActivity extends AppCompatActivity {
                 webSettings.setAllowUniversalAccessFromFileURLs(true);
             }
 
-            mWebView.loadUrl(url);
+            loadUrl(mWebView, url);
+        }
+    }
+
+    private void loadUrl(final WebView view, final String url) {
+        Uri uri = Uri.parse(url);
+        if ("file".equals(uri.getScheme())) {
+            uri = appendSSL(uri);
+        }
+        view.loadUrl(uri.toString());
+    }
+
+    private Uri appendSSL(final Uri uri) {
+        try {
+            Uri.Builder builder = uri.buildUpon();
+            builder.appendQueryParameter("ssl", mSSL);
+            return builder.build();
+        } catch (UnsupportedOperationException e) {
+            return uri;
         }
     }
 
@@ -365,6 +407,12 @@ public class WebViewActivity extends AppCompatActivity {
                     }, STABLE_SCALE_CALCULATION_DURATION);
                 }
             }
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
+            loadUrl(view, url);
+            return true;
         }
     };
 

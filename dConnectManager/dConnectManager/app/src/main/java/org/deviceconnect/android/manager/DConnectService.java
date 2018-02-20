@@ -47,7 +47,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -76,11 +75,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      * キーストアファイル名.
      */
     private static final String KEYSTORE_FILE_NAME = "manager.p12";
-
-    /**
-     * 証明書のエイリアス.
-     */
-    private static final String CERTIFICATE_ALIAS = "manager";
 
     public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
     public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
@@ -399,11 +393,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                     builder.ipWhiteList(list);
                 }
 
-                if (BuildConfig.DEBUG) {
-                    mLogger.info("RESTful Server was Started.");
-                    mLogger.info("DConnectSettings: " + mSettings.toString());
-                }
-
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mWiFiReceiver, filter);
@@ -417,6 +406,11 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext(), factory);
                             mRESTfulServer.setServerEventListener(mWebServerListener);
                             mRESTfulServer.start();
+
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("RESTful Server was Started.");
+                                mLogger.info("DConnectSettings: " + mSettings.toString());
+                            }
                         } catch (GeneralSecurityException e) {
                             mLogger.log(Level.SEVERE, "Failed to start HTTPS server.", e);
                         }
@@ -572,19 +566,16 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      * キーストアをSDカード上のファイルとして出力する.
      *
      * @param dirPath 出力先のディレクトリへのパス
+     * @throws IOException 出力に失敗した場合
      */
-    public void exportKeyStore(final String dirPath) {
-        try {
-            File dir = new File(dirPath);
-            if (!dir.exists()) {
-                if (!dir.mkdirs()) {
-                   throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
-                }
+    public void exportKeyStore(final String dirPath) throws IOException {
+        File dir = new File(dirPath);
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
             }
-            mKeyStoreMgr.exportKeyStore(new File(dir, "keystore.p12"));
-        } catch (IOException e) {
-            mLogger.severe("Failed to export server certificate: " + e.getMessage());
         }
+        mKeyStoreMgr.exportKeyStore(new File(dir, "keystore.p12"));
     }
 
     /**

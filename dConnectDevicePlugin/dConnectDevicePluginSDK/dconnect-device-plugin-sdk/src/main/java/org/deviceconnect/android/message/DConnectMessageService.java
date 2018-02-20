@@ -10,9 +10,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.os.Binder;
 import android.os.Build;
@@ -90,9 +92,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /** プロファイル仕様定義ファイルの拡張子. */
     private static final String SPEC_FILE_EXTENSION = ".json";
-    private static final String CHANNEL_GENERAL_ID = "org.deviceconnect.android.device.plugin";
-    private static final int DCONNECT_DEVICEPLUGIN_MESSAGE_ID = 1;
-    /**
+     /**
      * ロガー.
      */
     private Logger mLogger = Logger.getLogger("org.deviceconnect.dplugin");
@@ -146,6 +146,13 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     private boolean mIsEnabled;
 
+
+    private final BroadcastReceiver mUninstallReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleMessage(intent);
+        }
+    };
     @Override
     public void onCreate() {
         super.onCreate();
@@ -176,6 +183,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
         // 必須プロファイルの追加
         addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
+        registerReceiver();
+    }
+
+    private void registerReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED);
+        filter.addDataScheme("package");
+        registerReceiver(mUninstallReceiver, filter);
     }
 
     @Override
@@ -189,6 +204,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         LocalOAuth2Main.destroy();
         // コールバック一覧を削除
         mBindingSenders.clear();
+        unregisterReceiver(mUninstallReceiver);
     }
 
     @Override

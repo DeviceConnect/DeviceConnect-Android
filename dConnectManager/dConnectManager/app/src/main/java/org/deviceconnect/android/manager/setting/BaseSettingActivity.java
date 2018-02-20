@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfoManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
@@ -105,6 +106,17 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
             return null;
         }
         return mDConnectService.getPluginManager();
+    }
+
+    protected Boolean isSSL() {
+        if (mDConnectService == null) {
+            return null;
+        }
+        DConnectSettings settings = mDConnectService.getSettings();
+        if (settings == null) {
+            return null;
+        }
+        return settings.isSSL();
     }
 
     protected DConnectService getManagerService() {

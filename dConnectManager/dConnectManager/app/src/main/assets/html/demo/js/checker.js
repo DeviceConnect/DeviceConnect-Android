@@ -121,7 +121,7 @@ var main = (function(parent, global) {
         hideEventText(nav);
 
         if (xType == 'event') {
-            var uri = "http://localhost:4035" + path.toLowerCase() + "?" + createBody(nav).join('&');
+            var uri = util.getUri(path.toLowerCase()) + "?" + createBody(nav).join('&');
 
             setRequestText(nav, createRequest(method + " " + path));
 

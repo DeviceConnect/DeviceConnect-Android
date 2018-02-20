@@ -539,8 +539,13 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         if (plugin == null) {
             return;
         }
+        Boolean isSSL = isSSL();
+        if (isSSL == null) {
+            return;
+        }
 
         String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
+        url += "&ssl=" + (isSSL ? "on" : "off");
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);

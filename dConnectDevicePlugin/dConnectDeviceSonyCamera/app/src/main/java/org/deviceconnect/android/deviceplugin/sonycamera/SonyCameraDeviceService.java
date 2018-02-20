@@ -6,8 +6,10 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.sonycamera;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
@@ -15,6 +17,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
+import org.deviceconnect.android.deviceplugin.sonycamera.receiver.WiFiStateReceiver;
 import org.deviceconnect.android.deviceplugin.sonycamera.service.SonyCameraService;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.SonyCameraUtil;
 import org.deviceconnect.android.event.Event;
@@ -40,7 +43,50 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * SonyCamera管理クラス.
      */
     private SonyCameraManager mSonyCameraManager;
-    
+    private BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+                mLogger.info("Received: WIFI_STATE_CHANGED_ACTION");
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+                if (state == WifiManager.WIFI_STATE_ENABLED) {
+                    WifiManager wifiMgr = getWifiManager();
+                    WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+                    if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
+                        mSonyCameraManager.connectSonyCamera();
+                    } else {
+                        mSonyCameraManager.disconnectSonyCamera();
+                    }
+                } else if (state == WifiManager.WIFI_STATE_DISABLED) {
+                    mSonyCameraManager.disconnectSonyCamera();
+                }
+            } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
+                mLogger.info("Received: NETWORK_STATE_CHANGED_ACTION");
+                NetworkInfo ni = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                if (ni != null) {
+                    NetworkInfo.State state = ni.getState();
+                    int type = ni.getType();
+                    mLogger.info("Active network: type = " + ni.getTypeName()
+                            + ", connected = " + ni.isConnected()
+                            + ", available = " + ni.isAvailable()
+                            + ", state = " + ni.getDetailedState());
+                    if (ni.isConnected() && state == NetworkInfo.State.CONNECTED && type == ConnectivityManager.TYPE_WIFI) {
+                        WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+                        mLogger.info("Active Wi-Fi: SSID = " + wifiInfo.getSSID()
+                                + ", supplicantState = " + wifiInfo.getSupplicantState());
+                        if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
+                            mSonyCameraManager.connectSonyCamera();
+                        } else {
+                            mSonyCameraManager.disconnectSonyCamera();
+                        }
+                    }
+                } else {
+                    mLogger.info("No active network. ");
+                }
+            }
+        }
+    };
     @Override
     public void onCreate() {
         super.onCreate();
@@ -71,11 +117,16 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
             mSonyCameraManager.connectSonyCamera();
         }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        registerReceiver(mWiFiReceiver, filter);
     }
 
     @Override
     public void onDestroy() {
         mSonyCameraManager.disconnectSonyCamera();
+        unregisterReceiver(mWiFiReceiver);
         super.onDestroy();
     }
 
@@ -85,47 +136,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return START_STICKY;
         }
 
-        String action = intent.getAction();
-        if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
-            mLogger.info("Received: WIFI_STATE_CHANGED_ACTION");
-            int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
-            if (state == WifiManager.WIFI_STATE_ENABLED) {
-                WifiManager wifiMgr = getWifiManager();
-                WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-                if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
-                    mSonyCameraManager.connectSonyCamera();
-                } else {
-                    mSonyCameraManager.disconnectSonyCamera();
-                }
-            } else if (state == WifiManager.WIFI_STATE_DISABLED) {
-                mSonyCameraManager.disconnectSonyCamera();
-            }
-            return START_STICKY;
-        } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-            mLogger.info("Received: NETWORK_STATE_CHANGED_ACTION");
-            NetworkInfo ni = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-            if (ni != null) {
-                NetworkInfo.State state = ni.getState();
-                int type = ni.getType();
-                mLogger.info("Active network: type = " + ni.getTypeName()
-                        + ", connected = " + ni.isConnected()
-                        + ", available = " + ni.isAvailable()
-                        + ", state = " + ni.getDetailedState());
-                if (ni.isConnected() && state == NetworkInfo.State.CONNECTED && type == ConnectivityManager.TYPE_WIFI) {
-                    WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-                    mLogger.info("Active Wi-Fi: SSID = " + wifiInfo.getSSID()
-                            + ", supplicantState = " + wifiInfo.getSupplicantState());
-                    if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
-                        mSonyCameraManager.connectSonyCamera();
-                    } else {
-                        mSonyCameraManager.disconnectSonyCamera();
-                    }
-                }
-            } else {
-                mLogger.info("No active network. ");
-            }
-            return START_STICKY;
-        }
+
         return super.onStartCommand(intent, flags, startId);
     }
 

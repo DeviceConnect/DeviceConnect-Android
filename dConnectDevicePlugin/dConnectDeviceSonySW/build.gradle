@@ -12,6 +12,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        google()
         maven {
             url 'https://raw.github.com/goncharov/smart-extension-api/master/'
         }

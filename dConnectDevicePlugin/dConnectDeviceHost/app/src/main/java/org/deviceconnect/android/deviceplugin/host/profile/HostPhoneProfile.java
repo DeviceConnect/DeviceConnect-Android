@@ -52,7 +52,7 @@ public class HostPhoneProfile extends PhoneProfile {
             if (phoneNumber != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
-                        new String[] { Manifest.permission.CALL_PHONE },
+                        new String[] { Manifest.permission.CALL_PHONE, Manifest.permission.PROCESS_OUTGOING_CALLS },
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {

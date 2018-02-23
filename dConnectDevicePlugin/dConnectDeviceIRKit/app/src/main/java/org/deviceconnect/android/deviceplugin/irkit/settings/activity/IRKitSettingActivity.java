@@ -101,7 +101,6 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("ABC", "onCreate");
         if (null == savedInstanceState) {
             mPrePage = 0;
             mSecType = WiFiSecurityType.WPA2;

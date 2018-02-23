@@ -99,6 +99,7 @@ public class LinkingDevicePluginService extends DConnectMessageService {
     @Override
     public void onDestroy() {
         ((LinkingApplication) getApplication()).resetManager();
+        unregisterReceiver(mScanReceiver);
         removeAllServices();
         super.onDestroy();
     }

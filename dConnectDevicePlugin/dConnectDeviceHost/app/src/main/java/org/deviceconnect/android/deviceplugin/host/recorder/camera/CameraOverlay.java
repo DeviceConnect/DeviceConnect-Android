@@ -42,6 +42,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -371,6 +372,17 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             Camera.Parameters params = camera.getParameters();
             params.setPictureSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             params.setPreviewSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            List<Integer> frameRates = params.getSupportedPreviewFrameRates();
+            boolean isSupportFrameRate = false;
+            for (int rate : frameRates) {
+                if (rate == (int) mMaxFps) {
+                    isSupportFrameRate = true;
+                    break;
+                }
+            }
+            if (!isSupportFrameRate) {
+                mMaxFps = frameRates.get(0);
+            }
             params.setPreviewFrameRate((int) mMaxFps);
             try {
                 camera.setParameters(params);

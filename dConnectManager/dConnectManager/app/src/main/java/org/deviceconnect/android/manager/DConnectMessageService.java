@@ -14,6 +14,7 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.os.Binder;
 import android.os.Build;
@@ -49,6 +50,7 @@ import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
+import org.deviceconnect.android.manager.receiver.PackageManageReceiver;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
@@ -196,6 +198,10 @@ public abstract class DConnectMessageService extends Service
             handleExternalMessage(message);
         }
     };
+    /** インストールされたPlug-inの情報を取得するためのReceiver. */
+    private final PackageManageReceiver mPackageReceiver = new PackageManageReceiver();
+    /** DConnectのメッセージを取得するためのReceiver. */
+    private final DConnectBroadcastReceiver mDConnectMessageReceiver = new DConnectBroadcastReceiver();
 
     private String getCallingPackage() {
         int uid = Binder.getCallingUid();
@@ -264,10 +270,28 @@ public abstract class DConnectMessageService extends Service
 
         loadProfileSpecs();
         startPluginSearch();
+        // Plug-in情報受付用のIntent-filter
+        IntentFilter packageFilter = new IntentFilter();
+        packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packageFilter.addDataScheme("package");
+        registerReceiver(mPackageReceiver, packageFilter);
+        // DConnectMessageの受付用のIntent-filter
+        IntentFilter messageFilter = new IntentFilter();
+        messageFilter.addAction("org.deviceconnect.action.GET");
+        messageFilter.addAction("org.deviceconnect.action.PUT");
+        messageFilter.addAction("org.deviceconnect.action.POST");
+        messageFilter.addAction("org.deviceconnect.action.DELETE");
+        messageFilter.addAction("org.deviceconnect.action.RESPONSE");
+        messageFilter.addAction("org.deviceconnect.action.EVENT");
+        registerReceiver(mDConnectMessageReceiver, messageFilter);
     }
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(mDConnectMessageReceiver);
+        unregisterReceiver(mPackageReceiver);
         mPluginManager.removeEventListener(this);
         stopDConnect();
         LocalOAuth2Main.destroy();

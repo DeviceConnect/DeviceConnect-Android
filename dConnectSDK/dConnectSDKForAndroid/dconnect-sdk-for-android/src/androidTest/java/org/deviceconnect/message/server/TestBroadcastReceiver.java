@@ -9,8 +9,6 @@ public class TestBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         intent.setClass(context, TestService.class);
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1) {
-            context.startService(intent);
-        }
+        context.startService(intent);
     }
 }

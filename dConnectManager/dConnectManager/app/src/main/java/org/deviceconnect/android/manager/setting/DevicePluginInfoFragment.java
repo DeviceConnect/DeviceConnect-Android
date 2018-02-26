@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -308,7 +309,11 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
             Intent request = new Intent(activity, DConnectService.class);
             request.setAction(DConnectService.ACTION_OPEN_SETTINGS);
             request.putExtra(DConnectService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
-            activity.startService(request);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity.startForegroundService(request);
+            } else {
+                activity.startService(request);
+            }
         }
     }
 

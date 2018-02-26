@@ -309,7 +309,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         showInternal(callback);
                     } catch (IOException e) {
                         if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
+                            Log.w(TAG, "", e);
                         }
                     }
                 }
@@ -372,19 +372,6 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             Camera.Parameters params = camera.getParameters();
             params.setPictureSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             params.setPreviewSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-            List<Integer> frameRates = params.getSupportedPreviewFrameRates();
-            boolean isSupportFrameRate = false;
-            for (int rate : frameRates) {
-                if (rate == (int) mMaxFps) {
-                    isSupportFrameRate = true;
-                    break;
-                }
-            }
-            if (!isSupportFrameRate) {
-                mMaxFps = frameRates.get(0);
-            }
-            params.setPreviewFrameRate((int) mMaxFps);
-            params.setPreviewFormat(params.getPreviewFormat());
             try {
                 camera.setParameters(params);
             } catch (Exception e) {
@@ -461,10 +448,12 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * 撮影後の後始末を行います.
      */
     private void cleanup() {
+        Log.d("ABC", "cleanup");
         synchronized (CameraOverlay.this) {
             if (!mPreviewMode) {
                 hide();
             } else if (mCamera != null) {
+                Log.d("ABC", "startPreview?");
                 mCamera.startPreview();
             }
         }
@@ -708,76 +697,87 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * フラッシュライトの仕様状態を取得する.
      * @return 使用中はtrue、それ以外はfalse
      */
-    public synchronized boolean isUseFlashLight() {
-        return mUseFlashLight;
+    public  boolean isUseFlashLight() {
+        synchronized (mCameraLock) {
+            return mUseFlashLight;
+        }
     }
 
     /**
      * フラッシュライトの状態を取得する.
      * @return 点灯中はtrue、それ以外はfalse
      */
-    public synchronized boolean isFlashLightState() {
-        return mFlashLightState;
+    public  boolean isFlashLightState() {
+        synchronized (mCameraLock) {
+            return mFlashLightState;
+        }
     }
 
     /**
      * フラッシュライト点灯.
      */
-    public synchronized void turnOnFlashLight() {
-        if (!isShow() && mCamera == null) {
-            mCamera = Camera.open();
-            if (mCamera == null) {
-                return;
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                SurfaceTexture preview = new SurfaceTexture(0);
-                try {
-                    mCamera.setPreviewTexture(preview);
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Set Preview Texture Error", e);
+    public  void turnOnFlashLight() {
+        Log.d("ABC", "turnOnFlashLight");
+
+        synchronized (mCameraLock) {
+            if (!isShow() && mCamera == null) {
+                mCamera = Camera.open();
+                if (mCamera == null) {
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    SurfaceTexture preview = new SurfaceTexture(0);
+                    try {
+                        mCamera.setPreviewTexture(preview);
+                    } catch (IOException e) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e(TAG, "Set Preview Texture Error", e);
+                        }
                     }
                 }
+                mCamera.startPreview();
+                if (mCamera != null && !isFlashLightState()) {
+                    Parameters p = mCamera.getParameters();
+                    p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                    mCamera.setParameters(p);
+                }
             }
-            mCamera.startPreview();
-            if (mCamera != null && !isFlashLightState()) {
-                Parameters p = mCamera.getParameters();
-                p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                mCamera.setParameters(p);
-            }
-        }
 
-        mFlashLightState = true;
-        mUseFlashLight = true;
+            mFlashLightState = true;
+            mUseFlashLight = true;
+        }
     }
 
     /**
      * フラッシュライト消灯.
      */
-    public synchronized void turnOffFlashLight() {
-        if (isFlashLightState() && mCamera != null) {
-            Parameters p = mCamera.getParameters();
-            p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-            mCamera.setParameters(p);
+    public void turnOffFlashLight() {
+        Log.d("ABC", "turnOffFlashLight");
 
-            if (!isShow()) {
-                mCamera.stopPreview();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    try {
-                        mCamera.setPreviewTexture(null);
-                    } catch (IOException e) {
-                        if (BuildConfig.DEBUG) {
-                            Log.e(TAG, "Preview Text set null Error", e);
+        synchronized (mCameraLock) {
+            if (isFlashLightState() && mCamera != null) {
+                Parameters p = mCamera.getParameters();
+                p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                mCamera.setParameters(p);
+
+                if (!isShow()) {
+                    mCamera.stopPreview();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        try {
+                            mCamera.setPreviewTexture(null);
+                        } catch (IOException e) {
+                            if (BuildConfig.DEBUG) {
+                                Log.e(TAG, "Preview Text set null Error", e);
+                            }
                         }
                     }
+
+                   hide();
                 }
-                mCamera.release();
-                mParams = null;
-                mCamera = null;
             }
+            mFlashLightState = false;
+            mUseFlashLight = false;
         }
-        mFlashLightState = false;
-        mUseFlashLight = false;
     }
 
 }

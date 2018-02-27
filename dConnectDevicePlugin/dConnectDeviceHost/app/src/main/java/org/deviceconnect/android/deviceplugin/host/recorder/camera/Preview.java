@@ -55,10 +55,10 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     private static final int THRESHOLD_HEIGHT = 480;
 
     /** プレビューを表示するSurfaceView. */
-    private SurfaceView mSurfaceView;
+    private final SurfaceView mSurfaceView;
 
     /** SurfaceViewを一時的に保持するホルダー. */
-    private SurfaceHolder mHolder;
+    private final SurfaceHolder mHolder;
 
     /** プレビューのサイズ. */
     private HostDeviceRecorder.PictureSize mPreviewSize;
@@ -220,6 +220,10 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
                 }
             }
         }
+    }
+
+    public SurfaceView getSurfaceView() {
+        return mSurfaceView;
     }
 
     public SurfaceHolder getHolder() {

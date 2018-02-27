@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android" >
+<deviceplugin-provider spec-path="org_deviceconnect_android_deviceplugin_host/api" >
 
     <!-- dConnect Standard Profiles -->
     <profile name="serviceDiscovery" expireperiod="86400000">

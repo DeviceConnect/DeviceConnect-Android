@@ -16,9 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.camera2.CameraAccessException;
@@ -30,14 +28,12 @@ import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -81,6 +77,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** Default Maximum Frame Rate. */
     private static final double DEFAULT_MAX_FPS = 10.0d;
 
+    /** プレビューのビットレートのデフォルト値. */
+    private static final int DEFAULT_PREVIEW_BIT_RATE = 256 * 1024; //バイト
+
     /** 日付のフォーマット. */
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
@@ -114,11 +113,6 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     private final Object mCameraLock = new Object();
 
     /**
-     * 画像を送るサーバ.
-     */
-    private MixedReplaceMediaServer mServer;
-
-    /**
      * プレビューサイズ.
      */
     private HostDeviceRecorder.PictureSize mPreviewSize;
@@ -142,6 +136,11 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * プレビューのFPS.
      */
     private double mMaxFps;
+
+    /**
+     * プレビューのビットレート.
+     */
+    private int mPreviewBitRate;
 
     /**
      * JPEGのクォリティ.
@@ -176,7 +175,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /**
      * 画面回転のイベントを受け付けるレシーバー.
      */
-    private BroadcastReceiver mOrientReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mOrientReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             if (Intent.ACTION_CONFIGURATION_CHANGED.equals(intent.getAction())) {
@@ -185,13 +184,15 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         }
     };
 
+    private CameraPreviewCallback mPreviewCallback;
+
     /**
      * コンストラクタ.
      *
      * @param context コンテキスト
      * @param cameraId Camera ID.
      */
-    public CameraOverlay(final Context context, final int cameraId) {
+    CameraOverlay(final Context context, final int cameraId) {
         mContext = context;
         mWinMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mWorkerThread = new HandlerThread(getClass().getSimpleName());
@@ -200,6 +201,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mCameraId = cameraId;
 
         mMaxFps = DEFAULT_MAX_FPS;
+        mPreviewBitRate = DEFAULT_PREVIEW_BIT_RATE;
         setPreviewFrameRate(mMaxFps);
     }
 
@@ -207,6 +209,22 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     protected void finalize() throws Throwable {
         mWorkerThread.quit();
         super.finalize();
+    }
+
+    // TODO 排他処理を管理するメソッドを実装する。
+
+    public synchronized boolean setPreviewCallback(final CameraPreviewCallback callback) {
+        if (mPreviewCallback != null) {
+            return false;
+        }
+        mPreviewCallback = callback;
+        return true;
+    }
+
+    public synchronized void removePreviewCallback(final CameraPreviewCallback callback) {
+        if (mPreviewCallback == callback) {
+            mPreviewCallback = null;
+        }
     }
 
     /**
@@ -220,6 +238,14 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     public void setFacingDirection(final int dir) {
         mFacingDirection = dir;
+    }
+
+    public int getCameraId() {
+        return mCameraId;
+    }
+
+    public Camera getCamera() {
+        return mCamera;
     }
 
     public HostDeviceRecorder.PictureSize getPictureSize() {
@@ -247,17 +273,16 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         return mMaxFps;
     }
 
-    public void setJpegQuality(final int jpegQuality) {
-        mJpegQuality = jpegQuality;
+    public void setPreviewBitRate(final int bitRate) {
+        mPreviewBitRate = bitRate;
     }
 
-    /**
-     * MixedReplaceMediaServerを設定する.
-     *
-     * @param server サーバのインスタンス
-     */
-    public void setServer(final MixedReplaceMediaServer server) {
-        mServer = server;
+    public int getPreviewBitRate() {
+        return mPreviewBitRate;
+    }
+
+    public void setJpegQuality(final int jpegQuality) {
+        mJpegQuality = jpegQuality;
     }
 
     /**
@@ -267,6 +292,10 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      */
     public void setFileManager(final FileManager mgr) {
         mFileMgr = mgr;
+    }
+
+    public Preview getPreview() {
+        return mPreview;
     }
 
     /**
@@ -322,7 +351,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             @Override
             public void run() {
                 try {
-                    mPreview = new Preview(mContext);
+                    final Preview preview = new Preview(mContext);
+                    mPreview = preview;
 
                     Point size = getDisplaySize();
                     int pt = (int) (5 * getScaledDensity());
@@ -339,7 +369,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                                 PixelFormat.TRANSLUCENT);
                     l.x = -size.x / 2;
                     l.y = -size.y / 2;
-                    mWinMgr.addView(mPreview, l);
+                    mWinMgr.addView(preview, l);
 
                     if (mCamera == null) {
                         mCamera = Camera.open(mCameraId);
@@ -348,7 +378,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         }
                     }
                     setCameraParameter(mCamera);
-                    mPreview.switchCamera(mCameraId, mCamera);
+                    preview.switchCamera(mCameraId, mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
                     mCamera.setErrorCallback(CameraOverlay.this);
 
@@ -356,7 +386,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
                     mContext.registerReceiver(mOrientReceiver, filter);
 
-                    callback.onSuccess();
+                    callback.onSuccess(preview);
                 } catch (Throwable t) {
                     if (BuildConfig.DEBUG) {
                         Log.w(TAG, "", t);
@@ -433,7 +463,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         } else {
             show(new CameraOverlay.Callback() {
                 @Override
-                public void onSuccess() {
+                public void onSuccess(final Preview preview) {
                     takePictureInternal(listener);
                 }
                 @Override
@@ -602,59 +632,15 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     mLastFrameTime = currentTime;
                     return;
                 }
-            }
-
-            if (mCamera != null && mCamera.equals(camera)) {
-                mCamera.setPreviewCallback(null);
-
-                if (mServer != null && mPreview != null) {
-                    int format = mPreview.getPreviewFormat();
-                    int width = mPreview.getPreviewWidth();
-                    int height = mPreview.getPreviewHeight();
-
-                    YuvImage yuvimage = new YuvImage(data, format, width, height, null);
-                    Rect rect = new Rect(0, 0, width, height);
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    if (yuvimage.compressToJpeg(rect, mJpegQuality, baos)) {
-                        byte[] jdata = baos.toByteArray();
-
-                        int degree = Preview.getCameraDisplayOrientation(mContext, mCameraId);
-                        if (degree == 0 && mFacingDirection == FACING_DIRECTION_BACK) {
-                            mServer.offerMedia(jdata);
-                        } else {
-                            try {
-                                BitmapFactory.Options bitmapFactoryOptions = new BitmapFactory.Options();
-                                bitmapFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-                                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
-                                if (bmp != null) {
-                                    Matrix m = new Matrix();
-                                    if (mFacingDirection == FACING_DIRECTION_FRONT) {
-                                        m.preRotate(degree);
-                                        m.preScale(mFacingDirection, 1);
-                                    } else {
-                                        m.postRotate(degree);
-                                    }
-                                    Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
-                                    if (rotatedBmp != null) {
-                                        baos.reset();
-                                        if (rotatedBmp.compress(CompressFormat.JPEG, mJpegQuality, baos)) {
-                                            mServer.offerMedia(baos.toByteArray());
-                                        }
-                                        rotatedBmp.recycle();
-                                    }
-                                    bmp.recycle();
-                                }
-                            } catch (OutOfMemoryError e) {
-                                mServer.stop();
-                                return;
-                            }
-                        }
+                if (mCamera != null && mCamera.equals(camera)) {
+                    CameraPreviewCallback callback = mPreviewCallback;
+                    if (callback != null) {
+                        mCamera.setPreviewCallback(null);
+                        callback.onPreviewFrame(mCamera, mCameraId, mPreview, data, mFacingDirection);
+                        mCamera.setPreviewCallback(this);
                     }
                 }
-
-                mCamera.setPreviewCallback(this);
             }
-
             mLastFrameTime = currentTime;
         }
     }
@@ -684,13 +670,21 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     public interface Callback {
         /**
          * 表示できたことを通知します.
+         *
+         * @param preview プレビュー
          */
-        void onSuccess();
+        void onSuccess(Preview preview);
 
         /**
          * 表示できなかったことを通知します.
          */
         void onFail();
+    }
+
+    public interface CameraPreviewCallback {
+
+        void onPreviewFrame(Camera camera, int cameraId, Preview preview, byte[] frame, int facingDirection);
+
     }
 
     /**
@@ -779,5 +773,4 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             mUseFlashLight = false;
         }
     }
-
 }

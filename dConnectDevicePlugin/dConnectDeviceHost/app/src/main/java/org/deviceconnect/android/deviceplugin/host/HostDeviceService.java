@@ -37,8 +37,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -178,7 +178,7 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        if (HostDevicePreviewServer.DELETE_PREVIEW_ACTION.equals(action)) {
+        if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
             return stopWebServer(intent);
         }
         return super.onStartCommand(intent, flags, startId);
@@ -245,7 +245,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private int stopWebServer(final Intent intent) {
-        mRecorderMgr.stopWebServer(intent.getStringExtra(HostDevicePreviewServer.EXTRA_CAMERA_ID));
+        mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
         return START_STICKY;
     }
 

@@ -365,7 +365,7 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
     private void enableShootingMode(final int mode) {
         switch (mode) {
             case SPINNER_MODE_PICTURE:
-                if (mDevice != null && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                if (mDevice != null && (mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)) {
                     if (mNowShootingMode != ThetaDevice.ShootingMode.IMAGE) {
                         mNowShootingMode = ThetaDevice.ShootingMode.IMAGE;
                         mShootingTasker = new DownloadThetaDataTask();
@@ -389,12 +389,12 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
             default:
                 if (mShootingMode.getSelectedItemPosition() == SPINNER_MODE_PICTURE
                         && mDevice != null
-                        && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                        && (mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)) {
                     mLiveView.stop();
                 }
                 if (mNowShootingMode != ThetaDevice.ShootingMode.VIDEO
                         && mDevice != null
-                        && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                        && (mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)) {
                     mShootingTasker = new DownloadThetaDataTask();
                     mNowShootingMode = ThetaDevice.ShootingMode.VIDEO;
                     ShootingChangeTask shooting = new ShootingChangeTask(mNowShootingMode);
@@ -506,7 +506,7 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
             } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_M15){
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_failed_change_mode), null);
-            } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+            } else if (mException != -1 && (mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)) {
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_shooting), null);
             } else {
@@ -596,7 +596,7 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
                         });
             } else if (mIsRecording == RecordingState.RECORDING
                     && mException != -1
-                    && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                    && (mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)) {
                 ThetaDialogFragment.showAlert(activity, getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_record_start), null);
             } else if (mIsRecording != RecordingState.RECORDING && mException != -1) {
@@ -673,11 +673,11 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
             if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_failed_change_mode), null);
-            } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+            } else if (mException != -1 && (mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)) {
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_change_mode), null);
             } else {
-                if (mDevice.getModel() == ThetaDeviceModel.THETA_S
+                if ((mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)
                         && mMode == ThetaDevice.ShootingMode.IMAGE) {
                     try {
                         if (!mApi.isRunning()) {
@@ -749,7 +749,7 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
             } else if (mNowShootingMode == ThetaDevice.ShootingMode.VIDEO) {
                 enableShootingMode(SPINNER_MODE_MOVIE);
                 mShootingMode.setSelection(SPINNER_MODE_MOVIE);
-            } else if (mDevice.getModel() == ThetaDeviceModel.THETA_S){
+            } else if ((mDevice.getModel() == ThetaDeviceModel.THETA_S || mDevice.getModel() == ThetaDeviceModel.THETA_V)){
                 enableShootingMode(SPINNER_MODE_PICTURE);
                 mShootingMode.setSelection(SPINNER_MODE_PICTURE);
                 try{

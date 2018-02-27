@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class OscClient {
 
@@ -50,7 +51,19 @@ public class OscClient {
         HttpResponse response = executeCommand("camera._listAll", params);
         return OscCommand.Result.parse(response);
     }
+    public OscCommand.Result listFiles(final int offset, final int maxLength) throws IOException, JSONException {
+        JSONObject params = new JSONObject();
+        params.put("fileType", "all");
+        params.put("entryCount", maxLength);
+        if (offset > 0) {
+            params.put("startPosition", String.valueOf(offset));
+        }
 
+        HttpResponse response = executeCommand("camera.listFiles", params);
+        return OscCommand.Result.parse(response);
+    }
+    // Theta API v2.1以降は必要なくなる
+    @Deprecated
     public OscSession startSession() throws IOException, JSONException {
         HttpResponse response = executeCommand("camera.startSession", new JSONObject());
         JSONObject json = response.getJSON();
@@ -58,6 +71,8 @@ public class OscClient {
         return OscSession.parse(results);
     }
 
+    // Theta API v2.1以降は必要なくなる
+    @Deprecated
     public OscCommand.Result closeSession(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
@@ -66,19 +81,30 @@ public class OscClient {
         return OscCommand.Result.parse(response);
     }
 
+    public OscCommand.Result takePicture() throws IOException, JSONException {
+        return takePicture(null);
+    }
     public OscCommand.Result takePicture(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
-        params.put("sessionId", sessionId);
-
+        if (sessionId != null) {
+            params.put("sessionId", sessionId);
+        }
         HttpResponse response = executeCommand("camera.takePicture", params);
         return OscCommand.Result.parse(response);
     }
-
+    public OscCommand.Result startCapture() throws IOException, JSONException {
+        HttpResponse response = executeCommand("camera.startCapture", null);
+        return OscCommand.Result.parse(response);
+    }
     public OscCommand.Result startCapture(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
 
         HttpResponse response = executeCommand("camera._startCapture", params);
+        return OscCommand.Result.parse(response);
+    }
+    public OscCommand.Result stopCapture() throws IOException, JSONException {
+        HttpResponse response = executeCommand("camera.stopCapture", null);
         return OscCommand.Result.parse(response);
     }
 
@@ -97,6 +123,16 @@ public class OscClient {
         HttpResponse response = executeCommand("camera.delete", params);
         return OscCommand.Result.parse(response);
     }
+    public OscCommand.Result delete(final List<String> fileUrls) throws IOException, JSONException {
+        JSONObject params = new JSONObject();
+        JSONArray files = new JSONArray();
+        for (String file : fileUrls) {
+            files.put(file);
+        }
+        params.put("fileUrls", files);
+        HttpResponse response = executeCommand("camera.delete", params);
+        return OscCommand.Result.parse(response);
+    }
 
     public OscCommand.Result getImage(final String fileUri, final boolean isThumbnail) throws IOException, JSONException {
         JSONObject params = new JSONObject();
@@ -104,6 +140,16 @@ public class OscClient {
         params.put("_type", isThumbnail ? "thumb" : "full");
 
         HttpResponse response = executeCommand("camera.getImage", params);
+        return OscCommand.Result.parse(response);
+    }
+
+    public OscCommand.Result getImageFromFileURL(final String fileUri, final boolean isThumbnail) throws IOException, JSONException {
+        String url = fileUri;
+        if (isThumbnail) {
+            url = fileUri + "?type=thumb";
+        }
+
+        HttpResponse response = getFile(url);
         return OscCommand.Result.parse(response);
     }
 
@@ -115,7 +161,19 @@ public class OscClient {
         HttpResponse response = executeCommand("camera._getVideo", params);
         return OscCommand.Result.parse(response);
     }
+    public OscCommand.Result getVideoFromFileURL(final String fileUri, final boolean isThumbnail) throws IOException, JSONException {
+        String url = fileUri;
+        if (isThumbnail) {
+            url = fileUri + "?type=thumb";
+        }
 
+        HttpResponse response = getFile(url);
+        return OscCommand.Result.parse(response);
+    }
+    public InputStream getLivePreview() throws IOException, JSONException {
+        HttpResponse response = executeCommand("camera.getLivePreview", null);
+        return response.getStream();
+    }
     public InputStream getLivePreview(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
@@ -131,19 +189,28 @@ public class OscClient {
         HttpResponse response = executeCommand("camera.getMetadata", params);
         return OscCommand.Result.parse(response);
     }
-
+    public OscCommand.Result getOptions(final JSONArray optionNames) throws IOException, JSONException {
+        return getOptions(null, optionNames);
+    }
     public OscCommand.Result getOptions(final String sessionId, final JSONArray optionNames) throws IOException, JSONException {
         JSONObject params = new JSONObject();
-        params.put("sessionId", sessionId);
+        if (sessionId != null) {
+            params.put("sessionId", sessionId);
+        }
         params.put("optionNames", optionNames);
 
         HttpResponse response = executeCommand("camera.getOptions", params);
         return OscCommand.Result.parse(response);
     }
 
+    public OscCommand.Result setOptions(final JSONObject options) throws IOException, JSONException {
+        return setOptions(null, options);
+    }
     public OscCommand.Result setOptions(final String sessionId, final JSONObject options) throws IOException, JSONException {
         JSONObject params = new JSONObject();
-        params.put("sessionId", sessionId);
+        if (sessionId != null) {
+            params.put("sessionId", sessionId);
+        }
         params.put("options", options);
 
         HttpResponse response = executeCommand("camera.setOptions", params);
@@ -154,14 +221,20 @@ public class OscClient {
         try {
             JSONObject body = new JSONObject();
             body.put("name", name);
-            body.put("parameters", params);
-
+            if (params != null) {
+                body.put("parameters", params);
+            }
             HttpRequest request = new HttpRequest(POST, HOST, PATH_COMMANDS_EXECUTE);
             request.setBody(body.toString());
             return mHttpClient.execute(request);
         } catch (JSONException e) {
             throw new RuntimeException();
         }
+    }
+
+    private HttpResponse getFile(final String url) throws IOException {
+        HttpRequest request = new HttpRequest(GET, url);
+        return mHttpClient.execute(request);
     }
 
     private OscCommand.Result statusCommand(final String commandId) throws IOException {

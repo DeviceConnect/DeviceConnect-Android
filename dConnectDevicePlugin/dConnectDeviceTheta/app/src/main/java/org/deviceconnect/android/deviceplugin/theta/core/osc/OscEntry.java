@@ -37,7 +37,11 @@ public class OscEntry {
     public static OscEntry parse(final JSONObject entry, final boolean isDetail) throws JSONException{
         OscEntry result = new OscEntry();
         result.mName = entry.getString("name");
-        result.mUri = entry.getString("uri");
+        if (entry.isNull("uri")) {
+            result.mUri = entry.getString("fileUrl");
+        } else {
+            result.mUri = entry.getString("uri");
+        }
         result.mSize = Long.parseLong(entry.getString("size"));
 
         if (isDetail) {

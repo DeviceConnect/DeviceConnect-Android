@@ -9,6 +9,10 @@ class HttpRequest {
 
     private String mBody = "";
 
+    HttpRequest(final Method method, final String uri) {
+        mMethod = method;
+        mUri = uri;
+    }
     HttpRequest(final Method method, final String host, final String path) {
         mMethod = method;
         mUri = "http://" + host + path;

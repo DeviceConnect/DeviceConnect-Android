@@ -27,7 +27,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 

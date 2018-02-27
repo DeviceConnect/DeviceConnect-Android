@@ -37,7 +37,7 @@ import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.DConnectWebService;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.PauseHandler;

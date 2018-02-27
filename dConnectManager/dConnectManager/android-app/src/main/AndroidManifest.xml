@@ -1,0 +1,22 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.deviceconnect.android.manager">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme.AppCompat"
+        android:name="org.deviceconnect.android.manager.DConnectApplication">
+
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.ServiceListActivity"
+            android:label="@string/app_name"
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

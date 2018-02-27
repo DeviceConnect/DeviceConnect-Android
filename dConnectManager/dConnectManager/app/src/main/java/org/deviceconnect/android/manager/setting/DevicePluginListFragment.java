@@ -27,7 +27,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;

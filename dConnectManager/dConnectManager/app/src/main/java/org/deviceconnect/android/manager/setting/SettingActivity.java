@@ -13,7 +13,7 @@ import android.support.v7.app.ActionBar;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectWebService;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 
 /**
  * Device Connect Manager設定管理用Activity.

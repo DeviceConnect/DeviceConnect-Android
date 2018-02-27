@@ -29,7 +29,7 @@ import android.support.annotation.NonNull;
 
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.observer.activity.WarningDialogActivity;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 import org.deviceconnect.android.observer.util.AndroidSocket;

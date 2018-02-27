@@ -23,7 +23,7 @@ import android.widget.CompoundButton;
 
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.manager.plugin.Connection;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.ConnectionState;

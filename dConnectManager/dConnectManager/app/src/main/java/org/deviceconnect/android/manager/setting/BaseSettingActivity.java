@@ -10,7 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.manager.WebSocketInfoManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;

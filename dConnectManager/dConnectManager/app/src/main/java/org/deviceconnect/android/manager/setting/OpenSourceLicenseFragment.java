@@ -22,7 +22,7 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

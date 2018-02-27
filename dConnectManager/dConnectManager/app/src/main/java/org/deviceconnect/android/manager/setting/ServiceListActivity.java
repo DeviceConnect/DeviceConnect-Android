@@ -31,11 +31,11 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.core.BuildConfig;
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;

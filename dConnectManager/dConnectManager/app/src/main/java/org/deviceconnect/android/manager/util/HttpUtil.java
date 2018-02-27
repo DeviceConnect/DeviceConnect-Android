@@ -9,7 +9,7 @@ package org.deviceconnect.android.manager.util;
 import android.os.Build;
 import android.util.Log;
 
-import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.core.BuildConfig;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

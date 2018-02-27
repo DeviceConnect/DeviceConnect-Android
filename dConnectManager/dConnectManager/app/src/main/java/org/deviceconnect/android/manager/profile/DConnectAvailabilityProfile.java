@@ -10,7 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;

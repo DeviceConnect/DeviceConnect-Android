@@ -1,0 +1,74 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
+
+    def getVersionName = { ->
+        def version
+        if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+            version = ["cmd", "/c", "git describe --tags --long"].execute().in.text.trim()
+        } else {
+            version = ["sh", "-c", "git describe --tags --long"].execute().in.text.trim()
+        }
+        version = version.empty ? "2.1.0" : version
+        return "${version}"
+    }
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.manager"
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName getVersionName()
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
+        buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES.txt'
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    productFlavors {
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':app')
+    compileOnly 'com.google.android.things:androidthings:+'
+
+}

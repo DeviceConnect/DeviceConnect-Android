@@ -38,7 +38,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.core.R;
 
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -27,7 +27,7 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.core.BuildConfig;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;

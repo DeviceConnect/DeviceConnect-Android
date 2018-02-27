@@ -13,7 +13,10 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 
@@ -22,7 +25,8 @@ import org.deviceconnect.android.deviceplugin.theta.R;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaDialogFragment extends DialogFragment {
-
+    private static final String PARAM_TITLE = "title";
+    private static final String PARAM_MESSAGE = "message";
     /**
      * Factory Method.
      */
@@ -30,8 +34,8 @@ public class ThetaDialogFragment extends DialogFragment {
         ThetaDialogFragment instance = new ThetaDialogFragment();
 
         Bundle arguments = new Bundle();
-        arguments.putString("title", title);
-        arguments.putString("message", message);
+        arguments.putString(PARAM_TITLE, title);
+        arguments.putString(PARAM_MESSAGE, message);
 
         instance.setArguments(arguments);
 
@@ -40,16 +44,20 @@ public class ThetaDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        String title = getArguments().getString("title");
-        String message = getArguments().getString("message");
 
-        ProgressDialog progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle(title);
-        progressDialog.setMessage(message);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        setCancelable(false);
+        String title = getArguments().getString(PARAM_TITLE);
+        String message = getArguments().getString(PARAM_MESSAGE);
 
-        return progressDialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(title);
+        messageView.setText(message);
+        builder.setView(v);
+
+        return builder.create();
     }
 
     /**

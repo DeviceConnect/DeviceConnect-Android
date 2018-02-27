@@ -6,10 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+
+import org.deviceconnect.android.deviceplugin.irkit.R;
 
 /**
  * プログレスバーを表示するダイアログ.
@@ -37,12 +43,15 @@ public class IRKitProgressDialogFragment extends DialogFragment {
         String title = getArguments().getString("title");
         String message = getArguments().getString("message");
 
-        ProgressDialog progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle(title);
-        progressDialog.setMessage(message);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(title);
+        messageView.setText(message);
+        builder.setView(v);
         setCancelable(false);
-
-        return progressDialog;
+        return builder.create();
     }
 }

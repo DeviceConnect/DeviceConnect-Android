@@ -19,6 +19,8 @@ import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -38,9 +40,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
+
 
 /**
  * カメラのプレビューをオーバーレイで表示するクラス.
@@ -49,6 +52,8 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("deprecation")
 public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallback {
+    /** Tag name. */
+    private static final String TAG = "Overlay";
     /**
      * カメラの向き：前.
      */
@@ -147,12 +152,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      */
     private int mFacingDirection = 1;
 
-    /**
-     * ロガー.
-     */
-    private final Logger mLogger = Logger.getLogger("host.dplugin");
-
-    /**
+     /**
      * プレビュー表示モード.
      */
     private boolean mPreviewMode;
@@ -323,8 +323,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                                 showInternal(callback);
                             } catch (IOException e) {
                                 if (BuildConfig.DEBUG) {
-                                    e.printStackTrace();
+                                    Log.w(TAG, "ShowInternal error", e);
                                 }
+                                callback.onFail();
                             }
                         }
                         @Override
@@ -337,7 +338,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         showInternal(callback);
                     } catch (IOException e) {
                         if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
+                            Log.w(TAG, "", e);
                         }
                     }
                 }
@@ -355,13 +356,17 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
                     Point size = getDisplaySize();
                     int pt = (int) (5 * getScaledDensity());
+                    int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+                    }
                     WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
-                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                            | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                        PixelFormat.TRANSLUCENT);
+                                type,
+                                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                                PixelFormat.TRANSLUCENT);
                     l.x = -size.x / 2;
                     l.y = -size.y / 2;
                     mWinMgr.addView(preview, l);
@@ -384,7 +389,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     callback.onSuccess(preview);
                 } catch (Throwable t) {
                     if (BuildConfig.DEBUG) {
-                        Log.w("Overlay", "", t);
+                        Log.w(TAG, "", t);
                     }
                     callback.onFail();
                 }
@@ -397,12 +402,11 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             Camera.Parameters params = camera.getParameters();
             params.setPictureSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             params.setPreviewSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-            params.setPreviewFrameRate((int) mMaxFps);
             try {
                 camera.setParameters(params);
             } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Set Parameter Error", e);
                 }
             }
         }
@@ -439,7 +443,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     }
                 } catch (Throwable t) {
                     if (BuildConfig.DEBUG) {
-                        Log.w("Overlay", "", t);
+                        Log.w(TAG, "", t);
                     }
                 }
             }
@@ -474,10 +478,12 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * 撮影後の後始末を行います.
      */
     private void cleanup() {
+        Log.d("ABC", "cleanup");
         synchronized (CameraOverlay.this) {
             if (!mPreviewMode) {
                 hide();
             } else if (mCamera != null) {
+                Log.d("ABC", "startPreview?");
                 mCamera.startPreview();
             }
         }
@@ -612,7 +618,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     @Override
     public void onError(final int error, final Camera camera) {
         if (BuildConfig.DEBUG) {
-            Log.w("Overlay", "onError: " + error);
+            Log.w(TAG, "onError: " + error);
         }
         hide();
     }
@@ -685,75 +691,86 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * フラッシュライトの仕様状態を取得する.
      * @return 使用中はtrue、それ以外はfalse
      */
-    public synchronized boolean isUseFlashLight() {
-        return mUseFlashLight;
+    public  boolean isUseFlashLight() {
+        synchronized (mCameraLock) {
+            return mUseFlashLight;
+        }
     }
 
     /**
      * フラッシュライトの状態を取得する.
      * @return 点灯中はtrue、それ以外はfalse
      */
-    public synchronized boolean isFlashLightState() {
-        return mFlashLightState;
+    public  boolean isFlashLightState() {
+        synchronized (mCameraLock) {
+            return mFlashLightState;
+        }
     }
 
     /**
      * フラッシュライト点灯.
      */
-    public synchronized void turnOnFlashLight() {
-        if (!isShow() && mCamera == null) {
-            mCamera = Camera.open();
-            if (mCamera == null) {
-                return;
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                SurfaceTexture preview = new SurfaceTexture(0);
-                try {
-                    mCamera.setPreviewTexture(preview);
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
+    public  void turnOnFlashLight() {
+        Log.d("ABC", "turnOnFlashLight");
+
+        synchronized (mCameraLock) {
+            if (!isShow() && mCamera == null) {
+                mCamera = Camera.open();
+                if (mCamera == null) {
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    SurfaceTexture preview = new SurfaceTexture(0);
+                    try {
+                        mCamera.setPreviewTexture(preview);
+                    } catch (IOException e) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e(TAG, "Set Preview Texture Error", e);
+                        }
                     }
                 }
+                mCamera.startPreview();
+                if (mCamera != null && !isFlashLightState()) {
+                    Parameters p = mCamera.getParameters();
+                    p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                    mCamera.setParameters(p);
+                }
             }
-            mCamera.startPreview();
-        }
 
-        if (mCamera != null && !isFlashLightState()) {
-            Parameters p = mCamera.getParameters();
-            p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            mCamera.setParameters(p);
+            mFlashLightState = true;
+            mUseFlashLight = true;
         }
-        mFlashLightState = true;
-        mUseFlashLight = true;
     }
 
     /**
      * フラッシュライト消灯.
      */
-    public synchronized void turnOffFlashLight() {
-        if (mCamera != null && isFlashLightState()) {
-            Parameters p = mCamera.getParameters();
-            p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-            mCamera.setParameters(p);
+    public void turnOffFlashLight() {
+        Log.d("ABC", "turnOffFlashLight");
 
-            if (!isShow()) {
-                mCamera.stopPreview();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    try {
-                        mCamera.setPreviewTexture(null);
-                    } catch (IOException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
+        synchronized (mCameraLock) {
+            if (isFlashLightState() && mCamera != null) {
+                Parameters p = mCamera.getParameters();
+                p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                mCamera.setParameters(p);
+
+                if (!isShow()) {
+                    mCamera.stopPreview();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        try {
+                            mCamera.setPreviewTexture(null);
+                        } catch (IOException e) {
+                            if (BuildConfig.DEBUG) {
+                                Log.e(TAG, "Preview Text set null Error", e);
+                            }
                         }
                     }
+
+                   hide();
                 }
-                mCamera.release();
-                mParams = null;
-                mCamera = null;
             }
+            mFlashLightState = false;
+            mUseFlashLight = false;
         }
-        mFlashLightState = false;
-        mUseFlashLight = false;
     }
 }

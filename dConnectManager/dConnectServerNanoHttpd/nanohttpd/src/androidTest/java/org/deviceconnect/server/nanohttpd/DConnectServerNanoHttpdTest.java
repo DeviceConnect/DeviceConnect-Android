@@ -127,8 +127,9 @@ public class DConnectServerNanoHttpdTest {
         final String path = "/root/path";
         final String key = "key";
         final String value = "value";
-        File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
+         File file = getContext().getFilesDir();
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT)
+                .documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         assertThat(server, is(notNullValue()));
 

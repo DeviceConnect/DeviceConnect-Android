@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
@@ -17,8 +17,8 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.manager"
-        minSdkVersion 14
-        targetSdkVersion 23
+        minSdkVersion 19
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -68,40 +68,40 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.+'
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
     compile project(':dconnect-server-nano-httpd')
-    androidTestCompile 'com.android.support:support-annotations:23.4.0'
+    androidTestCompile 'com.android.support:support-annotations:26.1.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     compile project(':dconnect-device-plugin-host')
 }
 
-//android.testVariants.all { variant ->
-//    task("generateJavadocForManagerJUnit", type: Javadoc, overwrite: true) {
-//        title = "Android Device Connect Manager Unit Test"
-//        description = "Generates Javadoc for JUnit"
-//        source = variant.javaCompile.source
-//        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-//        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-//        destinationDir = new File("${project.getRootDir()}/DeviceConnectManager-JUnit-Javadoc/")
-//
-//        options {
-//            links("http://docs.oracle.com/javase/jp/8/docs/api/");
-//            linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
-//            setMemberLevel(JavadocMemberLevel.PUBLIC)
-//            docEncoding = 'UTF-8'
-//            encoding = 'UTF-8'
-//            charSet = 'UTF-8'
-//        }
-//
-//        exclude '**/org/deviceconnect/android/logger/**'
-//        exclude '**/org/deviceconnect/android/test/**'
-//        exclude '**/org/deviceconnect/android/test/http/**'
-//        exclude '**/IntentDConnectTestCase.java'
-//        exclude '**/RESTfulDConnectTestCase.java'
-//        exclude '**/BuildConfig.java'
-//        exclude '**/R.java'
-//    }
-//}
+android.testVariants.all { variant ->
+    task("generateJavadocForManagerJUnit", type: Javadoc, overwrite: true) {
+        title = "Android Device Connect Manager Unit Test"
+        description = "Generates Javadoc for JUnit"
+        source = variant.javaCompiler.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompiler.classpath) + files(ext.androidJar)
+        destinationDir = new File("${project.getRootDir()}/DeviceConnectManager-JUnit-Javadoc/")
+
+        options {
+            links("http://docs.oracle.com/javase/jp/8/docs/api/");
+            linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
+            setMemberLevel(JavadocMemberLevel.PUBLIC)
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+        }
+
+        exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/org/deviceconnect/android/test/**'
+        exclude '**/org/deviceconnect/android/test/http/**'
+        exclude '**/IntentDConnectTestCase.java'
+        exclude '**/RESTfulDConnectTestCase.java'
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}

@@ -3,6 +3,7 @@ package org.deviceconnect.message.server;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 public class TestBroadcastReceiver extends BroadcastReceiver {
     @Override

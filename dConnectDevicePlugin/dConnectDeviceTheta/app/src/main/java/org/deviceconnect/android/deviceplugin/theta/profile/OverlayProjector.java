@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -185,10 +186,14 @@ class OverlayProjector extends AbstractProjector {
         });
 
         final int w = isStereo ? width * 2 : width;
+        int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        }
         final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
             w,
             height,
-            WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+            type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
@@ -218,10 +223,14 @@ class OverlayProjector extends AbstractProjector {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
+                int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+                }
                 final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
                     w,
                     height,
-                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                        type,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL

@@ -152,14 +152,14 @@ public class KeepAliveManager {
      */
     public synchronized KeepAlive getKeepAlive(final DevicePlugin plugin) {
         if (!(mManagementList.isEmpty())) {
-            /** 要素数分ループ. */
+            /* 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
                 if (data.getServiceId().equals(plugin.getPluginId())) {
                     return data;
                 }
             }
         }
-        /** 要素0または該当なしならnull. */
+        /* 要素0または該当なしならnull. */
         return null;
     }
 
@@ -170,14 +170,14 @@ public class KeepAliveManager {
      */
     public synchronized KeepAlive getKeepAlive(final String serviceId) {
         if (!(mManagementList.isEmpty())) {
-            /** 要素数分ループ. */
+            /* 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
                 if (data.getServiceId().equals(serviceId)) {
                     return data;
                 }
             }
         }
-        /** 要素0または該当なしならnull. */
+        /* 要素0または該当なしならnull. */
         return null;
     }
 

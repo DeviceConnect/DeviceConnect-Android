@@ -250,6 +250,9 @@ public class HostDeviceRecorderManager {
                 }
                 if (target != null && state != null) {
                     HostDeviceStreamRecorder streamer = getStreamRecorder(target);
+                    if (state == HostDeviceRecorder.RecorderState.INACTTIVE) {
+                        streamer.clean();
+                    }
                     sendEventForRecordingChange(serviceId, state, uri,
                             fileName, streamer.getMimeType(), null);
                 }

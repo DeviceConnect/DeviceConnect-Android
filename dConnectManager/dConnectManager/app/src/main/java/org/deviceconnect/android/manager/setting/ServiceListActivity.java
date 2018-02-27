@@ -48,6 +48,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * サービス一覧を表示するActivity.
@@ -149,6 +150,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      * Device Connect Managerの設定クラス.
      */
     private DConnectSettings mSettings;
+    /**
+     * ServiceDiscoveryのリトライ回数.
+     */
+    private int mRetry;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -199,24 +204,26 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     });
                 }
 
-                DConnectService managerService = getManagerService();
+                final DConnectService managerService = getManagerService();
+                waitForManagerStartup(managerService);
+                boolean isRunning = managerService.isRunning();
                 if (mSwitchAction != null) {
                     mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
-                    mSwitchAction.setChecked(managerService.isRunning());
+                    mSwitchAction.setChecked(isRunning);
                 }
-
-                if (managerService.isRunning()) {
+                setEnableSearchButton(isRunning);
+                if (isRunning) {
                     reloadServiceList();
                 }
-                setEnableSearchButton(managerService.isRunning());
             }
         });
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
-
+        mRetry = 0;
         if (isBonded() && !hasDevicePlugins()) {
             showNoDevicePlugin();
         }
@@ -272,11 +279,43 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     public void onNegativeButton(final String tag) {
     }
 
+    /**
+     * Searchボタンの有効無効を切り替える.
+     * @param running Managerの実行状態
+     */
     private void setEnableSearchButton(final boolean running) {
         Button btn = (Button) findViewById(R.id.activity_service_list_search_button);
         if (btn != null) {
             if (getManagerService() != null) {
                 btn.setEnabled(running);
+            }
+        }
+    }
+
+    /**
+     * アプリ初回起動時に前回ManagerがONだった場合、ManagerがONになるのを待つ.
+     * @param managerService ManagerMessageService
+     */
+    private void waitForManagerStartup(final DConnectService managerService) {
+        if (mSettings.isManagerStartFlag() && !managerService.isRunning()) {
+            final CountDownLatch latch = new CountDownLatch(1);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (!managerService.isRunning()) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    latch.countDown();
+                }
+            }).start();
+            try {
+                latch.await();
+            } catch(InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -469,6 +508,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         }
 
         mServiceDiscovery = new ServiceDiscovery(this, mSettings) {
+            private static final int RETRY_COUNT = 5;
             private DialogFragment mDialog;
 
             @Override
@@ -500,7 +540,27 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                         Log.w(TAG, "Failed to dismiss the dialog for service discovery.");
                     }
                 } finally {
-                    mServiceDiscovery = null;
+                    boolean isHost = false;
+                    // Hostプラグインが見つからない場合はリトライする
+                    for (ServiceContainer service : mServiceAdapter.mServices) {
+                        if (service.getName().contains("Host")) {
+                            isHost = true;
+                            break;
+                        }
+                    }
+                    if (isHost || mRetry == RETRY_COUNT) {
+                        mServiceDiscovery = null;
+                        mRetry = 0;
+                    } else {
+                        mServiceDiscovery = null;
+                        mRetry++;
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        reloadServiceList();
+                    }
                 }
             }
         };

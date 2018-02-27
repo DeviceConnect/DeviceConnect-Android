@@ -57,7 +57,6 @@ public class KeywordDialogFragment extends DialogFragment {
         intent.setClass(getActivity(), DConnectService.class);
         intent.setAction(IntentDConnectMessage.ACTION_RESPONSE);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-        getActivity().startService(intent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             getActivity().startForegroundService(intent);
         } else {

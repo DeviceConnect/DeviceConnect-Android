@@ -36,7 +36,6 @@ public class SettingActivity extends BaseSettingActivity implements AlertDialogF
 
         Intent i1 = new Intent();
         i1.setClass(this, DConnectService.class);
-        startService(i1);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(i1);
         } else {

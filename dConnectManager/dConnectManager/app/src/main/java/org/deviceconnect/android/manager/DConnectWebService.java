@@ -68,6 +68,8 @@ public class DConnectWebService extends Service {
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isWebServerStartFlag()) {
             startWebServer();
+        } else {
+            fakeStartForeground();
         }
     }
 
@@ -79,9 +81,22 @@ public class DConnectWebService extends Service {
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
+
         return START_STICKY;
     }
 
+    /**
+     * WebServerがOFF時にstartForegroundService()が行われた時にキャンセルする.
+     */
+    private void fakeStartForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder builder = new Notification.Builder(this, getString(R.string.web_service_on_channel_id))
+                    .setContentTitle("").setContentText("");
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            stopForeground(true);
+            stopSelf();
+        }
+    }
     /**
      * Webサーバを起動する.
      */
@@ -155,12 +170,12 @@ public class DConnectWebService extends Service {
                     R.drawable.icon : R.drawable.on_icon;
             builder.setSmallIcon(iconType);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String channelId = getApplicationContext().getResources().getString(R.string.web_service_on_channel_id);
+                String channelId = getString(R.string.web_service_on_channel_id);
                 NotificationChannel channel = new NotificationChannel(
                         channelId,
-                        getApplicationContext().getResources().getString(R.string.web_service_on_channel_title),
+                        getString(R.string.web_service_on_channel_title),
                         NotificationManager.IMPORTANCE_LOW);
-                channel.setDescription(getApplicationContext().getResources().getString(R.string.web_service_on_channel_desc));
+                channel.setDescription(getString(R.string.web_service_on_channel_desc));
                 NotificationManager mNotification = (NotificationManager) getApplicationContext()
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotification.createNotificationChannel(channel);

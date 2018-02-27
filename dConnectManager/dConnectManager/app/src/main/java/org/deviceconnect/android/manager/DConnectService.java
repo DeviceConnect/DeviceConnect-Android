@@ -6,15 +6,18 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.util.Log;
 
 import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
@@ -137,6 +140,8 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
         if (mSettings.isManagerStartFlag()) {
             startInternal();
+        } else {
+            fakeStartForeground();
         }
 
     }

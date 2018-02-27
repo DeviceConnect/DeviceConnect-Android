@@ -901,18 +901,30 @@ public abstract class DConnectMessageService extends Service
                     R.drawable.icon : R.drawable.on_icon;
             builder.setSmallIcon(iconType);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String channelId = getApplicationContext().getResources().getString(R.string.dconnect_service_on_channel_id);
+                String channelId = getString(R.string.dconnect_service_on_channel_id);
                 NotificationChannel channel = new NotificationChannel(
                         channelId,
-                        getApplicationContext().getResources().getString(R.string.dconnect_service_on_channel_title),
+                        getString(R.string.dconnect_service_on_channel_title),
                         NotificationManager.IMPORTANCE_LOW);
-                channel.setDescription(getApplicationContext().getResources().getString(R.string.dconnect_service_on_channel_desc));
+                channel.setDescription(getString(R.string.dconnect_service_on_channel_desc));
                 NotificationManager mNotification = (NotificationManager) getApplicationContext()
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotification.createNotificationChannel(channel);
                 builder.setChannelId(channelId);
             }
             startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        }
+    }
+    /**
+     * DConnectServiceがOFF時にstartForegroundService()が行われた時にキャンセルする.
+     */
+    protected void fakeStartForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder builder = new Notification.Builder(this, getString(R.string.dconnect_service_on_channel_id))
+                    .setContentTitle("").setContentText("");
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            stopForeground(true);
+            stopSelf();
         }
     }
 

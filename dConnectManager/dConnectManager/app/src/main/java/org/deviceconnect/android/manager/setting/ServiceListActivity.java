@@ -223,7 +223,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     @Override
     public void onResume() {
         super.onResume();
-
+        mRetry = 0;
         if (isBonded() && !hasDevicePlugins()) {
             showNoDevicePlugin();
         }
@@ -514,7 +514,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             @Override
             protected void onPreExecute() {
                 try {
-                    mRetry = 0;
                     mDialog = new ServiceDiscoveryDialogFragment();
                     mDialog.show(getFragmentManager(), null);
                 } catch (Exception e) {
@@ -551,6 +550,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     }
                     if (isHost || mRetry == RETRY_COUNT) {
                         mServiceDiscovery = null;
+                        mRetry = 0;
                     } else {
                         mServiceDiscovery = null;
                         mRetry++;

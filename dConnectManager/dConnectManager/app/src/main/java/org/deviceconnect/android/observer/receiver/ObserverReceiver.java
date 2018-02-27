@@ -9,6 +9,7 @@ package org.deviceconnect.android.observer.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 import org.deviceconnect.android.observer.DConnectObservationService;
 
@@ -24,7 +25,11 @@ public class ObserverReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, final Intent intent) {
         Intent service = new Intent(intent);
         service.setClass(context, DConnectObservationService.class);
-        context.startService(service);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(service);
+        } else {
+            context.startService(service);
+        }
     }
 
 }

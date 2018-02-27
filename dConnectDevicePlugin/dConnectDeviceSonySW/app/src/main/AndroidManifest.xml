@@ -43,38 +43,34 @@
             android:exported="true"/>
 
         <!-- dConnect Provider -->
-        <receiver android:name="org.deviceconnect.android.deviceplugin.sw.SWProvider">
+        <receiver android:name="org.deviceconnect.android.deviceplugin.sw.SWProvider"
+            android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_sw"/>
-
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET"/>
-                <action android:name="org.deviceconnect.action.PUT"/>
-                <action android:name="org.deviceconnect.action.POST"/>
-                <action android:name="org.deviceconnect.action.DELETE"/>
-                <action android:name="org.deviceconnect.action.RESPONSE"/>
-                <action android:name="org.deviceconnect.action.EVENT"/>
-                <!-- uninstall notification -->
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
-                <data android:scheme="package"/>
-            </intent-filter>
         </receiver>
 
         <service
             android:name=".SWDeviceService"
-            android:exported="false">
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_sw"/>
         </service>
 
         <!-- Sony Smart Extensions API -->
         <service android:name="org.deviceconnect.android.deviceplugin.sw.smartconnect.SWExtensionService"/>
-        <service android:name="com.sonyericsson.extras.liveware.extension.util.TunnelService">
+        <service android:name="com.sonyericsson.extras.liveware.extension.util.TunnelService"
+            android:exported="true"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="com.sonyericsson.extras.liveware.aef.tunnel.action.BIND"/>
             </intent-filter>
         </service>
 
-        <receiver android:name="org.deviceconnect.android.deviceplugin.sw.smartconnect.SWExtensionReceiver">
+        <receiver android:name="org.deviceconnect.android.deviceplugin.sw.smartconnect.SWExtensionReceiver"
+            android:exported="true"
+            android:enabled="true">
             <intent-filter>
 
                 <!-- Generic extension intents. -->
@@ -98,6 +94,7 @@
                 <action android:name="com.sonyericsson.extras.aef.control.OBJECT_CLICK_EVENT"/>
                 <action android:name="com.sonyericsson.extras.aef.control.MENU_ITEM_SELECTED"/>
             </intent-filter>
+
         </receiver>
     </application>
 </manifest>

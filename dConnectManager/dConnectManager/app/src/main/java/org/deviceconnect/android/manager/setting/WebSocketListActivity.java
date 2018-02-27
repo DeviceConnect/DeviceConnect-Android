@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
@@ -108,7 +109,11 @@ public class WebSocketListActivity extends BaseSettingActivity implements AlertD
             intent.setClass(this, DConnectService.class);
             intent.setAction(DConnectService.ACTION_DISCONNECT_WEB_SOCKET);
             intent.putExtra(DConnectService.EXTRA_WEBSOCKET_ID, mWebSocketInfo.getRawId());
-            startService(intent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
         }
     }
 

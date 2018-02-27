@@ -133,11 +133,12 @@ public class KadecotServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                     }
 
                     appendServiceList(response);
-                    sendResponse(response);
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    cursor.close();
+                    sendResponse(response);
                 }
-                cursor.close();
             }
             return null;
         }

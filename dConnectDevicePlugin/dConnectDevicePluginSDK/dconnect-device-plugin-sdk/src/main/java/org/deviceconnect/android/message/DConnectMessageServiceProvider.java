@@ -12,6 +12,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 import java.util.logging.Logger;
 
@@ -33,7 +34,7 @@ public abstract class DConnectMessageServiceProvider<T extends Service> extends 
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        /** KeepAlive応答処理 */
+        /* KeepAlive応答処理 */
         if (intent.getAction().equals(IntentDConnectMessage.ACTION_KEEPALIVE)) {
             String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
             mLogger.info("ACTION_KEEPALIVE Receive. status: " + status);
@@ -51,7 +52,9 @@ public abstract class DConnectMessageServiceProvider<T extends Service> extends 
 
         Intent service = new Intent(intent);
         service.setClass(context, getServiceClass());
-        context.startService(service);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1) {
+            context.startService(service);
+        }
     }
 
     /**

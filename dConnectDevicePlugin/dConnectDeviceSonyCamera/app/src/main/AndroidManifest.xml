@@ -44,11 +44,7 @@
                 android:resource="@xml/filelocation" />
         </provider>
 
-        <receiver android:name=".receiver.WiFiStateReceiver" >
-            <intent-filter>
-                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
-                <action android:name="android.net.wifi.STATE_CHANGE" />
-            </intent-filter>
+        <receiver android:name=".receiver.WiFiStateReceiver" android:exported="true">
         </receiver>
 
         <!-- SonyCamera Device Plugin Provider. -->
@@ -70,7 +66,10 @@
 
         <service
             android:name=".SonyCameraDeviceService"
-            android:exported="false" >
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_sonycamera" />
         </service>
     </application>
 

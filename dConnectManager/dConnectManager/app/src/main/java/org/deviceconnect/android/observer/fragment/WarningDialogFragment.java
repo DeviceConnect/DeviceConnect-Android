@@ -65,9 +65,9 @@ public class WarningDialogFragment extends DialogFragment {
         }
         appNameView.setText(appName);
         appIconView.setImageDrawable(icon);
-        String tempMessage = String.format(getString(R.string.activity_warning_mess), port);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        Dialog dialog = builder.setTitle(getString(R.string.activity_warning)).setMessage(tempMessage).setView(view)
+        Dialog dialog = builder.setTitle(getString(R.string.activity_warning))
+                .setMessage(getString(R.string.activity_warning_mess)).setView(view)
                 .setPositiveButton(R.string.activity_warning_ok, new OnClickListener() {
 
                     @Override
@@ -91,14 +91,12 @@ public class WarningDialogFragment extends DialogFragment {
      */
     private String getAppName(final String packageName) {
         PackageManager pm = getActivity().getPackageManager();
-        final List<ApplicationInfo> appInfoList = pm.getInstalledApplications(Context.BIND_AUTO_CREATE);
+        final List<ApplicationInfo> appInfoList = pm.getInstalledApplications(PackageManager.MATCH_UNINSTALLED_PACKAGES | PackageManager.MATCH_DISABLED_COMPONENTS);
 
         for (ApplicationInfo ai : appInfoList) {
             String appName = ai.loadLabel(pm).toString();
-            if (appName != null) {
-                if (ai.packageName.equals(packageName)) {
-                    return appName;
-                }
+            if (ai.packageName.equals(packageName)) {
+                return appName;
             }
         }
         return "NoName";

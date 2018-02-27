@@ -30,6 +30,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +62,7 @@ public class HueFragment04 extends Fragment {
     private ListAdapter mListAdapter;
 
     /** Progress dialog. */
-    private ProgressDialog mProgressBar;
+    private AlertDialog mProgressBar;
 
     /**
      * newInstance.
@@ -263,10 +264,14 @@ public class HueFragment04 extends Fragment {
             public void run() {
                 Activity activity = getActivity();
                 if (activity != null) {
-                    mProgressBar = new ProgressDialog(activity);
-                    mProgressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    mProgressBar.setMessage(getString(R.string.frag04_serial_search));
-                    mProgressBar.setCancelable(false);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    LayoutInflater inflater = getActivity().getLayoutInflater();
+                    View v = inflater.inflate(R.layout.dialog_progress, null);
+                    TextView titleView = v.findViewById(R.id.title);
+                    TextView messageView = v.findViewById(R.id.message);
+                    titleView.setText(getString(R.string.message_light_searching));
+                    messageView.setText(getString(R.string.frag04_serial_search));
+                    mProgressBar = builder.setView(v).create();
                     mProgressBar.show();
                 }
             }

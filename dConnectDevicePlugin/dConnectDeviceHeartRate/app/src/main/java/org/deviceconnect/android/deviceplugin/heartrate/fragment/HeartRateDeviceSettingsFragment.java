@@ -246,7 +246,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      * @param device BLE device that have heart rate service.
      */
     private void connectDevice(final DeviceContainer device) {
-        if (getManager().isEnabledBle()) {
+        if (getManager().isEnabledBle() && mProgressDialogFragment == null) {
             getManager().connectBleDevice(device.getAddress());
             showProgressDialog(device.getName());
         }

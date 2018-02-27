@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 
@@ -35,11 +36,19 @@ public class SettingActivity extends BaseSettingActivity implements AlertDialogF
 
         Intent i1 = new Intent();
         i1.setClass(this, DConnectService.class);
-        startService(i1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(i1);
+        } else {
+            startService(i1);
+        }
 
         Intent i2 = new Intent();
         i2.setClass(this, DConnectWebService.class);
-        startService(i2);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(i2);
+        } else {
+            startService(i2);
+        }
     }
 
     @Override

@@ -964,8 +964,10 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else {
             mLimit = limit + mOffset;
         }
-
-        for (int i = mOffset; i < mLimit; i++) {
+        for (int i = mOffset; i < mLimit ; i++) {
+            if (i >= orglist.size()) {
+                break;
+            }
             Bundle medium = new Bundle();
             String mComp = null;
 

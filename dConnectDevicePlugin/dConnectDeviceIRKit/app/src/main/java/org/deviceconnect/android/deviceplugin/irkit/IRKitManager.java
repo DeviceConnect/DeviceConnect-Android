@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.irkit;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
@@ -15,35 +16,29 @@ import android.support.v4.BuildConfig;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.ByteArrayBuffer;
-import org.apache.http.util.EntityUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -64,6 +59,10 @@ public enum IRKitManager {
      */
     INSTANCE;
 
+    /**
+     * タグ名.
+     */
+    private static final String TAG = "IRKit";
     /**
      * Httpリクエスト ステータスコード 200.
      */
@@ -98,7 +97,14 @@ public enum IRKitManager {
      * デバイスキーの最大長.
      */
     private static final int MAX_DEVICE_KEY_LENGTH = 32;
-
+    /**
+     * CRC8の初期値.
+     */
+    private static final byte CRC8INIT = 0x00;
+    /**
+     * CRC8のポリシー値.
+     */
+    private static final byte CRC8POLY = 0x31; // = X^8+X^5+X^4+X^0
     /**
      * IRKitのサービスタイプ.
      */
@@ -247,15 +253,20 @@ public enum IRKitManager {
      * 
      * @param host ホスト名
      * @param path パス
-     * @return HttpGetのインスタンス
+     * @return HttpURLConnectionのインスタンス
      */
-    private HttpGet createGetRequest(final String host, final String path) {
+    private HttpURLConnection createGetRequest(final String host, final String path) throws IOException {
         if (BuildConfig.DEBUG) {
-            Log.d("IRKit", "http://" + host + path);
+            Log.d(TAG, "http://" + host + path);
         }
-        HttpGet req = new HttpGet("http://" + host + path);
-        req.setHeader(X_REQUESTED_WITH_HEADER_NAME, X_REQUESTED_WITH_HEADER_VALUE);
-        return req;
+        URL url = new URL("http://" + host + path);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty(X_REQUESTED_WITH_HEADER_NAME, X_REQUESTED_WITH_HEADER_VALUE);
+        conn.setReadTimeout(HTTP_REQUEST_TIMEOUT);
+        conn.setConnectTimeout(HTTP_REQUEST_TIMEOUT);
+        conn.setUseCaches(false);
+        return conn;
     }
 
     /**
@@ -263,72 +274,137 @@ public enum IRKitManager {
      * 
      * @param host ホスト名
      * @param path パス
-     * @return HttpPostのインスタンス
+     * @return HttpURLConnectionのインスタンス
      */
-    private HttpPost createPostRequest(final String host, final String path) {
-        HttpPost req = new HttpPost("http://" + host + path);
-        req.setHeader(X_REQUESTED_WITH_HEADER_NAME, X_REQUESTED_WITH_HEADER_VALUE);
-        return req;
-    }
-
-    /**
-     * HttpClientを作成する.
-     * 
-     * @return HttpClientのインスタンス
-     */
-    private HttpClient createClient() {
-        return createClient(HTTP_REQUEST_TIMEOUT);
-    }
-
-    /**
-     * HttpClientを作成する.
-     * 
-     * @param timeout タイムアウト
-     * @return HttpClientのインスタンス
-     */
-    private HttpClient createClient(final int timeout) {
-        HttpClient client = new DefaultHttpClient();
-        HttpParams params = client.getParams();
-        HttpConnectionParams.setSoTimeout(params, timeout);
-        HttpConnectionParams.setConnectionTimeout(params, timeout);
-        return client;
+    private HttpURLConnection createPostRequest(final String host, final String path) throws IOException {
+        URL url = new URL("http://" + host + path);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty(X_REQUESTED_WITH_HEADER_NAME, X_REQUESTED_WITH_HEADER_VALUE);
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        conn.setReadTimeout(HTTP_REQUEST_LONG_TIMEOUT);
+        conn.setConnectTimeout(HTTP_REQUEST_LONG_TIMEOUT);
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setUseCaches(false);
+        return conn;
     }
 
     /**
      * リクエストを実行する.
+     * @param conn HttpURLConnection
+     * @return 実行結果のBody
+     */
+    private String executeRequest(final HttpURLConnection conn) {
+        return  executeRequest(conn, "");
+    }
+    /**
+     * リクエストを実行する.
      * 
-     * @param req リクエスト
-     * @param client クライアント
+     * @param conn リクエスト
+     * @param bodyData 送信するボディデータ
      * @return レスポンスボディ。失敗、無い場合はnullを返す。
      */
-    private String executeRequest(final HttpUriRequest req, final HttpClient client) {
+    private String executeRequest(final HttpURLConnection conn, final String bodyData) {
         String body = null;
-        HttpEntity entity = null;
+        InputStream in = null;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            HttpResponse res = client.execute(req);
-            if (res.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
-                entity = res.getEntity();
-                body = EntityUtils.toString(entity);
+            if (bodyData != null && bodyData.length() > 0) {
+                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+                out.write(bodyData);
+                out.flush();
+                out.close();
             }
-            
+            conn.connect();
+            int resp = conn.getResponseCode();
+            if (resp == 200) {
+                in = conn.getInputStream();
+                int len;
+                byte[] buf = new byte[4096];
+                while ((len = in.read(buf)) > 0) {
+                    baos.write(buf, 0, len);
+                }
+                in.close();
+            } else {
+                in = conn.getErrorStream();
+                int len;
+                byte[] buf = new byte[4096];
+                while ((len = in.read(buf)) > 0) {
+                    baos.write(buf, 0, len);
+                }
+                in.close();
+            }
+            body = new String(baos.toByteArray(), "UTF-8");
         } catch (IOException e) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "IOException", e);
+            }
             body = null;
         } finally {
-            if (entity != null) {
-                try {
-                    entity.consumeContent();
-                } catch (IOException e) {
-                    // フリーできない場合は特にリカバリーできないのであきらめる
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch(IOException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "Http Request Error", e);
                 }
             }
-
-            client.getConnectionManager().shutdown();
+            conn.disconnect();
         }
-
         return body;
+    }
+
+    /**
+     * リクエストを実行する.
+     * @param conn HttpURLConnection
+     * @param keyValues Query
+     * @return Bodyの中身
+     * @throws IOException　Stream上のエラー
+     */
+    private String executeRequest(final HttpURLConnection conn, final Map<String, String> keyValues) throws IOException {
+        StringBuffer body = new StringBuffer();
+        if (keyValues.size() > 0) {
+            Uri.Builder builder = new Uri.Builder();
+            Set<String> keys = keyValues.keySet();
+            for (String key : keys) {
+                builder.appendQueryParameter(key , keyValues.get(key));
+            }
+            String join = builder.build().getEncodedQuery();
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            out.write(join);
+            out.flush();
+            out.close();
+            conn.connect();
+            String st = null;
+            InputStream in = null;
+            try {
+                in = conn.getInputStream();
+                BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                while ((st = br.readLine()) != null) {
+                    body.append(st);
+                }
+            } catch (IOException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "Http Request Error", e);
+                }
+                body = null;
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch(IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e(TAG, "Http Request Error", e);
+                    }
+                }
+                conn.disconnect();
+
+            }
+        }
+        return body.toString();
     }
 
     /**
@@ -379,26 +455,50 @@ public enum IRKitManager {
      * CRC8変換.
      * 
      * @param data 変換元データ
+     * @param size データサイズ
      * @return 変換したデータ
      */
-    private int crc8(final byte[] data) {
+    private byte crc8(byte[] data, int size) {
+        return crc8(data, size, CRC8INIT);
+    }
 
-        int crc = 0;
-
-        for (int i = 0; i < data.length; i++) {
-            crc ^= (data[i] & 0xFF);
+    /**
+     * CRC8変換
+     * @param data 変換データ
+     * @param size データサイズ
+     * @param crcinit CRC初期値
+     * @return CRC8のバイトデータ
+     */
+    private byte crc8(byte[] data, int size, byte crcinit) {
+        byte crc = crcinit;
+        int dataLength = data.length;
+        for (int i = 0; i < size; i++) {
+            if (i < dataLength) {
+                crc ^= data[i];
+            }
             for (int j = 0; j < 8; j++) {
-                if ((crc & 0x80) != 0) {
-                    crc = ((crc << 1) ^ 0x31) & 0xFF;
+                if ((crc & 0x80) != 0x00) {
+                    crc = (byte) ((crc << 1) ^ CRC8POLY);
                 } else {
                     crc <<= 1;
                 }
             }
         }
-
         return crc;
     }
 
+    /**
+     * バイトデータを文字列に変換する.
+     * @param bytes バイトデータ
+     * @return バイトデータ文字列
+     */
+    private String toHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append( String.format(Locale.US, "%02x", b) );
+        }
+        return sb.toString().toUpperCase();
+    }
     /**
      * WiFiへの接続情報をシリアライズするためにbyte配列に変換する.
      * 
@@ -408,25 +508,30 @@ public enum IRKitManager {
      * @param deviceKey デバイスキー
      * @return byte配列
      */
-    private byte[] toBytes(final WiFiSecurityType type, final String ssid, final String password, 
-            final String deviceKey) {
+    private String toCRC(final WiFiSecurityType type, final String ssid, final String password,
+                         final String deviceKey) {
 
-        ByteArrayBuffer buffer = new ByteArrayBuffer(MAX_DEVICE_KEY_LENGTH + 1 + MAX_PASSWORD_LENGTH + 1
-                + MAX_SSID_LENGTH + 1 + 3); // セキュリティタイプ + wifi_is_set +
-                                            // wifi_is_valid
+        byte[] ssidBytes;
+        byte[] passwordBytes;
+        byte[] deviceKeyBytes;
+        try {
+            ssidBytes = ssid.getBytes("UTF-8");
+            passwordBytes = password.getBytes("UTF-8");
+            deviceKeyBytes = deviceKey.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-        byte[] ssidByte = toBytes(ssid, MAX_SSID_LENGTH + 1);
-        byte[] passByte = toBytes(password, MAX_PASSWORD_LENGTH + 1);
-        byte[] keyByte = toBytes(deviceKey, MAX_DEVICE_KEY_LENGTH + 1);
+        byte crc = crc8(new byte[]{ (byte) type.mCode }, 1);
+        crc = crc8(ssidBytes, 33, crc);
+        crc = crc8(passwordBytes, 64, crc);
+        crc = crc8(new byte[]{ 1 }, 1, crc); // wifi_is_set == true
+        crc = crc8(new byte[]{ 0 }, 1, crc); // wifi_was_valid == false
+        crc = crc8(deviceKeyBytes, 33, crc);
+        String crcString = String.format(Locale.US, "%02x", crc).toUpperCase();
 
-        buffer.append(type.mCode);
-        buffer.append(ssidByte, 0, ssidByte.length);
-        buffer.append(passByte, 0, passByte.length);
-        buffer.append(1); // wifi_is_set = true
-        buffer.append(0); // wifi_is_valid = false
-        buffer.append(keyByte, 0, keyByte.length);
-
-        return buffer.toByteArray();
+        return crcString;
     }
 
     /**
@@ -436,7 +541,7 @@ public enum IRKitManager {
      * @param length 長さ
      * @return byte配列
      */
-    private byte[] toBytes(final String str, final int length) {
+    private byte[] toByte(final String str, final int length) {
 
         byte[] res = new byte[length];
         byte[] data = str.getBytes();
@@ -474,7 +579,7 @@ public enum IRKitManager {
         mServices.remove(device.getName());
         
         if (BuildConfig.DEBUG) {
-            Log.d("IRKit", "Lost Device : " + device);
+            Log.d(TAG, "Lost Device : " + device);
         }
         
         if (mDetectionListener != null) {
@@ -513,7 +618,6 @@ public enum IRKitManager {
         }
         return regdomain;
     }
-    
     /**
      * 初期化を実行する.
      * 
@@ -591,7 +695,7 @@ public enum IRKitManager {
                         mIsDetecting = true;
                         
                         if (BuildConfig.DEBUG) {
-                            Log.d("IRKit", "start detection.");
+                            Log.d(TAG, "start detection.");
                         }
                         
                     } catch (IOException e) {
@@ -618,7 +722,7 @@ public enum IRKitManager {
             try {
                 mDNS.close();
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "close detection.");
+                    Log.d(TAG, "close detection.");
                 }
             } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
@@ -647,10 +751,14 @@ public enum IRKitManager {
 
             @Override
             public void run() {
-                HttpGet req = createGetRequest(ip, "/messages");
-                HttpClient client = createClient();
-                String message = executeRequest(req, client);
-                callback.onGetMessage(message);
+                HttpURLConnection req = null;
+                try {
+                    req = createGetRequest(ip, "/messages");
+                    String message = executeRequest(req);
+                    callback.onGetMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 // 連続でIRKitに通信を行わないようにするためのスリープ
                 // IRKitに連続で通信を行うと正常に動作しないことがあるため
@@ -677,20 +785,24 @@ public enum IRKitManager {
 
             @Override
             public void run() {
-                HttpPost req = createPostRequest(ip, "/messages");
-                HttpClient client = createClient();
+                HttpURLConnection req = null;
                 boolean result = false;
                 try {
+                    req = createPostRequest(ip, "/messages");
                     if (BuildConfig.DEBUG) {
-                        Log.d("IRKit", "ip=" + ip + " post message : " + message);
+                        Log.d(TAG, "ip=" + ip + " post message : " + message);
                     }
-                    StringEntity body = new StringEntity(message);
-                    req.setEntity(body);
-                    HttpResponse res = client.execute(req);
-                    if (res.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
+                    req.setRequestProperty("Content-Length", String.valueOf(message.length()));
+                    OutputStreamWriter out = new OutputStreamWriter(req.getOutputStream());
+                    out.write(message);
+                    out.flush();
+                    req.connect();
+                    out.close();
+                    int status = req.getResponseCode();
+                    if (status == STATUS_CODE_OK) {
                         result = true;
                     }
-                    
+
                     // 連続でIRKitに通信を行わないようにするためのスリープ
                     // IRKitに連続で通信を行うと正常に動作しないことがあるため
                     try {
@@ -698,18 +810,16 @@ public enum IRKitManager {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                } catch (ClientProtocolException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
+                    callback.onPostMessage(result);
                 } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
+                    e.printStackTrace();
                 } finally {
-                    client.getConnectionManager().shutdown();
+                    if (req != null) {
+                        req.disconnect();
+                    }
                     callback.onPostMessage(result);
                 }
+
             }
         });
     }
@@ -725,40 +835,26 @@ public enum IRKitManager {
             @Override
             public void run() {
                 String clientKey = null;
+                try {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("apikey", mAPIKey);
+                    HttpURLConnection req = createPostRequest(INTERNET_HOST, "/1/clients");
+                    req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-                do {
-                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                    nameValuePairs.add(new BasicNameValuePair("apikey", mAPIKey));
-                    UrlEncodedFormEntity param = null;
-                    try {
-                        param = new UrlEncodedFormEntity(nameValuePairs);
-                    } catch (UnsupportedEncodingException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                        break;
+                    String body = executeRequest(req, params);
+                    JSONObject json = new JSONObject(body);
+                    clientKey = json.getString("clientkey");
+                } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
                     }
-                    HttpPost req = createPostRequest(INTERNET_HOST, "/1/clients");
-                    HttpClient client = createClient(HTTP_REQUEST_LONG_TIMEOUT);
-
-                    req.setEntity(param);
-                    String body = executeRequest(req, client);
-
-                    if (body == null) {
-                        break;
+                    clientKey = null;
+                } catch (JSONException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
                     }
-
-                    try {
-                        JSONObject json = new JSONObject(body);
-                        clientKey = json.getString("clientkey");
-                    } catch (JSONException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                        clientKey = null;
-                        break;
-                    }
-                } while (false);
+                    clientKey = null;
+                }
 
                 callback.onGetClientKey(clientKey);
 
@@ -785,43 +881,29 @@ public enum IRKitManager {
             public void run() {
                 String deviceKey = null;
                 String serviceId = null;
-                do {
-                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                    nameValuePairs.add(new BasicNameValuePair("clientkey", clientKey));
-                    UrlEncodedFormEntity param = null;
-                    try {
-                        param = new UrlEncodedFormEntity(nameValuePairs);
-                    } catch (UnsupportedEncodingException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                        break;
+                try {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("clientkey", clientKey);
+                    HttpURLConnection req = createPostRequest(INTERNET_HOST, "/1/devices");
+                    req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+                    String body = executeRequest(req, params);
+                    JSONObject json = new JSONObject(body);
+                    serviceId = json.getString("deviceid");
+                    deviceKey = json.getString("devicekey");
+                } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
                     }
-
-                    HttpPost req = createPostRequest(INTERNET_HOST, "/1/devices");
-                    HttpClient client = createClient(HTTP_REQUEST_LONG_TIMEOUT);
-
-                    req.setEntity(param);
-                    String body = executeRequest(req, client);
-
-                    if (body == null) {
-                        break;
+                    serviceId = null;
+                    deviceKey = null;
+                } catch (JSONException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
                     }
-
-                    try {
-                        JSONObject json = new JSONObject(body);
-                        serviceId = json.getString("deviceid");
-                        deviceKey = json.getString("devicekey");
-                    } catch (JSONException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                        serviceId = null;
-                        deviceKey = null;
-                        break;
-                    }
-                } while (false);
-
+                    serviceId = null;
+                    deviceKey = null;
+                }
                 callback.onGetDevice(serviceId, deviceKey);
             }
         }).start();
@@ -849,36 +931,32 @@ public enum IRKitManager {
                     tmpPassword = toHex(password, MAX_PASSWORD_LENGTH);
                 }
                 String passHex = toHex(tmpPassword, MAX_PASSWORD_LENGTH);
-                byte[] crcData = toBytes(type, ssid, tmpPassword, deviceKey);
-                int crc = crc8(crcData);
-                String crcHex = String.format("%02x", crc);
+                String crcHex = toCRC(type, ssid, tmpPassword, deviceKey);
                 String regdomain = getRegDomain();
                 String postData = String.format(Locale.ENGLISH, "%d/%s/%s/%s/%s//////%s", type.mCode, ssidHex, passHex,
                         deviceKey, regdomain, crcHex).toUpperCase(Locale.ENGLISH);
 
-                HttpPost req = createPostRequest(DEVICE_HOST, "/wifi");
-                HttpClient client = createClient();
+                HttpURLConnection req = null;
                 boolean result = false;
                 try {
+                    req = createPostRequest(DEVICE_HOST, "/wifi");
                     if (BuildConfig.DEBUG) {
-                        Log.d("IRKit", "body : " + postData);
+                        Log.d(TAG, "body : " + postData);
                     }
-                    StringEntity body = new StringEntity(postData);
-                    req.setEntity(body);
-                    HttpResponse res = client.execute(req);
-                    if (res.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
+                    req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                    executeRequest(req, postData);
+                    int status = req.getResponseCode();
+                    if (status == STATUS_CODE_OK) {
                         result = true;
-                    }
-                } catch (ClientProtocolException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
                     }
                 } catch (IOException e) {
                     if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
+                        Log.e(TAG, "disconnect:" + result, e);
                     }
                 } finally {
-                    client.getConnectionManager().shutdown();
+                    if (req != null) {
+                        req.disconnect();
+                    }
                     callback.onConnectedToWiFi(result);
                 }
             }
@@ -898,23 +976,36 @@ public enum IRKitManager {
             public void run() {
 
                 boolean isIRKit = false;
-                HttpGet req = createGetRequest(ip, "/messages");
-                HttpClient client = createClient(HTTP_REQUEST_TIMEOUT);
+                HttpURLConnection req = null;
                 try {
-                    HttpResponse res = client.execute(req);
-                    Header[] headers = res.getAllHeaders();
-                    for (Header h : headers) {
-                        if (h.getName().equals("Server") && h.getValue().contains("IRKit")) {
-                            isIRKit = true;
-                            break;
+                    req = createGetRequest(ip, "/messages");
+                    executeRequest(req);
+                    Map<String, List<String>> headers = req.getHeaderFields();
+                    for (String h : headers.keySet()) {
+                        if (h == null) {
+                            continue;
+                        }
+                        if (h.equals("Server")) {
+                            for (String v : headers.get(h)) {
+                                if (v.contains(TAG)) {
+                                    isIRKit = true;
+                                    break;
+                                }
+                            }
+                            if (isIRKit) {
+                                break;
+                            }
                         }
                     }
                 } catch (IOException e) {
                     if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
+                        Log.e(TAG, "disconnect:" + isIRKit, e);
+
                     }
                 } finally {
-                    client.getConnectionManager().shutdown();
+                    if (req != null) {
+                        req.disconnect();
+                    }
                 }
 
                 callback.onChecked(isIRKit);
@@ -936,42 +1027,28 @@ public enum IRKitManager {
             @Override
             public void run() {
                 String hostName = null;
-                do {
-                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-                    nameValuePairs.add(new BasicNameValuePair("clientkey", clientKey));
-                    nameValuePairs.add(new BasicNameValuePair("deviceid", serviceId));
-                    UrlEncodedFormEntity param = null;
-                    try {
-                        param = new UrlEncodedFormEntity(nameValuePairs);
-                    } catch (UnsupportedEncodingException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                        break;
+                try {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("clientkey", clientKey);
+                    params.put("deviceid", serviceId);
+                    HttpURLConnection req = createPostRequest(INTERNET_HOST, "/1/door");
+                    req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+                    String body = executeRequest(req, params);
+                    JSONObject json = new JSONObject(body);
+                    hostName = json.getString("hostname");
+
+                } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e(TAG, "disconnect:" + (hostName != null), e);
                     }
-
-                    HttpPost req = createPostRequest(INTERNET_HOST, "/1/door");
-                    HttpClient client = createClient(HTTP_REQUEST_LONG_TIMEOUT);
-
-                    req.setEntity(param);
-                    String body = executeRequest(req, client);
-
-                    if (body == null) {
-                        break;
+                    hostName = null;
+                } catch (JSONException e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e(TAG, "disconnect:" + (hostName != null), e);
                     }
-
-                    try {
-                        JSONObject json = new JSONObject(body);
-                        hostName = json.getString("hostname");
-                    } catch (JSONException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                        hostName = null;
-                        break;
-                    }
-                } while (false);
-                
+                    hostName = null;
+                }
                 callback.onConnectedToInternet(hostName != null);
             }
         }).start();
@@ -1104,7 +1181,7 @@ public enum IRKitManager {
         @Override
         public void serviceAdded(final ServiceEvent event) {
             if (BuildConfig.DEBUG) {
-                Log.d("IRKit", "serviceAdded");
+                Log.d(TAG, "serviceAdded");
             }
             synchronized (INSTANCE) {
                 if (mDetectionListener != null) {
@@ -1147,9 +1224,9 @@ public enum IRKitManager {
                 addService(device);
                 
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "serviceResolved ip=" + ip);
-                    Log.d("IRKit", "device=" + device);
-                    Log.d("IRKit", "devicename=" + device.getName());
+                    Log.d(TAG, "serviceResolved ip=" + ip);
+                    Log.d(TAG, "device=" + device);
+                    Log.d(TAG, "devicename=" + device.getName());
                 }
                 
                 if (mRemoveHandler == null) {
@@ -1227,7 +1304,7 @@ public enum IRKitManager {
                 long pt = checkConnection();
                 
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "Check Time : " + pt);
+                    Log.d(TAG, "Check Time : " + pt);
                 }
                 
                 synchronized (this) {
@@ -1251,7 +1328,7 @@ public enum IRKitManager {
                 }
                 
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "Start remove checking after " + mDelay + " ms.");
+                    Log.d(TAG, "Start remove checking after " + mDelay + " ms.");
                 }
                 
                 try {

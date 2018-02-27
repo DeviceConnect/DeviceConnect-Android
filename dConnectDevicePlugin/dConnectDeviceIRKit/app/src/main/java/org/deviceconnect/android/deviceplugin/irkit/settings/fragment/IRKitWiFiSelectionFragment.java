@@ -224,8 +224,18 @@ public class IRKitWiFiSelectionFragment extends IRKitBaseFragment {
         
         if (mState == State.WAITING_IRKIT_SSID) {
             mState = State.CHECKING_IRKIT;
-            showProgress();
-            IRKitManager.INSTANCE.checkIfTargetIsIRKit(IRKitManager.DEVICE_HOST, 
+
+            Activity a = getActivity();
+            if (a == null || !(a instanceof IRKitSettingActivity)) {
+                return;
+            }
+            a.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showProgress();
+                }
+            });
+            IRKitManager.INSTANCE.checkIfTargetIsIRKit(IRKitManager.DEVICE_HOST,
                     new CheckingIRKitCallback() {
                 
                 @Override

@@ -42,5 +42,6 @@
     <string name="error_failed_to_connect_camera" translatable="false">カメラが起動できませんでした。</string>
     <string name="error_failed_to_connect_audio" translatable="false">マイクが起動できませんでした。</string>
     <string name="error_failed_to_connect_already_disconnect_msg" translatable="false">このセッションは既に切断されています。</string>
+    <string name="error_failed_to_connect_permission_not_allow" translatable="false">WebRTCの設定を行う場合はパーミッションを許可してください。</string>
 
 </resources>

@@ -13,7 +13,7 @@
     <string name="notapproval">拒否する</string>
 
     <string name="expire_period_format">承認後プロファイルにアクセスできる期間は %1$s です。</string>
-    
+
     <!-- スコープ表示名("display_scope_"+[プロファイル名] を設定しておくと、プロファイル名をここの文字列に置き換えて表示する)  -->
     <string name="display_scope_authorization">認証</string>
     <string name="display_scope_battery">バッテリー</string>

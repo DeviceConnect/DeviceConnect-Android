@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
@@ -363,7 +364,11 @@ public class DevicePluginListFragment extends BaseSettingFragment {
                 Intent request = new Intent(activity.getApplicationContext(), DConnectService.class);
                 request.setAction(action);
                 request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, pluginId);
-                activity.startService(request);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    activity.startForegroundService(request);
+                } else {
+                    activity.startService(request);
+                }
             }
         }
     }

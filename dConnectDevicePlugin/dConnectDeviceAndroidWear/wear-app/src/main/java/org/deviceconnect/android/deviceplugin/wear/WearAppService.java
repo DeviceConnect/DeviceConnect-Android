@@ -1,11 +1,15 @@
 package org.deviceconnect.android.deviceplugin.wear;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -76,10 +80,29 @@ public class WearAppService extends Service implements SensorEventListener {
                     mIds.add(id);
                 }
                 registerSensor();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    NotificationManager manager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+                    String channelId = getString(R.string.android_wear_data_layer_channel_id);
+                    NotificationChannel channel = new NotificationChannel(
+                            channelId,
+                            getString(R.string.android_wear_data_layer_channel_title),
+                            NotificationManager.IMPORTANCE_LOW);
+                    channel.setDescription(getResources().getString(R.string.android_wear_data_layer_channel_desc));
+                    manager.createNotificationChannel(channel);
+                    Notification.Builder builder = new Notification.Builder(this, channelId);
+                    builder.setContentTitle(getString(R.string.android_wear_data_layer_channel_id));
+                    builder.setContentText(getString(R.string.android_wear_data_layer_channel_desc));
+                    builder.setWhen(System.currentTimeMillis());
+                    builder.setAutoCancel(false);
+                    startForeground(1, builder.build());
+                }
             } else if (WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER.equals(action)) {
                 mIds.remove(id);
                 if (mIds.isEmpty()) {
                     unregisterSensor();
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    stopForeground(true);
                 }
             }
         }
@@ -160,34 +183,39 @@ public class WearAppService extends Service implements SensorEventListener {
         if (mSensorManager != null) {
             return;
         }
-
-        GoogleApiClient client = getClient();
-        if (client == null || !client.isConnected()) {
-            client = new GoogleApiClient.Builder(this).addApi(Wearable.API).build();
-            client.connect();
-            ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-            if (!connectionResult.isSuccess()) {
-                if (BuildConfig.DEBUG) {
-                    Log.e("WEAR", "Failed to connect google play service.");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GoogleApiClient client = getClient();
+                if (client == null || !client.isConnected()) {
+                    client = new GoogleApiClient.Builder(WearAppService.this).addApi(Wearable.API).build();
+                    client.connect();
+                    ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
+                    if (!connectionResult.isSuccess()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e("WEAR", "Failed to connect google play service.");
+                        }
+                        return;
+                    }
                 }
-                return;
+
+                mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+                List<Sensor> accelSensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+                if (accelSensors.size() > 0) {
+                    mAccelerometer = accelSensors.get(0);
+                    mSensorManager.registerListener(WearAppService.this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+                }
+
+                List<Sensor> gyroSensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
+                if (gyroSensors.size() > 0) {
+                    mGyroSensor = gyroSensors.get(0);
+                    mSensorManager.registerListener(WearAppService.this, mGyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
+                }
+
+                mStartTime = System.currentTimeMillis();
+
             }
-        }
-
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        List<Sensor> accelSensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-        if (accelSensors.size() > 0) {
-            mAccelerometer = accelSensors.get(0);
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        List<Sensor> gyroSensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
-        if (gyroSensors.size() > 0) {
-            mGyroSensor = gyroSensors.get(0);
-            mSensorManager.registerListener(this, mGyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        mStartTime = System.currentTimeMillis();
+        }).start();
     }
 
     /**

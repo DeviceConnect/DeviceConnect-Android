@@ -13,7 +13,10 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hvcc2w.R;
 
@@ -44,13 +47,16 @@ public class HVCC2WDialogFragment extends DialogFragment {
         String title = getArguments().getString("title");
         String message = getArguments().getString("message");
 
-        ProgressDialog progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle(title);
-        progressDialog.setMessage(message);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        setCancelable(false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = (TextView) v.findViewById(R.id.title);
+        TextView messageView = (TextView) v.findViewById(R.id.message);
+        titleView.setText(title);
+        messageView.setText(message);
+        builder.setView(v);
 
-        return progressDialog;
+        return builder.create();
     }
 
     /**

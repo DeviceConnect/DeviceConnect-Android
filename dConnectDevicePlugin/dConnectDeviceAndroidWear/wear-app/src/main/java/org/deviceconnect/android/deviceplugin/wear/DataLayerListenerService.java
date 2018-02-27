@@ -10,6 +10,7 @@ import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Vibrator;
 import android.util.Log;
 
@@ -82,7 +83,11 @@ public class DataLayerListenerService extends WearableListenerService {
         intent.setAction(WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER);
         intent.setClass(this, WearAppService.class);
         intent.putExtra(WearConst.PARAM_SENSOR_ID, id);
-        startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
     }
 
     private void stopSensorService(String id) {
@@ -90,7 +95,11 @@ public class DataLayerListenerService extends WearableListenerService {
         intent.setAction(WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER);
         intent.setClass(this, WearAppService.class);
         intent.putExtra(WearConst.PARAM_SENSOR_ID, id);
-        startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
     }
 
     @Override

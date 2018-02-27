@@ -12,5 +12,7 @@
     <string name="ok" translatable="false">OK</string>
     <string name="key_mode" translatable="false"> </string>
     <string name="title_activity_wear_touch_profile" translatable="false">Touch Profile</string>
-
+    <string name="android_wear_data_layer_channel_id">org.deviceconnect.android.intent.action.datalayer.androidwear</string>
+    <string name="android_wear_data_layer_channel_title">Device Connect AndroidWear Data Service</string>
+    <string name="android_wear_data_layer_channel_desc">DeviceConnect\'s send data service.</string>
 </resources>

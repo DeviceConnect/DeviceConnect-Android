@@ -7,6 +7,7 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -188,7 +190,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
             worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getWorstBaudRate()));
 
-            LayoutInflater inflater = getLayoutInflater(null);
+            LayoutInflater inflater = getLayoutInflater();
 
             LinearLayout baudRateListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
             baudRateListLayout.removeAllViews();
@@ -307,7 +309,11 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
             Intent request = new Intent(activity, DConnectService.class);
             request.setAction(DConnectService.ACTION_OPEN_SETTINGS);
             request.putExtra(DConnectService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
-            activity.startService(request);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity.startForegroundService(request);
+            } else {
+                activity.startService(request);
+            }
         }
     }
 
@@ -402,7 +408,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         }
 
         final PackageManager pm = getActivity().getPackageManager();
-        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.GET_DISABLED_COMPONENTS;
+        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.MATCH_DISABLED_COMPONENTS;
         final List<ApplicationInfo> installedAppList = pm.getInstalledApplications(flags);
         for (ApplicationInfo app : installedAppList) {
             if (app.packageName.equals(packageName)) {
@@ -420,12 +426,16 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String title = getString(R.string.activity_settings_restart_device_plugin_title);
             String msg = getString(R.string.activity_settings_restart_device_plugin_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View v = inflater.inflate(R.layout.dialog_progress, null);
+            TextView titleView = v.findViewById(R.id.title);
+            TextView messageView = v.findViewById(R.id.message);
+            titleView.setText(title);
+            messageView.setText(msg);
+            builder.setView(v);
+
+            return builder.create();
         }
 
         @Override

@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -13,8 +15,11 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.wear.R;
 import org.deviceconnect.android.event.Event;
@@ -30,6 +35,8 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Random;
 
@@ -68,10 +75,6 @@ public class WearNotificationProfile extends NotificationProfile {
             final NotificationType type = getType(request);
             final String body = getBody(request);
 
-            Bitmap myBitmap;
-            Resources myRes = getContext().getResources();
-            NotificationCompat.Builder myNotificationBuilder;
-            NotificationManagerCompat myNotificationManager;
             int myNotificationId = mRandom.nextInt(Integer.MAX_VALUE);
 
             Intent clickIntent = new Intent(getContext(),
@@ -90,52 +93,84 @@ public class WearNotificationProfile extends NotificationProfile {
             PendingIntent deletePendingIntent = PendingIntent.getService(getContext(), 0, deleteIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
-            switch (type) {
-                case PHONE:
-                    myBitmap = BitmapFactory.decodeResource(myRes, R.drawable.notification_00);
-                    myNotificationBuilder = new NotificationCompat.Builder(getContext())
-                        .setSmallIcon(R.drawable.notification_00).setContentTitle("Phone").setContentText(body)
-                        .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
-                        .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
-                        .setWhen(System.currentTimeMillis())
-                        .extend(new NotificationCompat.WearableExtender());
-                    break;
-                case MAIL:
-                    myBitmap = BitmapFactory.decodeResource(myRes, R.drawable.notification_01);
-                    myNotificationBuilder = new NotificationCompat.Builder(getContext())
-                        .setSmallIcon(R.drawable.notification_01).setContentTitle("Mail").setContentText(body)
-                        .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
-                        .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
-                        .setWhen(System.currentTimeMillis())
-                        .extend(new NotificationCompat.WearableExtender());
-                    break;
-                case SMS:
-                    myBitmap = BitmapFactory.decodeResource(myRes, R.drawable.notification_02);
-                    myNotificationBuilder = new NotificationCompat.Builder(getContext())
-                        .setSmallIcon(R.drawable.notification_02).setContentTitle("SMS").setContentText(body)
-                        .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
-                        .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
-                        .setWhen(System.currentTimeMillis())
-                        .extend(new NotificationCompat.WearableExtender());
-                    break;
-                case EVENT:
-                    myBitmap = BitmapFactory.decodeResource(myRes, R.drawable.notification_03);
-                    myNotificationBuilder = new NotificationCompat.Builder(getContext())
-                        .setSmallIcon(R.drawable.notification_03).setContentTitle("Event").setContentText(body)
-                        .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
-                        .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
-                        .setWhen(System.currentTimeMillis())
-                        .extend(new NotificationCompat.WearableExtender());
-                    break;
-                case UNKNOWN:
-                default:
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
+            int iconType = 0;
+            String title = "";
+            if (type == NotificationType.PHONE) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                        R.drawable.notification_00 : R.drawable.notification_00_post_lollipop;
+                title = "PHONE";
+            } else if (type == NotificationType.MAIL) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                        R.drawable.notification_01 : R.drawable.notification_01_post_lollipop;
+                title = "MAIL";
+            } else if (type == NotificationType.SMS) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                        R.drawable.notification_02 : R.drawable.notification_02_post_lollipop;
+                title = "SMS";
+            } else if (type == NotificationType.EVENT) {
+                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                        R.drawable.notification_03 : R.drawable.notification_03_post_lollipop;
+                title = "EVENT";
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "type is invalid.");
+                return true;
             }
 
-            // Send Notification.
-            myNotificationManager = NotificationManagerCompat.from(getContext());
-            myNotificationManager.notify(myNotificationId, myNotificationBuilder.build());
+            String encodeBody = "";
+            try {
+                if (body != null) {
+                    encodeBody = URLDecoder.decode(body, "UTF-8");
+                }
+            } catch (UnsupportedEncodingException e) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "body is invalid.");
+                return true;
+            }
+
+
+            Notification notification;
+            // Get an instance of the NotificationManager service
+            NotificationManager mNotification = (NotificationManager) getContext()
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                NotificationCompat.Builder notificationBuilder =
+                        new NotificationCompat.Builder(getContext())
+                                .setSmallIcon(iconType)
+                                .setContentTitle("" + title)
+                                .setContentText(encodeBody)
+                                .setContentIntent(clickPendingIntent)
+                                .setVibrate(new long[]{500})
+                                .setDeleteIntent(deletePendingIntent)
+                                .extend(new NotificationCompat.WearableExtender());
+                notification = notificationBuilder.build();
+            } else {
+                Notification.Builder notificationBuilder =
+                        new Notification.Builder(getContext())
+                                .setSmallIcon(Icon.createWithResource(getContext(), iconType))
+                                .setContentTitle("" + title)
+                                .setContentText(encodeBody)
+                                .setContentIntent(clickPendingIntent)
+                                .setVibrate(new long[]{500})
+                                .setDeleteIntent(deletePendingIntent)
+                                .extend(new Notification.WearableExtender());
+                ;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    String channelId = getContext().getResources().getString(R.string.android_wear_notification_channel_id);
+                    NotificationChannel channel = new NotificationChannel(
+                            channelId,
+                            getContext().getResources().getString(R.string.android_wear_notification_channel_title),
+                            NotificationManager.IMPORTANCE_DEFAULT);
+                    channel.setDescription(getContext().getResources().getString(R.string.android_wear_notification_channel_desc));
+                    mNotification.createNotificationChannel(channel);
+                    notificationBuilder.setChannelId(channelId);
+                }
+                notification = notificationBuilder.build();
+            }
+            // Build the notification and issues it with notification
+            // manager.
+            mNotification.notify(myNotificationId, notification);
+
             response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
             setResult(response, IntentDConnectMessage.RESULT_OK);
 

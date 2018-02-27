@@ -134,44 +134,23 @@
         </activity>
 
         <!-- 各アプリやデバイスプラグインからのDConnectMessageを受領するためのBroadcastReceiver. -->
-        <receiver android:name=".DConnectBroadcastReceiver">
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET"/>
-                <action android:name="org.deviceconnect.action.PUT"/>
-                <action android:name="org.deviceconnect.action.POST"/>
-                <action android:name="org.deviceconnect.action.DELETE"/>
-                <action android:name="org.deviceconnect.action.RESPONSE"/>
-                <action android:name="org.deviceconnect.action.EVENT"/>
-            </intent-filter>
+        <receiver android:name=".DConnectBroadcastReceiver" android:exported="true">
         </receiver>
 
         <!-- アプリケーションのインストールやアンインストールといったイベントを受領するためのBroadcastReceiver. -->
-        <receiver android:name=".receiver.PackageManageReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED"/>
-                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
-                <action android:name="android.intent.action.PACKAGE_CHANGED"/>
-
-                <data android:scheme="package"/>
-            </intent-filter>
+        <receiver android:name=".receiver.PackageManageReceiver" android:exported="true">
         </receiver>
 
         <!-- Device Connect Manager本体のサービス. -->
         <service
             android:name=".DConnectService"
             android:exported="false">
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.manager.IDConnectService"/>
-            </intent-filter>
         </service>
 
         <!-- Webサーバを管理するサービス -->
         <service
             android:name=".DConnectWebService"
             android:exported="false">
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.manager.IDConnectWebService"/>
-            </intent-filter>
         </service>
 
         <!-- Device Connectのファイルを管理するProvider. -->
@@ -226,12 +205,6 @@
 
         <!-- アプリ起動を受領し、監視プログラムを立ち上げるためのBroadcastReceiver. -->
         <receiver android:name="org.deviceconnect.android.observer.receiver.ObserverReceiver">
-            <intent-filter>
-                <action android:name="com.android.vending.INSTALL_REFERRER"/>
-                <action android:name="org.deviceconnect.android.intent.action.observer.START"/>
-                <action android:name="org.deviceconnect.android.intent.action.observer.STOP"/>
-                <action android:name="org.deviceconnect.android.intent.action.observer.CHECK"/>
-            </intent-filter>
         </receiver>
     </application>
 

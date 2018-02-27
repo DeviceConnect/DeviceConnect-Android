@@ -8,7 +8,11 @@ package org.deviceconnect.android.deviceplugin.hvc;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -74,7 +78,32 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
      * BLE device detector.
      */
     private BleDeviceDetector mDetector;
+    /** BLE Receiver. */
+    private final BroadcastReceiver mBLEReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                if (DEBUG) {
+                    Log.d(TAG, "bluetooth state change.");
+                }
 
+                Bundle extras = intent.getExtras();
+                int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
+                if (state == BluetoothAdapter.STATE_TURNING_OFF) {
+                    // Bluetooth ON -> OFF
+                    // stop scan process.
+                    stopSearchHvcDevice();
+
+                    turnOff(getServiceProvider().getServiceList());
+                } else if (state == BluetoothAdapter.STATE_ON) {
+                    // Bluetooth OFF -> ON
+                    // start scan process.
+                    startSearchHvcDevice();
+                }
+            }
+        }
+    };
     @Override
     public void onConnected(final String serviceId) {
         DConnectService service = getServiceProvider().getService(serviceId);
@@ -116,15 +145,26 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
         
         // start timeout judge timer.
         startTimeoutJudgeTimer();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBLEReceiver, filter);
     }
-
+    @Override
+    public void onDestroy() {
+        unregisterReceiver(mBLEReceiver);
+        resetPluginResource();
+        super.onDestroy();
+    }
     @Override
     protected void onManagerUninstalled() {
         // Managerアンインストール検知時の処理。
         if (DEBUG) {
             Log.i(TAG, "Plug-in : onManagerUninstalled");
         }
-        resetPluginResource();
+
     }
 
     @Override
@@ -161,7 +201,7 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
      * リソースリセット処理.
      */
     private void resetPluginResource() {
-        /** 全イベント削除. */
+        /* 全イベント削除. */
         removeAllDetectEvent();
     }
 
@@ -170,27 +210,6 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
 
         if (intent == null) {
             return START_STICKY;
-        }
-
-        String action = intent.getAction();
-        if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-            if (DEBUG) {
-                Log.d(TAG, "bluetooth state change.");
-            }
-            
-            Bundle extras = intent.getExtras();
-            int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
-            if (state == BluetoothAdapter.STATE_TURNING_OFF) {
-                // Bluetooth ON -> OFF
-                // stop scan process.
-                stopSearchHvcDevice();
-
-                turnOff(getServiceProvider().getServiceList());
-            } else if (state == BluetoothAdapter.STATE_ON) {
-                // Bluetooth OFF -> ON
-                // start scan process.
-                startSearchHvcDevice();
-            }
         }
         return super.onStartCommand(intent, flags, startId);
     }

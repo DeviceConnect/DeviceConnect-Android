@@ -12,3 +12,5 @@ Android Studio 2.2.1以上
 
 * humanDetection
 
+# サポート状況
+HVC-C2WのライブラリがtargetSDKVersion23以降に対応していないため、22にしている。

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -45,7 +46,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
     /** Virtual Profile. */
     private VirtualProfileData mProfile;
     /** インジケーター. */
-    private ProgressDialog mIndView;
+    private AlertDialog mIndView;
     /** IRKit のデバイス.*/
     private IRKitDevice mDevice;
     /** DB helper. */
@@ -61,7 +62,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
 
         mDBHelper = new IRKitDBHelper(getActivity());
         View rootView = inflater.inflate(R.layout.fragment_register_ir, null);
-        TextView apiView = (TextView) rootView.findViewById(R.id.api_name);
+        TextView apiView = rootView.findViewById(R.id.api_name);
         apiView.setText(mProfile.getName());
         final Button registerIR = (Button) rootView.findViewById(R.id.register_ir);
         registerIR.setOnClickListener(new View.OnClickListener() {
@@ -181,10 +182,16 @@ public class IRKitRegisterIRFragment extends Fragment  {
      */
     private void showProgress() {
         mIsShowing = true;
-        mIndView = new ProgressDialog(getActivity());
-        mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(getString(R.string.ind_message_prepare_title));
+        messageView.setText(getString(R.string.receiving));
+        builder.setView(v);
+        mIndView = builder.create();
         mIndView.setCancelable(false);
-        mIndView.setMessage(getString(R.string.receiving));
         mIndView.show();
     }
 

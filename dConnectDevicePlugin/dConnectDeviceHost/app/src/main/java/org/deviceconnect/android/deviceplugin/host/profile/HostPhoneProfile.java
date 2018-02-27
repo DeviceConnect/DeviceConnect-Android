@@ -7,15 +7,21 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ResultReceiver;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -26,6 +32,7 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.PhoneProfileConstants;
 
 /**
  * Phoneプロファイル.
@@ -52,7 +59,7 @@ public class HostPhoneProfile extends PhoneProfile {
             if (phoneNumber != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
-                        new String[] { Manifest.permission.CALL_PHONE },
+                        new String[] { Manifest.permission.CALL_PHONE, Manifest.permission.PROCESS_OUTGOING_CALLS },
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
@@ -86,26 +93,54 @@ public class HostPhoneProfile extends PhoneProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            PhoneMode mode = getMode(request);
+            final PhoneMode mode = getMode(request);
+            final NotificationManager notificationManager =
+                    (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-            // AudioManager
-            AudioManager mAudioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && !notificationManager.isNotificationPolicyAccessGranted()) {
 
-            if (mode.equals(PhoneMode.SILENT)) {
-                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (mode.equals(PhoneMode.SOUND)) {
-                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (mode.equals(PhoneMode.MANNER)) {
-                mAudioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (mode.equals(PhoneMode.UNKNOWN)) {
-                MessageUtils.setInvalidRequestParameterError(response, "mode is invalid.");
+                Intent intent = new Intent(
+                        android.provider.Settings
+                                .ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+
+                IntentHandlerActivity.startActivityForResult(getContext(), intent,
+                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                            @Override
+                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                if (notificationManager.isNotificationPolicyAccessGranted()) {
+                                    setPhoneMode(response, mode);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response,
+                                            "PHOME_MODE setting permisson not granted");
+                                }
+                                sendResponse(response);
+                            }
+                        });
+                return false;
             }
+            setPhoneMode(response, mode);
+
             return true;
         }
     };
+
+    private void setPhoneMode(Intent response, PhoneMode mode) {
+        // AudioManager
+        AudioManager mAudioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (mode.equals(PhoneMode.SILENT)) {
+            mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (mode.equals(PhoneMode.SOUND)) {
+            mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (mode.equals(PhoneMode.MANNER)) {
+            mAudioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (mode.equals(PhoneMode.UNKNOWN)) {
+            MessageUtils.setInvalidRequestParameterError(response, "mode is invalid.");
+        }
+    }
 
     private final DConnectApi mPutOnConnectApi = new PutApi() {
 

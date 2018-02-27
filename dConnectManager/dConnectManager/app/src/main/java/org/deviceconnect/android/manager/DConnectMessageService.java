@@ -6,11 +6,15 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.os.Binder;
 import android.os.Build;
@@ -46,6 +50,7 @@ import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
+import org.deviceconnect.android.manager.receiver.PackageManageReceiver;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
@@ -193,6 +198,10 @@ public abstract class DConnectMessageService extends Service
             handleExternalMessage(message);
         }
     };
+    /** インストールされたPlug-inの情報を取得するためのReceiver. */
+    private final PackageManageReceiver mPackageReceiver = new PackageManageReceiver();
+    /** DConnectのメッセージを取得するためのReceiver. */
+    private final DConnectBroadcastReceiver mDConnectMessageReceiver = new DConnectBroadcastReceiver();
 
     private String getCallingPackage() {
         int uid = Binder.getCallingUid();
@@ -261,10 +270,28 @@ public abstract class DConnectMessageService extends Service
 
         loadProfileSpecs();
         startPluginSearch();
+        // Plug-in情報受付用のIntent-filter
+        IntentFilter packageFilter = new IntentFilter();
+        packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packageFilter.addDataScheme("package");
+        registerReceiver(mPackageReceiver, packageFilter);
+        // DConnectMessageの受付用のIntent-filter
+        IntentFilter messageFilter = new IntentFilter();
+        messageFilter.addAction("org.deviceconnect.action.GET");
+        messageFilter.addAction("org.deviceconnect.action.PUT");
+        messageFilter.addAction("org.deviceconnect.action.POST");
+        messageFilter.addAction("org.deviceconnect.action.DELETE");
+        messageFilter.addAction("org.deviceconnect.action.RESPONSE");
+        messageFilter.addAction("org.deviceconnect.action.EVENT");
+        registerReceiver(mDConnectMessageReceiver, messageFilter);
     }
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(mDConnectMessageReceiver);
+        unregisterReceiver(mPackageReceiver);
         mPluginManager.removeEventListener(this);
         stopDConnect();
         LocalOAuth2Main.destroy();
@@ -853,16 +880,52 @@ public abstract class DConnectMessageService extends Service
         Intent notificationIntent = new Intent(getApplicationContext(), SettingActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 getApplicationContext(), 0, notificationIntent, 0);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-        builder.setContentIntent(pendingIntent);
-        builder.setTicker(getString(R.string.app_name));
-        builder.setContentTitle(getString(R.string.app_name));
-        builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
-        int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                R.drawable.icon : R.drawable.on_icon;
-        builder.setSmallIcon(iconType);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(getString(R.string.app_name));
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
 
-        startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        } else {
+            Notification.Builder builder = new Notification.Builder(getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(getString(R.string.app_name));
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = getString(R.string.dconnect_service_on_channel_id);
+                NotificationChannel channel = new NotificationChannel(
+                        channelId,
+                        getString(R.string.dconnect_service_on_channel_title),
+                        NotificationManager.IMPORTANCE_LOW);
+                channel.setDescription(getString(R.string.dconnect_service_on_channel_desc));
+                NotificationManager mNotification = (NotificationManager) getApplicationContext()
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotification.createNotificationChannel(channel);
+                builder.setChannelId(channelId);
+            }
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        }
+    }
+    /**
+     * DConnectServiceがOFF時にstartForegroundService()が行われた時にキャンセルする.
+     */
+    protected void fakeStartForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder builder = new Notification.Builder(this, getString(R.string.dconnect_service_on_channel_id))
+                    .setContentTitle("").setContentText("");
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            stopForeground(true);
+            stopSelf();
+        }
     }
 
     /**

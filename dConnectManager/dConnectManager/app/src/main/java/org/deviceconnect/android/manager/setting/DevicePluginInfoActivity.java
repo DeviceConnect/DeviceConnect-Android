@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -183,7 +184,11 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
         Intent request = new Intent(this, DConnectService.class);
         request.setAction(action);
         request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, mPluginId);
-        startService(request);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(request);
+        } else {
+            startService(request);
+        }
     }
 
     private DevicePlugin findDevicePluginById(final String pluginId) {

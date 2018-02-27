@@ -77,7 +77,7 @@ public class DConnectServiceTest {
         // ダミーイベントを送信
         Intent event = new Intent();
         event.setAction(IntentDConnectMessage.ACTION_EVENT);
-        event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, sessionKey);
+        event.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, sessionKey);
         while (!eventThread.isInterrupted()) {
             sendEventToWebSocket(service, event);
         }
@@ -97,7 +97,7 @@ public class DConnectServiceTest {
         mWebSocketClient = new WebSocketClient(WEBSOCKET_URL, new Draft_17(), headers, timeout) {
             @Override
             public void onOpen(final ServerHandshake serverHandshake) {
-                mWebSocketClient.send("{\"sessionKey\":\"" + sessionKey + "\"}");
+                mWebSocketClient.send("{\"accessToken\":\"" + sessionKey + "\"}");
 
                 synchronized (lock) {
                     lock.notify();

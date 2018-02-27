@@ -8,7 +8,10 @@ package org.deviceconnect.android.deviceplugin.webrtc.setting.fragment;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,12 +21,15 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.webrtc.R;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.util.CameraUtils;
+import org.deviceconnect.android.deviceplugin.webrtc.util.CapabilityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 /**
  * カメラ設定画面.
@@ -45,13 +51,8 @@ public class CameraSettingsFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-
         String cameraText = SettingUtil.getCameraParam(getActivity());
-        mCameraFormat = CameraUtils.textToFormat(cameraText);
-        if (mCameraFormat == null) {
-            mCameraFormat = CameraUtils.getDefaultFormat();
-        }
-
+        setCameraFormat(cameraText);
         mAdapter = new SettingsAdapter();
 
         View root = inflater.inflate(R.layout.settings_camera, null);
@@ -70,6 +71,12 @@ public class CameraSettingsFragment extends Fragment {
         return root;
     }
 
+    private void setCameraFormat(final String cameraText) {
+        mCameraFormat = CameraUtils.textToFormat(cameraText);
+        if (mCameraFormat == null) {
+            mCameraFormat = CameraUtils.getDefaultFormat();
+        }
+    }
     /**
      * Shows the dialog of camera facing.
      */

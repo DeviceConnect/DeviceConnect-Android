@@ -392,7 +392,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         NanoServer(final String hostname, final int port) {
             super(hostname, port);
             mFirewall = new Firewall(mConfig.getIPWhiteList());
-            mimeTypes();
+            try {
+                mimeTypes();
+            } catch (Exception e){
+                // ignore
+            }
         }
 
         @Override

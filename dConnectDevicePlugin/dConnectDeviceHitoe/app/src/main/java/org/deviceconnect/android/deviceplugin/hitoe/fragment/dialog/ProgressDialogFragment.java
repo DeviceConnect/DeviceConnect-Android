@@ -6,11 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import org.deviceconnect.android.deviceplugin.hitoe.R;
 
 /**
  * This fragment displays a dialog of Progress.
@@ -21,9 +28,6 @@ public class ProgressDialogFragment extends DialogFragment {
     private static final String PARAM_TITLE = "title";
     /** Message's key. */
     private static final String PARAM_MESSAGE = "message";
-    /** Progress dialog. */
-    private ProgressDialog mDialog;
-
     /**
      * Initialize progress dialog.
      * @param title dialog's title
@@ -45,31 +49,21 @@ public class ProgressDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        if (mDialog != null) {
-            return mDialog;
-        }
 
         String title = getArguments().getString(PARAM_TITLE);
         String message = getArguments().getString(PARAM_MESSAGE);
 
-        mDialog = new ProgressDialog(getActivity());
-        mDialog.setTitle(title);
-        mDialog.setMessage(message);
-        mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(title);
+        messageView.setText(message);
+        builder.setView(v);
         setCancelable(false);
-
-        return mDialog;
+        return builder.create();
     }
 
-    @Override
-    public Dialog getDialog() {
-        return mDialog;
-    }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mDialog = null;
-    }
 }

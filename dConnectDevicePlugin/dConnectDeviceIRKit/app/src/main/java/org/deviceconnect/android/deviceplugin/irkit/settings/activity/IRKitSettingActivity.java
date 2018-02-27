@@ -11,7 +11,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.support.v4.view.ViewPager;
 
 import org.deviceconnect.android.deviceplugin.irkit.BuildConfig;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
@@ -105,20 +105,14 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
             mPrePage = 0;
             mSecType = WiFiSecurityType.WPA2;
 
-            getViewPager().setOnPageChangeListener(new OnPageChangeListener() {
+            getViewPager().addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
                 @Override
                 public void onPageSelected(final int position) {
 
-                    FragmentManager fm = getSupportFragmentManager();
-                    List<Fragment> list = fm.getFragments();
+                    Fragment next = getCurrentFragment(position);
+                    Fragment pre = getCurrentFragment(mPrePage);
 
-                    if (list == null) {
-                        return;
-                    }
-
-                    Fragment next = list.get(position);
-                    Fragment pre = list.get(mPrePage);
 
                     if (next != null && next instanceof IRKitBaseFragment) {
                         ((IRKitBaseFragment) next).onAppear();
@@ -195,16 +189,7 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        FragmentManager fm = getSupportFragmentManager();
-        List<Fragment> list = fm.getFragments();
-
-        if (list == null) {
-            return;
-        }
-
-        Fragment f = list.get(getViewPager().getCurrentItem());
-
+        Fragment f = getCurrentFragment(getViewPager().getCurrentItem());
         if (f != null && f instanceof IRKitBaseFragment) {
             ((IRKitBaseFragment) f).onEnterForeground();
         }
@@ -214,16 +199,7 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     protected void onPause() {
         super.onPause();
 
-        FragmentManager fm = getSupportFragmentManager();
-        List<Fragment> list = fm.getFragments();
-
-        if (list == null) {
-            return;
-        }
-
-        getViewPager().setEnabled(false);
-        Fragment f = list.get(getViewPager().getCurrentItem());
-
+        Fragment f = getCurrentFragment(getViewPager().getCurrentItem());
         if (f != null && f instanceof IRKitBaseFragment) {
             ((IRKitBaseFragment) f).onEnterBackground();
         }
@@ -233,6 +209,28 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
         super.onConfigurationChanged(newConfig);
     }
 
+    /**
+     * getFragments()とgetViewPager().getCurrentItem()の紐付けを行う。
+     * 表示していたFragmentを返す。
+     * @return 表示していたFragment
+     */
+    private Fragment getCurrentFragment(final int current) {
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment f = null;
+        List<Fragment> list = fm.getFragments();
+
+        if (list.size() == 0) {
+            return f;
+        }
+
+        String className = PAGES[current].getSimpleName();
+        for (Fragment fragment : list) {
+            if (fragment.getClass().getSimpleName().equals(className)) {
+                f = fragment;
+            }
+        }
+        return f;
+    }
     /**
      * サービスIDを設定する.
      * 

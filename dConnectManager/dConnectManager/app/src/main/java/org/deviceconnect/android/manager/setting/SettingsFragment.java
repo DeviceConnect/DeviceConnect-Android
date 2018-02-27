@@ -602,7 +602,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         intent.setClass(activity, DConnectService.class);
         intent.setAction(DConnectService.ACTION_SETTINGS_KEEP_ALIVE);
         intent.putExtra(DConnectService.EXTRA_KEEP_ALIVE_ENABLED, checked);
-        activity.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity.startForegroundService(intent);
+        } else {
+            activity.startService(intent);
+        }
     }
 
     /**

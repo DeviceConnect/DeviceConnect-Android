@@ -32,6 +32,9 @@ class ThetaDeviceFactory {
     }
 
     private static String parseSSID(final WifiInfo wifiInfo) {
+        if (wifiInfo == null) {
+            return null;
+        }
         String ssId = wifiInfo.getSSID();
         if (ssId == null) {
             return null;

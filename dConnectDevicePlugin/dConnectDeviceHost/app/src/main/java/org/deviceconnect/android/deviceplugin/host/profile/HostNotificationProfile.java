@@ -28,6 +28,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -127,9 +128,12 @@ public class HostNotificationProfile extends NotificationProfile {
                 notifyIntent.putExtra("serviceId", serviceId);
 
                 PendingIntent mPendingIntent = PendingIntent.getBroadcast(getContext(),
-                    notifyId, notifyIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    notifyId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 Notification notification;
+                // Get an instance of the NotificationManager service
+                NotificationManager mNotification = (NotificationManager) getContext()
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                     NotificationCompat.Builder notificationBuilder =
                         new NotificationCompat.Builder(getContext())
@@ -145,13 +149,18 @@ public class HostNotificationProfile extends NotificationProfile {
                             .setContentTitle("" + title)
                             .setContentText(encodeBody)
                             .setContentIntent(mPendingIntent);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        String channelId = getContext().getResources().getString(R.string.host_notification_channel_id);
+                        NotificationChannel channel = new NotificationChannel(
+                                channelId,
+                                getContext().getResources().getString(R.string.host_notification_channel_title),
+                                NotificationManager.IMPORTANCE_DEFAULT);
+                        channel.setDescription(getContext().getResources().getString(R.string.host_notification_channel_desc));
+                        mNotification.createNotificationChannel(channel);
+                        notificationBuilder.setChannelId(channelId);
+                    }
                     notification = notificationBuilder.build();
                 }
-
-                // Get an instance of the NotificationManager service
-                NotificationManager mNotification = (NotificationManager) getContext()
-                    .getSystemService(Context.NOTIFICATION_SERVICE);
-
                 // Build the notification and issues it with notification
                 // manager.
                 mNotification.notify(notifyId, notification);

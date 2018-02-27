@@ -160,7 +160,7 @@
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 
@@ -173,7 +173,7 @@
     <string name="activity_service_list_search">サービスを検索</string>
     <string name="activity_service_menu_settings">設定</string>
     <string name="activity_service_menu_help">ヘルプ</string>
-    <string name="activity_service_list_service_discovery">デバイスを検索中</string>
+    <string name="activity_service_list_service_discovery">サービスを検索中</string>
     <string name="activity_service_list_checkbox">次回からこの画面を表示しない。</string>
     <string name="activity_service_list_guide_1">Device Connect Managerを起動することができます。</string>
     <string name="activity_service_list_guide_2">Device Connect Managerの設定を行うことができます。</string>
@@ -219,4 +219,16 @@
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 
+    <!-- ================= DConnectMessageService ================= -->
+    <string name="dconnect_service_on_channel_id">org.deviceconnect.android.manager.service</string>
+    <string name="dconnect_service_on_channel_title">Device Connect Message Service</string>
+    <string name="dconnect_service_on_channel_desc">DeviceConnectのメッセージの送受信を行うためのサービスです。</string>
+
+    <!-- ================= DConnectWebService ================= -->
+    <string name="web_service_on_channel_id">org.deviceconnect.android.manager.webserver</string>
+    <string name="web_service_on_channel_title">Device Connect Web Server</string>
+    <string name="web_service_on_channel_desc">DeviceConnect用のHTMLを配置しておくためのWebServerです。</string>
+
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
 </resources>

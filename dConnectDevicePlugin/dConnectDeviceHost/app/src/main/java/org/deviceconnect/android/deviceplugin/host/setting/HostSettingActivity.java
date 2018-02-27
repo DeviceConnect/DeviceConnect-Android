@@ -37,7 +37,7 @@ public class HostSettingActivity extends DConnectSettingPageFragmentActivity {
         // SystemProfileでデバイスプラグイン一覧を取得
         // 自分の名前とマッチさせて、PluginをIDを使用する
         ViewPager vp = getViewPager();
-        vp.setOnPageChangeListener(new OnPageChangeListener() {
+        vp.addOnPageChangeListener(new OnPageChangeListener() {
             @Override
             public void onPageScrollStateChanged(final int state) {
             }

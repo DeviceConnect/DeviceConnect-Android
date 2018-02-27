@@ -17,3 +17,5 @@ Android Studio 2.2.1以上
 * touch
 * vibration
 
+# サポート状況
+SonyExtensionAPIがtargetSDKVersion26に対応していないため、19にしている。

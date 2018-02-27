@@ -40,6 +40,12 @@ import java.util.logging.Logger;
  */
 public class MixedReplaceMediaServer {
 
+    public interface Callback {
+
+        boolean onAccept();
+
+    }
+
     /** Logger. */
     private Logger mLogger = Logger.getLogger("host.dplugin");
     
@@ -99,7 +105,21 @@ public class MixedReplaceMediaServer {
      */
     private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
             new ArrayList<ServerRunnable>());
-    
+
+    private Callback mCallback;
+
+    public void setCallback(final Callback callback) {
+        mCallback = callback;
+    }
+
+    private boolean notifyOnAccept() {
+        Callback callback = mCallback;
+        if (callback != null) {
+            return callback.onAccept();
+        }
+        return true;
+    }
+
     /**
      * Set a boundary.
      * @param boundary boundary of a multipart
@@ -341,6 +361,11 @@ public class MixedReplaceMediaServer {
             mRunnables.add(this);
             try {
                 mStream = mSocket.getOutputStream();
+                if(!notifyOnAccept()) {
+                    mStream.write(generateInternalServerError().getBytes());
+                    mStream.flush();
+                    return;
+                }
 
                 byte[] buf = new byte[BUF_SIZE];
                 InputStream in = mSocket.getInputStream();

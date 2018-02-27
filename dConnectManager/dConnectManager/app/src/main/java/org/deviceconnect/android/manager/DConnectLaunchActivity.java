@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -246,8 +247,11 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private void preventAutoStop() {
         Intent targetIntent = new Intent();
         targetIntent.setClass(getApplicationContext(), DConnectService.class);
-        startService(targetIntent);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(targetIntent);
+        } else {
+            startService(targetIntent);
+        }
         // NOTE: 上記の処理でstartServiceを実行している理由
         //
         //     AndroidフレームワークのServiceは、内部的に下記の2つのフラグを持つ.

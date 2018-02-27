@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 /**
  * dConnect Managerへのイベント受信.
@@ -27,6 +28,10 @@ public class DConnectBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, final Intent intent) {
         Intent targetIntent = new Intent(intent);
         targetIntent.setClass(context, DConnectService.class);
-        context.startService(targetIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(targetIntent);
+        } else {
+            context.startService(targetIntent);
+        }
     }
 }

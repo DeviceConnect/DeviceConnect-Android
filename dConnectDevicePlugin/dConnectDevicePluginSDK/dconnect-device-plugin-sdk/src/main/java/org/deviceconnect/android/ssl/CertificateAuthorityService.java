@@ -1,3 +1,9 @@
+/*
+ CertificateAuthorityService.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.ssl;
 
 import android.app.Service;
@@ -8,9 +14,11 @@ import android.support.annotation.Nullable;
 
 
 /**
- * ローカル認証局サービス.
+ * ローカル認証局機能を公開するサービス.
  *
  * DeviceConnectプラグインに対して証明書要求機能を提供する.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public abstract class CertificateAuthorityService extends Service {
 

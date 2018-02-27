@@ -1,3 +1,9 @@
+/*
+ KeyStoreManager.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.ssl;
 
 import org.bouncycastle.asn1.x509.GeneralNames;
@@ -13,6 +19,8 @@ import javax.security.auth.x500.X500Principal;
 
 /**
  * サーバ証明書用のキーストアを提供するインターフェース.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public interface KeyStoreManager {
 
@@ -46,6 +54,17 @@ public interface KeyStoreManager {
      */
     void exportKeyStore(final File outputFile) throws IOException;
 
+    /**
+     * X.509証明書を生成する.
+     *
+     * @param keyPair キーペア
+     * @param subject サプジェクト名
+     * @param issuer 発行者名
+     * @param generalNames SANs
+     * @param isCA 認証局の証明書を発行する場合は<code>true</code>、それ以外の場合は<code>false</code>
+     * @return X.509証明書
+     * @throws GeneralSecurityException 生成に失敗した場合
+     */
     X509Certificate generateX509V3Certificate(KeyPair keyPair,
                                               X500Principal subject,
                                               X500Principal issuer,

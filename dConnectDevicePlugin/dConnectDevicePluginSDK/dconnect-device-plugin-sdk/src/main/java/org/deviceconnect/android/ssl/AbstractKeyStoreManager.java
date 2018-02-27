@@ -1,13 +1,16 @@
+/*
+ AbstractKeyStoreManager.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.ssl;
 
 
 import android.content.Context;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
@@ -26,7 +29,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Provider;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -43,19 +45,39 @@ import javax.security.auth.x500.X500Principal;
  * キーストア管理クラスの基底クラス.
  *
  * キーストアをアプリ領域に永続化する.
+ *
+ * @author NTT DOCOMO, INC.
  */
 abstract class AbstractKeyStoreManager implements KeyStoreManager {
 
+    /**
+     * キーストアの形式指定.
+     */
     private static final String KEYSTORE_TYPE = "PKCS12";
 
+    /**
+     * キーストアのパスワード.
+     */
     private static final char[] KEYSTORE_PASSWORD = "0000".toCharArray();
 
+    /**
+     * コンテキスト.
+     */
     final Context mContext;
 
+    /**
+     * キーストア.
+     */
     final KeyStore mKeyStore;
 
+    /**
+     * キーストアのファイル名.
+     */
     private final String mKeyStoreFilePath;
 
+    /**
+     * ロガー.
+     */
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
     /**
@@ -98,7 +120,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     public void exportKeyStore(final File outputFile) throws IOException {
         OutputStream out = null;
         try {
-            out = new FileOutputStream(outputFile);;
+            out = new FileOutputStream(outputFile);
             saveKeyStore(out);
         } catch (GeneralSecurityException e) {
             throw new IOException("Failed to export keystore.", e);
@@ -109,7 +131,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         }
     }
 
-    public KeyStore createKeyStore() throws GeneralSecurityException {
+    private KeyStore createKeyStore() throws GeneralSecurityException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         try {
             keyStore.load(null, KEYSTORE_PASSWORD);
@@ -145,7 +167,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         saveKeyStore(mContext.openFileOutput(mKeyStoreFilePath, Context.MODE_PRIVATE));
     }
 
-    void saveKeyStore(final OutputStream out) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+    private void saveKeyStore(final OutputStream out) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
         mKeyStore.store(out, KEYSTORE_PASSWORD);
     }
 

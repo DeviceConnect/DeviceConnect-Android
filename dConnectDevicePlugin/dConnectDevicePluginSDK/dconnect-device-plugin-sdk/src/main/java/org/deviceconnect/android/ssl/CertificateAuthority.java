@@ -1,3 +1,9 @@
+/*
+ CertificateAuthority.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.ssl;
 
 
@@ -6,11 +12,9 @@ import android.content.Context;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Set;
-import org.bouncycastle.asn1.ASN1SetParser;
 import org.bouncycastle.asn1.ASN1StreamParser;
 import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
@@ -18,18 +22,14 @@ import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.X509Name;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -40,7 +40,19 @@ import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
 
 /**
- * ローカル証明書認証局.
+ * ローカル認証局.
+ *
+ * ルート証明書、つまりローカル認証局の自己署名証明書を生成・永続化する.
+ * ルート証明書は {@link #getRootCertificate()} で取得できる.
+ *
+ * 外部からの証明書署名要求を受けた際には、そのルート証明書によって署名した証明書を返す.
+ * 証明書署名要求は、{@link #requestCertificate(byte[])} で実行できる.
+ *
+ * NOTE:
+ * 実験的な実装のため、証明書署名要求で指定した情報のうち、
+ * Subject Alternative Names (SANs)のみが証明書に反映されることに注意.
+ *
+ * @author NTT DOCOMO, INC.
  */
 class CertificateAuthority {
 
@@ -49,17 +61,40 @@ class CertificateAuthority {
      */
     private final RootKeyStoreManager mRootKeyStoreMgr;
 
+    /**
+     * ロガー.
+     */
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
+    /**
+     * ルート証明書の発行者名.
+     */
     private final String mIssuerName;
 
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     * @param issuerName ルート証明書の発行者名
+     * @param keyStoreFileName キーストアのファイル名
+     */
     CertificateAuthority(final Context context,
                          final String issuerName,
-                         final String keyStorePath) {
-        mRootKeyStoreMgr = new RootKeyStoreManager(context, issuerName, keyStorePath);
+                         final String keyStoreFileName) {
+        mRootKeyStoreMgr = new RootKeyStoreManager(context, issuerName, keyStoreFileName);
         mIssuerName = issuerName;
     }
 
+    /**
+     * ルート証明書を取得する.
+     *
+     * <p>
+     * 確実に証明書を返すために、ルート証明書が未生成だった場合は生成処理実行後に処理を返す.
+     * 最大10秒間ブロックする.
+     * </p>
+     *
+     * @return ルート証明書
+     */
     byte[] getRootCertificate() {
         final KeyStore[] keyStore = new KeyStore[1];
         final KeyStoreError[] errors = new KeyStoreError[1];
@@ -102,6 +137,12 @@ class CertificateAuthority {
         return null;
     }
 
+    /**
+     * 証明書署名要求をもとに証明書を発行する.
+     *
+     * @param pkcs10 PKCS#10形式の証明書署名要求.
+     * @return ルート証明書によって署名された証明書. 発行に失敗した場合はnull
+     */
     byte[] requestCertificate(final byte[] pkcs10) {
         try {
             if (getRootCertificate() == null) {
@@ -127,6 +168,13 @@ class CertificateAuthority {
         return null;
     }
 
+    /**
+     * 証明書署名要求から Subject Alternative Names (SANs) を取得する.
+     *
+     * @param request 証明書署名要求
+     * @return SubjectAlternativeNamesを示す {@link GeneralNames} オブジェクト
+     * @throws IOException 解析に失敗した場合
+     */
     private GeneralNames parseSANs(final PKCS10CertificationRequest request) throws IOException {
         List<ASN1Encodable> generalNames = new ArrayList<>();
 
@@ -159,20 +207,20 @@ class CertificateAuthority {
                 continue;
             }
             DERSequence extensions = (DERSequence) extensionsObj;
-            extension:
+
             for (int k = 0; k < extensions.size(); k++) {
                 DEREncodable extensionObj = extensions.getObjectAt(k);
                 if (!(extensionObj instanceof DERSequence)) {
-                    continue extension;
+                    continue;
                 }
                 DERSequence extension = (DERSequence) extensionObj;
                 if (extension.size() != 2) {
-                    continue extension;
+                    continue;
                 }
                 DEREncodable extensionIdObj = extension.getObjectAt(0);
                 DEREncodable extensionContentObj = extension.getObjectAt(1);
                 if (!(extensionIdObj instanceof ASN1ObjectIdentifier)) {
-                    continue extension;
+                    continue;
                 }
                 ASN1ObjectIdentifier extensionId = (ASN1ObjectIdentifier) extensionIdObj;
                 if (extensionId.getId().equals("2.5.29.17")) {

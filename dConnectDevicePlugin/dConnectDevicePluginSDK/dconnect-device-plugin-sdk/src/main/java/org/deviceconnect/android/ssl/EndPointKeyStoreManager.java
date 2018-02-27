@@ -1,3 +1,9 @@
+/*
+ EndPointKeyStoreManager.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.ssl;
 
 
@@ -34,23 +40,50 @@ import java.util.logging.Logger;
 import javax.security.auth.x500.X500Principal;
 
 /**
- * エンドポイント用キーストア管理クラス.
+ * エンドポイント証明書用のキーストアを管理するクラス.
  *
+ * <p>
+ * キーストアを外部から要求された時、証明書が未生成だった場合は、
  * Device Connect Managerのローカル認証局に対して証明書要求を送信し、エンドポイント用サーバ証明書を取得する.
+ *
+ * 証明書の発行は、数秒かかる場合があるため、別スレッド上で処理される.
+ *
+ * NOTE: 本クラスの保持する証明書はただ1つ.
+ * </p>
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreManager {
 
+    /**
+     * デフォルトのルート認証局.
+     */
     private static final ComponentName DEFAULT_ROOT_CA = new ComponentName("org.deviceconnect.android.manager",
             "org.deviceconnect.android.manager.ssl.DConnectCertificateAuthorityService");
 
+    /**
+     * 証明書のエイリアス.
+     */
     private final String mAlias;
 
+    /**
+     * 本オブジェクトからの証明書要求先のルート認証局.
+     */
     private final ComponentName mRootCA;
 
+    /**
+     * 証明書発行スレッド.
+     */
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    /**
+     * ロガー.
+     */
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
+    /**
+     * 証明書にSANsとして記載したIPアドレスリスト.
+     */
     private final List<String> mIPAddresses = new ArrayList<>();
 
     /**
@@ -93,6 +126,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         restoreIPAddress(alias);
     }
 
+    /**
+     * 保存していた証明書からIPアドレスを取り出す.
+     *
+     * @param alias 証明書のエイリアス
+     */
     private void restoreIPAddress(final String alias) {
         mLogger.log(Level.INFO, "Restoring IP Addresses...: alias = " + alias);
         try {
@@ -127,6 +165,12 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         }
     }
 
+    /**
+     * 指定したIPアドレスに対して、すでに証明書を発行済であるかどうかを返す.
+     *
+     * @param ipAddress IPアドレス
+     * @return 発行済である場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
     private boolean hasIPAddress(final String ipAddress) {
         for (String address : mIPAddresses) {
             if (address.equals(ipAddress)) {
@@ -143,9 +187,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
             public void run() {
                 mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
                 try {
-                    final String alias = ipAddress;
                     if (hasIPAddress(ipAddress)) {
-                        mLogger.info("Certificate is cached for alias: " + alias);
+                        mLogger.info("Certificate is cached for alias: " + ipAddress);
                         callback.onSuccess(mKeyStore);
                     } else {
                         mLogger.info("Generating key pair...");
@@ -205,14 +248,35 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         });
     }
 
+    /**
+     * 証明書のエイリアスを返す.
+     *
+     * @return エイリアス
+     */
     private String getAlias() {
         return mAlias;
     }
 
+    /**
+     * キーストアに証明書チェーンとプライベートキーのペアを保存する.
+     *
+     * @param certChain 証明書チェーン
+     * @param privateKey プライベートキー
+     * @throws KeyStoreException 保存に失敗した場合
+     */
     private void setCertificate(final Certificate[] certChain, final PrivateKey privateKey) throws KeyStoreException {
         mKeyStore.setKeyEntry(getAlias(), privateKey, null, certChain);
     }
 
+    /**
+     * 証明書署名要求のオブジェクトを作成する.
+     *
+     * @param keyPair キーペア
+     * @param commonName コモンネーム
+     * @param generalNames SANs
+     * @return 証明書署名要求のオブジェクト
+     * @throws GeneralSecurityException 作成に失敗した場合
+     */
     private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,
                                                         final String commonName,
                                                         final GeneralNames generalNames) throws GeneralSecurityException {

@@ -1,3 +1,9 @@
+/*
+ RootKeyStoreManager.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.ssl;
 
 
@@ -17,18 +23,47 @@ import java.util.logging.Logger;
 
 import javax.security.auth.x500.X500Principal;
 
+/**
+ * ルート証明書用キーストア管理クラス.
+ *
+ * <p>
+ * キーストアを外部から要求された時、証明書が未生成だった場合は、ルート証明書を自身によって発行・永続化する.
+ *
+ * 証明書の発行は、数秒かかる場合があるため、別スレッド上で処理される.
+ *
+ * NOTE: 本クラスの保持する証明書はただ1つ.
+ * </p>
+ *
+ * @author NTT DOCOMO, INC.
+ */
 class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreManager {
 
+    /**
+     * 証明書発行スレッド.
+     */
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    /**
+     * ロガー.
+     */
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
+    /**
+     * 証明書のサブジェクト名.
+     */
     private final String mSubjectName;
 
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     * @param subjectName 証明書のサブジェクト名
+     * @param keyStoreFileName キーストアのファイル名
+     */
     RootKeyStoreManager(final Context context,
                         final String subjectName,
-                        final String keyStorePath) {
-        super(context, keyStorePath);
+                        final String keyStoreFileName) {
+        super(context, keyStoreFileName);
         mSubjectName = subjectName;
 
         // Java Cryptography Architectureの乱数種に関するセキュリティ問題への対処.
@@ -68,6 +103,11 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
         });
     }
 
+    /**
+     * 自己署名証明書を生成する.
+     *
+     * @throws GeneralSecurityException 生成に失敗した場合
+     */
     private void generateSelfSignedCertificate() throws GeneralSecurityException {
         KeyPairGenerator kg = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = kg.generateKeyPair();

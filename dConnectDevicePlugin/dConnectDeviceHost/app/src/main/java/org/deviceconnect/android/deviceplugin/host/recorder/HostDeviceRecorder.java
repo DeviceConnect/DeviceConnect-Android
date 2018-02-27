@@ -43,6 +43,10 @@ public interface HostDeviceRecorder {
 
     void setMaxFrameRate(double frameRate);
 
+    int getPreviewBitRate();
+
+    void setPreviewBitRate(int bitRate);
+
     List<PictureSize> getSupportedPictureSizes();
 
     List<PictureSize> getSupportedPreviewSizes();

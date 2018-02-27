@@ -125,6 +125,16 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public int getPreviewBitRate() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setPreviewBitRate(int bitRate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<PictureSize> getSupportedPreviewSizes() {
         throw new UnsupportedOperationException();
     }
@@ -211,7 +221,6 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
         intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
         mContext.sendBroadcast(intent);
     }
-
 
     private String getClassnameOfTopActivity() {
         ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);

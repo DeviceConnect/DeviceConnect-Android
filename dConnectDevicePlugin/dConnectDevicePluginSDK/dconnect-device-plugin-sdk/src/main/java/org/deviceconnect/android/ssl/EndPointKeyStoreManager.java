@@ -82,9 +82,9 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
     private final Logger mLogger = Logger.getLogger("LocalCA");
 
     /**
-     * 証明書にSANsとして記載したIPアドレスリスト.
+     * 証明書にSANsとして記載した名前リスト.
      */
-    private final List<String> mIPAddresses = new ArrayList<>();
+    private final List<SAN> mSANs = new ArrayList<>();
 
     /**
      * コンストラクタ.
@@ -147,13 +147,12 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                     mLogger.log(Level.INFO, "SANs: size = " + names.size());
                     for (Iterator<List<?>> it = names.iterator(); it.hasNext(); ) {
                         List<?> list = it.next();
-                        mLogger.log(Level.INFO, "list: size = " + list.size());
-                        for (Object obj : list) {
-                            mLogger.log(Level.INFO, "obj: class = " + obj.getClass());
-                            if (obj instanceof String) {
-                                String generalName = (String) obj;
-                                mLogger.info("SAN: name = " + generalName);
-                                mIPAddresses.add(generalName);
+                        if (list.size() == 2) {
+                            Object tagNo = list.get(0);
+                            Object value = list.get(1);
+                            mLogger.info("SAN: tagNo = " + tagNo + ", value = " + value);
+                            if (tagNo instanceof Integer && value instanceof String) {
+                                mSANs.add(new SAN((Integer) tagNo, (String) value));
                             }
                         }
                     }
@@ -177,8 +176,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      * @return 発行済である場合は<code>true</code>、そうでない場合は<code>false</code>
      */
     private boolean hasIPAddress(final String ipAddress) {
-        for (String address : mIPAddresses) {
-            if (address.equals(ipAddress)) {
+        for (SAN address : mSANs) {
+            if (address.mName.equals(ipAddress)) {
                 return true;
             }
         }
@@ -207,9 +206,9 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
 
                         final List<ASN1Encodable> names = new ArrayList<>();
                         names.add(new GeneralName(GeneralName.iPAddress, ipAddress));
-                        for (String cache : mIPAddresses) {
-                            if (!cache.equals(ipAddress)) {
-                                names.add(new GeneralName(GeneralName.iPAddress, cache));
+                        for (SAN cache : mSANs) {
+                            if (!cache.mName.equals(ipAddress)) {
+                                names.add(new GeneralName(cache.mTagNo, cache.mName));
                             }
                         }
                         names.add(new GeneralName(GeneralName.iPAddress, "0.0.0.0"));
@@ -227,7 +226,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                                     setCertificate(chain, keyPair.getPrivate());
                                     saveKeyStore();
                                     mLogger.info("Saved server certificate");
-                                    mIPAddresses.add(ipAddress);
+                                    mSANs.add(new SAN(GeneralName.iPAddress, ipAddress));
                                     callback.onSuccess(mKeyStore, cert, rootCert);
                                 } catch (Exception e) {
                                     mLogger.log(Level.SEVERE, "Failed to save server certificate", e);
@@ -305,5 +304,15 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                 keyPair.getPublic(),
                 attributes,
                 keyPair.getPrivate());
+    }
+
+    private static class SAN {
+        final int mTagNo;
+        final String mName;
+
+        SAN(final int tagNo, final String name) {
+            mTagNo = tagNo;
+            mName = name;
+        }
     }
 }

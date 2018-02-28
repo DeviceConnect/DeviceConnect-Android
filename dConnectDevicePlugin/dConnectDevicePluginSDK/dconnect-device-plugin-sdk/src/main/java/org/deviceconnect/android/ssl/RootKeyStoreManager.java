@@ -75,26 +75,29 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                Certificate cert = null;
                 try {
-                    Certificate cert = mKeyStore.getCertificate(ipAddress);
+                    cert = mKeyStore.getCertificate(ipAddress);
                     if (cert != null) {
-                        callback.onSuccess(mKeyStore);
+                        callback.onSuccess(mKeyStore, cert, cert);
                         return;
                     }
                     mLogger.info("Generating self-signed server certificate...");
-                    generateSelfSignedCertificate();
+                    cert = generateSelfSignedCertificate();
                     mLogger.info("Generated self-signed server certificate...");
                 } catch (KeyStoreException e) {
                     mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
                     callback.onError(KeyStoreError.BROKEN_KEYSTORE);
+                    return;
                 } catch (GeneralSecurityException e) {
                     mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
                     callback.onError(KeyStoreError.UNSUPPORTED_KEYSTORE_FORMAT);
+                    return;
                 }
 
                 try {
                     saveKeyStore();
-                    callback.onSuccess(mKeyStore);
+                    callback.onSuccess(mKeyStore, cert, cert);
                 } catch (Exception e) {
                     mLogger.log(Level.SEVERE, "Failed to save self-signed server certificate.", e);
                     callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
@@ -107,13 +110,15 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
      * 自己署名証明書を生成する.
      *
      * @throws GeneralSecurityException 生成に失敗した場合
+     * @return 自己署名証明書
      */
-    private void generateSelfSignedCertificate() throws GeneralSecurityException {
+    private Certificate generateSelfSignedCertificate() throws GeneralSecurityException {
         KeyPairGenerator kg = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = kg.generateKeyPair();
         X500Principal subject = new X500Principal("CN=" + mSubjectName);
         Certificate cert = generateX509V3Certificate(keyPair, subject, subject, null,true);
         Certificate[] chain = {cert};
         mKeyStore.setKeyEntry(mSubjectName, keyPair.getPrivate(), null, chain);
+        return cert;
     }
 }

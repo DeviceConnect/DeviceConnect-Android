@@ -83,15 +83,19 @@ class CertificateAuthorityClient {
 
     private ICertificateAuthority fetchLocalCA(final CertificateRequestCallback callback)
         throws InterruptedException {
+        mLogger.info("Binding Local CA service...");
         if(!bindLocalCA()) {
             mLogger.severe("Local CA service (" + mLocalCAName + ") is not available.");
             callback.onError();
+            return null;
         }
+        mLogger.info("Waiting Local CA service connection...");
         synchronized (mLock) {
             if (mLocalCA == null) {
                 mLock.wait(5000);
             }
         }
+        mLogger.info("Checking Local CA service connection...");
         ICertificateAuthority localCA = mLocalCA;
         if (localCA == null) {
             mLogger.log(Level.SEVERE, "Failed to bind local CA service.");

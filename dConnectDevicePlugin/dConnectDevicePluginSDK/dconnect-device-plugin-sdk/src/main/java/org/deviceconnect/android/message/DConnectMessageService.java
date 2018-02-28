@@ -7,9 +7,6 @@
 package org.deviceconnect.android.message;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -21,7 +18,6 @@ import android.content.res.AssetManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
@@ -31,7 +27,6 @@ import android.support.v4.content.ContextCompat;
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.IDConnectPlugin;
-import org.deviceconnect.android.R;
 import org.deviceconnect.android.compat.AuthorizationRequestConverter;
 import org.deviceconnect.android.compat.LowerCaseConverter;
 import org.deviceconnect.android.compat.MessageConverter;
@@ -55,8 +50,8 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
-import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
 import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
@@ -70,6 +65,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -347,8 +343,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
     private void requestAndNotifyKeyStore(final String ipAddress) {
         requestKeyStore(ipAddress, new KeyStoreCallback() {
             @Override
-            public void onSuccess(final KeyStore keyStore) {
-                onKeyStoreUpdated(keyStore);
+            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+                onKeyStoreUpdated(keyStore, cert, rootCert);
             }
 
             @Override
@@ -358,7 +354,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         });
     }
 
-    protected void onKeyStoreUpdated(final KeyStore keyStore) {
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
     }
 
     protected void onKeyStoreUpdateError(final KeyStoreError error) {

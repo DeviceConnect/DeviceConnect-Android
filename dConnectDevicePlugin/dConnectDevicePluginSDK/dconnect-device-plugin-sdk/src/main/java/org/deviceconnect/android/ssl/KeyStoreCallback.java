@@ -8,6 +8,7 @@ package org.deviceconnect.android.ssl;
 
 
 import java.security.KeyStore;
+import java.security.cert.Certificate;
 
 /**
  * キーストア要求コールバック.
@@ -20,8 +21,10 @@ public interface KeyStoreCallback {
      * 成功コールバック.
      *
      * @param keyStore キーストア
+     * @param cert サーバ証明書
+     * @param rootCert ルート証明書
      */
-    void onSuccess(KeyStore keyStore);
+    void onSuccess(KeyStore keyStore, Certificate cert, Certificate rootCert);
 
     /**
      * 失敗コールバック.

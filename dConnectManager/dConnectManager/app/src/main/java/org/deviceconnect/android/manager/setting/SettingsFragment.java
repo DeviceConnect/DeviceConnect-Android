@@ -419,7 +419,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             ExportCertificateDialogFragment newFragment = new ExportCertificateDialogFragment();
             newFragment.show(((SettingActivity) getActivity()).getSupportFragmentManager(),null);
         } else if (getString(R.string.key_settings_install_server_certificate).equals(preference.getKey())) {
-            mDConnectService.installCertificate();
+            mDConnectService.installRootCertificate();
         }
         showIPAddress();
 

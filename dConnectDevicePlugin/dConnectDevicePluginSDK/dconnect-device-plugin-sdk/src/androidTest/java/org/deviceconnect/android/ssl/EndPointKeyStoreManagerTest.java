@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -47,7 +48,7 @@ public class EndPointKeyStoreManagerTest {
         KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, context.getPackageName(), authorityName);
         mgr.requestKeyStore("0.0.0.0", new KeyStoreCallback() {
             @Override
-            public void onSuccess(final KeyStore keyStore) {
+            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
                 result[0] = keyStore;
                 latch.countDown();
             }

@@ -6,19 +6,16 @@
  */
 package org.deviceconnect.android.manager;
 
-import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.security.KeyChain;
-import android.util.Log;
 
 import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
@@ -29,9 +26,6 @@ import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
-import org.deviceconnect.android.manager.ssl.DConnectCertificateAuthorityService;
-import org.deviceconnect.android.manager.plugin.MessagingException;
-import org.deviceconnect.android.manager.receiver.PackageManageReceiver;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -49,12 +43,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -408,7 +400,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
                 mKeyStoreMgr.requestKeyStore(ipAddress, new KeyStoreCallback() {
                     @Override
-                    public void onSuccess(final KeyStore keyStore) {
+                    public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
                         try {
                             SSLServerSocketFactory factory = createSSLServerSocketFactory(keyStore);
                             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext(), factory);
@@ -532,42 +524,32 @@ public class DConnectService extends DConnectMessageService implements WebSocket
     }
 
     /**
-     * サーバ証明書を「信頼できる証明書」としてインストールする.
+     * ルート証明書を「信頼できる証明書」としてインストールする.
      *
      * インストール前にユーザーに対して、認可ダイアログが表示される.
      * 認可されない場合は、インストールされない.
      */
-    public void installCertificate() {
-        Certificate certificate = loadRootCertificate();
-        if (certificate != null) {
-            try {
-                Intent installIntent = KeyChain.createInstallIntent();
-                installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Root CA");
-                installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, certificate.getEncoded());
-                startActivity(installIntent);
-            } catch (CertificateEncodingException e) {
-                mLogger.severe("Failed to encode server certificate: " + e.getMessage());
+    public void installRootCertificate() {
+        String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
+        mKeyStoreMgr.requestKeyStore(ipAddress, new KeyStoreCallback() {
+            @Override
+            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+                try {
+                    Intent installIntent = KeyChain.createInstallIntent();
+                    installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Root CA");
+                    installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, rootCert.getEncoded());
+                    startActivity(installIntent);
+                } catch (Exception e) {
+                    mLogger.log(Level.SEVERE, "Failed to encode server certificate.", e);
+                }
             }
-        }
-    }
 
-    private Certificate loadRootCertificate() {
-        String keystoreFile = DConnectCertificateAuthorityService.KEYSTORE_NAME;
-        String issuerName = DConnectCertificateAuthorityService.ISSUER_NAME;
-        try {
-            InputStream in = openFileInput(keystoreFile);
-            KeyStore rootKeystore = KeyStore.getInstance("PKCS12");
-            rootKeystore.load(in, "0000".toCharArray());
-            return rootKeystore.getCertificate(issuerName);
-        } catch (IOException e) {
-            mLogger.log(Level.SEVERE, "Failed to open keystore of Root CA: " + keystoreFile, e);
-        } catch (GeneralSecurityException e) {
-            mLogger.log(Level.SEVERE, "Failed to get a certificate from keystore of Root CA: " + keystoreFile, e);
-        } catch (Throwable e) {
-            mLogger.log(Level.SEVERE, "Failed to get a certificate from keystore of Root CA: " + keystoreFile, e);
-        }
-        return null;
+            @Override
+            public void onError(final KeyStoreError error) {
+                mLogger.severe("Failed to encode server certificate: " + error.name());
+            }
+        });
     }
 
     /**

@@ -132,23 +132,28 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      * @param alias 証明書のエイリアス
      */
     private void restoreIPAddress(final String alias) {
-        mLogger.log(Level.INFO, "Restoring IP Addresses...: alias = " + alias);
+        mLogger.log(Level.INFO, "Checking IP Addresses...: alias = " + alias);
         try {
             Certificate certificate = mKeyStore.getCertificate(alias);
             if (certificate == null) {
                 mLogger.info("Certificate is not stored yet: alias = " + alias);
                 return;
             }
+            mLogger.log(Level.INFO, "Restoring IP Addresses...: alias = " + alias);
             if (certificate instanceof X509Certificate) {
                 X509Certificate x509 = (X509Certificate) certificate;
                 Collection<List<?>> names = x509.getSubjectAlternativeNames();
                 if (names != null) {
+                    mLogger.log(Level.INFO, "SANs: size = " + names.size());
                     for (Iterator<List<?>> it = names.iterator(); it.hasNext(); ) {
                         List<?> list = it.next();
+                        mLogger.log(Level.INFO, "list: size = " + list.size());
                         for (Object obj : list) {
-                            if (obj instanceof GeneralName) {
-                                GeneralName generalName = (GeneralName) obj;
-                                mLogger.info("GeneralName: name = " + generalName.getName().getClass() + ", generalName.getName()");
+                            mLogger.log(Level.INFO, "obj: class = " + obj.getClass());
+                            if (obj instanceof String) {
+                                String generalName = (String) obj;
+                                mLogger.info("SAN: name = " + generalName);
+                                mIPAddresses.add(generalName);
                             }
                         }
                     }
@@ -187,9 +192,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
             public void run() {
                 mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
                 try {
+                    String alias = getAlias();
                     if (hasIPAddress(ipAddress)) {
-                        mLogger.info("Certificate is cached for alias: " + ipAddress);
-                        callback.onSuccess(mKeyStore);
+                        mLogger.info("Certificate is cached for alias: " + alias);
+                        Certificate[] chain = mKeyStore.getCertificateChain(getAlias());
+                        callback.onSuccess(mKeyStore, chain[0], chain[1]);
                     } else {
                         mLogger.info("Generating key pair...");
                         final KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
@@ -221,7 +228,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                                     saveKeyStore();
                                     mLogger.info("Saved server certificate");
                                     mIPAddresses.add(ipAddress);
-                                    callback.onSuccess(mKeyStore);
+                                    callback.onSuccess(mKeyStore, cert, rootCert);
                                 } catch (Exception e) {
                                     mLogger.log(Level.SEVERE, "Failed to save server certificate", e);
                                     callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);

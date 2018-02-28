@@ -103,7 +103,7 @@ class CertificateAuthority {
         // キーストア取得
         mRootKeyStoreMgr.requestKeyStore(mIssuerName, new KeyStoreCallback() {
             @Override
-            public void onSuccess(final KeyStore result) {
+            public void onSuccess(final KeyStore result, final Certificate cert, final Certificate rootCert) {
                 mLogger.severe("Got Root CA keystore: subject = issuer = " + mIssuerName);
                 keyStore[0] = result;
                 lock.countDown();

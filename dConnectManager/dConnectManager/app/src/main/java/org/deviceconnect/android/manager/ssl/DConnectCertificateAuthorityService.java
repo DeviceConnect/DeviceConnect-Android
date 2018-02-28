@@ -6,7 +6,11 @@
  */
 package org.deviceconnect.android.manager.ssl;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.ssl.CertificateAuthorityService;
+
+import java.util.logging.Logger;
 
 
 /**
@@ -32,6 +36,11 @@ public class DConnectCertificateAuthorityService extends CertificateAuthoritySer
      */
     public static final String ISSUER_NAME = "Device Connect Root CA";
 
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
+
     @Override
     protected String getIssuerName() {
         return ISSUER_NAME;
@@ -42,4 +51,15 @@ public class DConnectCertificateAuthorityService extends CertificateAuthoritySer
         return KEYSTORE_NAME;
     }
 
+    @Override
+    public void onCreate() {
+        mLogger.info("onCreate");
+        super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        mLogger.info("onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
+    }
 }

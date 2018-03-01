@@ -36,7 +36,7 @@
                     android:targetClass="org.deviceconnect.android.manager.setting.AccessTokenListActivity" />
         </PreferenceScreen>
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="@string/key_settings_dconn_require_origin"
             android:summary="@string/activity_settings_require_origin_summary"
             android:title="@string/activity_settings_require_origin" />

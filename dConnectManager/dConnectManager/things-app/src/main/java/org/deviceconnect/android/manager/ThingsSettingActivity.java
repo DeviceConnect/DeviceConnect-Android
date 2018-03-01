@@ -26,16 +26,4 @@ public class ThingsSettingActivity extends SettingActivity {
         mSettings = ((DConnectApplication) getApplication()).getSettings();
         mSettings.setManagerStartFlag(true);
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Intent i1 = new Intent();
-        i1.setClass(this, DConnectService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(i1);
-        } else {
-            startService(i1);
-        }
-    }
 }

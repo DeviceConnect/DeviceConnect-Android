@@ -67,13 +67,15 @@
     <string name="activity_settings_manager_terminate_title">Manager termination notification in to the device plug-ins</string>
     <string name="activity_settings_manager_terminate_message">Processing</string>
     <string name="activity_settings_manage_websocket">List of WebSocket</string>
-    <string name="activity_settings_export_server_keystore">Export server keystore</string>
+    <string name="activity_settings_export_server_keystore">Exports server keystore</string>
+    <string name="activity_settings_export_server_keystore_summay">Exports server keystore as a PKCS12 file.</string>
     <string name="activity_settings_export_server_keystore_dialog_path_title">Directory Path</string>
     <string name="activity_settings_export_server_keystore_dialog_button_export">Export</string>
     <string name="activity_settings_export_server_keystore_dialog_button_cancel">Cancel</string>
     <string name="activity_settings_export_server_keystore_success">Stored keystore</string>
     <string name="activity_settings_export_server_keystore_error">Failed to store keystore</string>
-    <string name="activity_settings_install_server_certificate">Install root certificate</string>
+    <string name="activity_settings_install_server_certificate">Installs root certificate</string>
+    <string name="activity_settings_install_server_certificate_summary">Install the root certificate of this system as a trusted certificate on your device.</string>
     <string name="activity_settings_name">Name</string>
     <string name="activity_settings_uuid">UUID</string>
     <string name="activity_settings_manager_name_visible">Show Manager\'s name</string>

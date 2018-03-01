@@ -96,7 +96,7 @@ public class DevicePluginListFragment extends BaseSettingFragment {
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         DevicePluginManager mgr = getPluginManager();
         if (mgr != null) {
             mgr.addEventListener(mEventListener);

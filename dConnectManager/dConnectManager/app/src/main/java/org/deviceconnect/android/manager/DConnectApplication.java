@@ -22,7 +22,7 @@ import java.util.logging.SimpleFormatter;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApplication  extends HostDeviceApplication {
+public class DConnectApplication extends HostDeviceApplication {
 
     /**
      * Device Connect システム設定.

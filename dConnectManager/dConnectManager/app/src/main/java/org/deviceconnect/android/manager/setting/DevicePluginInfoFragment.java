@@ -287,7 +287,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         DevicePluginManager mgr = getPluginManager();
         if (mgr != null) {
             String pluginId = getArguments().getString(DevicePluginInfoActivity.EXTRA_PLUGIN_ID);

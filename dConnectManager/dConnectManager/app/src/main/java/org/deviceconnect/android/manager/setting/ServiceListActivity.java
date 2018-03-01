@@ -172,7 +172,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

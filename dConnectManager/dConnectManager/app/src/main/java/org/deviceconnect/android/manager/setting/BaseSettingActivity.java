@@ -1,29 +1,44 @@
+/*
+ BaseSettingActivity.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
+import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfoManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 
 
+/**
+ * 設定画面のベースクラス.
+ *
+ * <p>
+ * 画面起動時にマネージャ本体とのバインドし、マネージャ本体を制御できるようにする.
+ * </p>
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class BaseSettingActivity extends AppCompatActivity {
 
-    /** マネージャ本体のサービスがBindされているかどうか. */
-    private boolean mIsBind = false;
-
     /**
-     * DConnectServiceを操作するクラス.
+     * マネージャ本体を操作するクラス.
      */
     private DConnectService mDConnectService;
 
@@ -54,7 +69,32 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
         return mSavedInstance != null;
     }
 
-    protected void onManagerBonded() {
+    /**
+     * マネージャ本体とのバインド待ち状態になったことを通知.
+     */
+    protected void onManagerBinding() {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体とのバインドが不可能な状態であることを通知.
+     */
+    protected void onCannotManagerBonded() {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体とバインドしたことを通知.
+     * @param manager マネージャ本体
+     */
+    protected void onManagerBonded(final DConnectService manager) {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体とのバインドが切断されたことを通知.
+     */
+    protected void onManagerLost() {
         // NOP.
     }
 
@@ -68,13 +108,15 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
-            onManagerBonded();
+            DConnectService manager = ((DConnectService.LocalBinder) service).getDConnectService();
+            mDConnectService = manager;
+            onManagerBonded(manager);
         }
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             mDConnectService = null;
+            onManagerLost();
         }
     };
 
@@ -83,7 +125,12 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
             return;
         }
         Intent bindIntent = new Intent(getApplicationContext(), DConnectService.class);
-        mIsBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        boolean canBind = bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        if (canBind) {
+            onManagerBinding();
+        } else {
+            onCannotManagerBonded();
+        }
     }
 
     private synchronized void unbindManager() {
@@ -109,10 +156,8 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
     }
 
     protected Boolean isSSL() {
-        if (mDConnectService == null) {
-            return null;
-        }
-        DConnectSettings settings = mDConnectService.getSettings();
+        DConnectApplication application = (DConnectApplication) getApplication();
+        DConnectSettings settings = application.getSettings();
         if (settings == null) {
             return null;
         }

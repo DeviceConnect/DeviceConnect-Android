@@ -49,16 +49,24 @@ var util = (function(parent, global) {
     var mSessionKey = "test-session-key";
     var mHost = "localhost";
     var mScopes = initScope();
+    var mSSLEnabled = getQuery("ssl") === "on";
+    var mPort = getQuery("port") == null ? 4035 : parseInt(getQuery("port"), 10);
 
     function init(callback) {
         loadScope();
 
         dConnect.setHost(mHost);
+        dConnect.setPort(mPort);
+        dConnect.setSSLEnabled(mSSLEnabled);
         dConnect.setExtendedOrigin("file://");
         checkDeviceConnect(callback);
     }
     parent.init = init;
 
+    function isSSL() {
+        return mSSLEnabled;
+    }
+    parent.isSSL = isSSL;
 
     function loadScope() {
         var scopeStr = getCookie("scope");
@@ -380,12 +388,20 @@ var util = (function(parent, global) {
     }
     parent.removeEventListener = removeEventListener;
 
+    function getProtocol() {
+        return isSSL() ? 'https' : 'http';
+    }
+    parent.getProtocol = getProtocol;
 
     function getUri(path) {
-        return 'http://' + mHost + ':4035' + path;
+        return getProtocol() + '://' + mHost + ':' + mPort + path;
     }
     parent.getUri = getUri;
 
+    function getPort() {
+        return mPort;
+    }
+    parent.getPort = getPort;
 
     function getProfile() {
         return getQuery('profile');

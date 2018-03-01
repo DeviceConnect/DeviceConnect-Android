@@ -49,7 +49,7 @@ public final class PRNGFixes {
     /**
      * Applies all fixes.
      *
-     * @throws SecurityException if a fix is needed but could not be applied.
+     * @throws SecurityException if a com.google.fix is needed but could not be applied.
      */
     public static void apply() {
         applyOpenSSLFix();
@@ -57,15 +57,15 @@ public final class PRNGFixes {
     }
 
     /**
-     * Applies the fix for OpenSSL PRNG having low entropy. Does nothing if the
-     * fix is not needed.
+     * Applies the com.google.fix for OpenSSL PRNG having low entropy. Does nothing if the
+     * com.google.fix is not needed.
      *
-     * @throws SecurityException if the fix is needed but could not be applied.
+     * @throws SecurityException if the com.google.fix is needed but could not be applied.
      */
     private static void applyOpenSSLFix() throws SecurityException {
         if ((Build.VERSION.SDK_INT < VERSION_CODE_JELLY_BEAN)
                 || (Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2)) {
-            // No need to apply the fix
+            // No need to apply the com.google.fix
             return;
         }
 
@@ -95,12 +95,12 @@ public final class PRNGFixes {
      * default. Does nothing if the implementation is already the default or if
      * there is not need to install the implementation.
      *
-     * @throws SecurityException if the fix is needed but could not be applied.
+     * @throws SecurityException if the com.google.fix is needed but could not be applied.
      */
     private static void installLinuxPRNGSecureRandom()
             throws SecurityException {
         if (Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2) {
-            // No need to apply the fix
+            // No need to apply the com.google.fix
             return;
         }
 

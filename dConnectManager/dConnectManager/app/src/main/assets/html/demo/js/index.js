@@ -65,6 +65,8 @@ var main = (function(parent, global) {
 
     function createProfile(profile) {
         var url = 'checker.html?serviceId=' + util.getServiceId() + '&profile=' + profile;
+        url += '&ssl=' + (util.isSSL() ? 'on' : 'off');
+        url += '&port=' + util.getPort();
         var icon = mIconList[profile.toLowerCase()];
         if (!icon) {
             icon = 'images/icon21_other.png';

@@ -27,6 +27,8 @@
     <string name="key_settings_web_server_port" translatable="false">key_settings_web_server_port</string>
     <string name="key_settings_web_server_document_root_path" translatable="false">key_settings_web_server_document_root_path</string>
     <string name="key_settings_dconn_websocket" translatable="false">key_settings_dconn_websocket</string>
+    <string name="key_settings_export_server_certificate" translatable="false">key_settings_export_server_certificate</string>
+    <string name="key_settings_install_server_certificate" translatable="false">key_settings_install_server_certificate</string>
     <string name="key_settings_event_keep_alive_on_off" translatable="false">key_settings_event_keep_alive_on_off</string>
     <string name="key_settings_doze_mode" translatable="false">key_settings_doze_mode</string>
     <string name="key_settings_wake_lock" translatable="false">key_settings_wake_lock</string>

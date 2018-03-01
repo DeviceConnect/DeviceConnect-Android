@@ -415,6 +415,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             fragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
+        } else if (getString(R.string.key_settings_export_server_certificate).equals(preference.getKey())) {
+            ExportCertificateDialogFragment newFragment = new ExportCertificateDialogFragment();
+            newFragment.show(((SettingActivity) getActivity()).getSupportFragmentManager(),null);
+        } else if (getString(R.string.key_settings_install_server_certificate).equals(preference.getKey())) {
+            mDConnectService.installRootCertificate();
         }
         showIPAddress();
 

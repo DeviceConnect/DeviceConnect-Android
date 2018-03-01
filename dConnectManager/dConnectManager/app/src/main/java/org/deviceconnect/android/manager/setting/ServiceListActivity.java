@@ -172,7 +172,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerDetected(final DConnectService manager, final boolean isRunning) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -204,9 +204,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     });
                 }
 
-                final DConnectService managerService = getManagerService();
-                waitForManagerStartup(managerService);
-                boolean isRunning = managerService.isRunning();
                 if (mSwitchAction != null) {
                     mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
                     mSwitchAction.setChecked(isRunning);
@@ -288,34 +285,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         if (btn != null) {
             if (getManagerService() != null) {
                 btn.setEnabled(running);
-            }
-        }
-    }
-
-    /**
-     * アプリ初回起動時に前回ManagerがONだった場合、ManagerがONになるのを待つ.
-     * @param managerService ManagerMessageService
-     */
-    private void waitForManagerStartup(final DConnectService managerService) {
-        if (mSettings.isManagerStartFlag() && !managerService.isRunning()) {
-            final CountDownLatch latch = new CountDownLatch(1);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (!managerService.isRunning()) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    latch.countDown();
-                }
-            }).start();
-            try {
-                latch.await();
-            } catch(InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -585,6 +554,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, getString(R.string.activity_help_title));
+        intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
         startActivity(intent);
     }
 
@@ -599,12 +569,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         if (plugin == null) {
             return;
         }
+        Boolean isSSL = isSSL();
+        if (isSSL == null) {
+            return;
+        }
 
         String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
+        intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
         intent.putExtra(WebViewActivity.EXTRA_SERVICE_ID, mSelectedService.getId());
         intent.putExtra(WebViewActivity.EXTRA_PLUGIN_ID, plugin.getPluginId());
         startActivity(intent);

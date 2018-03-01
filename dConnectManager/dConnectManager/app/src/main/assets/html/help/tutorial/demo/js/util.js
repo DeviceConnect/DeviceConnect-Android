@@ -3,13 +3,20 @@ var util = (function(parent, global) {
 
     var mAccessToken = null;
     var mSessionKey = "test-session-key";
+    var mSSLEnabled = getQuery("ssl") === "on";
 
     function init(callback) {
         dConnect.setHost("localhost");
         dConnect.setExtendedOrigin("file://");
+        dConnect.setSSLEnabled(mSSLEnabled);
         checkDeviceConnect(callback);
     }
     parent.init = init;
+
+    function isSSL() {
+        return mSSLEnabled;
+    }
+    parent.isSSL = isSSL;
 
     function startManager(onAvailable) {
         var errorCallback = function(errorCode, errorMessage) {
@@ -137,6 +144,23 @@ var util = (function(parent, global) {
         alert(message + "\n errorCode: " + errorCode + " \n " + errorMessage);
     }
     parent.showAlert = showAlert;
+
+    function getQuery(name) {
+        if (1 < document.location.search.length) {
+            var query = document.location.search.substring(1);
+            var parameters = query.split('&');
+            for (var i = 0; i < parameters.length; i++) {
+                var element = parameters[i].split('=');
+                var paramName = decodeURIComponent(element[0]);
+                var paramValue = decodeURIComponent(element[1]);
+                if (paramName == name) {
+                    return paramValue;
+                }
+            }
+        }
+        return null;
+    }
+    parent.getQuery = getQuery;
 
     return parent;
 })(util || {}, this.self || global);

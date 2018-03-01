@@ -153,6 +153,12 @@
             android:exported="false">
         </service>
 
+        <!-- ローカル認証局サービス -->
+        <service
+            android:name=".ssl.DConnectCertificateAuthorityService"
+            android:exported="true"
+            />
+
         <!-- Device Connectのファイルを管理するProvider. -->
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"

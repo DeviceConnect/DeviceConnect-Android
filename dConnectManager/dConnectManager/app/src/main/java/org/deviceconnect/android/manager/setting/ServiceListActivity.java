@@ -172,7 +172,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     @Override
-    protected void onManagerBonded(final DConnectService manager) {
+    protected void onManagerDetected(final DConnectService manager, final boolean isRunning) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -204,9 +204,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     });
                 }
 
-                final DConnectService managerService = getManagerService();
-                waitForManagerStartup(managerService);
-                boolean isRunning = managerService.isRunning();
                 if (mSwitchAction != null) {
                     mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
                     mSwitchAction.setChecked(isRunning);
@@ -288,34 +285,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         if (btn != null) {
             if (getManagerService() != null) {
                 btn.setEnabled(running);
-            }
-        }
-    }
-
-    /**
-     * アプリ初回起動時に前回ManagerがONだった場合、ManagerがONになるのを待つ.
-     * @param managerService ManagerMessageService
-     */
-    private void waitForManagerStartup(final DConnectService managerService) {
-        if (mSettings.isManagerStartFlag() && !managerService.isRunning()) {
-            final CountDownLatch latch = new CountDownLatch(1);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (!managerService.isRunning()) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    latch.countDown();
-                }
-            }).start();
-            try {
-                latch.await();
-            } catch(InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }

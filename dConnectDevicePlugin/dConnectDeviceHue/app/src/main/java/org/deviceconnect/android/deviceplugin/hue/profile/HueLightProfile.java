@@ -10,17 +10,17 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.philips.lighting.hue.listener.PHLightListener;
-import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.utilities.PHUtilities;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHBridgeResource;
-import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLight.PHLightColorMode;
 import com.philips.lighting.model.PHLightState;
 
-import org.deviceconnect.android.deviceplugin.hue.R;
+import org.deviceconnect.android.deviceplugin.hue.HueDeviceService;
+import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
+import org.deviceconnect.android.deviceplugin.hue.core.R;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -69,15 +69,31 @@ public class HueLightProfile extends LightProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = getServiceID(request);
-
-                PHBridge bridge = findBridge(serviceId);
+                String lightId = null;
+                if (serviceId.contains(":")) {
+                    String[] ids = serviceId.split(":");
+                    serviceId = ids[0];
+                    lightId = ids[1];
+                }
+                PHBridge bridge = HueManager.INSTANCE.findBridge(serviceId);
                 if (bridge == null) {
                     MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
                     return true;
                 }
-
                 List<Bundle> lightList = new ArrayList<Bundle>();
-                for (PHLight phLight : bridge.getResourceCache().getAllLights()) {
+                if (lightId == null) {
+                    for (PHLight phLight : bridge.getResourceCache().getAllLights()) {
+                        PHLightState phState = phLight.getLastKnownLightState();
+                        Bundle light = new Bundle();
+                        setLightId(light, phLight.getIdentifier());
+                        setName(light, phLight.getName());
+                        setOn(light, phState != null ? phState.isOn() : false);
+                        setConfig(light, "");
+                        lightList.add(light);
+                    }
+                } else {
+                    // Lightである場合は自分自身の情報のみ返す
+                    PHLight phLight = HueManager.INSTANCE.getCacheLight(getServiceID(request));
                     PHLightState phState = phLight.getLastKnownLightState();
                     Bundle light = new Bundle();
                     setLightId(light, phLight.getIdentifier());
@@ -100,19 +116,22 @@ public class HueLightProfile extends LightProfile {
                 Integer color = getColor(request);
                 Double brightness = getBrightness(request);
                 long[] flashing = getFlashing(request);
-
-                final PHBridge bridge = findBridge(serviceId);
+                if (serviceId.contains(":")) {
+                    String[] ids = serviceId.split(":");
+                    serviceId = ids[0];
+                    lightId = ids[1];
+                }
+                final PHBridge bridge = HueManager.INSTANCE.findBridge(serviceId);
                 if (bridge == null) {
                     MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
                     return true;
                 }
 
-                final PHLight light = findLight(bridge, lightId);
+                final PHLight light = HueManager.INSTANCE.findLight(bridge, lightId);
                 if (light == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
                     return true;
                 }
-
                 final PHLightState lightState = makeLightState(color, brightness, flashing);
                 if (flashing != null) {
                     flashing(lightId, lightState, bridge, light, flashing);
@@ -145,14 +164,19 @@ public class HueLightProfile extends LightProfile {
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = getServiceID(request);
                 String lightId = getLightId(request);
+                if (serviceId.contains(":")) {
+                    String[] ids = serviceId.split(":");
+                    serviceId = ids[0];
+                    lightId = ids[1];
+                }
 
-                final PHBridge bridge = findBridge(serviceId);
+                final PHBridge bridge = HueManager.INSTANCE.findBridge(serviceId);
                 if (bridge == null) {
                     MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
                     return true;
                 }
 
-                PHLight light = findLight(bridge, lightId);
+                PHLight light = HueManager.INSTANCE.findLight(bridge, lightId);
                 if (light == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
                     return true;
@@ -193,15 +217,20 @@ public class HueLightProfile extends LightProfile {
                 Integer color = getColor(request);
                 Double brightness = getBrightness(request);
                 long[] flashing = getFlashing(request);
-                String name = getName(request);
+                final String name = getName(request);
+                if (serviceId.contains(":")) {
+                    String[] ids = serviceId.split(":");
+                    serviceId = ids[0];
+                    lightId = ids[1];
+                }
 
-                final PHBridge bridge = findBridge(serviceId);
+                final PHBridge bridge = HueManager.INSTANCE.findBridge(serviceId);
                 if (bridge == null) {
                     MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
                     return true;
                 }
 
-                final PHLight light = findLight(bridge, lightId);
+                final PHLight light = HueManager.INSTANCE.findLight(bridge, lightId);
                 if (light == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
                     return true;
@@ -218,12 +247,17 @@ public class HueLightProfile extends LightProfile {
 
                 PHLight newLight = new PHLight(light);
                 newLight.setName(name);
+
                 bridge.updateLight(newLight, new PHLightAdapter() {
                     private boolean mErrorFlag = false;
 
                     @Override
                     public void onSuccess() {
                         super.onSuccess();
+                        DConnectService service = getService();
+                        if (service != null) {
+                            service.setName(name);
+                        }
                         countDown();
                     }
 
@@ -371,46 +405,9 @@ public class HueLightProfile extends LightProfile {
         return colors;
     }
 
-    /**
-     * Hueのブリッジを検索する.
-     *
-     * @param serviceId Service ID
-     * @return Hueのブリッジを管理するオブジェクト
-     */
-    private PHBridge findBridge(final String serviceId) {
-        List<PHBridge> bridges = PHHueSDK.getInstance().getAllBridges();
-        for (PHBridge bridge : bridges) {
-            PHBridgeResourcesCache cache = bridge.getResourceCache();
-            String ipAddress = cache.getBridgeConfiguration().getIpAddress();
-            if (serviceId.equals(ipAddress)) {
-                return bridge;
-            }
-        }
-        return null;
-    }
 
-    /**
-     * Hueに接続されているライトを検索する.
-     * <p>
-     * ライトが見つからない場合には<code>null</code>を返却する。
-     * </p>
-     *
-     * @param bridge  Hueのブリッジ
-     * @param lightId ライトID
-     * @return Hueのブリッジに接続されたライト
-     */
-    private PHLight findLight(final PHBridge bridge, final String lightId) {
-        Map<String, PHLight> lights = bridge.getResourceCache().getLights();
-        if (lights.size() == 0) {
-            return null;
-        }
 
-        if (lightId == null || lightId.length() == 0) {
-            return lights.entrySet().iterator().next().getValue();
-        } else {
-            return bridge.getResourceCache().getLights().get(lightId);
-        }
-    }
+
 
     /**
      * 認証が失敗した場合にブリッジを切断します.
@@ -421,9 +418,7 @@ public class HueLightProfile extends LightProfile {
             return;
         }
 
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        hueSDK.disconnect(bridge);
-
+        HueManager.INSTANCE.disconnectHueBridge(bridge);
         DConnectService service = getService();
         service.setOnline(false);
     }

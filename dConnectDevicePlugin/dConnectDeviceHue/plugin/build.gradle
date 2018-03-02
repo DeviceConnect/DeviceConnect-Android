@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
@@ -16,6 +16,7 @@ android {
     }
 
     defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.hue"
         minSdkVersion 14
         targetSdkVersion 26
         versionCode 1
@@ -57,7 +58,8 @@ repositories {
     maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
 }
 
+
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
+    compile project(':app')
 }

@@ -4,7 +4,7 @@ Copyright (c) 2017 NTT DOCOMO,INC.
 Released under the MIT license
 http://opensource.org/licenses/mit-license.php
 */
-package org.deviceconnect.android.deviceplugin.hue;
+package org.deviceconnect.android.deviceplugin.hue.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,7 +22,7 @@ import java.util.List;
  * Hueアクセスポイント情報を格納するDBヘルパークラス.
  * @author NTT DOCOMO, INC.
  */
-class HueDBHelper {
+public class HueDBHelper {
 
     /**
      * Define the name of the database.

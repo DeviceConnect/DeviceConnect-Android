@@ -1,4 +1,4 @@
-include ':app', ':android-app', ':things-app'
+include ':app'
 include 'dconnect-server'
 project(':dconnect-server').projectDir = new File('../dConnectServer')
 include 'dconnect-server-nano-httpd'

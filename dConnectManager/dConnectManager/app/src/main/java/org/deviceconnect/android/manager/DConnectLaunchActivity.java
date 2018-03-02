@@ -24,7 +24,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;

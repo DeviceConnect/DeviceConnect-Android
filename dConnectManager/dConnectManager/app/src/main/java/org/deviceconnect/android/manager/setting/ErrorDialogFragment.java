@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 
 /**
  * エラーダイアログ.

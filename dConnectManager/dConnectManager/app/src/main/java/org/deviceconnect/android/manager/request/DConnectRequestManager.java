@@ -9,7 +9,7 @@ package org.deviceconnect.android.manager.request;
 import android.content.Intent;
 import android.util.Log;
 
-import org.deviceconnect.android.manager.core.BuildConfig;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;

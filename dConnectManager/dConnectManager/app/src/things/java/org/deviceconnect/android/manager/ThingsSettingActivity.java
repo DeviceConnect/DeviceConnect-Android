@@ -16,14 +16,10 @@ import org.deviceconnect.android.manager.setting.SettingActivity;
  * @author NTT DOCOMO, INC.
  */
 public class ThingsSettingActivity extends SettingActivity {
-    /**
-     * Managerの設定項目.
-     */
-    private DConnectSettings mSettings;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSettings = ((DConnectApplication) getApplication()).getSettings();
-        mSettings.setManagerStartFlag(true);
+        DConnectSettings settings = ((DConnectApplication) getApplication()).getSettings();
+        settings.setManagerStartFlag(true);
     }
 }

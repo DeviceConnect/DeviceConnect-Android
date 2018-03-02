@@ -13,7 +13,7 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 
 /**
  * Whitelist Activity.

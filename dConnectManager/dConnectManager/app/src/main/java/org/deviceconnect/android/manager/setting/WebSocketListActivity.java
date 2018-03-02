@@ -20,7 +20,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfo;
 import org.deviceconnect.android.manager.WebSocketInfoManager;
 

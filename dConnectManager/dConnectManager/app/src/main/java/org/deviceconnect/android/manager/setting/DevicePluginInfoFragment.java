@@ -30,9 +30,9 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
-import org.deviceconnect.android.manager.core.BuildConfig;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;

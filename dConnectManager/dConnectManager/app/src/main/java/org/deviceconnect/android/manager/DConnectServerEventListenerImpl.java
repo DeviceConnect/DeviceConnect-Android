@@ -15,7 +15,7 @@ import android.os.Build;
 
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.manager.core.BuildConfig;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;

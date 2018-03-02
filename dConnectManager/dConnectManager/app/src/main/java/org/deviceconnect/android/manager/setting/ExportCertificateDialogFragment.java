@@ -15,7 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 
 import java.io.IOException;
 import java.util.logging.Logger;

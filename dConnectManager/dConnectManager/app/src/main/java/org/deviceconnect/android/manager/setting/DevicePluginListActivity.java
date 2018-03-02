@@ -13,7 +13,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 
 /**
  * Device Connect Manager device plug-in list Activity.

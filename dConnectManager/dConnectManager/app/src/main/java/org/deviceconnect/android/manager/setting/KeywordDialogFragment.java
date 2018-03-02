@@ -18,7 +18,7 @@ import android.support.v4.app.DialogFragment;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**

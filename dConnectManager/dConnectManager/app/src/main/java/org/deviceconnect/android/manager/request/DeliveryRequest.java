@@ -8,7 +8,7 @@ package org.deviceconnect.android.manager.request;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.core.BuildConfig;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.message.MessageUtils;

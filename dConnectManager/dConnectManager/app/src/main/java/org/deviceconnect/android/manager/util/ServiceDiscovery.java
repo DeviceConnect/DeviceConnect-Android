@@ -3,7 +3,7 @@ package org.deviceconnect.android.manager.util;
 import android.content.Context;
 import android.util.Log;
 
-import org.deviceconnect.android.manager.core.BuildConfig;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;

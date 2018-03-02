@@ -38,8 +38,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 
-import org.deviceconnect.android.manager.core.BuildConfig;
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.R;
 
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;

@@ -15,7 +15,7 @@ import android.os.Bundle;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.core.R;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.request.DConnectRequest;

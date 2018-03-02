@@ -19,7 +19,7 @@ import android.widget.Button;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 
-import org.deviceconnect.android.deviceplugin.hue.core.R;
+import org.deviceconnect.android.deviceplugin.hue.R;
 
 /**
  * Hue設定画面(3)フラグメント.

@@ -35,7 +35,7 @@ import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 
 import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
-import org.deviceconnect.android.deviceplugin.hue.core.R;
+import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.List;
 

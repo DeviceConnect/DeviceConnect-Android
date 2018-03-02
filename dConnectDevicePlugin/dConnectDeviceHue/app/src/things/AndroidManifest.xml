@@ -1,14 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.hue" >
-    <application
-        android:name=".HueDeviceApplication"
-        android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+    package="org.deviceconnect.android.deviceplugin.hue"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
         <uses-library android:name="com.google.android.things"/>
         <!-- hue Device Plugin Provider. -->
-        <receiver android:name="org.deviceconnect.android.deviceplugin.hue.HueDeviceProvider">
+        <receiver android:name="org.deviceconnect.android.deviceplugin.hue.HueDeviceProvider"
+            tools:node="merge">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_hue"/>
@@ -20,6 +17,10 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_hue"/>
+        </service>
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.hue.HueDeviceService"
+            tools:node="remove">
         </service>
     </application>
 </manifest>

@@ -15,7 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.hue.core.R;
+import org.deviceconnect.android.deviceplugin.hue.R;
 import org.deviceconnect.android.deviceplugin.hue.activity.fragment.HueFragment01;
 
 /**

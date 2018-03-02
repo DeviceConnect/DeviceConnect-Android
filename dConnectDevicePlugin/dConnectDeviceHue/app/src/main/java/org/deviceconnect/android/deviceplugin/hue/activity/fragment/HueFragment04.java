@@ -40,8 +40,8 @@ import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 
 import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
-import org.deviceconnect.android.deviceplugin.hue.core.BuildConfig;
-import org.deviceconnect.android.deviceplugin.hue.core.R;
+import org.deviceconnect.android.deviceplugin.hue.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.ArrayList;
 import java.util.List;

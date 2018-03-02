@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="org.deviceconnect.android.deviceplugin.hue.core"
+<manifest package="org.deviceconnect.android.deviceplugin.hue"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1"
-    android:versionName="2.0.0">
-
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19"/>
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
-    <application>
+    <application
+        android:name=".HueDeviceApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <!-- hue Device Plugin Provider. -->
+        <receiver android:name="org.deviceconnect.android.deviceplugin.hue.HueDeviceProvider">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_hue"/>
 
+        </receiver>
+
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.hue.HueDeviceService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_hue"/>
+        </service>
         <activity
             android:name="org.deviceconnect.android.deviceplugin.hue.activity.HueServiceListActivity"
             android:configChanges="orientation|screenSize"

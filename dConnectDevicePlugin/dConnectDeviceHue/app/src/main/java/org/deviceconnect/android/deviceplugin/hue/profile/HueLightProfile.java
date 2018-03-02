@@ -20,7 +20,7 @@ import com.philips.lighting.model.PHLightState;
 
 import org.deviceconnect.android.deviceplugin.hue.HueDeviceService;
 import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
-import org.deviceconnect.android.deviceplugin.hue.core.R;
+import org.deviceconnect.android.deviceplugin.hue.R;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;

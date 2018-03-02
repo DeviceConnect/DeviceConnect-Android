@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
@@ -16,6 +16,7 @@ android {
     }
 
     defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.hue"
         minSdkVersion 14
         targetSdkVersion 26
         versionCode 1
@@ -48,6 +49,16 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+    flavorDimensions "common"
+    productFlavors {
+        things {
+            dimension "common"
+
+        }
+        main {
+            dimension "common"
+        }
+    }
 }
 
 repositories {
@@ -60,4 +71,5 @@ repositories {
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
+    compileOnly 'com.google.android.things:androidthings:+'
 }

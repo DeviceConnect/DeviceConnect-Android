@@ -22,7 +22,7 @@ import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 
 import org.deviceconnect.android.deviceplugin.hue.HueConstants;
-import org.deviceconnect.android.deviceplugin.hue.core.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hue.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hue.service.HueLightService;
 import org.deviceconnect.android.deviceplugin.hue.service.HueService;
 

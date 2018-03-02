@@ -8,7 +8,7 @@ package org.deviceconnect.android.deviceplugin.hue;
 
 import android.app.Application;
 
-import org.deviceconnect.android.deviceplugin.hue.core.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hue.BuildConfig;
 import org.deviceconnect.android.logger.AndroidHandler;
 
 import java.util.logging.Level;

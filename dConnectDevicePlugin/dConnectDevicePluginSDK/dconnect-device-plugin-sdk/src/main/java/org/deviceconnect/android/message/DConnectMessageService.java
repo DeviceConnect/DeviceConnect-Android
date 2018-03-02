@@ -6,27 +6,27 @@
  */
 package org.deviceconnect.android.message;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import android.Manifest;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.support.v4.content.ContextCompat;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.IDConnectPlugin;
-import org.deviceconnect.android.R;
 import org.deviceconnect.android.compat.AuthorizationRequestConverter;
 import org.deviceconnect.android.compat.LowerCaseConverter;
 import org.deviceconnect.android.compat.MessageConverter;
@@ -50,6 +50,10 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -58,6 +62,10 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +76,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Device Connectメッセージサービス.
@@ -92,7 +104,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /** プロファイル仕様定義ファイルの拡張子. */
     private static final String SPEC_FILE_EXTENSION = ".json";
-     /**
+    
+    /**
      * ロガー.
      */
     private Logger mLogger = Logger.getLogger("org.deviceconnect.dplugin");
@@ -142,10 +155,19 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     };
 
+    private KeyStoreManager mKeyStoreMgr;
+
     private ScheduledExecutorService mExecutorService;
 
     private boolean mIsEnabled;
 
+    private BroadcastReceiver mWiFiBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            // 証明書を更新
+            requestAndNotifyKeyStore();
+        }
+    };
 
     private final BroadcastReceiver mUninstallReceiver = new BroadcastReceiver() {
         @Override
@@ -153,6 +175,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             handleMessage(intent);
         }
     };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -177,6 +200,16 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
+
+        // キーストア管理クラスの初期化
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), getKeyStoreFileName(), getCertificateAlias());
+        if (usesAutoCertificateRequest()) {
+            requestAndNotifyKeyStore();
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            registerReceiver(mWiFiBroadcastReceiver, filter);
+        }
 
         // 認証プロファイルの追加
         addProfile(new AuthorizationProfile(this));
@@ -204,6 +237,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
         LocalOAuth2Main.destroy();
         // コールバック一覧を削除
         mBindingSenders.clear();
+
+        if (usesAutoCertificateRequest()) {
+            unregisterReceiver(mWiFiBroadcastReceiver);
+        }
+
         unregisterReceiver(mUninstallReceiver);
     }
 
@@ -267,6 +305,73 @@ public abstract class DConnectMessageService extends Service implements DConnect
             mIsEnabled = false;
             onDevicePluginDisabled();
         }
+    }
+
+    protected boolean usesAutoCertificateRequest() {
+        return false;
+    }
+
+    protected String getKeyStoreFileName() {
+        return "keystore.p12";
+    }
+
+    protected String getCertificateAlias() {
+        return getContext().getPackageName();
+    }
+
+    protected void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
+        mKeyStoreMgr.requestKeyStore(ipAddress, callback);
+    }
+
+    private void requestAndNotifyKeyStore() {
+        requestAndNotifyKeyStore(getCurrentIPAddress());
+    }
+
+
+    private String getCurrentIPAddress() {
+        Context appContext = getContext().getApplicationContext();
+        int state = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_WIFI_STATE);
+        if (state != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+    }
+
+    private void requestAndNotifyKeyStore(final String ipAddress) {
+        requestKeyStore(ipAddress, new KeyStoreCallback() {
+            @Override
+            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+                onKeyStoreUpdated(keyStore, cert, rootCert);
+            }
+
+            @Override
+            public void onError(final KeyStoreError error) {
+                onKeyStoreUpdateError(error);
+            }
+        });
+    }
+
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+    }
+
+    protected void onKeyStoreUpdateError(final KeyStoreError error) {
+    }
+
+    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        sslContext.init(
+                keyManagerFactory.getKeyManagers(),
+                trustManagerFactory.getTrustManagers(),
+                new SecureRandom()
+        );
+        return sslContext;
     }
 
     /**

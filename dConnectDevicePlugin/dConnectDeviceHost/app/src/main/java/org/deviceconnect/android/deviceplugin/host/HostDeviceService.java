@@ -366,4 +366,9 @@ public class HostDeviceService extends DConnectMessageService {
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
     }
+
+    @Override
+    protected String getCertificateAlias() {
+        return "org.deviceconnect.android.deviceplugin.host";
+    }
 }

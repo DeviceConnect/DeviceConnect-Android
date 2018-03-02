@@ -168,7 +168,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         init();
     }
 

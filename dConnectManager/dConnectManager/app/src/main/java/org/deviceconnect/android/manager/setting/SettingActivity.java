@@ -21,9 +21,6 @@ import org.deviceconnect.android.manager.core.R;
  */
 public class SettingActivity extends BaseSettingActivity implements AlertDialogFragment.OnAlertDialogListener {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

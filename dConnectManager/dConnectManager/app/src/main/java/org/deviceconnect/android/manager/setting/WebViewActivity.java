@@ -16,6 +16,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.net.http.SslCertificate;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -28,6 +30,7 @@ import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
+import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -39,6 +42,7 @@ import org.deviceconnect.android.manager.core.BuildConfig;
 import org.deviceconnect.android.manager.core.R;
 
 import java.io.ByteArrayOutputStream;
+import java.util.logging.Logger;
 
 /**
  * サービス確認用のWebページを開くためのActivity.
@@ -46,6 +50,7 @@ import java.io.ByteArrayOutputStream;
  * @author NTT DOCOMO, INC.
  */
 public class WebViewActivity extends AppCompatActivity {
+
     /**
      * デバッグフフラグ.
      */
@@ -60,6 +65,11 @@ public class WebViewActivity extends AppCompatActivity {
      * 表示するタイトルを格納するExtraのキーを定義する.
      */
     public static final String EXTRA_TITLE = "title";
+
+    /**
+     * SSL通信フラグを格納するExtraのキーを定義する.
+     */
+    public static final String EXTRA_SSL = "ssl";
 
     /**
      * サービスIDを格納するExtraのキーを定義する.
@@ -87,7 +97,17 @@ public class WebViewActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_FROM_JS = 2;
 
     /**
-     * ファイル洗濯用のコールバック.
+     * SSL通信を有効にすることを示す定数.
+     */
+    public static final String SSL_ON = "on";
+
+    /**
+     * SSL通信を無効にすることを示す定数.
+     */
+    public static final String SSL_OFF = "off";
+
+    /**
+     * ファイル選択用のコールバック.
      * <p>
      * Android OS 5.0未満の端末では、こちらを使う。
      * </p>
@@ -95,7 +115,7 @@ public class WebViewActivity extends AppCompatActivity {
     private ValueCallback<Uri> mUploadMessage;
 
     /**
-     * ファイル洗濯用のコールバック.
+     * ファイル選択用のコールバック.
      * <p>
      * Android OS 5.0以上の端末では、こちらを使う。
      * </p>
@@ -111,6 +131,16 @@ public class WebViewActivity extends AppCompatActivity {
      * 一時中断フラグ.
      */
     private boolean mPauseFlag;
+
+    /**
+     * SSL通信フラグ.
+     */
+    private String mSSL;
+
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -138,6 +168,9 @@ public class WebViewActivity extends AppCompatActivity {
         if (title != null) {
             setTitle(title);
         }
+
+        boolean ssl = intent.getBooleanExtra(EXTRA_SSL, false);
+        mSSL = ssl ? SSL_ON : SSL_OFF;
 
         mWebView = (WebView) findViewById(R.id.activity_web_view);
         if (mWebView != null) {
@@ -172,7 +205,25 @@ public class WebViewActivity extends AppCompatActivity {
                 webSettings.setAllowUniversalAccessFromFileURLs(true);
             }
 
-            mWebView.loadUrl(url);
+            loadUrl(mWebView, url);
+        }
+    }
+
+    private void loadUrl(final WebView view, final String url) {
+        Uri uri = Uri.parse(url);
+        if ("file".equals(uri.getScheme())) {
+            uri = appendSSL(uri);
+        }
+        view.loadUrl(uri.toString());
+    }
+
+    private Uri appendSSL(final Uri uri) {
+        try {
+            Uri.Builder builder = uri.buildUpon();
+            builder.appendQueryParameter("ssl", mSSL);
+            return builder.build();
+        } catch (UnsupportedOperationException e) {
+            return uri;
         }
     }
 
@@ -344,6 +395,28 @@ public class WebViewActivity extends AppCompatActivity {
          */
         private long mRestoringScaleStart;
 
+        @Override
+        public void onReceivedSslError(final WebView view, final SslErrorHandler handler, final SslError error) {
+            int primaryError = error.getPrimaryError();
+            String url = error.getUrl();
+            SslCertificate cert = error.getCertificate();
+            mLogger.warning("onReceivedSslError: error = " + primaryError
+                    + ", url = " + url + ", certificate = " + cert);
+
+            if (primaryError == SslError.SSL_UNTRUSTED && url != null && cert != null) {
+                SslCertificate.DName subjectName = cert.getIssuedTo();
+                if (subjectName != null
+                        && "localhost".equals(subjectName.getCName())
+                        && url.startsWith("https://localhost") ) {
+                    handler.proceed();
+                    mLogger.warning("SSL Proceeded: url = " + url);
+                    return;
+                }
+            }
+            handler.cancel();
+            mLogger.severe("SSL Canceled: url = " + url);
+        }
+
         // 画面のスケールがユーザによって変えられた時に、元のスケールに戻す処理を行う.
         // Webページの方で、スケールが切り替えられないようにしているが、一部の端末(OS)で、
         // その設定が無視されることがあるので、この処理を入れる。
@@ -365,6 +438,12 @@ public class WebViewActivity extends AppCompatActivity {
                     }, STABLE_SCALE_CALCULATION_DURATION);
                 }
             }
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
+            loadUrl(view, url);
+            return true;
         }
     };
 

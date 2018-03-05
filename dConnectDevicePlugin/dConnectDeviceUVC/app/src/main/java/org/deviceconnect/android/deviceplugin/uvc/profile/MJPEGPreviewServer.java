@@ -42,7 +42,6 @@ class MJPEGPreviewServer implements PreviewServer,
 
     @Override
     public void start(final OnWebServerStartCallback callback) {
-        mDeviceMgr.addPreviewListener(this);
         mServer.start();
         callback.onStart(mServer.getUrl());
     }
@@ -55,7 +54,11 @@ class MJPEGPreviewServer implements PreviewServer,
 
     @Override
     public boolean onAccept() {
-        return mDevice.startPreview();
+        boolean isStarted = mDevice.startPreview();;
+        if (isStarted) {
+            mDeviceMgr.addPreviewListener(this);
+        }
+        return isStarted;
     }
 
     @Override

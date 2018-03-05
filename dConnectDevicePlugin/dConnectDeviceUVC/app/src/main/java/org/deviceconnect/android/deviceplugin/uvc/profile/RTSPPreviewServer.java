@@ -66,7 +66,6 @@ class RTSPPreviewServer implements PreviewServer,
 
     @Override
     public void start(final OnWebServerStartCallback callback) {
-        mDeviceMgr.addPreviewListener(this);
         if (mServer.start()) {
             callback.onStart(getUrl());
         } else {
@@ -88,15 +87,16 @@ class RTSPPreviewServer implements PreviewServer,
                 mLogger.log(Level.SEVERE, "Failed to start preview: Device ID = " + mDevice.getId());
                 return null;
             }
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+            mDeviceMgr.addPreviewListener(this);
 
             VideoQuality videoQuality = new VideoQuality();
             videoQuality.resX = mDevice.getPreviewWidth();
             videoQuality.resY = mDevice.getPreviewHeight();
-            videoQuality.bitrate = 8 * 1024; //1KB //mServerProvider.getPreviewBitRate();
-            videoQuality.framerate = 1; //(int) mServerProvider.getMaxFrameRate();
+            videoQuality.bitrate = 256 * 8 * 1024; //1KB //mServerProvider.getPreviewBitRate();
+            videoQuality.framerate = (int) mDevice.getFrameRate();
 
             synchronized (mLock) {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
                 mVideoStream = new SurfaceH264Stream(prefs, videoQuality);
             }
 
@@ -134,14 +134,17 @@ class RTSPPreviewServer implements PreviewServer,
                 mLogger.severe("Failed to lock canvas");
                 return;
             }
-            Bitmap bitmap = BitmapFactory.decodeByteArray(frame, 0, frame.length);
-            if (bitmap != null) {
-                canvas.drawBitmap(bitmap, 0, 0, null);
+            try {
+                Bitmap bitmap = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                if (bitmap != null) {
+                    canvas.drawBitmap(bitmap, 0, 0, null);
+                    bitmap.recycle();
+                    //mLogger.info("onFrame: draw JPEG frame to canvas: " + width + " x " + height);
+                } else {
+                    mLogger.warning("onFrame: Failed to decode JPEG to bitmap");
+                }
+            } finally {
                 surface.unlockCanvasAndPost(canvas);
-                bitmap.recycle();
-                //mLogger.info("onFrame: draw JPEG frame to canvas");
-            } else {
-                mLogger.warning("onFrame: Failed to decode JPEG to bitmap");
             }
         }
     }

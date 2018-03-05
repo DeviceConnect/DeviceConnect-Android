@@ -248,7 +248,7 @@ public class UVCDevice {
         Collections.sort(list, new Comparator<Size>() {
             @Override
             public int compare(final Size s1, final Size s2) {
-                return s2.width * s2.height - s1.width * s1.height;
+                return -1 * (s2.width * s2.height - s1.width * s1.height); //最小
             }
         });
         return list.get(0);

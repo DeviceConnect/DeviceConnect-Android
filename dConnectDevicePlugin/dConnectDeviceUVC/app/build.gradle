@@ -63,4 +63,5 @@ dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
     compile project(':libuvccamera')
+    compile project(':libstreaming')
 }

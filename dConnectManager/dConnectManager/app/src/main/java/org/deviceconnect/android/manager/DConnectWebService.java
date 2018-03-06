@@ -21,6 +21,8 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 
+import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.server.DConnectServer;

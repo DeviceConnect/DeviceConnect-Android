@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.hue.activity.fragment;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -30,20 +29,17 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHAccessPoint;
-import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.exception.PHHueInvalidAPIException;
-import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHBridgeResource;
-import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 
+import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
 import org.deviceconnect.android.deviceplugin.hue.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
@@ -90,11 +86,9 @@ public class HueFragment04 extends Fragment {
             final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.hue_fragment_04, container, false);
 
-        PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = phHueSDK.getSelectedBridge();
-        if (bridge != null) {
-            PHBridgeResourcesCache cache = bridge.getResourceCache();
-            mListAdapter = new ListAdapter(getActivity(), cache.getAllLights());
+        List<PHLight> lights = HueManager.INSTANCE.getCacheLights();
+        if (lights != null) {
+            mListAdapter = new ListAdapter(getActivity(), lights);
         } else {
             mListAdapter = new ListAdapter(getActivity(), new ArrayList<PHLight>());
         }
@@ -125,13 +119,8 @@ public class HueFragment04 extends Fragment {
      * Update ListView.
      */
     private void updateListView() {
-        PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = phHueSDK.getSelectedBridge();
-        if (bridge != null) {
-            PHBridgeResourcesCache cache = bridge.getResourceCache();
-            mListAdapter.setLights(cache.getAllLights());
-            mListAdapter.notifyDataSetChanged();
-        }
+        mListAdapter.setLights(HueManager.INSTANCE.getCacheLights());
+        mListAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -209,10 +198,8 @@ public class HueFragment04 extends Fragment {
     private void searchLightAutomatic() {
         openProgressBar();
 
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = hueSDK.getSelectedBridge();
         try {
-            bridge.findNewLights(new PHLightListenerImpl());
+            HueManager.INSTANCE.searchLightAutomatic(new PHLightListenerImpl());
         } catch (PHHueInvalidAPIException e) {
             if (BuildConfig.DEBUG) {
                 Log.e("Hue", "error", e);
@@ -229,13 +216,8 @@ public class HueFragment04 extends Fragment {
     private void searchLightManually(final String serial) {
         openProgressBar();
 
-        List<String> serials = new ArrayList<String>();
-        serials.add(serial);
-
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = hueSDK.getSelectedBridge();
         try {
-            bridge.findNewLightsWithSerials(serials, new PHLightListenerImpl());
+            HueManager.INSTANCE.searchLightManually(serial, new PHLightListenerImpl());
         } catch (PHHueInvalidAPIException e) {
             if (BuildConfig.DEBUG) {
                 Log.e("Hue", "error", e);

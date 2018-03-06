@@ -51,8 +51,15 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
-
+    flavorDimensions "common"
     productFlavors {
+        things {
+            dimension "common"
+
+        }
+        main {
+            dimension "common"
+        }
     }
 
     tasks.withType(JavaCompile) {
@@ -76,6 +83,7 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
     compile project(':dconnect-device-plugin-host')
+    compileOnly 'com.google.android.things:androidthings:+'
 }
 
 android.testVariants.all { variant ->

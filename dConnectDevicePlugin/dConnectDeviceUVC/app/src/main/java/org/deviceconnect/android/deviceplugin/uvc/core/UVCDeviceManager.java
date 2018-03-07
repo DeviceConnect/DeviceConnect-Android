@@ -335,6 +335,18 @@ public class UVCDeviceManager {
         }
     }
 
+    public void removePreviewListener(final PreviewListener listener) {
+        synchronized (mPreviewListeners) {
+            for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
+                PreviewListener l = it.next();
+                if (l == listener) {
+                    it.remove();
+                    return;
+                }
+            }
+        }
+    }
+
     private void clearPreviewListeners() {
         synchronized (mPreviewListeners) {
             mPreviewListeners.clear();

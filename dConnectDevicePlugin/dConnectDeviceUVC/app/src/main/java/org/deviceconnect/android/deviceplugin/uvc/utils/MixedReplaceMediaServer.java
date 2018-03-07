@@ -41,6 +41,12 @@ import java.util.logging.Logger;
  */
 public class MixedReplaceMediaServer {
 
+    public interface Callback {
+
+        boolean onAccept();
+
+    }
+
     /** Logger. */
     private Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -99,12 +105,14 @@ public class MixedReplaceMediaServer {
      * List a Server Runnable.
      */
     private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
-        new ArrayList<ServerRunnable>());
+            new ArrayList<ServerRunnable>());
 
     /**
      * Sever event listener.
      */
     private ServerEventListener mListener;
+
+    private Callback mCallback;
 
     /**
      * Set a ServerEventListener.
@@ -112,6 +120,18 @@ public class MixedReplaceMediaServer {
      */
     public void setServerEventListener(final ServerEventListener listener) {
         mListener = listener;
+    }
+    
+    public void setCallback(final Callback callback) {
+        mCallback = callback;
+    }
+
+    private boolean notifyOnAccept() {
+        Callback callback = mCallback;
+        if (callback != null) {
+            return callback.onAccept();
+        }
+        return true;
     }
 
     /**
@@ -373,7 +393,7 @@ public class MixedReplaceMediaServer {
          * Constructor.
          * @param socket socket
          */
-        public ServerRunnable(final Socket socket) {
+        ServerRunnable(final Socket socket) {
             mSocket = socket;
         }
 
@@ -383,6 +403,11 @@ public class MixedReplaceMediaServer {
             mRunnables.add(this);
             try {
                 mStream = mSocket.getOutputStream();
+                if(!notifyOnAccept()) {
+                    mStream.write(generateInternalServerError().getBytes());
+                    mStream.flush();
+                    return;
+                }
 
                 byte[] buf = new byte[BUF_SIZE];
                 InputStream in = mSocket.getInputStream();
@@ -432,7 +457,7 @@ public class MixedReplaceMediaServer {
                     }
                 }
                 Thread.currentThread().interrupt();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 if (mStream != null) {
                     try {
                         mStream.write(generateBadRequest().getBytes());
@@ -481,12 +506,10 @@ public class MixedReplaceMediaServer {
          * @throws IOException if an error occurs while sending media data.
          */
         private void sendMedia(final byte[] media) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            sb.append("--" + mBoundary + "\r\n");
-            sb.append("Content-type: " + mContentType + "\r\n");
-            sb.append("Content-Length: " + media.length + "\r\n");
-            sb.append("\r\n");
-            mStream.write(sb.toString().getBytes());
+            mStream.write(("--" + mBoundary + "\r\n").getBytes());
+            mStream.write(("Content-Type: " + mContentType + "\r\n").getBytes());
+            mStream.write(("Content-Length: " + media.length + "\r\n").getBytes());
+            mStream.write("\r\n".getBytes());
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());
             mStream.flush();
@@ -549,7 +572,7 @@ public class MixedReplaceMediaServer {
                     int p = line.indexOf(':');
                     if (p >= 0) {
                         headers.put(line.substring(0, p).trim().toLowerCase(Locale.US),
-                            line.substring(p + 1).trim());
+                                line.substring(p + 1).trim());
                     }
                     line = in.readLine();
                 }
@@ -616,6 +639,7 @@ public class MixedReplaceMediaServer {
         sb.append("Expires: 0\r\n");
         sb.append("Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n");
         sb.append("Pragma: no-cache\r\n");
+        sb.append("Access-Control-Allow-Origin: *\r\n");
         sb.append("Content-Type: multipart/x-mixed-replace; ");
         sb.append("boundary=" + mBoundary + "\r\n");
         sb.append("\r\n");
@@ -671,6 +695,7 @@ public class MixedReplaceMediaServer {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.0 " + status + " OK\r\n");
         sb.append("Server: " + mServerName + "\r\n");
+        sb.append("Access-Control-Allow-Origin: *\r\n");
         sb.append("Connection: close\r\n");
         sb.append("\r\n");
         return sb.toString();

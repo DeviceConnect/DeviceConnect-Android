@@ -74,28 +74,24 @@ public class SpheroLightProfile extends LightProfile {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-
             List<Bundle> lights = new ArrayList<>();
-            synchronized (info) {
-                if (lightId == null || lightId.equals(COLOR_LED_LIGHT_ID)) {
-                    Bundle light = new Bundle();
-                    setLightId(light, COLOR_LED_LIGHT_ID);
-                    setName(light, COLOR_LED_LIGHT_NAME);
-                    setOn(light, (Color.BLACK != info.getColor()));
-                    setConfig(light, "");
-                    lights.add(light);
-                }
-
-                if (lightId == null || lightId.equals(BACK_LED_LIGHT_ID)) {
-                    Bundle light = new Bundle();
-                    setLightId(light, BACK_LED_LIGHT_ID);
-                    setName(light, BACK_LED_LIGHT_NAME);
-                    setOn(light, info.getBackBrightness() > 0);
-                    setConfig(light, "");
-                    lights.add(light);
-                }
+            if (lightId == null || lightId.equals(COLOR_LED_LIGHT_ID)) {
+                Bundle light = new Bundle();
+                setLightId(light, COLOR_LED_LIGHT_ID);
+                setName(light, COLOR_LED_LIGHT_NAME);
+                setOn(light, (Color.BLACK != info.getColor()));
+                setConfig(light, "");
+                lights.add(light);
             }
-            setLights(response, (Bundle[]) lights.toArray());
+            if (lightId == null || lightId.equals(BACK_LED_LIGHT_ID)) {
+                Bundle light = new Bundle();
+                setLightId(light, BACK_LED_LIGHT_ID);
+                setName(light, BACK_LED_LIGHT_NAME);
+                setOn(light, info.getBackBrightness() > 0);
+                setConfig(light, "");
+                lights.add(light);
+            }
+            setLights(response, lights.toArray(new Bundle[lights.size()]));
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }

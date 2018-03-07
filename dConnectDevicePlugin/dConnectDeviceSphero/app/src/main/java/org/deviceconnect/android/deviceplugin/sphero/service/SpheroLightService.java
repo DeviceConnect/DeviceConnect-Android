@@ -31,12 +31,12 @@ public class SpheroLightService extends DConnectService {
     /**
      * 本体の色設定用ライトの名前.
      */
-    public static final String COLOR_LED_LIGHT_NAME = "Sphero LED";
+    public static final String COLOR_LED_LIGHT_NAME = " LED";
 
     /**
      * バックライトの名前.
      */
-    public static final String BACK_LED_LIGHT_NAME = "Sphero CalibrationLED";
+    public static final String BACK_LED_LIGHT_NAME = " CalibrationLED";
 
     /**
      * コンストラクタ.
@@ -46,7 +46,7 @@ public class SpheroLightService extends DConnectService {
      */
     public SpheroLightService(final DeviceInfo info, final String lightId, final String lightName) {
         super(info.getDevice().getRobot().getIdentifier() + "_" + lightId);
-        setName(lightName);
+        setName(info.getDevice().getRobot().getName() + lightName);
         setNetworkType(NetworkType.BLUETOOTH);
         setOnline(info.getDevice().isConnected());
 

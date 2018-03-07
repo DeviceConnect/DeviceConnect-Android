@@ -181,9 +181,25 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /**
      * 設定値を元にサーバーを構築します.
      *
+     * このコンストラクタを使用する場合は、SSL通信は行いません.
+     *
+     * @param config  サーバー設定。
+     * @param context コンテキストオブジェクト。
+     * @throws IllegalArgumentException SSL設定をONにしていた場合
+     */
+    public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context) {
+        this(config, context, null);
+    }
+
+    /**
+     * 設定値を元にサーバーを構築します.
+     *
+     * SSL設定がONの場合は、SSLServerSocketFactoryを指定する必要があります.
+     *
      * @param config  サーバー設定。
      * @param context コンテキストオブジェクト。
      * @param socketFactory SSLサーバーソケットファクトリー
+     * @throws IllegalArgumentException SSL設定がONのときに socketFactory に<coce>null</coce>を指定した場合
      */
     public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context,
                                    final SSLServerSocketFactory socketFactory) {

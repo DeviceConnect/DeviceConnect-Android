@@ -30,6 +30,8 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.EventSessionTable;
 import org.deviceconnect.android.manager.hmac.HmacManager;

@@ -4,4 +4,6 @@
     <profile name="serviceInformation" />
     <profile name="system" />
     <profile name="light" />
+    <profile name="device" />
+
 </deviceplugin-provider>

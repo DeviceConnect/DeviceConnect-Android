@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ public class GeolocationAlertDialogActivity extends Activity {
 
         setContentView(R.layout.geolocation_alert_dialog);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(R.string.gps_settings_title);
         alertDialogBuilder.setMessage(R.string.host_setting_dialog_disable_gps)
                 .setCancelable(false)
 
@@ -46,7 +48,15 @@ public class GeolocationAlertDialogActivity extends Activity {
                             public void onClick(DialogInterface dialog, int id) {
                                 Intent callGPSSettingIntent = new Intent(
                                         android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                startActivity(callGPSSettingIntent);
+                                try {
+                                    startActivity(callGPSSettingIntent);
+                                } catch (ActivityNotFoundException e) {
+                                    if (mResponse != null) {
+                                        MessageUtils.setIllegalDeviceStateError(mResponse,
+                                                "GPS setting is not enabled.");
+                                        getBaseContext().sendBroadcast(mResponse);
+                                    }
+                                }
                                 mActivity.finish();
                             }
                         });

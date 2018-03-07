@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
+import org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService;
 import org.deviceconnect.android.deviceplugin.sphero.service.SpheroService;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.deviceplugin.sphero.util.BleUtils;
@@ -41,6 +42,11 @@ import org.deviceconnect.android.service.DConnectServiceListener;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.BACK_LED_LIGHT_ID;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.BACK_LED_LIGHT_NAME;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.COLOR_LED_LIGHT_ID;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.COLOR_LED_LIGHT_NAME;
 
 /**
  * Spheroデバイスプラグイン.
@@ -80,10 +86,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                     SpheroManager.INSTANCE.startDiscovery(SpheroDeviceService.this);
                                 } else {
                                     SpheroManager.INSTANCE.stopDiscovery();
-                                    DConnectService service = getServiceProvider().getService(device.getAddress());
-                                    if (service != null) {
-                                        service.setOnline(false);
-                                    }
+                                    updateSpheroConnection(device.getAddress(), false);
+
                                 }
                             }
 
@@ -118,7 +122,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                         }
                                     });
                         } else if (state == BluetoothAdapter.STATE_OFF) {
-                            service.setOnline(false);
+                            updateSpheroConnection(info, false);
                         }
                     }
                 }
@@ -180,7 +184,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                     }
                 });
             }
-            service.setOnline(false);
+            updateSpheroConnection(id, false);
         }
     }
 
@@ -205,11 +209,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "************ connected **********");
                         }
-                        DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
-                        if (service == null) {
-                            service = new SpheroService(info);
-                            getServiceProvider().addService(service);
-                        }
+                        updateSpheroConnection(info, true);
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -217,12 +217,58 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                         Toast.LENGTH_SHORT).show();
                             }
                         });
-                        service.setOnline(true);
+
                         SpheroManager.INSTANCE.stopDiscovery();
                     }
                 }
             }
         }).start();
+    }
+
+    /**
+     * Spheroとの接続に合わせてDConnectServiceの状態を
+     * @param info　Spheroの情報
+     * @param isOnline true:オンラインにする false:オフラインにする
+     */
+    private void updateSpheroConnection(final DeviceInfo info, final boolean isOnline) {
+        DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
+        if (service == null) {
+            service = new SpheroService(info);
+            getServiceProvider().addService(service);
+        }
+        service.setOnline(isOnline);
+        DConnectService ledService = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier()
+                                     + "_" + COLOR_LED_LIGHT_ID);
+        if (ledService == null) {
+            ledService = new SpheroLightService(info, COLOR_LED_LIGHT_ID, COLOR_LED_LIGHT_NAME);
+            getServiceProvider().addService(ledService);
+        }
+        ledService.setOnline(isOnline);
+
+        DConnectService calibrationService = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier()
+                + "_" + BACK_LED_LIGHT_ID);
+        if (calibrationService == null) {
+            calibrationService = new SpheroLightService(info, BACK_LED_LIGHT_ID, BACK_LED_LIGHT_NAME);
+            getServiceProvider().addService(calibrationService);
+        }
+        calibrationService.setOnline(isOnline);
+    }
+
+    /**
+     * Spheroとの接続に合わせてDConnectServiceの状態を
+     * @param address デバイスのアドレス
+     * @param isOnline true:オンラインにする false:オフラインにする
+     */
+    private void updateSpheroConnection(final String address, final boolean isOnline) {
+        DConnectService service = getServiceProvider().getService(address);
+        service.setOnline(isOnline);
+        DConnectService ledService = getServiceProvider().getService(address
+                + "_" + COLOR_LED_LIGHT_ID);
+        ledService.setOnline(isOnline);
+
+        DConnectService calibrationService = getServiceProvider().getService(address
+                + "_" + BACK_LED_LIGHT_ID);
+        calibrationService.setOnline(isOnline);
     }
 
     @Override

@@ -22,8 +22,15 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.BACK_LED_LIGHT_ID;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.BACK_LED_LIGHT_NAME;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.COLOR_LED_LIGHT_ID;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.COLOR_LED_LIGHT_NAME;
 
 /**
  * Lightプロファイル.
@@ -32,25 +39,6 @@ import java.util.Map;
  */
 public class SpheroLightProfile extends LightProfile {
 
-    /**
-     * 本体の色設定用ライトのID.
-     */
-    private static final String COLOR_LED_LIGHT_ID = "1";
-
-    /**
-     * バックライトのID.
-     */
-    private static final String BACK_LED_LIGHT_ID = "2";
-
-    /**
-     * 本体の色設定用ライトの名前.
-     */
-    private static final String COLOR_LED_LIGHT_NAME = "Sphero LED";
-
-    /**
-     * バックライトの名前.
-     */
-    private static final String BACK_LED_LIGHT_NAME = "Sphero CalibrationLED";
 
     /**
      * brightnessの最大値.
@@ -75,28 +63,35 @@ public class SpheroLightProfile extends LightProfile {
                 MessageUtils.setEmptyServiceIdError(response);
                 return true;
             }
-
+            String lightId = null;
+            if (serviceId.contains("_")) {
+                String[] ids = serviceId.split("_");
+                serviceId = ids[0];
+                lightId = ids[1];
+            }
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-
-            Bundle[] lights = new Bundle[2];
-            synchronized (info) {
-                lights[0] = new Bundle();
-                setLightId(lights[0], COLOR_LED_LIGHT_ID);
-                setName(lights[0], COLOR_LED_LIGHT_NAME);
-                setOn(lights[0], (Color.BLACK != info.getColor()));
-                setConfig(lights[0], "");
-
-                lights[1] = new Bundle();
-                setLightId(lights[1], BACK_LED_LIGHT_ID);
-                setName(lights[1], BACK_LED_LIGHT_NAME);
-                setOn(lights[1], info.getBackBrightness() > 0);
-                setConfig(lights[1], "");
+            List<Bundle> lights = new ArrayList<>();
+            if (lightId == null || lightId.equals(COLOR_LED_LIGHT_ID)) {
+                Bundle light = new Bundle();
+                setLightId(light, COLOR_LED_LIGHT_ID);
+                setName(light, COLOR_LED_LIGHT_NAME);
+                setOn(light, (Color.BLACK != info.getColor()));
+                setConfig(light, "");
+                lights.add(light);
             }
-            setLights(response, lights);
+            if (lightId == null || lightId.equals(BACK_LED_LIGHT_ID)) {
+                Bundle light = new Bundle();
+                setLightId(light, BACK_LED_LIGHT_ID);
+                setName(light, BACK_LED_LIGHT_NAME);
+                setOn(light, info.getBackBrightness() > 0);
+                setConfig(light, "");
+                lights.add(light);
+            }
+            setLights(response, lights.toArray(new Bundle[lights.size()]));
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }
@@ -111,6 +106,11 @@ public class SpheroLightProfile extends LightProfile {
             Integer color = getColor(request);
             Double brightness = getBrightness(request);
             long[] flashing = getFlashing(request);
+            if (serviceId.contains("_")) {
+                String[] ids = serviceId.split("_");
+                serviceId = ids[0];
+                lightId = ids[1];
+            }
             return changeLight(response, serviceId, lightId, color, brightness, flashing);
         }
     };
@@ -129,6 +129,11 @@ public class SpheroLightProfile extends LightProfile {
                 MessageUtils.setInvalidRequestParameterError(response);
                 return true;
             }
+            if (serviceId.contains("_")) {
+                String[] ids = serviceId.split("_");
+                serviceId = ids[0];
+                lightId = ids[1];
+            }
             return changeLight(response, serviceId, lightId, color, brightness, flashing);
         }
     };
@@ -143,7 +148,11 @@ public class SpheroLightProfile extends LightProfile {
                 MessageUtils.setEmptyServiceIdError(response);
                 return true;
             }
-
+            if (serviceId.contains("_")) {
+                String[] ids = serviceId.split("_");
+                serviceId = ids[0];
+                lightId = ids[1];
+            }
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
                 MessageUtils.setNotFoundServiceError(response);

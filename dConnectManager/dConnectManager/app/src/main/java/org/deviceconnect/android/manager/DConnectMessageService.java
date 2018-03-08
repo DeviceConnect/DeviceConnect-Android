@@ -30,8 +30,6 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.manager.BuildConfig;
-import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.EventSessionTable;
 import org.deviceconnect.android.manager.hmac.HmacManager;
@@ -245,9 +243,6 @@ public abstract class DConnectMessageService extends Service
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        // Local OAuthの初期化
-        LocalOAuth2Main.initialize(getApplicationContext());
-
         // DConnect設定
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
@@ -296,7 +291,6 @@ public abstract class DConnectMessageService extends Service
         unregisterReceiver(mPackageReceiver);
         mPluginManager.removeEventListener(this);
         stopDConnect();
-        LocalOAuth2Main.destroy();
         super.onDestroy();
     }
 

@@ -13,8 +13,6 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.localoauth.ClientPackageInfo;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -257,11 +255,6 @@ public abstract class DConnectProfile implements DConnectProfileConstants,
 
     protected boolean isIgnoredProfile(final String profileName) {
         return ((DConnectMessageService) getContext()).isIgnoredProfile(profileName);
-    }
-
-    private String findRequestOrigin(final String accessToken) {
-        ClientPackageInfo info = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
-        return info.getPackageInfo().getPackageName();
     }
 
     /**

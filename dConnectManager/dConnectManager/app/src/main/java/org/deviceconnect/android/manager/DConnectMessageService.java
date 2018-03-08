@@ -189,6 +189,8 @@ public abstract class DConnectMessageService extends Service
     /** バージョン名. */
     private String mVersionName;
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
         public void sendMessage(final Intent message) throws RemoteException {
@@ -240,6 +242,8 @@ public abstract class DConnectMessageService extends Service
             }
         });
 
+        mLocalOAuth2Main = new LocalOAuth2Main(this);
+
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -256,7 +260,7 @@ public abstract class DConnectMessageService extends Service
         mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginManager);
 
         // プロファイルの追加
-        addProfile(new AuthorizationProfile());
+        addProfile(new AuthorizationProfile(mLocalOAuth2Main));
         addProfile(new DConnectAvailabilityProfile());
         addProfile(new DConnectServiceDiscoveryProfile(null, mPluginManager));
         addProfile(new DConnectSystemProfile(this, mPluginManager));
@@ -291,6 +295,8 @@ public abstract class DConnectMessageService extends Service
         unregisterReceiver(mPackageReceiver);
         mPluginManager.removeEventListener(this);
         stopDConnect();
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
         super.onDestroy();
     }
 
@@ -382,6 +388,10 @@ public abstract class DConnectMessageService extends Service
         return mPluginManager.getDevicePlugin(pluginId);
     }
 
+    LocalOAuth2Main getLocalOAuth2Main() {
+        return mLocalOAuth2Main;
+    }
+
     private void openSettings(final Intent intent) {
         DevicePlugin plugin = findPlugin(intent);
         if (plugin == null) {
@@ -462,7 +472,7 @@ public abstract class DConnectMessageService extends Service
         if (mSettings.isUseALocalOAuth()) {
             // アクセストークンの取得
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken,
+            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
                     profileName.toLowerCase(),
                     DConnectLocalOAuth.IGNORE_PROFILES);
             if (result.checkResult()) {
@@ -981,7 +991,7 @@ public abstract class DConnectMessageService extends Service
      * @return Origin
      */
     private String findOrigin(final String accessToken) {
-        ClientPackageInfo packageInfo = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        ClientPackageInfo packageInfo = mLocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
         if (packageInfo == null) {
             return null;
         }

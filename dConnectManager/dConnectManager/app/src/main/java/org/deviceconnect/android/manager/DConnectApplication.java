@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 
@@ -37,14 +36,6 @@ public class DConnectApplication extends HostDeviceApplication {
         setupLogger("LocalCA");
 
         initialize();
-
-        LocalOAuth2Main.initialize(this);
-    }
-
-    @Override
-    public void onTerminate() {
-        LocalOAuth2Main.destroy();
-        super.onTerminate();
     }
 
     private void setupLogger(final String name) {

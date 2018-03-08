@@ -51,12 +51,18 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     private final DConnectProfileProvider mProvider;
 
     /**
+     * LocalOAuthの処理を行うクラス.
+     */
+    private final LocalOAuth2Main mLocalOAuth2Main;
+
+    /**
      * 指定されたプロファイルプロバイダーをもつAuthorizationプロファイルを生成する.
      * 
      * @param provider プロファイルプロバイダー
      */
-    public AuthorizationProfile(final DConnectProfileProvider provider) {
+    public AuthorizationProfile(final DConnectProfileProvider provider, LocalOAuth2Main localOAuth2Main) {
         mProvider = provider;
+        mLocalOAuth2Main = localOAuth2Main;
         addApi(mGrantApi);
         addApi(mCreateAccessTokenApi);
     }
@@ -178,7 +184,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             // Local OAuthでクライアント作成
             PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName, serviceId);
             try {
-                ClientData client = LocalOAuth2Main.createClient(packageInfo);
+                ClientData client = mLocalOAuth2Main.createClient(packageInfo);
                 if (client != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     response.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());
@@ -229,7 +235,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
 
         // Local OAuthでAccessTokenを作成する。
         final AccessTokenData[] token = new AccessTokenData[1];
-        LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+        mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
             @Override
             public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                 token[0] = accessTokenData;

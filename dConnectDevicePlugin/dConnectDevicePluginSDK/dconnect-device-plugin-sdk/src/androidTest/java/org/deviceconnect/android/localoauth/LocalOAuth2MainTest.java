@@ -13,8 +13,8 @@ import android.test.RenamingDelegatingContext;
 
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.restlet.ext.oauth.PackageInfoOAuth;
@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-import static org.deviceconnect.android.localoauth.LocalOAuth2Main.createClient;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -42,16 +41,18 @@ public class LocalOAuth2MainTest {
 
     private static Context mContext;
 
-    @BeforeClass
-    public static void execBeforeClass() {
+    private LocalOAuth2Main mLocalOAuth2Main;
+
+    @Before
+    public void execBeforeClass() {
         mContext = new RenamingDelegatingContext(InstrumentationRegistry.getInstrumentation().getTargetContext(), "test_");
-        LocalOAuth2Main.setUseAutoTestMode(true);
-        LocalOAuth2Main.initialize(mContext);
+        mLocalOAuth2Main = new LocalOAuth2Main(mContext);
     }
 
-    @AfterClass
-    public static void execAfterClass() {
-        LocalOAuth2Main.destroy();
+    @After
+    public void execAfterClass() {
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
         mContext = null;
     }
 
@@ -60,7 +61,7 @@ public class LocalOAuth2MainTest {
         final String origin = "test";
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
         } catch (AuthorizationException e) {
             fail("Failed to create client.");
@@ -70,7 +71,7 @@ public class LocalOAuth2MainTest {
     @Test(expected = IllegalArgumentException.class)
     public void LocalOAuth2Main_createClient_packageInfo_null() {
         try {
-            createClient(null);
+            mLocalOAuth2Main.createClient(null);
         } catch (AuthorizationException e) {
             fail("Failed to create client.");
         }
@@ -80,7 +81,7 @@ public class LocalOAuth2MainTest {
     public void LocalOAuth2Main_createClient_packageName_null() {
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(null);
         try {
-            LocalOAuth2Main.createClient(packageInfo);
+            mLocalOAuth2Main.createClient(packageInfo);
         } catch (AuthorizationException e) {
             fail("Failed to create client.");
         }
@@ -90,7 +91,7 @@ public class LocalOAuth2MainTest {
     public void LocalOAuth2Main_createClient_packageName_empty() {
         PackageInfoOAuth packageInfo = new PackageInfoOAuth("");
         try {
-            createClient(packageInfo);
+            mLocalOAuth2Main.createClient(packageInfo);
         } catch (AuthorizationException e) {
             fail("Failed to create client.");
         }
@@ -107,15 +108,16 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(clientData.getClientId()).scopes(scopes).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);
@@ -157,7 +159,7 @@ public class LocalOAuth2MainTest {
                 public void run() {
                     try {
                         AccessTokenData data = createAccessToken(origin, serviceId, scopes);
-                        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+                        CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
                         if (result != null) {
                             results.set(index, result.checkResult());
                         } else {
@@ -187,10 +189,10 @@ public class LocalOAuth2MainTest {
         final String origin = "test";
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
-            LocalOAuth2Main.confirmPublishAccessToken(null, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(null, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                 }
@@ -214,15 +216,16 @@ public class LocalOAuth2MainTest {
         };
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(clientData.getClientId()).scopes(scopes).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, null);
+            mLocalOAuth2Main.confirmPublishAccessToken(params, null);
             fail();
         } catch (AuthorizationException e) {
             fail("Failed to create client.");
@@ -240,15 +243,16 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(null).serviceId(serviceId)
                     .clientId(clientData.getClientId()).scopes(scopes).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);
@@ -277,15 +281,16 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(clientData.getClientId()).scopes(scopes).applicationName(null)
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);
@@ -314,15 +319,16 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(null).scopes(scopes).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);
@@ -348,15 +354,16 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId("TEST").scopes(null).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);
@@ -383,7 +390,7 @@ public class LocalOAuth2MainTest {
         };
         AccessTokenData data = createAccessToken(origin, serviceId, scopes);
 
-        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(true));
         assertThat(result.isExistAccessToken(), is(true));
@@ -401,7 +408,7 @@ public class LocalOAuth2MainTest {
         };
         AccessTokenData data = createAccessToken(origin, serviceId, scopes);
 
-        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), "battery", null);
+        CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), "battery", null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(false));
         assertThat(result.isExistAccessToken(), is(true));
@@ -412,7 +419,7 @@ public class LocalOAuth2MainTest {
 
     @Test
     public void LocalOAuth2Main_checkAccessToken_illegal_access_token() {
-        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken("test", "battery", null);
+        CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken("test", "battery", null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(false));
         assertThat(result.isExistAccessToken(), is(false));
@@ -430,16 +437,15 @@ public class LocalOAuth2MainTest {
         };
         AccessTokenData data = createAccessToken(origin, serviceId, scopes);
 
-        ClientPackageInfo info = LocalOAuth2Main.findClientPackageInfoByAccessToken(data.getAccessToken());
+        ClientPackageInfo info = mLocalOAuth2Main.findClientPackageInfoByAccessToken(data.getAccessToken());
         assertThat(info, is(notNullValue()));
         assertThat(info.getPackageInfo(), is(notNullValue()));
         assertThat(info.getPackageInfo().getPackageName(), is(origin));
-//        assertThat(info.getPackageInfo().getServiceId(), is(serviceId));
     }
 
     @Test
     public void LocalOAuth2Main_findClientPackageInfoByAccessToken_illegal_access_token() {
-        ClientPackageInfo info = LocalOAuth2Main.findClientPackageInfoByAccessToken("test");
+        ClientPackageInfo info = mLocalOAuth2Main.findClientPackageInfoByAccessToken("test");
         assertThat(info, is(nullValue()));
     }
 
@@ -454,7 +460,7 @@ public class LocalOAuth2MainTest {
         assertThat(data, is(notNullValue()));
         assertThat(data.getAccessToken(), is(notNullValue()));
 
-        SQLiteToken[] tokens = LocalOAuth2Main.getAccessTokens();
+        SQLiteToken[] tokens = mLocalOAuth2Main.getAccessTokens();
         assertThat(tokens, is(notNullValue()));
     }
 
@@ -469,15 +475,16 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             assertThat(clientData, is(notNullValue()));
 
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(clientData.getClientId()).scopes(scopes).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);
@@ -496,10 +503,10 @@ public class LocalOAuth2MainTest {
             assertThat(data, is(notNullValue()));
             assertThat(data.getAccessToken(), is(notNullValue()));
 
-            Client client = LocalOAuth2Main.findClientByClientId(clientData.getClientId());
+            Client client = mLocalOAuth2Main.findClientByClientId(clientData.getClientId());
             assertThat(client, is(notNullValue()));
 
-            SQLiteToken token = LocalOAuth2Main.getAccessToken(client);
+            SQLiteToken token = mLocalOAuth2Main.getAccessToken(client);
             assertThat(token, is(notNullValue()));
             assertThat(token.getAccessToken(), is(data.getAccessToken()));
         } catch (AuthorizationException e) {
@@ -518,7 +525,7 @@ public class LocalOAuth2MainTest {
         };
         AccessTokenData data = createAccessToken(origin, serviceId, scopes);
 
-        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(true));
         assertThat(result.isExistAccessToken(), is(true));
@@ -526,17 +533,17 @@ public class LocalOAuth2MainTest {
         assertThat(result.isExistScope(), is(true));
         assertThat(result.isNotExpired(), is(true));
 
-        SQLiteToken[] tokens = LocalOAuth2Main.getAccessTokens();
+        SQLiteToken[] tokens = mLocalOAuth2Main.getAccessTokens();
         assertThat(tokens, is(notNullValue()));
 
         for (SQLiteToken token : tokens) {
             if (token.getAccessToken() != null && token.getAccessToken().equals(data.getAccessToken())) {
-                LocalOAuth2Main.destroyAccessToken(token.getId());
+                mLocalOAuth2Main.destroyAccessToken(token.getId());
                 break;
             }
         }
 
-        result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(false));
         assertThat(result.isExistAccessToken(), is(false));
@@ -554,7 +561,7 @@ public class LocalOAuth2MainTest {
         };
         AccessTokenData data = createAccessToken(origin, serviceId, scopes);
 
-        CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(true));
         assertThat(result.isExistAccessToken(), is(true));
@@ -562,12 +569,12 @@ public class LocalOAuth2MainTest {
         assertThat(result.isExistScope(), is(true));
         assertThat(result.isNotExpired(), is(true));
 
-        ClientPackageInfo clientPackageInfo = LocalOAuth2Main.findClientPackageInfoByAccessToken(data.getAccessToken());
+        ClientPackageInfo clientPackageInfo = mLocalOAuth2Main.findClientPackageInfoByAccessToken(data.getAccessToken());
         assertThat(clientPackageInfo, is(notNullValue()));
 
-        LocalOAuth2Main.destroyAllAccessToken();
+        mLocalOAuth2Main.destroyAllAccessToken();
 
-        result = LocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
+        result = mLocalOAuth2Main.checkAccessToken(data.getAccessToken(), scopes[0], null);
         assertThat(result, is(notNullValue()));
         assertThat(result.checkResult(), is(false));
         assertThat(result.isExistAccessToken(), is(false));
@@ -575,7 +582,7 @@ public class LocalOAuth2MainTest {
         assertThat(result.isExistScope(), is(false));
         assertThat(result.isNotExpired(), is(false));
 
-        Client client = LocalOAuth2Main.findClientByClientId(clientPackageInfo.getClientId());
+        Client client = mLocalOAuth2Main.findClientByClientId(clientPackageInfo.getClientId());
         assertThat(client, is(notNullValue()));
     }
 
@@ -584,7 +591,7 @@ public class LocalOAuth2MainTest {
         final AtomicReference<AccessTokenData> accessToken = new AtomicReference<>();
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData clientData = createClient(packageInfo);
+            ClientData clientData = mLocalOAuth2Main.createClient(packageInfo);
             if (clientData == null) {
                 return null;
             }
@@ -592,10 +599,11 @@ public class LocalOAuth2MainTest {
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(clientData.getClientId()).scopes(scopes).applicationName("JUnit")
                     .isForDevicePlugin(false)
+                    .isAutoFlag(true)
                     .keyword("Keyword")
                     .build();
 
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
                 @Override
                 public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                     accessToken.set(accessTokenData);

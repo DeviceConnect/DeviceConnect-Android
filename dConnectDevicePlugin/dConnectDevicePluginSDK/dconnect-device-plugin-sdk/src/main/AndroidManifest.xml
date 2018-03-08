@@ -26,10 +26,6 @@
             android:excludeFromRecents="true"
             android:exported="false"/>
 
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false"/>
-
         <meta-data
             android:name="org.deviceconnect.android.deviceplugin.sdk"
             android:resource="@xml/pluginsdk"/>

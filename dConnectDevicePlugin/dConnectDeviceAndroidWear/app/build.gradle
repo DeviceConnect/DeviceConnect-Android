@@ -8,7 +8,7 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
     compile 'com.android.support:multidex:1.0.2'
     compile 'com.google.android.gms:play-services:11.0.2'
 

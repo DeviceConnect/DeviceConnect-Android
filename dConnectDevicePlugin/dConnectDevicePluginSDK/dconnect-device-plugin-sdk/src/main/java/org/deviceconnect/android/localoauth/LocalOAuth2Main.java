@@ -93,7 +93,7 @@ import java.util.logging.SimpleFormatter;
 /**
  * Local OAuth API.
  */
-public final class LocalOAuth2Main {
+public class LocalOAuth2Main {
 
     /**
      * 認可の結果を通知するアクションを定義します.
@@ -347,7 +347,7 @@ public final class LocalOAuth2Main {
 
             // リクエストデータを作成する
             ConfirmAuthRequest request = new ConfirmAuthRequest(threadId, params,
-                    listener, displayScopes);
+                    listener, displayScopes, params.isAutoFlag());
 
             // キューにリクエストを追加
             enqueueRequest(request);
@@ -1146,7 +1146,7 @@ public final class LocalOAuth2Main {
      * リクエストデータを使ってアクセストークン発行承認確認画面を起動する.
      * @param request リクエストデータ
      */
-    private void startConfirmAuthActivity(final ConfirmAuthRequest request) {
+    public void startConfirmAuthActivity(final ConfirmAuthRequest request) {
         if (request == null) {
             return;
         }
@@ -1172,6 +1172,7 @@ public final class LocalOAuth2Main {
             intent.putExtra(ConfirmAuthActivity.EXTRA_PACKAGE_NAME, context.getPackageName());
             intent.putExtra(ConfirmAuthActivity.EXTRA_KEYWORD, params.getKeyword());
         }
+        intent.putExtra(ConfirmAuthActivity.EXTRA_AUTO_FLAG, request.isAutoFlag());
         intent.setFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
 

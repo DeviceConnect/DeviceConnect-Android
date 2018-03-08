@@ -11,6 +11,8 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -72,6 +74,7 @@ public class ConfirmAuthFragment extends Fragment {
         String[] displayScopes = intent.getStringArrayExtra(ConfirmAuthActivity.EXTRA_DISPLAY_SCOPES);
         String expirePeriod = toStringExpiredPeriod();
         boolean isForPlugin = intent.getBooleanExtra(ConfirmAuthActivity.EXTRA_IS_FOR_DEVICEPLUGIN, true);
+        boolean isAutoFlag= intent.getBooleanExtra(ConfirmAuthActivity.EXTRA_AUTO_FLAG, false);
         long requestTime = intent.getLongExtra(ConfirmAuthActivity.EXTRA_REQUEST_TIME, System.currentTimeMillis());
         long timeout = DEFAULT_TIMEOUT - (System.currentTimeMillis() - requestTime);
 
@@ -130,6 +133,15 @@ public class ConfirmAuthFragment extends Fragment {
         } else {
             // タイムアウトになっているので、Activityを閉じる
             getActivity().finish();
+        }
+
+        if (isAutoFlag) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    approvalProc();
+                }
+            });
         }
 
         return view;

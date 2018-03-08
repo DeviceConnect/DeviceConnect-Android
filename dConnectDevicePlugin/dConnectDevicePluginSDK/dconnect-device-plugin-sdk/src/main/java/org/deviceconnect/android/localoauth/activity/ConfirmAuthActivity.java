@@ -58,11 +58,7 @@ public class ConfirmAuthActivity extends Activity {
     /** EXTRA: リクエストされた時間. */
     public static final String EXTRA_REQUEST_TIME = "request_time";
 
-    /** 承認を表す定数. */
-    public static final int APPROVAL = 1;
-
-    /** 不承認を表す定数. */
-    public static final int DISAPPROVAL = 0;
+    public static final String EXTRA_AUTO_FLAG = "auto_flag";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {

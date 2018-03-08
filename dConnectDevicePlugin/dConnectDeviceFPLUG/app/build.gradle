@@ -70,7 +70,7 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.4.0'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
     compile 'com.android.support:appcompat-v7:26.1.0'
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:3.0.1'

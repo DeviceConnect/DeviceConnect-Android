@@ -41,18 +41,28 @@ public class AccessTokenDescriptionFragment extends Fragment {
     /** スコープを表示するアダプタ. */
     private ScopeListAdapter mScopeListAdapter;
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mLocalOAuth2Main = new LocalOAuth2Main(getActivity());
+    }
+
+    @Override
+    public void onDestroy() {
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
+        super.onDestroy();
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
         String clientId = getArguments().getString(EXTRA_CLIENT_ID);
-        Client client = LocalOAuth2Main.findClientByClientId(clientId);
-        mToken = LocalOAuth2Main.getAccessToken(client);
+        Client client = mLocalOAuth2Main.findClientByClientId(clientId);
+        mToken = mLocalOAuth2Main.getAccessToken(client);
 
         mScopeListAdapter = new ScopeListAdapter(getActivity(), 0, getScopeList());
 

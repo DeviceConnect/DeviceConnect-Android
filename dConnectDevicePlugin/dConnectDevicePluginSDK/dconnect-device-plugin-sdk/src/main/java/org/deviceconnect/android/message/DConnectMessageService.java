@@ -142,6 +142,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private DConnectPluginSpec mPluginSpec;
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
     private final IBinder mLocalBinder = new LocalBinder();
 
     private final IBinder mRemoteBinder = new PluginBinder();
@@ -199,7 +201,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
         // LocalOAuthの初期化
-        LocalOAuth2Main.initialize(this);
+        mLocalOAuth2Main = new LocalOAuth2Main(this);
 
         // キーストア管理クラスの初期化
         mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), getKeyStoreFileName(), getCertificateAlias());
@@ -212,10 +214,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         // 認証プロファイルの追加
-        addProfile(new AuthorizationProfile(this));
+        addProfile(new AuthorizationProfile(this, mLocalOAuth2Main));
+
         // 必須プロファイルの追加
         addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
+
         registerReceiver();
     }
 
@@ -228,13 +232,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         // スレッドの停止
         if (mExecutorService != null) {
             mExecutorService.shutdown();
         }
+
         // LocalOAuthの後始末
-        LocalOAuth2Main.destroy();
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
+
         // コールバック一覧を削除
         mBindingSenders.clear();
 
@@ -243,6 +249,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         unregisterReceiver(mUninstallReceiver);
+
+        super.onDestroy();
     }
 
     @Override
@@ -598,7 +606,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             // アクセストークン
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
+            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken, profileName,
                 IGNORE_PROFILES);
             if (result.checkResult()) {
                 send = executeRequest(profileName, request, response);
@@ -737,7 +745,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (isUseLocalOAuth()) {
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken,
+            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
                     event.getStringExtra(DConnectMessage.EXTRA_PROFILE), IGNORE_PROFILES);
             if (!result.checkResult()) {
                 return false;

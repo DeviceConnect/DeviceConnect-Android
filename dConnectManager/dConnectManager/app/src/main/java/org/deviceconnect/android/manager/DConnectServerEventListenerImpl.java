@@ -14,8 +14,6 @@ import android.net.Uri;
 import android.os.Build;
 
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -475,7 +473,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
      * @return 妥当な場合はtrue、それ以外はfalse
      */
     private boolean isValidAccessToken(final String accessToken, final String origin) {
-        ClientPackageInfo client = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        ClientPackageInfo client = ((DConnectMessageService) mContext).getLocalOAuth2Main().findClientPackageInfoByAccessToken(accessToken);
         if (client == null) {
             return false;
         }

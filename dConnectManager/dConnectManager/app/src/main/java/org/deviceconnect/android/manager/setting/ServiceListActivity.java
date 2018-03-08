@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.res.ResourcesCompat;
@@ -48,7 +49,6 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * サービス一覧を表示するActivity.
@@ -435,6 +435,15 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
         mSettings.setManagerStartFlag(checked);
         if (checked) {
+
+            Intent intent = new Intent();
+            intent.setClass(this, DConnectService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
+
             managerService.startInternal();
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -453,6 +462,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     mSwitchAction.setEnabled(true);
                 }
             });
+
+            Intent intent = new Intent();
+            intent.setClass(this, DConnectService.class);
+            stopService(intent);
         }
         setEnableSearchButton(checked);
     }

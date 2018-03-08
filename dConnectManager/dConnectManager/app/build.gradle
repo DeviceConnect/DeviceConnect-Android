@@ -24,6 +24,10 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
         buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
+
+        jackOptions {
+            enabled true
+        }
     }
 
     packagingOptions {
@@ -33,6 +37,11 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES.txt'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     signingConfigs {

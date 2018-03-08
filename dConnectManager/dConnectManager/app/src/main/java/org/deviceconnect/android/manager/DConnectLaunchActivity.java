@@ -24,7 +24,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -273,6 +272,7 @@ public class DConnectLaunchActivity extends AppCompatActivity {
 
     private void startManager() {
         if (mDConnectService != null) {
+            preventAutoStop();
             mDConnectService.startInternal();
         }
     }
@@ -280,6 +280,10 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private void stopManager() {
         if (mDConnectService != null) {
             mDConnectService.stopInternal();
+
+            Intent intent = new Intent();
+            intent.setClass(getApplicationContext(), DConnectService.class);
+            stopService(intent);
         }
     }
 
@@ -368,8 +372,6 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            preventAutoStop();
-
             mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             runOnUiThread(new Runnable() {
                 @Override

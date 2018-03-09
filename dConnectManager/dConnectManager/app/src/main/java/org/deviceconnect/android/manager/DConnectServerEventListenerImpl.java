@@ -123,7 +123,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
 
     @Override
     public void onServerLaunched() {
-        mLogger.info("HttpServer was started.");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("HttpServer was started.");
+        }
     }
 
     @Override

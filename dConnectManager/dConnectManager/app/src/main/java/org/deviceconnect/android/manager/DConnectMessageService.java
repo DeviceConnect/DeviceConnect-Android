@@ -568,7 +568,9 @@ public abstract class DConnectMessageService extends Service
             final String profileName = profile.getProfileName();
             try {
                 profile.setProfileSpec(loadProfileSpec(profileName));
-                mLogger.info("Loaded a profile spec: " + profileName);
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Loaded a profile spec: " + profileName);
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
             } catch (JSONException e) {

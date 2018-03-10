@@ -10,7 +10,9 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hogp.BuildConfig;
@@ -41,15 +43,15 @@ public class HOGPBaseActivity extends Activity {
     private HOGPMessageService mHOGPMessageService;
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         bindService();
     }
 
     @Override
-    protected void onPause() {
+    protected void onDestroy() {
         unbindService();
-        super.onPause();
+        super.onDestroy();
     }
 
     /**

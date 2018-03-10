@@ -305,9 +305,14 @@ public abstract class AbstractHOGPServer {
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
 
-        addService(setUpHidService(true, true, false));
-        addService(setUpDeviceInformationService());
-        addService(setUpBatteryService());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                addService(setUpHidService(true, true, false));
+                addService(setUpDeviceInformationService());
+                addService(setUpBatteryService());
+            }
+        }).start();
 
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
@@ -361,6 +366,9 @@ public abstract class AbstractHOGPServer {
         boolean serviceAdded = false;
         while (!serviceAdded) {
             try {
+                // 連続でserviceを追加すると例外が発生する
+                // 回避するためにsleepを入れています。
+                Thread.sleep(500);
                 serviceAdded = mGattServer.addService(service);
             } catch (final Exception e) {
                 if (DEBUG) {

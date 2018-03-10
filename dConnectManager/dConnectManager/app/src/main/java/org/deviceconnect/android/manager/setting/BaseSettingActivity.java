@@ -16,8 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.DConnectSettings;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfoManager;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
@@ -58,19 +58,14 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mSavedInstance = savedInstanceState;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         bindManager();
     }
 
     @Override
-    protected void onPause() {
+    protected void onDestroy() {
         stopManagerMonitor();
         unbindManager();
-        super.onPause();
+        super.onDestroy();
     }
 
     protected boolean hasSavedInstance() {
@@ -117,6 +112,10 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
 
     protected boolean isBonded() {
         return mDConnectService != null;
+    }
+
+    protected boolean isDConnectServiceRunning() {
+        return mDConnectService != null && mDConnectService.isRunning();
     }
 
     /**
@@ -234,7 +233,7 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
         return settings.isSSL();
     }
 
-    protected DConnectService getManagerService() {
+    public DConnectService getManagerService() {
         return mDConnectService;
     }
 

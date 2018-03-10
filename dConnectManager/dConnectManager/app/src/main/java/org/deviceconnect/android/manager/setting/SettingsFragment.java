@@ -621,18 +621,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * @param checked trueの場合は有効、falseの場合は無効
      */
     private void switchEventKeepAlive(final boolean checked) {
-        Activity activity = getActivity();
+        BaseSettingActivity activity = (BaseSettingActivity) getActivity();
         if (activity == null) {
             return;
         }
-        Intent intent = new Intent();
-        intent.setClass(activity, DConnectService.class);
-        intent.setAction(DConnectService.ACTION_SETTINGS_KEEP_ALIVE);
-        intent.putExtra(DConnectService.EXTRA_KEEP_ALIVE_ENABLED, checked);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity.startForegroundService(intent);
-        } else {
-            activity.startService(intent);
+
+        DConnectService service = activity.getManagerService();
+        if (service != null) {
+            service.setEnableKeepAlive(checked);
         }
     }
 

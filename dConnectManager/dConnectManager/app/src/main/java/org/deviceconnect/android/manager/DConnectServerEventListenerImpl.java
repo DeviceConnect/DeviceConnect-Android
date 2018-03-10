@@ -11,7 +11,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.manager.event.EventBroker;
@@ -372,11 +371,13 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(DConnectService.EXTRA_INNER_TYPE, DConnectService.INNER_TYPE_HTTP);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mContext.startForegroundService(intent);
-        } else {
+        try {
             mContext.startService(intent);
+        } catch (Exception e){
+            setErrorResponse(response, DConnectMessage.ErrorCode.ACCESS_FAILED);
+            return true;
         }
+
         // レスポンスが返ってくるまで待つ
         // ただし、タイムアウト時間を設定しておき、永遠には待たない。
         Intent resp = waitForResponse(requestCode);

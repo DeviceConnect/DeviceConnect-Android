@@ -21,7 +21,6 @@ import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
 import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
@@ -74,10 +73,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     private static final String KEYSTORE_FILE_NAME = "manager.p12";
 
-    public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
-    public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
-    public static final String EXTRA_WEBSOCKET_ID = "webSocketId";
-    public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
+    /**
+     * KeepAliveで使用するエクストラキー.
+     */
     public static final String EXTRA_EVENT_RECEIVER_ID = "receiverId";
 
     /** 内部用: 通信タイプを定義する. */
@@ -186,20 +184,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
             return START_STICKY;
         }
 
-        if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
-            String webSocketId = intent.getStringExtra(EXTRA_WEBSOCKET_ID);
-            disconnectWebSocket(webSocketId);
-            return START_STICKY;
-        }
-
-        if (ACTION_SETTINGS_KEEP_ALIVE.equals(action)) {
-            if (intent.getBooleanExtra(EXTRA_KEEP_ALIVE_ENABLED, true)) {
-                mKeepAliveManager.enableKeepAlive();
-            } else {
-                mKeepAliveManager.disableKeepAlive();
-            }
-            return START_STICKY;
-        }
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
             onKeepAliveCommand(intent);
             return START_STICKY;
@@ -212,6 +196,30 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         Bundle extras = new Bundle();
         extras.putString(IntentDConnectMessage.EXTRA_ORIGIN, origin);
         sendManagerEvent(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT, extras);
+    }
+
+    @Override
+    public void sendResponse(final Intent request, final Intent response) {
+        Intent intent = createResponseIntent(request, response);
+        if (INNER_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
+            mWebServerListener.onResponse(intent);
+        } else {
+            sendBroadcast(intent);
+        }
+    }
+
+    @Override
+    public void sendEvent(final String receiver, final Intent event) {
+        if (receiver == null || receiver.length() <= 0) {
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    sendEventToWebSocket(event);
+                }
+            });
+        } else {
+            super.sendEvent(receiver, event);
+        }
     }
 
     private void onKeepAliveCommand(final Intent intent) {
@@ -241,27 +249,11 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         return !(version.compareTo(match) == -1);
     }
 
-    @Override
-    public void sendResponse(final Intent request, final Intent response) {
-        Intent intent = createResponseIntent(request, response);
-        if (INNER_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
-            mWebServerListener.onResponse(intent);
+    public void setEnableKeepAlive(boolean enable) {
+        if (enable) {
+            mKeepAliveManager.enableKeepAlive();
         } else {
-            sendBroadcast(intent);
-        }
-    }
-
-    @Override
-    public void sendEvent(final String receiver, final Intent event) {
-        if (receiver == null || receiver.length() <= 0) {
-            mEventSender.execute(new Runnable() {
-                @Override
-                public void run() {
-                    sendEventToWebSocket(event);
-                }
-            });
-        } else {
-            super.sendEvent(receiver, event);
+            mKeepAliveManager.disableKeepAlive();
         }
     }
 
@@ -326,7 +318,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      *
      * @param webSocketId 内部的に発行したWebSocket ID
      */
-    private void disconnectWebSocket(final String webSocketId) {
+    public void disconnectWebSocket(final String webSocketId) {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {

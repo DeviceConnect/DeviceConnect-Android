@@ -9,14 +9,12 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -33,10 +31,10 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
-import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -304,16 +302,14 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        Activity activity = getActivity();
-        if (activity != null) {
-            Intent request = new Intent(activity, DConnectService.class);
-            request.setAction(DConnectService.ACTION_OPEN_SETTINGS);
-            request.putExtra(DConnectService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                activity.startForegroundService(request);
-            } else {
-                activity.startService(request);
-            }
+        BaseSettingActivity activity = (BaseSettingActivity) getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        DConnectService service = activity.getManagerService();
+        if (service != null) {
+            service.openPluginSettings(mPluginInfo.getPluginId());
         }
     }
 

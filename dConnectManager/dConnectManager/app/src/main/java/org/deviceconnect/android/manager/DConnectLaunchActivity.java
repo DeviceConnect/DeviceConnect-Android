@@ -273,12 +273,14 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private void startManager() {
         if (mDConnectService != null) {
             preventAutoStop();
+            mSettings.setManagerStartFlag(true);
             mDConnectService.startInternal();
         }
     }
 
     private void stopManager() {
         if (mDConnectService != null) {
+            mSettings.setManagerStartFlag(false);
             mDConnectService.stopInternal();
 
             Intent intent = new Intent();

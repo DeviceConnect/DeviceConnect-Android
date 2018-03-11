@@ -70,7 +70,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
             String serviceId = intent.getStringExtra(PARAM_SERVICE_ID);
             String action = intent.getAction();
             if (serviceId != null && action != null) {
-                if (action.equals(ACTION_SPHERO_REMOVE) {
+                if (action.equals(ACTION_SPHERO_REMOVE)) {
                     getServiceProvider().removeService(serviceId + "_" + COLOR_LED_LIGHT_ID);
                     getServiceProvider().removeService(serviceId + "_" + BACK_LED_LIGHT_ID);
                 }

@@ -121,6 +121,7 @@
         <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:label="@string/gps_settings_body"
             android:theme="@style/AppTheme.Translucent"
+            android:excludeFromRecents="true"
             android:launchMode="singleInstance">
         </activity>
 

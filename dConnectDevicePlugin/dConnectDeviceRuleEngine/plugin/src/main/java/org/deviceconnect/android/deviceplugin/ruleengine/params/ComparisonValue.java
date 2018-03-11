@@ -30,6 +30,8 @@ public class ComparisonValue {
     private double[] mDataDouble = new double[SIZE];
     /** stringデータ. */
     private String[] mDataString = new String[SIZE];
+    /** booleanデータ. */
+    private Boolean[] mDataBoolean = new Boolean[SIZE];
 
     public ComparisonValue(final String dataType) {
         if (ComparisonUtil.checkDataType(dataType)) {
@@ -81,6 +83,14 @@ public class ComparisonValue {
         }
     }
 
+    public Boolean getDataBoolean(final int index) {
+        if (index == FIRST || index == SECOND) {
+            return mDataBoolean[index];
+        } else {
+            return null;
+        }
+    }
+
     public void setDataType(String dataType) {
         if (ComparisonUtil.checkDataType(dataType)) {
             mDataType = dataType;
@@ -126,6 +136,15 @@ public class ComparisonValue {
     public boolean setDataString(final int index, String dataString) {
         if (index == FIRST || index == SECOND) {
             mDataString[index] = dataString;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean setDataBooleam(final int index, Boolean dataBoolean) {
+        if (index == FIRST || index == SECOND) {
+            mDataBoolean[index] = dataBoolean;
             return true;
         } else {
             return false;

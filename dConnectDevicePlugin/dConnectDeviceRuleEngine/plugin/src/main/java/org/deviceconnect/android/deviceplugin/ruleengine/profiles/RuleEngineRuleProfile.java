@@ -1152,6 +1152,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                     }
                 }
                 break;
+            case ComparisonUtil.TYPE_BOOLEAN:
+                value.setDataBooleam(ComparisonValue.FIRST, Boolean.parseBoolean(comparisionValueString));
+                break;
             case ComparisonUtil.TYPE_STRING:
             case ComparisonUtil.TYPE_DATE:
             case ComparisonUtil.TYPE_TIME:
@@ -1162,9 +1165,10 @@ public class RuleEngineRuleProfile extends DConnectProfile {
             case ComparisonUtil.TYPE_JSON_FLOAT:
             case ComparisonUtil.TYPE_JSON_DOUBLE:
             case ComparisonUtil.TYPE_JSON_STRING:
+            case ComparisonUtil.TYPE_JSON_BOOLEAN:
             case ComparisonUtil.TYPE_JSON_DATE_TIME:
                 // JSONフォーマット解析用分解
-                String[] jsonFormat = comparisionValueString.split(".");
+                String[] jsonFormat = comparisionValueString.split("\\.");
                 if (jsonFormat.length == 0) {
                     // エラー処理
                     String errorStatus = " JSON format error. (Tag not found.)";
@@ -1196,6 +1200,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                 break;
                             case ComparisonUtil.TYPE_JSON_DOUBLE:
                                 result = value.setDataDouble(ComparisonValue.FIRST, Double.valueOf(check));
+                                break;
+                            case ComparisonUtil.TYPE_JSON_BOOLEAN:
+                                result = value.setDataBooleam(ComparisonValue.FIRST, Boolean.valueOf(check));
                                 break;
                             case ComparisonUtil.TYPE_JSON_STRING:
                             case ComparisonUtil.TYPE_JSON_DATE_TIME:
@@ -1236,7 +1243,7 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                         // 階層処理用JSON配列オブジェクトリードインデックス
                         int arrayIndex = -1;
                         // JSON階層数取得
-                        int count = jsonResult.size();
+                        int count = jsonFormat.length;
                         for (int i = 0; i < count; i++) {
                             // 名前取得
                             String jsonParam = jsonFormat[i];
@@ -1267,6 +1274,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                             break;
                                         case ComparisonUtil.TYPE_JSON_DOUBLE:
                                             result = value.setDataDouble(ComparisonValue.FIRST, jsonObject.getDouble(jsonParam));
+                                            break;
+                                        case ComparisonUtil.TYPE_JSON_BOOLEAN:
+                                            result = value.setDataBooleam(ComparisonValue.FIRST, jsonObject.getBoolean(jsonParam));
                                             break;
                                         case ComparisonUtil.TYPE_JSON_STRING:
                                         case ComparisonUtil.TYPE_JSON_DATE_TIME:
@@ -1299,6 +1309,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                             break;
                                         case ComparisonUtil.TYPE_JSON_DOUBLE:
                                             result = value.setDataDouble(ComparisonValue.FIRST, msg.getDouble(jsonParam));
+                                            break;
+                                        case ComparisonUtil.TYPE_JSON_BOOLEAN:
+                                            result = value.setDataBooleam(ComparisonValue.FIRST, msg.getBoolean(jsonParam));
                                             break;
                                         case ComparisonUtil.TYPE_JSON_STRING:
                                         case ComparisonUtil.TYPE_JSON_DATE_TIME:

@@ -76,6 +76,8 @@ public class ComparisonUtil {
     public static final String TYPE_DOUBLE = "TypeDouble";
     /** 型指定 String型 */
     public static final String TYPE_STRING = "TypeString";
+    /** 型指定 Boolean型 */
+    public static final String TYPE_BOOLEAN = "TypeBoolean";
     /** 型指定 日付時間 */
     public static final String TYPE_DATE_TIME = "TypeDateTime";
     /** 型指定 日付 */
@@ -90,6 +92,8 @@ public class ComparisonUtil {
     public static final String TYPE_JSON_DOUBLE = "TypeJsonDouble";
     /** 型指定 JSONパラメータ - String型 */
     public static final String TYPE_JSON_STRING = "TypeJsonString";
+    /** 型指定 JSONパラメータ - Boolean型 */
+    public static final String TYPE_JSON_BOOLEAN = "TypeJsonBoolean";
     /** 型指定 JSONパラメータ - 日付時間 */
     public static final String TYPE_JSON_DATE_TIME = "TypeJsonDateTime";
 
@@ -190,6 +194,15 @@ public class ComparisonUtil {
             case ComparisonUtil.TYPE_JSON_STRING:
                 try {
                     judge = judgeComparison(left.getDataString(ComparisonValue.FIRST), comparison, right.getDataString(ComparisonValue.FIRST));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return RES_ERROR;
+                }
+                break;
+            case ComparisonUtil.TYPE_BOOLEAN:
+            case ComparisonUtil.TYPE_JSON_BOOLEAN:
+                try {
+                    judge = judgeComparison(left.getDataBoolean(ComparisonValue.FIRST), comparison, right.getDataBoolean(ComparisonValue.FIRST));
                 } catch (Exception e) {
                     e.printStackTrace();
                     return RES_ERROR;
@@ -515,6 +528,43 @@ public class ComparisonUtil {
     }
 
     /**
+     * Boolean型データ比較処理
+     * @param left 左辺値.
+     * @param comparison 比較条件.
+     * @param right 右辺値.
+     * @return true(比較条件成立) / false(比較条件不成立).
+     */
+    private static boolean judgeComparison(final Boolean left, final String comparison, final Boolean right) throws Exception {
+        switch (comparison) {
+            case EQUAL:
+            case EQUAL_MARK_1:
+            case EQUAL_MARK_2:
+                return (left == right);
+            case NOT_EQUAL:
+            case NOT_EQUAL_MARK_1:
+            case NOT_EQUAL_MARK_2:
+                return !(left == right);
+            case LESS_THAN:
+            case LESS_THAN_MARK_1:
+            case LESS_THAN_MARK_2:
+            case BELOW:
+            case BELOW_MARK_1:
+            case BELOW_MARK_2:
+            case EXCESS:
+            case EXCESS_MARK_1:
+            case EXCESS_MARK_2:
+            case NOT_LESS_THAN:
+            case NOT_LESS_THAN_MARK_1:
+            case NOT_LESS_THAN_MARK_2:
+            case BETWEEN:
+            case BETWEEN_MARK_1:
+            case BETWEEN_MARK_2:
+            default:
+                throw new Exception("illegal call");
+        }
+    }
+
+    /**
      * 日付型データ比較処理
      * @param left 左辺値.
      * @param comparison 比較条件.
@@ -580,6 +630,7 @@ public class ComparisonUtil {
             case TYPE_FLOAT:
             case TYPE_DOUBLE:
             case TYPE_STRING:
+            case TYPE_BOOLEAN:
             case TYPE_DATE_TIME:
             case TYPE_DATE:
             case TYPE_TIME:
@@ -587,6 +638,7 @@ public class ComparisonUtil {
             case TYPE_JSON_FLOAT:
             case TYPE_JSON_DOUBLE:
             case TYPE_JSON_STRING:
+            case TYPE_JSON_BOOLEAN:
             case TYPE_JSON_DATE_TIME:
                 return true;
             default:

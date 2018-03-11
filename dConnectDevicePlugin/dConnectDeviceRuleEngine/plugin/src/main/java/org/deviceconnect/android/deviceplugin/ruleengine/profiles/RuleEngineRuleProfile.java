@@ -93,9 +93,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
     private final DConnectSDK.OnEventListener mAndEventListener = new DConnectSDK.OnEventListener() {
         @Override
         public void onMessage(final  DConnectEventMessage message) {
-            DConnectMessage coomparisonResult = message.getMessage("coomparisonResult");
-            String ruleServiceId = coomparisonResult.getString("ruleServiceId");
-            String timestamp = coomparisonResult.getString("timestamp");
+            DConnectMessage comparisonResult = message.getMessage("comparisonResult");
+            String ruleServiceId = comparisonResult.getString("ruleServiceId");
+            String timestamp = comparisonResult.getString("timestamp");
             if (ruleServiceId != null && timestamp != null) {
                 andProcess(ruleServiceId, timestamp);
             }
@@ -818,11 +818,11 @@ public class RuleEngineRuleProfile extends DConnectProfile {
             Event event = EventManager.INSTANCE.getEvent(request);
             Intent message = EventManager.createEventMessage(event);
             Bundle root = message.getExtras();
-            Bundle coomparisonResult = new Bundle();
-            coomparisonResult.putString("ruleServiceId", (String) request.getExtras().get("serviceId"));
-            coomparisonResult.putBoolean("result", true);
-            coomparisonResult.putString("timestamp", nowTimeStampString());
-            root.putBundle("coomparisonResult", coomparisonResult);
+            Bundle comparisonResult = new Bundle();
+            comparisonResult.putString("ruleServiceId", (String) request.getExtras().get("serviceId"));
+            comparisonResult.putBoolean("result", true);
+            comparisonResult.putString("timestamp", nowTimeStampString());
+            root.putBundle("comparisonResult", comparisonResult);
             message.putExtras(root);
             sendEvent(message, event.getAccessToken());
 
@@ -831,6 +831,12 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                 // Operation実行.
                 executeOperation();
             }
+        } else if (res == ComparisonUtil.RES_ERROR) {
+            // エラー通知 (Comparison parameter is invalid).
+            String errorStatus = " Rule execute error. (Comparison parameter is invalid.)";
+            setErrorStatus(errorStatus);
+            // エラー情報通知
+            ((RuleEngineMessageService) getContext()).sendEventErrorStatus(this.getService().getId(), mRule.getErrorStarus(), mRule.getErrorTimestamp());
         }
     }
 

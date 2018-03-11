@@ -207,16 +207,25 @@ public class ComparisonUtil {
                 } else {
                     // 日付日時変換
                     leftDataTime = ComparisonUtil.setCalendar(left.getDataType(), left.getDataString(ComparisonValue.FIRST));
+                    if (leftDataTime == null) {
+                        return RES_ERROR;
+                    }
                 }
                 params = right.getDataString(ComparisonValue.FIRST).split(",");
                 if (params.length == 1) {
                     // 日付日時変換
                     Calendar rightDateTime = ComparisonUtil.setCalendar(right.getDataType(), params[0]);
+                    if (rightDateTime == null) {
+                        return RES_ERROR;
+                    }
                     judge = judgeComparison(leftDataTime, comparison, rightDateTime);
                 } else {
                     List<Calendar> rightDateTimes = new ArrayList<>(2);
                     for (int i = 0; i < 2; i++) {
                         Calendar dateTime = ComparisonUtil.setCalendar(right.getDataType(), params[i]);
+                        if (dateTime == null) {
+                            return RES_ERROR;
+                        }
                         rightDateTimes.add(i, dateTime);
                     }
                     judge = judgeComparison(leftDataTime, comparison, rightDateTimes.get(0), rightDateTimes.get(1));
@@ -244,6 +253,9 @@ public class ComparisonUtil {
             case ComparisonUtil.TYPE_DATE:
                 // 日付
                 String[] dateParam = params.split("[\\-]+");
+                if (dateParam.length > 3) {
+                    return null;
+                }
                 dataTime.set(Calendar.YEAR, Integer.valueOf(dateParam[0]));
                 dataTime.set(Calendar.MONTH, Integer.valueOf(dateParam[1]));
                 dataTime.set(Calendar.DAY_OF_MONTH, Integer.valueOf(dateParam[2]));
@@ -255,6 +267,9 @@ public class ComparisonUtil {
             case ComparisonUtil.TYPE_TIME:
                 // 時間
                 String[] timeParam = params.split("[:\\.\\+\\-]+");
+                if (timeParam.length > 4) {
+                    return null;
+                }
                 dataTime.set(Calendar.HOUR_OF_DAY, Integer.valueOf(timeParam[0]));
                 dataTime.set(Calendar.MINUTE, Integer.valueOf(timeParam[1]));
                 dataTime.set(Calendar.SECOND, Integer.valueOf(timeParam[2]));
@@ -269,6 +284,9 @@ public class ComparisonUtil {
                 dataTime.clear();
                 // 日付 + 時間
                 String[] dateTimeParam = params.split("[\\-T:\\.\\+]+");
+                if (dateTimeParam.length <= 3) {
+                    return null;
+                }
                 dataTime.set(Calendar.YEAR, Integer.valueOf(dateTimeParam[0]));
                 dataTime.set(Calendar.MONTH, Integer.valueOf(dateTimeParam[1]));
                 dataTime.set(Calendar.DAY_OF_MONTH, Integer.valueOf(dateTimeParam[2]));

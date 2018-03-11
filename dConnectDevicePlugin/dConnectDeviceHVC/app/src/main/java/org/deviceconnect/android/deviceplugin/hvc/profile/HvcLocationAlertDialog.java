@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Window;
 
 import org.deviceconnect.android.deviceplugin.hvc.R;
 
@@ -26,9 +27,13 @@ public class HvcLocationAlertDialog extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = this;
-
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        if (getActionBar() != null) {
+            getActionBar().hide();
+        }
         setContentView(R.layout.hvc_location_alert_dialog);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(R.string.location_settings_title);
         alertDialogBuilder.setMessage(R.string.setting_dialog_disable_location)
                 .setCancelable(false)
 

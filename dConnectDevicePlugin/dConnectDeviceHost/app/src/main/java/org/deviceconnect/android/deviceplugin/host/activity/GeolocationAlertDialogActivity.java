@@ -12,6 +12,8 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.view.Window;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -22,7 +24,7 @@ import org.deviceconnect.android.message.MessageUtils;
  *
  * @author NTT DOCOMO, INC.
  */
-public class GeolocationAlertDialogActivity extends Activity {
+public class GeolocationAlertDialogActivity extends FragmentActivity {
     private Activity mActivity;
     private Intent mResponse;
 
@@ -34,6 +36,10 @@ public class GeolocationAlertDialogActivity extends Activity {
         Bundle bundle = intent.getBundleExtra("Intent");
         if (bundle != null) {
             mResponse = bundle.getParcelable("response");
+        }
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        if (getActionBar() != null) {
+            getActionBar().hide();
         }
 
         setContentView(R.layout.geolocation_alert_dialog);

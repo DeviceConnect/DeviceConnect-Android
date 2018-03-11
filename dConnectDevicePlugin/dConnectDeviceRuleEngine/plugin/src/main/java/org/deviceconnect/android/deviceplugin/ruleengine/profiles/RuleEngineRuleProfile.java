@@ -845,6 +845,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
      * Operation実行.
      */
     private void executeOperation() {
+        if (mServiceInfos == null) {
+            return;
+        }
         final Context context = getContext();
         // Operation配列取得
         List<Operation> operations = mRule.getOperations();
@@ -870,21 +873,25 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                 }
             }
 
-//            // serviceId 検索.
-//            int position = rest.indexOf(GOTAPI_PHRASE) + GOTAPI_PHRASE.length();
-//            String[] token = rest.substring(position).split("/");
-//            String profile = token[0];
-//
-//            for (DConnectHelper.ServiceInfo service : mServiceInfos) {
-//                if (service.scopes != null) {
-//                    for (String scope : service.scopes) {
-//                        if (profile.equalsIgnoreCase(scope)) {
-//                            serviceId = service.id;
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
+            // serviceId 検索.
+            int position = rest.indexOf(GOTAPI_PHRASE) + GOTAPI_PHRASE.length();
+            String[] token = rest.substring(position).split("/");
+            String profile = token[0];
+
+            for (DConnectHelper.ServiceInfo service : mServiceInfos) {
+                if (service.scopes != null) {
+                    for (String scope : service.scopes) {
+                        if (profile.equalsIgnoreCase(scope)) {
+                            serviceId = service.id;
+                            SettingData setting = SettingData.getInstance(context);
+                            setting.scopes.add(scope);
+                            setting.serviceId = serviceId;
+                            setting.save();
+                            break;
+                        }
+                    }
+                }
+            }
 
             if (serviceId == null) {
                 // エラー通知 (service not found).
@@ -929,6 +936,9 @@ public class RuleEngineRuleProfile extends DConnectProfile {
      * @param parameter パラメーター.
      */
     private void execRest(final Intent request, final String action, final String rest, final String parameter) {
+        if (mServiceInfos == null) {
+            return;
+        }
         Context context = getContext();
         String serviceId = null;
         // パラメータ格納.
@@ -939,25 +949,28 @@ public class RuleEngineRuleProfile extends DConnectProfile {
             String key = param.substring(0, index);
             String value = param.substring(index + 1);
             if (key.contains("serviceId")) {
-                serviceId = value;
+//                serviceId = value;
             } else {
                 parameters.put(key, value);
             }
         }
 
-//        int index = rest.indexOf(GOTAPI_PHRASE) + GOTAPI_PHRASE.length();
-//        String[] token = rest.substring(index).split("/");
-//        String profile = token[0];
-//        for (DConnectHelper.ServiceInfo service : mServiceInfos) {
-//            if (service.scopes != null) {
-//                for (String scope : service.scopes) {
-//                    if (profile.equalsIgnoreCase(scope)) {
-//                        serviceId = service.id;
-//                        break;
-//                    }
-//                }
-//            }
-//        }
+        int index = rest.indexOf(GOTAPI_PHRASE) + GOTAPI_PHRASE.length();
+        String[] token = rest.substring(index).split("/");
+        String profile = token[0];
+        for (DConnectHelper.ServiceInfo service : mServiceInfos) {
+            if (service.scopes != null) {
+                for (String scope : service.scopes) {
+                    if (profile.equalsIgnoreCase(scope)) {
+                        serviceId = service.id;
+                        SettingData setting = SettingData.getInstance(context);
+                        setting.scopes.add(scope);
+                        setting.serviceId = serviceId;
+                        break;
+                    }
+                }
+            }
+        }
 
         if (serviceId == null) {
             // エラー通知 (service not found).
@@ -1358,10 +1371,12 @@ public class RuleEngineRuleProfile extends DConnectProfile {
      * Device Connect Managerへの接続処理.
      */
     private void connectDCM() {
-        final Context context = getContext();
+//        final Context context = getContext();
+        final Context context = RuleEngineApplication.getInstance();
         final SettingData setting = SettingData.getInstance(context);
         if (!setting.active) {
-            return;
+            setting.active = true;
+            setting.save();
         }
 
         Utils.availability(context, new DConnectHelper.FinishCallback<Void>() {

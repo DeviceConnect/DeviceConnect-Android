@@ -31,7 +31,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 
-import net.majorkernelpanic.streaming.MediaStream;
 import net.majorkernelpanic.streaming.Stream;
 import net.majorkernelpanic.streaming.gl.SurfaceView;
 import net.majorkernelpanic.streaming.hw.EncoderDebugger;
@@ -222,27 +221,33 @@ public abstract class CameraVideoStream extends VideoStream {
 
 			@Override
 			public void onPreviewFrame(byte[] data, Camera camera) {
-				oldNow = now;
-				now = System.nanoTime()/1000;
+				synchronized (CameraVideoStream.this) {
+					if (!isStreaming()) {
+						return;
+					}
+
+					oldNow = now;
+					now = System.nanoTime()/1000;
 //				if (i++>3) {
 //					i = 0;
 //					Log.d(TAG,"Measured: " + (1000000L / (now - oldNow)) + " fps.");
 //				}
-				try {
-					int bufferIndex = mMediaCodec.dequeueInputBuffer(500000);
-					if (bufferIndex >= 0) {
-						inputBuffers[bufferIndex].clear();
-						if (data == null) {
-							Log.e(TAG,"Symptom of the \"Callback buffer was to small\" problem...");
+					try {
+						int bufferIndex = mMediaCodec.dequeueInputBuffer(500000);
+						if (bufferIndex >= 0) {
+							inputBuffers[bufferIndex].clear();
+							if (data == null) {
+								Log.e(TAG,"Symptom of the \"Callback buffer was to small\" problem...");
+							} else {
+								convertor.convert(data, inputBuffers[bufferIndex]);
+							}
+							mMediaCodec.queueInputBuffer(bufferIndex, 0, inputBuffers[bufferIndex].position(), now, 0);
 						} else {
-							convertor.convert(data, inputBuffers[bufferIndex]);
+							Log.e(TAG,"No buffer available !");
 						}
-						mMediaCodec.queueInputBuffer(bufferIndex, 0, inputBuffers[bufferIndex].position(), now, 0);
-					} else {
-						Log.e(TAG,"No buffer available !");
+					} finally {
+						camera.addCallbackBuffer(data);
 					}
-				} finally {
-					camera.addCallbackBuffer(data);
 				}
 			}
 		};

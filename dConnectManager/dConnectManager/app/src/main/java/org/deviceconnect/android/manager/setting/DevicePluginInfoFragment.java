@@ -33,6 +33,7 @@ import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.plugin.MessagingException;
@@ -58,6 +59,32 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
 
     /** プラグイン接続エラー表示. */
     private ConnectionErrorView mErrorView;
+
+    /** デバイスプラグインとの接続状態の変更通知を受信するリスナー. */
+    private final DevicePluginManager.DevicePluginEventListener mEventListener = new DevicePluginManager.DevicePluginEventListener() {
+        @Override
+        public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ConnectionErrorView errorView = mErrorView;
+                    if (errorView != null) {
+                        errorView.showErrorMessage(plugin);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onDeviceFound(final DevicePlugin plugin) {
+            // NOP.
+        }
+
+        @Override
+        public void onDeviceLost(final DevicePlugin plugin) {
+            // NOP.
+        }
+    };
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -288,6 +315,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
     protected void onManagerBonded(final DConnectService manager) {
         DevicePluginManager mgr = getPluginManager();
         if (mgr != null) {
+            mgr.addEventListener(mEventListener);
             String pluginId = getArguments().getString(DevicePluginInfoActivity.EXTRA_PLUGIN_ID);
             if (pluginId != null) {
                 DevicePlugin plugin = mgr.getDevicePlugin(pluginId);
@@ -295,6 +323,14 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
                     updateInfo(plugin);
                 }
             }
+        }
+    }
+
+    @Override
+    protected void beforeManagerDisconnected() {
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null) {
+            mgr.removeEventListener(mEventListener);
         }
     }
 

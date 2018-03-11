@@ -756,8 +756,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             }
                         }
                     }
-
-                   hide();
+                    mCamera.release();
+                    mParams = null;
+                    mCamera = null;
                 }
             }
             mFlashLightState = false;

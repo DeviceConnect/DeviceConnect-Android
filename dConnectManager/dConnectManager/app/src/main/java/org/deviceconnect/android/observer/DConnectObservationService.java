@@ -46,6 +46,10 @@ import java.util.ArrayList;
 public class DConnectObservationService extends Service {
 
     /**
+     * Overserver Notification id.
+     */
+    private static final int OBSERVER_NOTIFICATION_ID = 9999;
+    /**
      * オブザーバー監視開始アクション.
      */
     public static final String ACTION_START = "org.deviceconnect.android.intent.action.observer.START";
@@ -173,6 +177,8 @@ public class DConnectObservationService extends Service {
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
                                 resultReceiver.send(Activity.RESULT_CANCELED, null);
+                                stopObservation();
+                                stopSelf();
                             }
                         });
             }
@@ -202,7 +208,7 @@ public class DConnectObservationService extends Service {
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             mNotification.createNotificationChannel(channel);
             builder.setChannelId(channelId);
-            startForeground(4035, builder.build());
+            startForeground(OBSERVER_NOTIFICATION_ID, builder.build());
         }
     }
 
@@ -232,7 +238,9 @@ public class DConnectObservationService extends Service {
                 PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         am.cancel(sender);
-        stopForeground(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            stopForeground(true);
+        }
     }
 
     /**

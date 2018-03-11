@@ -535,8 +535,6 @@ public enum HueManager {
         }
 
         if (accessPoints != null && accessPoints.size() > 0) {
-            mHueSDK.getAccessPointsFound().clear();
-            mHueSDK.getAccessPointsFound().addAll(accessPoints);
             for (int i = 0; i < accessPoints.size(); i++) {
                 PHAccessPoint accessPoint = accessPoints.get(i);
                 PHAccessPoint ap = mHueDBHelper.getAccessPointByMacAddress(accessPoint.getMacAddress());
@@ -546,7 +544,7 @@ public enum HueManager {
 
                 boolean isConnected = true;
                 if ((accessPoint.getUsername() == null || !accessPoint.getUsername().equals(OFFLINE_USERNAME))
-                        && mHueSDK != null && !mHueSDK.isAccessPointConnected(accessPoint)) {
+                        && (mHueSDK != null && !mHueSDK.isAccessPointConnected(accessPoint))) {
                     isConnected = false;
                 }
                 if (listener != null) {

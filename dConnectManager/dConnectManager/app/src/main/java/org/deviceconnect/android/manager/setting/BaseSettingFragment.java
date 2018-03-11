@@ -64,6 +64,13 @@ public abstract class BaseSettingFragment extends Fragment {
     }
 
     /**
+     * マネージャ本体と明示的にアンバインドする直前であることを通知.
+     */
+    protected void beforeManagerDisconnected() {
+        // NOP.
+    }
+
+    /**
      * マネージャ本体とのバインドが切断されたことを通知.
      */
     protected void onManagerLost() {
@@ -113,6 +120,7 @@ public abstract class BaseSettingFragment extends Fragment {
         }
         Activity activity = getActivity();
         if (activity != null) {
+            beforeManagerDisconnected();
             activity.unbindService(mServiceConnection);
             mDConnectService = null;
         }

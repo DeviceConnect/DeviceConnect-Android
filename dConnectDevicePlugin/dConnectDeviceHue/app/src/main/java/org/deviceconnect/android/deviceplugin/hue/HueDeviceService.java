@@ -63,7 +63,6 @@ public class HueDeviceService extends DConnectMessageService {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        filter.addAction(HueConstants.ACTION_RESTART_HUE_BRIDGE);
         registerReceiver(mConnectivityReceiver, filter);
     }
 
@@ -195,8 +194,8 @@ public class HueDeviceService extends DConnectMessageService {
             }
 
             @Override
-            public void onDisconnectedLight(String lightId) {
-                DConnectService service = getServiceProvider().getService(lightId);
+            public void onDisconnectedLight(String ip, String lightId) {
+                DConnectService service = getServiceProvider().getService(ip + ":" + lightId);
                 if (service != null) {
                     service.setOnline(false);
                 }
@@ -335,8 +334,6 @@ public class HueDeviceService extends DConnectMessageService {
                 } else {
                     disconnectAllBridges(true);
                 }
-            } else if (HueConstants.ACTION_RESTART_HUE_BRIDGE.equals(action)) {
-                initHueSDK();
             }
         }
     };

@@ -104,9 +104,10 @@ public enum HueManager {
 
         /**
          * 切断されたライト情報.
+         * @param ip ブリッジのIPアドレス
          * @param lightId ライトID
          */
-        void onDisconnectedLight(final String lightId);
+        void onDisconnectedLight(final String ip, final String lightId);
     }
     /**
      * Hue SDK オブジェクト.
@@ -472,7 +473,7 @@ public enum HueManager {
                     List<PHLight> lights = mHueLightDBHelper.getLightsForIp(ipAddress);
                     for (int j = 0; j < lights.size(); j++) {
                         PHLight light = lights.get(j);
-                        listener.onDisconnectedLight(light.getIdentifier());
+                        listener.onDisconnectedLight(ipAddress, light.getIdentifier());
                     }
                 }
             }

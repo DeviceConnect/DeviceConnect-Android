@@ -43,7 +43,9 @@ public class HvcDeviceApplication extends Application {
     public void checkLocationEnable() {
         Context context = getApplicationContext();
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        if (!(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))) {
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                && !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+
             Intent intent = new Intent(context, HvcLocationAlertDialog.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             context.startActivity(intent);

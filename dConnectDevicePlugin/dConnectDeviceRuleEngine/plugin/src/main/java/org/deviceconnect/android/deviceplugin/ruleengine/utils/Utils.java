@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-//import au.com.bytecode.opencsv.CSVReader;
-
 /**
  * ユーティリティクラス
  */
@@ -145,35 +143,6 @@ public class Utils {
             return false;
         }
     }
-
-//    /**
-//     * CSVファイルを読み込む
-//     * @param filepath ファイルパス
-//     * @return Stringのリスト
-//     */
-//    public static List<String[]> readCSV(String filepath) {
-//        File csvfile = new File(filepath);
-//        if (csvfile.exists()){
-//            try {
-//                // 文字コード判別
-//                String encode = "UTF8";
-//                if (!Utils.checkUTF8(csvfile)) {
-//                    encode = "ms932";
-//                }
-//                // CSV読み込み
-//                InputStream stream = new FileInputStream(csvfile);
-//                InputStreamReader reader = new InputStreamReader(stream, encode);
-//                BufferedReader buffer = new BufferedReader(reader);
-//                CSVReader csvReader = new CSVReader(buffer, ',', '"', 0);
-//                // 各行読み込み
-//                return csvReader.readAll();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        return null;
-//    }
-
 
     //endregion
     //---------------------------------------------------------------------------------------
@@ -462,32 +431,6 @@ public class Utils {
             public void onFinish(final DConnectHelper.AuthInfo authInfo, Exception error) {
                 if (error == null) {
                     DConnectHelper.INSTANCE.closeWebSocket();
-                }
-            }
-        };
-        Utils.connect(context, finishCallback);
-    }
-
-    /**
-     * メッセージ送信
-     * @param context context
-     * @param callback 終了コールバック
-     */
-    public static void sendMessage(final Context context, final String channel, final String text, final String resource, final DConnectHelper.FinishCallback<Void> callback) {
-        DConnectHelper.FinishCallback<DConnectHelper.AuthInfo> finishCallback = new DConnectHelper.FinishCallback<DConnectHelper.AuthInfo>() {
-            @Override
-            public void onFinish(DConnectHelper.AuthInfo authInfo, Exception error) {
-                if (error == null) {
-                    // メッセージ送信
-                    SettingData setting = SettingData.getInstance(context);
-                    DConnectHelper.INSTANCE.sendMessage(setting.serviceId, channel, text, resource, new DConnectHelper.FinishCallback<Void>() {
-                        @Override
-                        public void onFinish(Void aVoid, Exception error) {
-                            callback.onFinish(null, error);
-                        }
-                    });
-                } else {
-                    callback.onFinish(null, error);
                 }
             }
         };

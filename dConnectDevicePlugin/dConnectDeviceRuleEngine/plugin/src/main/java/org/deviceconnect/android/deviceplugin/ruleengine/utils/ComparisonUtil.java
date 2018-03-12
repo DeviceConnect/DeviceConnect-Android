@@ -18,53 +18,53 @@ import java.util.List;
  */
 public class ComparisonUtil {
     /** 未満(英字). */
-    public static final String LESS_THAN = "LessThan";
+    private static final String LESS_THAN = "LessThan";
     /** 未満(1バイト文字). */
-    public static final String LESS_THAN_MARK_1 = "<";
+    private static final String LESS_THAN_MARK_1 = "<";
     /** 未満(2バイト文字). */
-    public static final String LESS_THAN_MARK_2 = "＜";
+    private static final String LESS_THAN_MARK_2 = "＜";
 
     /** 以下(英字). */
-    public static final String BELOW = "Below";
+    private static final String BELOW = "Below";
     /** 以下(1バイト文字). */
-    public static final String BELOW_MARK_1 = "<=";
+    private static final String BELOW_MARK_1 = "<=";
     /** 以下(2バイト文字). */
-    public static final String BELOW_MARK_2 = "≦";
+    private static final String BELOW_MARK_2 = "≦";
 
     /** 超過(英字). */
-    public static final String EXCESS = "Excess";
+    private static final String EXCESS = "Excess";
     /** 超過(1バイト文字). */
-    public static final String EXCESS_MARK_1 = ">";
+    private static final String EXCESS_MARK_1 = ">";
     /** 超過(2バイト文字). */
-    public static final String EXCESS_MARK_2 = "＞";
+    private static final String EXCESS_MARK_2 = "＞";
 
     /** 以上(英字). */
-    public static final String NOT_LESS_THAN = "NotLessThan";
+    private static final String NOT_LESS_THAN = "NotLessThan";
     /** 以上(1バイト文字). */
-    public static final String NOT_LESS_THAN_MARK_1 = ">=";
+    private static final String NOT_LESS_THAN_MARK_1 = ">=";
     /** 以上(2バイト文字). */
-    public static final String NOT_LESS_THAN_MARK_2 = "≧";
+    private static final String NOT_LESS_THAN_MARK_2 = "≧";
 
     /** 等しい(英字). */
-    public static final String EQUAL = "Equal";
+    private static final String EQUAL = "Equal";
     /** 等しい(1バイト文字). */
-    public static final String EQUAL_MARK_1 = "=";
+    private static final String EQUAL_MARK_1 = "=";
     /** 等しい(2バイト文字). */
-    public static final String EQUAL_MARK_2 = "＝";
+    private static final String EQUAL_MARK_2 = "＝";
 
     /** 等しくない(英字). */
-    public static final String NOT_EQUAL = "NotEqual";
+    private static final String NOT_EQUAL = "NotEqual";
     /** 等しくない(1バイト文字). */
-    public static final String NOT_EQUAL_MARK_1 = "!=";
+    private static final String NOT_EQUAL_MARK_1 = "!=";
     /** 等しくない(2バイト文字). */
-    public static final String NOT_EQUAL_MARK_2 = "≠";
+    private static final String NOT_EQUAL_MARK_2 = "≠";
 
     /** 指定範囲感(英字). */
-    public static final String BETWEEN = "Between";
+    private static final String BETWEEN = "Between";
     /** 指定範囲感(1バイト文字). */
-    public static final String BETWEEN_MARK_1 = "~";
+    private static final String BETWEEN_MARK_1 = "~";
     /** 指定範囲感(2バイト文字). */
-    public static final String BETWEEN_MARK_2 = "〜";
+    private static final String BETWEEN_MARK_2 = "〜";
 
     /** 型指定 int型 */
     public static final String TYPE_INT = "TypeInt";
@@ -157,7 +157,7 @@ public class ComparisonUtil {
         }
 
         // 比較処理
-        boolean judge = false;
+        boolean judge;
         switch (left.getDataType()) {
             case ComparisonUtil.TYPE_INT:
             case ComparisonUtil.TYPE_JSON_INT:
@@ -279,7 +279,7 @@ public class ComparisonUtil {
                 break;
             case ComparisonUtil.TYPE_TIME:
                 // 時間
-                String[] timeParam = params.split("[:\\.\\+\\-]+");
+                String[] timeParam = params.split("[:.+\\-]+");
                 if (timeParam.length > 4) {
                     return null;
                 }
@@ -296,7 +296,7 @@ public class ComparisonUtil {
             case ComparisonUtil.TYPE_JSON_DATE_TIME:
                 dataTime.clear();
                 // 日付 + 時間
-                String[] dateTimeParam = params.split("[\\-T:\\.\\+]+");
+                String[] dateTimeParam = params.split("[\\-T:.+]+");
                 if (dateTimeParam.length <= 3) {
                     return null;
                 }

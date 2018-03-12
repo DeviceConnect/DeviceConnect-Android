@@ -37,10 +37,10 @@ import java.util.List;
 public class RuleEngineRuleserviceProfile extends DConnectProfile {
 
     /** ルール管理テーブル. */
-    List<String> mRuleServiceList = new ArrayList<>();
+    private List<String> mRuleServiceList = new ArrayList<>();
 
     /** エラー監視要求管理テーブル. */
-    List<Intent> mErrorStatusRequestList = new ArrayList<>();
+    private List<Intent> mErrorStatusRequestList = new ArrayList<>();
 
     public RuleEngineRuleserviceProfile() {
 
@@ -48,7 +48,6 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
         addApi(new PostApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String ruleServiceType = (String) request.getExtras().get("ruleServiceType");
                 String ruleType;
                 // ルールタイプ設定.
@@ -75,7 +74,6 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
         addApi(new DeleteApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String ruleServiceId = (String) request.getExtras().get("ruleServiceId");
 
                 if (((RuleEngineMessageService) getContext()).removeRuleService(ruleServiceId)) {
@@ -99,7 +97,6 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
         addApi(new GetApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String ruleServiceId = (String) request.getExtras().get("ruleServiceId");
 
                 if (mRuleServiceList.size() == 0) {
@@ -308,9 +305,6 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-                String ruleServiceId = (String) request.getExtras().get("ruleServiceId");
-
                 // イベント登録.
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
@@ -339,9 +333,6 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-                String ruleServiceId = (String) request.getExtras().get("ruleServiceId");
-
                 // イベント削除.
                 EventError error = EventManager.INSTANCE.removeEvent(request);
                 switch (error) {
@@ -379,7 +370,6 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String ruleServiceId = (String) request.getExtras().get("ruleServiceId");
 
                 if (mRuleServiceList.size() == 0) {
@@ -496,24 +486,4 @@ public class RuleEngineRuleserviceProfile extends DConnectProfile {
             mRuleServiceList.add(ruleServiceId);
         }
     }
-
-//    private final Map<String, TimerTask> mTimerTasks = new ConcurrentHashMap<>();
-//    private final Timer mTimer = new Timer();
-//
-//    private void startTimer(final String taskId, final TimerTask task, final long interval) {
-//        synchronized (mTimerTasks) {
-//            stopTimer(taskId);
-//            mTimerTasks.put(taskId, task);
-//            mTimer.scheduleAtFixedRate(task, 0, interval);
-//        }
-//    }
-//
-//    private void stopTimer(final String taskId) {
-//        synchronized (mTimerTasks) {
-//            TimerTask timer = mTimerTasks.remove(taskId);
-//            if (timer != null) {
-//                timer.cancel();
-//            }
-//        }
-//    }
 }

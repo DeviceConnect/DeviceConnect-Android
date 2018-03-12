@@ -17,6 +17,6 @@ public class Actions {
     public static final String POST = "POST";
     /** PUT. */
     public static final String PUT = "PUT";
-    /** DELETET. */
+    /** DELETE. */
     public static final String DELETE = "DELETE";
 }

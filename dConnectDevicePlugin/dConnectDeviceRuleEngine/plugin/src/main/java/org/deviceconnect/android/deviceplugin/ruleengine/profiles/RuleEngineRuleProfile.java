@@ -127,7 +127,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
                 String andRuleServiceId = (String) request.getExtras().get("andRuleServiceId");
 
                 if (!mRule.getRuleServiceType().contains(RuleType.AND)) {
@@ -150,7 +149,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                 // トークン切り出し.
                 List<String> andRuleServiceIds = new ArrayList<>();
                 StringTokenizer st = new StringTokenizer(andRuleServiceId,",");
-                int index = 0;
                 while (st.hasMoreTokens()) {
                     String id = st.nextToken();
                     andRuleServiceIds.add(id);
@@ -348,8 +346,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 // 応答処理.
                 setResult(response, DConnectMessage.RESULT_OK);
                 Bundle root = response.getExtras();
@@ -475,8 +471,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 // トリガー構造体取得.
                 Trigger trigger = mRule.getTrigger();
                 if (trigger == null) {
@@ -638,8 +632,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 // ルール詳細説明設定処理.
                 String description = (String) request.getExtras().get("description");
                 if (description != null) {
@@ -948,9 +940,7 @@ public class RuleEngineRuleProfile extends DConnectProfile {
             int index = param.indexOf("=");
             String key = param.substring(0, index);
             String value = param.substring(index + 1);
-            if (key.contains("serviceId")) {
-//                serviceId = value;
-            } else {
+            if (!key.contains("serviceId")) {
                 parameters.put(key, value);
             }
         }
@@ -1067,7 +1057,7 @@ public class RuleEngineRuleProfile extends DConnectProfile {
      * エラーステータス設定.
      * @param errorStatus エラーステータス.
      */
-    public void setErrorStatus(final String errorStatus) {
+    private void setErrorStatus(final String errorStatus) {
         mRule.setErrorTimestamp(nowTimeStampString());
         mRule.setErrorStarus(errorStatus);
         ((RuleEngineMessageService) getContext()).updateRuleData(mRule);
@@ -1324,7 +1314,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                     arrayIndex = -1;
                                 } else {
                                     int firstTag = jsonParam.indexOf("[");
-                                    String param = jsonParam.substring(0, firstTag - 1);
                                     int lastTag  = jsonParam.indexOf("]");
                                     String indexString = jsonParam.substring(firstTag - 1, lastTag - 1);
                                     // JSON配列オブジェクト取得
@@ -1384,7 +1373,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
      * Device Connect Managerへの接続処理.
      */
     private void connectDCM() {
-//        final Context context = getContext();
         final Context context = RuleEngineApplication.getInstance();
         final SettingData setting = SettingData.getInstance(context);
         if (!setting.active) {

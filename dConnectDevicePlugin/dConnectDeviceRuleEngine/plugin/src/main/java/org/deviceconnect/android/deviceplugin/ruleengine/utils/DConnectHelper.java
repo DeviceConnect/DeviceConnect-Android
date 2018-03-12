@@ -425,56 +425,6 @@ public class DConnectHelper {
     }
 
     /**
-     * メッセージ送信する.
-     *
-     * @param serviceId ServiceID
-     * @param channelId ChannelID
-     * @param text Text
-     */
-    public void sendMessage(String serviceId, String channelId, String text, String resource, final FinishCallback<Void> callback) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "sendMessage:" + channelId + ":" + text);
-        // TODO: ↓　汎用化のための修正が必要.
-        // 接続情報
-        ConnectionParam connectionParam = new ConnectionParam(
-                "POST",
-                "messageHook",
-                "message"
-        );
-        // パラメータ
-        Map<String, Object> params = new HashMap<>();
-        params.put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-        if (text != null) {
-            params.put("text", text);
-        }
-        params.put("channelId", channelId);
-        if (resource != null && resource.length() > 0) {
-            params.put("resource", resource);
-            params.put("mimeType", "image");
-        }
-        // TODO: ↑　汎用化のための修正が必要.
-
-        // 接続
-        new HttpTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new TaskParam(connectionParam, params) {
-            @Override
-            public void callBack(DConnectMessage message) {
-                // コールバックがないので処理する意味がない
-                if (callback == null) {
-                    return;
-                }
-                // エラーチェック
-                int result = message.getInt(DConnectMessage.EXTRA_RESULT);
-                if (result == DConnectMessage.RESULT_ERROR) {
-                    DConnectHelperException e = new DConnectInvalidResultException();
-                    e.errorCode = message.getInt(DConnectMessage.EXTRA_ERROR_CODE);
-                    callback.onFinish(null, e);
-                    return;
-                }
-                callback.onFinish(null, null);
-            }
-        });
-    }
-
-    /**
      * リクエスト送信する.
      *
      * @param method Method
@@ -589,7 +539,7 @@ public class DConnectHelper {
      * @param callback Callback
      */
     private void registerEvent(String profile, String attribute, String serviceId, boolean unregist, final FinishCallback<Void> callback) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent:" + profile + ":" + attribute);
+        if (BuildConfig.DEBUG) Log.d(TAG, "registerEvent(unregist=" + unregist +"):" + profile + ":" + attribute);
 
         DConnectSDK.URIBuilder builder = mDConnectSDK.createURIBuilder();
         builder.setProfile(profile);
@@ -731,14 +681,19 @@ public class DConnectHelper {
             }
 
             DConnectResponseMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
-            if (conn.method.equals("GET")) {
-                message = mDConnectSDK.get(builder.build());
-            } else if (conn.method.equals("PUT")) {
-                message = mDConnectSDK.put(builder.build(), entity);
-            } else if (conn.method.equals("POST")) {
-                message = mDConnectSDK.post(builder.build(), entity);
-            } else if (conn.method.equals("DELETE")) {
-                message = mDConnectSDK.delete(builder.build());
+            switch (conn.method) {
+                case "GET":
+                    message = mDConnectSDK.get(builder.build());
+                    break;
+                case "PUT":
+                    message = mDConnectSDK.put(builder.build(), entity);
+                    break;
+                case "POST":
+                    message = mDConnectSDK.post(builder.build(), entity);
+                    break;
+                case "DELETE":
+                    message = mDConnectSDK.delete(builder.build());
+                    break;
             }
 
             return message;

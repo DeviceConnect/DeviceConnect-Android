@@ -17,9 +17,9 @@ public class ErrorStatus {
     public static String NO_DATA = "no_data";
 
     /** エラーステータス. */
-    public String mStatus = NO_DATA;
+    private String mStatus = NO_DATA;
     /** エラー発生日時. */
-    public String mTimestamp = NO_DATA;
+    private String mTimestamp = NO_DATA;
 
     /**
      * エラーステータス取得.
@@ -60,8 +60,7 @@ public class ErrorStatus {
 
         ErrorStatus that = (ErrorStatus) o;
 
-        if (!mStatus.equals(that.mStatus)) return false;
-        return mTimestamp.equals(that.mTimestamp);
+        return mStatus.equals(that.mStatus) && mTimestamp.equals(that.mTimestamp);
     }
 
     @Override

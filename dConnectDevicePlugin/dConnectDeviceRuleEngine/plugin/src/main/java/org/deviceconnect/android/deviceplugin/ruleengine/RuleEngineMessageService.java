@@ -39,18 +39,14 @@ public class RuleEngineMessageService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
         // For debug
-        android.os.Debug.waitForDebugger();
+//        android.os.Debug.waitForDebugger();
         // For debug
 
         mRuleEngineDBHelper = new RuleEngineDBHelper(getContext());
 
-        // TODO 以降の処理では常駐型のサービスを生成しています. 要件に適さない場合は修正してください.
         DConnectService service = new DConnectService(SERVICE_ID);
-        // TODO サービス名の設定
         service.setName("RuleEnginePlugin Service");
-        // TODO サービスの使用可能フラグのハンドリング
         service.setOnline(true);
-        // TODO ネットワークタイプの指定 (例: BLE, Wi-Fi)
         service.setNetworkType(NetworkType.UNKNOWN);
         mRuleServiceProfile = new RuleEngineRuleserviceProfile();
         service.addProfile(mRuleServiceProfile);
@@ -78,22 +74,18 @@ public class RuleEngineMessageService extends DConnectMessageService {
 
     @Override
     protected void onManagerUninstalled() {
-        // TODO Device Connect Managerアンインストール時に実行したい処理. 実装は任意.
     }
 
     @Override
     protected void onManagerTerminated() {
-        // TODO Device Connect Manager停止時に実行したい処理. 実装は任意.
     }
 
     @Override
     protected void onManagerEventTransmitDisconnected(final String origin) {
-        // TODO アプリとのWebSocket接続が切断された時に実行したい処理. 実装は任意.
     }
 
     @Override
     protected void onDevicePluginReset() {
-        // TODO Device Connect Managerの設定画面上で「プラグイン再起動」を要求された場合の処理. 実装は任意.
     }
 
     /**
@@ -290,6 +282,4 @@ public class RuleEngineMessageService extends DConnectMessageService {
         String[] ruleServiceId = id.split(Pattern.quote("."), 0);
         return ruleServiceId[0];
     }
-
-
 }

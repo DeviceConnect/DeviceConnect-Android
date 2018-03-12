@@ -466,15 +466,22 @@ public class HeartRateConnector {
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt,
                                             final int status, final int newState) {
-            mLogger.fine("@@@@@@ onConnectionStateChange: [" + gatt.getDevice() + "]: "
-                    + status + " -> " + newState);
+            mLogger.fine("@@@@@@ onConnectionStateChange: [" + gatt.getDevice() + "]: status: "
+                    + status + " newState: " + newState);
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                mHRDevices.remove(gatt);
                 gatt.close();
-                if (mListener != null) {
-                    mListener.onDisconnected(gatt.getDevice());
+
+                if (hasHeartRateService(gatt)) {
+                    mHRDevices.remove(gatt);
+                    if (mListener != null) {
+                        mListener.onDisconnected(gatt.getDevice());
+                    }
+                } else {
+                    if (mListener != null) {
+                        mListener.onConnectFailed(gatt.getDevice());
+                    }
                 }
             }
         }

@@ -9,9 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastApplication;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
 
 /**
@@ -51,5 +53,15 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
     @Override
     protected Class<? extends Activity> getSettingManualActivityClass() {
         return ChromeCastSettingFragmentActivity.class;
+    }
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        super.onServiceRemoved(service);
+        ChromeCastApplication application = (ChromeCastApplication) getApplication();
+        if (application != null) {
+            //ChromeCastのサービスが削除されたタイミングでChromeCastControllerを初期化する
+            application.getController().reconnect();
+
+        }
     }
 }

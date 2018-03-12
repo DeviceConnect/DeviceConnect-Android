@@ -377,9 +377,10 @@ public enum HueManager {
                 }
             }
         }
-
-        PHBridgeSearchManager sm = (PHBridgeSearchManager) mHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-        sm.search(true, true);
+        if (mHueSDK != null) {
+            PHBridgeSearchManager sm = (PHBridgeSearchManager) mHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
+            sm.search(true, true);
+        }
     }
     /**
      * DBに格納されているアクセスポイント情報とライトを削除します.

@@ -45,7 +45,10 @@ public class HueDeviceProfile extends DConnectProfile {
      * hueブリッジのNotificationを受け取るためのリスナー.
      */
     private PHSDKListener mListener;
-
+    /**
+     * Search Lightフラグ.
+     */
+    private boolean mIsSearchLight;
     /**
      * Hue Bridgeとの接続を行う.
      */
@@ -88,6 +91,7 @@ public class HueDeviceProfile extends DConnectProfile {
                         public void onConnected() {
                             setResult(response, DConnectMessage.RESULT_OK);
                             sendResponse(response);
+                            searchLight(serviceId);
                         }
 
                         @Override
@@ -105,50 +109,7 @@ public class HueDeviceProfile extends DConnectProfile {
                 public void onBridgeConnected(final PHBridge phBridge, final String userName) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            HueManager.INSTANCE.searchLightAutomatic(new PHLightListener() {
-                                @Override
-                                public void onReceivingLightDetails(PHLight phLight) {
-
-                                }
-
-                                @Override
-                                public void onReceivingLights(List<PHBridgeResource> list) {
-                                    for (PHBridgeResource header : list) {
-                                        DConnectService service
-                                                = ((HueDeviceService) getContext()).getServiceProvider()
-                                                    .getService(serviceId + "_" + header.getIdentifier());
-                                        if (service == null) {
-                                            service = new HueLightService(serviceId, header.getIdentifier(), header.getName());
-                                        }
-                                        service.setOnline(true);
-                                    }
-                                }
-
-                                @Override
-                                public void onSearchComplete() {
-
-                                }
-
-                                @Override
-                                public void onSuccess() {
-
-                                }
-
-                                @Override
-                                public void onError(int i, String s) {
-
-                                }
-
-                                @Override
-                                public void onStateUpdate(Map<String, String> map, List<PHHueError> list) {
-
-                                }
-                            });
-                        }
-                    }).start();
+                    searchLight(serviceId);
                 }
 
                 @Override
@@ -185,6 +146,11 @@ public class HueDeviceProfile extends DConnectProfile {
                 }
             };
             if (!getService().isOnline()) {
+                if (mIsSearchLight) {
+                    MessageUtils.setIllegalDeviceStateError(response, "Now connecting for Hue bridge.");
+                    return true;
+                }
+                mIsSearchLight = true;
                 HueManager.INSTANCE.init(getContext());
                 HueManager.INSTANCE.addSDKListener(mListener);
                 HueManager.INSTANCE.searchHueBridge();
@@ -195,6 +161,59 @@ public class HueDeviceProfile extends DConnectProfile {
             }
         }
     };
+
+    /**
+     * ライトの検索を行う.
+     * @param serviceId ブリッジの
+     */
+    private void searchLight(final String serviceId) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HueManager.INSTANCE.searchLightAutomatic(new PHLightListener() {
+                    @Override
+                    public void onReceivingLightDetails(PHLight phLight) {
+
+                    }
+
+                    @Override
+                    public void onReceivingLights(List<PHBridgeResource> list) {
+                        for (PHBridgeResource header : list) {
+                            DConnectService service
+                                    = ((HueDeviceService) getContext()).getServiceProvider()
+                                        .getService(serviceId + "_" + header.getIdentifier());
+                            if (service == null) {
+                                service = new HueLightService(serviceId, header.getIdentifier(), header.getName());
+                                ((HueDeviceService) getContext()).getServiceProvider().addService(service);
+                            }
+                            service.setOnline(true);
+                        }
+                    }
+
+                    @Override
+                    public void onSearchComplete() {
+
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        mIsSearchLight = false;
+                    }
+
+                    @Override
+                    public void onError(int i, String s) {
+                        mIsSearchLight = false;
+                    }
+
+                    @Override
+                    public void onStateUpdate(Map<String, String> map, List<PHHueError> list) {
+
+                    }
+                });
+            }
+        }).start();
+    }
 
     /**
      * Hue Bridgeとの接続を解除する.

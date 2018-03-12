@@ -1,6 +1,10 @@
+/*
+ IlluminationData.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.linking.linking.data;
-
-
 
 public class Name {
     // 言語。"ja"固定。

@@ -109,7 +109,11 @@ public class ChromeCastDiscovery {
 
         @Override
         public void onSessionStartFailed(CastSession castSession, int i) {
-
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionStartFailed");
+                Log.d(TAG, "<================================");
+            }
         }
 
         @Override
@@ -140,7 +144,11 @@ public class ChromeCastDiscovery {
 
         @Override
         public void onSessionResuming(CastSession castSession, String s) {
-
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionResuming");
+                Log.d(TAG, "<================================");
+            }
         }
 
         @Override
@@ -156,7 +164,11 @@ public class ChromeCastDiscovery {
 
         @Override
         public void onSessionResumeFailed(CastSession castSession, int i) {
-
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "================================>");
+                Log.d(TAG, "SessionManagerListener.onSessionResumeFailed");
+                Log.d(TAG, "<================================");
+            }
         }
 
         @Override
@@ -212,5 +224,4 @@ public class ChromeCastDiscovery {
     public ArrayList<CastDevice> getDeviceNames() {
         return mRouteNames;
     }
-
 }

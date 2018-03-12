@@ -21,6 +21,7 @@ import com.google.android.gms.common.api.Status;
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Chromecast Controller クラス.
@@ -33,7 +34,7 @@ public class ChromeCastController implements
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
     /** ロックオブジェクト. */
-    private final Object mLockObj = new Object();
+//    private final Object mLockObj = new Object();
 
     /** 出力するログのタグ名. */
     private static final String TAG = ChromeCastController.class.getSimpleName();
@@ -100,12 +101,11 @@ public class ChromeCastController implements
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnected:");
         }
+
         if (mApiClient == null) {
-            synchronized (mLockObj) {
-                mLockObj.notifyAll();
-            }
             return;
         }
+
         if (connectionHint != null && connectionHint.getBoolean(Cast.EXTRA_APP_NO_LONGER_RUNNING)) {
             teardown();
         } else {
@@ -118,9 +118,6 @@ public class ChromeCastController implements
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnectionSuspended$cause: " + cause);
         }
-        synchronized (mLockObj) {
-            mLockObj.notifyAll();
-        }
     }
 
     @Override
@@ -129,20 +126,20 @@ public class ChromeCastController implements
             Log.d(TAG, "onConnectionFailed$result: " + result.toString());
         }
         teardown();
-        synchronized (mLockObj) {
-            mLockObj.notifyAll();
-        }
     }
 
     /**
      * GoogleApiClientを取得する.
-     * 
-     * @return  GoogleApiClient
+     * <p>
+     *     接続に失敗した場合にはnullを返却します。
+     * </p>
+     * @return GoogleApiClient
      */
     public GoogleApiClient getGoogleApiClient()  {
         if (!mApiClient.isConnected()) {
             // 一度切断する
             mApiClient.disconnect();
+
             Cast.CastOptions.Builder apiOptionsBuilder =
                     new Cast.CastOptions.Builder(mSelectedDevice, mCastListener);
             mApiClient = new GoogleApiClient.Builder(mContext)
@@ -150,8 +147,10 @@ public class ChromeCastController implements
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
-            mApiClient.connect();
-            waitForResponse();
+            ConnectionResult result = mApiClient.blockingConnect(30, TimeUnit.SECONDS);
+            if (!result.isSuccess()) {
+                return null;
+            }
         }
         return mApiClient;
     }
@@ -165,6 +164,7 @@ public class ChromeCastController implements
     public void addCallbacks(final Callbacks callbacks) {
         this.mCallbacks.add(callbacks);
     }
+   
     /**
      * 接続完了を通知するコールバックを登録する.
      *
@@ -230,8 +230,6 @@ public class ChromeCastController implements
                     .build();
             mApiClient.connect();
         }
-            
-
     }
 
     /**
@@ -278,9 +276,6 @@ public class ChromeCastController implements
                         if (mResult != null) {
                             mResult.onChromeCastConnected();
                         }
-                        synchronized (mLockObj) {
-                            mLockObj.notifyAll();
-                        }
                     }
                 });
         }
@@ -319,18 +314,6 @@ public class ChromeCastController implements
                     }
                 }
             });
-        }
-    }
-    /**
-     * レスポンスが返ってくるまでの間スレッドを停止する.
-     */
-    private void waitForResponse() {
-        synchronized (mLockObj) {
-            try {
-                mLockObj.wait(30000);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "InterruptedException occurred in waitForResponse.");
-            }
         }
     }
 }

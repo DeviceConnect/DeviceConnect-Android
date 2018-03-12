@@ -60,8 +60,8 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
         ChromeCastApplication application = (ChromeCastApplication) getApplication();
         if (application != null) {
             //ChromeCastのサービスが削除されたタイミングでChromeCastControllerを初期化する
-            application.getController().teardown();
-            application.initialize();
+            application.getController().reconnect();
+
         }
     }
 }

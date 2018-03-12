@@ -3,6 +3,7 @@ apply plugin: 'com.android.library'
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-server')
+    androidTestCompile fileTree(include: '*.jar', dir: 'testLibs')
 }
 
 android {

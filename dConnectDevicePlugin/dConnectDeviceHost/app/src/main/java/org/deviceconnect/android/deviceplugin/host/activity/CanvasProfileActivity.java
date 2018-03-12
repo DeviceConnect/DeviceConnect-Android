@@ -271,7 +271,7 @@ public class CanvasProfileActivity extends Activity  {
                     if (mDrawImageObject != null && drawImageObject.getData().equals(mDrawImageObject.getData())) {
                         return ResourceResult.Success;
                     } else {
-                        if (mBitmap.isRecycled()) {
+                        if (mBitmap != null && !mBitmap.isRecycled()) {
                             mBitmap.recycle();
                             mBitmap = null;
                         }

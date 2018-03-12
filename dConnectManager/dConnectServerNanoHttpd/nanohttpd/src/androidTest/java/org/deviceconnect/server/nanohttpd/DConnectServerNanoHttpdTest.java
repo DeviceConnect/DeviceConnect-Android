@@ -16,6 +16,7 @@ import org.deviceconnect.server.DConnectServerError;
 import org.deviceconnect.server.DConnectServerEventListener;
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
+import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -31,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -50,6 +52,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -1296,14 +1299,14 @@ public class DConnectServerNanoHttpdTest {
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_ssl() {
+    public void DConnectServerNanoHttpd_ssl() throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
         final String key = "key";
         final String value = "value";
         File file = getContext().getFilesDir();
         DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).isSsl(true).documentRootPath(file.getPath()).build();
-        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext(), createSSLServerSocketFactory(getContext()));
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
@@ -1372,14 +1375,14 @@ public class DConnectServerNanoHttpdTest {
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_ssl_body() {
+    public void DConnectServerNanoHttpd_ssl_body() throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
         final String key = "key";
         final String value = "value";
         File file = getContext().getFilesDir();
         DConnectServerConfig config = new DConnectServerConfig.Builder().isSsl(true).port(PORT).documentRootPath(file.getPath()).build();
-        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext(), createSSLServerSocketFactory(getContext()));
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
@@ -1448,14 +1451,14 @@ public class DConnectServerNanoHttpdTest {
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_websocket() {
+    public void DConnectServerNanoHttpd_websocket() throws Exception {
         final CountDownLatch serverLaunchLatch = new CountDownLatch(1);
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<String> result = new AtomicReference<>();
         final String msg = "test-message";
         File file = getContext().getFilesDir();
         DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).documentRootPath(file.getPath()).build();
-        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext(), createSSLServerSocketFactory(getContext()));
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
@@ -1536,14 +1539,14 @@ public class DConnectServerNanoHttpdTest {
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_ssl_websocket() {
+    public void DConnectServerNanoHttpd_ssl_websocket() throws Exception {
         final CountDownLatch serverLaunchLatch = new CountDownLatch(1);
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<String> result = new AtomicReference<>();
         final String msg = "test-message";
         File file = getContext().getFilesDir();
         DConnectServerConfig config = new DConnectServerConfig.Builder().isSsl(true).port(PORT).documentRootPath(file.getPath()).build();
-        DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
+        DConnectServer server = new DConnectServerNanoHttpd(config, getContext(), createSSLServerSocketFactory(getContext()));
         server.setServerEventListener(new DConnectServerEventListener() {
             @Override
             public boolean onReceivedHttpRequest(final HttpRequest req, final HttpResponse res) {
@@ -1621,6 +1624,12 @@ public class DConnectServerNanoHttpdTest {
         } finally {
             server.shutdown();
         }
+    }
+
+    private SSLServerSocketFactory createSSLServerSocketFactory(final Context context) throws GeneralSecurityException {
+        KeyStoreManager keystoreMgr = new KeyStoreManager();
+        keystoreMgr.initialize(context, false);
+        return keystoreMgr.getServerSocketFactory();
     }
 
     private SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {

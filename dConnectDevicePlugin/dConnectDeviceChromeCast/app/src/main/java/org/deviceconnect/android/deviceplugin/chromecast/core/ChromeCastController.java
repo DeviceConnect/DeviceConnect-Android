@@ -150,7 +150,7 @@ public class ChromeCastController implements
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
-            mApiClient.blockingConnect();
+            mApiClient.connect();
             waitForResponse();
         }
         return mApiClient;

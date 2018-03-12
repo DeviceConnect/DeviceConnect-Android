@@ -24,4 +24,11 @@ public class HueLightService extends DConnectService {
         setNetworkType(NetworkType.WIFI);
         addProfile(new HueLightProfile());
     }
+    public HueLightService(final String ip, final String id, final String name) {
+        //LightのServiceIdは、IPアドレスとライトIDを「:」で区切る
+        super(ip + ":" + id);
+        setName(name);
+        setNetworkType(NetworkType.WIFI);
+        addProfile(new HueLightProfile());
+    }
 }

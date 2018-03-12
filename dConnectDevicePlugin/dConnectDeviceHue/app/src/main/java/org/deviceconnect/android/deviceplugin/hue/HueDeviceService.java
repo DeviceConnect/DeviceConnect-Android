@@ -63,7 +63,6 @@ public class HueDeviceService extends DConnectMessageService {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        filter.addAction(HueConstants.ACTION_RESTART_HUE_BRIDGE);
         registerReceiver(mConnectivityReceiver, filter);
     }
 
@@ -195,8 +194,8 @@ public class HueDeviceService extends DConnectMessageService {
             }
 
             @Override
-            public void onDisconnectedLight(String lightId) {
-                DConnectService service = getServiceProvider().getService(lightId);
+            public void onDisconnectedLight(String ip, String lightId) {
+                DConnectService service = getServiceProvider().getService(ip + ":" + lightId);
                 if (service != null) {
                     service.setOnline(false);
                 }
@@ -241,20 +240,7 @@ public class HueDeviceService extends DConnectMessageService {
                 Log.i(TAG, "PHSDKListener:#onBridgeConnected: bridge=" + phBridge + ", userName=" + userName);
             }
             HueManager.INSTANCE.saveBridgeForDB(phBridge, userName);
-            String ipAddress = phBridge.getResourceCache().getBridgeConfiguration().getIpAddress();
-            DConnectService service = getServiceProvider().getService(ipAddress);
-            if (service != null) {
-                service.setOnline(true);
-            }
-            List<PHLight> lights = phBridge.getResourceCache().getAllLights();
-            for (int i = 0; i < lights.size(); i++) {
-                HueLightService light = (HueLightService) getServiceProvider().getService(ipAddress + ":" + lights.get(i).getIdentifier());
-                if (light == null) {
-                    light = new HueLightService(ipAddress, lights.get(i));
-                    getServiceProvider().addService(light);
-                }
-                light.setOnline(true);
-            }
+            updateHueBridge(true, phBridge);
          }
 
         @Override
@@ -265,16 +251,13 @@ public class HueDeviceService extends DConnectMessageService {
         }
 
         @Override
-        public void onConnectionResumed(final PHBridge bridge) {
+        public void onConnectionResumed(final PHBridge phBridge) {
             if (DEBUG) {
-                Log.i(TAG, "PHSDKListener:#onConnectionResumed: bridge=" + bridge);
+                Log.i(TAG, "PHSDKListener:#onConnectionResumed: bridge=" + phBridge);
             }
 
-            String ipAddress = HueManager.INSTANCE.removeDisconnectedAccessPoint(bridge);
-            DConnectService service = getServiceProvider().getService(ipAddress);
-            if (service != null) {
-                service.setOnline(true);
-            }
+            HueManager.INSTANCE.removeDisconnectedAccessPoint(phBridge);
+            updateHueBridge(true, phBridge);
         }
 
         @Override
@@ -283,11 +266,7 @@ public class HueDeviceService extends DConnectMessageService {
                 Log.i(TAG, "PHSDKListener:#onConnectionLost: accessPoint=" + accessPoint);
             }
 
-            String ipAddress = HueManager.INSTANCE.addDisconnectedAccessPoint(accessPoint);
-            DConnectService service = getServiceProvider().getService(ipAddress);
-            if (service != null) {
-                service.setOnline(false);
-            }
+            updateHueBridge(false, accessPoint);
         }
 
         @Override
@@ -321,6 +300,48 @@ public class HueDeviceService extends DConnectMessageService {
     };
 
     /**
+     * Hueプラグインが管理するサービスのステータスを更新する.
+      * @param isConnected true:オンライン false:オフライン
+     * @param phBridge PHBridge
+     */
+    private void updateHueBridge(final boolean isConnected, final PHBridge phBridge) {
+        String ipAddress = phBridge.getResourceCache().getBridgeConfiguration().getIpAddress();
+        DConnectService service = getServiceProvider().getService(ipAddress);
+        if (service != null) {
+            service.setOnline(isConnected);
+        }
+        List<PHLight> lights = phBridge.getResourceCache().getAllLights();
+        for (int i = 0; i < lights.size(); i++) {
+            HueLightService light = (HueLightService) getServiceProvider().getService(ipAddress + ":" + lights.get(i).getIdentifier());
+            if (light == null) {
+                light = new HueLightService(ipAddress, lights.get(i));
+                getServiceProvider().addService(light);
+            }
+            light.setOnline(isConnected);
+        }
+    }
+    /**
+     * Hueプラグインが管理するサービスのステータスを更新する.
+     * @param isConnected true:オンライン false:オフライン
+     * @param accessPoint PHAccessPoint
+     */
+    private void updateHueBridge(final boolean isConnected, final PHAccessPoint accessPoint) {
+        String ipAddress = HueManager.INSTANCE.addDisconnectedAccessPoint(accessPoint);
+        DConnectService service = getServiceProvider().getService(ipAddress);
+        if (service != null) {
+            service.setOnline(isConnected);
+        }
+        List<PHLight> lights = HueManager.INSTANCE.getLightsForIp(ipAddress);
+        for (int i = 0; i < lights.size(); i++) {
+            HueLightService light = (HueLightService) getServiceProvider().getService(ipAddress + ":" + lights.get(i).getIdentifier());
+            if (light == null) {
+                light = new HueLightService(ipAddress, lights.get(i));
+                getServiceProvider().addService(light);
+            }
+            light.setOnline(isConnected);
+        }
+    }
+    /**
      * ネットワーク状況が変わった通知を受けるレシーバー.
      */
     private BroadcastReceiver mConnectivityReceiver = new BroadcastReceiver() {
@@ -335,8 +356,6 @@ public class HueDeviceService extends DConnectMessageService {
                 } else {
                     disconnectAllBridges(true);
                 }
-            } else if (HueConstants.ACTION_RESTART_HUE_BRIDGE.equals(action)) {
-                initHueSDK();
             }
         }
     };

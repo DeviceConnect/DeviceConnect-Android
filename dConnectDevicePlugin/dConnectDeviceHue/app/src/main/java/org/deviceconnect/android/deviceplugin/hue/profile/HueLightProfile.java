@@ -212,27 +212,29 @@ public class HueLightProfile extends LightProfile {
         addApi(new PutApi() {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = getServiceID(request);
-                String lightId = getLightId(request);
+                final String[] serviceId = new String[1];
+                serviceId[0] = getServiceID(request);
+                final String[] lightId = new String[1];
+                lightId[0] = getLightId(request);
                 Integer color = getColor(request);
                 Double brightness = getBrightness(request);
                 long[] flashing = getFlashing(request);
                 final String name = getName(request);
-                if (serviceId.contains(":")) {
-                    String[] ids = serviceId.split(":");
-                    serviceId = ids[0];
-                    lightId = ids[1];
+                if (serviceId[0].contains(":")) {
+                    String[] ids = serviceId[0].split(":");
+                    serviceId[0] = ids[0];
+                    lightId[0] = ids[1];
                 }
 
-                final PHBridge bridge = HueManager.INSTANCE.findBridge(serviceId);
+                final PHBridge bridge = HueManager.INSTANCE.findBridge(serviceId[0]);
                 if (bridge == null) {
-                    MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
+                    MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId[0]);
                     return true;
                 }
 
-                final PHLight light = HueManager.INSTANCE.findLight(bridge, lightId);
+                final PHLight light = HueManager.INSTANCE.findLight(bridge, lightId[0]);
                 if (light == null) {
-                    MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
+                    MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId[0] + "@" + serviceId[0]);
                     return true;
                 }
 
@@ -254,7 +256,7 @@ public class HueLightProfile extends LightProfile {
                     @Override
                     public void onSuccess() {
                         super.onSuccess();
-                        DConnectService service = getService();
+                        DConnectService service = ((HueDeviceService) getContext()).getServiceProvider().getService(serviceId[0] + ":" + lightId[0]);
                         if (service != null) {
                             service.setName(name);
                         }
@@ -282,7 +284,7 @@ public class HueLightProfile extends LightProfile {
 
                 final PHLightState lightState = makeLightState(color, brightness, flashing);
                 if (flashing != null) {
-                    flashing(lightId, lightState, bridge, light, flashing);
+                    flashing(lightId[0], lightState, bridge, light, flashing);
                     countDownLatch.countDown();//do not check result of flashing
                 } else {
                     bridge.updateLightState(light, lightState, new PHLightAdapter() {

@@ -12,6 +12,7 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
+import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.ServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -30,6 +31,9 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /** デバイスプラグイン管理クラス. */
     private DevicePluginManager mDevicePluginManager;
+
+    /** サービス検索リクエスト管理用オブジェクト. */
+    private final DConnectRequestManager mDiscoveryRequestMgr = new DConnectRequestManager();
 
     /**
      * コンストラクタ.
@@ -53,7 +57,7 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             req.setRequest(request);
             req.setTimeout(ServiceDiscoveryRequest.TIMEOUT);
             req.setDevicePluginManager(mDevicePluginManager);
-            ((DConnectMessageService) getContext()).addRequest(req);
+            mDiscoveryRequestMgr.addRequest(req);
             return false;
         }
     };

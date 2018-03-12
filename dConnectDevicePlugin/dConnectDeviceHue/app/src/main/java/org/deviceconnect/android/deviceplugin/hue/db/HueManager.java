@@ -104,9 +104,10 @@ public enum HueManager {
 
         /**
          * 切断されたライト情報.
+         * @param ip ブリッジのIPアドレス
          * @param lightId ライトID
          */
-        void onDisconnectedLight(final String lightId);
+        void onDisconnectedLight(final String ip, final String lightId);
     }
     /**
      * Hue SDK オブジェクト.
@@ -472,7 +473,7 @@ public enum HueManager {
                     List<PHLight> lights = mHueLightDBHelper.getLightsForIp(ipAddress);
                     for (int j = 0; j < lights.size(); j++) {
                         PHLight light = lights.get(j);
-                        listener.onDisconnectedLight(light.getIdentifier());
+                        listener.onDisconnectedLight(ipAddress, light.getIdentifier());
                     }
                 }
             }
@@ -534,8 +535,6 @@ public enum HueManager {
         }
 
         if (accessPoints != null && accessPoints.size() > 0) {
-            mHueSDK.getAccessPointsFound().clear();
-            mHueSDK.getAccessPointsFound().addAll(accessPoints);
             for (int i = 0; i < accessPoints.size(); i++) {
                 PHAccessPoint accessPoint = accessPoints.get(i);
                 PHAccessPoint ap = mHueDBHelper.getAccessPointByMacAddress(accessPoint.getMacAddress());
@@ -545,7 +544,7 @@ public enum HueManager {
 
                 boolean isConnected = true;
                 if ((accessPoint.getUsername() == null || !accessPoint.getUsername().equals(OFFLINE_USERNAME))
-                        && mHueSDK != null && !mHueSDK.isAccessPointConnected(accessPoint)) {
+                        && (mHueSDK != null && !mHueSDK.isAccessPointConnected(accessPoint))) {
                     isConnected = false;
                 }
                 if (listener != null) {

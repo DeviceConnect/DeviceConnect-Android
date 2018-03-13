@@ -6,10 +6,14 @@
  */
 package org.deviceconnect.android.deviceplugin.ruleengine.profiles;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.ruleengine.BuildConfig;
 import org.deviceconnect.android.deviceplugin.ruleengine.RuleEngineApplication;
 import org.deviceconnect.android.deviceplugin.ruleengine.RuleEngineMessageService;
 import org.deviceconnect.android.deviceplugin.ruleengine.params.Actions;
@@ -26,7 +30,6 @@ import org.deviceconnect.android.deviceplugin.ruleengine.utils.DConnectHelper;
 import org.deviceconnect.android.deviceplugin.ruleengine.utils.TimeUnitUtil;
 import org.deviceconnect.android.deviceplugin.ruleengine.utils.TimerUtil;
 import org.deviceconnect.android.deviceplugin.ruleengine.utils.Utils;
-import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -35,9 +38,7 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.message.DConnectEventMessage;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.DConnectResponseMessage;
 import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.message.DConnectSDKFactory;
 import org.deviceconnect.utils.RFC3339DateUtils;
@@ -72,6 +73,12 @@ public class RuleEngineRuleProfile extends DConnectProfile {
     /** 処理遅延発生時の次回処理設定 : STACK識別子. */
     public static final String STACK = "stack";
 
+    /** AND条件成立情報通知のBroadcast アクション名. */
+    private static final String ACTION_AND_EVENT = "org.deviceconnect.android.devicepligin.ruleengine.action.AND_EVENT";
+    /** AND条件成立情報通知のレシーバー. */
+    private AndEventReceiver mAndEventReceiver;
+    /** AND条件成立情報通知のIntentFilter. */
+    private IntentFilter mAndEventIntentFilter;
     /** 比較値選択 : 左辺. */
     private static final String SELECT_LEFT = "left";
     /** 比較値選択 : 右辺. */
@@ -89,23 +96,35 @@ public class RuleEngineRuleProfile extends DConnectProfile {
     /** Device Connect SDK. */
     private DConnectSDK mSDK;
 
-
-    private final DConnectSDK.OnEventListener mAndEventListener = new DConnectSDK.OnEventListener() {
+    /**
+     * AND条件成立情報通知のレシーバー.
+     */
+    public class AndEventReceiver extends BroadcastReceiver {
         @Override
-        public void onMessage(final  DConnectEventMessage message) {
-            DConnectMessage comparisonResult = message.getMessage("comparisonResult");
-            String ruleServiceId = comparisonResult.getString("ruleServiceId");
-            String timestamp = comparisonResult.getString("timestamp");
-            if (ruleServiceId != null && timestamp != null) {
-                andProcess(ruleServiceId, timestamp);
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                Bundle comparisonResult = bundle.getBundle("comparisonResult");
+                if (comparisonResult != null) {
+                    String ruleServiceId = comparisonResult.getString("ruleServiceId");
+                    if (ruleServiceId != null) {
+                        List<String> ids = mRule.getAndRule().getAndRuleServiceId();
+                        if (!ids.isEmpty()) {
+                            for (String id : ids) {
+                                if (id.contains(ruleServiceId)) {
+                                    String timestamp = comparisonResult.getString("timestamp");
+                                    if (timestamp != null) {
+                                        andProcess(ruleServiceId, timestamp);
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-
-        @Override
-        public void onResponse(final DConnectResponseMessage message) {
-
-        }
-    };
+    }
 
     /**
      * Constructor.
@@ -196,6 +215,7 @@ public class RuleEngineRuleProfile extends DConnectProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 final String serviceId = (String) request.getExtras().get("serviceId");
+                if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "/rule/onOperation : " + mRule.getRuleDescription());
 
                 // ルール状態設定.
                 mRule.setRuleEnable(true);
@@ -218,11 +238,19 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                         return true;
                     }
 
+                    if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "AND - PUT send");
+
                     for (final String ruleServiceId : andRuleList) {
+
+                        final SettingData setting = SettingData.getInstance(getContext());
+                        setting.scopes.add("rule");
+                        setting.serviceId = ruleServiceId;
+
                         final String rest = "/gotapi/rule/onOperation";
                         executor.submit(new Runnable() {
                             @Override
                             public void run() {
+                                if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "AND - Utils.sendRequest");
                                 Utils.sendRequest(getContext(), "PUT", rest, ruleServiceId, null, new DConnectHelper.FinishCallback<Map<String, Object>>() {
                                     @Override
                                     public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
@@ -232,15 +260,11 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                             setErrorStatus(errorStatus);
                                             // エラー情報通知
                                             ((RuleEngineMessageService) getContext()).sendEventErrorStatus(ruleServiceId, mRule.getErrorStarus(), mRule.getErrorTimestamp());
+                                            if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "Error.");
                                         } else {
                                             // WebSocket設定.
                                             connectWebSocket();
-                                            // イベント受信設定.
-                                            DConnectSDK.URIBuilder uriBuilder = mSDK.createURIBuilder();
-                                            uriBuilder.setServiceId(ruleServiceId);
-                                            uriBuilder.setProfile(PROFILE_NAME);
-                                            uriBuilder.setAttribute("onOperation");
-                                            mSDK.addEventListener(uriBuilder.build(), mAndEventListener);
+                                            if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "Done.");
                                         }
                                     }
                                 });
@@ -248,7 +272,15 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                         });
                     }
 
+                    // Broadcastハンドラー登録.
+                    mAndEventReceiver = new AndEventReceiver();
+                    mAndEventIntentFilter = new IntentFilter();
+                    mAndEventIntentFilter.addAction(ACTION_AND_EVENT);
+                    getContext().registerReceiver(mAndEventReceiver, mAndEventIntentFilter);
+
+                    setResult(response, DConnectMessage.RESULT_OK);
                 } else {
+                    if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "onOperation Request");
                     // インターバルタイマー起動処理.
                     TimerTask task = new TimerTask() {
                         @Override
@@ -261,7 +293,7 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                 // DateTime以外はREST実行
                                 execRest(request, actionType, rest, parameter);
                             } else {
-                                executeProcess(request, null);
+                                executeProcess(null);
                             }
                         }
                     };
@@ -276,25 +308,22 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                         }
                     }
                     startTimer(serviceId, task, interval, refernceTime, delayOccurrence);
-                    // ルール状態設定.
-                    mRule.setRuleEnable(true);
-                    ((RuleEngineMessageService) getContext()).updateRuleData(mRule);
-
-                    // イベント登録.
-                    EventError error = EventManager.INSTANCE.addEvent(request);
-                    switch (error) {
-                        case NONE:
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            break;
-                        case INVALID_PARAMETER:
-                            MessageUtils.setInvalidRequestParameterError(response);
-                            break;
-                        default:
-                            MessageUtils.setUnknownError(response);
-                            break;
-                    }
                 }
 
+                // イベント登録.
+                EventError error = EventManager.INSTANCE.addEvent(request);
+                switch (error) {
+                    case NONE:
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
+                }
+                if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "onOperation exit. : " + mRule.getRuleDescription());
                 return true;
             }
         });
@@ -316,6 +345,44 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
                 // インターバルタイマー停止処理.
                 stopTimer(serviceId);
+
+                // ANDルール確認.
+                if (mRule.getRuleServiceType().contains(RuleType.AND)) {
+                    // AND ルール取得.
+                    AndRule andRule = mRule.getAndRule();
+                    // AND ruleServiceID取得.
+                    List<String> andRuleList = andRule.getAndRuleServiceId();
+                    if (andRuleList.size() == 0) {
+                        // AND条件未設定.
+                        MessageUtils.setInvalidRequestParameterError(response, "AND Rule not set.");
+                        return true;
+                    }
+
+                    for (final String ruleServiceId : andRuleList) {
+
+                        SettingData setting = SettingData.getInstance(getContext());
+                        setting.serviceId = ruleServiceId;
+
+                        final String rest = "/gotapi/rule/onOperation";
+                        executor.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                Utils.sendRequest(getContext(), "DELETE", rest, ruleServiceId, null, new DConnectHelper.FinishCallback<Map<String, Object>>() {
+                                    @Override
+                                    public void onFinish(Map<String, Object> stringObjectMap, Exception error) {
+                                        if (error != null) {
+                                            // エラー通知.
+                                            String errorStatus = "AND Rule execute error. errorCode = " + stringObjectMap.get("errorCode") + " (" + stringObjectMap.get("errorMessage") + ")";
+                                            setErrorStatus(errorStatus);
+                                            // エラー情報通知
+                                            ((RuleEngineMessageService) getContext()).sendEventErrorStatus(ruleServiceId, mRule.getErrorStarus(), mRule.getErrorTimestamp());
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
 
                 // イベント解除.
                 EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -364,8 +431,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 // オペレーション設定処理.
                 Operation operation = new Operation();
                 // REST設定処理.
@@ -603,8 +668,6 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 // トリガー情報取得.
                 Trigger trigger = mRule.getTrigger();
                 if (trigger == null) {
@@ -656,22 +719,25 @@ public class RuleEngineRuleProfile extends DConnectProfile {
             mSDK.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
                 @Override
                 public void onOpen() {
-
+                    if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "OnWebSocketListener - onOpen()");
                 }
 
                 @Override
                 public void onClose() {
-
+                    if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "OnWebSocketListener - onClose()");
                 }
 
                 @Override
                 public void onError(Exception e) {
-
+                    if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "OnWebSocketListener - onError() : " + e);
                 }
             });
         }
     }
 
+    /**
+     * AND条件用成立時刻情報格納クラス.
+     */
     class AndEstablishment {
         /** ルールサービスID. */
         private String mRuleServiceId;
@@ -784,9 +850,8 @@ public class RuleEngineRuleProfile extends DConnectProfile {
 
     /**
      * 解析処理.
-     * @param request リクエスト.
      */
-    private void executeProcess(final Intent request, final Map<String, Object> stringObjectMap) {
+    private void executeProcess(final Map<String, Object> stringObjectMap) {
         // DConnectMessageにキャスト.
         DConnectMessage result = (DConnectMessage) stringObjectMap;
 
@@ -806,17 +871,17 @@ public class RuleEngineRuleProfile extends DConnectProfile {
         int res = ComparisonUtil.judgeComparison(leftValue, comparison, rightValue);
         // 判定結果処理
         if (res == ComparisonUtil.RES_TRUE) {
-            // 条件成立をイベントにて通知.
-            Event event = EventManager.INSTANCE.getEvent(request);
-            Intent message = EventManager.createEventMessage(event);
-            Bundle root = message.getExtras();
+            // 条件成立をANDルールサービスに通知.
+            Intent intent = new Intent(ACTION_AND_EVENT);
             Bundle comparisonResult = new Bundle();
-            comparisonResult.putString("ruleServiceId", (String) request.getExtras().get("serviceId"));
+            comparisonResult.putString("ruleServiceId", mRule.getRuleServiceId());
             comparisonResult.putBoolean("result", true);
             comparisonResult.putString("timestamp", nowTimeStampString());
+            Bundle root = new Bundle();
             root.putBundle("comparisonResult", comparisonResult);
-            message.putExtras(root);
-            sendEvent(message, event.getAccessToken());
+            intent.putExtras(root);
+            if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "ComparisonUtil.RES_TRUE : sendBroadcast() SendTask: " + mRule.getRuleDescription());
+            RuleEngineApplication.getInstance().sendBroadcast(intent);
 
             // Operation実行.
             if (mRule.getOperations().size() != 0) {
@@ -985,7 +1050,7 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                     // エラー情報通知
                     ((RuleEngineMessageService) getContext()).sendEventErrorStatus(id, mRule.getErrorStarus(), mRule.getErrorTimestamp());
                 } else {
-                    executeProcess(request, stringObjectMap);
+                    executeProcess(stringObjectMap);
                 }
             }
         });
@@ -997,47 +1062,54 @@ public class RuleEngineRuleProfile extends DConnectProfile {
      * @param timestamp タイムスタンプ.
      */
     private void andProcess(final String serviceId, final String timestamp) {
+        if (BuildConfig.DEBUG) Log.d(PROFILE_NAME, "andProcess()");
         // 受信イベント分の格納処理.
         boolean findFlag = false;
-        if (mAndEstablishmentList.size() != 0) {
-            for (int i = 0; i < mAndEstablishmentList.size(); i++) {
-                AndEstablishment ae = mAndEstablishmentList.get(i);
-                if (ae.getRuleServiceId().equals(serviceId)) {
-                    ae.setEstablishmentTime(timestamp);
-                    mAndEstablishmentList.set(i, ae);
-                    findFlag = true;
-                    break;
+        for (int i = 0; i < mAndEstablishmentList.size(); i++) {
+            AndEstablishment ae = mAndEstablishmentList.get(i);
+            if (ae.getRuleServiceId().equals(serviceId)) {
+                ae.setEstablishmentTime(timestamp);
+                mAndEstablishmentList.set(i, ae);
+                findFlag = true;
+                break;
+            }
+        }
+        if (!findFlag) { // 未格納の場合は追加.
+            AndEstablishment ae = new AndEstablishment();
+            ae.setRuleServiceId(serviceId);
+            ae.setEstablishmentTime(timestamp);
+            mAndEstablishmentList.add(ae);
+        }
+
+        int ruleCount = mRule.getAndRule().getAndRuleServiceId().size();
+        if (mAndEstablishmentList.size() == ruleCount) {
+            Calendar compTime = RFC3339DateUtils.toCalendar(timestamp);
+            // 時間単位変換.
+            String unit = mRule.getAndRule().getJudgementTimeUnit();
+            long judgementTime;
+            if (unit == null) {
+                // 単位をmSecとして扱う.
+                judgementTime = mRule.getAndRule().getJudgementTime();
+            } else {
+                // 単位変換.
+                judgementTime = TimeUnitUtil.changeMSec(mRule.getAndRule().getJudgementTime(), unit);
+            }
+            // 比較時刻算出.
+            long diffTime = compTime.getTimeInMillis() - judgementTime;
+            Calendar calDiff = Calendar.getInstance();
+            calDiff.clear();
+            calDiff.setTime(new Date(diffTime));
+
+            // 成立判定.
+            int judgeCount = 0;
+            for(AndEstablishment ae : mAndEstablishmentList) {
+                if (ae.getEstablishmentTime().compareTo(calDiff) >= 0) {    // 比較時間に等しいか、以降の時刻.
+                    judgeCount++;
                 }
             }
-            if (findFlag) { // 該当ルールサービスID存在.
-                Calendar compTime = RFC3339DateUtils.toCalendar(timestamp);
-                // 時間単位変換.
-                String unit = mRule.getAndRule().getJudgementTimeUnit();
-                long judgementTime;
-                if (unit == null) {
-                    // 単位をmSecとして扱う.
-                    judgementTime = mRule.getAndRule().getJudgementTime();
-                } else {
-                    // 単位変換.
-                    judgementTime = TimeUnitUtil.changeMSec(mRule.getAndRule().getJudgementTime(), unit);
-                }
-                // 比較時刻算出.
-                long diffTime = compTime.getTimeInMillis() - judgementTime;
-                Calendar calDiff = Calendar.getInstance();
-                calDiff.clear();
-                calDiff.setTime(new Date(diffTime));
-
-                // 成立判定.
-                int judgeCount = 0;
-                for(AndEstablishment ae : mAndEstablishmentList) {
-                    if (ae.getEstablishmentTime().compareTo(calDiff) >= 0) {    // 比較時間に等しいか、以降の時刻.
-                        judgeCount++;
-                    }
-                }
-                if (judgeCount == mAndEstablishmentList.size()) {
-                    // 条件成立 Operation処理.
-                    executeOperation();
-                }
+            if (judgeCount == mAndEstablishmentList.size()) {
+                // 条件成立 Operation処理.
+                executeOperation();
             }
         }
     }

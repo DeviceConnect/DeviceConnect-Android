@@ -1332,7 +1332,8 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                             result = value.setDataInt(ComparisonValue.FIRST, jsonObject.getInt(jsonParam));
                                             break;
                                         case ComparisonUtil.TYPE_JSON_FLOAT:
-                                            result = value.setDataFloat(ComparisonValue.FIRST, Float.valueOf(jsonObject.getString(jsonParam)));
+                                            String doubleValue = Double.valueOf(jsonObject.getDouble(jsonParam)).toString();
+                                            result = value.setDataFloat(ComparisonValue.FIRST, Float.valueOf(doubleValue));
                                             break;
                                         case ComparisonUtil.TYPE_JSON_DOUBLE:
                                             result = value.setDataDouble(ComparisonValue.FIRST, jsonObject.getDouble(jsonParam));
@@ -1367,7 +1368,8 @@ public class RuleEngineRuleProfile extends DConnectProfile {
                                             result = value.setDataInt(ComparisonValue.FIRST, msg.getInt(jsonParam));
                                             break;
                                         case ComparisonUtil.TYPE_JSON_FLOAT:
-                                            result = value.setDataFloat(ComparisonValue.FIRST, Float.valueOf(msg.getString(jsonParam)));
+                                            String doubleValue = Double.valueOf(msg.getString(jsonParam)).toString();
+                                            result = value.setDataFloat(ComparisonValue.FIRST, Float.valueOf(doubleValue));
                                             break;
                                         case ComparisonUtil.TYPE_JSON_DOUBLE:
                                             result = value.setDataDouble(ComparisonValue.FIRST, msg.getDouble(jsonParam));

@@ -79,6 +79,7 @@ public class WebSocketListActivity extends BaseSettingActivity implements AlertD
     protected void onManagerBonded(final DConnectService manager) {
         mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
         getWebSocketInfoManager().addOnWebSocketEventListener(this);
+        mWebSocketInfoAdapter.notifyDataSetChanged();
     }
 
     @Override

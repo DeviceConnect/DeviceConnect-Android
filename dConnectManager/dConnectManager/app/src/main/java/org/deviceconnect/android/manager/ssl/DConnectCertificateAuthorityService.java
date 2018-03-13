@@ -8,6 +8,7 @@ package org.deviceconnect.android.manager.ssl;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.ssl.CertificateAuthorityService;
 
 import java.util.logging.Logger;
@@ -53,13 +54,17 @@ public class DConnectCertificateAuthorityService extends CertificateAuthoritySer
 
     @Override
     public void onCreate() {
-        mLogger.info("onCreate");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onCreate");
+        }
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        mLogger.info("onStartCommand");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onStartCommand");
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 }

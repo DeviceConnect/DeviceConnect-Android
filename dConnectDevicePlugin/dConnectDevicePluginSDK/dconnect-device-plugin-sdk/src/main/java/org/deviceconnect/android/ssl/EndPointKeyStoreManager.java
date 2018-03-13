@@ -19,6 +19,7 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.deviceconnect.android.BuildConfig;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -132,32 +133,46 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      * @param alias 証明書のエイリアス
      */
     private void restoreIPAddress(final String alias) {
-        mLogger.log(Level.INFO, "Checking IP Addresses...: alias = " + alias);
+        if (BuildConfig.DEBUG) {
+            mLogger.log(Level.INFO, "Checking IP Addresses...: alias = " + alias);
+        }
         try {
             Certificate certificate = mKeyStore.getCertificate(alias);
             if (certificate == null) {
-                mLogger.info("Certificate is not stored yet: alias = " + alias);
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Certificate is not stored yet: alias = " + alias);
+                }
                 return;
             }
-            mLogger.log(Level.INFO, "Restoring IP Addresses...: alias = " + alias);
+            if (BuildConfig.DEBUG) {
+                mLogger.log(Level.INFO, "Restoring IP Addresses...: alias = " + alias);
+            }
             if (certificate instanceof X509Certificate) {
                 X509Certificate x509 = (X509Certificate) certificate;
                 Collection<List<?>> names = x509.getSubjectAlternativeNames();
                 if (names != null) {
-                    mLogger.log(Level.INFO, "SANs: size = " + names.size());
+                    if (BuildConfig.DEBUG) {
+                        mLogger.log(Level.INFO, "SANs: size = " + names.size());
+                    }
                     for (Iterator<List<?>> it = names.iterator(); it.hasNext(); ) {
                         List<?> list = it.next();
                         if (list.size() == 2) {
                             Object tagNo = list.get(0);
                             Object value = list.get(1);
-                            mLogger.info("SAN: tagNo = " + tagNo + ", value = " + value);
+
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("SAN: tagNo = " + tagNo + ", value = " + value);
+                            }
+
                             if (tagNo instanceof Integer && value instanceof String) {
                                 mSANs.add(new SAN((Integer) tagNo, (String) value));
                             }
                         }
                     }
                 } else {
-                    mLogger.log(Level.INFO, "No SANs is defined in certificate.");
+                    if (BuildConfig.DEBUG) {
+                        mLogger.log(Level.INFO, "No SANs is defined in certificate.");
+                    }
                 }
             } else {
                 mLogger.log(Level.SEVERE, "Certificate format is not X.509: class = " + certificate.getClass());
@@ -189,19 +204,29 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
+                }
                 try {
                     String alias = getAlias();
                     if (hasIPAddress(ipAddress)) {
-                        mLogger.info("Certificate is cached for alias: " + alias);
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("Certificate is cached for alias: " + alias);
+                        }
                         Certificate[] chain = mKeyStore.getCertificateChain(getAlias());
                         callback.onSuccess(mKeyStore, chain[0], chain[1]);
                     } else {
-                        mLogger.info("Generating key pair...");
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("Generating key pair...");
+                        }
                         final KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
                         final KeyPair keyPair = keyGenerator.generateKeyPair();
-                        mLogger.info("Generated key pair.");
-                        mLogger.info("Executing certificate request...");
+
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("Generated key pair.");
+                            mLogger.info("Executing certificate request...");
+                        }
+
                         final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
 
                         final List<ASN1Encodable> names = new ArrayList<>();
@@ -219,13 +244,17 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                         localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
                             @Override
                             public void onCreate(final Certificate cert, final Certificate rootCert) {
-                                mLogger.info("Generated server certificate");
+                                if (BuildConfig.DEBUG) {
+                                    mLogger.info("Generated server certificate");
+                                }
 
                                 try {
                                     Certificate[] chain = {cert, rootCert};
                                     setCertificate(chain, keyPair.getPrivate());
                                     saveKeyStore();
-                                    mLogger.info("Saved server certificate");
+                                    if (BuildConfig.DEBUG) {
+                                        mLogger.info("Saved server certificate");
+                                    }
                                     mSANs.add(new SAN(GeneralName.iPAddress, ipAddress));
                                     callback.onSuccess(mKeyStore, cert, rootCert);
                                 } catch (Exception e) {

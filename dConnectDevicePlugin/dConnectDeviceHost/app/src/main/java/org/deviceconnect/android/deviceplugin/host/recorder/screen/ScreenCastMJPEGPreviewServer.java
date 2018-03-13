@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
@@ -124,7 +125,9 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
                     @Override
                     public void run() {
                         if (mServer != null) {
-                            mLogger.info("Server URL: " + mServer.getUrl());
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("Server URL: " + mServer.getUrl());
+                            }
                         }
                         try {
                             while (mIsStarted) {

@@ -8,6 +8,7 @@ package org.deviceconnect.android.manager.request;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.R;
@@ -398,7 +399,9 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
                     int errorCode = getErrorCode(mResponse);
                     if (errorCode == DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE.getCode()) {
                         // authorizationプロファイルに対応していないのでアクセストークンはいらない。
-                        mLogger.info("DevicePlugin not support Authorization Profile.");
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("DevicePlugin not support Authorization Profile.");
+                        }
                         return new ClientData();
                     } else {
                         sendResponse(mResponse);

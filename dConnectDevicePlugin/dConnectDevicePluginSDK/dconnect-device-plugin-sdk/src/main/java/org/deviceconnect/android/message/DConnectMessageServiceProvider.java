@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.message;
 
+import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.app.Service;
@@ -37,7 +38,9 @@ public abstract class DConnectMessageServiceProvider<T extends Service> extends 
         /* KeepAlive応答処理 */
         if (intent.getAction().equals(IntentDConnectMessage.ACTION_KEEPALIVE)) {
             String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
-            mLogger.info("ACTION_KEEPALIVE Receive. status: " + status);
+            if (BuildConfig.DEBUG) {
+                mLogger.info("ACTION_KEEPALIVE Receive. status: " + status);
+            }
             if (status.equals("CHECK") || status.equals("START") || status.equals("STOP")) {
                 Intent response = MessageUtils.createResponseIntent(intent);
                 response.setAction(IntentDConnectMessage.ACTION_KEEPALIVE);
@@ -45,7 +48,10 @@ public abstract class DConnectMessageServiceProvider<T extends Service> extends 
                 response.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
                         intent.getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID));
                 context.sendBroadcast(response);
-                mLogger.info("Send Broadcast.");
+
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Send Broadcast.");
+                }
             }
             return;
         }

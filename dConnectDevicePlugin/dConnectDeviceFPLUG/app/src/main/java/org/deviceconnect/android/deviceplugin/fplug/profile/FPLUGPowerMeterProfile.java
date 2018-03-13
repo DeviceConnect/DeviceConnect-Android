@@ -48,6 +48,21 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
             String date = request.getStringExtra(PARAM_DATE);
+            String unit = (String) request.getExtras().get("unit");
+            // 積算電力量単位パラメータ取得
+            if (unit == null) {
+                unit = "Wh";
+            }
+
+            switch (unit) {
+                case "kWh":
+                case "Wh":
+                    break;
+                default:
+                    MessageUtils.setInvalidRequestParameterError(response, "unit parse error");
+                    sendResultError(response);
+                    return true;
+            }
             Calendar calendar;
             if (date != null) {
                 calendar = RFC3339DateUtils.toCalendar(date);
@@ -103,6 +118,22 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
+            String unit = (String) request.getExtras().get("unit");
+            // 瞬時電力量単位パラメータ取得
+            if (unit == null) {
+                unit = "W";
+            }
+
+            switch (unit) {
+                case "kW":
+                case "W":
+                    break;
+                default:
+                    MessageUtils.setInvalidRequestParameterError(response, "unit parse error");
+                    sendResultError(response);
+                    return true;
+            }
+
             FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
             FPLUGController controller = app.getConnectedController(serviceId);
             if (controller == null) {

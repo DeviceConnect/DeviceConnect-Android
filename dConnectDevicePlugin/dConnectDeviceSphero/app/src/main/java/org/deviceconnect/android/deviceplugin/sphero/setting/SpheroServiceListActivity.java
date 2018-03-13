@@ -7,9 +7,11 @@
 package org.deviceconnect.android.deviceplugin.sphero.setting;
 
 import android.app.Activity;
+import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
 
 /**
@@ -29,5 +31,11 @@ public class SpheroServiceListActivity extends DConnectServiceListActivity {
         return SettingActivity.class;
     }
 
-
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        super.onServiceRemoved(service);
+        Intent removedService = new Intent(SpheroDeviceService.ACTION_SPHERO_REMOVE);
+        removedService.putExtra(SpheroDeviceService.PARAM_SERVICE_ID, service.getId());
+        sendBroadcast(removedService);
+    }
 }

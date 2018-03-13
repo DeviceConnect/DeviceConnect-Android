@@ -159,9 +159,15 @@ class CameraMJPEGPreviewServer implements CameraPreviewServer {
                                 if (rotatedBmp.compress(Bitmap.CompressFormat.JPEG, jpegQuality, baos)) {
                                     server.offerMedia(baos.toByteArray());
                                 }
-                                rotatedBmp.recycle();
+                                if (rotatedBmp != null && !rotatedBmp.isRecycled()) {
+                                    rotatedBmp.recycle();
+                                    rotatedBmp = null;
+                                }
                             }
-                            bmp.recycle();
+                            if (bmp != null && !bmp.isRecycled()) {
+                                bmp.recycle();
+                                bmp = null;
+                            }
                         }
                     } catch (OutOfMemoryError e) {
                         stopWebServer();

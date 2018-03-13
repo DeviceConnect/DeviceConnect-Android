@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
@@ -25,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.ConnectionState;
@@ -187,6 +185,18 @@ public class DevicePluginListFragment extends BaseSettingFragment {
         DevicePlugin plugin = container.getPluginEntity();
         intent.putExtra(DevicePluginInfoActivity.EXTRA_PLUGIN_ID, plugin.getPluginId());
         startActivity(intent);
+    }
+
+    private void requestPluginStateChange(final String pluginId, final boolean isOn) {
+        BaseSettingActivity activity = (BaseSettingActivity) getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        DConnectService service = activity.getManagerService();
+        if (service != null) {
+            service.setEnablePlugin(pluginId, isOn);
+        }
     }
 
     /**
@@ -351,23 +361,6 @@ public class DevicePluginListFragment extends BaseSettingFragment {
                     container.setConnecting(state == ConnectionState.CONNECTING);
                     notifyDataSetChanged();
                     break;
-                }
-            }
-        }
-
-        private void requestPluginStateChange(final String pluginId, final boolean isOn) {
-            Activity activity = getActivity();
-            if (activity != null) {
-                String action = isOn ?
-                        DConnectMessageService.ACTION_ENABLE_PLUGIN :
-                        DConnectMessageService.ACTION_DISABLE_PLUGIN;
-                Intent request = new Intent(activity.getApplicationContext(), DConnectService.class);
-                request.setAction(action);
-                request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, pluginId);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    activity.startForegroundService(request);
-                } else {
-                    activity.startService(request);
                 }
             }
         }

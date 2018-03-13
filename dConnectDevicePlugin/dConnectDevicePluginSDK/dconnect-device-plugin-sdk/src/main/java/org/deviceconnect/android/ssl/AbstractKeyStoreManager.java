@@ -17,6 +17,7 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.deviceconnect.android.BuildConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -96,11 +97,18 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
             throw new IllegalStateException(KEYSTORE_TYPE + " is not supported.", e);
         }
         boolean isSavedKeyStore = isSavedKeyStore();
-        mLogger.info("isSavedKeyStore: " + isSavedKeyStore);
+
+        if (BuildConfig.DEBUG) {
+            mLogger.info("isSavedKeyStore: " + isSavedKeyStore);
+        }
+
         if (isSavedKeyStore) {
             try {
                 loadKeyStore();
-                mLogger.info("Loaded keystore: path = " + mKeyStoreFilePath);
+
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Loaded keystore: path = " + mKeyStoreFilePath);
+                }
             } catch (Exception e) {
                 mLogger.log(Level.SEVERE, "Failed to load keystore: path = " + mKeyStoreFilePath, e);
             }

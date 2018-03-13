@@ -55,10 +55,10 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                     castService = new ChromeCastDeviceService(cast);
                     getServiceProvider().addService(castService);
                 } else {
-                    for (Iterator<DConnectService> it = disappeared.iterator(); ; it.hasNext()) {
-                        DConnectService cache = it.next();
+                    for (int j = 0; j < disappeared.size(); j++) {
+                        DConnectService cache = disappeared.get(j);
                         if (cache.getId().equals(castService.getId())) {
-                            it.remove();
+                            disappeared.remove(j);
                             break;
                         }
                     }

@@ -214,13 +214,19 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         Uri uri = intent.getData();
         String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
         String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
+        }
 
         if (key == null || origin == null) {
-            mLogger.warning("Origin or key is missing.");
+            if (BuildConfig.DEBUG) {
+                mLogger.warning("Origin or key is missing.");
+            }
             key = uri.getQueryParameter(IntentDConnectMessage.EXTRA_KEY);
             origin = uri.getQueryParameter(IntentDConnectMessage.EXTRA_ORIGIN);
-            mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
+            if (BuildConfig.DEBUG) {
+                mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
+            }
         }
 
         try {
@@ -273,12 +279,14 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private void startManager() {
         if (mDConnectService != null) {
             preventAutoStop();
+            mSettings.setManagerStartFlag(true);
             mDConnectService.startInternal();
         }
     }
 
     private void stopManager() {
         if (mDConnectService != null) {
+            mSettings.setManagerStartFlag(false);
             mDConnectService.stopInternal();
 
             Intent intent = new Intent();
@@ -293,7 +301,9 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         setTheme(R.style.AppTheme);
         View root = findViewById(R.id.launcher_root);
         root.setVisibility(View.VISIBLE);
-        mLogger.info("Displayed launch activity.");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Displayed launch activity.");
+        }
 
         Button cancelButton = (Button) findViewById(R.id.button_manager_launcher_cancel);
         cancelButton.setOnClickListener(new View.OnClickListener() {

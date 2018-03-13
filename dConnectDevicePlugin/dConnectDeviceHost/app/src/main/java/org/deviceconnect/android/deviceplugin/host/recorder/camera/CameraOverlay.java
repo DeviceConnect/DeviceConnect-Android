@@ -19,8 +19,6 @@ import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -40,7 +38,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
@@ -478,12 +475,10 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * 撮影後の後始末を行います.
      */
     private void cleanup() {
-        Log.d("ABC", "cleanup");
         synchronized (CameraOverlay.this) {
             if (!mPreviewMode) {
                 hide();
             } else if (mCamera != null) {
-                Log.d("ABC", "startPreview?");
                 mCamera.startPreview();
             }
         }
@@ -526,13 +521,19 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             }
 
                             rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
-                            original.recycle();
+                            if (original != null && !original.isRecycled()) {
+                                original.recycle();
+                                original = null;
+                            }
                         }
 
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         rotated.compress(CompressFormat.JPEG, mJpegQuality, baos);
                         byte[] jpeg = baos.toByteArray();
-                        rotated.recycle();
+                        if (rotated != null && !rotated.isRecycled()) {
+                            rotated.recycle();
+                            rotated = null;
+                        }
 
                         // 常に違うファイル名になるためforceOverwriteはtrue
                         mFileMgr.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
@@ -711,8 +712,6 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * フラッシュライト点灯.
      */
     public  void turnOnFlashLight() {
-        Log.d("ABC", "turnOnFlashLight");
-
         synchronized (mCameraLock) {
             if (!isShow() && mCamera == null) {
                 mCamera = Camera.open();
@@ -746,8 +745,6 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * フラッシュライト消灯.
      */
     public void turnOffFlashLight() {
-        Log.d("ABC", "turnOffFlashLight");
-
         synchronized (mCameraLock) {
             if (isFlashLightState() && mCamera != null) {
                 Parameters p = mCamera.getParameters();
@@ -765,8 +762,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             }
                         }
                     }
-
-                   hide();
+                    mCamera.release();
+                    mParams = null;
+                    mCamera = null;
                 }
             }
             mFlashLightState = false;

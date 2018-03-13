@@ -15,6 +15,7 @@ import android.os.RemoteException;
 
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.IDConnectPlugin;
+import org.deviceconnect.android.manager.BuildConfig;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +61,9 @@ public class BinderConnection extends AbstractConnection {
 
     @Override
     public synchronized void connect() throws ConnectingException {
-        mLogger.info("BinderConnection.connect: " + mPluginName.getPackageName());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("BinderConnection.connect: " + mPluginName.getPackageName());
+        }
         if (!(ConnectionState.DISCONNECTED == getState() || ConnectionState.SUSPENDED == getState())) {
             return;
         }
@@ -103,7 +106,9 @@ public class BinderConnection extends AbstractConnection {
 
     @Override
     public void send(final Intent message) throws MessagingException {
-        mLogger.info("BinderConnection.send: sending: target = " + mPluginName.getPackageName());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("BinderConnection.send: sending: target = " + mPluginName.getPackageName());
+        }
         synchronized (this) {
             if (ConnectionState.SUSPENDED == getState()) {
                 throw new MessagingException(MessagingException.Reason.CONNECTION_SUSPENDED);
@@ -114,7 +119,9 @@ public class BinderConnection extends AbstractConnection {
         }
         try {
             mPlugin.sendMessage(message);
-            mLogger.info("BinderConnection.send: sent: target = " + mPluginName.getPackageName());
+            if (BuildConfig.DEBUG) {
+                mLogger.info("BinderConnection.send: sent: target = " + mPluginName.getPackageName());
+            }
         } catch (RemoteException e) {
             throw new MessagingException(e, MessagingException.Reason.NOT_CONNECTED);
         }
@@ -124,7 +131,9 @@ public class BinderConnection extends AbstractConnection {
 
         @Override
         public ConnectingResult call() throws Exception {
-            mLogger.info("ConnectingTask.call: " + mPluginName);
+            if (BuildConfig.DEBUG) {
+                mLogger.info("ConnectingTask.call: " + mPluginName);
+            }
 
             final Object lockObj = new Object();
             final ConnectingResult result = new ConnectingResult();
@@ -134,7 +143,9 @@ public class BinderConnection extends AbstractConnection {
             final ServiceConnection serviceConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(final ComponentName componentName, final IBinder binder) {
-                    mLogger.info("onServiceConnected: componentName = " + componentName + ", binder = " + binder);
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("onServiceConnected: componentName = " + componentName + ", binder = " + binder);
+                    }
                     try {
                         IDConnectPlugin plugin = IDConnectPlugin.Stub.asInterface(binder);
                         plugin.registerCallback(mCallback);
@@ -153,7 +164,9 @@ public class BinderConnection extends AbstractConnection {
 
                 @Override
                 public void onServiceDisconnected(final ComponentName componentName) {
-                    mLogger.info("onServiceDisconnected: componentName = " + componentName);
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("onServiceDisconnected: componentName = " + componentName);
+                    }
                     synchronized (BinderConnection.this) {
                         mServiceConnection = null;
                         mPlugin = null;

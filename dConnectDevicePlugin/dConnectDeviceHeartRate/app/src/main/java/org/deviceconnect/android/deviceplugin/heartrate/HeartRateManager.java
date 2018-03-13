@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.heartrate;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
@@ -156,6 +155,12 @@ public class HeartRateManager {
         mDetector.stopScan();
         mConnectedDevices.clear();
         mConnector.stop();
+
+        for (HeartRateDevice d : mRegisterDevices) {
+            for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                l.onDisconnected(d);
+            }
+        }
     }
 
     /**

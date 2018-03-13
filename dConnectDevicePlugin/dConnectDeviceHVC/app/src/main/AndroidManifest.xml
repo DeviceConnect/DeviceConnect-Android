@@ -33,6 +33,8 @@
             android:exported="false"/>
 
         <activity android:name=".profile.HvcLocationAlertDialog"
+            android:theme="@style/AppTheme.Translucent"
+            android:excludeFromRecents="true"
             android:exported="false"/>
 
         <!-- Device Connect HVC Device Plugin Provider. -->

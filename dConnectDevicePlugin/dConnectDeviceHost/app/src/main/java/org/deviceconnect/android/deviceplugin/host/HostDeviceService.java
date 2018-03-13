@@ -87,12 +87,13 @@ public class HostDeviceService extends DConnectMessageService {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
+            if (Intent.ACTION_NEW_OUTGOING_CALL.equals(action)) {
                 onReceivedOutGoingCall(intent);
             } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
                     || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
                 onChangedWifiStatus();
-            } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+            } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
+                    || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 onChangedBluetoothStatus();
             }
         }
@@ -153,11 +154,11 @@ public class HostDeviceService extends DConnectMessageService {
         getServiceProvider().addService(hostService);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction("android.intent.action.NEW_OUTGOING_CALL");
-        filter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
-        filter.addAction("android.net.wifi.STATE_CHANGE");
-        filter.addAction("android.bluetooth.adapter.action.CONNECTION_STATE_CHANGED");
-        filter.addAction("android.bluetooth.adapter.action.STATE_CHANGED");
+        filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mHostConnectionReceiver, filter);
 
     }

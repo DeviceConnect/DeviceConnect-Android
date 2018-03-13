@@ -11,6 +11,8 @@ import android.content.Context;
 
 import com.google.fix.PRNGFixes;
 
+import org.deviceconnect.android.BuildConfig;
+
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -82,9 +84,13 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
                         callback.onSuccess(mKeyStore, cert, cert);
                         return;
                     }
-                    mLogger.info("Generating self-signed server certificate...");
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Generating self-signed server certificate...");
+                    }
                     cert = generateSelfSignedCertificate();
-                    mLogger.info("Generated self-signed server certificate...");
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Generated self-signed server certificate...");
+                    }
                 } catch (KeyStoreException e) {
                     mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
                     callback.onError(KeyStoreError.BROKEN_KEYSTORE);

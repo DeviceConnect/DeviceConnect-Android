@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
@@ -304,7 +305,9 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
                             imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
                                 @Override
                                 public void onImageAvailable(final ImageReader reader) {
-                                    mLogger.info("onImageAvailable");
+                                    if (BuildConfig.DEBUG) {
+                                        mLogger.info("onImageAvailable");
+                                    }
                                     screenshot[0] = screenCast.getScreenshot();
                                     mLatch.countDown();
                                 }

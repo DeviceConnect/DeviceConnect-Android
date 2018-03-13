@@ -15,7 +15,6 @@ public class ChromeCastApplication extends Application {
     /** Chromecast Application. */
     private ChromeCastController mController;
 
-
     public void initialize() {
         String appId = getString(R.string.application_id);
 
@@ -34,8 +33,8 @@ public class ChromeCastApplication extends Application {
         if (mController != null) {
             mController.teardown();
         }
-
     }
+
     /**
      * ChromeCastを制御するクラスを返す.
      * @return
@@ -51,5 +50,4 @@ public class ChromeCastApplication extends Application {
     public ChromeCastDiscovery getDiscovery() {
         return mDiscovery;
     }
-
 }

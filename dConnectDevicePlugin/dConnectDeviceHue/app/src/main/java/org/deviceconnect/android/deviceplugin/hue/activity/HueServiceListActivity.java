@@ -54,9 +54,6 @@ public class HueServiceListActivity extends DConnectServiceListActivity {
                 removeService(service.getId() + ":" + lights.get(i).getIdentifier());
             }
             HueManager.INSTANCE.removeHueService((HueService) service);
-            // HueSDKを再生成
-            Intent restartIntent = new Intent(HueConstants.ACTION_RESTART_HUE_BRIDGE);
-            sendBroadcast(restartIntent);
         } else if (service instanceof HueLightService) {
             HueManager.INSTANCE.removeHueLightService((HueLightService) service);
         }

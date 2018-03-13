@@ -450,7 +450,7 @@ public class ChromeCastService extends DConnectMessageService implements
             // Whether application that had been started before whether other apps
             try {
                 GoogleApiClient client = app.getController().getGoogleApiClient();
-                if (client == null || (client != null && !client.isConnected())) {
+                if (client == null || (!client.isConnected())) {
                     // Request in connection queuing
                     callback.onResponse(false);
                     return;
@@ -458,7 +458,6 @@ public class ChromeCastService extends DConnectMessageService implements
                 callback.onResponse(true);
             } catch (IllegalStateException e) {
                 callback.onResponse(false);
-                return;
             }
         }
     }

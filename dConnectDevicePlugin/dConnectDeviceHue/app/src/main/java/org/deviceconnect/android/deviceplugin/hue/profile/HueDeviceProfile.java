@@ -192,17 +192,16 @@ public class HueDeviceProfile extends DConnectProfile {
 
                     @Override
                     public void onSearchComplete() {
-
+                        mIsSearchBridge = false;
                     }
 
                     @Override
                     public void onSuccess() {
-                        mIsSearchBridge = false;
                     }
 
                     @Override
                     public void onError(int i, String s) {
-                        mIsSearchBridge = false;
+
                     }
 
                     @Override

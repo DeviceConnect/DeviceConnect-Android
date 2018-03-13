@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHAccessPoint;
@@ -48,7 +47,7 @@ public class HueDeviceProfile extends DConnectProfile {
     /**
      * Search Lightフラグ.
      */
-    private boolean mIsSearchLight;
+    private boolean mIsSearchBridge;
     /**
      * Hue Bridgeとの接続を行う.
      */
@@ -146,11 +145,11 @@ public class HueDeviceProfile extends DConnectProfile {
                 }
             };
             if (!getService().isOnline()) {
-                if (mIsSearchLight) {
+                if (mIsSearchBridge) {
                     MessageUtils.setIllegalDeviceStateError(response, "Now connecting for Hue bridge.");
                     return true;
                 }
-                mIsSearchLight = true;
+                mIsSearchBridge = true;
                 HueManager.INSTANCE.init(getContext());
                 HueManager.INSTANCE.addSDKListener(mListener);
                 HueManager.INSTANCE.searchHueBridge();
@@ -198,12 +197,12 @@ public class HueDeviceProfile extends DConnectProfile {
 
                     @Override
                     public void onSuccess() {
-                        mIsSearchLight = false;
+                        mIsSearchBridge = false;
                     }
 
                     @Override
                     public void onError(int i, String s) {
-                        mIsSearchLight = false;
+                        mIsSearchBridge = false;
                     }
 
                     @Override

@@ -48,10 +48,6 @@ public class RuleEngineMessageService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        // For debug
-//        android.os.Debug.waitForDebugger();
-        // For debug
-
         mRuleEngineDBHelper = new RuleEngineDBHelper(getContext());
 
         DConnectService service = new DConnectService(SERVICE_ID);

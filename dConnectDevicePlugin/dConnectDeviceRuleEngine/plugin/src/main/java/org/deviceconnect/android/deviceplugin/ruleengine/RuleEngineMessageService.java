@@ -1,3 +1,9 @@
+/*
+ RuleEngineMessageService.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.ruleengine;
 
 import android.util.Log;
@@ -25,6 +31,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+/**
+ * RuleEngineMessageServiceクラス.
+ * @author NTT DOCOMO, INC.
+ */
 public class RuleEngineMessageService extends DConnectMessageService {
     /** サービスID. */
     public static final String SERVICE_ID = "rule_engine_service_id";
@@ -55,8 +65,10 @@ public class RuleEngineMessageService extends DConnectMessageService {
         loadRuleData();
     }
 
+    /**
+     * DBからルール情報読み込み.
+     */
     private void loadRuleData() {
-        // DBからルール情報読み込み
         List<Rule> rules = mRuleEngineDBHelper.getRules();
         if (!(rules.isEmpty())) {
             // 保存ルール情報展開.
@@ -200,7 +212,6 @@ public class RuleEngineMessageService extends DConnectMessageService {
             return null;
         }
     }
-
 
     /**
      * 指定IDのルール情報取得.

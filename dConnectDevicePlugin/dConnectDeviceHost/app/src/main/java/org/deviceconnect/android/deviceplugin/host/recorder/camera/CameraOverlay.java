@@ -521,13 +521,19 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             }
 
                             rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
-                            original.recycle();
+                            if (original != null && !original.isRecycled()) {
+                                original.recycle();
+                                original = null;
+                            }
                         }
 
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         rotated.compress(CompressFormat.JPEG, mJpegQuality, baos);
                         byte[] jpeg = baos.toByteArray();
-                        rotated.recycle();
+                        if (rotated != null && !rotated.isRecycled()) {
+                            rotated.recycle();
+                            rotated = null;
+                        }
 
                         // 常に違うファイル名になるためforceOverwriteはtrue
                         mFileMgr.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {

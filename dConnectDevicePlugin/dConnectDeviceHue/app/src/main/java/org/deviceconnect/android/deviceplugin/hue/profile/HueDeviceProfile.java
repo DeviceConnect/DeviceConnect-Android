@@ -166,51 +166,44 @@ public class HueDeviceProfile extends DConnectProfile {
      * @param serviceId ブリッジの
      */
     private void searchLight(final String serviceId) {
-
-        new Thread(new Runnable() {
+        HueManager.INSTANCE.searchLightAutomatic(new PHLightListener() {
             @Override
-            public void run() {
-                HueManager.INSTANCE.searchLightAutomatic(new PHLightListener() {
-                    @Override
-                    public void onReceivingLightDetails(PHLight phLight) {
+            public void onReceivingLightDetails(PHLight phLight) {
 
-                    }
-
-                    @Override
-                    public void onReceivingLights(List<PHBridgeResource> list) {
-                        for (PHBridgeResource header : list) {
-                            DConnectService service
-                                    = ((HueDeviceService) getContext()).getServiceProvider()
-                                        .getService(serviceId + "_" + header.getIdentifier());
-                            if (service == null) {
-                                service = new HueLightService(serviceId, header.getIdentifier(), header.getName());
-                                ((HueDeviceService) getContext()).getServiceProvider().addService(service);
-                            }
-                            service.setOnline(true);
-                        }
-                    }
-
-                    @Override
-                    public void onSearchComplete() {
-                        mIsSearchBridge = false;
-                    }
-
-                    @Override
-                    public void onSuccess() {
-                    }
-
-                    @Override
-                    public void onError(int i, String s) {
-
-                    }
-
-                    @Override
-                    public void onStateUpdate(Map<String, String> map, List<PHHueError> list) {
-
-                    }
-                });
             }
-        }).start();
+
+            @Override
+            public void onReceivingLights(List<PHBridgeResource> list) {
+                for (PHBridgeResource header : list) {
+                    DConnectService service
+                            = ((HueDeviceService) getContext()).getServiceProvider()
+                                .getService(serviceId + "_" + header.getIdentifier());
+                    if (service == null) {
+                        service = new HueLightService(serviceId, header.getIdentifier(), header.getName());
+                        ((HueDeviceService) getContext()).getServiceProvider().addService(service);
+                    }
+                    service.setOnline(true);
+                }
+            }
+
+            @Override
+            public void onSearchComplete() {
+                mIsSearchBridge = false;
+            }
+
+            @Override
+            public void onSuccess() {
+            }
+
+            @Override
+            public void onError(int i, String s) {
+            }
+
+            @Override
+            public void onStateUpdate(Map<String, String> map, List<PHHueError> list) {
+
+            }
+        });
     }
 
     /**

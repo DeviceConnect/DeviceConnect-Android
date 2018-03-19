@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hue"
         minSdkVersion 14
-        targetSdkVersion 19
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
@@ -50,9 +50,10 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-    flavorDimensions "DeviceWebApi"
+    flavorDimensions "common"
     productFlavors {
         DeviceWebApi {
+            dimension "common"
             versionCode 11
             versionName "2.2.2"
             manifestPlaceholders = [
@@ -60,6 +61,14 @@ android {
                     appName: "@string/app_name_for_device_web_api"
             ]
         }
+        things {
+            dimension "common"
+
+        }
+        main {
+            dimension "common"
+        }
+
     }
 
     tasks.withType(JavaCompile) {
@@ -76,5 +85,6 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
+    compileOnly 'com.google.android.things:androidthings:+'
 }

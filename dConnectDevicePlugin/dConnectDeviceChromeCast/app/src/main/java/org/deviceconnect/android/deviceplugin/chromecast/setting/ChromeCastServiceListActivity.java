@@ -9,9 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastApplication;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
 
 /**
@@ -30,7 +32,7 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
         toolbar.setTitleTextColor(Color.parseColor("#FFFFFF"));
         toolbar.setBackgroundColor(Color.parseColor("#00a0e9"));
         addContentView(toolbar, new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        toolbar.setNavigationIcon(R.drawable.ic_close_light);
+        toolbar.setNavigationIcon(R.drawable.close_icon);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -51,5 +53,15 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
     @Override
     protected Class<? extends Activity> getSettingManualActivityClass() {
         return ChromeCastSettingFragmentActivity.class;
+    }
+    @Override
+    public void onServiceRemoved(final DConnectService service) {
+        super.onServiceRemoved(service);
+        ChromeCastApplication application = (ChromeCastApplication) getApplication();
+        if (application != null) {
+            //ChromeCastのサービスが削除されたタイミングでChromeCastControllerを初期化する
+            application.getController().reconnect();
+
+        }
     }
 }

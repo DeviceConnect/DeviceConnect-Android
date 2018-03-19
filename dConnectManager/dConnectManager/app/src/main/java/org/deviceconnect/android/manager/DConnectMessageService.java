@@ -6,11 +6,15 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.os.Binder;
 import android.os.Build;
@@ -46,6 +50,7 @@ import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
+import org.deviceconnect.android.manager.receiver.PackageManageReceiver;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
@@ -84,18 +89,6 @@ import java.util.logging.Logger;
  */
 public abstract class DConnectMessageService extends Service
         implements DConnectProfileProvider, DevicePluginEventListener {
-
-    /** アクション名: プラグイン有効化要求. */
-    public static final String ACTION_ENABLE_PLUGIN = "org.deviceconnect.android.action.ENABLE_PLUGIN";
-
-    /** アクション名: プラグイン無効化要求. */
-    public static final String ACTION_DISABLE_PLUGIN = "org.deviceconnect.android.action.DISABLE_PLUGIN";
-
-    /** アクション名: プラグイン設定画面起動要求. */
-    public static final String ACTION_OPEN_SETTINGS = "org.deviceconnect.android.action.OPEN_SETTINGS";
-
-    /** エクストラ名: プラグインID. */
-    public static final String EXTRA_PLUGIN_ID = "pluginId";
 
     /** アクション名: パッケージインストール通知. */
     public static final String ACTION_PACKAGE_ADDED = "org.deviceconnect.android.action.PACKAGE_ADDED";
@@ -184,6 +177,8 @@ public abstract class DConnectMessageService extends Service
     /** バージョン名. */
     private String mVersionName;
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
         public void sendMessage(final Intent message) throws RemoteException {
@@ -193,6 +188,10 @@ public abstract class DConnectMessageService extends Service
             handleExternalMessage(message);
         }
     };
+    /** インストールされたPlug-inの情報を取得するためのReceiver. */
+    private final PackageManageReceiver mPackageReceiver = new PackageManageReceiver();
+    /** DConnectのメッセージを取得するためのReceiver. */
+    private final DConnectBroadcastReceiver mDConnectMessageReceiver = new DConnectBroadcastReceiver();
 
     private String getCallingPackage() {
         int uid = Binder.getCallingUid();
@@ -231,11 +230,10 @@ public abstract class DConnectMessageService extends Service
             }
         });
 
+        mLocalOAuth2Main = new LocalOAuth2Main(this);
+
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
-
-        // Local OAuthの初期化
-        LocalOAuth2Main.initialize(getApplicationContext());
 
         // DConnect設定
         mSettings = ((DConnectApplication) getApplication()).getSettings();
@@ -250,7 +248,7 @@ public abstract class DConnectMessageService extends Service
         mEventBroker = new EventBroker(this, mEventSessionTable, mLocalOAuth, mPluginManager);
 
         // プロファイルの追加
-        addProfile(new AuthorizationProfile());
+        addProfile(new AuthorizationProfile(mLocalOAuth2Main));
         addProfile(new DConnectAvailabilityProfile());
         addProfile(new DConnectServiceDiscoveryProfile(null, mPluginManager));
         addProfile(new DConnectSystemProfile(this, mPluginManager));
@@ -261,13 +259,32 @@ public abstract class DConnectMessageService extends Service
 
         loadProfileSpecs();
         startPluginSearch();
+        // Plug-in情報受付用のIntent-filter
+        IntentFilter packageFilter = new IntentFilter();
+        packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packageFilter.addDataScheme("package");
+        registerReceiver(mPackageReceiver, packageFilter);
+        // DConnectMessageの受付用のIntent-filter
+        IntentFilter messageFilter = new IntentFilter();
+        messageFilter.addAction("org.deviceconnect.action.GET");
+        messageFilter.addAction("org.deviceconnect.action.PUT");
+        messageFilter.addAction("org.deviceconnect.action.POST");
+        messageFilter.addAction("org.deviceconnect.action.DELETE");
+        messageFilter.addAction("org.deviceconnect.action.RESPONSE");
+        messageFilter.addAction("org.deviceconnect.action.EVENT");
+        registerReceiver(mDConnectMessageReceiver, messageFilter);
     }
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(mDConnectMessageReceiver);
+        unregisterReceiver(mPackageReceiver);
         mPluginManager.removeEventListener(this);
         stopDConnect();
-        LocalOAuth2Main.destroy();
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
         super.onDestroy();
     }
 
@@ -284,47 +301,12 @@ public abstract class DConnectMessageService extends Service
             return START_STICKY;
         }
 
-        if (handleInternalMessage(intent)) {
-            return START_NOT_STICKY;
-        }
-
         if (!mRunningFlag) {
             return START_NOT_STICKY;
         }
 
         handleExternalMessage(intent);
         return START_STICKY;
-    }
-
-    private boolean handleInternalMessage(final Intent intent) {
-        String action = intent.getAction();
-        if (ACTION_ENABLE_PLUGIN.equals(action)) {
-            final DevicePlugin plugin = findPlugin(intent);
-            if (plugin != null) {
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        plugin.enable();
-                    }
-                });
-            }
-            return true;
-        } else if (ACTION_DISABLE_PLUGIN.equals(action)) {
-            final DevicePlugin plugin = findPlugin(intent);
-            if (plugin != null) {
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        plugin.disable();
-                    }
-                });
-            }
-            return true;
-        } else if (ACTION_OPEN_SETTINGS.equals(action)) {
-            openSettings(intent);
-            return true;
-        }
-        return false;
     }
 
     private void handleExternalMessage(final Intent intent) {
@@ -351,16 +333,12 @@ public abstract class DConnectMessageService extends Service
         }
     }
 
-    private DevicePlugin findPlugin(final Intent intent) {
-        String pluginId = intent.getStringExtra(EXTRA_PLUGIN_ID);
-        if (pluginId == null) {
-            return null;
-        }
-        return mPluginManager.getDevicePlugin(pluginId);
+    LocalOAuth2Main getLocalOAuth2Main() {
+        return mLocalOAuth2Main;
     }
 
-    private void openSettings(final Intent intent) {
-        DevicePlugin plugin = findPlugin(intent);
+    public void openPluginSettings(final String pluginId) {
+        DevicePlugin plugin = mPluginManager.getDevicePlugin(pluginId);
         if (plugin == null) {
             return;
         }
@@ -374,6 +352,24 @@ public abstract class DConnectMessageService extends Service
         SystemProfile.setAttribute(request, SystemProfile.ATTRIBUTE_WAKEUP);
         request.putExtra("pluginId", plugin.getPluginId());
         sendMessage(plugin, request);
+    }
+
+    public void setEnablePlugin(final String pluginId, final boolean enable) {
+        final DevicePlugin plugin = mPluginManager.getDevicePlugin(pluginId);
+        if (plugin == null) {
+            return;
+        }
+
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (enable) {
+                    plugin.enable();
+                } else {
+                    plugin.disable();
+                }
+            }
+        });
     }
 
     /**
@@ -439,7 +435,7 @@ public abstract class DConnectMessageService extends Service
         if (mSettings.isUseALocalOAuth()) {
             // アクセストークンの取得
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken,
+            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
                     profileName.toLowerCase(),
                     DConnectLocalOAuth.IGNORE_PROFILES);
             if (result.checkResult()) {
@@ -535,7 +531,9 @@ public abstract class DConnectMessageService extends Service
             final String profileName = profile.getProfileName();
             try {
                 profile.setProfileSpec(loadProfileSpec(profileName));
-                mLogger.info("Loaded a profile spec: " + profileName);
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Loaded a profile spec: " + profileName);
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
             } catch (JSONException e) {
@@ -853,16 +851,52 @@ public abstract class DConnectMessageService extends Service
         Intent notificationIntent = new Intent(getApplicationContext(), SettingActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 getApplicationContext(), 0, notificationIntent, 0);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-        builder.setContentIntent(pendingIntent);
-        builder.setTicker(getString(R.string.app_name));
-        builder.setContentTitle(getString(R.string.app_name));
-        builder.setContentText(DConnectUtil.getIPAddress() + ":" + mSettings.getPort());
-        int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                R.drawable.icon : R.drawable.on_icon;
-        builder.setSmallIcon(iconType);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(getString(R.string.app_name));
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
 
-        startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        } else {
+            Notification.Builder builder = new Notification.Builder(getApplicationContext());
+            builder.setContentIntent(pendingIntent);
+            builder.setTicker(getString(R.string.app_name));
+            builder.setContentTitle(getString(R.string.app_name));
+            builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = getString(R.string.dconnect_service_on_channel_id);
+                NotificationChannel channel = new NotificationChannel(
+                        channelId,
+                        getString(R.string.dconnect_service_on_channel_title),
+                        NotificationManager.IMPORTANCE_LOW);
+                channel.setDescription(getString(R.string.dconnect_service_on_channel_desc));
+                NotificationManager mNotification = (NotificationManager) getApplicationContext()
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotification.createNotificationChannel(channel);
+                builder.setChannelId(channelId);
+            }
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+        }
+    }
+    /**
+     * DConnectServiceがOFF時にstartForegroundService()が行われた時にキャンセルする.
+     */
+    protected void fakeStartForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder builder = new Notification.Builder(this, getString(R.string.dconnect_service_on_channel_id))
+                    .setContentTitle("").setContentText("");
+            startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+            stopForeground(true);
+            stopSelf();
+        }
     }
 
     /**
@@ -922,7 +956,7 @@ public abstract class DConnectMessageService extends Service
      * @return Origin
      */
     private String findOrigin(final String accessToken) {
-        ClientPackageInfo packageInfo = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        ClientPackageInfo packageInfo = mLocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
         if (packageInfo == null) {
             return null;
         }

@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.net.Uri;
 
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.manager.event.EventBroker;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -123,7 +122,9 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
 
     @Override
     public void onServerLaunched() {
-        mLogger.info("HttpServer was started.");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("HttpServer was started.");
+        }
     }
 
     @Override
@@ -372,7 +373,12 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(DConnectService.EXTRA_INNER_TYPE, DConnectService.INNER_TYPE_HTTP);
 
-        mContext.startService(intent);
+        try {
+            mContext.startService(intent);
+        } catch (Exception e){
+            setErrorResponse(response, DConnectMessage.ErrorCode.ACCESS_FAILED);
+            return true;
+        }
 
         // レスポンスが返ってくるまで待つ
         // ただし、タイムアウト時間を設定しておき、永遠には待たない。
@@ -470,7 +476,7 @@ class DConnectServerEventListenerImpl implements DConnectServerEventListener {
      * @return 妥当な場合はtrue、それ以外はfalse
      */
     private boolean isValidAccessToken(final String accessToken, final String origin) {
-        ClientPackageInfo client = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        ClientPackageInfo client = ((DConnectMessageService) mContext).getLocalOAuth2Main().findClientPackageInfoByAccessToken(accessToken);
         if (client == null) {
             return false;
         }

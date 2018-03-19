@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
@@ -17,8 +17,8 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.manager"
-        minSdkVersion 14
-        targetSdkVersion 23
+        minSdkVersion 19
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -28,6 +28,9 @@ android {
                 appIcon: "@drawable/icon",
                 appName: "@string/app_name"
         ]
+        jackOptions {
+            enabled true
+        }
     }
 
     packagingOptions {
@@ -37,6 +40,11 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES.txt'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     signingConfigs {
@@ -55,9 +63,10 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
-    flavorDimensions "DeviceWebApi"
+    flavorDimensions "common"
     productFlavors {
         DeviceWebApi {
+            dimension "common"
             versionCode 28
             versionName "2.2.5"
             manifestPlaceholders = [
@@ -66,6 +75,13 @@ android {
             ]
             buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help-dwa/index.html\""
             buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
+        }
+        things {
+            dimension "common"
+
+        }
+        main {
+            dimension "common"
         }
     }
 
@@ -82,23 +98,24 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-host')
-    compile 'com.android.support:appcompat-v7:23.+'
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
     compile project(':dconnect-server-nano-httpd')
-    androidTestCompile 'com.android.support:support-annotations:23.4.0'
+    androidTestCompile 'com.android.support:support-annotations:26.1.0'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
+    compile project(':dconnect-device-plugin-host')
+    compileOnly 'com.google.android.things:androidthings:+'
 }
 
 android.testVariants.all { variant ->
     task("generateJavadocForManagerJUnit", type: Javadoc, overwrite: true) {
         title = "Android Device Connect Manager Unit Test"
         description = "Generates Javadoc for JUnit"
-        source = variant.javaCompile.source
+        source = variant.javaCompiler.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        classpath = files(variant.javaCompiler.classpath) + files(ext.androidJar)
         destinationDir = new File("${project.getRootDir()}/DeviceConnectManager-JUnit-Javadoc/")
 
         options {

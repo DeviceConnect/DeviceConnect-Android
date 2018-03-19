@@ -22,7 +22,7 @@ import java.util.logging.SimpleFormatter;
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectApplication  extends HostDeviceApplication {
+public class DConnectApplication extends HostDeviceApplication {
 
     /**
      * Device Connect システム設定.
@@ -32,7 +32,14 @@ public class DConnectApplication  extends HostDeviceApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        Logger logger = Logger.getLogger("dconnect.manager");
+        setupLogger("dconnect.manager");
+        setupLogger("LocalCA");
+
+        initialize();
+    }
+
+    private void setupLogger(final String name) {
+        Logger logger = Logger.getLogger(name);
         if (BuildConfig.DEBUG) {
             AndroidHandler handler = new AndroidHandler(logger.getName());
             handler.setFormatter(new SimpleFormatter());
@@ -42,8 +49,6 @@ public class DConnectApplication  extends HostDeviceApplication {
         } else {
             logger.setLevel(Level.OFF);
         }
-
-        initialize();
     }
 
     private void initialize() {

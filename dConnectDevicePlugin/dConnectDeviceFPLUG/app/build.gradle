@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.fplug"
         minSdkVersion 17
-        targetSdkVersion 21
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -70,10 +70,10 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
+    compile 'com.android.support:appcompat-v7:26.1.0'
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.0'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
 
 repositories {

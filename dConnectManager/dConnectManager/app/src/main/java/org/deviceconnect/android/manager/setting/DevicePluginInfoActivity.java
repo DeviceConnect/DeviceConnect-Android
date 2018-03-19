@@ -20,7 +20,6 @@ import android.support.v7.widget.SwitchCompat;
 import android.view.View;
 import android.widget.CompoundButton;
 
-import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.Connection;
@@ -167,7 +166,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         init();
     }
 
@@ -177,13 +176,10 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
     }
 
     private void requestPluginStateChange(final boolean isOn) {
-        String action = isOn ?
-                DConnectMessageService.ACTION_ENABLE_PLUGIN :
-                DConnectMessageService.ACTION_DISABLE_PLUGIN;
-        Intent request = new Intent(this, DConnectService.class);
-        request.setAction(action);
-        request.putExtra(DConnectMessageService.EXTRA_PLUGIN_ID, mPluginId);
-        startService(request);
+        DConnectService service = getManagerService();
+        if (service != null) {
+            service.setEnablePlugin(mPluginId, isOn);
+        }
     }
 
     private DevicePlugin findDevicePluginById(final String pluginId) {

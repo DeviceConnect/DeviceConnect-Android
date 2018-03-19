@@ -11,7 +11,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 
 import org.deviceconnect.android.manager.R;
 
@@ -20,7 +19,7 @@ import org.deviceconnect.android.manager.R;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class DevicePluginListActivity extends AppCompatActivity {
+public class DevicePluginListActivity extends BaseSettingActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {

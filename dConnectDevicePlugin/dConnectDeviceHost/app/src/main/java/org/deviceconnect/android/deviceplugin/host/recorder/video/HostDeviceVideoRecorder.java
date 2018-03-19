@@ -172,6 +172,16 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public int getPreviewBitRate() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setPreviewBitRate(int bitRate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<PictureSize> getSupportedPictureSizes() {
         return mSupportedPictureSizes;
     }

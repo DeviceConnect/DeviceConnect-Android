@@ -415,6 +415,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             fragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
+        } else if (getString(R.string.key_settings_export_server_certificate).equals(preference.getKey())) {
+            ExportCertificateDialogFragment newFragment = new ExportCertificateDialogFragment();
+            newFragment.show(((SettingActivity) getActivity()).getSupportFragmentManager(),null);
+        } else if (getString(R.string.key_settings_install_server_certificate).equals(preference.getKey())) {
+            mDConnectService.installRootCertificate();
         }
         showIPAddress();
 
@@ -489,9 +494,22 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private void switchDConnectServer(final boolean checked) {
         setUIEnabled(!checked);
         if (checked) {
+
+            Intent intent = new Intent();
+            intent.setClass(getActivity(), DConnectService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                getActivity().startForegroundService(intent);
+            } else {
+                getActivity().startService(intent);
+            }
+
             mDConnectService.startInternal();
         } else {
             mDConnectService.stopInternal();
+
+            Intent intent = new Intent();
+            intent.setClass(getActivity(), DConnectService.class);
+            getActivity().stopService(intent);
         }
     }
 
@@ -511,7 +529,22 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else {
             mWebService.stopWebServer();
             setWebUIEnabled(true);
+
+            Intent intent = new Intent();
+            intent.setClass(getActivity(), DConnectWebService.class);
+            getActivity().stopService(intent);
         }
+    }
+
+    private void startWebServerInternal() {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), DConnectWebService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getActivity().startForegroundService(intent);
+        } else {
+            getActivity().startService(intent);
+        }
+        mWebService.startWebServer();
     }
 
     /**
@@ -519,7 +552,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private void startWebServer() {
         if (DConnectUtil.isPermission(getActivity().getApplicationContext())) {
-            mWebService.startWebServer();
+            startWebServerInternal();
             setWebUIEnabled(false);
         } else {
             DConnectUtil.requestPermission(getActivity().getApplicationContext(),
@@ -527,10 +560,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            mWebService.startWebServer();
+                            startWebServerInternal();
                             setWebUIEnabled(false);
                         }
-
                         @Override
                         public void onFail(@NonNull final String deniedPermission) {
                             setWebServerSwitchUI(false);
@@ -589,15 +621,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * @param checked trueの場合は有効、falseの場合は無効
      */
     private void switchEventKeepAlive(final boolean checked) {
-        Activity activity = getActivity();
+        BaseSettingActivity activity = (BaseSettingActivity) getActivity();
         if (activity == null) {
             return;
         }
-        Intent intent = new Intent();
-        intent.setClass(activity, DConnectService.class);
-        intent.setAction(DConnectService.ACTION_SETTINGS_KEEP_ALIVE);
-        intent.putExtra(DConnectService.EXTRA_KEEP_ALIVE_ENABLED, checked);
-        activity.startService(intent);
+
+        DConnectService service = activity.getManagerService();
+        if (service != null) {
+            service.setEnableKeepAlive(checked);
+        }
     }
 
     /**

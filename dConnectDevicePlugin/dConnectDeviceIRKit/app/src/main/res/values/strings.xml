@@ -29,7 +29,8 @@
     <string name="preference_password_name" translatable="false">access_point_password</string>
     <string name="preference_irkit_name" translatable="false">irkit_name</string>
 
-    <string name="ind_message_prepare" translatable="false">処理中・・・</string>
+    <string name="ind_message_prepare_title" translatable="false">処理中</string>
+    <string name="ind_message_prepare" translatable="false">しばらくお待ちください・・・</string>
     <string name="alert_title_error" translatable="false">エラー</string>
     <string name="alert_title_prepared" translatable="false">準備完了</string>
     <string name="alert_title_connection" translatable="false">接続成功</string>
@@ -41,6 +42,7 @@
     <string name="alert_message_connected_with_wifi" translatable="false">接続されました！家のWiFiに切り替えてください。</string>
     <string name="alert_message_connected" translatable="false">IRKitがネットワークに接続されていることを確認しました。</string>
     <string name="alert_btn_close" translatable="false">閉じる</string>
+    <string name="alert_message_wifi_permission" translatable="false">WiFiを検索するため、位置情報の許可を行なってください。</string>
 
     <string name="activity_devicelist_title" translatable="false">IRKit一覧</string>
     <string name="activity_devicelist_detect_title" translatable="false">IRKitを検索</string>

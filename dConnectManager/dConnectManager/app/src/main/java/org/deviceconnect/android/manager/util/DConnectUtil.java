@@ -16,6 +16,9 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -37,9 +40,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.UUID;
@@ -228,8 +236,37 @@ public final class DConnectUtil {
      * Gets the ip address.
      * @return Returns ip address
      */
-    public static String getIPAddress() {
-        return NetworkUtil.getIpAddress();
+    public static String getIPAddress(final Context context) {
+        Context appContext = context.getApplicationContext();
+        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
+        ConnectivityManager cManager = (ConnectivityManager) appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network = cManager.getActiveNetworkInfo();
+        String en0Ip = null;
+        if (network != null) {
+            switch (network.getType()) {
+                case ConnectivityManager.TYPE_ETHERNET:
+                    try {
+                        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                            NetworkInterface intf = en.nextElement();
+                            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                                InetAddress inetAddress = enumIpAddr.nextElement();
+                                if (inetAddress instanceof Inet4Address
+                                        && !inetAddress.getHostAddress().equals("127.0.0.1")) {
+                                    en0Ip = inetAddress.getHostAddress();
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (SocketException e) {
+                        Log.e("DConnectUtil", "Get Ethernet IP Error", e);
+                    }
+            }
+        }
+        if (en0Ip != null) {
+            return en0Ip;
+        } else {
+            return NetworkUtil.getIpAddress();
+        }
     }
 
     /**

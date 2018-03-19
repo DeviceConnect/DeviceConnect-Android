@@ -59,7 +59,7 @@ public class BleDeviceDetector {
     /**
      * Stops scanning after 1 second.
      */
-    private static final long SCAN_PERIOD = 2000;
+    private static final long SCAN_PERIOD = 3000;
 
     private Context mContext;
     private BleDeviceAdapter mBleAdapter;

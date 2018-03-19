@@ -68,6 +68,15 @@
     <string name="activity_settings_manager_terminate_title">デバイスプラグインへManager終了通知中</string>
     <string name="activity_settings_manager_terminate_message">処理中</string>
     <string name="activity_settings_manage_websocket">WebSocket管理</string>
+    <string name="activity_settings_export_server_keystore">証明書出力</string>
+    <string name="activity_settings_export_server_keystore_summay">証明書のキーストアをPKCS12ファイルとして外部ストレージに出力します。</string>
+    <string name="activity_settings_export_server_keystore_dialog_path_title">出力先フォルダ</string>
+    <string name="activity_settings_export_server_keystore_dialog_button_export">出力する</string>
+    <string name="activity_settings_export_server_keystore_dialog_button_cancel">キャンセル</string>
+    <string name="activity_settings_export_server_keystore_success">証明書を出力しました</string>
+    <string name="activity_settings_export_server_keystore_error">証明書の出力に失敗しました</string>
+    <string name="activity_settings_install_server_certificate">証明書インストール</string>
+    <string name="activity_settings_install_server_certificate_summary">本システムのルート証明書を「信頼できる証明書」として端末にインストールします。</string>
     <string name="activity_settings_name">名前</string>
     <string name="activity_settings_uuid">UUID</string>
     <string name="activity_settings_demo_link">デモアプリへのリンク</string>
@@ -160,7 +169,7 @@
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 
@@ -173,7 +182,7 @@
     <string name="activity_service_list_search">サービスを検索</string>
     <string name="activity_service_menu_settings">設定</string>
     <string name="activity_service_menu_help">ヘルプ</string>
-    <string name="activity_service_list_service_discovery">デバイスを検索中</string>
+    <string name="activity_service_list_service_discovery">サービスを検索中</string>
     <string name="activity_service_list_checkbox">次回からこの画面を表示しない。</string>
     <string name="activity_service_list_guide_1">Device Connect Managerを起動することができます。</string>
     <string name="activity_service_list_guide_2">Device Connect Managerの設定を行うことができます。</string>
@@ -219,4 +228,16 @@
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 
+    <!-- ================= DConnectMessageService ================= -->
+    <string name="dconnect_service_on_channel_id">org.deviceconnect.android.manager.service</string>
+    <string name="dconnect_service_on_channel_title">Device Connect Message Service</string>
+    <string name="dconnect_service_on_channel_desc">DeviceConnectのメッセージの送受信を行うためのサービスです。</string>
+
+    <!-- ================= DConnectWebService ================= -->
+    <string name="web_service_on_channel_id">org.deviceconnect.android.manager.webserver</string>
+    <string name="web_service_on_channel_title">Device Connect Web Server</string>
+    <string name="web_service_on_channel_desc">DeviceConnect用のHTMLを配置しておくためのWebServerです。</string>
+
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
 </resources>

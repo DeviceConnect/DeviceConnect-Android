@@ -30,29 +30,12 @@
             android:label="@string/app_name" >
         </activity>
 
-        <receiver android:name=".core.wifi.WifiStateReceiver">
-            <intent-filter>
-                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
-                <action android:name="android.net.wifi.STATE_CHANGE" />
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name=".core.wifi.WifiStateService"
-            android:exported="false" >
-        </service>
-
         <receiver android:name="org.deviceconnect.android.deviceplugin.theta.ThetaDeviceServiceProvider" >
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_theta" />
 
             <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
-
                 <!-- uninstall notification -->
                 <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
                 <data android:scheme="package"/>
@@ -61,7 +44,11 @@
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService"
-            android:exported="false" >
+            android:exported="true"
+            android:enabled="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_theta" />
         </service>
 
         <provider

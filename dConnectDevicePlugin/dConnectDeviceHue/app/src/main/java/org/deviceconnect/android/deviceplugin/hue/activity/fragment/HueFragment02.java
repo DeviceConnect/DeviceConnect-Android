@@ -24,13 +24,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
-import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHMessageType;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
 
+import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.List;
@@ -64,7 +64,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
     private int mCount = 0;
 
     /** ステータス. */
-    private HueState mHueStatus = HueState.INIT;
+    private HueManager.HueState mHueStatus = HueManager.HueState.INIT;
 
     /** アニメーション用スレッド. */
     private final ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -72,19 +72,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
     /** スレッドキャンセル用オブジェクト. */
     private ScheduledFuture<?> mFuture;
 
-    /**
-     * Hue接続状態.
-     */
-    private enum HueState {
-        /** 未認証. */
-        INIT,
-        /** 未接続. */
-        NO_CONNECT,
-        /** 認証失敗. */
-        AUTHENTICATE_FAILED,
-        /** 認証済み. */
-        AUTHENTICATE_SUCCESS
-    }
+
 
     /**
      * hueブリッジのNotificationを受け取るためのリスナー.
@@ -93,11 +81,8 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
-            mHueStatus = HueState.INIT;
-
-            PHHueSDK hueSDK = PHHueSDK.getInstance();
-            hueSDK.startPushlinkAuthentication(accessPoint);
-
+            mHueStatus = HueManager.HueState.INIT;
+            HueManager.INSTANCE.startPushlinkAuthentication(accessPoint);
             authenticateHueBridge();
         }
 
@@ -111,7 +96,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         @Override
         public void onBridgeConnected(final PHBridge phBridge, final String s) {
-            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
+            mHueStatus = HueManager.HueState.AUTHENTICATE_SUCCESS;
             successAuthorization();
         }
 
@@ -139,8 +124,8 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
     /**
      * HueFragment02を返す.
-     * 
-     * @param accessPoint Access Point
+     *
+     * @param accessPoint 選択されたアクセスポイント
      * @return HueFragment02
      */
     public static HueFragment02 newInstance(final PHAccessPoint accessPoint) {
@@ -184,23 +169,17 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         super.onResume();
 
         // ステータスを初期状態(INIT)に設定.
-        mHueStatus = HueState.INIT;
+        mHueStatus = HueManager.HueState.INIT;
 
-        // Hueのインスタンスを取得.
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        // HueブリッジからのCallbackを受け取るためのリスナーを登録.
-        hueSDK.getNotificationManager().registerSDKListener(mListener);
-
+        HueManager.INSTANCE.addSDKListener(mListener);
         // Hueブリッジへの認証開始
         startAuthenticate();
     }
 
     @Override
     public void onPause() {
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        hueSDK.stopPushlinkAuthentication();
-        hueSDK.getNotificationManager().unregisterSDKListener(mListener);
-
+        HueManager.INSTANCE.stopPushlinkAuthentication();
+        HueManager.INSTANCE.removeSDKListener(mListener);
         stopAnimation();
 
         super.onPause();
@@ -208,7 +187,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
     @Override
     public void onClick(final View v) {
-        if (mHueStatus == HueState.AUTHENTICATE_SUCCESS) {
+        if (mHueStatus == HueManager.HueState.AUTHENTICATE_SUCCESS) {
             FragmentManager manager = getFragmentManager();
             FragmentTransaction transaction = manager.beginTransaction();
             transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,
@@ -334,15 +313,18 @@ public class HueFragment02 extends Fragment implements OnClickListener {
      * </p>
      */
     private void startAuthenticate() {
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
+        HueManager.INSTANCE.startAuthenticate(mAccessPoint, new HueManager.HueConnectionListener() {
+            @Override
+            public void onConnected() {
+                mHueStatus = HueManager.HueState.AUTHENTICATE_SUCCESS;
+                successAuthorization();
+            }
 
-        if (!hueSDK.isAccessPointConnected(mAccessPoint)) {
-            hueSDK.connect(mAccessPoint);
-            authenticateHueBridge();
-        } else {
-            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
-            successAuthorization();
-        }
+            @Override
+            public void onNotConnected() {
+                authenticateHueBridge();
+            }
+        });
     }
 
     /**

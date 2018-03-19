@@ -7,12 +7,16 @@
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.WiFiSecurityType;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
@@ -43,7 +47,24 @@ public class IRKitAccessPointSettingFragment extends IRKitBaseFragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, 
             final Bundle savedInstanceState) {
        
-        View root = inflater.inflate(R.layout.irkit_settings_step_2, null);
+        final View root = inflater.inflate(R.layout.irkit_settings_step_2, null);
+        WiFiUtil.checkLocationPermission(getActivity(), new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                setWifiStatus(savedInstanceState, root);
+            }
+
+            @Override
+            public void onFail(@NonNull String s) {
+                getActivity().finish();
+                // Wifi情報が取得許可がおりない場合は設定を終了する
+                Toast.makeText(getActivity(), getString(R.string.alert_message_wifi_permission), Toast.LENGTH_SHORT).show();
+            }
+        });
+        return root;
+    }
+
+    private void setWifiStatus(Bundle savedInstanceState, View root) {
         EditText ssidText = (EditText) root.findViewById(R.id.inputSSID);
         EditText passwordText = (EditText) root.findViewById(R.id.inputPassword);
         RadioGroup radioGroup = (RadioGroup) root.findViewById(R.id.radioGroupSecurity);
@@ -78,7 +99,6 @@ public class IRKitAccessPointSettingFragment extends IRKitBaseFragment {
             }
         }
         radioGroup.check(typeId);
-        return root;
     }
 
     @Override

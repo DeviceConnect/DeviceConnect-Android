@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     useLibrary 'org.apache.http.legacy'
@@ -20,7 +20,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.sonycamera"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
@@ -45,9 +45,10 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
-
+    flavorDimensions "common"
     productFlavors {
         DeviceWebApi {
+            dimension "common"
             versionCode 1
             versionName "1.0.0"
             manifestPlaceholders = [
@@ -76,5 +77,5 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
 }

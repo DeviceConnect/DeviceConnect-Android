@@ -24,12 +24,14 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
@@ -269,8 +271,10 @@ public class CanvasProfileActivity extends Activity  {
                     if (mDrawImageObject != null && drawImageObject.getData().equals(mDrawImageObject.getData())) {
                         return ResourceResult.Success;
                     } else {
-                        mBitmap.recycle();
-                        mBitmap = null;
+                        if (mBitmap != null && !mBitmap.isRecycled()) {
+                            mBitmap.recycle();
+                            mBitmap = null;
+                        }
                     }
                 }
 
@@ -362,12 +366,16 @@ public class CanvasProfileActivity extends Activity  {
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String title = getString(R.string.host_canvas_download_title);
             String msg = getString(R.string.host_canvas_download_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View v = inflater.inflate(R.layout.dialog_progress, null);
+            TextView titleView = v.findViewById(R.id.title);
+            TextView messageView = v.findViewById(R.id.message);
+            titleView.setText(title);
+            messageView.setText(msg);
+            builder.setView(v);
+
+            return builder.create();
         }
 
         @Override

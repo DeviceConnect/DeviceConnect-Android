@@ -10,10 +10,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
 /**
  * apkのインストールとアンインストールのブロードキャストを受け取るレシーバー.
@@ -31,10 +29,15 @@ public class PackageManageReceiver extends BroadcastReceiver {
         } else {
             return;
         }
+
         Intent message = new Intent(context, DConnectService.class);
         message.setAction(action);
         message.putExtra(DConnectMessageService.EXTRA_PACKAGE_NAME, getPackageName(intent));
-        context.startService(message);
+        try {
+            context.startService(message);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
     /**

@@ -19,6 +19,9 @@
 
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">Start the camera</string>
+    <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
+    <string name="overlay_preview_channel_title">Device Connect Preview</string>
+    <string name="overlay_preview_channel_message">Preview with DeviceConnect.</string>
     <string name="overlay_preview_content_title">Being captured by the camera</string>
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
 
@@ -43,4 +46,7 @@
     <string name="host_canvas_error_title">Failed to Get image</string>
     <string name="host_canvas_error_oom_message">Out of memory error.</string>
     <string name="host_canvas_error_not_found_message">Non exist image.</string>
+    <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
+    <string name="host_notification_channel_title">Device Connect Notification</string>
+    <string name="host_notification_channel_desc">DeviceConnect\'s Notification</string>
 </resources>

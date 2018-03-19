@@ -37,6 +37,8 @@ class ConfirmAuthRequest {
     /** レスポンスの有無. */
     private boolean mDoneResponse;
 
+    private boolean mIsAutoFlag = false;
+
     /**
      * コンストラクタ.
      * 
@@ -48,12 +50,13 @@ class ConfirmAuthRequest {
      */
     private ConfirmAuthRequest(final long threadId, final ConfirmAuthParams confirmAuthParams,
             final PublishAccessTokenListener publishAccessTokenListener, final long requestTime,
-            final String[] displayScopes) {
+            final String[] displayScopes, boolean isAutoFlag) {
         mThreadId = threadId;
         mConfirmAuthParams = confirmAuthParams;
         mPublishAccessTokenListener = publishAccessTokenListener;
         mRequestTime = requestTime;
         mDisplayScopes = displayScopes;
+        mIsAutoFlag = isAutoFlag;
     }
 
     /**
@@ -66,8 +69,8 @@ class ConfirmAuthRequest {
      */
     ConfirmAuthRequest(final long threadId, final ConfirmAuthParams confirmAuthParams,
             final PublishAccessTokenListener publishAccessTokenListener,
-            final String[] displayScopes) {
-        this(threadId, confirmAuthParams, publishAccessTokenListener, System.currentTimeMillis(), displayScopes);
+            final String[] displayScopes, boolean isAutoFlag) {
+        this(threadId, confirmAuthParams, publishAccessTokenListener, System.currentTimeMillis(), displayScopes, isAutoFlag);
     }
 
     /**
@@ -93,6 +96,10 @@ class ConfirmAuthRequest {
      */
     PublishAccessTokenListener getPublishAccessTokenListener() {
         return mPublishAccessTokenListener;
+    }
+
+    public boolean isAutoFlag() {
+        return mIsAutoFlag;
     }
 
     /**

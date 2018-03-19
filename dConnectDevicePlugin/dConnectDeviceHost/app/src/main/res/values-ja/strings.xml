@@ -19,6 +19,9 @@
 
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">カメラを起動します</string>
+    <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
+    <string name="overlay_preview_channel_title">Device Connect Preview</string>
+    <string name="overlay_preview_channel_message">DeviceConnectでのプレビュー</string>
     <string name="overlay_preview_content_title">カメラ撮影中</string>
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
 
@@ -42,4 +45,7 @@
     <string name="host_canvas_error_title">画像読み込み失敗</string>
     <string name="host_canvas_error_oom_message">メモリーが足りません。</string>
     <string name="host_canvas_error_not_found_message">画像が存在しません。</string>
+    <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
+    <string name="host_notification_channel_title">Device Connect Notification</string>
+    <string name="host_notification_channel_desc">DeviceConnectの通知</string>
 </resources>

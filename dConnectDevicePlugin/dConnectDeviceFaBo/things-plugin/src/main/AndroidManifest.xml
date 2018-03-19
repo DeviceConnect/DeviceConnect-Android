@@ -30,7 +30,10 @@
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoThingsDeviceService"
-            android:exported="false">
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_fabo"/>
         </service>
     </application>
 

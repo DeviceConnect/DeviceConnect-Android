@@ -38,6 +38,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.R;
 
 import java.net.URI;
@@ -200,7 +201,9 @@ public class WhitelistFragment extends Fragment {
                                 Origin newOrigin = OriginParser.parse(newOriginExp);
                                 OriginInfo newItem = new OriginInfo(info.mId, newOrigin, newTitle, info.mDate);
                                 updateOrigin(position, newItem);
-                                mLogger.info("Updated origin=" + newOrigin.toString() + " title=" + newTitle);
+                                if (BuildConfig.DEBUG) {
+                                    mLogger.info("Updated origin=" + newOrigin.toString() + " title=" + newTitle);
+                                }
                             } catch (WhitelistException e) {
                                 mLogger.log(Level.WARNING, "Failed to update origin.", e);
                                 showPopup(e.getMessage());
@@ -340,7 +343,9 @@ public class WhitelistFragment extends Fragment {
                             public void onEntry(final String origin, final String title) {
                                 try {
                                     addOrigin(origin, title);
-                                    mLogger.info("Updated origin=" + origin + " title=" + title);
+                                    if (BuildConfig.DEBUG) {
+                                        mLogger.info("Updated origin=" + origin + " title=" + title);
+                                    }
                                 } catch (WhitelistException e) {
                                     mLogger.log(Level.WARNING, "Failed to add origin.", e);
                                     showPopup(e.getMessage());
@@ -380,7 +385,9 @@ public class WhitelistFragment extends Fragment {
                             public void onEntry(final String origin, final String title) {
                                 try {
                                     addOrigin(origin, title);
-                                    mLogger.info("Updated origin=" + origin + " title=" + title);
+                                    if (BuildConfig.DEBUG) {
+                                        mLogger.info("Updated origin=" + origin + " title=" + title);
+                                    }
                                 } catch (WhitelistException e) {
                                     mLogger.log(Level.WARNING, "Failed to add origin.", e);
                                     showPopup(e.getMessage());
@@ -416,7 +423,9 @@ public class WhitelistFragment extends Fragment {
                 try {
                     KnownApplicationInfo appInfo = list.get(which);
                     addOrigin(appInfo.getOrigin(), appInfo.getName());
-                    mLogger.info("Updated origin=" + appInfo.getOrigin() + " title=" + appInfo.getName());
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Updated origin=" + appInfo.getOrigin() + " title=" + appInfo.getName());
+                    }
                 } catch (WhitelistException e) {
                     mLogger.log(Level.WARNING, "Failed to add origin.", e);
                     showPopup(e.getMessage());

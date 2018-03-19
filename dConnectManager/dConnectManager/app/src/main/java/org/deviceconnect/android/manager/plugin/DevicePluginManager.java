@@ -24,6 +24,7 @@ import android.util.SparseArray;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
@@ -346,11 +347,14 @@ public class DevicePluginManager {
         }
         Integer iconId = (Integer) metaData.get(PLUGIN_META_PLUGIN_ICON);
 
-        mLogger.info("Added DevicePlugin: [" + hash + "]");
-        mLogger.info("    PackageName: " + packageName);
-        mLogger.info("    className: " + className);
-        mLogger.info("    versionName: " + versionName);
-        mLogger.info("    sdkVersionName: " + sdkVersionName);
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Added DevicePlugin: [" + hash + "]");
+            mLogger.info("    PackageName: " + packageName);
+            mLogger.info("    className: " + className);
+            mLogger.info("    versionName: " + versionName);
+            mLogger.info("    sdkVersionName: " + sdkVersionName);
+        }
+
         // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
         // 現在は警告を表示し、上書きする.
         if (mPlugins.containsKey(hash)) {
@@ -430,9 +434,13 @@ public class DevicePluginManager {
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
                     String hash = md5(packageName + className);
-                    mLogger.info("Removed DevicePlugin: [" + hash + "]");
-                    mLogger.info("    PackageName: " + packageName);
-                    mLogger.info("    className: " + className);
+
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Removed DevicePlugin: [" + hash + "]");
+                        mLogger.info("    PackageName: " + packageName);
+                        mLogger.info("    className: " + className);
+                    }
+
                     removePlugin(hash);
                 }
             }

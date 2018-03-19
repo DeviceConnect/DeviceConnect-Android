@@ -33,11 +33,6 @@
             android:name="org.deviceconnect.android.deviceplugin.webrtc.WebRTCDeviceProvider"
             android:enabled="true"
             android:exported="true">
-            <intent-filter>
-                <!-- uninstall notification -->
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
-                <data android:scheme="package"/>
-            </intent-filter>
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_webrtc"/>
@@ -46,7 +41,11 @@
         <service
             android:name="org.deviceconnect.android.deviceplugin.webrtc.WebRTCDeviceService"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_webrtc"/>
+        </service>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.webrtc.setting.SettingActivity"

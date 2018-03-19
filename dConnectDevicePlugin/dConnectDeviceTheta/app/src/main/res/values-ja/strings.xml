@@ -2,7 +2,7 @@
     <string name="app_name">THETA (Device Web API Plug-in)</string>
     <string name="app_name_for_device_web_api">THETA (Device Web API Plug-in)</string>
     <string name="splash_title">サンプルアプリ起動中...</string>
-    <string name="device_name_theta_s">THETA S</string>
+    <string name="device_name_theta_s">THETA S以降</string>
     <string name="device_name_theta_m15">THETA m15</string>
     <string name="theta_ssid_prefix">THETA</string>
     <string name="theta_no_device"></string>
@@ -11,10 +11,10 @@
     <string name="description_image_theta">THETA</string>
     <string name="photo_mode_title">[2/4] 静止画モード</string>
     <string name="photo_mode_body_theta_m15">THETAの電源ボタンを押すと写真モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点灯します。\n\nこの状態では動画の撮影は行えません。一度電源を切り、次の手順を実行する必要があります。</string>
-    <string name="photo_mode_body_theta_s">THETA Sで静止画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n動画を撮影する場合は、次のページを参照してください。</string>
+    <string name="photo_mode_body_theta_s">THETA S以降で静止画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n動画を撮影する場合は、次のページを参照してください。</string>
     <string name="movie_mode_title">[3/4] 動画モード</string>
     <string name="movie_mode_body_theta_m15">WiFiボタンを押しながら、電源ボタンを押すと動画モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点滅します。\n\nこの状態では写真の撮影は行えません。一度電源を切り、前の手順を行う必要があります。</string>
-    <string name="movie_mode_body_theta_s">THETA Sで動画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n静止画を撮影する場合は、前のページを参照してください。</string>
+    <string name="movie_mode_body_theta_s">THETA S以降で動画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n静止画を撮影する場合は、前のページを参照してください。</string>
     <string name="wifi_connection_title">[4/4] THETAとの接続</string>
     <string name="wifi_connection_body">端末のWiFI設定画面上でWiFIを有効にして、THETAのSSIDを選択します。\n\nパスワードについてはTHETAの底面にある型番を入力してください。</string>
     <string name="confirmation_title">[4/4] 接続確認</string>

@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
@@ -17,7 +16,6 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.WebSocketInfo;
@@ -78,9 +76,10 @@ public class WebSocketListActivity extends BaseSettingActivity implements AlertD
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         mWebSocketInfoAdapter.setWebSocketInfoList(getWebSocketInfoManager().getWebSocketInfos());
         getWebSocketInfoManager().addOnWebSocketEventListener(this);
+        mWebSocketInfoAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -104,11 +103,10 @@ public class WebSocketListActivity extends BaseSettingActivity implements AlertD
     @Override
     public void onPositiveButton(final String tag) {
         if (TAG_DELETE_WEB_SOCKET.equals(tag) && mWebSocketInfo != null) {
-            Intent intent = new Intent();
-            intent.setClass(this, DConnectService.class);
-            intent.setAction(DConnectService.ACTION_DISCONNECT_WEB_SOCKET);
-            intent.putExtra(DConnectService.EXTRA_WEBSOCKET_ID, mWebSocketInfo.getRawId());
-            startService(intent);
+            DConnectService service = getManagerService();
+            if (service != null) {
+                service.disconnectWebSocket(mWebSocketInfo.getRawId());
+            }
         }
     }
 

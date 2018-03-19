@@ -21,32 +21,19 @@
             android:exported="false">
         </activity>
 
-        <receiver android:name="org.deviceconnect.android.deviceplugin.kadecot.receiver.WiFiStateReceiver" >
-            <intent-filter>
-                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
-                <action android:name="android.net.wifi.STATE_CHANGE" />
-            </intent-filter>
-        </receiver>
-
         <receiver android:name="org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceServiceProvider" >
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_kadecot" />
 
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
-                <!-- uninstall notification -->
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
-                <data android:scheme="package"/>
-            </intent-filter>
         </receiver>
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService"
-            android:exported="false" >
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_kadecot" />
         </service>
 
         <provider

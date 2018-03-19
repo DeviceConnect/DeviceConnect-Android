@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectBroadcastReceiver;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
@@ -152,14 +153,14 @@ public class KeepAliveManager {
      */
     public synchronized KeepAlive getKeepAlive(final DevicePlugin plugin) {
         if (!(mManagementList.isEmpty())) {
-            /** 要素数分ループ. */
+            /* 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
                 if (data.getServiceId().equals(plugin.getPluginId())) {
                     return data;
                 }
             }
         }
-        /** 要素0または該当なしならnull. */
+        /* 要素0または該当なしならnull. */
         return null;
     }
 
@@ -170,14 +171,14 @@ public class KeepAliveManager {
      */
     public synchronized KeepAlive getKeepAlive(final String serviceId) {
         if (!(mManagementList.isEmpty())) {
-            /** 要素数分ループ. */
+            /* 要素数分ループ. */
             for (KeepAlive data : mManagementList) {
                 if (data.getServiceId().equals(serviceId)) {
                     return data;
                 }
             }
         }
-        /** 要素0または該当なしならnull. */
+        /* 要素0または該当なしならnull. */
         return null;
     }
 
@@ -214,16 +215,22 @@ public class KeepAliveManager {
      */
     private synchronized void periodicProcess() {
         if (isEnableKeepAlive()) {
-            mLogger.info("periodicProcess: plugins = " + mManagementList.size());
+            if (BuildConfig.DEBUG) {
+                mLogger.info("periodicProcess: plugins = " + mManagementList.size());
+            }
             Iterator<KeepAlive> iterator = mManagementList.iterator();
             while (iterator.hasNext()) {
                 KeepAlive data = iterator.next();
                 if (data.getResponseFlag()) {
-                    mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is alive.");
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is alive.");
+                    }
                     data.resetResponseFlag();
                     sendKeepAlive(data.getPlugin(), "CHECK");
                 } else {
-                    mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is dead.");
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Plugin " + data.getPlugin().getPackageName() + " is dead.");
+                    }
                     DevicePlugin plugin = data.getPlugin();
                     data.subtractionEventCounter();
                     if (data.getEventCounter() <= 0) {
@@ -233,7 +240,9 @@ public class KeepAliveManager {
 
                     // 該当プラグインIDに紐付くWebSocketの切断処理
                     for (EventSession session : mEventSessionTable.findEventSessionsForPlugin(plugin)) {
-                        mLogger.info("Disconnecting with receiver: id = " + session.getReceiverId());
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("Disconnecting with receiver: id = " + session.getReceiverId());
+                        }
                         sendDisconnectWebSocket(session.getReceiverId());
                         mEventSessionTable.remove(session);
                     }

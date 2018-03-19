@@ -6,7 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.linking;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
@@ -39,7 +42,24 @@ import java.util.List;
 public class LinkingDevicePluginService extends DConnectMessageService {
 
     private static final String TAG = "LinkingPlugIn";
-
+    private final BroadcastReceiver mScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT.equals(action) ||
+                    LinkingBeaconUtil.ACTION_BEACON_SCAN_STATE.equals(action)) {
+                LinkingApplication app = (LinkingApplication)  getApplication();
+                LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+                try {
+                    mgr.onReceivedBeacon(intent);
+                } catch (Exception e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "", e);
+                    }
+                }
+            }
+        }
+    };
     @Override
     public void onCreate() {
         super.onCreate();
@@ -49,6 +69,11 @@ public class LinkingDevicePluginService extends DConnectMessageService {
 
         createLinkingDeviceList();
         createLinkingBeaconList();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT");
+        filter.addAction("com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE");
+        registerReceiver(mScanReceiver, filter);
     }
 
     @Override
@@ -71,7 +96,13 @@ public class LinkingDevicePluginService extends DConnectMessageService {
         }
         return super.onStartCommand(intent, flags, startId);
     }
-
+    @Override
+    public void onDestroy() {
+        ((LinkingApplication) getApplication()).resetManager();
+        unregisterReceiver(mScanReceiver);
+        removeAllServices();
+        super.onDestroy();
+    }
     @Override
     protected SystemProfile getSystemProfile() {
         return new LinkingSystemProfile();

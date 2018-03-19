@@ -80,6 +80,8 @@ public class ConfirmAuthParams {
     /** Device Connect Managerに対してユーザーが設定しているキーワード. */
     private String mKeyword;
 
+    private boolean mIsAutoFlag = false;
+
     /**
      * コンストラクタ.
      * 
@@ -87,13 +89,14 @@ public class ConfirmAuthParams {
      */
     private ConfirmAuthParams(final Builder builder) {
         // Builderを用いるためprivateに設定。
-        this.mContext = builder.mContext;
-        this.mApplicationName = builder.mApplicationName;
-        this.mClientId = builder.mClientId;
-        this.mServiceId = builder.mServiceId;
-        this.mScope = builder.mScope;
-        this.mIsForDevicePlugin = builder.mIsForDevicePlugin;
-        this.mKeyword = builder.mKeyword;
+        mContext = builder.mContext;
+        mApplicationName = builder.mApplicationName;
+        mClientId = builder.mClientId;
+        mServiceId = builder.mServiceId;
+        mScope = builder.mScope;
+        mIsForDevicePlugin = builder.mIsForDevicePlugin;
+        mKeyword = builder.mKeyword;
+        mIsAutoFlag = builder.mIsAutoFlag;
     }
 
     /**
@@ -111,7 +114,7 @@ public class ConfirmAuthParams {
      * @param context Context
      */
     public void setContext(final android.content.Context context) {
-        this.mContext = context;
+        mContext = context;
     }
 
     /**
@@ -129,7 +132,7 @@ public class ConfirmAuthParams {
      * @param applicationName アプリケーション名
      */
     public void setApplicationName(final String applicationName) {
-        this.mApplicationName = applicationName;
+        mApplicationName = applicationName;
     }
 
     /**
@@ -147,7 +150,7 @@ public class ConfirmAuthParams {
      * @param clientId クライアントID
      */
     public void setClientId(final String clientId) {
-        this.mClientId = clientId;
+        mClientId = clientId;
     }
 
     /**
@@ -165,7 +168,7 @@ public class ConfirmAuthParams {
      * @param serviceId サービスID
      */
     public void setServiceId(final String serviceId) {
-        this.mServiceId = serviceId;
+        mServiceId = serviceId;
     }
 
     /**
@@ -183,7 +186,7 @@ public class ConfirmAuthParams {
      * @param scopes スコープ
      */
     public void setScopes(final String[] scopes) {
-        this.mScope = scopes;
+        mScope = scopes;
     }
 
     /**
@@ -201,7 +204,7 @@ public class ConfirmAuthParams {
      * @param isForDevicePlugin デバイスプラグイン向け承認画面フラグ
      */
     public void setForDevicePlugin(final boolean isForDevicePlugin) {
-        this.mIsForDevicePlugin = isForDevicePlugin;
+        mIsForDevicePlugin = isForDevicePlugin;
     }
 
     /**
@@ -218,6 +221,10 @@ public class ConfirmAuthParams {
      */
     public void setKeyword(final String keyword) {
         mKeyword = keyword;
+    }
+
+    public boolean isAutoFlag() {
+        return mIsAutoFlag;
     }
 
     /**
@@ -246,6 +253,7 @@ public class ConfirmAuthParams {
         /** Device Connect Managerに対してユーザーが設定しているキーワード. */
         private String mKeyword;
 
+        private boolean mIsAutoFlag;
         /**
          * ConfirmAuthParamsのインスタンスを設定された設定値で生成する.
          * 
@@ -327,6 +335,11 @@ public class ConfirmAuthParams {
          */
         public Builder isForDevicePlugin(final boolean isForDevicePlugin) {
             mIsForDevicePlugin = isForDevicePlugin;
+            return this;
+        }
+
+        public Builder isAutoFlag(final boolean isAutoFlag) {
+            mIsAutoFlag = isAutoFlag;
             return this;
         }
 

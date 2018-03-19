@@ -16,12 +16,6 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin"/>
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET"/>
-                <action android:name="org.deviceconnect.action.PUT"/>
-                <action android:name="org.deviceconnect.action.POST"/>
-                <action android:name="org.deviceconnect.action.DELETE"/>
-            </intent-filter>
         </receiver>
 
         <!-- プラグイン本体サービス -->

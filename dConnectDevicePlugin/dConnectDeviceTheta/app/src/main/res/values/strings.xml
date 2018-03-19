@@ -2,7 +2,7 @@
     <string name="app_name">THETA (Device Web API Plug-in)</string>
     <string name="app_name_for_device_web_api">THETA (Device Web API Plug-in)</string>
     <string name="splash_title">Booting up sample application...</string>
-    <string name="device_name_theta_s">THETA S</string>
+    <string name="device_name_theta_s">THETA S or later</string>
     <string name="device_name_theta_m15">THETA m15</string>
     <string name="theta_ssid_prefix">THETA</string>
     <string name="theta_no_device"></string>
@@ -11,10 +11,10 @@
     <string name="description_image_theta">THETA</string>
     <string name="photo_mode_title">[2/4] Still image mode</string>
     <string name="photo_mode_body_theta_m15">When you press the power button on the THETA, it starts in photo mode. \n\nWhen the power is turned ON, the power button on the side will light up in blue. \n\nIt is not possible to shoot videos in this state. If you want to shoot video, you have to turn off the power and perform the following steps.</string>
-    <string name="photo_mode_body_theta_s">When you want to shoot still images in THETA S, please repeat the pressing of the shooting mode button until the lamp is illuminated like a the above figure. \n\nIf you want to shoot the videos, please see the following page.</string>
+    <string name="photo_mode_body_theta_s">When you want to shoot still images in THETA S or later, please repeat the pressing of the shooting mode button until the lamp is illuminated like a the above figure. \n\nIf you want to shoot the videos, please see the following page.</string>
     <string name="movie_mode_title">[3/4] Video mode</string>
     <string name="movie_mode_body_theta_m15">When you press the power button while pressing the WiFi button, THETA will start in movie mode. \n\nWhen the power is turned ON, the power button on the side will blink blue. \n\nIt is not possible to shoot photos in this state. If you want to shoot a photo, you have to turn off the power and perform the previous steps.</string>"
-    <string name="movie_mode_body_theta_s">When you want to shoot videos in THETA S, please repeat the pressing of the shooting mode button until the lamp is illuminated like a the above figure. \n\nIf you want to shoot still images, please see the previous page.</string>
+    <string name="movie_mode_body_theta_s">When you want to shoot videos in THETA S or later, please repeat the pressing of the shooting mode button until the lamp is illuminated like a the above figure. \n\nIf you want to shoot still images, please see the previous page.</string>
     <string name="wifi_connection_title">[4/4] Connection with THETA</string>
     <string name="wifi_connection_body">Enable the WiFi in WiFi setting screen of Device, and then select the SSID of THETA.\n\nAnd then, please enter the model number on the bottom of the THETA as the password.</string>
     <string name="confirmation_title">[4/4] Connection check</string>

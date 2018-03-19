@@ -24,7 +24,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
     <uses-feature android:name="android.hardware.camera.flash"/>
@@ -32,51 +32,14 @@
     <application>
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
-            android:label="@string/app_name"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppTheme"
             android:launchMode="singleTask"/>
 
         <!-- d-Connect Host Device Plugin Provider. -->
         <receiver android:name=".HostDeviceProvider">
-
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET"/>
-                <action android:name="org.deviceconnect.action.PUT"/>
-                <action android:name="org.deviceconnect.action.POST"/>
-                <action android:name="org.deviceconnect.action.DELETE"/>
-                <action android:name="org.deviceconnect.action.RESPONSE"/>
-                <action android:name="org.deviceconnect.action.EVENT"/>
-
-                <!-- Event transmit disconnect notification -->
-                <action android:name="org.deviceconnect.action.EVENT_TRANSMIT_DISCONNECT"/>
-
-                <!-- Manager terminated notification -->
-                <action android:name="org.deviceconnect.action.MANAGER_TERMINATED"/>
-
-                <!-- Device plug-in reset notification -->
-                <action android:name="org.deviceconnect.action.DEVICEPLUGIN_RESET"/>
-
-            </intent-filter>
         </receiver>
 
-        <!-- BroadcastReceiver for Host -->
-        <receiver android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceReceiver">
-            <intent-filter>
-                <!-- Connection Profile -->
-                <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
-                <action android:name="android.net.wifi.STATE_CHANGE"/>
-                <action android:name="android.bluetooth.adapter.action.CONNECTION_STATE_CHANGED"/>
-                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
-            </intent-filter>
-            <intent-filter>
-                <!-- Phone Profile -->
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
-            </intent-filter>
-            <intent-filter>
-                <!-- uninstall notification -->
-                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
-                <data android:scheme="package"/>
-            </intent-filter>
-        </receiver>
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
@@ -103,33 +66,49 @@
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.recorder.video.VideoRecorderActivity"
             android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=".recorder"
             android:screenOrientation="landscape"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
             android:exported="false"
+            android:excludeFromRecents="true"
             android:launchMode="singleInstance"
+            android:taskAffinity=".player"
             android:screenOrientation="landscape"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.recorder.audio.AudioRecorderActivity"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=".audio"
             android:exported="false"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:exported="false"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:launchMode="singleTask"/>
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=".canvas"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
             android:exported="false"
-            android:label="@string/app_name"/>
+            android:label="@string/app_name_host"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=".touch"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
             android:exported="false"
-            android:label="@string/app_name"/>
+            android:label="@string/app_name_host"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=".keyevent"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
@@ -140,7 +119,8 @@
 
         <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:label="@string/gps_settings_body"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:theme="@style/AppTheme.Translucent"
+            android:excludeFromRecents="true"
             android:launchMode="singleInstance">
         </activity>
 

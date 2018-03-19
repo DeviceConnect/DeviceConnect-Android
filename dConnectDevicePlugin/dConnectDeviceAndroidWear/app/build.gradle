@@ -4,12 +4,11 @@ repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
     maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
     maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
-    google()
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
     compile 'com.android.support:multidex:1.0.2'
     compile 'com.google.android.gms:play-services:11.0.2'
 
@@ -18,7 +17,7 @@ dependencies {
 
 android {
 
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
@@ -35,7 +34,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.wear"
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
@@ -81,5 +80,9 @@ android {
     }
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+    }
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
     }
 }

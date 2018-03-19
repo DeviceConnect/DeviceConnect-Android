@@ -18,6 +18,16 @@
             android:summaryOff="@string/activity_settings_dconn_disabled"
             android:summaryOn="@string/activity_settings_dconn_enabled"
             android:title="@string/activity_settings_ssl" />
+        <PreferenceScreen
+            android:key="@string/key_settings_install_server_certificate"
+            android:title="@string/activity_settings_install_server_certificate"
+            android:summary="@string/activity_settings_install_server_certificate_summary">
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:key="@string/key_settings_export_server_certificate"
+            android:title="@string/activity_settings_export_server_keystore"
+            android:summary="@string/activity_settings_export_server_keystore_summay">
+        </PreferenceScreen>
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/key_settings_dconn_allow_external_ip"

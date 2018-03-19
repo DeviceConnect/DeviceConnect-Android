@@ -16,22 +16,22 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
-import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
-import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
-import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHHueParsingError;
+import com.philips.lighting.model.PHLight;
 
+import org.deviceconnect.android.deviceplugin.hue.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
 import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
+import org.deviceconnect.android.deviceplugin.hue.service.HueLightService;
 import org.deviceconnect.android.deviceplugin.hue.service.HueService;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 import org.json.hue.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -55,11 +55,6 @@ public class HueDeviceService extends DConnectMessageService {
      * ロガー.
      */
     private final Logger mLogger = Logger.getLogger("hue.dplugin");
-
-    /**
-     * Hueのデータを管理ヘルパークラス.
-     */
-    private HueDBHelper mHueDBHelper;
 
     @Override
     public void onCreate() {
@@ -117,20 +112,8 @@ public class HueDeviceService extends DConnectMessageService {
             Log.i(TAG, "HueDeviceService#initHueSDK");
         }
 
-        mHueDBHelper = new HueDBHelper(getApplicationContext());
-
-        // hue SDKの初期化
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        hueSDK.setAppName(HueConstants.APNAME);
-        hueSDK.setDeviceName(HueConstants.APNAME);
-        hueSDK.getNotificationManager().registerSDKListener(mPhListener);
-
-        if (DEBUG) {
-            Log.i(TAG, "@@@@@@ PHHueSDK version: " + hueSDK.getSDKVersion());
-            Log.i(TAG, "@@@@@@ PHHueSDK App Name: " + hueSDK.getAppName());
-            Log.i(TAG, "@@@@@@ PHHueSDK Device Name: " + hueSDK.getDeviceName());
-        }
-
+        HueManager.INSTANCE.init(getApplicationContext());
+        HueManager.INSTANCE.addSDKListener(mPhListener);
         reconnectAccessPoints();
     }
 
@@ -143,60 +126,56 @@ public class HueDeviceService extends DConnectMessageService {
         }
 
         // hue SDKの後始末
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        hueSDK.getNotificationManager().unregisterSDKListener(mPhListener);
-        hueSDK.disableAllHeartbeat();
-        hueSDK.destroySDK();
+        HueManager.INSTANCE.removeSDKListener(mPhListener);
+        HueManager.INSTANCE.destroy();
     }
 
     /**
      * Hueサービスを追加します.
      *
-     * @param hueSDK      Hue SDK
+     * @param isConnected アクセスポイントと接続しているかどうか
      * @param accessPoint アクセスポイント
      */
-    private void addHueService(final PHHueSDK hueSDK, final PHAccessPoint accessPoint) {
+    private void addHueService(final boolean isConnected, final PHAccessPoint accessPoint) {
         HueService service = (HueService) getServiceProvider().getService(accessPoint.getIpAddress());
         if (service == null) {
             service = new HueService(accessPoint);
             getServiceProvider().addService(service);
         }
-        service.setOnline(hueSDK.isAccessPointConnected(accessPoint));
+        service.setOnline(isConnected);
     }
-
+    /**
+     * ライトサービスを追加します.
+     *
+     * @param isConnected アクセスポイントと接続しているかどうか
+     * @param accessPoint アクセスポイント
+     * @param light ライト
+     */
+    private void addHueLightService(final boolean isConnected, final PHAccessPoint accessPoint, final PHLight light) {
+        HueLightService service = (HueLightService) getServiceProvider().getService(accessPoint.getIpAddress() + ":" + light.getIdentifier());
+        if (service == null) {
+            service = new HueLightService(accessPoint.getIpAddress(), light);
+            getServiceProvider().addService(service);
+        }
+        service.setOnline(isConnected);
+    }
     /**
      * 登録されているアクセスポイントに再接続を行います.
      */
     private void reconnectAccessPoints() {
-        if (DEBUG) {
-            mLogger.fine("HueDeviceService#reconnectAccessPoints");
-        }
-
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        List<PHAccessPoint> accessPoints = mHueDBHelper.getAccessPoints();
-        for (PHAccessPoint accessPoint : accessPoints) {
-            if (DEBUG) {
-                mLogger.info("AccessPoint: " + accessPoint.getMacAddress() + " " + accessPoint.getIpAddress());
+        HueManager.INSTANCE.reconnectAccessPoints(new HueManager.HueServiceListener() {
+            @Override
+            public void onUpdatedHueBridgeService(boolean isConnected, PHAccessPoint accessPoint) {
+                addHueService(isConnected, accessPoint);
             }
 
-            if (!hueSDK.isAccessPointConnected(accessPoint)) {
-                hueSDK.connect(accessPoint);
+            @Override
+            public void onUpdatedHueLightService(boolean isConnected, PHAccessPoint accessPoint, PHLight light) {
+                addHueLightService(isConnected, accessPoint, light);
             }
-            addHueService(hueSDK, accessPoint);
-        }
-
-        PHBridgeSearchManager sm = (PHBridgeSearchManager) hueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-        sm.search(true, true);
+        });
     }
 
-    /**
-     * DBに格納されているアクセスポイント情報を削除します.
-     *
-     * @param service Hueサービス
-     */
-    public void removeHueService(final HueService service) {
-        mHueDBHelper.removeAccessPointByIpAddress(service.getId());
-    }
 
     /**
      * 接続されている全てのブリッジを切断します。
@@ -204,21 +183,24 @@ public class HueDeviceService extends DConnectMessageService {
      * @param flag serviceのonline状態を変更フラグ(trueの時は変更する)
      */
     private void disconnectAllBridges(final boolean flag) {
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        List<PHBridge> bridges = new ArrayList<PHBridge>(hueSDK.getAllBridges());
-        for (PHBridge bridge : bridges) {
-            hueSDK.disableHeartbeat(bridge);
-            hueSDK.disconnect(bridge);
+        HueManager.INSTANCE.disconnectAllBridges(flag, new HueManager.HueDisconnectionListener() {
+            @Override
+            public void onDisconnectedBridge(String ip) {
+                DConnectService service = getServiceProvider().getService(ip);
+                if (service != null) {
+                    service.setOnline(false);
+                }
 
-            if (flag) {
-                PHBridgeResourcesCache cache = bridge.getResourceCache();
-                String ipAddress = cache.getBridgeConfiguration().getIpAddress();
-                DConnectService service = getServiceProvider().getService(ipAddress);
+            }
+
+            @Override
+            public void onDisconnectedLight(String ip, String lightId) {
+                DConnectService service = getServiceProvider().getService(ip + ":" + lightId);
                 if (service != null) {
                     service.setOnline(false);
                 }
             }
-        }
+        });
     }
 
     /**
@@ -232,23 +214,17 @@ public class HueDeviceService extends DConnectMessageService {
                 Log.i(TAG, "PHSDKListener:#onAccessPointsFound: accessPoint" +
                         "=" + accessPoints);
             }
-
-            PHHueSDK hueSDK = PHHueSDK.getInstance();
-            if (accessPoints != null && accessPoints.size() > 0) {
-                hueSDK.getAccessPointsFound().clear();
-                hueSDK.getAccessPointsFound().addAll(accessPoints);
-
-                for (PHAccessPoint accessPoint : accessPoints) {
-                    PHAccessPoint ap = mHueDBHelper.getAccessPointByMacAddress(accessPoint.getMacAddress());
-                    if (ap != null) {
-                        accessPoint.setUsername(ap.getUsername());
-                    }
-                    addHueService(hueSDK, accessPoint);
+            HueManager.INSTANCE.updateAccessPoint(accessPoints, new HueManager.HueServiceListener() {
+                @Override
+                public void onUpdatedHueBridgeService(boolean isConnected, PHAccessPoint accessPoint) {
+                    addHueService(isConnected, accessPoint);
                 }
-            } else {
-                PHBridgeSearchManager sm = (PHBridgeSearchManager) hueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-                sm.search(false, false, true);
-            }
+
+                @Override
+                public void onUpdatedHueLightService(boolean isConnected, PHAccessPoint accessPoint, PHLight light) {
+                    addHueLightService(isConnected, accessPoint, light);
+                }
+            });
         }
 
         @Override
@@ -263,32 +239,9 @@ public class HueDeviceService extends DConnectMessageService {
             if (DEBUG) {
                 Log.i(TAG, "PHSDKListener:#onBridgeConnected: bridge=" + phBridge + ", userName=" + userName);
             }
-
-            String ipAddress = phBridge.getResourceCache().getBridgeConfiguration().getIpAddress();
-            String macAddress = phBridge.getResourceCache().getBridgeConfiguration().getMacAddress();
-
-            PHHueSDK hueSDK = PHHueSDK.getInstance();
-            hueSDK.setSelectedBridge(phBridge);
-            hueSDK.addBridge(phBridge);
-            hueSDK.enableHeartbeat(phBridge, PHHueSDK.HB_INTERVAL);
-            hueSDK.getLastHeartbeat().put(ipAddress, System.currentTimeMillis());
-
-            DConnectService service = getServiceProvider().getService(ipAddress);
-            if (service != null) {
-                service.setOnline(true);
-            }
-
-            // 接続されたアクセスポイント情報をDBに格納
-            PHAccessPoint accessPoint = new PHAccessPoint();
-            accessPoint.setUsername(userName);
-            accessPoint.setIpAddress(ipAddress);
-            accessPoint.setMacAddress(macAddress);
-            if (!mHueDBHelper.hasAccessPoint(accessPoint)) {
-                mHueDBHelper.addAccessPoint(accessPoint);
-            } else {
-                mHueDBHelper.updateAccessPoint(accessPoint);
-            }
-        }
+            HueManager.INSTANCE.saveBridgeForDB(phBridge, userName);
+            updateHueBridge(true, phBridge);
+         }
 
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
@@ -298,24 +251,13 @@ public class HueDeviceService extends DConnectMessageService {
         }
 
         @Override
-        public void onConnectionResumed(final PHBridge bridge) {
+        public void onConnectionResumed(final PHBridge phBridge) {
             if (DEBUG) {
-                Log.i(TAG, "PHSDKListener:#onConnectionResumed: bridge=" + bridge);
+                Log.i(TAG, "PHSDKListener:#onConnectionResumed: bridge=" + phBridge);
             }
 
-            String ipAddress = bridge.getResourceCache().getBridgeConfiguration().getIpAddress();
-
-            PHHueSDK hueSDK = PHHueSDK.getInstance();
-            for (int i = 0; i < hueSDK.getDisconnectedAccessPoint().size(); i++) {
-                if (hueSDK.getDisconnectedAccessPoint().get(i).getIpAddress().equals(ipAddress)) {
-                    hueSDK.getDisconnectedAccessPoint().remove(i);
-                }
-            }
-
-            DConnectService service = getServiceProvider().getService(ipAddress);
-            if (service != null) {
-                service.setOnline(true);
-            }
+            HueManager.INSTANCE.removeDisconnectedAccessPoint(phBridge);
+            updateHueBridge(true, phBridge);
         }
 
         @Override
@@ -324,15 +266,7 @@ public class HueDeviceService extends DConnectMessageService {
                 Log.i(TAG, "PHSDKListener:#onConnectionLost: accessPoint=" + accessPoint);
             }
 
-            PHHueSDK hueSDK = PHHueSDK.getInstance();
-            if (!hueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
-                hueSDK.getDisconnectedAccessPoint().add(accessPoint);
-            }
-
-            DConnectService service = getServiceProvider().getService(accessPoint.getIpAddress());
-            if (service != null) {
-                service.setOnline(false);
-            }
+            updateHueBridge(false, accessPoint);
         }
 
         @Override
@@ -351,7 +285,8 @@ public class HueDeviceService extends DConnectMessageService {
         public void onParsingErrors(final List<PHHueParsingError> errors) {
             if (DEBUG) {
                 Log.e(TAG, "PHSDKListener:#onParsingErrors");
-                for (PHHueParsingError error : errors) {
+                for (int i = 0; i < errors.size(); i++) {
+                    PHHueParsingError error = errors.get(i);
                     Log.e(TAG, "--");
                     Log.e(TAG, "code: " + error.getCode() + ", " + error.getMessage());
                     JSONObject obj = error.getJSONContext();
@@ -364,6 +299,48 @@ public class HueDeviceService extends DConnectMessageService {
         }
     };
 
+    /**
+     * Hueプラグインが管理するサービスのステータスを更新する.
+      * @param isConnected true:オンライン false:オフライン
+     * @param phBridge PHBridge
+     */
+    private void updateHueBridge(final boolean isConnected, final PHBridge phBridge) {
+        String ipAddress = phBridge.getResourceCache().getBridgeConfiguration().getIpAddress();
+        DConnectService service = getServiceProvider().getService(ipAddress);
+        if (service != null) {
+            service.setOnline(isConnected);
+        }
+        List<PHLight> lights = phBridge.getResourceCache().getAllLights();
+        for (int i = 0; i < lights.size(); i++) {
+            HueLightService light = (HueLightService) getServiceProvider().getService(ipAddress + ":" + lights.get(i).getIdentifier());
+            if (light == null) {
+                light = new HueLightService(ipAddress, lights.get(i));
+                getServiceProvider().addService(light);
+            }
+            light.setOnline(isConnected);
+        }
+    }
+    /**
+     * Hueプラグインが管理するサービスのステータスを更新する.
+     * @param isConnected true:オンライン false:オフライン
+     * @param accessPoint PHAccessPoint
+     */
+    private void updateHueBridge(final boolean isConnected, final PHAccessPoint accessPoint) {
+        String ipAddress = HueManager.INSTANCE.addDisconnectedAccessPoint(accessPoint);
+        DConnectService service = getServiceProvider().getService(ipAddress);
+        if (service != null) {
+            service.setOnline(isConnected);
+        }
+        List<PHLight> lights = HueManager.INSTANCE.getLightsForIp(ipAddress);
+        for (int i = 0; i < lights.size(); i++) {
+            HueLightService light = (HueLightService) getServiceProvider().getService(ipAddress + ":" + lights.get(i).getIdentifier());
+            if (light == null) {
+                light = new HueLightService(ipAddress, lights.get(i));
+                getServiceProvider().addService(light);
+            }
+            light.setOnline(isConnected);
+        }
+    }
     /**
      * ネットワーク状況が変わった通知を受けるレシーバー.
      */

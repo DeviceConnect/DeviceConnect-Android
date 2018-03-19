@@ -14,10 +14,13 @@ import android.support.annotation.NonNull;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Preview;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
@@ -30,11 +33,14 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.profile.spec.IntegerParameterSpec;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * MediaStream Recording Profile.
@@ -79,11 +85,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setRecorderImageWidth(info, size.getWidth());
                             setRecorderImageHeight(info, size.getHeight());
                         }
-                        if (recorder instanceof HostDevicePreviewServer) {
+                        if (recorder instanceof AbstractPreviewServerProvider) {
                             HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
                             setRecorderPreviewWidth(info, size.getWidth());
                             setRecorderPreviewHeight(info, size.getHeight());
                             setRecorderPreviewMaxFrameRate(info, recorder.getMaxFrameRate());
+                            info.putInt("previewBitRate", recorder.getPreviewBitRate() / 1024);
                         }
                         setRecorderConfig(info, "");
                         recorders.add(info);
@@ -130,7 +137,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     if (recorder instanceof HostDevicePhotoRecorder) {
                         setSupportedImageSizes(response, recorder.getSupportedPictureSizes());
                     }
-                    if (recorder instanceof HostDevicePreviewServer) {
+                    if (recorder instanceof AbstractPreviewServerProvider) {
                         setSupportedPreviewSizes(response, recorder.getSupportedPreviewSizes());
                     }
                     sendResponse(response);
@@ -155,6 +162,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewWidth = getPreviewWidth(request);
             Integer previewHeight = getPreviewHeight(request);
             Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
+            Integer previewBitRate = parseInteger(request, "previewBitRate");;
 
             HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -193,12 +201,21 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (previewMaxFrameRate != null) {
-                if (!(recorder instanceof HostDevicePreviewServer)) {
+                if (!(recorder instanceof AbstractPreviewServerProvider)) {
                     MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
                     return;
                 }
                 recorder.setMaxFrameRate(previewMaxFrameRate);
             }
+
+            if (previewBitRate != null) {
+                if (!(recorder instanceof AbstractPreviewServerProvider)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
+                    return;
+                }
+                recorder.setPreviewBitRate(previewBitRate * 1024);
+            }
+
             setResult(response, DConnectMessage.RESULT_OK);
         }
 
@@ -387,37 +404,65 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
 
-            final HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+            final PreviewServerProvider serverProvider = mRecorderMgr.getPreviewServerProvider(target);
 
-            if (server == null) {
+            if (serverProvider == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
-            init(new PermissionUtility.PermissionRequestCallback() {
+            serverProvider.requestPermission(new PreviewServerProvider.PermissionCallback() {
                 @Override
-                public void onSuccess() {
+                public void onAllowed() {
+                    mRecorderMgr.initialize();
+
                     // ライト点灯中なら消灯処理を実施.
                     checkCameraLightState();
 
-                    server.startWebServer(new HostDevicePreviewServer.OnWebServerStartCallback() {
-                        @Override
-                        public void onStart(@NonNull String uri) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setUri(response, uri);
-                            sendResponse(response);
-                        }
+                    final List<PreviewServer> servers = serverProvider.getServers();
+                    final String[] defaultUri = new String[1];
+                    final CountDownLatch lock = new CountDownLatch(servers.size());
+                    final List<Bundle> streams = new ArrayList<>();
+                    for (final PreviewServer server : servers) {
+                        server.startWebServer(new PreviewServer.OnWebServerStartCallback() {
+                            @Override
+                            public void onStart(@NonNull String uri) {
+                                if ("video/x-mjpeg".equals(server.getMimeType())) {
+                                    defaultUri[0] = uri;
+                                }
 
-                        @Override
-                        public void onFail() {
+                                Bundle stream = new Bundle();
+                                stream.putString("mimeType", server.getMimeType());
+                                stream.putString("uri", uri);
+                                streams.add(stream);
+
+                                lock.countDown();
+                            }
+
+                            @Override
+                            public void onFail() {
+                                lock.countDown();
+                            }
+                        });
+                    }
+                    try {
+                        lock.await();
+                        if (streams.size() > 0) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setUri(response, defaultUri[0] != null ? defaultUri[0] : "");
+                            response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
+                        } else {
                             MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
-                            sendResponse(response);
                         }
-                    });
+                    } catch (InterruptedException e) {
+                        MessageUtils.setIllegalServerStateError(response, "Forced to shutdown request thread.");
+                    } finally {
+                        sendResponse(response);
+                    }
                 }
 
                 @Override
-                public void onFail(final String deniedPermission) {
+                public void onDisallowed() {
                     MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
                     sendResponse(response);
                 }
@@ -438,8 +483,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
 
-            final HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
-            if (server == null) {
+            final PreviewServerProvider serverProvider = mRecorderMgr.getPreviewServerProvider(target);
+            if (serverProvider == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
@@ -447,7 +492,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    server.stopWebServer();
+                    serverProvider.stopWebServers();
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
                 }

@@ -15,6 +15,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.security.KeyChain;
 
 import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.CompatibleRequestConverter;
@@ -25,12 +26,14 @@ import org.deviceconnect.android.manager.event.KeepAlive;
 import org.deviceconnect.android.manager.event.KeepAliveManager;
 import org.deviceconnect.android.manager.plugin.ConnectionType;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
-import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.VersionName;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -38,10 +41,21 @@ import org.deviceconnect.server.websocket.DConnectWebSocket;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * dConnect Manager本体.
@@ -54,10 +68,14 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     private static final String TAG_WAKE_LOCK = "DeviceConnectManager";
 
-    public static final String ACTION_DISCONNECT_WEB_SOCKET = "disconnect.WebSocket";
-    public static final String ACTION_SETTINGS_KEEP_ALIVE = "settings.KeepAlive";
-    public static final String EXTRA_WEBSOCKET_ID = "webSocketId";
-    public static final String EXTRA_KEEP_ALIVE_ENABLED = "enabled";
+    /**
+     * キーストアファイル名.
+     */
+    private static final String KEYSTORE_FILE_NAME = "manager.p12";
+
+    /**
+     * KeepAliveで使用するエクストラキー.
+     */
     public static final String EXTRA_EVENT_RECEIVER_ID = "receiverId";
 
     /** 内部用: 通信タイプを定義する. */
@@ -93,6 +111,9 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
     /** WakeLockのインスタンス. */
     private PowerManager.WakeLock mWakeLock;
+
+    /** キーストア管理オブジェクト. */
+    private KeyStoreManager mKeyStoreMgr;
 
     /** バインドするためのクラス. */
     private final IBinder mLocalBinder = new LocalBinder();
@@ -133,10 +154,14 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 new ServiceDiscoveryConverter(),
                 new ServiceInformationConverter()
         };
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), KEYSTORE_FILE_NAME);
 
         if (mSettings.isManagerStartFlag()) {
             startInternal();
+        } else {
+            fakeStartForeground();
         }
+
     }
 
     @Override
@@ -159,20 +184,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
             return START_STICKY;
         }
 
-        if (ACTION_DISCONNECT_WEB_SOCKET.equals(action)) {
-            String webSocketId = intent.getStringExtra(EXTRA_WEBSOCKET_ID);
-            disconnectWebSocket(webSocketId);
-            return START_STICKY;
-        }
-
-        if (ACTION_SETTINGS_KEEP_ALIVE.equals(action)) {
-            if (intent.getBooleanExtra(EXTRA_KEEP_ALIVE_ENABLED, true)) {
-                mKeepAliveManager.enableKeepAlive();
-            } else {
-                mKeepAliveManager.disableKeepAlive();
-            }
-            return START_STICKY;
-        }
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
             onKeepAliveCommand(intent);
             return START_STICKY;
@@ -185,6 +196,30 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         Bundle extras = new Bundle();
         extras.putString(IntentDConnectMessage.EXTRA_ORIGIN, origin);
         sendManagerEvent(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT, extras);
+    }
+
+    @Override
+    public void sendResponse(final Intent request, final Intent response) {
+        Intent intent = createResponseIntent(request, response);
+        if (INNER_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
+            mWebServerListener.onResponse(intent);
+        } else {
+            sendBroadcast(intent);
+        }
+    }
+
+    @Override
+    public void sendEvent(final String receiver, final Intent event) {
+        if (receiver == null || receiver.length() <= 0) {
+            mEventSender.execute(new Runnable() {
+                @Override
+                public void run() {
+                    sendEventToWebSocket(event);
+                }
+            });
+        } else {
+            super.sendEvent(receiver, event);
+        }
     }
 
     private void onKeepAliveCommand(final Intent intent) {
@@ -214,27 +249,11 @@ public class DConnectService extends DConnectMessageService implements WebSocket
         return !(version.compareTo(match) == -1);
     }
 
-    @Override
-    public void sendResponse(final Intent request, final Intent response) {
-        Intent intent = createResponseIntent(request, response);
-        if (INNER_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
-            mWebServerListener.onResponse(intent);
+    public void setEnableKeepAlive(boolean enable) {
+        if (enable) {
+            mKeepAliveManager.enableKeepAlive();
         } else {
-            sendBroadcast(intent);
-        }
-    }
-
-    @Override
-    public void sendEvent(final String receiver, final Intent event) {
-        if (receiver == null || receiver.length() <= 0) {
-            mEventSender.execute(new Runnable() {
-                @Override
-                public void run() {
-                    sendEventToWebSocket(event);
-                }
-            });
-        } else {
-            super.sendEvent(receiver, event);
+            mKeepAliveManager.disableKeepAlive();
         }
     }
 
@@ -299,7 +318,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      *
      * @param webSocketId 内部的に発行したWebSocket ID
      */
-    private void disconnectWebSocket(final String webSocketId) {
+    public void disconnectWebSocket(final String webSocketId) {
         mEventSender.execute(new Runnable() {
             @Override
             public void run() {
@@ -354,7 +373,7 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                 };
                 mWebServerListener.setFileManager(mFileMgr);
 
-                DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
+                final DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
                 builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
                         .documentRootPath(getFilesDir().getAbsolutePath())
                         .cachePath(mFileMgr.getBasePath().getAbsolutePath());
@@ -367,20 +386,52 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                     builder.ipWhiteList(list);
                 }
 
-                if (BuildConfig.DEBUG) {
-                    mLogger.info("RESTful Server was Started.");
-                    mLogger.info("DConnectSettings: " + mSettings.toString());
-                }
-
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mWiFiReceiver, filter);
 
-                mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext());
-                mRESTfulServer.setServerEventListener(mWebServerListener);
-                mRESTfulServer.start();
+                String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
+                mKeyStoreMgr.requestKeyStore(ipAddress, new KeyStoreCallback() {
+                    @Override
+                    public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+                        try {
+                            SSLServerSocketFactory factory = createSSLServerSocketFactory(keyStore);
+                            mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), getApplicationContext(), factory);
+                            mRESTfulServer.setServerEventListener(mWebServerListener);
+                            mRESTfulServer.start();
+
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("RESTful Server was Started.");
+                                mLogger.info("DConnectSettings: " + mSettings.toString());
+                            }
+                        } catch (GeneralSecurityException e) {
+                            mLogger.log(Level.SEVERE, "Failed to start HTTPS server.", e);
+                        }
+                    }
+
+                    @Override
+                    public void onError(final KeyStoreError error) {
+                        mLogger.log(Level.SEVERE, "Failed to start HTTPS server: " + error.name());
+                    }
+                });
+
             }
         });
+    }
+
+    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore)
+        throws GeneralSecurityException {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        sslContext.init(
+                keyManagerFactory.getKeyManagers(),
+                trustManagerFactory.getTrustManagers(),
+                new SecureRandom()
+        );
+        return sslContext.getServerSocketFactory();
     }
 
     /**
@@ -463,6 +514,51 @@ public class DConnectService extends DConnectMessageService implements WebSocket
      */
     public boolean isRunning() {
         return mRunningFlag;
+    }
+
+    /**
+     * ルート証明書を「信頼できる証明書」としてインストールする.
+     *
+     * インストール前にユーザーに対して、認可ダイアログが表示される.
+     * 認可されない場合は、インストールされない.
+     */
+    public void installRootCertificate() {
+        String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
+        mKeyStoreMgr.requestKeyStore(ipAddress, new KeyStoreCallback() {
+            @Override
+            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+                try {
+                    Intent installIntent = KeyChain.createInstallIntent();
+                    installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                    installIntent.putExtra(KeyChain.EXTRA_NAME, "Device Connect Root CA");
+                    installIntent.putExtra(KeyChain.EXTRA_CERTIFICATE, rootCert.getEncoded());
+                    startActivity(installIntent);
+                } catch (Exception e) {
+                    mLogger.log(Level.SEVERE, "Failed to encode server certificate.", e);
+                }
+            }
+
+            @Override
+            public void onError(final KeyStoreError error) {
+                mLogger.severe("Failed to encode server certificate: " + error.name());
+            }
+        });
+    }
+
+    /**
+     * キーストアをSDカード上のファイルとして出力する.
+     *
+     * @param dirPath 出力先のディレクトリへのパス
+     * @throws IOException 出力に失敗した場合
+     */
+    public void exportKeyStore(final String dirPath) throws IOException {
+        File dir = new File(dirPath);
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
+            }
+        }
+        mKeyStoreMgr.exportKeyStore(new File(dir, "keystore.p12"));
     }
 
     /**

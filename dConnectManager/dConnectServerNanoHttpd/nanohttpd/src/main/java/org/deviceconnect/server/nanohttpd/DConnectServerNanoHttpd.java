@@ -16,7 +16,6 @@ import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
 import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
 import org.deviceconnect.server.nanohttpd.security.Firewall;
-import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
 
 import java.io.BufferedReader;
@@ -38,7 +37,6 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,6 +157,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private Context mContext;
 
     /**
+     * SSLサーバーソケットファクトリ.
+     */
+    private SSLServerSocketFactory mServerSocketFactory;
+
+    /**
      * Keep-Aliveの状態定数.
      *
      * @author NTT DOCOMO, INC.
@@ -178,16 +181,39 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     /**
      * 設定値を元にサーバーを構築します.
      *
+     * このコンストラクタを使用する場合は、SSL通信は行いません.
+     *
      * @param config  サーバー設定。
      * @param context コンテキストオブジェクト。
+     * @throws IllegalArgumentException SSL設定をONにしていた場合
      */
     public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context) {
+        this(config, context, null);
+    }
+
+    /**
+     * 設定値を元にサーバーを構築します.
+     *
+     * SSL設定がONの場合は、SSLServerSocketFactoryを指定する必要があります.
+     *
+     * @param config  サーバー設定。
+     * @param context コンテキストオブジェクト。
+     * @param socketFactory SSLサーバーソケットファクトリー
+     * @throws IllegalArgumentException SSL設定がONのときに socketFactory に<coce>null</coce>を指定した場合
+     */
+    public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context,
+                                   final SSLServerSocketFactory socketFactory) {
         super(config);
 
         if (context == null) {
-            throw new IllegalArgumentException("Context must not be null.");
+            throw new IllegalArgumentException("context must not be null.");
         }
         mContext = context;
+
+        if (config.isSsl() && socketFactory == null) {
+            throw new IllegalArgumentException("keyStoreManager must not be null if SSL is enabled.");
+        }
+        mServerSocketFactory = socketFactory;
 
         if (BuildConfig.DEBUG) {
             Handler handler = new AndroidHandler(TAG);
@@ -230,7 +256,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         // SSLが有効になっている場合には、SSL用の設定を行う
         if (mConfig.isSsl()) {
-            SSLServerSocketFactory factory = createServerSocketFactory();
+            SSLServerSocketFactory factory = mServerSocketFactory;
             if (factory == null) {
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.LAUNCH_FAILED);
@@ -290,24 +316,15 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     }
 
     /**
-     * 証明書を読み込みFactoryクラスを生成する.
+     * SSLサーバーソケットファクトリーを設定する.
      *
-     * @return 読み込み成功時はSSLServerSocketFactoryを、その他はnullを返す。
+     * 指定したファクトリーからサーバーソケットを生成し直したい場合は,
+     * 一旦 {@link #shutdown()} してから再度 {@link #start()} を実行すること.
+     *
+     * @param socketFactory サーバーソケットファクトリー
      */
-    private SSLServerSocketFactory createServerSocketFactory() {
-        SSLServerSocketFactory retVal = null;
-        do {
-            KeyStoreManager storeManager = new KeyStoreManager();
-            try {
-                storeManager.initialize(mContext, false);
-            } catch (GeneralSecurityException e) {
-                mLogger.warning("Exception in the DConnectServerNanoHttpd#createServerSocketFactory() method. "
-                        + e.toString());
-                break;
-            }
-            retVal = storeManager.getServerSocketFactory();
-        } while (false);
-        return retVal;
+    public void setSSLServerSocketFactory(final SSLServerSocketFactory socketFactory) {
+        mServerSocketFactory = socketFactory;
     }
 
     /**
@@ -391,7 +408,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         NanoServer(final String hostname, final int port) {
             super(hostname, port);
             mFirewall = new Firewall(mConfig.getIPWhiteList());
-            mimeTypes();
+            try {
+                mimeTypes();
+            } catch (Exception e){
+                // ignore
+            }
         }
 
         @Override

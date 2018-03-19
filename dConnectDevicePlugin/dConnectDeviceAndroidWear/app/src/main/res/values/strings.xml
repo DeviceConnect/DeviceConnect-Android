@@ -3,5 +3,7 @@
 
     <string name="app_name" translatable="false">Android Wear (Device Connect Device Plug-in)</string>
     <string name="app_name_for_device_web_api" translatable="false">Android Wear (Device Web API Plug-in)</string>
-
+    <string name="android_wear_notification_channel_id" translatable="false">org.deviceconnect.android.intent.action.notifiy.androidwear</string>
+    <string name="android_wear_notification_channel_title" translatable="false">Device Connect AndroidWear Notification</string>
+    <string name="android_wear_notification_channel_desc" translatable="false">DeviceConnectのAndroidWearプラグインの通知</string>
 </resources>

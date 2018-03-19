@@ -1,3 +1,9 @@
+/*
+ BaseSettingFragment.java
+ Copyright (c) 2017 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
@@ -11,11 +17,12 @@ import android.support.v4.app.Fragment;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
 
-
+/**
+ * 設定画面用フラグメントのベースクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class BaseSettingFragment extends Fragment {
-
-    /** マネージャ本体のサービスがBindされているかどうか. */
-    private boolean mIsBind = false;
 
     /**
      * DConnectServiceを操作するクラス.
@@ -34,7 +41,39 @@ public abstract class BaseSettingFragment extends Fragment {
         super.onPause();
     }
 
-    protected void onManagerBonded() {
+    /**
+     * マネージャ本体とのバインド待ち状態になったことを通知.
+     */
+    protected void onManagerBinding() {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体とのバインドが不可能な状態であることを通知.
+     */
+    protected void onCannotManagerBonded() {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体とバインドしたことを通知.
+     * @param manager マネージャ本体
+     */
+    protected void onManagerBonded(final DConnectService manager) {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体と明示的にアンバインドする直前であることを通知.
+     */
+    protected void beforeManagerDisconnected() {
+        // NOP.
+    }
+
+    /**
+     * マネージャ本体とのバインドが切断されたことを通知.
+     */
+    protected void onManagerLost() {
         // NOP.
     }
 
@@ -48,8 +87,9 @@ public abstract class BaseSettingFragment extends Fragment {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
-            onManagerBonded();
+            DConnectService manager = ((DConnectService.LocalBinder) service).getDConnectService();
+            mDConnectService = manager;
+            onManagerBonded(manager);
         }
 
         @Override
@@ -65,7 +105,12 @@ public abstract class BaseSettingFragment extends Fragment {
         Activity activity = getActivity();
         if (activity != null) {
             Intent bindIntent = new Intent(activity, DConnectService.class);
-            mIsBind = activity.bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            boolean canBind = activity.bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            if (canBind) {
+                onManagerBinding();
+            } else {
+                onCannotManagerBonded();
+            }
         }
     }
 
@@ -75,6 +120,7 @@ public abstract class BaseSettingFragment extends Fragment {
         }
         Activity activity = getActivity();
         if (activity != null) {
+            beforeManagerDisconnected();
             activity.unbindService(mServiceConnection);
             mDConnectService = null;
         }

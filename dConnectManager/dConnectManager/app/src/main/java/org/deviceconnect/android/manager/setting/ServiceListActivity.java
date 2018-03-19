@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.res.ResourcesCompat;
@@ -149,6 +150,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      * Device Connect Managerの設定クラス.
      */
     private DConnectSettings mSettings;
+    /**
+     * ServiceDiscoveryのリトライ回数.
+     */
+    private int mRetry;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -161,64 +166,26 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
-        if (loadGuideSettings(this)) {
+        if (loadGuideSettings(ServiceListActivity.this)) {
             startGuide();
         }
     }
 
     @Override
-    protected void onManagerBonded() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mServiceAdapter = new ServiceAdapter(getPluginManager());
-
-                if (mServiceListGridView != null) {
-                    mServiceListGridView.setAdapter(mServiceAdapter);
-                    mServiceListGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                            openServiceInfo(position);
-                        }
-                    });
-                    mServiceListGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                        @Override
-                        public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                            openPluginSetting(position);
-                            return true;
-                        }
-                    });
-                }
-
-                if (mButtonReloadServiceList != null) {
-                    mButtonReloadServiceList.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(final View v) {
-                            reloadServiceList();
-                        }
-                    });
-                }
-
-                DConnectService managerService = getManagerService();
-                if (mSwitchAction != null) {
-                    mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
-                    mSwitchAction.setChecked(managerService.isRunning());
-                }
-
-                if (managerService.isRunning()) {
-                    reloadServiceList();
-                }
-                setEnableSearchButton(managerService.isRunning());
-            }
-        });
+    protected void onManagerDetected(final DConnectService manager, final boolean isRunning) {
+        initUI(isRunning);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        if (isBonded() && !hasDevicePlugins()) {
-            showNoDevicePlugin();
+        mRetry = 0;
+        if (isBonded()) {
+            if (!hasDevicePlugins()) {
+                showNoDevicePlugin();
+            } else {
+                initUI(isDConnectServiceRunning());
+            }
         }
     }
 
@@ -272,6 +239,54 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     public void onNegativeButton(final String tag) {
     }
 
+    private void initUI(boolean isRunning) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mServiceAdapter = new ServiceAdapter(getPluginManager());
+
+                if (mServiceListGridView != null) {
+                    mServiceListGridView.setAdapter(mServiceAdapter);
+                    mServiceListGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                            openServiceInfo(position);
+                        }
+                    });
+                    mServiceListGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                        @Override
+                        public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                            openPluginSetting(position);
+                            return true;
+                        }
+                    });
+                }
+
+                if (mButtonReloadServiceList != null) {
+                    mButtonReloadServiceList.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(final View v) {
+                            reloadServiceList();
+                        }
+                    });
+                }
+
+                if (mSwitchAction != null) {
+                    mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
+                    mSwitchAction.setChecked(isRunning);
+                }
+                setEnableSearchButton(isRunning);
+                if (isRunning) {
+                    reloadServiceList();
+                }
+            }
+        });
+    }
+
+    /**
+     * Searchボタンの有効無効を切り替える.
+     * @param running Managerの実行状態
+     */
     private void setEnableSearchButton(final boolean running) {
         Button btn = (Button) findViewById(R.id.activity_service_list_search_button);
         if (btn != null) {
@@ -286,7 +301,8 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      * @return デバイスプラグインを保有している場合はtrue、それ以外はfalse
      */
     private boolean hasDevicePlugins() {
-        return getPluginManager().getDevicePlugins().size() > 0;
+        DevicePluginManager mgr = getPluginManager();
+        return mgr != null && mgr.getDevicePlugins().size() > 0;
     }
 
     /**
@@ -336,13 +352,32 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     /**
+     * ガイドのボタンの有効・無効を設定する.
+     * @param enable true: 有効、false: 無効
+     */
+    private void setGuideClickable(boolean enable) {
+        View guideView = findViewById(R.id.activity_service_guide);
+        if (guideView != null) {
+            guideView.setClickable(enable);
+        }
+
+        Button button = (Button) findViewById(R.id.activity_service_guide_button);
+        if (button != null) {
+            button.setEnabled(enable);
+        }
+    }
+
+    /**
      * 次のガイドに移動する.
      */
     private void nextGuide() {
         if (mPageIndex == GUIDE_ID_LIST.length - 1) {
             endGuide();
         } else {
-            animateGuide(new AnimationUtil.AnimationAdapter() {
+            setGuideClickable(false);
+
+            View view = findViewById(GUIDE_ID_LIST[mPageIndex]);
+            AnimationUtil.animateAlpha(view, new AnimationUtil.AnimationAdapter() {
                 @Override
                 public void onAnimationEnd(final Animator animation) {
                     mPageIndex++;
@@ -353,36 +388,18 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     /**
-     * ガイドをアニメーションする.
-     * @param listener アニメーション通知リスナー
-     */
-    private void animateGuide(final AnimationUtil.AnimationAdapter listener) {
-        for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
-            View view = findViewById(GUIDE_ID_LIST[i]);
-            if (i == mPageIndex) {
-                AnimationUtil.animateAlpha(view, listener);
-            }
-        }
-    }
-
-    /**
      * ガイドを表示する.
      */
     private void visibleGuide() {
-        for (int i = 0; i < GUIDE_ID_LIST.length; i++) {
-            View view = findViewById(GUIDE_ID_LIST[i]);
-            if (view != null) {
-                if (i == mPageIndex) {
-                    view.setVisibility(View.VISIBLE);
-                    AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
-                        @Override
-                        public void onAnimationEnd(final Animator animation) {
-                        }
-                    });
-                } else {
-                    view.setVisibility(View.GONE);
+        View view = findViewById(GUIDE_ID_LIST[mPageIndex]);
+        if (view != null) {
+            view.setVisibility(View.VISIBLE);
+            AnimationUtil.animateAlpha2(view, new AnimationUtil.AnimationAdapter() {
+                @Override
+                public void onAnimationEnd(final Animator animation) {
+                    setGuideClickable(true);
                 }
-            }
+            });
         }
     }
 
@@ -395,6 +412,8 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         if (checkBox != null) {
             result = !checkBox.isChecked();
         }
+
+        setGuideClickable(false);
 
         final View guideView = findViewById(R.id.activity_service_guide);
         if (guideView != null) {
@@ -427,6 +446,16 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
         mSettings.setManagerStartFlag(checked);
         if (checked) {
+
+            // DConnectServiceを起動しておかないとbindが切れた時にサービスが止まってしまう
+            Intent intent = new Intent();
+            intent.setClass(this, DConnectService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
+
             managerService.startInternal();
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -445,6 +474,11 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     mSwitchAction.setEnabled(true);
                 }
             });
+
+            // サービスを停止しておく
+            Intent intent = new Intent();
+            intent.setClass(this, DConnectService.class);
+            stopService(intent);
         }
         setEnableSearchButton(checked);
     }
@@ -469,6 +503,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         }
 
         mServiceDiscovery = new ServiceDiscovery(this, mSettings) {
+            private static final int RETRY_COUNT = 5;
             private DialogFragment mDialog;
 
             @Override
@@ -500,7 +535,27 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                         Log.w(TAG, "Failed to dismiss the dialog for service discovery.");
                     }
                 } finally {
-                    mServiceDiscovery = null;
+                    boolean isHost = false;
+                    // Hostプラグインが見つからない場合はリトライする
+                    for (ServiceContainer service : mServiceAdapter.mServices) {
+                        if (service.getName().contains("Host")) {
+                            isHost = true;
+                            break;
+                        }
+                    }
+                    if (isHost || mRetry == RETRY_COUNT) {
+                        mServiceDiscovery = null;
+                        mRetry = 0;
+                    } else {
+                        mServiceDiscovery = null;
+                        mRetry++;
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        reloadServiceList();
+                    }
                 }
             }
         };
@@ -525,6 +580,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, getString(R.string.activity_help_title));
+        intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
         startActivity(intent);
     }
 
@@ -539,12 +595,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         if (plugin == null) {
             return;
         }
+        Boolean isSSL = isSSL();
+        if (isSSL == null) {
+            return;
+        }
 
         String url = BuildConfig.URL_DEMO_HTML + "?serviceId=" + mSelectedService.getId();
         Intent intent = new Intent();
         intent.setClass(this, WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, mSelectedService.getName());
+        intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
         intent.putExtra(WebViewActivity.EXTRA_SERVICE_ID, mSelectedService.getId());
         intent.putExtra(WebViewActivity.EXTRA_PLUGIN_ID, plugin.getPluginId());
         startActivity(intent);

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     def getVersionName = { ->
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.pebble"
         minSdkVersion 14
-        targetSdkVersion 19
+        targetSdkVersion 26
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
@@ -43,8 +43,10 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
+    flavorDimensions "common"
     productFlavors {
         DeviceWebApi {
+            dimension "common"
             versionCode 3
             versionName "1.0.2"
             manifestPlaceholders = [
@@ -78,6 +80,6 @@ repositories {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
     compile 'com.getpebble:pebblekit:4.0.1@aar'
 }

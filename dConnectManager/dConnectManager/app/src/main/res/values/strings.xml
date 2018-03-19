@@ -68,6 +68,15 @@
     <string name="activity_settings_manager_terminate_title">Manager termination notification in to the device plug-ins</string>
     <string name="activity_settings_manager_terminate_message">Processing</string>
     <string name="activity_settings_manage_websocket">List of WebSocket</string>
+    <string name="activity_settings_export_server_keystore">Exports server keystore</string>
+    <string name="activity_settings_export_server_keystore_summay">Exports server keystore as a PKCS12 file.</string>
+    <string name="activity_settings_export_server_keystore_dialog_path_title">Directory Path</string>
+    <string name="activity_settings_export_server_keystore_dialog_button_export">Export</string>
+    <string name="activity_settings_export_server_keystore_dialog_button_cancel">Cancel</string>
+    <string name="activity_settings_export_server_keystore_success">Stored keystore</string>
+    <string name="activity_settings_export_server_keystore_error">Failed to store keystore</string>
+    <string name="activity_settings_install_server_certificate">Installs root certificate</string>
+    <string name="activity_settings_install_server_certificate_summary">Install the root certificate of this system as a trusted certificate on your device.</string>
     <string name="activity_settings_name">Name</string>
     <string name="activity_settings_uuid">UUID</string>
     <string name="activity_settings_demo_link">Link of Demo</string>
@@ -181,7 +190,7 @@
     <string name="activity_service_list_search">Search of service</string>
     <string name="activity_service_menu_settings">Settings</string>
     <string name="activity_service_menu_help">Help</string>
-    <string name="activity_service_list_service_discovery">Searching devices</string>
+    <string name="activity_service_list_service_discovery">Searching services</string>
     <string name="activity_service_list_checkbox">Do not show this window from next time.</string>
     <string name="activity_service_list_guide_1">To launch Device Connect Manager.</string>
     <string name="activity_service_list_guide_2">To configure Device Connect Manager.</string>
@@ -219,4 +228,15 @@
     <!-- ================= Chrome for Android ================= -->
     <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 
+    <!-- ================= DConnectMessageService ================= -->
+    <string name="dconnect_service_on_channel_id">org.deviceconnect.android.manager.service</string>
+    <string name="dconnect_service_on_channel_title">Device Connect Message Service</string>
+    <string name="dconnect_service_on_channel_desc">This is a service for sending and receiving DeviceConnect messages.</string>
+
+    <!-- ================= DConnectWebService ================= -->
+    <string name="web_service_on_channel_id">org.deviceconnect.android.manager.webserver</string>
+    <string name="web_service_on_channel_title">Device Connect Web Server</string>
+    <string name="web_service_on_channel_desc">It is a WebServer for placing HTML for DeviceConnect.</string>
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
 </resources>

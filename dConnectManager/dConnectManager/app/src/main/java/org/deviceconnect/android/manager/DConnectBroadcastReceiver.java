@@ -27,6 +27,10 @@ public class DConnectBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(final Context context, final Intent intent) {
         Intent targetIntent = new Intent(intent);
         targetIntent.setClass(context, DConnectService.class);
-        context.startService(targetIntent);
+        try {
+            context.startService(targetIntent);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 }

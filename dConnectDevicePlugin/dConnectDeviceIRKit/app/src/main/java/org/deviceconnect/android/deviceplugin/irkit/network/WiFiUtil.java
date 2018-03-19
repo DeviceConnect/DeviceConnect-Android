@@ -6,16 +6,28 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.network;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
 
 /**
  * WiFi周りのユーティリティクラス.
  * @author NTT DOCOMO, INC.
  */
 public final class WiFiUtil {
+
+
+
 
     /**
      * ユーティリティクラスのためprivate.
@@ -32,14 +44,18 @@ public final class WiFiUtil {
     public static String getCurrentSSID(final Context context) {
 
         String ssid = null;
-        
-        if (isOnWiFi(context)) {
-            WifiManager wifi = (WifiManager) context.getSystemService(android.content.Context.WIFI_SERVICE);
-            ssid = wifi.getConnectionInfo().getSSID();
 
-            if (ssid != null) {
-                // ダブルクォーテーションを含んでいるので外す
-                ssid = ssid.replaceAll("\"", "");
+        if (isOnWiFi(context)) {
+            WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            if (manager.isWifiEnabled()) {
+                WifiInfo wifiInfo = manager.getConnectionInfo();
+                if (wifiInfo != null) {
+                    NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState());
+                    if (state == NetworkInfo.DetailedState.CONNECTED || state == NetworkInfo.DetailedState.OBTAINING_IPADDR) {
+                        // ダブルクォーテーションを含んでいるので外す
+                        ssid = wifiInfo.getSSID().replaceAll("\"", "");
+                    }
+                }
             }
         }
 
@@ -78,5 +94,25 @@ public final class WiFiUtil {
         }
         return !current.equals(oldSSID);
     }
-
+    /**
+     * WiFiスキャンを行うには位置情報のパーミッション許可が必要なので、確認を行う.
+     * @param context context.
+     * @param callback 認証ダイアログの選択結果を返すCallback.
+     */
+    public static void checkLocationPermission(final Context context, final PermissionUtility.PermissionRequestCallback callback) {
+        // WiFi scan requires location permissions.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (context.checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && context.checkSelfPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                callback.onSuccess();
+            } else {
+                PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION },
+                            callback);
+            }
+        }
+    }
 }

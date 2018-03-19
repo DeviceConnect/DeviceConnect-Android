@@ -45,10 +45,20 @@ public class AccessTokenListFragment extends Fragment {
     /** リストビュー用アダプタ. */
     private AccessTokenListAdapter mListAdapter;
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mLocalOAuth2Main = new LocalOAuth2Main(getActivity());
+    }
+
+    @Override
+    public void onDestroy() {
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
+        super.onDestroy();
     }
 
     @Override
@@ -127,7 +137,7 @@ public class AccessTokenListFragment extends Fragment {
      */
     private List<SQLiteToken> loadTokens() {
         ArrayList<SQLiteToken> tokenList = new ArrayList<>();
-        SQLiteToken[] tokens = LocalOAuth2Main.getAccessTokens();
+        SQLiteToken[] tokens = mLocalOAuth2Main.getAccessTokens();
         if (tokens != null) {
             tokenList.addAll(Arrays.asList(tokens));
         }
@@ -220,7 +230,7 @@ public class AccessTokenListFragment extends Fragment {
          * アクセストークンをすべて削除されたことを画面に反映する.
          */
         private void deleteAll() {
-            LocalOAuth2Main.destroyAllAccessToken();
+            mLocalOAuth2Main.destroyAllAccessToken();
             mTokenList.clear();
             notifyDataSetChanged();
             setVisibleCommentView();
@@ -231,7 +241,7 @@ public class AccessTokenListFragment extends Fragment {
          */
         private void deleteToken(final SQLiteToken token) {
             long tokenId = token.getId();
-            LocalOAuth2Main.destroyAccessToken(tokenId);
+            mLocalOAuth2Main.destroyAccessToken(tokenId);
             mTokenList.remove(token);
             notifyDataSetChanged();
             setVisibleCommentView();
@@ -267,7 +277,7 @@ public class AccessTokenListFragment extends Fragment {
         Drawable icon = null;
         if (token != null) {
             String clientId = token.getClientId();
-            SQLiteClient client = LocalOAuth2Main.findClientByClientId(clientId);
+            SQLiteClient client = mLocalOAuth2Main.findClientByClientId(clientId);
             if (client != null) {
                 PackageInfoOAuth p = client.getPackageInfo();
                 icon = getPackageIcon(getActivity(), p.getPackageName());

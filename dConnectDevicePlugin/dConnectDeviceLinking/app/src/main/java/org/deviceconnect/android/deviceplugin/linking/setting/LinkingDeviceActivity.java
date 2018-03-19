@@ -23,12 +23,13 @@ import android.widget.Toast;
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
-import org.deviceconnect.android.deviceplugin.linking.linking.IlluminationData;
+import org.deviceconnect.android.deviceplugin.linking.linking.data.IlluminationData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
-import org.deviceconnect.android.deviceplugin.linking.linking.VibrationData;
+import org.deviceconnect.android.deviceplugin.linking.linking.data.Setting;
+import org.deviceconnect.android.deviceplugin.linking.linking.data.VibrationData;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
@@ -173,12 +174,12 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         byte[] illumination = mDevice.getIllumination();
         try {
             IlluminationData data = new IlluminationData(illumination);
-            for (IlluminationData.Setting setting : data.getColor().getChildren()) {
+            for (Setting setting : data.getColor().getChildren()) {
                 if ((setting.getId() & 0xFF) == colorId) {
                     colorBtn.setText(setting.getName(0).getName());
                 }
             }
-            for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+            for (Setting setting : data.getPattern().getChildren()) {
                 if ((setting.getId() & 0xFF) == patternId) {
                     patternBtn.setText(setting.getName(0).getName());
                 }
@@ -210,7 +211,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
 
         try {
             IlluminationData data = new IlluminationData(illumination);
-            for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+            for (Setting setting : data.getPattern().getChildren()) {
                 if ((setting.getId() & 0xFF) == patternId) {
                     btn.setText(setting.getName(0).getName());
                 }
@@ -225,7 +226,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void setupDefaultOnSettingOfLight(final LinkingDevice device) {
         Button patternBtn = (Button) findViewById(R.id.select_light_on_pattern);
         if (patternBtn != null) {
-            IlluminationData.Setting setting = LinkingUtil.getDefaultPatternSettingOfLight(device);
+            Setting setting = LinkingUtil.getDefaultPatternSettingOfLight(device);
             if (setting != null) {
                 patternBtn.setText(setting.getName(0).getName());
                 updateLightPatternSetting(setting.getId() & 0xFF);
@@ -235,7 +236,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
         Button colorBtn = (Button) findViewById(R.id.select_light_on_color);
         if (colorBtn != null) {
-            IlluminationData.Setting setting = LinkingUtil.getDefaultColorSettingOfLight(device);
+            Setting setting = LinkingUtil.getDefaultColorSettingOfLight(device);
             if (setting != null) {
                 colorBtn.setText(setting.getName(0).getName());
                 updateLightColorSetting(setting.getId() & 0xFF);
@@ -249,7 +250,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void setupDefaultOffSettingOfLight(final LinkingDevice device) {
         Button btn = (Button) findViewById(R.id.select_light_off);
         if (btn != null) {
-            IlluminationData.Setting setting = LinkingUtil.getDefaultOffSettingOfLight(device);
+            Setting setting = LinkingUtil.getDefaultOffSettingOfLight(device);
             if (setting != null) {
                 btn.setText(setting.getName(0).getName());
                 updateLightOffSetting(setting.getId() & 0xFF);
@@ -280,7 +281,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         byte[] vibration = mDevice.getVibration();
         try {
             VibrationData data = new VibrationData(vibration);
-            for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+            for (Setting setting : data.getPattern().getChildren()) {
                 if ((setting.getId() & 0xFF) == patternId) {
                     btn.setText(setting.getName(0).getName());
                 }
@@ -312,7 +313,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         byte[] vibration = mDevice.getVibration();
         try {
             VibrationData data = new VibrationData(vibration);
-            for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+            for (Setting setting : data.getPattern().getChildren()) {
                 if ((setting.getId() & 0xFF) == patternId) {
                     btn.setText(setting.getName(0).getName());
                 }
@@ -327,7 +328,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void setupDefaultOnSettingOfVibration(final LinkingDevice device) {
         Button btn = (Button) findViewById(R.id.select_vibration_on);
         if (btn != null) {
-            VibrationData.Setting setting = LinkingUtil.getDefaultOnSettingOfVibration(device);
+            Setting setting = LinkingUtil.getDefaultOnSettingOfVibration(device);
             if (setting != null) {
                 btn.setText(setting.getName(0).getName());
                 updateVibrationOnSetting(setting.getId() & 0xFF);
@@ -340,7 +341,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void setupDefaultOffSettingOfVibration(final LinkingDevice device) {
         Button btn = (Button) findViewById(R.id.select_vibration_off);
         if (btn != null) {
-            VibrationData.Setting setting = LinkingUtil.getDefaultOffSettingOfVibration(device);
+            Setting setting = LinkingUtil.getDefaultOffSettingOfVibration(device);
             if (setting != null) {
                 btn.setText(setting.getName(0).getName());
                 updateVibrationOffSetting(setting.getId() & 0xFF);
@@ -462,7 +463,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(final DialogInterface dialog, final int which) {
-                    IlluminationData.Setting selectedPattern = data.getPattern().getChild(which);
+                    Setting selectedPattern = data.getPattern().getChild(which);
 
                     if (listener != null) {
                         listener.onSelected(selectedPattern.getName(0).getName(), selectedPattern.getId() & 0xFF);
@@ -495,7 +496,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             builder.setTitle(getString(R.string.activity_device_color_list)).setItems(items, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(final DialogInterface dialog, final int which) {
-                    IlluminationData.Setting selectedColor = data.getColor().getChild(which);
+                    Setting selectedColor = data.getColor().getChild(which);
                     if (listener != null) {
                         listener.onSelected(selectedColor.getName(0).getName(), selectedColor.getId() & 0xFF);
                     }
@@ -589,7 +590,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    VibrationData.Setting selectedPattern = data.getPattern().getChild(which);
+                    Setting selectedPattern = data.getPattern().getChild(which);
                     if (listener != null) {
                         listener.onSelected(selectedPattern.getName(0).getName(), selectedPattern.getId() & 0xFF);
                     }

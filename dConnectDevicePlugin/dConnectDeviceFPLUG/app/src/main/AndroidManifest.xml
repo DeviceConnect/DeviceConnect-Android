@@ -33,7 +33,11 @@
         <service
             android:name=".FPLUGDeviceService"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_fplug"/>
+        </service>
 
         <activity
             android:name=".setting.FPLUGServiceListActivity"

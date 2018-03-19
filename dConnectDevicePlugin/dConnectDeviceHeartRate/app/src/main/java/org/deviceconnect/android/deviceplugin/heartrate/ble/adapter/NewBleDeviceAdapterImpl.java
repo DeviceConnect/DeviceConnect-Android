@@ -58,7 +58,13 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
                 filters.add(filter);
             }
         }
-        ScanSettings settings = new ScanSettings.Builder().build();
+        ScanSettings.Builder builder = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            builder.setMatchMode(ScanSettings.MATCH_MODE_STICKY);
+        }
+        ScanSettings settings = builder.build();
 
         mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
         if (mBleScanner != null) {

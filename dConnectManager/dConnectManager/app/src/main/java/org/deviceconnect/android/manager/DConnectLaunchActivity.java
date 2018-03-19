@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -213,13 +214,19 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         Uri uri = intent.getData();
         String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
         String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
+        }
 
         if (key == null || origin == null) {
-            mLogger.warning("Origin or key is missing.");
+            if (BuildConfig.DEBUG) {
+                mLogger.warning("Origin or key is missing.");
+            }
             key = uri.getQueryParameter(IntentDConnectMessage.EXTRA_KEY);
             origin = uri.getQueryParameter(IntentDConnectMessage.EXTRA_ORIGIN);
-            mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
+            if (BuildConfig.DEBUG) {
+                mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
+            }
         }
 
         try {
@@ -246,8 +253,11 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private void preventAutoStop() {
         Intent targetIntent = new Intent();
         targetIntent.setClass(getApplicationContext(), DConnectService.class);
-        startService(targetIntent);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(targetIntent);
+        } else {
+            startService(targetIntent);
+        }
         // NOTE: 上記の処理でstartServiceを実行している理由
         //
         //     AndroidフレームワークのServiceは、内部的に下記の2つのフラグを持つ.
@@ -268,13 +278,20 @@ public class DConnectLaunchActivity extends AppCompatActivity {
 
     private void startManager() {
         if (mDConnectService != null) {
+            preventAutoStop();
+            mSettings.setManagerStartFlag(true);
             mDConnectService.startInternal();
         }
     }
 
     private void stopManager() {
         if (mDConnectService != null) {
+            mSettings.setManagerStartFlag(false);
             mDConnectService.stopInternal();
+
+            Intent intent = new Intent();
+            intent.setClass(getApplicationContext(), DConnectService.class);
+            stopService(intent);
         }
     }
 
@@ -284,7 +301,9 @@ public class DConnectLaunchActivity extends AppCompatActivity {
         setTheme(R.style.AppTheme);
         View root = findViewById(R.id.launcher_root);
         root.setVisibility(View.VISIBLE);
-        mLogger.info("Displayed launch activity.");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Displayed launch activity.");
+        }
 
         Button cancelButton = (Button) findViewById(R.id.button_manager_launcher_cancel);
         cancelButton.setOnClickListener(new View.OnClickListener() {
@@ -363,8 +382,6 @@ public class DConnectLaunchActivity extends AppCompatActivity {
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            preventAutoStop();
-
             mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
             runOnUiThread(new Runnable() {
                 @Override

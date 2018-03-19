@@ -11,9 +11,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
@@ -147,7 +149,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
             startDetection();
         }
 
-        mCurrentSSID = WiFiUtil.getCurrentSSID(this);
 
         IntentFilter localFilter = new IntentFilter();
         localFilter.addAction(ACTION_RESTART_DETECTION_IRKIT);
@@ -155,6 +156,18 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         localFilter.addAction(ACTION_VIRTUAL_DEVICE_REMOVED);
         localFilter.addAction(ACTION_VIRTUAL_DEVICE_UPDATED);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, localFilter);
+        WiFiUtil.checkLocationPermission(this, new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                mCurrentSSID = WiFiUtil.getCurrentSSID(IRKitDeviceService.this);
+            }
+
+            @Override
+            public void onFail(@NonNull String s) {
+                mCurrentSSID = null;
+            }
+        });
+
     }
 
     @Override

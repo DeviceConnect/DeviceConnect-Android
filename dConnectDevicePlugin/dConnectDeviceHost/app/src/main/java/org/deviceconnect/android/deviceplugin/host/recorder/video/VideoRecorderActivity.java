@@ -198,8 +198,10 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
     }
 
     private void sendRecorderStateEvent(final HostDeviceRecorder.RecorderState state) {
-        mLogger.info("sendRecorderStateEvent: recorderId = " + mRecorderId
-            + ", state = " + state.name());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("sendRecorderStateEvent: recorderId = " + mRecorderId
+                    + ", state = " + state.name());
+        }
         Intent intent = new Intent(VideoConst.SEND_VIDEO_TO_HOSTDP);
         intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
         intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
@@ -232,7 +234,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             mMediaRecorder.setVideoSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             mMediaRecorder.setOutputFile(mFile.toString());
 
-            mLogger.info("VideoRecorderActivity: " + mPictureSize);
+            if (BuildConfig.DEBUG) {
+                mLogger.info("VideoRecorderActivity: " + mPictureSize);
+            }
             mCallback.send(Activity.RESULT_OK, null);
         } else {
             Bundle data = new Bundle();

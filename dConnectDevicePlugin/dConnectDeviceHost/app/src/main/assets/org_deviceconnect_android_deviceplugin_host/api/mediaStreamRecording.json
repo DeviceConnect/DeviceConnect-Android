@@ -1,0 +1,1555 @@
+{
+    "swagger": "2.0",
+    "basePath": "/gotapi/mediaStreamRecording",
+    "info": {
+        "title": "Media Stream Recording Profile",
+        "version": "2.0.0",
+        "description": "スマートデバイスによる写真撮影、動画録画または音声録音などの操作を行うAPI。"
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/mediaRecorder": {
+            "get": {
+                "operationId": "mediaStreamRecordingMediaRecorderGet",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスから使用可能なレコーダーの一覧を取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/MediaRecorderResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "recorders": [
+                                    {
+                                        "id": "photo_0",
+                                        "name": "Dummy Camera Recorder - back",
+                                        "state": "inactive",
+                                        "imageWidth": 3264,
+                                        "imageHeight": 2448,
+                                        "previewWidth": 640,
+                                        "previewHeight": 480,
+                                        "previewMaxFrameRate": 10,
+                                        "mimeType": "image/png",
+                                        "config": ""
+                                    },
+                                    {
+                                        "id": "photo_1",
+                                        "name": "Dummy Camera Recorder - front",
+                                        "state": "inactive",
+                                        "imageWidth": 1280,
+                                        "imageHeight": 960,
+                                        "previewWidth": 640,
+                                        "previewHeight": 480,
+                                        "previewMaxFrameRate": 10,
+                                        "mimeType": "image/png",
+                                        "config": ""
+                                    },
+                                    {
+                                        "id": "video_0",
+                                        "name": "Dummy Video Recorder - back",
+                                        "state": "inactive",
+                                        "imageWidth": 640,
+                                        "imageHeight": 480,
+                                        "mimeType": "video/3gp",
+                                        "config": ""
+                                    },
+                                    {
+                                        "id": "video_1",
+                                        "name": "Dummy Video Recorder - front",
+                                        "state": "inactive",
+                                        "imageWidth": 640,
+                                        "imageHeight": 480,
+                                        "mimeType": "video/3gp",
+                                        "config": ""
+                                    },
+                                    {
+                                        "id": "audio",
+                                        "name": "Dummy Audio Recorder",
+                                        "state": "inactive",
+                                        "mimeType": "audio/3gp",
+                                        "config": ""
+                                    },
+                                    {
+                                        "id": "screen",
+                                        "name": "Dummy Screen",
+                                        "state": "inactive",
+                                        "imageWidth": 1080,
+                                        "imageHeight": 1776,
+                                        "previewWidth": 270,
+                                        "previewHeight": 444,
+                                        "previewMaxFrameRate": 10,
+                                        "mimeType": "video/x-mjpeg",
+                                        "config": ""
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/takePhoto": {
+            "post": {
+                "operationId": "mediaStreamRecordingTakePhotoPost",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して写真撮影リクエストを送る。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/TakePhotoResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "uri": "Dummy URI",
+                                "path": "Dummy Path"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/record": {
+            "post": {
+                "operationId": "mediaStreamRecordingRecordPost",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して、動画撮影や音声録音の開始リクエストを送る。",
+                "description": "MediaStreamRecording Stopされない場合は各デバイスが撮影できる最大時間まで撮影を行い、その後撮影を停止する。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "timeslice",
+                        "description": "タイムスライス。動画・音声入力などから得られた1フレームを新たに出力先メディアに書き出すまでの待ち時間。単位はミリ秒。1000/timesliceが出力メディアの固定フレームレート（フレーム/秒）に相当する。省略された場合には、デバイス毎の挙動でフレーム書き出しを行う。",
+                        "in": "formData",
+                        "required": false,
+                        "minimum": 0.0,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecordResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "uri": "Dummy URI",
+                                "path": "Dummy Path"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/pause": {
+            "put": {
+                "operationId": "mediaStreamRecordingPausePut",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して動画撮影または音声録音の一時停止依頼を送る。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecorderControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resume": {
+            "put": {
+                "operationId": "mediaStreamRecordingResumePut",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して一時停止状態にある動画撮影または音声録音の再開リクエストを送る。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecorderControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stop": {
+            "put": {
+                "operationId": "mediaStreamRecordingStopPut",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して動画撮影または音声録音の終了リクエストを送る。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecorderStopResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/muteTrack": {
+            "put": {
+                "operationId": "mediaStreamRecordingMuteTrackPut",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して動画撮影や音声録音のミュート依頼を送る。",
+                "description": "ビデオとオーディオなどの複数トラックが含まれる撮影中メディアにおいては、オーディオトラックがミュートされる。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecorderControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/unmuteTrack": {
+            "put": {
+                "operationId": "mediaStreamRecordingUnmuteTrackPut",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスに対して動画撮影や音声録音のミュート解除依頼を送る。",
+                "description": "ビデオとオーディオなどの複数トラックが含まれる撮影中メディアにおいては、オーディオトラックがミュート解除される。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecorderControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/options": {
+            "get": {
+                "operationId": "mediaStreamRecordingOptionsGet",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスからサポートしている写真撮影、動画撮影や音声録音のオプションを取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/OptionsResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "imageSize": [
+                                    {
+                                        "width": 3264,
+                                        "height": 2448
+                                    },
+                                    {
+                                        "width": 3200,
+                                        "height": 2400
+                                    },
+                                    {
+                                        "width": 2592,
+                                        "height": 1944
+                                    },
+                                    {
+                                        "width": 2048,
+                                        "height": 1536
+                                    },
+                                    {
+                                        "width": 1920,
+                                        "height": 1080
+                                    },
+                                    {
+                                        "width": 1600,
+                                        "height": 1200
+                                    },
+                                    {
+                                        "width": 1280,
+                                        "height": 960
+                                    },
+                                    {
+                                        "width": 1280,
+                                        "height": 768
+                                    },
+                                    {
+                                        "width": 1280,
+                                        "height": 720
+                                    },
+                                    {
+                                        "width": 1024,
+                                        "height": 768
+                                    },
+                                    {
+                                        "width": 800,
+                                        "height": 600
+                                    },
+                                    {
+                                        "width": 800,
+                                        "height": 480
+                                    },
+                                    {
+                                        "width": 720,
+                                        "height": 480
+                                    },
+                                    {
+                                        "width": 640,
+                                        "height": 480
+                                    },
+                                    {
+                                        "width": 352,
+                                        "height": 288
+                                    },
+                                    {
+                                        "width": 320,
+                                        "height": 240
+                                    },
+                                    {
+                                        "width": 176,
+                                        "height": 144
+                                    }
+                                ],
+                                "previewBitRate": 256,
+                                "previewSize": [
+                                    {
+                                        "width": 1920,
+                                        "height": 1080
+                                    },
+                                    {
+                                        "width": 1600,
+                                        "height": 1200
+                                    },
+                                    {
+                                        "width": 1280,
+                                        "height": 960
+                                    },
+                                    {
+                                        "width": 1280,
+                                        "height": 768
+                                    },
+                                    {
+                                        "width": 1280,
+                                        "height": 720
+                                    },
+                                    {
+                                        "width": 1024,
+                                        "height": 768
+                                    },
+                                    {
+                                        "width": 800,
+                                        "height": 600
+                                    },
+                                    {
+                                        "width": 800,
+                                        "height": 480
+                                    },
+                                    {
+                                        "width": 720,
+                                        "height": 480
+                                    },
+                                    {
+                                        "width": 640,
+                                        "height": 480
+                                    },
+                                    {
+                                        "width": 352,
+                                        "height": 288
+                                    },
+                                    {
+                                        "width": 320,
+                                        "height": 240
+                                    },
+                                    {
+                                        "width": 176,
+                                        "height": 144
+                                    }
+                                ],
+                                "mimeType": [
+                                    "image/png"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "mediaStreamRecordingOptionsPut",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスからサポートしている写真撮影、動画撮影や音声録音のオプションを設定する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "imageWidth",
+                        "description": "撮影時の横幅。単位はピクセル。previewHeightを指定するときは省略不可。Options API GETで返された値以外を指定した場合はパラメータエラー。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "imageHeight",
+                        "description": "撮影時の縦幅。単位はピクセル。previewWidthを指定するときは省略不可。Options API GETで返された値以外を指定した場合はパラメータエラー。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewWidth",
+                        "description": "プレビュー時の横幅。単位はピクセル。previewHeightを指定するときは省略不可。Options API GETで返された値以外を指定した場合はパラメータエラー。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewHeight",
+                        "description": "プレビュー時の縦幅。単位はピクセル。previewWidthを指定するときは省略不可。Options API GETで返された値以外を指定した場合はパラメータエラー。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "previewMaxFrameRate",
+                        "description": "プレビュー時の最大フレームレート。単位はfps。範囲は0.0より大きい小数値。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0.0,
+                        "exclusiveMinimum": true
+                    },
+                    {
+                        "name": "previewBitRate",
+                        "description": "プレビューのビットレート設定。単位はKbps。範囲は0以上の整数値。デフォルト値は、256 Kbps。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    {
+                        "name": "mimeType",
+                        "description": "MimeType。動画録画・音声録音するときのエンコードするタイプ。",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecorderControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/onPhoto": {
+            "get": {
+                "operationId": "mediaStreamRecordingOnPhotoGet",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスの写真撮影通知イベントを取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhotoResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "uri": "Dummy URI",
+                                "path": "Dummy Path"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "mediaStreamRecordingOnPhotoPut",
+                "x-type": "event",
+                "summary": "スマートデバイスの写真撮影通知イベントを開始する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "interval",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/PhotoEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "profile": "mediastreamrecording",
+                            "attribute": "onphoto",
+                            "photo": {
+                                "uri": "Dummy URI",
+                                "path": "Dummy Path",
+                                "mimeType": "image/png"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "mediaStreamRecordingOnPhotoDelete",
+                "x-type": "event",
+                "summary": "スマートデバイスの写真撮影通知イベントを停止する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/preview": {
+            "get": {
+                "operationId": "mediaStreamRecordingPreviewGet",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスでの動画撮影中に、動画のプレビュー画像を取得する。",
+                "description": "このイベント通知を行うタイミングに規定は無く、デバイスプラグインの実装依存とする。JPEGでデータを受信する。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PreviewGetResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "uri": "Dummy Preview URI"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "mediaStreamRecordingPreviewPut",
+                "x-type": "streaming",
+                "summary": "スマートデバイスでの動画撮影中に、動画のプレビュー画像を受信を開始する。",
+                "description": "このイベント通知を行うタイミングに規定は無く、デバイスプラグインの実装依存とする。MotionJPEGでデータを受信する。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PreviewStartResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "uri": "Dummy Preview URI"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "mediaStreamRecordingPreviewDelete",
+                "x-type": "streaming",
+                "summary": "スマートデバイスでの動画撮影中に、動画のプレビュー画像を受信を停止する。",
+                "description": "このイベント通知を行うタイミングに規定は無く、デバイスプラグインの実装依存とする。MotionJPEGでデータを受信する。",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "target",
+                        "description": "ターゲット。レコーダーを識別するID。省略された場合にはデフォルトのレコーダーを使用する。デバイスが音声・動画の両方のレコーダーをサポートする場合、どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PreviewStopResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/onRecordingChange": {
+            "get": {
+                "operationId": "mediaStreamRecordingOnRecordingChangeGet",
+                "x-type": "one-shot",
+                "summary": "スマートデバイスでの写真撮影、動画撮影または音声録音の状態変化通知イベントを取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RecordingStatusResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "media": {
+                                    "status": "stop",
+                                    "path": "Dummy Path",
+                                    "mimeType": "video/3gp"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "mediaStreamRecordingOnRecordingChangePut",
+                "x-type": "event",
+                "summary": "スマートデバイスでの写真撮影、動画撮影または音声録音の状態変化通知イベントを開始する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "interval",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/RecordingStatusEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "profile": "mediastreamrecording",
+                            "attribute": "onrecordingchange",
+                            "media": {
+                                "status": "stop",
+                                "path": "Dummy Path",
+                                "mimeType": "image/png"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "mediaStreamRecordingOnRecordingChangeDelete",
+                "x-type": "event",
+                "summary": "スマートデバイスでの写真撮影、動画撮影または音声録音の状態変化通知イベントを停止する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "MediaRecorderResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "recorders"
+                    ],
+                    "properties": {
+                        "recorders": {
+                            "type": "array",
+                            "title": "レコーダーリスト",
+                            "description": "レコーダー情報の配列。",
+                            "items": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "state",
+                                    "mimeType",
+                                    "config"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "title": "レコーダーID",
+                                        "description": "レコーダーを識別するID。"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "title": "レコーダー名",
+                                        "description": "レコーダー名。"
+                                    },
+                                    "state": {
+                                        "type": "string",
+                                        "title": "レコーダーの状態",
+                                        "description": "レコーダーの状態。",
+                                        "enum": [
+                                            "inactive", "recording", "paused"
+                                        ]
+                                    },
+                                    "mimeType": {
+                                        "type": "string",
+                                        "title": "MIME Type",
+                                        "description": "レコーダーのエンコードするタイプ。"
+                                    },
+                                    "config": {
+                                        "type": "string",
+                                        "title": "コンフィグ",
+                                        "description": "カメラに設定がある場合には、ここに文字列としてデータが格納されている。"
+                                    },
+                                    "imageWidth": {
+                                        "type": "integer",
+                                        "title": "画像の横幅",
+                                        "description": "レコーダーの現在の横幅。単位はピクセル。録音の場合は省略可。"
+                                    },
+                                    "imageHeight": {
+                                        "type": "integer",
+                                        "title": "画像の縦幅",
+                                        "description": "レコーダーの現在の縦幅。単位はピクセル。録音の場合は省略可。"
+                                    },
+                                    "previewWidth": {
+                                        "type": "integer",
+                                        "title": "プレビューの横幅",
+                                        "description": "プレビューの現在の横幅。単位はピクセル。録音の場合は省略可。"
+                                    },
+                                    "previewHeight": {
+                                        "type": "integer",
+                                        "title": "プレビューの縦幅",
+                                        "description": "プレビューの現在の縦幅。単位はピクセル。録音の場合は省略可。"
+                                    },
+                                    "previewMaxFrameRate": {
+                                        "type": "number",
+                                        "title": "プレビューの最大フレームレート",
+                                        "description": "現在のプレビューのフレームレートの最大値。単位はfps。録音の場合は省略可。"
+                                    },
+                                    "previewBitRate": {
+                                        "type": "number",
+                                        "title": "プレビューのビットレート",
+                                        "description": "現在のプレビューのフレームレートの最大値。単位はKbps。録音の場合は省略可。"
+                                    },
+                                    "audio": {
+                                        "type": "object",
+                                        "title": "音声情報",
+                                        "description": "録音する音声に関する情報。",
+                                        "required": [
+                                            "channels",
+                                            "sampleRate",
+                                            "sampleSize",
+                                            "blockSize"
+                                        ],
+                                        "properties": {
+                                            "channels": {
+                                                "type": "integer",
+                                                "title": "チャンネル数",
+                                                "description": "音声のチャンネル数。"
+                                            },
+                                            "sampleRate": {
+                                                "type": "number",
+                                                "title": "サンプルレート",
+                                                "description": "音声のサンプルレート。単位はHz。"
+                                            },
+                                            "sampleSize": {
+                                                "type": "integer",
+                                                "title": "サンプルサイズ",
+                                                "description": "音声のサンプルサイズ。単位はビット。"
+                                            },
+                                            "blockSize": {
+                                                "type": "integer",
+                                                "title": "ブロックサイズ",
+                                                "description": "音声のブロックサイズ。単位はバイト。"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "TakePhotoResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "uri",
+                        "path"
+                    ],
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "title": "URI",
+                            "description": "撮影された写真のURI。"
+                        },
+                        "path": {
+                            "type": "string",
+                            "title": "ファイルパス",
+                            "description": "撮影された写真へのファイルパス。ルートはデバイスプラグインごとに異なる。File APIのパラメータとして使用可能。"
+                        }
+                    }
+                }
+            ]
+        },
+        "RecordResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "title": "URI",
+                            "description": "動画または音声のURI。"
+                        },
+                        "path": {
+                            "type": "string",
+                            "title": "ファイルパス",
+                            "description": "動画または音声へのファイルパス。ルートはデバイスプラグインごとに異なる。File APIのパラメータとして使用可能。"
+                        }
+                    }
+                }
+            ]
+        },
+        "OptionsResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "required": [
+                        "mimeType"
+                    ],
+                    "properties": {
+                        "mimeType": {
+                            "type": "array",
+                            "title": "MIME Type",
+                            "description": "録画・録音する際のエンコードするタイプの一覧",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "imageSizes": {
+                            "type": "array",
+                            "title": "撮影時の解像度の一覧",
+                            "description": "レコーダーのサポートする画像の解像度の一覧。録音の場合は省略可。プラグイン側でリサイズすることでサポートするサイズも含めてよい。",
+                            "items": {
+                                "type": "object",
+                                "title": "解像度",
+                                "description": "画像の解像度。",
+                                "required": [
+                                    "width",
+                                    "height"
+                                ],
+                                "properties": {
+                                    "width": {
+                                        "type": "integer",
+                                        "title": "横幅",
+                                        "description": "画像の横幅。単位はピクセル。"
+                                    },
+                                    "height": {
+                                        "type": "integer",
+                                        "title": "縦幅",
+                                        "description": "画像の縦幅。単位はピクセル。"
+                                    }
+                                }
+                            }
+                        },
+                        "previewSizes": {
+                            "type": "array",
+                            "title": "プレビュー時の解像度の一覧",
+                            "description": "プレビューで利用可能な解像度の一覧。録音の場合、またはプレビューを 提供しない場合は省略可。プラグイン側でリサイズすることでサポートするサイズも含めてよい。",
+                            "items": {
+                                "type": "object",
+                                "title": "解像度",
+                                "description": "画像の解像度。",
+                                "required": [
+                                    "width",
+                                    "height"
+                                ],
+                                "properties": {
+                                    "width": {
+                                        "type": "integer",
+                                        "title": "横幅",
+                                        "description": "画像の横幅。単位はピクセル。"
+                                    },
+                                    "height": {
+                                        "type": "integer",
+                                        "title": "縦幅",
+                                        "description": "画像の縦幅。単位はピクセル。"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "PhotoResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "$ref": "#/definitions/PhotoInfo"
+                }
+            ]
+        },
+        "PhotoEvent": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                },
+                {
+                    "$ref": "#/definitions/PhotoInfo"
+                }
+            ]
+        },
+        "PhotoInfo": {
+            "type": "object",
+            "required": [
+                "photo"
+            ],
+            "properties": {
+                "photo": {
+                    "type": "object",
+                    "title": "写真データ",
+                    "description": "撮影された写真データ。",
+                    "required": [
+                        "path",
+                        "mimeType"
+                    ],
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "title": "URI",
+                            "description": "撮影された写真のURI。"
+                        },
+                        "path": {
+                            "type": "string",
+                            "title": "ファイルパス",
+                            "description": "ファイルが存在するパス。ルートはデバイスプラグインごとに異なる。File APIで使用可能。"
+                        },
+                        "mimeType": {
+                            "type": "string",
+                            "title": "MIME Type",
+                            "description": "撮影された写真のMIME Type。動画・音声を識別するために使用する。"
+                        }
+                    }
+                }
+            }
+        },
+        "PreviewGetResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "uri"
+                    ],
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "title": "プレビュー画像URI",
+                            "description": "プレビュー画像URI。形式はJPEGとする。"
+                        }
+                    }
+                }
+            ]
+        },
+        "PreviewStartResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "uri"
+                    ],
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "title": "プレビュー配信URI",
+                            "description": "開始したプレビューの配信用URI。形式はMotionJPEGとする。"
+                        },
+                        "audio": {
+                            "type": "object",
+                            "title": "音声配信情報",
+                            "description": "音声配信に関する情報。音声のみの配信をサポートしない場合は省略可。",
+                            "required": [
+                                "uri"
+                            ],
+                            "properties": {
+                                "uri": {
+                                    "type": "string",
+                                    "title": "音声配信URI",
+                                    "description": "音声配信URI。"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "PreviewStopResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "RecordingStatusResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "$ref": "#/definitions/RecordingStatusInfo"
+                }
+            ]
+        },
+        "RecordingStatusEvent": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                },
+                {
+                    "$ref": "#/definitions/RecordingStatusInfo"
+                }
+            ]
+        },
+        "RecordingStatusInfo": {
+            "type": "object",
+            "required": [
+                "media"
+            ],
+            "properties": {
+                "media": {
+                    "type": "object",
+                    "title": "レコーディング情報",
+                    "description": "レコーディング情報",
+                    "required": [
+                        "status",
+                        "mimeType"
+                    ],
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "title": "レコーディングの状態",
+                            "description": "レコーディングの状態を識別する文字列。",
+                            "enum": ["recording", "stop", "pause", "resume", "mutetrack", "unmutetrack", "error", "warning"]
+                        },
+                        "uri": {
+                            "type": "string",
+                            "title": "URI",
+                            "description": "動画または音声のURI。"
+                        },
+                        "path": {
+                            "type": "string",
+                            "title": "ファイルパス",
+                            "description": "ファイルが存在するパス。ルートはデバイスプラグインごとに違う。"
+                        },
+                        "mimeType": {
+                            "type": "string",
+                            "title": "MIME Type",
+                            "description": "録画・録音が開始されたメディアのMIME Type。このタイプで、動画、音声などを識別する。"
+                        },
+                        "errorMessasge": {
+                            "type": "string",
+                            "title": "エラーメッセージ",
+                            "description": "エラー、警告内容を伝える文字列。状態が error、warning の時のみ付加される。省略可能。"
+                        }
+                    }
+                }
+            }
+        },
+        "RecorderStopResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "title": "URI",
+                            "description": "動画または音声のURI。"
+                        },
+                        "path": {
+                            "type": "string",
+                            "title": "ファイルパス",
+                            "description": "動画または音声へのファイルパス。ルートはデバイスプラグインごとに異なる。File APIのパラメータとして使用可能。"
+                        }
+                    }
+                }
+            ]
+        },
+        "RecorderControlResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventRegistrationResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventUnregistrationResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": [
+                "result",
+                "product",
+                "version"
+            ],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "title": "処理結果",
+                    "description": "0: 正常応答<br>0以外: 異常応答"
+                },
+                "product": {
+                    "type": "string",
+                    "title": "システム名",
+                    "description": "DeviceConnectシステムの名前。"
+                },
+                "version": {
+                    "type": "string",
+                    "title": "システムバージョン",
+                    "description": "DeviceConnectシステムのバージョン名。"
+                },
+                "hmac": {
+                    "type": "string",
+                    "title": "署名",
+                    "description": "レスポンスに対する署名。アプリケーション側から事前にHMACキーを共有されていた場合は必須。"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": [
+                "serviceId",
+                "profile",
+                "interface",
+                "attribute"
+            ],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "title": "サービスID",
+                    "description": "イベントを送信したサービスのID"
+                },
+                "profile": {
+                    "type": "string",
+                    "title": "プロファイル名",
+                    "description": "プロファイル名。"
+                },
+                "interface": {
+                    "type": "string",
+                    "title": "インターフェース名",
+                    "description": "インターフェース名。"
+                },
+                "attribute": {
+                    "type": "string",
+                    "title": "アトリビュート名",
+                    "description": "アトリビュート名。"
+                }
+            }
+        }
+    }
+}

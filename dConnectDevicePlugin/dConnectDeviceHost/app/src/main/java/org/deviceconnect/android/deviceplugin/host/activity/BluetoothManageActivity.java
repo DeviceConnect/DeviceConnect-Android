@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.activity;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -37,11 +38,18 @@ public class BluetoothManageActivity extends FragmentActivity {
 
         if (MessageUtils.getAttribute(getIntent()).equals(ConnectionProfile.ATTRIBUTE_BLUETOOTH)) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, 0);
-            
+            try {
+                startActivityForResult(enableIntent, 0);
+            } catch(ActivityNotFoundException e) {
+                BluetoothAdapter.getDefaultAdapter().enable();
+            }
         } else if (MessageUtils.getAttribute(getIntent()).equals(ConnectionProfile.ATTRIBUTE_BLE)) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, 0);
+            try {
+                startActivityForResult(enableIntent, 0);
+            } catch(ActivityNotFoundException e) {
+                BluetoothAdapter.getDefaultAdapter().enable();
+            }
         } else {
             // finish if attribute is unknown
             finish();

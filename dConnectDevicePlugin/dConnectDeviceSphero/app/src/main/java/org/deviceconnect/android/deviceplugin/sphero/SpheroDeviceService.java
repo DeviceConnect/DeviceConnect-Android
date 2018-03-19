@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
+import org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService;
 import org.deviceconnect.android.deviceplugin.sphero.service.SpheroService;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.deviceplugin.sphero.util.BleUtils;
@@ -42,6 +43,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.BACK_LED_LIGHT_ID;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.BACK_LED_LIGHT_NAME;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.COLOR_LED_LIGHT_ID;
+import static org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService.COLOR_LED_LIGHT_NAME;
+
 /**
  * Spheroデバイスプラグイン.
  * @author NTT DOCOMO, INC.
@@ -51,11 +57,26 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
     /** TAG. */
     private static final String TAG = SpheroDeviceService.class.getSimpleName();
-
+    /** Spheroのサービスが削除されたことを通知するためのACTION名. */
+    public static final String ACTION_SPHERO_REMOVE = "org.deviceconnect.android.sphero.action.SPHERO_REMOVE";
+    /** 削除されるSpheroのサービスID. */
+    public static final String PARAM_SERVICE_ID = "serviceId";
     /** 
-     * レシーバー.
+     * Spheroサービスが削除されたことを検知し、それに付随するライトサービスを削除するためのレシーバー.
      */
-    private BroadcastReceiver mReceiver;
+    private BroadcastReceiver mDConnectServiceReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String serviceId = intent.getStringExtra(PARAM_SERVICE_ID);
+            String action = intent.getAction();
+            if (serviceId != null && action != null) {
+                if (action.equals(ACTION_SPHERO_REMOVE)) {
+                    getServiceProvider().removeService(serviceId + "_" + COLOR_LED_LIGHT_ID);
+                    getServiceProvider().removeService(serviceId + "_" + BACK_LED_LIGHT_ID);
+                }
+            }
+        }
+    };
     /**
      * Received a event that Bluetooth has been changed.
      */
@@ -80,10 +101,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                     SpheroManager.INSTANCE.startDiscovery(SpheroDeviceService.this);
                                 } else {
                                     SpheroManager.INSTANCE.stopDiscovery();
-                                    DConnectService service = getServiceProvider().getService(device.getAddress());
-                                    if (service != null) {
-                                        service.setOnline(false);
-                                    }
+                                    updateSpheroConnection(device.getAddress(), false);
+
                                 }
                             }
 
@@ -118,7 +137,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                         }
                                     });
                         } else if (state == BluetoothAdapter.STATE_OFF) {
-                            service.setOnline(false);
+                            updateSpheroConnection(info, false);
                         }
                     }
                 }
@@ -138,6 +157,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         EventManager.INSTANCE.setController(new MemoryCacheController());
         SpheroManager.INSTANCE.setService(this);
         registerBluetoothFilter();
+        registerDConnectServiceFilter();
         addProfile(new SpheroServiceDiscoveryProfile(getServiceProvider()));
         getServiceProvider().addServiceListener(this);
         //既にSpheroとペアリングされている場合は接続処理を行う。
@@ -180,7 +200,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                     }
                 });
             }
-            service.setOnline(false);
+            updateSpheroConnection(id, false);
         }
     }
 
@@ -205,11 +225,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "************ connected **********");
                         }
-                        DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
-                        if (service == null) {
-                            service = new SpheroService(info);
-                            getServiceProvider().addService(service);
-                        }
+                        updateSpheroConnection(info, true);
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -217,12 +233,61 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                         Toast.LENGTH_SHORT).show();
                             }
                         });
-                        service.setOnline(true);
+
                         SpheroManager.INSTANCE.stopDiscovery();
                     }
                 }
             }
         }).start();
+    }
+
+    /**
+     * Spheroとの接続に合わせてDConnectServiceの状態を
+     * @param info　Spheroの情報
+     * @param isOnline true:オンラインにする false:オフラインにする
+     */
+    private void updateSpheroConnection(final DeviceInfo info, final boolean isOnline) {
+        DConnectService service = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier());
+        if (service == null) {
+            service = new SpheroService(info);
+            getServiceProvider().addService(service);
+        }
+        service.setOnline(isOnline);
+        DConnectService ledService = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier()
+                                     + "_" + COLOR_LED_LIGHT_ID);
+        if (ledService == null) {
+            ledService = new SpheroLightService(info, COLOR_LED_LIGHT_ID, COLOR_LED_LIGHT_NAME);
+            getServiceProvider().addService(ledService);
+        }
+        ledService.setOnline(isOnline);
+
+        DConnectService calibrationService = getServiceProvider().getService(info.getDevice().getRobot().getIdentifier()
+                + "_" + BACK_LED_LIGHT_ID);
+        if (calibrationService == null) {
+            calibrationService = new SpheroLightService(info, BACK_LED_LIGHT_ID, BACK_LED_LIGHT_NAME);
+            getServiceProvider().addService(calibrationService);
+        }
+        calibrationService.setOnline(isOnline);
+    }
+
+    /**
+     * Spheroとの接続に合わせてDConnectServiceの状態を
+     * @param address デバイスのアドレス
+     * @param isOnline true:オンラインにする false:オフラインにする
+     */
+    private void updateSpheroConnection(final String address, final boolean isOnline) {
+        DConnectService service = getServiceProvider().getService(address);
+        if (service == null) {
+            return;
+        }
+        service.setOnline(isOnline);
+        DConnectService ledService = getServiceProvider().getService(address
+                + "_" + COLOR_LED_LIGHT_ID);
+        ledService.setOnline(isOnline);
+
+        DConnectService calibrationService = getServiceProvider().getService(address
+                + "_" + BACK_LED_LIGHT_ID);
+        calibrationService.setOnline(isOnline);
     }
 
     @Override
@@ -236,6 +301,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
     public void onDestroy() {
         super.onDestroy();
         unregisterBluetoothFilter();
+        unregisterDConnectServiceFilter();
         getServiceProvider().removeServiceListener(this);
         SpheroManager.INSTANCE.shutdown();
     }
@@ -355,6 +421,16 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mSensorReceiver, filter, null, mHandler);
     }
+
+    /**
+     * Spheroが削除されたことを検知して、ライト側のサービスの削除を行う。
+     */
+    private void registerDConnectServiceFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_SPHERO_REMOVE);
+        registerReceiver(mDConnectServiceReceiver, filter);
+    }
+
     /**
      * Bluetoothイベントの解除.
      */
@@ -362,4 +438,10 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         unregisterReceiver(mSensorReceiver);
     }
 
+    /**
+     * DConnectServiceの監視レシーバの解除
+     */
+    private void unregisterDConnectServiceFilter() {
+        unregisterReceiver(mDConnectServiceReceiver);
+    }
 }

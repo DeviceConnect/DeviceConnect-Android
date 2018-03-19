@@ -263,7 +263,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
      * @param device BLE device that have heart rate service.
      */
     protected void connectDevice(final HitoeDevice device) {
-        if (BleUtils.isEnabled(this)) {
+        if (BleUtils.isEnabled(this) && !mCheckDialog) {
             mConnectingDevice = device;
             showProgressDialog(device.getName());
             getManager().connectHitoeDevice(device);
@@ -288,6 +288,7 @@ public abstract class HitoeListActivity extends FragmentActivity {
             }
         });
     }
+
 
 
     /**

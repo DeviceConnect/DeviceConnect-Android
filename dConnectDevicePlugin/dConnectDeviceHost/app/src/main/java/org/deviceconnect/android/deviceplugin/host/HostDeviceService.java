@@ -7,12 +7,13 @@
 package org.deviceconnect.android.deviceplugin.host;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.BuildConfig;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
@@ -36,8 +37,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -82,6 +83,22 @@ public class HostDeviceService extends DConnectMessageService {
 
     /** レコーダ管理クラス. */
     private HostDeviceRecorderManager mRecorderMgr;
+    private final BroadcastReceiver mHostConnectionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_NEW_OUTGOING_CALL.equals(action)) {
+                onReceivedOutGoingCall(intent);
+            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
+                    || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
+                onChangedWifiStatus();
+            } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
+                    || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                onChangedBluetoothStatus();
+            }
+        }
+    };
+
 
     @Override
     public void onCreate() {
@@ -135,6 +152,15 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         getServiceProvider().addService(hostService);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mHostConnectionReceiver, filter);
+
     }
 
     @Override
@@ -142,6 +168,7 @@ public class HostDeviceService extends DConnectMessageService {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
         mFileDataManager.stopTimer();
+        unregisterReceiver(mHostConnectionReceiver);
         super.onDestroy();
     }
 
@@ -152,15 +179,8 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        if (HostDevicePreviewServer.DELETE_PREVIEW_ACTION.equals(action)) {
+        if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
             return stopWebServer(intent);
-        } else if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
-            return onReceivedOutGoingCall(intent);
-        } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
-                || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-            return onChangedWifiStatus();
-        } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-            return onChangedBluetoothStatus();
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -226,11 +246,11 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private int stopWebServer(final Intent intent) {
-        mRecorderMgr.stopWebServer(intent.getStringExtra(HostDevicePreviewServer.EXTRA_CAMERA_ID));
+        mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
         return START_STICKY;
     }
 
-    private int onChangedBluetoothStatus() {
+    private void onChangedBluetoothStatus() {
         List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
                 HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
 
@@ -244,10 +264,9 @@ public class HostDeviceService extends DConnectMessageService {
             HostConnectionProfile.setConnectStatus(mIntent, bluetoothConnecting);
             sendEvent(mIntent, event.getAccessToken());
         }
-        return START_STICKY;
     }
 
-    private int onChangedWifiStatus() {
+    private void onChangedWifiStatus() {
         List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
                 HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
 
@@ -261,10 +280,9 @@ public class HostDeviceService extends DConnectMessageService {
             HostConnectionProfile.setConnectStatus(mIntent, wifiConnecting);
             sendEvent(mIntent, event.getAccessToken());
         }
-        return START_STICKY;
     }
 
-    private int onReceivedOutGoingCall(final Intent intent) {
+    private void onReceivedOutGoingCall(final Intent intent) {
         List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostPhoneProfile.PROFILE_NAME, null,
                 HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
 
@@ -278,7 +296,6 @@ public class HostDeviceService extends DConnectMessageService {
             HostPhoneProfile.setPhoneStatus(mIntent, phoneStatus);
             sendEvent(mIntent, event.getAccessToken());
         }
-        return START_STICKY;
     }
 
     private WifiManager getWifiManager() {
@@ -349,5 +366,10 @@ public class HostDeviceService extends DConnectMessageService {
     private boolean checkSensorHardware() {
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
+    }
+
+    @Override
+    protected String getCertificateAlias() {
+        return "org.deviceconnect.android.deviceplugin.host";
     }
 }

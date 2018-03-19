@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.hue.activity.fragment;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -35,14 +34,12 @@ import android.widget.Toast;
 
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHAccessPoint;
-import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.exception.PHHueInvalidAPIException;
-import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHBridgeResource;
-import com.philips.lighting.model.PHBridgeResourcesCache;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 
+import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
 import org.deviceconnect.android.deviceplugin.hue.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
@@ -61,7 +58,7 @@ public class HueFragment04 extends Fragment {
     private ListAdapter mListAdapter;
 
     /** Progress dialog. */
-    private ProgressDialog mProgressBar;
+    private AlertDialog mProgressBar;
 
     /**
      * newInstance.
@@ -89,11 +86,9 @@ public class HueFragment04 extends Fragment {
             final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.hue_fragment_04, container, false);
 
-        PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = phHueSDK.getSelectedBridge();
-        if (bridge != null) {
-            PHBridgeResourcesCache cache = bridge.getResourceCache();
-            mListAdapter = new ListAdapter(getActivity(), cache.getAllLights());
+        List<PHLight> lights = HueManager.INSTANCE.getCacheLights();
+        if (lights != null) {
+            mListAdapter = new ListAdapter(getActivity(), lights);
         } else {
             mListAdapter = new ListAdapter(getActivity(), new ArrayList<PHLight>());
         }
@@ -124,13 +119,8 @@ public class HueFragment04 extends Fragment {
      * Update ListView.
      */
     private void updateListView() {
-        PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = phHueSDK.getSelectedBridge();
-        if (bridge != null) {
-            PHBridgeResourcesCache cache = bridge.getResourceCache();
-            mListAdapter.setLights(cache.getAllLights());
-            mListAdapter.notifyDataSetChanged();
-        }
+        mListAdapter.setLights(HueManager.INSTANCE.getCacheLights());
+        mListAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -208,10 +198,8 @@ public class HueFragment04 extends Fragment {
     private void searchLightAutomatic() {
         openProgressBar();
 
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = hueSDK.getSelectedBridge();
         try {
-            bridge.findNewLights(new PHLightListenerImpl());
+            HueManager.INSTANCE.searchLightAutomatic(new PHLightListenerImpl());
         } catch (PHHueInvalidAPIException e) {
             if (BuildConfig.DEBUG) {
                 Log.e("Hue", "error", e);
@@ -228,13 +216,8 @@ public class HueFragment04 extends Fragment {
     private void searchLightManually(final String serial) {
         openProgressBar();
 
-        List<String> serials = new ArrayList<String>();
-        serials.add(serial);
-
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        PHBridge bridge = hueSDK.getSelectedBridge();
         try {
-            bridge.findNewLightsWithSerials(serials, new PHLightListenerImpl());
+            HueManager.INSTANCE.searchLightManually(serial, new PHLightListenerImpl());
         } catch (PHHueInvalidAPIException e) {
             if (BuildConfig.DEBUG) {
                 Log.e("Hue", "error", e);
@@ -263,10 +246,14 @@ public class HueFragment04 extends Fragment {
             public void run() {
                 Activity activity = getActivity();
                 if (activity != null) {
-                    mProgressBar = new ProgressDialog(activity);
-                    mProgressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    mProgressBar.setMessage(getString(R.string.frag04_serial_search));
-                    mProgressBar.setCancelable(false);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    LayoutInflater inflater = getActivity().getLayoutInflater();
+                    View v = inflater.inflate(R.layout.dialog_progress, null);
+                    TextView titleView = v.findViewById(R.id.title);
+                    TextView messageView = v.findViewById(R.id.message);
+                    titleView.setText(getString(R.string.message_light_searching));
+                    messageView.setText(getString(R.string.frag04_serial_search));
+                    mProgressBar = builder.setView(v).create();
                     mProgressBar.show();
                 }
             }

@@ -24,23 +24,15 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_test" />
 
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
-            </intent-filter>
         </receiver>
 
         <service
             android:name=".UnitTestDeviceService"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
-            </intent-filter>
+            android:exported="true"
+            android:enabled="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_test" />
         </service>
 
         <!-- テスト用ファイルを管理するProvider. -->

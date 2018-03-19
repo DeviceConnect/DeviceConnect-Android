@@ -126,7 +126,9 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             }
             mLogger.warning(notRespondedLog);
         } else {
-            mLogger.info("All plug-in(s) responded for service discovery.");
+            if (BuildConfig.DEBUG) {
+                mLogger.info("All plug-in(s) responded for service discovery.");
+            }
         }
     }
 

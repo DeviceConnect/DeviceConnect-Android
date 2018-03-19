@@ -8,6 +8,7 @@ package org.deviceconnect.android.manager.profile;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.request.CreateClientRequest;
@@ -30,7 +31,10 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
  */
 public class AuthorizationProfile extends DConnectProfile implements AuthorizationProfileConstants {
 
-    public AuthorizationProfile() {
+    private LocalOAuth2Main mLocalOAuth2Main;
+
+    public AuthorizationProfile(LocalOAuth2Main localOAuth2Main) {
+        mLocalOAuth2Main = localOAuth2Main;
         addApi(mGetCreateClient);
         addApi(mGetRequestAccessToken);
     }
@@ -57,7 +61,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 return true;
             }
 
-            DConnectRequest req = new CreateClientRequest();
+            DConnectRequest req = new CreateClientRequest(mLocalOAuth2Main);
             req.setContext(getContext());
             req.setRequest(request);
             req.setResponse(response);
@@ -83,7 +87,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 return true;
             }
 
-            DConnectRequest req = new GetAccessTokenRequest(getSettings().getKeyword());
+            DConnectRequest req = new GetAccessTokenRequest(mLocalOAuth2Main, getSettings().getKeyword());
             req.setContext(getContext());
             req.setRequest(request);
             req.setResponse(response);

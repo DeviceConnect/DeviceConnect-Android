@@ -6,12 +6,9 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 
-import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.R;
 
 /**
@@ -20,9 +17,6 @@ import org.deviceconnect.android.manager.R;
  */
 public class SettingActivity extends BaseSettingActivity implements AlertDialogFragment.OnAlertDialogListener {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,14 +26,6 @@ public class SettingActivity extends BaseSettingActivity implements AlertDialogF
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
-        Intent i1 = new Intent();
-        i1.setClass(this, DConnectService.class);
-        startService(i1);
-
-        Intent i2 = new Intent();
-        i2.setClass(this, DConnectWebService.class);
-        startService(i2);
     }
 
     @Override

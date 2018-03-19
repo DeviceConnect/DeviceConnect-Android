@@ -56,6 +56,10 @@ public class KeywordDialogFragment extends DialogFragment {
         intent.setClass(getActivity(), DConnectService.class);
         intent.setAction(IntentDConnectMessage.ACTION_RESPONSE);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-        getActivity().startService(intent);
+        try {
+            getActivity().startService(intent);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 }

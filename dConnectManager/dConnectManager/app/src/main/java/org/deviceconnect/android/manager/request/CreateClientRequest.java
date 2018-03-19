@@ -23,6 +23,12 @@ import org.restlet.ext.oauth.PackageInfoOAuth;
  */
 public class CreateClientRequest extends DConnectRequest {
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
+    public CreateClientRequest(LocalOAuth2Main localOAuth2Main) {
+        mLocalOAuth2Main = localOAuth2Main;
+    }
+
     @Override
     public boolean hasRequestCode(final int requestCode) {
         return false;
@@ -35,7 +41,7 @@ public class CreateClientRequest extends DConnectRequest {
         // Local OAuthでクライアント作成
         PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
         try {
-            ClientData client = LocalOAuth2Main.createClient(packageInfo);
+            ClientData client = mLocalOAuth2Main.createClient(packageInfo);
             if (client != null) {
                 mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                 mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());

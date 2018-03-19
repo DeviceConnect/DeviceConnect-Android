@@ -6,16 +6,23 @@
  */
 package org.deviceconnect.android.message;
 
+import android.Manifest;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.support.v4.content.ContextCompat;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;
@@ -43,6 +50,10 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -51,6 +62,10 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +76,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Device Connectメッセージサービス.
@@ -85,7 +104,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
     /** プロファイル仕様定義ファイルの拡張子. */
     private static final String SPEC_FILE_EXTENSION = ".json";
-
+    
     /**
      * ロガー.
      */
@@ -123,6 +142,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private DConnectPluginSpec mPluginSpec;
 
+    private LocalOAuth2Main mLocalOAuth2Main;
+
     private final IBinder mLocalBinder = new LocalBinder();
 
     private final IBinder mRemoteBinder = new PluginBinder();
@@ -136,9 +157,26 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     };
 
+    private KeyStoreManager mKeyStoreMgr;
+
     private ScheduledExecutorService mExecutorService;
 
     private boolean mIsEnabled;
+
+    private BroadcastReceiver mWiFiBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            // 証明書を更新
+            requestAndNotifyKeyStore();
+        }
+    };
+
+    private final BroadcastReceiver mUninstallReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleMessage(intent);
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -163,36 +201,72 @@ public abstract class DConnectMessageService extends Service implements DConnect
         mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
         // LocalOAuthの初期化
-        LocalOAuth2Main.initialize(this);
+        mLocalOAuth2Main = new LocalOAuth2Main(this);
+
+        // キーストア管理クラスの初期化
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), getKeyStoreFileName(), getCertificateAlias());
+        if (usesAutoCertificateRequest()) {
+            requestAndNotifyKeyStore();
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            registerReceiver(mWiFiBroadcastReceiver, filter);
+        }
 
         // 認証プロファイルの追加
-        addProfile(new AuthorizationProfile(this));
+        addProfile(new AuthorizationProfile(this, mLocalOAuth2Main));
+
         // 必須プロファイルの追加
         addProfile(new ServiceDiscoveryProfile(mServiceProvider));
         addProfile(getSystemProfile());
+
+        registerReceiver();
+    }
+
+    private void registerReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED);
+        filter.addDataScheme("package");
+        registerReceiver(mUninstallReceiver, filter);
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         // スレッドの停止
         if (mExecutorService != null) {
             mExecutorService.shutdown();
         }
+
         // LocalOAuthの後始末
-        LocalOAuth2Main.destroy();
+        mLocalOAuth2Main.destroy();
+        mLocalOAuth2Main = null;
+
         // コールバック一覧を削除
         mBindingSenders.clear();
+
+        if (usesAutoCertificateRequest()) {
+            unregisterReceiver(mWiFiBroadcastReceiver);
+        }
+
+        unregisterReceiver(mUninstallReceiver);
+
+        super.onDestroy();
     }
 
     @Override
     public IBinder onBind(final Intent intent) {
-        mLogger.info("onBind: " + getClass().getName());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onBind: " + getClass().getName());
+        }
         if (isCalledFromLocal()) {
-            mLogger.info("onBind: Local binder");
+            if (BuildConfig.DEBUG) {
+                mLogger.info("onBind: Local binder");
+            }
             return mLocalBinder;
         }
-        mLogger.info("onBind: Remote binder");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onBind: Remote binder");
+        }
         return mRemoteBinder;
     }
 
@@ -208,7 +282,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
-
         if (intent == null) {
             mLogger.warning("request intent is null.");
             return START_STICKY;
@@ -221,6 +294,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         handleMessage(intent);
+
         return START_STICKY;
     }
 
@@ -245,6 +319,73 @@ public abstract class DConnectMessageService extends Service implements DConnect
             mIsEnabled = false;
             onDevicePluginDisabled();
         }
+    }
+
+    protected boolean usesAutoCertificateRequest() {
+        return false;
+    }
+
+    protected String getKeyStoreFileName() {
+        return "keystore.p12";
+    }
+
+    protected String getCertificateAlias() {
+        return getContext().getPackageName();
+    }
+
+    protected void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
+        mKeyStoreMgr.requestKeyStore(ipAddress, callback);
+    }
+
+    private void requestAndNotifyKeyStore() {
+        requestAndNotifyKeyStore(getCurrentIPAddress());
+    }
+
+
+    private String getCurrentIPAddress() {
+        Context appContext = getContext().getApplicationContext();
+        int state = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_WIFI_STATE);
+        if (state != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+    }
+
+    private void requestAndNotifyKeyStore(final String ipAddress) {
+        requestKeyStore(ipAddress, new KeyStoreCallback() {
+            @Override
+            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+                onKeyStoreUpdated(keyStore, cert, rootCert);
+            }
+
+            @Override
+            public void onError(final KeyStoreError error) {
+                onKeyStoreUpdateError(error);
+            }
+        });
+    }
+
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+    }
+
+    protected void onKeyStoreUpdateError(final KeyStoreError error) {
+    }
+
+    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        sslContext.init(
+                keyManagerFactory.getKeyManagers(),
+                trustManagerFactory.getTrustManagers(),
+                new SecureRandom()
+        );
+        return sslContext;
     }
 
     /**
@@ -311,7 +452,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
                     throw new RuntimeException("Profile spec is not found: " + profileName);
                 }
                 pluginSpec.addProfileSpec(profileName.toLowerCase(), assets.open(filePath));
-                mLogger.info("Loaded a profile spec: " + profileName);
+
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Loaded a profile spec: " + profileName);
+                }
             } catch (IOException | JSONException e) {
                 throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
             }
@@ -471,7 +615,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             // アクセストークン
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
+            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken, profileName,
                 IGNORE_PROFILES);
             if (result.checkResult()) {
                 send = executeRequest(profileName, request, response);
@@ -610,7 +754,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (isUseLocalOAuth()) {
-            CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken,
+            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
                     event.getStringExtra(DConnectMessage.EXTRA_PROFILE), IGNORE_PROFILES);
             if (!result.checkResult()) {
                 return false;
@@ -717,7 +861,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * </p>
      */
     protected void onManagerUninstalled() {
-        mLogger.info("SDK : onManagerUninstalled");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onManagerUninstalled");
+        }
     }
 
     /**
@@ -727,7 +873,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * </p>
      */
     protected void onManagerLaunched() {
-        mLogger.info("SDK : onManagerLaunched");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onManagerLaunched");
+        }
     }
 
     /**
@@ -737,7 +885,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * </p>
      */
     protected void onManagerTerminated() {
-        mLogger.info("SDK : onManagerTerminated");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onManagerTerminated");
+        }
     }
 
     /**
@@ -749,7 +899,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * @param origin イベント停止が要求されたオリジン
      */
     protected void onManagerEventTransmitDisconnected(final String origin) {
-        mLogger.info("SDK : onManagerEventTransmitDisconnected: " + origin);
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onManagerEventTransmitDisconnected: " + origin);
+        }
     }
 
     /**
@@ -760,21 +912,27 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * </p>
      */
     protected void onDevicePluginReset() {
-        mLogger.info("SDK : onDevicePluginReset");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onDevicePluginReset");
+        }
     }
 
     /**
      * Device Connect Managerからプラグイン有効通知を受信した時に呼ばれる処理部.
      */
     protected void onDevicePluginEnabled() {
-        mLogger.info("SDK : onEnabled");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onEnabled");
+        }
     }
 
     /**
      * Device Connect Managerからプラグイン無効通知を受信した時に呼ばれる処理部.
      */
     protected void onDevicePluginDisabled() {
-        mLogger.info("SDK : onDisabled");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("SDK : onDisabled");
+        }
     }
 
     /**

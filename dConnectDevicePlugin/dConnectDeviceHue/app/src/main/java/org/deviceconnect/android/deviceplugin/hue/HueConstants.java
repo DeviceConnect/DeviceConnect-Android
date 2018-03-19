@@ -21,5 +21,8 @@ public interface HueConstants {
      * ユーザ名.
      */
     String USERNAME = "DConnectDeviceHueAndroid";
-
+    /**
+     * デバイスがオフラインの時のユーザ名.
+     */
+    String OFFLINE_USERNAME = "=====OFFLINE====";
 }

@@ -7,8 +7,8 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -31,10 +31,11 @@ import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.ConnectionError;
+import org.deviceconnect.android.manager.plugin.ConnectionState;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
-import org.deviceconnect.android.manager.plugin.CommunicationHistory;
 import org.deviceconnect.android.manager.plugin.MessagingException;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -58,6 +59,32 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
 
     /** プラグイン接続エラー表示. */
     private ConnectionErrorView mErrorView;
+
+    /** デバイスプラグインとの接続状態の変更通知を受信するリスナー. */
+    private final DevicePluginManager.DevicePluginEventListener mEventListener = new DevicePluginManager.DevicePluginEventListener() {
+        @Override
+        public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ConnectionErrorView errorView = mErrorView;
+                    if (errorView != null) {
+                        errorView.showErrorMessage(plugin);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onDeviceFound(final DevicePlugin plugin) {
+            // NOP.
+        }
+
+        @Override
+        public void onDeviceLost(final DevicePlugin plugin) {
+            // NOP.
+        }
+    };
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -188,7 +215,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
             TextView worst = (TextView) baud.findViewById(R.id.activity_deviceplugin_info_worst_baud_rate);
             worst.setText(getString(R.string.activity_deviceplugin_info_baud_rate_unit, history.getWorstBaudRate()));
 
-            LayoutInflater inflater = getLayoutInflater(null);
+            LayoutInflater inflater = getLayoutInflater();
 
             LinearLayout baudRateListLayout = (LinearLayout) baud.findViewById(R.id.activity_deviceplugin_info_baud_rate_list);
             baudRateListLayout.removeAllViews();
@@ -285,9 +312,10 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
     }
 
     @Override
-    protected void onManagerBonded() {
+    protected void onManagerBonded(final DConnectService manager) {
         DevicePluginManager mgr = getPluginManager();
         if (mgr != null) {
+            mgr.addEventListener(mEventListener);
             String pluginId = getArguments().getString(DevicePluginInfoActivity.EXTRA_PLUGIN_ID);
             if (pluginId != null) {
                 DevicePlugin plugin = mgr.getDevicePlugin(pluginId);
@@ -298,16 +326,26 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         }
     }
 
+    @Override
+    protected void beforeManagerDisconnected() {
+        DevicePluginManager mgr = getPluginManager();
+        if (mgr != null) {
+            mgr.removeEventListener(mEventListener);
+        }
+    }
+
     /**
      * Open device plug-in's settings.
      */
     private void openSettings() {
-        Activity activity = getActivity();
-        if (activity != null) {
-            Intent request = new Intent(activity, DConnectService.class);
-            request.setAction(DConnectService.ACTION_OPEN_SETTINGS);
-            request.putExtra(DConnectService.EXTRA_PLUGIN_ID, mPluginInfo.getPluginId());
-            activity.startService(request);
+        BaseSettingActivity activity = (BaseSettingActivity) getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        DConnectService service = activity.getManagerService();
+        if (service != null) {
+            service.openPluginSettings(mPluginInfo.getPluginId());
         }
     }
 
@@ -402,7 +440,7 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         }
 
         final PackageManager pm = getActivity().getPackageManager();
-        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.GET_DISABLED_COMPONENTS;
+        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.MATCH_DISABLED_COMPONENTS;
         final List<ApplicationInfo> installedAppList = pm.getInstalledApplications(flags);
         for (ApplicationInfo app : installedAppList) {
             if (app.packageName.equals(packageName)) {
@@ -420,12 +458,16 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String title = getString(R.string.activity_settings_restart_device_plugin_title);
             String msg = getString(R.string.activity_settings_restart_device_plugin_message);
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(title);
-            progressDialog.setMessage(msg);
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            setCancelable(false);
-            return progressDialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View v = inflater.inflate(R.layout.dialog_progress, null);
+            TextView titleView = v.findViewById(R.id.title);
+            TextView messageView = v.findViewById(R.id.message);
+            titleView.setText(title);
+            messageView.setText(msg);
+            builder.setView(v);
+
+            return builder.create();
         }
 
         @Override

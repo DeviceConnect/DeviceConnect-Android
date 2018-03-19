@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.3.3'
+    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
 }
 
 repositories {
@@ -14,13 +14,13 @@ repositories {
 
 android {
 
-    compileSdkVersion 23
+    compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hogp"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 26
         versionCode 1
         versionName '1.0.0'
     }

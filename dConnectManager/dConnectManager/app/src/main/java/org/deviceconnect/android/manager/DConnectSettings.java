@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 
 import java.io.File;

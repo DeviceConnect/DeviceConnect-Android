@@ -8,9 +8,13 @@ package org.deviceconnect.android.deviceplugin.webrtc.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.webkit.URLUtil;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCDeviceService;
@@ -20,6 +24,7 @@ import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.service.WebRTCService;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
+import org.deviceconnect.android.deviceplugin.webrtc.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.util.WebRTCManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -234,18 +239,25 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
 
                                 if (addressId == null || addressId.length() == 0) {
                                     MessageUtils.setInvalidRequestParameterError(response, "addressId is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else if (!containAddressId(addressList, addressId)) {
                                     MessageUtils.setInvalidRequestParameterError(response, "addressId is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else if (!checkUri(video)) {
                                     MessageUtils.setInvalidRequestParameterError(response, "video is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else if (!checkUri(audio)) {
                                     MessageUtils.setInvalidRequestParameterError(response, "audio is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else if (!checkAudioSampleRate(audioSampleRateValue)) {
                                     MessageUtils.setInvalidRequestParameterError(response, "audioSampleRate is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else if (!checkAudioBitDepth(audioBitDepth)) {
                                     MessageUtils.setInvalidRequestParameterError(response, "audioBitDepth is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else if (!checkAudioChannel(audioChannel)) {
                                     MessageUtils.setInvalidRequestParameterError(response, "audioChannel is invalid.");
+                                    getWebRTCService().sendResponse(response);
                                 } else {
                                     boolean offer = peer.hasOffer(addressId);
                                     final Intent intent = new Intent();
@@ -260,20 +272,43 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                     intent.putExtra(VideoChatActivity.EXTRA_AUDIOCHANNEL, audioChannel);
                                     intent.putExtra(VideoChatActivity.EXTRA_CALL_TIMESTAMP, System.currentTimeMillis());
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    if (outputs.equals(PARAM_HOST)) {
-                                        getContext().startActivity(intent);
-                                        setResult(response, DConnectMessage.RESULT_OK);
-                                    } else {
-                                        WebRTCManager mgr = getWebRTCService().getWebRTCManager();
-                                        if (mgr.isConnect()) {
-                                            MessageUtils.setIllegalServerStateError(response, "Already the http server is running.");
-                                        } else {
-                                            mgr.connectOnUiThread(intent);
-                                            setResult(response, DConnectMessage.RESULT_OK);
+                                    final String output = outputs;
+                                    init(new PermissionUtility.PermissionRequestCallback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            if (output.equals(PARAM_HOST)) {
+                                                getContext().startActivity(intent);
+                                                setResult(response, DConnectMessage.RESULT_OK);
+                                            } else {
+                                                CapabilityUtil.checkCapability(getContext(), new Handler(Looper.getMainLooper()), new CapabilityUtil.Callback() {
+                                                    @Override
+                                                    public void onSuccess() {
+                                                        WebRTCManager mgr = getWebRTCService().getWebRTCManager();
+                                                        if (mgr.isConnect()) {
+                                                            MessageUtils.setIllegalServerStateError(response, "Already the http server is running.");
+                                                        } else {
+                                                            mgr.connectOnUiThread(intent);
+                                                            setResult(response, DConnectMessage.RESULT_OK);
+                                                        }
+                                                        getWebRTCService().sendResponse(response);
+                                                    }
+
+                                                    @Override
+                                                    public void onFail() {
+                                                        MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                                                        getWebRTCService().sendResponse(response);
+                                                    }
+                                                });
+                                            }
                                         }
-                                    }
+
+                                        @Override
+                                        public void onFail(@NonNull String s) {
+                                            MessageUtils.setUnknownError(response, s);
+                                            getWebRTCService().sendResponse(response);
+                                        }
+                                    });
                                 }
-                                getWebRTCService().sendResponse(response);
                             }
                         });
                     } else {
@@ -633,7 +668,19 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                 return false;
         }
     }
+    private void init(final PermissionUtility.PermissionRequestCallback callback) {
+        CapabilityUtil.requestPermissions(getContext(), new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
 
+            @Override
+            public void onFail(final String deniedPermission) {
+                callback.onFail(deniedPermission);
+            }
+        });
+    }
     /**
      * This listener that receive events from Peer.
      */

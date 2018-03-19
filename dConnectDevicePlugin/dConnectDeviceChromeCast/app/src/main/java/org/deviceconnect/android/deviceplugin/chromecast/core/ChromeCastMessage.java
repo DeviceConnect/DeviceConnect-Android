@@ -16,8 +16,6 @@ import com.google.android.gms.common.api.Status;
 
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
-import java.io.IOException;
-
 /**
  * Chromecast Message クラス.
  * 
@@ -87,7 +85,6 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
          * @param message メッセージ処理のステータス
          */
         void onChromeCastMessageResult(final Intent response, final Status result, final String message);
-
     }
 
     /**
@@ -132,11 +129,7 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
         try {
             Cast.CastApi.setMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                     mMessageChannel.getNamespace(), mMessageChannel);
-        } catch (IllegalStateException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -149,11 +142,7 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
             try {
                 Cast.CastApi.removeMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                         mMessageChannel.getNamespace());
-            } catch (IllegalStateException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -180,7 +169,7 @@ public class ChromeCastMessage implements ChromeCastController.Callbacks {
                             }
                         });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             mCallbacks.onChromeCastMessageResult(response, null, null);
         }
     }

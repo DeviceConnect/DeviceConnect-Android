@@ -15,7 +15,6 @@ import org.deviceconnect.android.localoauth.ConfirmAuthParams;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.PublishAccessTokenListener;
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
-import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
@@ -37,7 +36,10 @@ public class GetAccessTokenRequest extends DConnectRequest {
     /** DeviceConnectManagerに対して設定されているキーワード. */
     private final String mKeyword;
 
-    public GetAccessTokenRequest(final String keyword) {
+    private LocalOAuth2Main mLocalOAuth2Main;
+
+    public GetAccessTokenRequest(final LocalOAuth2Main localOAuth2Main, final String keyword) {
+        mLocalOAuth2Main = localOAuth2Main;
         mKeyword = keyword;
     }
 
@@ -87,7 +89,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
 
         // Local OAuthでAccessTokenを作成する。
         final AccessTokenData[] token = new AccessTokenData[1];
-        LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+        mLocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
             @Override
             public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
                 token[0] = accessTokenData;

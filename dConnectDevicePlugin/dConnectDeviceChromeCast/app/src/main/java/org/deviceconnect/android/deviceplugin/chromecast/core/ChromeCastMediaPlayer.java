@@ -19,7 +19,6 @@ import com.google.android.gms.common.api.ResultCallback;
 
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
-import java.io.IOException;
 import java.util.Locale;
 
 /**
@@ -99,34 +98,25 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
     @Override
     public void onAttach() {
         mRemoteMediaPlayer = new RemoteMediaPlayer();
-
-        mRemoteMediaPlayer
-                .setOnStatusUpdatedListener(new RemoteMediaPlayer.OnStatusUpdatedListener() {
-                    @Override
-                    public void onStatusUpdated() {
-                        if (mRemoteMediaPlayer.getMediaStatus() == null) {
-                            return;
-                        }
-                        mCallbacks.onChromeCastMediaPlayerStatusUpdate(mRemoteMediaPlayer.getMediaStatus());
-                    }
-                });
-
-        mRemoteMediaPlayer
-                .setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
-                    @Override
-                    public void onMetadataUpdated() {
-                        
-                    }
-                });
+        mRemoteMediaPlayer.setOnStatusUpdatedListener(new RemoteMediaPlayer.OnStatusUpdatedListener() {
+            @Override
+            public void onStatusUpdated() {
+                if (mRemoteMediaPlayer.getMediaStatus() == null) {
+                    return;
+                }
+                mCallbacks.onChromeCastMediaPlayerStatusUpdate(mRemoteMediaPlayer.getMediaStatus());
+            }
+        });
+        mRemoteMediaPlayer.setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
+            @Override
+            public void onMetadataUpdated() {
+            }
+        });
 
         try {
             Cast.CastApi.setMessageReceivedCallbacks(mController.getGoogleApiClient(),
                     mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
-        } catch (IllegalStateException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -139,11 +129,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
             try {
                 Cast.CastApi.removeMessageReceivedCallbacks(mController.getGoogleApiClient(),
                         mRemoteMediaPlayer.getNamespace());
-            } catch (IllegalStateException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -166,7 +152,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, title);
         String ext = MimeTypeMap.getFileExtensionFromUrl(url).toLowerCase(Locale.getDefault());
         String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
-        if (mimeType == null || (mimeType != null && mimeType.isEmpty())) {
+        if (mimeType == null || mimeType.isEmpty()) {
             mimeType = "application/octet-stream";
         }
         mediaInfo = new MediaInfo.Builder(url).setContentType(mimeType)
@@ -188,7 +174,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                                         mCallbacks.onChromeCastMediaPlayerResult(response, result, "load");
                                     }
                                 });
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -207,6 +193,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
         if (mIsLoadEnable) {
             mediaInfo = mRemoteMediaPlayer.getMediaInfo();
         }
+
         try {
             if (mRemoteMediaPlayer != null) {
                 mRemoteMediaPlayer.load(mController.getGoogleApiClient(), mediaInfo, true).setResultCallback(
@@ -217,7 +204,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                         }
                     });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -242,7 +229,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                             }
                         });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -267,7 +254,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                             }
                         });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -292,7 +279,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                             }
                         });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -319,7 +306,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                                 }
                             });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -364,7 +351,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                                 }
                             });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -406,7 +393,7 @@ public class ChromeCastMediaPlayer implements ChromeCastController.Callbacks {
                                 }
                             });
             }
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }

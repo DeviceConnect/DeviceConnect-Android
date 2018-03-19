@@ -6,16 +6,16 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 
-import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.plugin.DevicePluginManager;
@@ -36,12 +36,16 @@ public class RestartingDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         String title = getString(R.string.activity_settings_restart_device_plugin_title);
         String msg = getString(R.string.activity_settings_restart_device_plugin_message);
-        ProgressDialog progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle(title);
-        progressDialog.setMessage(msg);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        setCancelable(false);
-        return progressDialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(title);
+        messageView.setText(msg);
+        builder.setView(v);
+
+        return builder.create();
     }
 
     @Override

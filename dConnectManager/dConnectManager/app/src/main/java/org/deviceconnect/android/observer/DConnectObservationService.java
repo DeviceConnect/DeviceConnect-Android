@@ -10,6 +10,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -23,6 +26,7 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.R;
@@ -41,6 +45,10 @@ import java.util.ArrayList;
  */
 public class DConnectObservationService extends Service {
 
+    /**
+     * Overserver Notification id.
+     */
+    private static final int OBSERVER_NOTIFICATION_ID = 9999;
     /**
      * オブザーバー監視開始アクション.
      */
@@ -105,7 +113,7 @@ public class DConnectObservationService extends Service {
         if (intent == null) {
             return START_STICKY;
         }
-
+        startForegroundObserverService();
         String action = intent.getAction();
         if (ACTION_CHECK.equals(action)
             && intent.hasExtra(PARAM_PORT)) {
@@ -148,7 +156,7 @@ public class DConnectObservationService extends Service {
                 && intent.hasExtra(PARAM_OBSERVATION_INTERVAL)
                 && intent.hasExtra(PARAM_RESULT_RECEIVER)) {
             final int port = intent.getIntExtra(PARAM_PORT, -1);
-            final int interval = intent.getIntExtra(PARAM_OBSERVATION_INTERVAL, -1);
+            final int interval = intent.getIntExtra(PARAM_OBSERVATION_INTERVAL, 300000);
             final ResultReceiver resultReceiver = intent.getParcelableExtra(PARAM_RESULT_RECEIVER);
             if (resultReceiver == null) {
                 return START_STICKY;
@@ -169,6 +177,8 @@ public class DConnectObservationService extends Service {
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
                                 resultReceiver.send(Activity.RESULT_CANCELED, null);
+                                stopObservation();
+                                stopSelf();
                             }
                         });
             }
@@ -178,6 +188,28 @@ public class DConnectObservationService extends Service {
         }
 
         return START_STICKY;
+    }
+
+    private void startForegroundObserverService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = getApplicationContext().getResources().getString(R.string.observation_service_on_channel_id);
+            Notification.Builder builder = new Notification.Builder(getApplicationContext(), channelId);
+            builder.setContentTitle(getString(R.string.activity_settings_observer));
+            builder.setContentText(getString(R.string.activity_settings_observer_summary));
+            int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                    R.drawable.icon : R.drawable.on_icon;
+            builder.setSmallIcon(iconType);
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    getApplicationContext().getResources().getString(R.string.activity_settings_observer),
+                    NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription(getApplicationContext().getResources().getString(R.string.activity_settings_observer_summary));
+            NotificationManager mNotification = (NotificationManager) getApplicationContext()
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotification.createNotificationChannel(channel);
+            builder.setChannelId(channelId);
+            startForeground(OBSERVER_NOTIFICATION_ID, builder.build());
+        }
     }
 
     /**
@@ -206,6 +238,9 @@ public class DConnectObservationService extends Service {
                 PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         am.cancel(sender);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            stopForeground(true);
+        }
     }
 
     /**

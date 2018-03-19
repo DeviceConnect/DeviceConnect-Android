@@ -29,13 +29,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
-import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
-import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.PHMessageType;
 import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 
+import org.deviceconnect.android.deviceplugin.hue.db.HueManager;
 import org.deviceconnect.android.deviceplugin.hue.R;
 
 import java.util.List;
@@ -68,8 +67,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    PHHueSDK hueSDK = PHHueSDK.getInstance();
-                    mAdapter.updateData(hueSDK.getAccessPointsFound());
+                    mAdapter.updateData(accessPoint);
                     mProgressView.setVisibility(View.GONE);
                     mSearchButton.setVisibility(View.VISIBLE);
                 }
@@ -113,6 +111,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        HueManager.INSTANCE.init(getContext());
     }
 
     @SuppressLint("InflateParams")
@@ -120,7 +119,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
 
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
+
         View rootView = inflater.inflate(R.layout.hue_fragment_01, container, false);
         if (rootView != null) {
             mSearchButton = (Button) rootView.findViewById(R.id.btnRefresh);
@@ -129,7 +128,8 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
             mProgressView = rootView.findViewById(R.id.progress_zone);
             mProgressView.setVisibility(View.VISIBLE);
 
-            mAdapter = new CustomAdapter(getActivity().getBaseContext(), hueSDK.getAccessPointsFound());
+            mAdapter = new CustomAdapter(getActivity().getBaseContext(),
+                    HueManager.INSTANCE.getAccessPoint());
 
             ListView listView = (ListView) rootView.findViewById(R.id.bridge_list2);
             listView.setOnItemClickListener(this);
@@ -145,10 +145,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     public void onResume() {
         super.onResume();
 
-        // Hueのインスタンスの取得.
-        PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        // HueブリッジからのCallbackを受け取るためのリスナーを登録.
-        phHueSDK.getNotificationManager().registerSDKListener(mListener);
+        HueManager.INSTANCE.addSDKListener(mListener);
 
         if (isWifiEnabled()) {
             // ローカルBridgeのUPNP Searchを開始する.
@@ -163,8 +160,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     @Override
     public void onPause() {
         // リスナーを解除
-        PHHueSDK phHueSDK = PHHueSDK.getInstance();
-        phHueSDK.getNotificationManager().unregisterSDKListener(mListener);
+        HueManager.INSTANCE.removeSDKListener(mListener);
         super.onPause();
     }
 
@@ -194,14 +190,8 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
      * ローカルBridgeのUPNP Searchを開始する.
      */
     private void doBridgeSearch() {
-        PHHueSDK hueSDK = PHHueSDK.getInstance();
-        // アクセスポイントのキャッシュクリア
-        hueSDK.getAccessPointsFound().clear();
-        // アクセスポイントリストビューのクリア
-        mAdapter.updateData(hueSDK.getAccessPointsFound());
-        // ローカルBridgeのUPNP Searchを開始
-        PHBridgeSearchManager sm = (PHBridgeSearchManager) hueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-        sm.search(true, true);
+        mAdapter.updateData(HueManager.INSTANCE.getAccessPoint());
+        HueManager.INSTANCE.searchHueBridge();
 
         runOnUiThread(new Runnable() {
             @Override

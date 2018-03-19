@@ -158,9 +158,11 @@ public class DevicePlugin {
 
         // 統計を取る.
         if (calculatesStats()) {
-            mLogger.info("Plug-in PackageName: " + getPackageName());
-            mLogger.info("Request: " + DConnectUtil.convertRequestToString(request));
-            mLogger.info("ResponseTime: " + (end - start));
+            if (BuildConfig.DEBUG) {
+                mLogger.info("Plug-in PackageName: " + getPackageName());
+                mLogger.info("Request: " + DConnectUtil.convertRequestToString(request));
+                mLogger.info("ResponseTime: " + (end - start));
+            }
 
             long baudRate = info.getRoundTripTime();
             long averageBaudRate = getAverageBaudRate();
@@ -361,7 +363,9 @@ public class DevicePlugin {
         for (int cnt = 0; cnt < MAX_CONNECTION_TRY; cnt++) {
             try {
                 mConnection.connect();
-                mLogger.info("Connected to the plug-in: " + getPackageName());
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Connected to the plug-in: " + getPackageName());
+                }
                 return true;
             } catch (ConnectingException e) {
                 mLogger.warning("Failed to connect to the plug-in: " + getPackageName());

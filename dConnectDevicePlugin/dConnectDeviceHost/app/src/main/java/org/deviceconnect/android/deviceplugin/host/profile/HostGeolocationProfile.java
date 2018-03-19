@@ -192,7 +192,8 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
         }
         // GPSセンサー利用可否判定.
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                && !mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             Intent intent = new Intent(getContext(), GeolocationAlertDialogActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             Bundle bundle = new Bundle();

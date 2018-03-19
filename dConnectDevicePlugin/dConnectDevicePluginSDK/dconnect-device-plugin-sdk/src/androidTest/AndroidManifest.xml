@@ -1,11 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android">
+    package="org.deviceconnect.android.test">
 
     <uses-sdk
         android:minSdkVersion="14"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="26" />
 
     <application>
+
+        <!-- テスト用ローカル認証局サービス -->
+        <service android:name="org.deviceconnect.android.ssl.TestCertificateAuthorityService"
+            android:exported="true" />
+
     </application>
 
 </manifest>

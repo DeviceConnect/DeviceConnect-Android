@@ -57,7 +57,10 @@
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService"
-            android:exported="false">
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_pebble"/>
         </service>
     </application>
 

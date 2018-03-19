@@ -1,1 +1,3 @@
 include ':app', ':libuvccamera'
+include ':libstreaming'
+project(':libstreaming').projectDir = new File('../dConnectDeviceHost/libstreaming')

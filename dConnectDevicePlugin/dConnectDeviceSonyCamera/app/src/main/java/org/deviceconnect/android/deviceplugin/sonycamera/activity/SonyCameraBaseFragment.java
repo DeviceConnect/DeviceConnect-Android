@@ -8,8 +8,12 @@ package org.deviceconnect.android.deviceplugin.sonycamera.activity;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.R;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 
 /**
  * Sony Camera ベースフラグメント.
@@ -18,7 +22,7 @@ import android.support.v4.app.Fragment;
 public class SonyCameraBaseFragment extends Fragment {
 
     /** 検索中のダイアログ. */
-    private ProgressDialog mDialog;
+    private AlertDialog mDialog;
 
     /**
      * サービスIDを設定する.
@@ -54,10 +58,17 @@ public class SonyCameraBaseFragment extends Fragment {
         if (mDialog != null) {
             return;
         }
-        mDialog = new ProgressDialog(getActivity());
-        mDialog.setTitle(R.string.sonycamera_proccessing);
-        mDialog.setMessage(getString(R.string.sonycamera_now_loading));
-        mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View v = inflater.inflate(R.layout.dialog_progress, null);
+        TextView titleView = v.findViewById(R.id.title);
+        TextView messageView = v.findViewById(R.id.message);
+        titleView.setText(getString(R.string.sonycamera_proccessing));
+        messageView.setText(getString(R.string.sonycamera_now_loading));
+        builder.setView(v);
+
+        mDialog = builder.create();
         mDialog.setCancelable(true);
         mDialog.show();
     }

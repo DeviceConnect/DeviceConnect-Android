@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.localoauth.oauthserver.db;
 
-import java.util.Locale;
-
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.Locale;
 
 /**
  * LocalOAuth用SQLiteOpenHelper.
@@ -103,8 +103,8 @@ public class LocalOAuthOpenHelper extends SQLiteOpenHelper {
      * コンストラクタ.
      * @param c コンストラクタ
      */
-    public LocalOAuthOpenHelper(final Context c) {
-        super(c, DB, null, DB_VERSION);
+    public LocalOAuthOpenHelper(final Context c, final String dbName) {
+        super(c, dbName, null, DB_VERSION);
     }
 
     /**

@@ -124,10 +124,10 @@ public class HitoeProfileWalkStateFragment extends Fragment  implements HitoeSch
 
                 WalkStateData walk = manager.getWalkStateData(mCurrentDevice.getId());
                 if (walk != null) {
-                    mStep.setText("" + walk.getStep() + "歩");
+                    mStep.setText("" + walk.getStep());
                     mState.setText(walk.getState().getState());
-                    mSpeed.setText("" + walk.getSpeed() + "km/s");
-                    mDistance.setText("" + walk.getDistance() + "km");
+                    mSpeed.setText("" + walk.getSpeed());
+                    mDistance.setText("" + walk.getDistance());
                     mBalance.setText("" + walk.getBalance());
                 }
 

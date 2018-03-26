@@ -104,7 +104,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
             builder.setContentIntent(pendingIntent);
             builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
-            builder.setSmallIcon(R.drawable.dconnect_icon);
+            builder.setSmallIcon(R.drawable.ic_launcher);
             builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
             builder.setWhen(System.currentTimeMillis());
@@ -115,7 +115,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             builder.setContentIntent(pendingIntent);
             builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
             int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                    R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
+                    R.drawable.ic_launcher : R.drawable.ic_launcher_lollipop;
             builder.setSmallIcon(iconType);
             builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));

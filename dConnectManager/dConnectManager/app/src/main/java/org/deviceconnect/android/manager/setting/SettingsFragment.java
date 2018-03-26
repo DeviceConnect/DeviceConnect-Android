@@ -795,7 +795,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Show IP Address.
      */
     private void showIPAddress() {
-        String ipAddress = DConnectUtil.getIPAddress();
+        String ipAddress = DConnectUtil.getIPAddress(getActivity());
 
         // Set Host IP Address.
         EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()

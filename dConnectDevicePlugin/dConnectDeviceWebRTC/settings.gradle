@@ -1,5 +1,0 @@
-include ':app'
-include 'dconnect-server'
-project(':dconnect-server').projectDir = new File('../..//dConnectManager/dConnectServer');
-include 'dconnect-server-nano-httpd'
-project(':dconnect-server-nano-httpd').projectDir = new File('../../dConnectManager/dConnectServerNanoHttpd/nanohttpd')

@@ -428,6 +428,7 @@ public class WebViewActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             }
+            loadUrl(view, url);
             return super.shouldOverrideUrlLoading(view, url);
         }
 
@@ -449,12 +450,6 @@ public class WebViewActivity extends AppCompatActivity {
                     }, STABLE_SCALE_CALCULATION_DURATION);
                 }
             }
-        }
-
-        @Override
-        public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
-            loadUrl(view, url);
-            return true;
         }
     };
 

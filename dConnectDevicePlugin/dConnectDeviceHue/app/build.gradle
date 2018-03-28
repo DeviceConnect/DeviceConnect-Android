@@ -22,7 +22,7 @@ android {
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
-                appIcon: "@drawable/dconnect_icon",
+                appIcon: "@drawable/ic_launcher",
                 appName: "@string/app_name"
         ]
     }
@@ -54,8 +54,8 @@ android {
     productFlavors {
         DeviceWebApi {
             dimension "common"
-            versionCode 11
-            versionName "2.2.2"
+            versionCode 12
+            versionName "2.3.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",
                     appName: "@string/app_name_for_device_web_api"

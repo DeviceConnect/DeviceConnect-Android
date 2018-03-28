@@ -60,8 +60,8 @@ android {
     productFlavors {
         DeviceConnect {
             dimension 'DeviceConnect'
-            versionCode 9
-            versionName "2.1.2"
+            versionCode 10
+            versionName "2.2.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/dconnect_icon",
                     appName: "@string/app_name"
@@ -70,8 +70,8 @@ android {
 
         DeviceWebApi {
             dimension 'DeviceWebApi'
-            versionCode 9
-            versionName "2.1.2"
+            versionCode 10
+            versionName "2.2.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",
                     appName: "@string/app_name_device_web_api"

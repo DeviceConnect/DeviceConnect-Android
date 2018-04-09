@@ -66,7 +66,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /GET/allGetControl?serviceId&accessToken=xxxx
+     * Path: /GET/allGetControl?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -96,7 +96,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /GET/allGetControl/ping?serviceId&accessToken=xxxx
+     * Path: /GET/allGetControl/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -126,7 +126,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /GET/allGetControl/test/ping?serviceId&accessToken=xxxx
+     * Path: /GET/allGetControl/test/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -156,7 +156,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /POST/allGetControl?serviceId&accessToken=xxxx
+     * Path: /POST/allGetControl?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -186,7 +186,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /POST/allGetControl/ping?serviceId&accessToken=xxxx
+     * Path: /POST/allGetControl/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -216,7 +216,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /POSt/allGetControl/test/ping?serviceId&accessToken=xxxx
+     * Path: /POSt/allGetControl/test/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -247,7 +247,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /PUT/allGetControl?serviceId&accessToken=xxxx
+     * Path: /PUT/allGetControl?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -277,7 +277,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /PUT/allGetControl/ping?serviceId&accessToken=xxxx
+     * Path: /PUT/allGetControl/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -307,7 +307,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /PUT/allGetControl/test/ping?serviceId&accessToken=xxxx
+     * Path: /PUT/allGetControl/test/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -339,7 +339,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /DELETE/allGetControl?serviceId&accessToken=xxxx
+     * Path: /DELETE/allGetControl?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -369,7 +369,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /DELETE/allGetControl/ping?serviceId&accessToken=xxxx
+     * Path: /DELETE/allGetControl/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -399,7 +399,7 @@ public class NormalAllGetControlTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /DELETE/allGetControl/test/ping?serviceId&accessToken=xxxx
+     * Path: /DELETE/allGetControl/test/ping?serviceId&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

@@ -61,7 +61,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?serviceId=xxxx&accessToken=xxxx
+     * Path: /battery?serviceId=xxxx&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

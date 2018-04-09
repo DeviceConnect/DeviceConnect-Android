@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.3'
 
     def getVersionName = { ->
         def version
@@ -54,7 +54,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':app')
-    provided 'com.google.android.things:androidthings:0.4-devpreview'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':app')
+    compileOnly 'com.google.android.things:androidthings:0.4-devpreview'
 }

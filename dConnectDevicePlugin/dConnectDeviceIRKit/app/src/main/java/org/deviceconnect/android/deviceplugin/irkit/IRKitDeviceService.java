@@ -192,7 +192,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         stopDetection();
         // 参照をきっておく
         IRKitManager.INSTANCE.setDetectionListener(null);
-        LocalOAuth2Main.destroy();
     }
 
     @Override

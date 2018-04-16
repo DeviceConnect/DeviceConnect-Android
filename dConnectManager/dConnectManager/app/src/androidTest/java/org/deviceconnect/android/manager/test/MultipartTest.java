@@ -34,7 +34,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
      * <pre>
      * Method: POST
      * Path: /notification/notify
-     * Body: serviceId=xxxx&type=0&accessToken=xxxx
+     * Body: serviceId=xxxx&amp;type=0&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -60,7 +60,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
      * <pre>
      * Method: PUT
      * Path: /deviceOrientation/onDeviceOrientation
-     * Body: serviceId=xxxx&sessionKey=xxxx&accessToken=xxxx
+     * Body: serviceId=xxxx&amp;sessionKey=xxxx&amp;accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -85,7 +85,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
      * 0バイトのファイルも送信可能であることのテスト.
      * <pre>
      * Method: POST
-     * Path: /file/send?serviceId=xxxx&filename=xxxx
+     * Path: /file/send?serviceId=xxxx&amp;filename=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="app_name" translatable="false">RuleEngine (Device Connect Device Plug-in)</string>
-    <string name="err" translatable="false">エラー</string>
-    <string name="err_occurred" translatable="false">エラーが発生しました</string>
-    <string name="err_res" translatable="false">エラーが返されました</string>
-
-</resources>

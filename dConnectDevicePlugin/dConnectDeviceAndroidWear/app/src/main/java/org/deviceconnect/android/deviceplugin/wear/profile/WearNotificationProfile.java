@@ -12,14 +12,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.wear.R;
 import org.deviceconnect.android.event.Event;
@@ -96,20 +91,16 @@ public class WearNotificationProfile extends NotificationProfile {
             int iconType = 0;
             String title = "";
             if (type == NotificationType.PHONE) {
-                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                        R.drawable.notification_00 : R.drawable.notification_00_post_lollipop;
+                iconType = R.drawable.notification_00_post_lollipop;
                 title = "PHONE";
             } else if (type == NotificationType.MAIL) {
-                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                        R.drawable.notification_01 : R.drawable.notification_01_post_lollipop;
+                iconType = R.drawable.notification_01_post_lollipop;
                 title = "MAIL";
             } else if (type == NotificationType.SMS) {
-                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                        R.drawable.notification_02 : R.drawable.notification_02_post_lollipop;
+                iconType = R.drawable.notification_02_post_lollipop;
                 title = "SMS";
             } else if (type == NotificationType.EVENT) {
-                iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
-                        R.drawable.notification_03 : R.drawable.notification_03_post_lollipop;
+                iconType = R.drawable.notification_03_post_lollipop;
                 title = "EVENT";
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,

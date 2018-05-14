@@ -16,13 +16,19 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.wear.widget.BoxInsetLayout;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.DataClient;
 import com.google.android.gms.wearable.Wearable;
 
 import org.deviceconnect.android.deviceplugin.wear.R;
@@ -30,7 +36,11 @@ import org.deviceconnect.android.deviceplugin.wear.WearApplication;
 import org.deviceconnect.android.deviceplugin.wear.WearConst;
 
 import java.io.InputStream;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static android.support.wear.widget.BoxInsetLayout.LayoutParams.BOX_ALL;
 
 /**
  * Canvas.
@@ -50,13 +60,15 @@ public class CanvasActivity extends Activity {
      * Wakelock.
      */
     private PowerManager.WakeLock mWakeLock;
-
+    /**
+     * Canvas Layout.
+     */
+    private FrameLayout mFrameLayout;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        mWakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-                | PowerManager.FULL_WAKE_LOCK
+        mWakeLock = powerManager.newWakeLock((PowerManager.PARTIAL_WAKE_LOCK
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP), "CanvasWakelockTag");
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -66,6 +78,7 @@ public class CanvasActivity extends Activity {
         }
         mImageView = (ImageView) findViewById(R.id.canvas_image);
         mImageView.setVisibility(View.INVISIBLE);
+        mFrameLayout = findViewById(R.id.canvas_frame);
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -150,6 +163,9 @@ public class CanvasActivity extends Activity {
                 mImageView.setScaleType(ImageView.ScaleType.MATRIX);
                 mImageView.setImageMatrix(matrix);
                 mImageView.setVisibility(View.VISIBLE);
+                BoxInsetLayout.LayoutParams normalLayoutParam = new BoxInsetLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER, BOX_ALL);
+                mFrameLayout.setLayoutParams(normalLayoutParam);
                 break;
             case WearConst.MODE_SCALES:
                 mImageView.setImageBitmap(bitmap);
@@ -157,6 +173,9 @@ public class CanvasActivity extends Activity {
                 mImageView.setTranslationX(x);
                 mImageView.setTranslationY(y);
                 mImageView.setVisibility(View.VISIBLE);
+                BoxInsetLayout.LayoutParams scaleLayoutParam = new BoxInsetLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT, Gravity.LEFT | Gravity.TOP);
+                mFrameLayout.setLayoutParams(scaleLayoutParam);
                 break;
             case WearConst.MODE_FILLS:
                 BitmapDrawable bd = new BitmapDrawable(getResources(), bitmap);
@@ -167,6 +186,9 @@ public class CanvasActivity extends Activity {
                 mImageView.setTranslationX(x);
                 mImageView.setTranslationY(y);
                 mImageView.setVisibility(View.VISIBLE);
+                BoxInsetLayout.LayoutParams fillLayoutParam = new BoxInsetLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT, Gravity.LEFT | Gravity.TOP);
+                mFrameLayout.setLayoutParams(fillLayoutParam);
                 break;
         }
     }
@@ -201,23 +223,24 @@ public class CanvasActivity extends Activity {
         if (asset == null) {
             return null;
         }
-        GoogleApiClient client = getClient();
-        ConnectionResult result =
-            client.blockingConnect(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        if (!result.isSuccess()) {
-            return null;
+        Task<DataClient.GetFdForAssetResponse> getFdForAssetResponseTask =
+                Wearable.getDataClient(getApplicationContext()).getFdForAsset(asset);
+
+        InputStream assetInputStream = null;
+        try {
+            DataClient.GetFdForAssetResponse getFdForAssetResponse = null;
+            getFdForAssetResponse = Tasks.await(getFdForAssetResponseTask, TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            assetInputStream = getFdForAssetResponse.getInputStream();
+        } catch (TimeoutException exception) {
+            Log.e("WEAR", "Failed retrieving asset, Timeout failed: " + exception);
+        } catch (ExecutionException exception) {
+            Log.e("WEAR", "Failed retrieving asset, Task failed: " + exception);
+        } catch (InterruptedException exception) {
+            Log.e("WEAR", "Failed retrieving asset, interrupt occurred: " + exception);
         }
-        // convert asset into a file descriptor and block until it's ready
-        return Wearable.DataApi.getFdForAsset(client, asset).await().getInputStream();
+        return assetInputStream;
     }
 
-    /**
-     * Gets a GoogleApiClient.
-     * @return instance of GoogleApiClient
-     */
-    private GoogleApiClient getClient() {
-        return ((WearApplication) getApplication()).getGoogleApiClient();
-    }
 
     private static class LoadingResult {
         private Bitmap mBitmap;

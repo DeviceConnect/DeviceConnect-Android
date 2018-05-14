@@ -9,8 +9,6 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
-
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
 import org.deviceconnect.android.deviceplugin.wear.WearManager.OnMessageEventListener;
@@ -83,7 +81,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final WearDeviceService service = (WearDeviceService) getContext();
-            String nodeId = WearUtils.getNodeId(getServiceID(request));
+            final String serviceId = WearUtils.getNodeId(getServiceID(request));
             final OnMessageEventListener l = new OnMessageEventListener() {
                 @Override
                 public void onEvent(final String nodeId, final String message) {
@@ -92,23 +90,18 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
                     setOrientation(response, orientation);
                     service.sendResponse(response);
                     removeListener(this);
-                    if (isEmptyEvent(nodeId)) {
-                        stopSensor(nodeId);
+                    if (isEmptyEvent(serviceId)) {
+                        stopSensor(serviceId);
                     }
                 }
             };
             addListener(l);
 
-            getManager().sendMessageToWear(nodeId,
+            getManager().sendMessageToWear(serviceId,
                 WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (!result.getStatus().isSuccess()) {
-                            removeListener(l);
-                            MessageUtils.setIllegalDeviceStateError(response);
-                            service.sendResponse(response);
-                        }
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {
@@ -134,16 +127,12 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
                 WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -199,7 +188,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
                 WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER,
                 "", new OnMessageResultListener() {
             @Override
-            public void onResult(final SendMessageResult result) {
+            public void onResult() {
             }
             @Override
             public void onError() {

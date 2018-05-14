@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.wearable.view.WatchViewStub;
 
 import android.view.MotionEvent;
 import android.view.View;
@@ -86,8 +85,7 @@ public class WearKeyEventProfileActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        mWakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-                | PowerManager.FULL_WAKE_LOCK
+        mWakeLock = powerManager.newWakeLock((PowerManager.PARTIAL_WAKE_LOCK
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TouchWakelockTag");
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -97,77 +95,69 @@ public class WearKeyEventProfileActivity extends Activity {
         setRegisterEvent(getIntent());
         setContentView(R.layout.activity_wear_keyevent_profile);
 
-        WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
-        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+        mBtnKeyMode = findViewById(R.id.button_key_mode);
+        mBtnKeyMode.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onLayoutInflated(final WatchViewStub stub) {
-                mBtnKeyMode = (Button) stub.findViewById(R.id.button_key_mode);
-                mBtnKeyMode.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(final View v) {
-                        // Update Key Mode.
-                        mKeyMode++;
-                        if (mKeyMode >= KM_MAX_CNT) {
-                            mKeyMode = KM_STD_KEY;
-                        }
+            public void onClick(final View v) {
+                // Update Key Mode.
+                mKeyMode++;
+                if (mKeyMode >= KM_MAX_CNT) {
+                    mKeyMode = KM_STD_KEY;
+                }
 
-                        String keyMode;
-                        switch (mKeyMode) {
-                            case KM_MEDIA_CTRL:
-                                keyMode = getString(R.string.key_mode_media_ctrl);
-                                break;
-                            case KM_DPAD_BUTTON:
-                                keyMode = getString(R.string.key_mode_dpad_button);
-                                break;
-                            case KM_USER:
-                                keyMode = getString(R.string.key_mode_user);
-                                break;
-                            case KM_STD_KEY:
-                            default:
-                                keyMode = getString(R.string.key_mode_std_key);
-                                break;
-                        }
-                        mBtnKeyMode.setText(keyMode);
-                    }
-                });
-
-                mBtnCancel = (Button) stub.findViewById(R.id.button_cancel);
-                mBtnCancel.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(final View view, final MotionEvent event) {
-                        int action = event.getAction();
-                        switch (action) {
-                            case MotionEvent.ACTION_DOWN:
-                            case MotionEvent.ACTION_UP:
-                                sendMessageData(action, KEYCODE_CANCEL);
-                                break;
-                            default:
-                                break;
-                        }
-                        return false;
-                    }
-                });
-
-                mBtnOk = (Button) stub.findViewById(R.id.button_ok);
-                mBtnOk.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(final View view, final MotionEvent event) {
-                        int action = event.getAction();
-                        switch (action) {
-                            case MotionEvent.ACTION_DOWN:
-                            case MotionEvent.ACTION_UP:
-                                sendMessageData(action, KEYCODE_OK);
-                                break;
-                            default:
-                                break;
-                        }
-                        return false;
-                    }
-                });
-
+                String keyMode;
+                switch (mKeyMode) {
+                    case KM_MEDIA_CTRL:
+                        keyMode = getString(R.string.key_mode_media_ctrl);
+                        break;
+                    case KM_DPAD_BUTTON:
+                        keyMode = getString(R.string.key_mode_dpad_button);
+                        break;
+                    case KM_USER:
+                        keyMode = getString(R.string.key_mode_user);
+                        break;
+                    case KM_STD_KEY:
+                    default:
+                        keyMode = getString(R.string.key_mode_std_key);
+                        break;
+                }
+                mBtnKeyMode.setText(keyMode);
             }
         });
 
+        mBtnCancel = findViewById(R.id.button_cancel);
+        mBtnCancel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(final View view, final MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_UP:
+                        sendMessageData(action, KEYCODE_CANCEL);
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+
+        mBtnOk = findViewById(R.id.button_ok);
+        mBtnOk.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(final View view, final MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_UP:
+                        sendMessageData(action, KEYCODE_OK);
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
         Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }

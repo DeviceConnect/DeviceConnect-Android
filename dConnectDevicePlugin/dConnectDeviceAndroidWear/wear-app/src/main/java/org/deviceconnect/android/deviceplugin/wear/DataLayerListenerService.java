@@ -6,8 +6,6 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.wear;
 
-import android.app.ActivityManager;
-import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -53,17 +51,23 @@ public class DataLayerListenerService extends WearableListenerService {
             Uri uri = event.getDataItem().getUri();
             if (event.getType() == DataEvent.TYPE_CHANGED
                     && uri.getPath().startsWith(WearConst.PATH_CANVAS)) {
+
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                 DataMap map = dataMapItem.getDataMap();
-
                 List<String> segments = uri.getPathSegments();
-                String nodeId = segments.get(2);
+
+                String selfId = ((WearApplication) getApplication()).getSelfId();
+                String wearId = segments.get(2);
+                if (selfId == null || !selfId.equals(wearId)) {
+                    //WearのIDが違っていれば無視
+                    return;
+                }
+                String nodeId = uri.getHost();
                 String requestId = segments.get(3);
                 Asset profileAsset = map.getAsset(WearConst.PARAM_BITMAP);
                 int x = map.getInt(WearConst.PARAM_X);
                 int y = map.getInt(WearConst.PARAM_Y);
                 int mode = map.getInt(WearConst.PARAM_MODE);
-
                 Intent intent = new Intent();
                 intent.setClass(this, CanvasActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -155,11 +159,12 @@ public class DataLayerListenerService extends WearableListenerService {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER, id);
         } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER)) {
             startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER, id);
-        } else if (action.equals(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER)) {
-            startTouchActivity(WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER, id);
+        } else if (action.equals(WearConst.DEVICE_TO_WEAR_SET_ID)) {
+            String wearId = new String(messageEvent.getData());
+            ((WearApplication) getApplication()).setSelfId(wearId);
         } else {
             if (BuildConfig.DEBUG) {
-                Log.e("Wear", "unknown event");
+                Log.e("Wear", "unknown event:" + action);
             }
         }
     }
@@ -207,14 +212,11 @@ public class DataLayerListenerService extends WearableListenerService {
      * Canvasの画面を削除する.
      */
     private void deleteCanvas() {
-        String className = getClassnameOfTopActivity();
-        if (CanvasActivity.class.getName().equals(className)) {
-            Intent intent = new Intent();
-            intent.setClass(this, CanvasActivity.class);
-            intent.setAction(WearConst.ACTION_DELETE_CANVAS);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        }
+        Intent intent = new Intent();
+        intent.setClass(this, CanvasActivity.class);
+        intent.setAction(WearConst.ACTION_DELETE_CANVAS);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     /**
@@ -241,15 +243,5 @@ public class DataLayerListenerService extends WearableListenerService {
         i.putExtra(WearConst.PARAM_TOUCH_REGIST, regist);
         i.putExtra(WearConst.PARAM_TOUCH_ID, id);
         startActivity(i);
-    }
-
-    /**
-     * 画面の一番上にでているActivityのクラス名を取得.
-     *
-     * @return クラス名
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager manager = (ActivityManager) getSystemService(Service.ACTIVITY_SERVICE);
-        return manager.getRunningTasks(1).get(0).topActivity.getClassName();
     }
 }

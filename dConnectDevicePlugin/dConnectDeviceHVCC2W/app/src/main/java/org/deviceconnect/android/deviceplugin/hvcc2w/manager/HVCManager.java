@@ -121,7 +121,7 @@ public enum HVCManager {
     public static final int HVC_C2W_MAX_THRESHOLD = 1000;
 
     /** Confidence max.*/
-    public static final int HVC_C2W_MAX_CONFIDENCE = 1000;
+    public static final double HVC_C2W_MAX_CONFIDENCE = 1000.0;
     /** Blink max.*/
     public static final int HVC_C2W_MAX_BLINK = 1000;
 

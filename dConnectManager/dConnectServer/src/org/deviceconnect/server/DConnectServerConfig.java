@@ -18,6 +18,11 @@ public final class DConnectServerConfig {
     // サーバーの設定値は起動後などに変更されるのを防ぐためBuilderでパラメータを設定させ
     // setterは本体には置かない。
 
+    /**
+     * Assets をドキュメントルートにする場合の定義.
+     */
+    public static final String DOC_ASSETS = "file:///android_asset/";
+
     /** 最大コネクション数. */
     private int mMaxConnectionSize;
 
@@ -191,6 +196,21 @@ public final class DConnectServerConfig {
             }
 
             return new DConnectServerConfig(this);
+        }
+
+        @Override
+        public String toString() {
+            return "Builder{" +
+                    "mMaxConnectionSize=" + mMaxConnectionSize +
+                    ", mMaxWebSocketConnectionSize=" + mMaxWebSocketConnectionSize +
+                    ", mDocumentRootPath='" + mDocumentRootPath + '\'' +
+                    ", mCachePath='" + mCachePath + '\'' +
+                    ", mIsSsl=" + mIsSsl +
+                    ", mPort=" + mPort +
+                    ", mHost='" + mHost + '\'' +
+                    ", mIpWhiteList=" + mIpWhiteList +
+                    ", mCharset='" + mCharset + '\'' +
+                    '}';
         }
 
         /**

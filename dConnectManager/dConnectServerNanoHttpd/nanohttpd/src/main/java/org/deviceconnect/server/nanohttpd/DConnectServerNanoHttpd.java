@@ -296,7 +296,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         synchronized (mSockets) {
             for (Entry<String, DConnectWebSocket> data : mSockets.entrySet()) {
-                data.getValue().disconnect();
+                try {
+                    data.getValue().disconnect();
+                } catch (Exception e) {
+                    // ignore.
+                }
             }
         }
         mSockets.clear();
@@ -329,15 +333,19 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /**
      * 設定されたドキュメントルートが正しいかチェックする.
-     *
+     * <p>
+     * ドキュメントルートパスに file:///android_asset が指定された場合には assets フォルダをドキュメントルートとして使用します。
+     * </p>
      * @return 正しい場合true、不正な場合falseを返す。
      */
     private boolean checkDocumentRoot() {
         boolean retVal = true;
-        File documentRoot = new File(mConfig.getDocumentRootPath());
-        if (!documentRoot.exists() || !documentRoot.isDirectory()) {
-            mLogger.warning("Invalid document root path: " + documentRoot.getPath());
-            retVal = false;
+        if (!mConfig.getDocumentRootPath().startsWith(DConnectServerConfig.DOC_ASSETS)) {
+            File documentRoot = new File(mConfig.getDocumentRootPath());
+            if (!documentRoot.exists() || !documentRoot.isDirectory()) {
+                mLogger.warning("Invalid document root path: " + documentRoot.getPath());
+                retVal = false;
+            }
         }
         return retVal;
     }
@@ -1040,44 +1048,88 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     break;
                 }
 
+                String rootPath = mConfig.getDocumentRootPath();
+
                 // ドキュメントルートが設定されていない場合には、静的コンテンツへのアクセスはない。
-                if (mConfig.getDocumentRootPath() == null) {
+                if (rootPath == null) {
                     break;
                 }
 
-                // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
-                File file = new File(mConfig.getDocumentRootPath(), session.getUri());
+                if (rootPath.startsWith(DConnectServerConfig.DOC_ASSETS)) {
+                    // assets フォルダをドキュメントルートにした場合の処理
+                    String filePath = session.getUri();
 
-                if (!file.exists()) {
-                    retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
-                    break;
-                } else if (file.isDirectory()) {
-                    break;
-                } else if (!isReadableFile(file)) {
-                    retValue = newFixedLengthResponse(Status.FORBIDDEN, MIME_PLAINTEXT, Status.FORBIDDEN.getDescription());
-                    break;
-                }
+                    // assets フォルダのさらに下のフォルダをドキュメントルートにした場合
+                    if (rootPath.length() > DConnectServerConfig.DOC_ASSETS.length()) {
+                        filePath = rootPath.substring(DConnectServerConfig.DOC_ASSETS.length()) + filePath;
+                    }
 
-                // If-None-Match対応
-                String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length())
-                        .hashCode());
-                if (etag.equals(session.getHeaders().get("if-none-match"))) {
-                    retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-                } else {
+                    // 先頭に / があるとファイルが開けないので削除
+                    if (filePath.startsWith("/")) {
+                        filePath = filePath.substring(1);
+                    }
+
+                    InputStream in = null;
                     try {
-                        retValue = newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), file.length());
-                        retValue.addHeader("Content-Length", "" + file.length());
-                        retValue.addHeader("ETag", etag);
-                    } catch (FileNotFoundException e) {
+                        in = mContext.getAssets().open(filePath);
+
+                        // If-None-Match対応
+                        String etag = Integer.toHexString(session.getUri().hashCode());
+                        if (etag.equals(session.getHeaders().get("if-none-match"))) {
+                            retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                        } else {
+                            retValue = newFixedLengthResponse(Status.OK, mime, in, in.available());
+                            retValue.addHeader("Content-Length", "" + in.available());
+                            retValue.addHeader("ETag", etag);
+                        }
+
+                        // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
+                        // 対応が必要な場合はbyteを設定して実装すること。
+                        retValue.addHeader("Accept-Ranges", "none");
+                    } catch (IOException e) {
+                        if (in != null) {
+                            try {
+                                in.close();
+                            } catch (IOException e1) {
+                                // ignore.
+                            }
+                        }
                         retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
                         break;
                     }
+                } else {
+                    // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
+                    File file = new File(mConfig.getDocumentRootPath(), session.getUri());
+
+                    if (!file.exists()) {
+                        retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
+                        break;
+                    } else if (file.isDirectory()) {
+                        break;
+                    } else if (!isReadableFile(file)) {
+                        retValue = newFixedLengthResponse(Status.FORBIDDEN, MIME_PLAINTEXT, Status.FORBIDDEN.getDescription());
+                        break;
+                    }
+
+                    // If-None-Match対応
+                    String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
+                    if (etag.equals(session.getHeaders().get("if-none-match"))) {
+                        retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                    } else {
+                        try {
+                            retValue = newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), file.length());
+                            retValue.addHeader("Content-Length", "" + file.length());
+                            retValue.addHeader("ETag", etag);
+                        } catch (FileNotFoundException e) {
+                            retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
+                            break;
+                        }
+                    }
+
+                    // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
+                    // 対応が必要な場合はbyteを設定して実装すること。
+                    retValue.addHeader("Accept-Ranges", "none");
                 }
-
-                // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
-                // 対応が必要な場合はbyteを設定して実装すること。
-                retValue.addHeader("Accept-Ranges", "none");
-
             } while (false);
             return retValue;
         }

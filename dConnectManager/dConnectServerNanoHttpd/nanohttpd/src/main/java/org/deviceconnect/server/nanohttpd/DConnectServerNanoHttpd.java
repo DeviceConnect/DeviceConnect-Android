@@ -1034,12 +1034,19 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         private Response checkStaticFile(final IHTTPSession session) {
             Response retValue = null;
 
+            String filePath = session.getUri();
+
+            // パスに何も入力されていない場合には index.html に飛ばす
+            if (filePath.equals("/")) {
+                filePath = "/index.html";
+            }
+
             do {
                 String mime = session.getHeaders().get("content-type");
                 // httpの仕様より、content-typeでMIME Typeが特定できない場合はURIから
                 // MIME Typeを推測する。
                 if (mime == null || !MIME_TYPES.containsValue(mime)) {
-                    mime = getMimeTypeFromURI(session.getUri());
+                    mime = getMimeTypeFromURI(filePath);
                 }
 
                 // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかの
@@ -1056,9 +1063,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
 
                 if (rootPath.startsWith(DConnectServerConfig.DOC_ASSETS)) {
-                    // assets フォルダをドキュメントルートにした場合の処理
-                    String filePath = session.getUri();
-
                     // assets フォルダのさらに下のフォルダをドキュメントルートにした場合
                     if (rootPath.length() > DConnectServerConfig.DOC_ASSETS.length()) {
                         filePath = rootPath.substring(DConnectServerConfig.DOC_ASSETS.length()) + filePath;

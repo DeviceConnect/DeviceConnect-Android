@@ -1037,8 +1037,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             String filePath = session.getUri();
 
             // パスに何も入力されていない場合には index.html に飛ばす
-            if (filePath.equals("/")) {
+            if (filePath == null || filePath.isEmpty()) {
                 filePath = "/index.html";
+            } else if (filePath.endsWith("/")) {
+                filePath = filePath + "index.html";
             }
 
             do {

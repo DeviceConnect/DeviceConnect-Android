@@ -7,6 +7,8 @@
 package org.deviceconnect.server.nanohttpd;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.deviceconnect.server.DConnectServer;
@@ -1079,8 +1081,16 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     try {
                         in = mContext.getAssets().open(filePath);
 
+                        // ETag のためのハッシュ計算
+                        int hashCode = getVersionCode(mContext);
+                        hashCode += getVersionName(mContext).hashCode();
+                        hashCode += session.getUri().hashCode();
+                        if (session.getQueryParameterString() != null) {
+                            hashCode += session.getQueryParameterString().hashCode();
+                        }
+
                         // If-None-Match対応
-                        String etag = Integer.toHexString(session.getUri().hashCode());
+                        String etag = Integer.toHexString(hashCode);
                         if (etag.equals(session.getHeaders().get("if-none-match"))) {
                             retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
                         } else {
@@ -1614,5 +1624,41 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             src.position(offset).limit(offset + len);
             dest.write(src.slice());
         }
+    }
+
+    /**
+     * バージョンコードを取得する
+     *
+     * @param context コンテキスト
+     * @return VersionCode
+     */
+    public static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionCode;
+    }
+
+    /**
+     * バージョン名を取得する
+     *
+     * @param context コンテキスト
+     * @return VersionName
+     */
+    public static String getVersionName(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        String versionName = "";
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionName = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionName;
     }
 }

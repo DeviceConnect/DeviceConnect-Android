@@ -7,6 +7,8 @@
 package org.deviceconnect.server.nanohttpd;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.deviceconnect.server.DConnectServer;
@@ -1034,12 +1036,21 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         private Response checkStaticFile(final IHTTPSession session) {
             Response retValue = null;
 
+            String filePath = session.getUri();
+
+            // パスに何も入力されていない場合には index.html に飛ばす
+            if (filePath == null || filePath.isEmpty()) {
+                filePath = "/index.html";
+            } else if (filePath.endsWith("/")) {
+                filePath = filePath + "index.html";
+            }
+
             do {
                 String mime = session.getHeaders().get("content-type");
                 // httpの仕様より、content-typeでMIME Typeが特定できない場合はURIから
                 // MIME Typeを推測する。
                 if (mime == null || !MIME_TYPES.containsValue(mime)) {
-                    mime = getMimeTypeFromURI(session.getUri());
+                    mime = getMimeTypeFromURI(filePath);
                 }
 
                 // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかの
@@ -1056,9 +1067,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
 
                 if (rootPath.startsWith(DConnectServerConfig.DOC_ASSETS)) {
-                    // assets フォルダをドキュメントルートにした場合の処理
-                    String filePath = session.getUri();
-
                     // assets フォルダのさらに下のフォルダをドキュメントルートにした場合
                     if (rootPath.length() > DConnectServerConfig.DOC_ASSETS.length()) {
                         filePath = rootPath.substring(DConnectServerConfig.DOC_ASSETS.length()) + filePath;
@@ -1073,8 +1081,16 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     try {
                         in = mContext.getAssets().open(filePath);
 
+                        // ETag のためのハッシュ計算
+                        int hashCode = getVersionCode(mContext);
+                        hashCode += getVersionName(mContext).hashCode();
+                        hashCode += filePath.hashCode();
+                        if (session.getQueryParameterString() != null) {
+                            hashCode += session.getQueryParameterString().hashCode();
+                        }
+
                         // If-None-Match対応
-                        String etag = Integer.toHexString(session.getUri().hashCode());
+                        String etag = Integer.toHexString(hashCode);
                         if (etag.equals(session.getHeaders().get("if-none-match"))) {
                             retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
                         } else {
@@ -1099,7 +1115,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     }
                 } else {
                     // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
-                    File file = new File(mConfig.getDocumentRootPath(), session.getUri());
+                    File file = new File(mConfig.getDocumentRootPath(), filePath);
 
                     if (!file.exists()) {
                         retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
@@ -1608,5 +1624,41 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             src.position(offset).limit(offset + len);
             dest.write(src.slice());
         }
+    }
+
+    /**
+     * バージョンコードを取得する
+     *
+     * @param context コンテキスト
+     * @return VersionCode
+     */
+    public static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionCode;
+    }
+
+    /**
+     * バージョン名を取得する
+     *
+     * @param context コンテキスト
+     * @return VersionName
+     */
+    public static String getVersionName(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        String versionName = "";
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionName = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionName;
     }
 }

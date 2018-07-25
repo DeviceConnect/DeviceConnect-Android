@@ -1084,7 +1084,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                         // ETag のためのハッシュ計算
                         int hashCode = getVersionCode(mContext);
                         hashCode += getVersionName(mContext).hashCode();
-                        hashCode += session.getUri().hashCode();
+                        hashCode += filePath.hashCode();
                         if (session.getQueryParameterString() != null) {
                             hashCode += session.getQueryParameterString().hashCode();
                         }
@@ -1115,7 +1115,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     }
                 } else {
                     // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
-                    File file = new File(mConfig.getDocumentRootPath(), session.getUri());
+                    File file = new File(mConfig.getDocumentRootPath(), filePath);
 
                     if (!file.exists()) {
                         retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());

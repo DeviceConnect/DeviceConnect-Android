@@ -283,10 +283,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                     if (BuildConfig.DEBUG) {
                         mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
                     }
-                } else {
-                    if (mWebServerListener != null) {
-                        mWebServerListener.onWebSocketDisconnected(webSocket);
-                    }
                 }
             } catch (JSONException e) {
                 mLogger.warning("JSONException in sendMessage: " + e.toString());

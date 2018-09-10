@@ -341,8 +341,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @return 正しい場合true、不正な場合falseを返す。
      */
     private boolean checkDocumentRoot() {
+        if (mConfig.getDocumentRootPath() == null) {
+            // ドキュメントルートが設定されていない場合は、チェックしない。
+            return true;
+        }
         boolean retVal = true;
-        if (!mConfig.getDocumentRootPath().startsWith(DConnectServerConfig.DOC_ASSETS)) {
+        if (!DConnectServerConfig.DOC_ASSETS.startsWith(mConfig.getDocumentRootPath())) {
             File documentRoot = new File(mConfig.getDocumentRootPath());
             if (!documentRoot.exists() || !documentRoot.isDirectory()) {
                 mLogger.warning("Invalid document root path: " + documentRoot.getPath());
@@ -1029,6 +1033,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * 静的コンテンツへのリクエストかどうかをチェックし、静的コンテンツへのアクセスの場合にはレスポンスを返却します.
          * <p>
          *     静的コンテンツ以外のアクセスの場合には、nullを返却します。
+         *     ドキュメントルートが設定されていない場合は、静的ファイルを使用しないので、nullを返却します。
          * </p>
          * @param session HTTPリクエストデータ
          * @return 静的コンテンツの場合はResponseのインスタンス、それ以外の場合はnull
@@ -1053,8 +1058,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     mime = getMimeTypeFromURI(filePath);
                 }
 
-                // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかの
-                // チェックに回す。
+                // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかのチェックに回す。
                 if (mime == null) {
                     break;
                 }
@@ -1115,7 +1119,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                     }
                 } else {
                     // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
-                    File file = new File(mConfig.getDocumentRootPath(), filePath);
+                    File file = new File(rootPath, filePath);
 
                     if (!file.exists()) {
                         retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());

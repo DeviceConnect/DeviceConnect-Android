@@ -371,7 +371,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
                 final DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
                 builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
-                        .documentRootPath(getFilesDir().getAbsolutePath())
                         .cachePath(mFileMgr.getBasePath().getAbsolutePath());
 
                 if (!mSettings.allowExternalIP()) {

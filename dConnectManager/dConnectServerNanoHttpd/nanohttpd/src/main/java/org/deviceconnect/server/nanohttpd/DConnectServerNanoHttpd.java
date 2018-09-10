@@ -346,7 +346,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             return true;
         }
         boolean retVal = true;
-        if (!DConnectServerConfig.DOC_ASSETS.startsWith(mConfig.getDocumentRootPath())) {
+        if (!mConfig.getDocumentRootPath().startsWith(DConnectServerConfig.DOC_ASSETS)) {
             File documentRoot = new File(mConfig.getDocumentRootPath());
             if (!documentRoot.exists() || !documentRoot.isDirectory()) {
                 mLogger.warning("Invalid document root path: " + documentRoot.getPath());

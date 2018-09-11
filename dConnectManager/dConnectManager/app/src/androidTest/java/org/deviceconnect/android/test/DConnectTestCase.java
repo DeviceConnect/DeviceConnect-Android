@@ -82,23 +82,53 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             if (mDConnectSDK != null) {
                 mDConnectSDK.setAccessToken(sAccessToken);
             }
+            waitForFoundTestService();
         }
     }
 
     /**
-     * Managerが起動するまでブロックする.
+     * Manager が起動するまでブロックします.
+     *
      * @throws InterruptedException スレッドが割り込まれた場合
      */
     private void waitForManager() throws InterruptedException {
         mDConnectSDK.startManager(getContext());
 
         long timeout = 30 * 1000;
-        final long interval = 250;
+        final long interval = 1000;
         while (!isManagerAvailable()) {
             Thread.sleep(interval);
             timeout -= interval;
             if (timeout <= 0) {
                 fail("Manager launching timeout.");
+            }
+        }
+    }
+
+    /**
+     * テスト用のサービスを発見するまでブロックします.
+     * <p>
+     *     30秒検索して見つからない場合にはインストールされていないと判断します。
+     * </p>
+     * @throws InterruptedException スレッドが割り込まれた場合
+     */
+    private void waitForFoundTestService() throws InterruptedException {
+        long timeout = 30 * 1000;
+        final long interval = 1000;
+        while (true) {
+            // サービスの検索
+            mServiceInfoList = searchServices();
+
+            String serviceId = getServiceIdByName(DEVICE_NAME);
+            if (serviceId != null) {
+                // テストプラグインを発見
+                return;
+            }
+
+            Thread.sleep(interval);
+            timeout -= interval;
+            if (timeout <= 0) {
+                fail("The test plugin is not installed.");
             }
         }
     }
@@ -128,7 +158,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
         List<ServiceInfo> services = new ArrayList<>();
         DConnectResponseMessage response = mDConnectSDK.serviceDiscovery();
         if (response.getResult() == DConnectMessage.RESULT_ERROR) {
-            fail("Failed to discover services.");
+            return null;
         }
 
         List<Object> list = response.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
@@ -194,27 +224,45 @@ public abstract class DConnectTestCase extends AndroidTestCase {
 
     /**
      * サービスIDを取得する.
+     * <p>
+     * サービスが見つからない場合は fail を発生させます。
+     * </p>
      * @return サービスID
      */
     protected String getServiceId() {
         if (mServiceInfoList == null) {
             mServiceInfoList = searchServices();
+            if (mServiceInfoList == null) {
+                fail("Not found the test plugin.");
+            }
         }
-        return getServiceIdByName(DEVICE_NAME);
+        String serviceId = getServiceIdByName(DEVICE_NAME);
+        if (serviceId == null) {
+            fail("Not found the test plugin.");
+        }
+        return serviceId;
     }
 
     /**
      * 指定したデバイス名をもつデバイスのIDを取得する.
+     * <p>
+     *     取得できない場合は null を返却します。
+     * </p>
      * @param deviceName デバイス名
      * @return サービスID
      */
     private String getServiceIdByName(final String deviceName) {
+        if (mServiceInfoList == null) {
+            return null;
+        }
+
         for (int i = 0; i < mServiceInfoList.size(); i++) {
             ServiceInfo obj = mServiceInfoList.get(i);
             if (deviceName.equals(obj.getDeviceName())) {
                 return obj.getServiceId();
             }
         }
+
         return null;
     }
 

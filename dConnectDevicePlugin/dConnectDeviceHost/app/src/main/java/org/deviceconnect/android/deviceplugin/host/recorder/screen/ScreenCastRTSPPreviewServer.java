@@ -110,6 +110,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
             stopScreenCast();
             mClientSocket = null;
         }
+        stopDrawTask();
     }
 
     // DrawTaskの後始末

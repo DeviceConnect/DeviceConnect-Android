@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.2'
 
     def getVersionName = { ->
         def version
@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.manager"
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -63,7 +63,7 @@ android {
             dimension "common"
 
         }
-        main {
+        orginal {
             dimension "common"
         }
     }

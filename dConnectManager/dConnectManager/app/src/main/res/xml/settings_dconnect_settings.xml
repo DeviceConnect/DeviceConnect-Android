@@ -6,6 +6,15 @@
             android:key="@string/key_settings_dconn_host"
             android:summary="@string/activity_settings_default_host"
             android:title="@string/activity_settings_host" />
+        <PreferenceScreen
+            android:defaultValue="@string/activity_settings_default_host_qr"
+            android:key="@string/key_settings_dconn_host_ip_qr"
+            android:summary="@string/activity_settings_default_host_qr"
+            android:title="@string/activity_settings_host_qr" >
+            <intent android:targetPackage="org.deviceconnect.android.manager"
+                android:targetClass="org.deviceconnect.android.manager.setting.QRCodeActivity" />
+
+        </PreferenceScreen>
         <EditTextPreference
             android:defaultValue="@string/activity_settings_default_port"
             android:inputType="number"

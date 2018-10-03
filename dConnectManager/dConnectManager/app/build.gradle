@@ -97,6 +97,8 @@ dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
+    implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
+
     implementation project(':dconnect-server-nano-httpd')
     androidTestImplementation 'com.android.support:support-annotations:26.1.0'
     androidTestImplementation 'com.android.support.test:runner:0.5'

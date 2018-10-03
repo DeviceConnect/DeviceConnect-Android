@@ -11,6 +11,7 @@
     <string name="key_settings_dconn_require_origin" translatable="false">settings_dconn_require_origin</string>
     <string name="key_settings_dconn_ssl" translatable="false">settings_dconn_ssl</string>
     <string name="key_settings_dconn_host" translatable="false">settings_dconn_host</string>
+    <string name="key_settings_dconn_host_ip_qr" translatable="false">settings_dconn_host_ip_qr</string>
     <string name="key_settings_dconn_port" translatable="false">settings_dconn_port</string>
     <string name="key_settings_dconn_local_oauth" translatable="false">settings_dconn_local_oauth</string>
     <string name="key_settings_list_access_token" translatable="false">settings_list_access_token</string>

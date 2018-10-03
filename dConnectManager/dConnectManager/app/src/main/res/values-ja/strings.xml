@@ -31,8 +31,10 @@
     <string name="activity_settings_keyword">キーワード</string>
     <string name="activity_settings_ssl">SSL</string>
     <string name="activity_settings_host">Host</string>
+    <string name="activity_settings_host_qr">IPアドレスをQRコードで表示</string>
     <string name="activity_settings_port">Port</string>
     <string name="activity_settings_default_host">localhost</string>
+    <string name="activity_settings_default_host_qr">スマートフォンのIPアドレスをQRコードで表示します。QRコードをアプリ側で読み込むことによりスマートフォンのIPアドレスを取得することができます。</string>
     <string name="activity_settings_document_root">ドキュメントルートパス</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>
@@ -240,4 +242,12 @@
 
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
+
+    <!-- ================= QRCodeActivity ================= -->
+    <string name="no_ip">0.0.0.0</string>
+    <string name="read_qr">Managerを利用するデバイスで\nQRコードを読み込んでください。</string>
+    <string name="trademark_message">※QRコードは(株)デンソーウェーブの登録商標です。</string>
+    <string name="dconnect_error_offline_title">オフライン</string>
+    <string name="dconnect_error_offline_message">ネットワークに接続してください。</string>
+
 </resources>

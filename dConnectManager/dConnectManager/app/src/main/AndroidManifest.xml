@@ -198,6 +198,12 @@
             android:exported="false">
         </activity>
 
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.QRCodeActivity"
+            android:excludeFromRecents="true"
+            android:exported="false">
+        </activity>
+
         <!-- Device Connect監視サービス. -->
         <!-- Device ConnectManagerの生存確認を行うため、Device Connect Managerとは別プロセスで動作する。 -->
         <service

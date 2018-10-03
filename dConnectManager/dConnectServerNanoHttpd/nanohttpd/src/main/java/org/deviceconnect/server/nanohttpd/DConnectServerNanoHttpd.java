@@ -7,6 +7,8 @@
 package org.deviceconnect.server.nanohttpd;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.deviceconnect.server.DConnectServer;
@@ -296,7 +298,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         synchronized (mSockets) {
             for (Entry<String, DConnectWebSocket> data : mSockets.entrySet()) {
-                data.getValue().disconnect();
+                try {
+                    data.getValue().disconnect();
+                } catch (Exception e) {
+                    // ignore.
+                }
             }
         }
         mSockets.clear();
@@ -329,15 +335,23 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     /**
      * 設定されたドキュメントルートが正しいかチェックする.
-     *
+     * <p>
+     * ドキュメントルートパスに file:///android_asset が指定された場合には assets フォルダをドキュメントルートとして使用します。
+     * </p>
      * @return 正しい場合true、不正な場合falseを返す。
      */
     private boolean checkDocumentRoot() {
+        if (mConfig.getDocumentRootPath() == null) {
+            // ドキュメントルートが設定されていない場合は、チェックしない。
+            return true;
+        }
         boolean retVal = true;
-        File documentRoot = new File(mConfig.getDocumentRootPath());
-        if (!documentRoot.exists() || !documentRoot.isDirectory()) {
-            mLogger.warning("Invalid document root path: " + documentRoot.getPath());
-            retVal = false;
+        if (!mConfig.getDocumentRootPath().startsWith(DConnectServerConfig.DOC_ASSETS)) {
+            File documentRoot = new File(mConfig.getDocumentRootPath());
+            if (!documentRoot.exists() || !documentRoot.isDirectory()) {
+                mLogger.warning("Invalid document root path: " + documentRoot.getPath());
+                retVal = false;
+            }
         }
         return retVal;
     }
@@ -1019,6 +1033,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * 静的コンテンツへのリクエストかどうかをチェックし、静的コンテンツへのアクセスの場合にはレスポンスを返却します.
          * <p>
          *     静的コンテンツ以外のアクセスの場合には、nullを返却します。
+         *     ドキュメントルートが設定されていない場合は、静的ファイルを使用しないので、nullを返却します。
          * </p>
          * @param session HTTPリクエストデータ
          * @return 静的コンテンツの場合はResponseのインスタンス、それ以外の場合はnull
@@ -1026,58 +1041,115 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         private Response checkStaticFile(final IHTTPSession session) {
             Response retValue = null;
 
+            String filePath = session.getUri();
+
+            // パスに何も入力されていない場合には index.html に飛ばす
+            if (filePath == null || filePath.isEmpty()) {
+                filePath = "/index.html";
+            } else if (filePath.endsWith("/")) {
+                filePath = filePath + "index.html";
+            }
+
             do {
                 String mime = session.getHeaders().get("content-type");
                 // httpの仕様より、content-typeでMIME Typeが特定できない場合はURIから
                 // MIME Typeを推測する。
                 if (mime == null || !MIME_TYPES.containsValue(mime)) {
-                    mime = getMimeTypeFromURI(session.getUri());
+                    mime = getMimeTypeFromURI(filePath);
                 }
 
-                // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかの
-                // チェックに回す。
+                // MIMEタイプがファイルで無い場合はdConnectへのリクエストかどうかのチェックに回す。
                 if (mime == null) {
                     break;
                 }
 
+                String rootPath = mConfig.getDocumentRootPath();
+
                 // ドキュメントルートが設定されていない場合には、静的コンテンツへのアクセスはない。
-                if (mConfig.getDocumentRootPath() == null) {
+                if (rootPath == null) {
                     break;
                 }
 
-                // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
-                File file = new File(mConfig.getDocumentRootPath(), session.getUri());
+                if (rootPath.startsWith(DConnectServerConfig.DOC_ASSETS)) {
+                    // assets フォルダのさらに下のフォルダをドキュメントルートにした場合
+                    if (rootPath.length() > DConnectServerConfig.DOC_ASSETS.length()) {
+                        filePath = rootPath.substring(DConnectServerConfig.DOC_ASSETS.length()) + filePath;
+                    }
 
-                if (!file.exists()) {
-                    retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
-                    break;
-                } else if (file.isDirectory()) {
-                    break;
-                } else if (!isReadableFile(file)) {
-                    retValue = newFixedLengthResponse(Status.FORBIDDEN, MIME_PLAINTEXT, Status.FORBIDDEN.getDescription());
-                    break;
-                }
+                    // 先頭に / があるとファイルが開けないので削除
+                    if (filePath.startsWith("/")) {
+                        filePath = filePath.substring(1);
+                    }
 
-                // If-None-Match対応
-                String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length())
-                        .hashCode());
-                if (etag.equals(session.getHeaders().get("if-none-match"))) {
-                    retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
-                } else {
+                    InputStream in = null;
                     try {
-                        retValue = newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), file.length());
-                        retValue.addHeader("Content-Length", "" + file.length());
-                        retValue.addHeader("ETag", etag);
-                    } catch (FileNotFoundException e) {
+                        in = mContext.getAssets().open(filePath);
+
+                        // ETag のためのハッシュ計算
+                        int hashCode = getVersionCode(mContext);
+                        hashCode += getVersionName(mContext).hashCode();
+                        hashCode += filePath.hashCode();
+                        if (session.getQueryParameterString() != null) {
+                            hashCode += session.getQueryParameterString().hashCode();
+                        }
+
+                        // If-None-Match対応
+                        String etag = Integer.toHexString(hashCode);
+                        if (etag.equals(session.getHeaders().get("if-none-match"))) {
+                            retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                        } else {
+                            retValue = newFixedLengthResponse(Status.OK, mime, in, in.available());
+                            retValue.addHeader("Content-Length", "" + in.available());
+                            retValue.addHeader("ETag", etag);
+                        }
+
+                        // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
+                        // 対応が必要な場合はbyteを設定して実装すること。
+                        retValue.addHeader("Accept-Ranges", "none");
+                    } catch (IOException e) {
+                        if (in != null) {
+                            try {
+                                in.close();
+                            } catch (IOException e1) {
+                                // ignore.
+                            }
+                        }
                         retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
                         break;
                     }
+                } else {
+                    // 静的コンテンツへのアクセスの場合はdocument rootからファイルを検索する。
+                    File file = new File(rootPath, filePath);
+
+                    if (!file.exists()) {
+                        retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
+                        break;
+                    } else if (file.isDirectory()) {
+                        break;
+                    } else if (!isReadableFile(file)) {
+                        retValue = newFixedLengthResponse(Status.FORBIDDEN, MIME_PLAINTEXT, Status.FORBIDDEN.getDescription());
+                        break;
+                    }
+
+                    // If-None-Match対応
+                    String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
+                    if (etag.equals(session.getHeaders().get("if-none-match"))) {
+                        retValue = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
+                    } else {
+                        try {
+                            retValue = newFixedLengthResponse(Status.OK, mime, new FileInputStream(file), file.length());
+                            retValue.addHeader("Content-Length", "" + file.length());
+                            retValue.addHeader("ETag", etag);
+                        } catch (FileNotFoundException e) {
+                            retValue = newFixedLengthResponse(Status.NOT_FOUND, MIME_PLAINTEXT, Status.NOT_FOUND.getDescription());
+                            break;
+                        }
+                    }
+
+                    // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
+                    // 対応が必要な場合はbyteを設定して実装すること。
+                    retValue.addHeader("Accept-Ranges", "none");
                 }
-
-                // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
-                // 対応が必要な場合はbyteを設定して実装すること。
-                retValue.addHeader("Accept-Ranges", "none");
-
             } while (false);
             return retValue;
         }
@@ -1556,5 +1628,41 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             src.position(offset).limit(offset + len);
             dest.write(src.slice());
         }
+    }
+
+    /**
+     * バージョンコードを取得する
+     *
+     * @param context コンテキスト
+     * @return VersionCode
+     */
+    public static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionCode;
+    }
+
+    /**
+     * バージョン名を取得する
+     *
+     * @param context コンテキスト
+     * @return VersionName
+     */
+    public static String getVersionName(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        String versionName = "";
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionName = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionName;
     }
 }

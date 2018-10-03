@@ -37,6 +37,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.event.Event;
@@ -142,7 +143,8 @@ public class HostDeviceService extends DConnectMessageService {
             hostService.addProfile(new HostProximityProfile());
         }
 
-        if (checkCameraHardware()) {
+        HostDeviceRecorder dRecorder = mRecorderMgr.getRecorder(null);
+        if (checkCameraHardware() && dRecorder != null) {
             hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
             hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
         }

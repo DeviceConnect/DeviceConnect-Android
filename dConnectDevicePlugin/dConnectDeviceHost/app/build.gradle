@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '28.0.2'
 
     def getVersionName = { ->
         def version
@@ -66,8 +66,8 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-linking')
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
-    compile project(':libstreaming')
+    implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation project(':dconnect-device-plugin-linking')
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
+    implementation project(':libstreaming')
 }

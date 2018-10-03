@@ -86,7 +86,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Method: GET
-     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&amp;scope=xxxx&amp;applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -120,7 +120,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【Intent通信】
      * Method: GET
-     * Path: /authorization/accessToken?clientId=xxxx&scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accessToken?clientId=xxxx&amp;scope=xxxx&amp;applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

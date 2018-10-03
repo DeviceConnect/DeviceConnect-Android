@@ -283,10 +283,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
                     if (BuildConfig.DEBUG) {
                         mLogger.info(String.format("sendMessage: %s extra: %s", key, event.getExtras()));
                     }
-                } else {
-                    if (mWebServerListener != null) {
-                        mWebServerListener.onWebSocketDisconnected(webSocket);
-                    }
                 }
             } catch (JSONException e) {
                 mLogger.warning("JSONException in sendMessage: " + e.toString());
@@ -375,7 +371,6 @@ public class DConnectService extends DConnectMessageService implements WebSocket
 
                 final DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
                 builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
-                        .documentRootPath(getFilesDir().getAbsolutePath())
                         .cachePath(mFileMgr.getBasePath().getAbsolutePath());
 
                 if (!mSettings.allowExternalIP()) {

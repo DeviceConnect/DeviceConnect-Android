@@ -15,8 +15,12 @@ import java.util.List;
  */
 public final class DConnectServerConfig {
 
-    // サーバーの設定値は起動後などに変更されるのを防ぐためBuilderでパラメータを設定させ
-    // setterは本体には置かない。
+    // サーバーの設定値は起動後などに変更されるのを防ぐため Builder でパラメータを設定させsetterは本体には置かない。
+
+    /**
+     * Assets をドキュメントルートにする場合の定義.
+     */
+    public static final String DOC_ASSETS = "file:///android_asset/";
 
     /** 最大コネクション数. */
     private int mMaxConnectionSize;
@@ -181,16 +185,30 @@ public final class DConnectServerConfig {
          * DConnectServerConfigのインスタンスを設定された設定値で生成する.
          * 
          * @return DConnectServerConfigのインスタンス。
+         * @throws IllegalArgumentException Port番号が設定されていない場合
          */
         public DConnectServerConfig build() {
 
-            if (mDocumentRootPath == null) {
-                throw new IllegalStateException("Document root must be not null.");
-            } else if (mPort < 0) {
-                throw new IllegalStateException("Port must be larger than 0.");
+            if (mPort < 0) {
+                throw new IllegalArgumentException("Port must be larger than 0.");
             }
 
             return new DConnectServerConfig(this);
+        }
+
+        @Override
+        public String toString() {
+            return "Builder{" +
+                    "mMaxConnectionSize=" + mMaxConnectionSize +
+                    ", mMaxWebSocketConnectionSize=" + mMaxWebSocketConnectionSize +
+                    ", mDocumentRootPath='" + mDocumentRootPath + '\'' +
+                    ", mCachePath='" + mCachePath + '\'' +
+                    ", mIsSsl=" + mIsSsl +
+                    ", mPort=" + mPort +
+                    ", mHost='" + mHost + '\'' +
+                    ", mIpWhiteList=" + mIpWhiteList +
+                    ", mCharset='" + mCharset + '\'' +
+                    '}';
         }
 
         /**

@@ -6,7 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.hvcc2w.manager.data;
 
+import android.content.Intent;
+import android.util.Log;
+import android.util.SparseArray;
+
+import org.deviceconnect.android.profile.HumanDetectionProfile;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jp.co.omron.hvcw.OkaoResult;
 
@@ -15,6 +23,21 @@ import jp.co.omron.hvcw.OkaoResult;
  * @author NTT DOCOMO, INC.
  */
 public final class HVCCameraInfo {
+    /**
+     * Threshold kind.
+     */
+    public enum ThresholdKind {
+        EYE,
+        NOSE,
+        MOUTH,
+        BLINK,
+        AGE,
+        GENDER,
+        FACEDIRECTION,
+        GAZE,
+        EXPRESSION
+    };
+
     /** ID. */
     private String mId;
     /** Name. */
@@ -39,6 +62,8 @@ public final class HVCCameraInfo {
     private OnFaceRecognizeEventListener mFaceRecogEvent;
     /** Human detect Profile's Options. */
     private List<String> mOptions;
+    /** FaceDetection Thresholds.*/
+    private SparseArray<Double> mThresholds;
 
 
     /**
@@ -111,6 +136,8 @@ public final class HVCCameraInfo {
         this.mFaceEvent = null;
         this.mHandEvent = null;
         this.mFaceRecogEvent = null;
+        this.mThresholds = new SparseArray<>();
+
     }
 
     /**
@@ -304,4 +331,28 @@ public final class HVCCameraInfo {
         mOptions = options;
     }
 
+    /**
+     * Set Face's threshold.
+     * @param request request parameter
+     * @throws NumberFormatException
+     */
+    public void setThresholds(final Intent request) throws NumberFormatException {
+        mThresholds.put(ThresholdKind.EYE.ordinal(), HumanDetectionProfile.getEyeThreshold(request));
+        mThresholds.put(ThresholdKind.NOSE.ordinal(), HumanDetectionProfile.getNoseThreshold(request));
+        mThresholds.put(ThresholdKind.MOUTH.ordinal(), HumanDetectionProfile.getMouthThreshold(request));
+        mThresholds.put(ThresholdKind.BLINK.ordinal(), HumanDetectionProfile.getBlinkThreshold(request));
+        mThresholds.put(ThresholdKind.AGE.ordinal(), HumanDetectionProfile.getAgeThreshold(request));
+        mThresholds.put(ThresholdKind.GENDER.ordinal(), HumanDetectionProfile.getGenderThreshold(request));
+        mThresholds.put(ThresholdKind.FACEDIRECTION.ordinal(), HumanDetectionProfile.getFaceDirectionThreshold(request));
+        mThresholds.put(ThresholdKind.GAZE.ordinal(), HumanDetectionProfile.getGazeThreshold(request));
+        mThresholds.put(ThresholdKind.EXPRESSION.ordinal(), HumanDetectionProfile.getExpressionThreshold(request));
+    }
+
+    /**
+     * Get Face's threshold.
+     * @return Face's threshold.
+     */
+    public SparseArray<Double> getThresholds() {
+        return mThresholds;
+    }
 }

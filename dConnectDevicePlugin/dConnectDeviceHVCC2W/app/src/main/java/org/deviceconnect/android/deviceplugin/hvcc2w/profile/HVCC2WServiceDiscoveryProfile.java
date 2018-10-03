@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * HVCC2W Service Discovery Profile.
@@ -98,7 +99,7 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                         });
                     }
                     try {
-                        countDownLatch.await();
+                        countDownLatch.await(3000, TimeUnit.MILLISECONDS);
 
                         // 消失したデバイスについてはオフライン状態とみなす.
                         for (DConnectService service : disappeared) {

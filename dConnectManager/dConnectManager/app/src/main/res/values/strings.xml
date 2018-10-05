@@ -31,8 +31,7 @@
     <string name="activity_settings_keyword">Keyword</string>
     <string name="activity_settings_ssl">SSL</string>
     <string name="activity_settings_host">Host</string>
-    <string name="activity_settings_host_qr">Display IP address as QR code</string>
-    <string name="activity_settings_default_host_qr">Display the IP address of the smartphone with the QR code. By loading the QR code on the application side, you can acquire the IP address of the smartphone.</string>
+    <string name="activity_settings_host_qr">Show QR code</string>
     <string name="activity_settings_port">Port</string>
     <string name="activity_settings_document_root">Document Root Path</string>
     <string name="activity_settings_default_host">localhost</string>

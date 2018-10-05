@@ -31,10 +31,9 @@
     <string name="activity_settings_keyword">キーワード</string>
     <string name="activity_settings_ssl">SSL</string>
     <string name="activity_settings_host">Host</string>
-    <string name="activity_settings_host_qr">IPアドレスをQRコードで表示</string>
+    <string name="activity_settings_host_qr">QRコードを表示する</string>
     <string name="activity_settings_port">Port</string>
     <string name="activity_settings_default_host">localhost</string>
-    <string name="activity_settings_default_host_qr">スマートフォンのIPアドレスをQRコードで表示します。QRコードをアプリ側で読み込むことによりスマートフォンのIPアドレスを取得することができます。</string>
     <string name="activity_settings_document_root">ドキュメントルートパス</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>

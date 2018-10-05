@@ -9,12 +9,15 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,7 +33,10 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.DConnectApplication;
@@ -110,7 +116,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private CheckBoxPreference mObserverPreferences;
     /** Webサーバのポート設定テキストエディッタ. */
     private EditTextPreference mWebPortPreferences;
-
+    /**
+     * ネットワークの接続状態の変化を受け取るレシーバー.
+     */
+    private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            showIPAddress();
+        }
+    };
     /**
      * 一時中断用ハンドラー.
      * <p>
@@ -213,10 +227,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_dconn_ssl));
 
         // ホスト名設定
-        EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
+        PreferenceScreen editHostPreferences = (PreferenceScreen) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_host));
-        editHostPreferences.setSummary(editHostPreferences.getText());
-
+        editHostPreferences.setSummary(editHostPreferences.getSummary());
         // ポート番号設定
         mEditPortPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_port));
@@ -262,15 +275,17 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_web_server_port));
         mWebPortPreferences.setSummary(mWebPortPreferences.getText());
 
-        editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
         editWebHostPreferences.setEnabled(false);
 
         setUIEnabled(power);
 
         mPauseHandler = new PauseHandlerImpl();
-    }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        getActivity().registerReceiver(mWiFiReceiver, filter);
 
+    }
     @Override
     public void onPause() {
         mPauseHandler.pause();
@@ -323,12 +338,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         mPauseHandler.setFragment(this);
         mPauseHandler.resume();
+
     }
 
     @Override
     public void onDestroy() {
         // メモリリークしないようにフラグメントを削除しておく
         mPauseHandler.setFragment(null);
+        getActivity().unregisterReceiver(mWiFiReceiver);
         super.onDestroy();
     }
 
@@ -798,10 +815,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         String ipAddress = DConnectUtil.getIPAddress(getActivity());
 
         // Set Host IP Address.
-        EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
+        PreferenceScreen editHostPreferences = (PreferenceScreen) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_host));
         editHostPreferences.setSummary(ipAddress);
-        
+        if (getString(R.string.no_ip).equals(ipAddress)) {
+            editHostPreferences.setEnabled(false);
+        } else {
+            editHostPreferences.setEnabled(true);
+        }
         // Set Host IP Address.
         EditTextPreference webHostPref = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));
@@ -890,7 +911,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         // 設定変更イベントの受信開始
         mCheckBoxSslPreferences.setOnPreferenceChangeListener(this);
-        EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
+        PreferenceScreen editHostPreferences = (PreferenceScreen) getPreferenceScreen()
             .findPreference(getString(R.string.key_settings_dconn_host));
         editHostPreferences.setOnPreferenceChangeListener(this);
         EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()

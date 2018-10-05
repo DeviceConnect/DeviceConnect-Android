@@ -6,10 +6,14 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.view.View;
+import android.widget.Button;
 
 import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 
 /**
  * Device Connect Manager設定管理用Activity.
@@ -41,4 +45,10 @@ public class SettingActivity extends BaseSettingActivity implements AlertDialogF
                 .findFragmentById(R.id.activity_settings_category_fragment);
         f.onNegativeButton(tag);
     }
+
+    public void onButtonClick(View v) {
+        Intent qr = new Intent(this, QRCodeActivity.class);
+        startActivity(qr);
+    }
+
 }

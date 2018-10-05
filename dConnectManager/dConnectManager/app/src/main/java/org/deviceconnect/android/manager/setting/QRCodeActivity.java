@@ -1,7 +1,9 @@
 package org.deviceconnect.android.manager.setting;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -31,7 +33,15 @@ import java.util.Enumeration;
 public class QRCodeActivity extends AppCompatActivity {
     /** TAG名. */
     private static final String TAG = "QRCodeActivity";
-
+    /**
+     * ネットワークの接続状態の変化を受け取るレシーバー.
+     */
+    private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            setQRCode();
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,9 +57,17 @@ public class QRCodeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(mWiFiReceiver, filter);
         setQRCode();
     }
 
+    @Override
+    protected void onPause() {
+        unregisterReceiver(mWiFiReceiver);
+        super.onPause();
+    }
     /**
      * IPアドレスをQRコード化して画像として表示する。
      */

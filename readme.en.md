@@ -26,6 +26,7 @@ It assumes that the following commands are installed here.
 * Android SDK
 
 ## Build Device Connect Manager
+### Mac/Linux
 Download DeviceConnect-Android source code.
 
 ```
@@ -34,13 +35,34 @@ $ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 
 Before building, make sure the path to AndroidSDK is set to the ANDROID_HOME environment variable.
 
-* Mac/Linux
-
 ```
 $ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
 ```
 
-* Windows
+For &lt;path&gt;, please specify the path to Android SDK.
+<br><br>
+Build Device Connect Manager.
+
+```
+$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
+$ ./gradlew assembleDebug
+```
+
+Install Device Connect Manager.
+
+```
+$ adb install app/build/outputs/apk/app-debug.apk
+```
+
+
+### Windows
+Download DeviceConnect-Android source code.
+
+```
+> git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
+```
+
+Before building, make sure the path to AndroidSDK is set to the ANDROID_HOME environment variable.
 
 ```
 > setx ANDROID_HOME <path>
@@ -50,14 +72,6 @@ For &lt;path&gt;, please specify the path to Android SDK.
 <br><br>
 Build Device Connect Manager.
 
-* Mac/Linux
-
-```
-$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
-$ ./gradlew assembleDebug
-```
-
-* Windows
 
 ```
 > cd DeviceConnect-Android/dConnectManager/dConnectManager
@@ -68,7 +82,7 @@ $ ./gradlew assembleDebug
 Install Device Connect Manager.
 
 ```
-$ adb install app/build/outputs/apk/app-debug.apk
+> adb install app/build/outputs/apk/app-debug.apk
 ```
 
 ## Starting Device Connect Manager
@@ -171,15 +185,14 @@ If you want to develop a device plug-ins using the Device Connect Manager, pleas
 * [Device Plug-in Development Manual](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio-200)
 
 # Generate a Javadoc of Device Connect SDK
-
-* Mac/Linux
+## Mac/Linux
 
 ```
 $ cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
 $ ./gradlew generateJavadocForSDK
 ```
 
-* Windows
+## Windows
 
 ```
 > cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
@@ -188,20 +201,21 @@ $ ./gradlew generateJavadocForSDK
 
 `DeviceConnectSDK-Javadoc` is created in the directory where gradle is executed and Javadoc of Device Connect SDK is output.
 
-* Mac/Linux
+
+# Generate a Javadoc of Device Connect Plug-in SDK
+# Mac/Linux
 
 ```
 $ cd DeviceConnect-Android/dConnectDevicePlugin/dConnectDevicePluginSDK
 $ ./gradlew generateJavadocForPlugin
 ```
 
-* Windows
+# Windows
 
 ```
 > cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
 > gradlew.bat generateJavadocForPlugin
 ```
-
 
 `DevicePluginSDK-Javadoc` is created in the directory where gradle was executed and Javadoc of Device Plugin SDK is output.
 

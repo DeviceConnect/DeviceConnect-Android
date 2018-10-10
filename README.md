@@ -18,32 +18,48 @@ Device Connect Managerをビルドして、簡単に動作させるまでを解�
 
 ここでは、以下のコマンドがインストールされていることを前提としています。
 
-* cURL
-* gradle
+* curl
+* git
 * adb
 * Android SDK
 
 ## Device Connect Managerのビルド
-DeviceConnect-Androidのソースコードをダウンロードし、解凍します。
+DeviceConnect-Androidのソースコードをダウンロードしてください。
 
 ```
-$ curl -LkO https://github.com/DeviceConnect/DeviceConnect-Android/archive/master.zip
-$ unzip master.zip
+$ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
 ビルド前にANDROID_HOMEの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
 
+* Mac/Linux
+
 ```
 $ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
+```
+
+* Windows
+
+```
+> setx ANDROID_HOME <path>
 ```
 
 &lt;path&gt;には、AndroidSDKへのパスを指定してください。
 <br><br>
 Device Connect Managerをビルドしてapkを作成します。
 
+* Mac/Linux
+
 ```
-$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
+$ cd DeviceConnect-Android/dConnectManager/dConnectManager
 $ ./gradlew assembleDebug
+```
+
+* Windows
+
+```
+> cd DeviceConnect-Android/dConnectManager/dConnectManager
+> gradlew.bat assembleDebug
 ```
 
 Device Connect Managerを端末にインストールします。
@@ -150,17 +166,39 @@ Device Connect Managerに対応したデバイスプラグインを開発した�
 
 # Device Connect SDKのJavadoc出力
 
+* Mac/Linux
+
 ```
-$ cd DeviceConnect-Android-master/dConnectSDK/dConnectSDKForAndroid
+$ cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
 $ ./gradlew generateJavadocForSDK
 ```
 
-gradleを実行したディレクトリに`DeviceConnectSDK-Javadoc`が作成され、Device Connect SDKのJavadocが出力されます。
+* Windows
 
 ```
-$ cd DeviceConnect-Android-master/dConnectDevicePlugin/dConnectDevicePluginSDK
+> cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
+> gradlew.bat generateJavadocForSDK
+```
+
+
+
+gradleを実行したディレクトリに`DeviceConnectSDK-Javadoc`が作成され、Device Connect SDKのJavadocが出力されます。
+
+* Mac/Linux
+
+```
+$ cd DeviceConnect-Android/dConnectDevicePlugin/dConnectDevicePluginSDK
 $ ./gradlew generateJavadocForPlugin
 ```
+
+* Windows
+
+```
+> cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
+> gradlew.bat generateJavadocForPlugin
+```
+
+
 
 gradleを実行したディレクトリに`DevicePluginSDK-Javadoc`が作成され、Device Plugin SDKのJavadocが出力されます。
 

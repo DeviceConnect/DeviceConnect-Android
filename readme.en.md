@@ -18,28 +18,52 @@ Click [here](https://github.com/DeviceConnect/DeviceConnect-Docs/wiki)
 # Quick Start
 This tutorial explain how to build and run the Device Connect Manager.
 
+It assumes that the following commands are installed here.
+
+* cURL
+* git
+* adb
+* Android SDK
+
 ## Build Device Connect Manager
 Download DeviceConnect-Android source code.
 
 ```
-$ curl -LkO https://github.com/DeviceConnect/DeviceConnect-Android/archive/master.zip
-$ unzip master.zip
+$ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
 Before building, make sure the path to AndroidSDK is set to the ANDROID_HOME environment variable.
 
+* Mac/Linux
+
 ```
 $ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
+```
+
+* Windows
+
+```
+> setx ANDROID_HOME <path>
 ```
 
 For &lt;path&gt;, please specify the path to Android SDK.
 <br><br>
 Build Device Connect Manager.
 
+* Mac/Linux
+
 ```
 $ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
 $ ./gradlew assembleDebug
 ```
+
+* Windows
+
+```
+> cd DeviceConnect-Android/dConnectManager/dConnectManager
+> gradlew.bat assembleDebug
+```
+
 
 Install Device Connect Manager.
 
@@ -148,17 +172,36 @@ If you want to develop a device plug-ins using the Device Connect Manager, pleas
 
 # Generate a Javadoc of Device Connect SDK
 
+* Mac/Linux
+
 ```
-$ cd DeviceConnect-Android-master/dConnectSDK/dConnectSDKForAndroid
+$ cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
 $ ./gradlew generateJavadocForSDK
+```
+
+* Windows
+
+```
+> cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
+> gradlew.bat generateJavadocForSDK
 ```
 
 `DeviceConnectSDK-Javadoc` is created in the directory where gradle is executed and Javadoc of Device Connect SDK is output.
 
+* Mac/Linux
+
 ```
-$ cd DeviceConnect-Android-master/dConnectDevicePlugin/dConnectDevicePluginSDK
+$ cd DeviceConnect-Android/dConnectDevicePlugin/dConnectDevicePluginSDK
 $ ./gradlew generateJavadocForPlugin
 ```
+
+* Windows
+
+```
+> cd DeviceConnect-Android/dConnectSDK/dConnectSDKForAndroid
+> gradlew.bat generateJavadocForPlugin
+```
+
 
 `DevicePluginSDK-Javadoc` is created in the directory where gradle was executed and Javadoc of Device Plugin SDK is output.
 

@@ -35,7 +35,7 @@ Device Connect Managerをビルドしてapkを作成します。
 
 ```
 $ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
-$ gradle assembleDebug
+$ ./gradlew assembleDebug
 ```
 
 Device Connect Managerを端末にインストールします。

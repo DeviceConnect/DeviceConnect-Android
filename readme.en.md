@@ -30,7 +30,7 @@ Build Device Connect Manager.
 
 ```
 $ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
-$ gradle assembleDebug
+$ ./gradlew assembleDebug
 ```
 
 Install Device Connect Manager.

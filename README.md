@@ -1,5 +1,5 @@
-Click [here](readme.en.md) for description of English. 
- 
+Click [here](readme.en.md) for description of English.
+
 # DeviceConnect-Android について
 DeviceConnect-AndroidはAndroid版のDevice Connectシステムのプラットフォームになります。
 
@@ -94,7 +94,6 @@ curl  -X GET \
 |:-----------|:---------|
 |[dConnectDeviceAllJoyn](dConnectDevicePlugin/dConnectDeviceAllJoyn)|AllJoynのデバイスプラグイン。|
 |[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|AndroidWearのデバイスプラグイン。|
-|[dConnectDeviceAWSIoT](dConnectDevicePlugin/dConnectDeviceAWSIot)|AWSIoTのプラグイン。|
 |[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Chromecastのデバイスプラグイン。 |
 |[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|FaBoのデバイスプラグイン。|
 |[dConnectDeviceFPLUG](dConnectDevicePlugin/dConnectDeviceFPLUG)|F-PLUGのデバイスプラグイン。|
@@ -112,12 +111,9 @@ curl  -X GET \
 |[dConnectDevicePebble](dConnectDevicePlugin/dConnectDevicePebble)|Pebbleのデバイスプラグイン。|
 |[dConnectDeviceSonyCamera](dConnectDevicePlugin/dConnectDeviceSonyCamera)|QX10などのSonyCameraのデバイスプラグイン。|
 |[dConnectDeviceSonySW](dConnectDevicePlugin/dConnectDeviceSonySW)|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
-|[dConnectDeviceSlackMessageHook](dConnectDevicePlugin/dConnectDeviceSlackMessageHook)|Slackのプラグイン。|
-|[dConnectDeviceSmartMeter](dConnectDevicePlugin/dConnectDeviceSmartMeter)|SmartMeterのデバイスプラグイン。|
 |[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Spheroのデバイスプラグイン。|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
-|[dConnectDeviceWebRTC](dConnectDevicePlugin/dConnectDeviceWebRTC)|WebRTCのデバイスプラグイン。|
 |[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|DeviceConnectのテスト用のデバイスプラグイン。|
 |[dConnectDevicePluginSDK](dConnectDevicePlugin/dConnectDevicePluginSDK)|DevicePluginを作成するためのSDK。<br>dConnectSDKForAndroidが必要。|
 
@@ -147,15 +143,15 @@ Device Connect Managerに対応したデバイスプラグインを開発した�
 # Device Connect SDKのJavadoc出力
 
 ```
-$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
-$ gradle generateJavadocForSDK
+$ cd DeviceConnect-Android-master/dConnectSDK/dConnectSDKForAndroid
+$ ./gradlew generateJavadocForSDK
 ```
 
 gradleを実行したディレクトリに`DeviceConnectSDK-Javadoc`が作成され、Device Connect SDKのJavadocが出力されます。
 
 ```
-$ cd DeviceConnect-Android-master/dConnectManager/dConnectManager
-$ gradle generateJavadocForPlugin
+$ cd DeviceConnect-Android-master/dConnectDevicePlugin/dConnectDevicePluginSDK
+$ ./gradlew generateJavadocForPlugin
 ```
 
 gradleを実行したディレクトリに`DevicePluginSDK-Javadoc`が作成され、Device Plugin SDKのJavadocが出力されます。
@@ -186,6 +182,3 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
-* [WebRTC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
-* [AWSIoT](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AWSIoT-Build)
-* [SlackMessageHook](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SlackBot-Build)

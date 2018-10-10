@@ -26,6 +26,14 @@ $ curl -LkO https://github.com/DeviceConnect/DeviceConnect-Android/archive/maste
 $ unzip master.zip
 ```
 
+Before building, make sure the path to AndroidSDK is set to the ANDROID_HOME environment variable.
+
+```
+$ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
+```
+
+For <path>, please specify the path to Android SDK.
+
 Build Device Connect Manager.
 
 ```

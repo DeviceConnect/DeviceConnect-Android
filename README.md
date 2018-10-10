@@ -31,6 +31,13 @@ $ curl -LkO https://github.com/DeviceConnect/DeviceConnect-Android/archive/maste
 $ unzip master.zip
 ```
 
+ビルド前にANDROID_HOMEの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
+
+```
+$ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
+```
+
+<path> には、AndroidSDKへのパスを指定してください。
 Device Connect Managerをビルドしてapkを作成します。
 
 ```

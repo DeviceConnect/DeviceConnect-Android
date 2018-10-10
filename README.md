@@ -37,7 +37,8 @@ $ unzip master.zip
 $ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
 ```
 
-<path> には、AndroidSDKへのパスを指定してください。
+&lt;path&gt;には、AndroidSDKへのパスを指定してください。
+<br><br>
 Device Connect Managerをビルドしてapkを作成します。
 
 ```

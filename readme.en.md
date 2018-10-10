@@ -32,8 +32,8 @@ Before building, make sure the path to AndroidSDK is set to the ANDROID_HOME env
 $ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
 ```
 
-For <path>, please specify the path to Android SDK.
-
+For &lt;path&gt;, please specify the path to Android SDK.
+<br><br>
 Build Device Connect Manager.
 
 ```

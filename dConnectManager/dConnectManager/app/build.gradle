@@ -81,12 +81,21 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation('com.android.support:appcompat-v7:27.1.0') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
     implementation project(':dconnect-server-nano-httpd')
-    androidTestImplementation 'com.android.support:support-annotations:27.1.1'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'com.android.support:support-annotations:27.1.0'
+    androidTestImplementation('com.android.support.test:runner:1.0.2') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
+    androidTestImplementation('com.android.support.test:rules:1.0.2') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
     implementation project(':dconnect-device-plugin-host')
     compileOnly 'com.google.android.things:androidthings:1.0'

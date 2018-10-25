@@ -136,6 +136,11 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         }
     }
 
+    @Override
+    public void eraseSession(Session session) {
+
+    }
+
     private Session startScreenCast(final Socket clientSocket) throws IOException {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();

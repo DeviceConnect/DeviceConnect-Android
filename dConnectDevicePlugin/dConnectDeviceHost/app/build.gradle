@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     def getVersionName = { ->
         def version
@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionName getVersionName()
     }
 
@@ -63,4 +63,11 @@ dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
     implementation project(':libstreaming')
+    implementation('com.serenegiant:common:2.12.5') {
+        exclude module: 'support-v4'
+        exclude module: 'recyclerview-v7'
+        exclude module: 'support-fragment'
+        exclude module: 'support-core-ui'
+        exclude module: 'appcompat-v7'
+    }
 }

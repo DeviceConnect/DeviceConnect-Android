@@ -214,7 +214,7 @@ public class HostDeviceRecorderManager {
         }
     }
 
-    private boolean isSupportedMediaProjection() {
+    public static boolean isSupportedMediaProjection() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 

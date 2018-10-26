@@ -144,7 +144,7 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         HostDeviceRecorder dRecorder = mRecorderMgr.getRecorder(null);
-        if (checkCameraHardware() && dRecorder != null) {
+        if (checkCameraHardware() && dRecorder != null || HostDeviceRecorderManager.isSupportedMediaProjection()) {
             hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
             hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
         }

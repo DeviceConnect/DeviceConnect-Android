@@ -7,12 +7,15 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 
 /**
  * Permission Receiver Activity.
@@ -30,7 +33,24 @@ public class PermissionReceiverActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        // ステータスバーを消す
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        );
+
         mManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+    }
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Hide UI first
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
     }
 
     @Override

@@ -94,6 +94,16 @@ public class DConnectWebService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder builder = new Notification.Builder(this, getString(R.string.web_service_on_channel_id))
                     .setContentTitle("").setContentText("");
+            String channelId = getString(R.string.dconnect_service_on_channel_id);
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    getString(R.string.dconnect_service_on_channel_title),
+                    NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription(getString(R.string.dconnect_service_on_channel_desc));
+            NotificationManager mNotification = (NotificationManager) getApplicationContext()
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotification.createNotificationChannel(channel);
+            builder.setChannelId(channelId);
             startForeground(ONGOING_NOTIFICATION_ID, builder.build());
             stopForeground(true);
             stopSelf();

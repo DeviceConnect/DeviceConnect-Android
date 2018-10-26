@@ -121,6 +121,11 @@ class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegat
         return session;
     }
 
+    @Override
+    public void eraseSession(Session session) {
+
+    }
+
     private boolean showCameraOverlay() {
         if (!mCameraOverlay.isShow()) {
             if (!mCameraOverlay.setPreviewCallback(this)) {

@@ -301,7 +301,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private WifiManager getWifiManager() {
-        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**

@@ -7,12 +7,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 26
     buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion 26
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

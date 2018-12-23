@@ -7,11 +7,8 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
@@ -19,11 +16,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCamera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCastRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
@@ -60,42 +55,20 @@ public class HostDeviceRecorderManager {
     public void createRecorders(final FileManager fileMgr) {
         CameraManager cameraMgr = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
 
-        List<HostDeviceCamera2Recorder> photoRecorders = new ArrayList<>();
+        List<HostDeviceCamera2Recorder> cameraRecorders = new ArrayList<>();
         try {
             for (String cameraId : cameraMgr.getCameraIdList()) {
-                photoRecorders.add(new HostDeviceCamera2Recorder(mHostDeviceService, cameraId, fileMgr));
+                cameraRecorders.add(new HostDeviceCamera2Recorder(mHostDeviceService, cameraId, fileMgr));
             }
         } catch (CameraAccessException e) {
             mLogger.warning("No camera feature is available. Failed to get camera id list: " + e.getMessage());
         }
 
-        List<HostDeviceRecorder> videoRecorders = new ArrayList<>();
-        for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
-            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-            Camera.getCameraInfo(cameraId, cameraInfo);
-            HostDeviceVideoRecorder.CameraFacing facing;
-            switch (cameraInfo.facing) {
-                case Camera.CameraInfo.CAMERA_FACING_BACK:
-                    facing = HostDeviceVideoRecorder.CameraFacing.BACK;
-                    break;
-                case Camera.CameraInfo.CAMERA_FACING_FRONT:
-                    facing = HostDeviceVideoRecorder.CameraFacing.FRONT;
-                    break;
-                default:
-                    facing = HostDeviceVideoRecorder.CameraFacing.UNKNOWN;
-                    break;
-            }
-
-            videoRecorders.add(new HostDeviceVideoRecorder(mHostDeviceService, cameraId, facing));
+        if (!cameraRecorders.isEmpty()) {
+            mDefaultRecorder = cameraRecorders.get(0);
         }
 
-        if (!photoRecorders.isEmpty()) {
-            mDefaultRecorder = photoRecorders.get(0);
-        }
-
-        List<HostDeviceRecorder> recorders = new ArrayList<>();
-        recorders.addAll(photoRecorders);
-        recorders.addAll(videoRecorders);
+        List<HostDeviceRecorder> recorders = new ArrayList<>(cameraRecorders);
         recorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
         if (isSupportedMediaProjection()) {
             recorders.add(new HostDeviceScreenCastRecorder(mHostDeviceService, fileMgr));
@@ -157,7 +130,7 @@ public class HostDeviceRecorderManager {
 
     public PreviewServerProvider getPreviewServerProvider(final String id) {
         if (id == null) {
-            return (AbstractPreviewServerProvider) mDefaultRecorder;
+            return mDefaultRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof PreviewServerProvider) {
@@ -168,12 +141,9 @@ public class HostDeviceRecorderManager {
     }
 
     public void start() {
-        IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
-        getContext().registerReceiver(mRecorderStateReceiver, filter);
     }
 
     public void stop() {
-        getContext().unregisterReceiver(mRecorderStateReceiver);
     }
 
     public void stopWebServer(final String id) {
@@ -181,7 +151,7 @@ public class HostDeviceRecorderManager {
             return;
         }
         HostDeviceRecorder recorder = getRecorder(id);
-        if (recorder != null && recorder instanceof PreviewServerProvider) {
+        if (recorder instanceof PreviewServerProvider) {
             ((PreviewServerProvider) recorder).stopWebServers();
         }
     }
@@ -230,43 +200,4 @@ public class HostDeviceRecorderManager {
         return mHostDeviceService;
     }
 
-    private HostDeviceVideoRecorder getVideoRecorder(final String id) {
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDeviceVideoRecorder) {
-                return (HostDeviceVideoRecorder) recorder;
-            }
-        }
-        return null;
-    }
-
-    private final BroadcastReceiver mRecorderStateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            if (VideoConst.SEND_VIDEO_TO_HOSTDP.equals(intent.getAction())) {
-                String target = intent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
-                HostDeviceRecorder.RecorderState state =
-                        (HostDeviceRecorder.RecorderState) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
-                String serviceId = intent.getStringExtra(VideoConst.EXTRA_SERVICE_ID);
-                String fileName = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
-                String uri = "";
-                if (fileName != null) {
-                    FileManager mgr = mHostDeviceService.getFileManager();
-                    uri = mgr.getContentUri() + "/" + fileName;
-                    fileName = "/" + fileName;
-                } else {
-                    fileName = "";
-                }
-                if (target != null && state != null) {
-                    HostDeviceStreamRecorder streamer = getStreamRecorder(target);
-                    if (state == HostDeviceRecorder.RecorderState.INACTTIVE) {
-                        streamer.clean();
-                    }
-                    sendEventForRecordingChange(serviceId, state, uri,
-                            fileName, streamer.getMimeType(), null);
-                }
-
-
-            }
-        }
-    };
 }

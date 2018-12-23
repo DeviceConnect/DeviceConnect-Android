@@ -19,9 +19,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.MediaCodec;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -39,17 +37,14 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOError;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -767,6 +762,8 @@ public class HostDeviceCamera2Recorder extends AbstractPreviewServerProvider imp
         return false;
     }
 
+    private SurfaceMuxer mSurfaceMuxer;
+
     @Override
     public void startRecording(final @NonNull String serviceId,
                                final @NonNull RecordingListener listener) {
@@ -776,15 +773,16 @@ public class HostDeviceCamera2Recorder extends AbstractPreviewServerProvider imp
             public void onOpen(final @NonNull CameraDevice camera) {
                 try {
                     synchronized (HostDeviceCamera2Recorder.this) {
-                        if (mMediaRecorder != null) {
+                        if (mSurfaceMuxer != null) {
                             listener.onFailed(HostDeviceCamera2Recorder.this, "Video recording has started already.");
                             return;
                         }
-                        mSurface = MediaCodec.createPersistentInputSurface();
-                        mMediaRecorder = createMediaRecorder(mOptions);
-                        mMediaRecorder.prepare();
-                        mMediaRecorder.start();
-                        createVideoCaptureSession(camera, mMediaRecorder, listener);
+
+                        mVideoFile = new File(mFileManager.getBasePath(), generateVideoFileName());
+                        Size videoSize = mOptions.getPictureSize();
+                        mSurfaceMuxer = new SurfaceMuxer(mVideoFile.getAbsolutePath(), videoSize.getWidth(), videoSize.getHeight());
+                        mSurfaceMuxer.start();
+                        createVideoCaptureSession(camera, mSurfaceMuxer, listener);
                     }
                 } catch (IOException e) {
                     if (DEBUG) {
@@ -809,11 +807,11 @@ public class HostDeviceCamera2Recorder extends AbstractPreviewServerProvider imp
     private CameraCaptureSession mVideoCaptureSession;
 
     private void createVideoCaptureSession(final @NonNull CameraDevice camera,
-                                           final @NonNull MediaRecorder mediaRecorder,
+                                           final @NonNull SurfaceMuxer muxer,
                                            final @NonNull RecordingListener listener) throws CameraAccessException {
         final HostDeviceStreamRecorder recorder = this;
         List<Surface> outputs = new ArrayList<>();
-        outputs.add(mSurface);
+        outputs.add(mSurfaceMuxer.getInputSurface());
         camera.createCaptureSession(outputs, new CameraCaptureSession.StateCallback() {
             @Override
             public void onConfigured(final @NonNull CameraCaptureSession session) {
@@ -824,7 +822,7 @@ public class HostDeviceCamera2Recorder extends AbstractPreviewServerProvider imp
 
                 try {
                     CaptureRequest.Builder builder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-                    builder.addTarget(mSurface);
+                    builder.addTarget(muxer.getInputSurface());
                     builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
                     session.setRepeatingRequest(builder.build(), new CameraCaptureSession.CaptureCallback() {
                         @Override
@@ -866,34 +864,7 @@ public class HostDeviceCamera2Recorder extends AbstractPreviewServerProvider imp
             }
         }, mHandler);
     }
-
-    private MediaRecorder mMediaRecorder;
-    private Surface mSurface;
     private File mVideoFile;
-
-    private MediaRecorder createMediaRecorder(final Options options) {
-        MediaRecorder mediaRecorder = new MediaRecorder();
-
-        // Inputs
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mediaRecorder.setInputSurface(mSurface);
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-
-        // Output
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mVideoFile = new File(mFileManager.getBasePath(), generateVideoFileName());
-        mediaRecorder.setOutputFile(mVideoFile.toString());
-
-        // Video Options
-        mediaRecorder.setVideoEncodingBitRate(10000000); // TODO 変更可能にする
-        mediaRecorder.setVideoFrameRate(30); // TODO 変更可能にする
-        Size videoSize = options.getPictureSize();
-        mediaRecorder.setVideoSize(videoSize.getWidth(), videoSize.getHeight());
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-
-        return mediaRecorder;
-    }
 
     private String generateVideoFileName() {
         return "video-" + DATE_FORMAT.format(new Date()) + ".mp4";
@@ -903,13 +874,12 @@ public class HostDeviceCamera2Recorder extends AbstractPreviewServerProvider imp
     public void stopRecording(final @NonNull StoppingListener listener) {
         File videoFile;
         synchronized (this) {
-            if (mMediaRecorder != null) {
+            if (mSurfaceMuxer != null) {
                 mRecorderState = RecorderState.INACTTIVE;
 
-                mMediaRecorder.stop();
-                mMediaRecorder.reset();
-                mMediaRecorder.release();
-                mMediaRecorder = null;
+                mSurfaceMuxer.stop();
+                mSurfaceMuxer.release();
+                mSurfaceMuxer = null;
             }
             try {
                 if (mVideoCaptureSession != null) {

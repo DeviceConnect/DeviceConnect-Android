@@ -12,13 +12,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Camera;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCamera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCastRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
@@ -29,6 +32,7 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Host Device Recorder Manager.
@@ -38,51 +42,55 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class HostDeviceRecorderManager {
 
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
+
     /** List of HostDeviceRecorder. */
     private HostDeviceRecorder[] mRecorders;
 
     /** HostDevicePhotoRecorder. */
-    private HostDeviceRecorder mDefaultPhotoRecorder;
-
-    /** HostDeviceAudioRecorder. */
-    private HostDeviceRecorder mDefaultVideoRecorder;
+    private HostDeviceCamera2Recorder mDefaultRecorder;
 
     /** コンテキスト. */
     private HostDeviceService mHostDeviceService;
 
-    public HostDeviceRecorderManager(final HostDeviceService service) {
+    public HostDeviceRecorderManager(final @NonNull HostDeviceService service) {
         mHostDeviceService = service;
     }
 
     public void createRecorders(final FileManager fileMgr) {
-        List<HostDeviceCameraRecorder> photoRecorders = new ArrayList<>();
-        List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<>();
+        CameraManager cameraMgr = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
+
+        List<HostDeviceCamera2Recorder> photoRecorders = new ArrayList<>();
+        try {
+            for (String cameraId : cameraMgr.getCameraIdList()) {
+                photoRecorders.add(new HostDeviceCamera2Recorder(mHostDeviceService, cameraId, fileMgr));
+            }
+        } catch (CameraAccessException e) {
+            mLogger.warning("No camera feature is available. Failed to get camera id list: " + e.getMessage());
+        }
+
+        List<HostDeviceRecorder> videoRecorders = new ArrayList<>();
         for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
             Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, cameraInfo);
-            HostDeviceCameraRecorder.CameraFacing facing;
+            HostDeviceVideoRecorder.CameraFacing facing;
             switch (cameraInfo.facing) {
                 case Camera.CameraInfo.CAMERA_FACING_BACK:
-                    facing = HostDeviceCameraRecorder.CameraFacing.BACK;
+                    facing = HostDeviceVideoRecorder.CameraFacing.BACK;
                     break;
                 case Camera.CameraInfo.CAMERA_FACING_FRONT:
-                    facing = HostDeviceCameraRecorder.CameraFacing.FRONT;
+                    facing = HostDeviceVideoRecorder.CameraFacing.FRONT;
                     break;
                 default:
-                    facing = HostDeviceCameraRecorder.CameraFacing.UNKNOWN;
+                    facing = HostDeviceVideoRecorder.CameraFacing.UNKNOWN;
                     break;
             }
 
-            photoRecorders.add(new HostDeviceCameraRecorder(mHostDeviceService, cameraId, facing, fileMgr));
             videoRecorders.add(new HostDeviceVideoRecorder(mHostDeviceService, cameraId, facing));
         }
 
         if (!photoRecorders.isEmpty()) {
-            mDefaultPhotoRecorder = photoRecorders.get(0);
-        }
-
-        if (!videoRecorders.isEmpty()) {
-            mDefaultVideoRecorder = videoRecorders.get(0);
+            mDefaultRecorder = photoRecorders.get(0);
         }
 
         List<HostDeviceRecorder> recorders = new ArrayList<>();
@@ -113,7 +121,7 @@ public class HostDeviceRecorderManager {
 
     public HostDeviceRecorder getRecorder(final String id) {
         if (id == null) {
-            return mDefaultPhotoRecorder;
+            return mDefaultRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId())) {
@@ -125,7 +133,7 @@ public class HostDeviceRecorderManager {
 
     public HostDevicePhotoRecorder getCameraRecorder(final String id) {
         if (id == null) {
-            return (HostDeviceCameraRecorder) mDefaultPhotoRecorder;
+            return mDefaultRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
@@ -137,7 +145,7 @@ public class HostDeviceRecorderManager {
 
     public HostDeviceStreamRecorder getStreamRecorder(final String id) {
         if (id == null) {
-            return (HostDeviceStreamRecorder) mDefaultVideoRecorder;
+            return mDefaultRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
@@ -149,7 +157,7 @@ public class HostDeviceRecorderManager {
 
     public PreviewServerProvider getPreviewServerProvider(final String id) {
         if (id == null) {
-            return (AbstractPreviewServerProvider) mDefaultPhotoRecorder;
+            return (AbstractPreviewServerProvider) mDefaultRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof PreviewServerProvider) {

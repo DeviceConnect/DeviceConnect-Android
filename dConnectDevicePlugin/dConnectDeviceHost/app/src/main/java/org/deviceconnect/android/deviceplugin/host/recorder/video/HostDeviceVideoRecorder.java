@@ -21,7 +21,6 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ import java.util.Locale;
 public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceStreamRecorder {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
     private static final String TAG = "HOST";
 
     private static final String ID_BASE = "video";
@@ -68,7 +68,7 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
 
     private Context mContext;
     private int mCameraId;
-    private HostDeviceCameraRecorder.CameraFacing mFacing;
+    private CameraFacing mFacing;
 
     private boolean mIsInitialized;
 
@@ -79,7 +79,7 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
     private double mMaxFrameRate;
 
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
-                                   final HostDeviceCameraRecorder.CameraFacing facing) {
+                                   final CameraFacing facing) {
         mContext = context;
         mCameraId = cameraId;
         mFacing = facing;
@@ -316,5 +316,21 @@ public class HostDeviceVideoRecorder implements HostDeviceRecorder, HostDeviceSt
             return defaultSize;
         }
         return mSupportedPictureSizes.get(0);
+    }
+
+    public enum CameraFacing {
+        BACK("back"),
+        FRONT("front"),
+        UNKNOWN("unknown");
+
+        private final String mName;
+
+        CameraFacing(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
     }
 }

@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Size;
 
 import java.util.List;
 
@@ -68,6 +69,10 @@ public interface HostDeviceRecorder {
 
         private final int mWidth;
         private final int mHeight;
+
+        public PictureSize(final Size size) {
+            this(size.getWidth(), size.getHeight());
+        }
 
         public PictureSize(final int w, final int h) {
             mWidth = w;

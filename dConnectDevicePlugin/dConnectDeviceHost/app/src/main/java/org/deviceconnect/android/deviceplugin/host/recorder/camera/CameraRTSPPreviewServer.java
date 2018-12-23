@@ -25,7 +25,7 @@ import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 
 
-class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegate {
+class CameraRTSPPreviewServer implements CameraPreviewServer, RtspServer.Delegate, CameraOverlay.CameraPreviewCallback {
 
     private static final String MIME_TYPE = "video/x-rtp";
 

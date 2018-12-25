@@ -1,3 +1,9 @@
+/*
+ Camera2Helper.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
@@ -139,7 +145,7 @@ public final class Camera2Helper {
      * @return ImageReader のインスタンス
      */
     static ImageReader createImageReader(final int width, final int height, final int imageFormat) {
-        return ImageReader.newInstance(height, width, imageFormat, 1);
+        return ImageReader.newInstance(width, height, imageFormat, 1);
     }
 
     /**

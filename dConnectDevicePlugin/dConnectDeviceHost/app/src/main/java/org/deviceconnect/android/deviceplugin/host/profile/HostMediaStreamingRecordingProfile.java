@@ -341,13 +341,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            HostDeviceRecorder r = (HostDeviceRecorder) recorder;
-            if (r.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                MessageUtils.setIllegalDeviceStateError(response, r.getName()
-                        + " is already running.");
-                return true;
-            }
-
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {

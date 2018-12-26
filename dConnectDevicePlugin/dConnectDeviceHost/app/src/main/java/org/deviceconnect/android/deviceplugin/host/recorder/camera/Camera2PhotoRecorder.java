@@ -7,8 +7,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -38,7 +36,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -208,8 +205,8 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                         Size pictureSize = options.getPictureSize();
                         Log.d(TAG, "Picture size: " + pictureSize.getWidth() + "x" + pictureSize.getHeight());
                     }
-                    mPreviewImageReader = createImageReader(options.getPreviewSize(), ImageFormat.YUV_420_888);
-                    mPhotoImageReader = createImageReader(options.getPictureSize(), ImageFormat.JPEG);
+                    mPreviewImageReader = createImageReader(options.getPreviewSize(), ImageFormat.JPEG);
+                    mPhotoImageReader = createImageReader(options.getPictureSize(), ImageFormat.YUV_420_888);
                     if (DEBUG) {
                         Log.d(TAG, "Created resources.");
                     }
@@ -254,6 +251,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
             mPreviewImageReader = null;
         }
 
+        // ライトのON/OFF用
         if (mDummyImageReader != null) {
             mDummyImageReader.close();
             mDummyImageReader = null;
@@ -279,51 +277,49 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
             public void onSessionCreated(final @NonNull CameraCaptureSession session) {
                 try {
                     ImageReader imageReader = mPhotoImageReader;
-                    imageReader.setOnImageAvailableListener(reader -> {
-                        if (DEBUG) {
-                            Log.d(TAG, "OnImageAvailable: reader=" + reader);
-                        }
-
-                        final Image image = reader.acquireLatestImage();
-                        if (image == null) {
-                            listener.onFailedTakePhoto("Failed to access image.");
-                            return;
-                        }
-                        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                        byte[] bytes = new byte[buffer.remaining()];
-                        buffer.get(bytes);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        image.close();
-
-                        // ビットマップ -> JPEG に変換
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                        byte[] jpeg = baos.toByteArray();
-                        bitmap.recycle();
-
-                        onTakePhotoFinish(session);
-
-                        // ファイル保存
-                        mFileManager.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
-                            @Override
-                            public void onSuccess(@NonNull final String uri) {
+                    imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+                        @Override
+                        public void onImageAvailable(final ImageReader reader) {
+                            {
                                 if (DEBUG) {
-                                    Log.d(TAG, "Saved photo: uri=" + uri);
+                                    Log.d(TAG, "OnImageAvailable: reader=" + reader);
                                 }
 
-                                String filePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
-                                listener.onTakePhoto(uri, filePath);
-                            }
-
-                            @Override
-                            public void onFail(@NonNull final Throwable e) {
-                                if (DEBUG) {
-                                    Log.e(TAG, "Failed to save photo", e);
+                                final Image image = reader.acquireNextImage();
+                                if (image == null || image.getPlanes() == null) {
+                                    listener.onFailedTakePhoto("Failed to access image.");
+                                    return;
                                 }
+                                int width = image.getWidth();
+                                int height = image.getHeight();
+                                byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
+                                image.close();
 
-                                listener.onFailedTakePhoto(e.getMessage());
+                                onTakePhotoFinish(session);
+
+                                // ファイル保存
+                                mFileManager.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
+                                    @Override
+                                    public void onSuccess(@NonNull final String uri) {
+                                        if (DEBUG) {
+                                            Log.d(TAG, "Saved photo: uri=" + uri);
+                                        }
+
+                                        String filePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
+                                        listener.onTakePhoto(uri, filePath);
+                                    }
+
+                                    @Override
+                                    public void onFail(@NonNull final Throwable e) {
+                                        if (DEBUG) {
+                                            Log.e(TAG, "Failed to save photo", e);
+                                        }
+
+                                        listener.onFailedTakePhoto(e.getMessage());
+                                    }
+                                });
                             }
-                        });
+                        }
                     }, mHandler);
 
                     CaptureRequest.Builder requestBuilder = mCamera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -531,20 +527,20 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         }
 
         final ImageReader imageReader = mPreviewImageReader;
-        imageReader.setOnImageAvailableListener(reader -> {
-           // ビットマップ取得
-            final Image image = reader.acquireLatestImage();
-            if (image != null) {
-                Image.Plane[] planes = image.getPlanes();
-                if (planes != null) {
-                    // ビットマップ取得
-                    int width = image.getWidth();
-                    int height = image.getHeight();
-                    byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
-                    image.close();
-
-                    mMjpegServer.offerMedia(jpeg);
+        imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(final ImageReader reader) {
+                // ビットマップ取得
+                final Image image = reader.acquireNextImage();
+                if (image == null || image.getPlanes() == null) {
+                    return;
                 }
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] jpeg = new byte[buffer.remaining()];
+                buffer.get(jpeg);
+                image.close();
+
+                mMjpegServer.offerMedia(jpeg);
             }
         }, mHandler);
 

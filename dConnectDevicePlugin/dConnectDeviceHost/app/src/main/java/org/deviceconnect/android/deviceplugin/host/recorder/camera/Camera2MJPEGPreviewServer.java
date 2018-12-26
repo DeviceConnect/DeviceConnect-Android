@@ -22,11 +22,14 @@ class Camera2MJPEGPreviewServer implements CameraPreviewServer {
 
     private PreviewServerListener mPreviewServerListener;
 
-    private final MixedReplaceMediaServer.Callback mMediaServerCallback = () -> {
-        if (mPreviewServerListener != null) {
-            return mPreviewServerListener.onAccept();
+    private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
+        @Override
+        public boolean onAccept() {
+            if (mPreviewServerListener != null) {
+                return mPreviewServerListener.onAccept();
+            }
+            return false;
         }
-        return false;
     };
 
     interface PreviewServerListener {
@@ -39,11 +42,11 @@ class Camera2MJPEGPreviewServer implements CameraPreviewServer {
         mServerProvider = recorder;
     }
 
-    public void setPreviewServerListener(final PreviewServerListener listener) {
+    void setPreviewServerListener(final PreviewServerListener listener) {
         mPreviewServerListener = listener;
     }
 
-    public void offerMedia(final byte[] jpeg) {
+    void offerMedia(final byte[] jpeg) {
         MixedReplaceMediaServer server = mServer;
         if (server != null) {
             server.offerMedia(jpeg);

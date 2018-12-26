@@ -192,9 +192,12 @@ public final class Camera2Helper {
     /**
      * サイズの小さい方からソートを行うための比較演算子.
      */
-    private static final Comparator<Size> SizeComparator = (lhs, rhs) -> {
-        // We cast here to ensure the multiplications won't overflow
-        return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
-                (long) rhs.getWidth() * rhs.getHeight());
+    private static final Comparator<Size> SizeComparator = new Comparator<Size>() {
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            // We cast here to ensure the multiplications won't overflow
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                    (long) rhs.getWidth() * rhs.getHeight());
+        }
     };
 }

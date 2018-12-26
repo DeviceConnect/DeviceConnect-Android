@@ -91,7 +91,7 @@ public abstract class AbstractCamera2Recorder extends AbstractPreviewServerProvi
     }
 
     @SuppressWarnings("MissingPermission")
-    protected void openCamera(final @NonNull CameraOpenCallback callback) {
+    protected synchronized void openCamera(final @NonNull CameraOpenCallback callback) {
         if (DEBUG) {
             Log.d(TAG, "openCamera: id=" + mCameraId);
         }

@@ -15,6 +15,7 @@ import android.graphics.YuvImage;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
@@ -37,6 +38,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -131,6 +133,16 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     private CameraCaptureSession mCaptureSession;
 
     private CaptureRequest mPreviewRequest;
+
+    /**
+     * フラッシュライト使用中フラグ.
+     */
+    private boolean mUseFlashLight = false;
+
+    /**
+     * フラッシュライト状態.
+     */
+    private boolean mFlashLightState = false;
 
     /**
      * コンストラクタ.
@@ -240,6 +252,11 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         if (mPreviewImageReader != null) {
             mPreviewImageReader.close();
             mPreviewImageReader = null;
+        }
+
+        if (mDummyImageReader != null) {
+            mDummyImageReader.close();
+            mDummyImageReader = null;
         }
     }
 
@@ -544,24 +561,90 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         return mFacing == CameraFacing.BACK;
     }
 
+    private ImageReader mDummyImageReader;
+
     @Override
     public void turnOnFlashLight() {
-        // TODO
+        synchronized (this) {
+            if (mUseFlashLight) {
+                return;
+            }
+            mUseFlashLight = true;
+        }
+
+        openCamera(new CameraOpenCallback() {
+            @Override
+            public void onOpen(final @NonNull CameraDevice camera, final boolean isNew) {
+                if (isNew) {
+                    mDummyImageReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.JPEG);
+
+                    List<Surface> targets = new ArrayList<>();
+                    targets.add(mDummyImageReader.getSurface());
+                    try {
+                        camera.createCaptureSession(targets, new CameraCaptureSession.StateCallback() {
+                            @Override
+                            public void onConfigured(final @NonNull CameraCaptureSession session) {
+                                // ダミーのプレビューリクエストを実行. (トーチモードをON)
+                                try {
+                                    CaptureRequest.Builder requestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                                    requestBuilder.addTarget(mDummyImageReader.getSurface());
+                                    requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+
+                                    session.capture(requestBuilder.build(), null, null);
+                                    mFlashLightState = true;
+                                    if (DEBUG) {
+                                        Log.d(TAG, "Turned on camera torch.");
+                                    }
+                                } catch (CameraAccessException e) {
+                                    if (DEBUG) {
+                                        Log.e(TAG, "Failed to turn on camera torch.", e);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onConfigureFailed(final @NonNull CameraCaptureSession session) {
+                                if (DEBUG) {
+                                    Log.e(TAG, "Failed to turn on camera torch because the session configuration was failed.");
+                                }
+                            }
+                        }, mHandler);
+                    } catch (CameraAccessException e) {
+                        if (DEBUG) {
+                            Log.e(TAG, "Failed to turn on camera torch.", e);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onError(final @NonNull Exception e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to turn on camera torch.", e);
+                }
+            }
+        });
     }
 
     @Override
     public void turnOffFlashLight() {
-        // TODO
+        synchronized (this) {
+            if (mUseFlashLight && mFlashLightState) {
+                releaseCamera();
+                mFlashLightState = false;
+                mUseFlashLight = false;
+            }
+        }
     }
 
     @Override
     public boolean isFlashLightState() {
-        return false;  // TODO
+        return mFlashLightState;
     }
 
     @Override
     public boolean isUseFlashLight() {
-        return false;  // TODO
+        return mUseFlashLight;
     }
 
     @Override

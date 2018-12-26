@@ -145,7 +145,7 @@ public final class Camera2Helper {
      * @return ImageReader のインスタンス
      */
     static ImageReader createImageReader(final int width, final int height, final int imageFormat) {
-        return ImageReader.newInstance(width, height, imageFormat, 1);
+        return ImageReader.newInstance(height, width, imageFormat, 1);
     }
 
     /**

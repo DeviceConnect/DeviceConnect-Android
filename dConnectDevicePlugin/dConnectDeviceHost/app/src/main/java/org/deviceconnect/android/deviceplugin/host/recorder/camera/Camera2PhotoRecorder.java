@@ -7,7 +7,10 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.camera2.CameraAccessException;
@@ -19,11 +22,14 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -131,6 +137,10 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
 
     private CaptureRequest mPreviewRequest;
 
+    private HandlerThread mPreviewThread = new HandlerThread("preview");
+
+    private final Handler mPreviewHandler;
+
     /**
      * フラッシュライト使用中フラグ.
      */
@@ -151,6 +161,8 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                                 final @NonNull String cameraId,
                                 final @NonNull FileManager fileManager) {
         super(context, cameraId);
+        mPreviewThread.start();
+        mPreviewHandler = new Handler(mPreviewThread.getLooper());
         mFileManager = fileManager;
 
         mMjpegServer = new Camera2MJPEGPreviewServer(this);
@@ -293,12 +305,12 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                                 int width = image.getWidth();
                                 int height = image.getHeight();
                                 byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
-                                image.close();
+                                byte[] rotated = rotateJPEG(jpeg, width, height, 50);
 
                                 onTakePhotoFinish(session);
 
                                 // ファイル保存
-                                mFileManager.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
+                                mFileManager.saveFile(createNewFileName(), rotated, true, new FileManager.SaveFileCallback() {
                                     @Override
                                     public void onSuccess(@NonNull final String uri) {
                                         if (DEBUG) {
@@ -326,7 +338,6 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                     requestBuilder.addTarget(imageReader.getSurface());
                     requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-                    requestBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(Camera2Helper.getDisplayRotation(getContext())));
 
                     CaptureRequest request = requestBuilder.build();
                     session.capture(request, new CameraCaptureSession.CaptureCallback() {
@@ -361,6 +372,30 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                 listener.onFailedTakePhoto("Failed to configure capture session");
             }
         });
+    }
+
+    private byte[] rotateJPEG(final byte[] jpeg, int width, int height, int quality) {
+        Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
+
+        Log.d(TAG, "bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight() + " width=" + width + " height=" + height);
+
+        int orientation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
+        int degrees;
+        Bitmap rotated;
+        Matrix m = new Matrix();
+        if (mFacing == CameraFacing.FRONT || mFacing == CameraFacing.BACK) {
+            degrees = orientation;
+        } else {
+            degrees = 0;
+        }
+        m.postRotate(degrees);
+        rotated = Bitmap.createBitmap(bitmap, 0, 0, width, height, m, true);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        rotated.compress(Bitmap.CompressFormat.JPEG, quality, baos);
+        byte[] result = baos.toByteArray();
+        bitmap.recycle();
+        rotated.recycle();
+        return result;
     }
 
     private void onTakePhotoFinish(final CameraCaptureSession session) {
@@ -538,17 +573,20 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] jpeg = new byte[buffer.remaining()];
                 buffer.get(jpeg);
+                byte[] rotated = rotateJPEG(jpeg, image.getHeight(), image.getWidth(), 100); // NOTE: swap width and height.
                 image.close();
 
-                mMjpegServer.offerMedia(jpeg);
+                mMjpegServer.offerMedia(rotated);
             }
-        }, mHandler);
+        }, mPreviewHandler);
 
         CameraDevice camera = session.getDevice();
-        CaptureRequest.Builder captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-        captureBuilder.addTarget(imageReader.getSurface());
+        CaptureRequest.Builder requestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+        requestBuilder.addTarget(imageReader.getSurface());
+        requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+        requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
 
-        mPreviewRequest = captureBuilder.build();
+        mPreviewRequest = requestBuilder.build();
         session.setRepeatingRequest(mPreviewRequest, null, null);
     }
 

@@ -65,7 +65,8 @@ dependencies {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.6.0'
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
+    implementation project(':dconnect-device-plugin-sdk')
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {
         exclude module: 'support-v4'

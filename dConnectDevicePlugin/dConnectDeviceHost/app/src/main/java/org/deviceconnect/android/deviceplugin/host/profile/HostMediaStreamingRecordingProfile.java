@@ -51,6 +51,11 @@ import java.util.concurrent.CountDownLatch;
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
 
     private final HostDeviceRecorderManager mRecorderMgr;
+    /**
+     * ファイル管理クラス.
+     */
+    private FileManager mFileManager;
+
 
     private final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
@@ -545,12 +550,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     recorder.startRecording(getServiceID(request), new HostDeviceStreamRecorder.RecordingListener() {
                         @Override
                         public void onRecorded(final HostDeviceStreamRecorder recorder, final String fileName) {
-                            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
                             setResult(response, DConnectMessage.RESULT_OK);
                             setPath(response, "/" + fileName);
-                            setUri(response, mgr.getContentUri() + "/" + fileName);
+                            setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mgr.getContentUri() + "/" + fileName,
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mFileManager.getContentUri() + "/" + fileName,
                                     "/" + fileName, recorder.getMimeType(), null);
                         }
 
@@ -608,12 +612,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     recorder.stopRecording(new HostDeviceStreamRecorder.StoppingListener() {
                         @Override
                         public void onStopped(HostDeviceStreamRecorder recorder, String fileName) {
-                            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
                             setResult(response, DConnectMessage.RESULT_OK);
                             setPath(response, "/" + fileName);
-                            setUri(response, mgr.getContentUri() + "/" + fileName);
+                            setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mgr.getContentUri() + "/" + fileName,
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mFileManager.getContentUri() + "/" + fileName,
                                     "/" + fileName, recorder.getMimeType(), null);
                         }
 
@@ -735,8 +738,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
-    public HostMediaStreamingRecordingProfile(final HostDeviceRecorderManager mgr) {
+    public HostMediaStreamingRecordingProfile(final HostDeviceRecorderManager mgr, final FileManager fileMgr) {
         mRecorderMgr = mgr;
+        mFileManager = fileMgr;
 
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);

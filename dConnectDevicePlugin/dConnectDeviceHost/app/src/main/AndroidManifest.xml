@@ -36,28 +36,6 @@
             android:label="@string/app_name_host"
             android:theme="@style/AppTheme"
             android:launchMode="singleTask"/>
-
-        <!-- d-Connect Host Device Plugin Provider. -->
-        <receiver android:name=".HostDeviceProvider">
-        </receiver>
-
-
-        <service
-            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.name"
-                android:value="@string/app_name_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.icon"
-                android:resource="@drawable/dconnect_icon"/>
-        </service>
-
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
@@ -129,6 +107,7 @@
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
             android:exported="true" >
+            
         </provider>
 
     </application>

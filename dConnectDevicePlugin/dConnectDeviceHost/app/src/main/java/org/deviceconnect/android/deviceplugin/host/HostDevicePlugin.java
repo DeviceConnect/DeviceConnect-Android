@@ -43,6 +43,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvide
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
@@ -54,12 +55,11 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Host Device Service.
+ * Host Device Plugin Context.
  *
  * @author NTT DOCOMO, INC.
  */
-@SuppressWarnings("deprecation")
-public class HostDeviceService extends DConnectMessageService {
+public class HostDevicePlugin extends DevicePluginContext {
 
     /** サービスID. */
     public static final String SERVICE_ID = "Host";
@@ -96,19 +96,24 @@ public class HostDeviceService extends DConnectMessageService {
             } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
                     || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 onChangedBluetoothStatus();
+            } else if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
+                stopWebServer(intent);
             }
         }
     };
 
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     */
+    public HostDevicePlugin(Context context) {
+        super(context);
 
         // Manager同梱のため、LocalOAuthを無効化
         setUseLocalOAuth(false);
 
-        mFileMgr = new FileManager(this, HostFileProvider.class.getName());
+        mFileMgr = new FileManager(context, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
         mHostBatteryManager = new HostBatteryManager(this);
@@ -145,8 +150,8 @@ public class HostDeviceService extends DConnectMessageService {
 
         HostDeviceRecorder dRecorder = mRecorderMgr.getRecorder(null);
         if (checkCameraHardware() && dRecorder != null || HostDeviceRecorderManager.isSupportedMediaProjection()) {
-            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
-            hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
+            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
+            hostService.addProfile(new HostLightProfile(getContext(), mRecorderMgr));
         }
 
         if (checkLocationHardware()) {
@@ -161,30 +166,18 @@ public class HostDeviceService extends DConnectMessageService {
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(mHostConnectionReceiver, filter);
+        filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
+        getContext().registerReceiver(mHostConnectionReceiver, filter);
 
     }
 
     @Override
-    public void onDestroy() {
+    public void release() {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
         mFileDataManager.stopTimer();
-        unregisterReceiver(mHostConnectionReceiver);
-        super.onDestroy();
-    }
-
-    @Override
-    public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        if (intent == null) {
-            return START_STICKY;
-        }
-
-        String action = intent.getAction();
-        if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
-            return stopWebServer(intent);
-        }
-        return super.onStartCommand(intent, flags, startId);
+        getContext().unregisterReceiver(mHostConnectionReceiver);
+        super.release();
     }
 
     // Managerアンインストール検知時の処理。
@@ -238,6 +231,10 @@ public class HostDeviceService extends DConnectMessageService {
         return new HostSystemProfile();
     }
 
+    @Override
+    protected int getPluginXmlResId() {
+        return R.xml.org_deviceconnect_android_deviceplugin_host;
+    }
     /**
      * Get a instance of FileManager.
      *
@@ -247,9 +244,8 @@ public class HostDeviceService extends DConnectMessageService {
         return mFileMgr;
     }
 
-    private int stopWebServer(final Intent intent) {
+    private void stopWebServer(final Intent intent) {
         mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
-        return START_STICKY;
     }
 
     private void onChangedBluetoothStatus() {
@@ -301,7 +297,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private WifiManager getWifiManager() {
-        return (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**
@@ -342,7 +338,7 @@ public class HostDeviceService extends DConnectMessageService {
      * @return カメラをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkCameraHardware() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -350,7 +346,7 @@ public class HostDeviceService extends DConnectMessageService {
      * @return 位置情報をサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkLocationHardware() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
+        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
     }
 
     /**
@@ -358,7 +354,7 @@ public class HostDeviceService extends DConnectMessageService {
      * @return 近接センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkProximityHardware() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
+        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
     }
 
     /**
@@ -366,8 +362,8 @@ public class HostDeviceService extends DConnectMessageService {
      * @return 加速度センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkSensorHardware() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
-                getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
+        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
+                getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
     }
 
     @Override

@@ -24,9 +24,11 @@ import android.provider.MediaStore;
 import android.webkit.MimeTypeMap;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -154,10 +156,10 @@ public class HostMediaPlayerManager {
     /**
      * コンテキスト.
      */
-    private HostDeviceService mHostDeviceService;
+    private final DevicePluginContext mHostDevicePluginContext;
 
-    public HostMediaPlayerManager(final HostDeviceService service) {
-        mHostDeviceService = service;
+    public HostMediaPlayerManager(final DevicePluginContext pluginContext) {
+        mHostDevicePluginContext = pluginContext;
 
         // MediaPlayer (Video) IntentFilter.
         mIfMediaPlayerVideo = new IntentFilter();
@@ -165,19 +167,19 @@ public class HostMediaPlayerManager {
     }
 
     private Context getContext() {
-        return mHostDeviceService;
+        return mHostDevicePluginContext.getContext();
     }
 
     private void sendResponse(final Intent intent) {
-        mHostDeviceService.sendResponse(intent);
+        mHostDevicePluginContext.sendResponse(intent);
     }
 
     private void sendEvent(final Intent intent, final String accessToken) {
-        mHostDeviceService.sendEvent(intent, accessToken);
+        mHostDevicePluginContext.sendEvent(intent, accessToken);
     }
 
     private ContentResolver getContentResolver() {
-        return mHostDeviceService.getContentResolver();
+        return mHostDevicePluginContext.getContext().getContentResolver();
     }
 
     public void forceStop() {
@@ -342,7 +344,7 @@ public class HostMediaPlayerManager {
      */
     public void sendOnStatusChangeEvent(final String status) {
         if (mOnStatusChangeEventFlag) {
-            List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID,
+            List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
                     MediaPlayerProfile.PROFILE_NAME, null, MediaPlayerProfile.ATTRIBUTE_ON_STATUS_CHANGE);
 
             AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
@@ -455,7 +457,7 @@ public class HostMediaPlayerManager {
             }
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
-            mHostDeviceService.registerReceiver(mMediaPlayerVideoBR, mIfMediaPlayerVideo);
+            mHostDevicePluginContext.getContext().registerReceiver(mMediaPlayerVideoBR, mIfMediaPlayerVideo);
             String className = getClassnameOfTopActivity();
 
             if (VideoPlayer.class.getName().equals(className)) {
@@ -473,7 +475,7 @@ public class HostMediaPlayerManager {
                 mIntent.setDataAndType(data, mMyCurrentFileMIMEType);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mHostDeviceService.startActivity(mIntent);
+                mHostDevicePluginContext.getContext().startActivity(mIntent);
                 sendOnStatusChangeEvent("play");
             }
 

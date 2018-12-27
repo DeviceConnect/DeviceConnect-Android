@@ -203,8 +203,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                         Bundle orientation = createOrientation();
                         setResult(response, DConnectMessage.RESULT_OK);
                         setOrientation(response, orientation);
-                        HostDeviceService service = (HostDeviceService) getContext();
-                        service.sendResponse(response);
+                        sendResponse(response);
 
                         if (isEmptyEventList()) {
                             mSensorManager.unregisterListener(this);

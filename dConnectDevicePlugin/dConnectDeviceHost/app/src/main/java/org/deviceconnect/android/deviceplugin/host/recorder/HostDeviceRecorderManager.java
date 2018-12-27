@@ -15,7 +15,7 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.HostDeviceCameraRecorder;
@@ -23,6 +23,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScr
 import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
@@ -48,10 +49,10 @@ public class HostDeviceRecorderManager {
     private HostDeviceRecorder mDefaultVideoRecorder;
 
     /** コンテキスト. */
-    private HostDeviceService mHostDeviceService;
+    private final DevicePluginContext mHostDevicePluginContext;
 
-    public HostDeviceRecorderManager(final HostDeviceService service) {
-        mHostDeviceService = service;
+    public HostDeviceRecorderManager(final DevicePluginContext pluginContext) {
+        mHostDevicePluginContext = pluginContext;
     }
 
     public void createRecorders(final FileManager fileMgr) {
@@ -73,8 +74,8 @@ public class HostDeviceRecorderManager {
                     break;
             }
 
-            photoRecorders.add(new HostDeviceCameraRecorder(mHostDeviceService, cameraId, facing, fileMgr));
-            videoRecorders.add(new HostDeviceVideoRecorder(mHostDeviceService, cameraId, facing));
+            photoRecorders.add(new HostDeviceCameraRecorder(mHostDevicePluginContext.getContext(), cameraId, facing, fileMgr));
+            videoRecorders.add(new HostDeviceVideoRecorder(mHostDevicePluginContext.getContext(), cameraId, facing));
         }
 
         if (!photoRecorders.isEmpty()) {
@@ -88,9 +89,9 @@ public class HostDeviceRecorderManager {
         List<HostDeviceRecorder> recorders = new ArrayList<>();
         recorders.addAll(photoRecorders);
         recorders.addAll(videoRecorders);
-        recorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
+        recorders.add(new HostDeviceAudioRecorder(mHostDevicePluginContext.getContext()));
         if (isSupportedMediaProjection()) {
-            recorders.add(new HostDeviceScreenCastRecorder(mHostDeviceService, fileMgr));
+            recorders.add(new HostDeviceScreenCastRecorder(mHostDevicePluginContext.getContext(), fileMgr));
         }
         mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
     }
@@ -210,7 +211,7 @@ public class HostDeviceRecorderManager {
         for (Event evt : evts) {
             Intent intent = EventManager.createEventMessage(evt);
             intent.putExtra(MediaStreamRecordingProfile.PARAM_MEDIA, record);
-            mHostDeviceService.sendEvent(intent, evt.getAccessToken());
+            mHostDevicePluginContext.sendEvent(intent, evt.getAccessToken());
         }
     }
 
@@ -219,7 +220,7 @@ public class HostDeviceRecorderManager {
     }
 
     private Context getContext() {
-        return mHostDeviceService;
+        return mHostDevicePluginContext.getContext();
     }
 
     private HostDeviceVideoRecorder getVideoRecorder(final String id) {
@@ -242,7 +243,7 @@ public class HostDeviceRecorderManager {
                 String fileName = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
                 String uri = "";
                 if (fileName != null) {
-                    FileManager mgr = mHostDeviceService.getFileManager();
+                    FileManager mgr = ((HostDevicePlugin) mHostDevicePluginContext).getFileManager();
                     uri = mgr.getContentUri() + "/" + fileName;
                     fileName = "/" + fileName;
                 } else {

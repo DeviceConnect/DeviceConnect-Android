@@ -673,6 +673,6 @@ public class HostTouchProfile extends TouchProfile {
     }
 
     public HostDeviceApplication getApp() {
-        return (HostDeviceApplication) ((HostDeviceService)getContext()).getApplication();
+        return (HostDeviceApplication) getContext().getApplicationContext();
     }
 }

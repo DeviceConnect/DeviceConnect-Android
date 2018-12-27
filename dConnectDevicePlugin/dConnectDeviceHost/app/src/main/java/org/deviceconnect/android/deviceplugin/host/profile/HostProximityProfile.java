@@ -218,8 +218,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
                     }
                     ProximityProfile.setProximity(response, mProximityBundle);
                     DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                    HostDeviceService service = (HostDeviceService) getContext();
-                    service.sendResponse(response);
+                    sendResponse(response);
                     getSensorManager().unregisterListener(this);
                 }
             }

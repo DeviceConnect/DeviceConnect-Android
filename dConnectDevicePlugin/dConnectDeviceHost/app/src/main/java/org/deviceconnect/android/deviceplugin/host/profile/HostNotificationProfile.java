@@ -174,12 +174,11 @@ public class HostNotificationProfile extends NotificationProfile {
                 HostNotificationProfile.PROFILE_NAME,
                 null,
                 HostNotificationProfile.ATTRIBUTE_ON_SHOW);
-            HostDeviceService service = (HostDeviceService) getContext();
             synchronized (events) {
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
                     setNotificationId(intent, String.valueOf(notifyId));
-                    service.sendEvent(intent, event.getAccessToken());
+                    sendEvent(intent, event.getAccessToken());
                 }
             }
             return true;
@@ -218,12 +217,11 @@ public class HostNotificationProfile extends NotificationProfile {
                 HostNotificationProfile.PROFILE_NAME,
                 null,
                 HostNotificationProfile.ATTRIBUTE_ON_CLOSE);
-            HostDeviceService service = (HostDeviceService) getContext();
             synchronized (events) {
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
                     intent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                    service.sendEvent(intent, event.getAccessToken());
+                    sendEvent(intent, event.getAccessToken());
                 }
             }
             return true;

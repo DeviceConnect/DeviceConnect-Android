@@ -6,9 +6,7 @@
  */
 package org.deviceconnect.android.service;
 
-
 import java.util.List;
-
 
 /**
  * Device Connect APIサービス管理インターフェース.

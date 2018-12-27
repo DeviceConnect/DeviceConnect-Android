@@ -9,7 +9,9 @@ package org.deviceconnect.android.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
@@ -36,7 +38,7 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
     /**
      * サポートするプロファイル一覧.
      */
-    private final Map<String, DConnectProfile> mProfiles = new HashMap<String, DConnectProfile>();
+    private final Map<String, DConnectProfile> mProfiles = new HashMap<>();
 
     /**
      * サービス名.
@@ -62,6 +64,11 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
      * コンテキスト.
      */
     private Context mContext;
+
+    /**
+     * プラグインのコンテキスト.
+     */
+    private DevicePluginContext mPluginContext;
 
     /**
      * ステータス更新通知リスナー.
@@ -193,19 +200,33 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
 
     /**
      * コンテキストを取得する.
-     * @return
+     * @return コンテキスト
      */
     public Context getContext() {
         return mContext;
     }
 
+    /**
+     * プラグインコンテキストを設定します.
+     *
+     * @param pluginContext プラグインコンテキスト
+     */
+    void setPluginContext(DevicePluginContext pluginContext) {
+        mPluginContext = pluginContext;
+    }
+
+    /**
+     * プラグインコンテキストを取得します.
+     *
+     * @return プラグインコンテキスト
+     */
+    public DevicePluginContext getPluginContext() {
+        return mPluginContext;
+    }
+
     @Override
     public List<DConnectProfile> getProfileList() {
-        List<DConnectProfile> list = new ArrayList<DConnectProfile>();
-        for (DConnectProfile profile : mProfiles.values()) {
-            list.add(profile);
-        }
-        return list;
+        return new ArrayList<>(mProfiles.values());
     }
 
     @Override
@@ -221,7 +242,11 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
         if (profile == null) {
             return;
         }
+
         profile.setService(this);
+        profile.setContext(mContext);
+        profile.setPluginContext(mPluginContext);
+        profile.setResponder(mPluginContext);
         mProfiles.put(profile.getProfileName().toLowerCase(), profile);
     }
 
@@ -252,6 +277,10 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
     public boolean onRequest(final Intent request, final Intent response) {
         DConnectProfile profile = getProfile(DConnectProfile.getProfile(request));
         if (profile == null) {
+            Log.d("ABC", "/????222");
+            Log.d("ABC", "request: " + request);
+            Log.d("ABC", "request extras: " + request.getExtras());
+
             MessageUtils.setNotSupportProfileError(response);
             return true;
         }

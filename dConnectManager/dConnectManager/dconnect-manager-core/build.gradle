@@ -1,0 +1,61 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 26
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    flavorDimensions "common"
+
+    productFlavors {
+        thetav {
+            dimension "common"
+            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "false"
+            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "true"
+            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "true"
+            buildConfigField "boolean", "DEFAULT_SSL_USE", "false"
+            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "false"
+        }
+        things {
+            dimension "common"
+            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "true"
+            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "false"
+            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "false"
+            buildConfigField "boolean", "DEFAULT_SSL_USE", "false"
+            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "true"
+        }
+        original {
+            dimension "common"
+            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "true"
+            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "false"
+            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "false"
+            buildConfigField "boolean", "DEFAULT_SSL_USE", "true"
+            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "true"
+        }
+    }
+}
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
+    implementation project(':dconnect-server-nano-httpd')
+    implementation project(':dconnect-device-plugin-sdk')
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}

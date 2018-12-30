@@ -100,9 +100,20 @@ public class Camera2VideoRecorder extends AbstractCamera2Recorder implements Hos
      */
     private boolean mIsInitialized;
 
+    /**
+     * 録画中フラグ.
+     */
     private boolean mIsVideoRecording;
 
+    /**
+     * 使用中の {@link CameraCaptureSession} のインスタンス.
+     */
     private CameraCaptureSession mCaptureSession;
+
+    /**
+     * {@link SurfaceRecorder} のインスタンス.
+     */
+    private SurfaceRecorder mSurfaceRecorder;
 
     /**
      * コンストラクタ.
@@ -121,8 +132,6 @@ public class Camera2VideoRecorder extends AbstractCamera2Recorder implements Hos
         void onSessionCreated(@NonNull CameraCaptureSession session);
         void onSessionFailed(@NonNull Exception e);
     }
-
-    private SurfaceRecorder mSurfaceRecorder;
 
     private void prepareSession(final @NonNull CaptureSessionCallback callback) {
         if (DEBUG) {
@@ -144,7 +153,7 @@ public class Camera2VideoRecorder extends AbstractCamera2Recorder implements Hos
                         Size pictureSize = options.getPictureSize();
                         Log.d(TAG, "Picture size: " + pictureSize.getWidth() + "x" + pictureSize.getHeight());
                     }
-                    mSurfaceRecorder = new SurfaceRecorder(getContext(), options.getPictureSize());
+                    mSurfaceRecorder = new SurfaceRecorder(options.getPictureSize());
                     if (DEBUG) {
                         Log.d(TAG, "Created resources.");
                     }

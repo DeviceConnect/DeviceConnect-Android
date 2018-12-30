@@ -27,7 +27,14 @@ import java.util.Locale;
 
 class SurfaceRecorder {
 
+    /**
+     * デバッグフラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * ログ出力用タグ.
+     */
     private static final String TAG = "host.dplugin";
 
     /**
@@ -40,7 +47,6 @@ class SurfaceRecorder {
     private static final int DEFAULT_FRAME_RATE = 30;
     private static final int I_FRAME_INTERVAL = 1;
 
-    private final Context mContext;
     private MediaCodec mCodec;
     private MediaMuxer mMuxer;
     private File mOutputFile;
@@ -49,10 +55,12 @@ class SurfaceRecorder {
     private boolean mEndOfStream;
     private int mTrackIndex = -1;
 
-    SurfaceRecorder(final Context context, final Size size) throws IOException {
+    SurfaceRecorder(final Size size) throws IOException {
         int width = size.getWidth();
         int height = size.getHeight();
-        mContext = context;
+        if (DEBUG) {
+            Log.d(TAG, "SurfaceRecorder: width=" + width + " height=" + height);
+        }
 
         mCodec = MediaCodec.createEncoderByType(MIME_TYPE);
         mCodec.setCallback(new MediaCodec.Callback() {

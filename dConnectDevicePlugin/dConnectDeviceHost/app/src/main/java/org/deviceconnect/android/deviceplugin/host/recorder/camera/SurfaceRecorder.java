@@ -55,6 +55,8 @@ class SurfaceRecorder {
     private boolean mEndOfStream;
     private int mTrackIndex = -1;
 
+    private Thread mVideoMuxerThread;
+
     SurfaceRecorder(final Size size) throws IOException {
         int width = size.getWidth();
         int height = size.getHeight();
@@ -63,93 +65,6 @@ class SurfaceRecorder {
         }
 
         mCodec = MediaCodec.createEncoderByType(MIME_TYPE);
-        mCodec.setCallback(new MediaCodec.Callback() {
-
-            int fps = 30;
-            long start = 0L;
-            long now = 0L;
-            double base = 0.0;
-
-            @Override
-            public void onInputBufferAvailable(final @NonNull MediaCodec codec, final int index) {
-                // NOP.
-                if (DEBUG) {
-                    Log.d(TAG, "onInputBufferAvailable:");
-                }
-            }
-
-            @Override
-            public void onOutputFormatChanged(final @NonNull MediaCodec codec, final @NonNull MediaFormat format) {
-                if (DEBUG) {
-                    Log.d(TAG, "onOutputFormatChanged:");
-                }
-                if (mMuxerStarted) {
-                    throw new RuntimeException("Mux has started already.");
-                }
-                mTrackIndex = mMuxer.addTrack(format);
-                mMuxer.start();
-                mMuxerStarted = true;
-            }
-
-            @Override
-            public void onOutputBufferAvailable(final @NonNull MediaCodec codec,
-                                                final int index,
-                                                final @NonNull MediaCodec.BufferInfo info) {
-                synchronized (SurfaceRecorder.this) {
-                    if (mCodec == null || mMuxer == null) {
-                        return;
-                    }
-
-                    if (DEBUG) {
-                        Log.d(TAG, "onOutputBufferAvailable:");
-                    }
-                    long time = System.currentTimeMillis();
-                    if (start == 0L) {
-                        start = time;
-                    }
-                    now = time;
-
-                    ByteBuffer outputBuffer = codec.getOutputBuffer(index);
-                    if (outputBuffer == null) {
-                        if (DEBUG) {
-                            Log.e(TAG, "onOutputBufferAvailable: buffer is null");
-                        }
-                        return;
-                    }
-
-                    if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                        info.size = 0;
-                    }
-                    if (info.size != 0) {
-                        if (!mMuxerStarted) {
-                            throw new RuntimeException("Not started yet.");
-                        }
-                        outputBuffer.position(info.offset);
-                        outputBuffer.limit(info.offset + info.size);
-                        if (now - start >= base) {
-                            base += 1000 / fps;
-                            mMuxer.writeSampleData(mTrackIndex, outputBuffer, info);
-                        }
-                    }
-                    codec.releaseOutputBuffer(index, false);
-
-                    if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                        if (!mEndOfStream) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Unexpected EOF.");
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onError(final @NonNull MediaCodec codec, final @NonNull MediaCodec.CodecException e) {
-                if (DEBUG) {
-                    Log.w(TAG, "onError: Failed to encode video.", e);
-                }
-            }
-        });
 
         MediaFormat format = createMediaFormat(width, height);
         mCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -183,7 +98,11 @@ class SurfaceRecorder {
         if (mCodec == null) {
             throw new IllegalStateException("codec has been released.");
         }
-        mCodec.start();
+
+        if (mVideoMuxerThread == null) {
+            mVideoMuxerThread = new Thread(new VideoMuxerTask());
+            mVideoMuxerThread.start();
+        }
     }
 
     public synchronized File stop() {
@@ -193,6 +112,11 @@ class SurfaceRecorder {
 
         mEndOfStream = true;
         mCodec.signalEndOfInputStream();
+
+        if (mVideoMuxerThread != null) {
+            mVideoMuxerThread.interrupt();
+            mVideoMuxerThread = null;
+        }
 
         if (mMuxer != null) {
             mMuxer.stop();
@@ -212,10 +136,80 @@ class SurfaceRecorder {
     }
 
     private String generateVideoFileName() {
-        return "video-" + DATE_FORMAT.format(new Date()) + ".mp4";
+        return "video_" + DATE_FORMAT.format(new Date()) + ".mp4";
     }
 
     public File getOutputFile() {
         return mOutputFile;
+    }
+
+    private class VideoMuxerTask implements Runnable {
+
+        @Override
+        public void run() {
+            mCodec.start();
+
+            final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+            final int timeoutUs = 1000 * 1000;
+
+            int fps = 30;
+            long start = 0L;
+            long now = 0L;
+            double base = 0.0;
+
+            try {
+                while (!Thread.interrupted()) {
+                    int index = mCodec.dequeueOutputBuffer(info, timeoutUs);
+                    if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                        mTrackIndex = mMuxer.addTrack(mCodec.getOutputFormat());
+                        mMuxer.start();
+                        mMuxerStarted = true;
+                    } else if (index >= 0) {
+                        long time = System.currentTimeMillis();
+                        if (start == 0L) {
+                            start = time;
+                        }
+                        now = time;
+
+                        ByteBuffer outputBuffer = mCodec.getOutputBuffer(index);
+                        if (outputBuffer == null) {
+                            if (DEBUG) {
+                                Log.e(TAG, "onOutputBufferAvailable: buffer is null");
+                            }
+                            return;
+                        }
+
+                        if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                            info.size = 0;
+                        }
+                        if (info.size != 0) {
+                            if (!mMuxerStarted) {
+                                throw new RuntimeException("Not started yet.");
+                            }
+                            outputBuffer.position(info.offset);
+                            outputBuffer.limit(info.offset + info.size);
+                            if (now - start >= base) {
+                                base += 1000 / fps;
+                                mMuxer.writeSampleData(mTrackIndex, outputBuffer, info);
+                            }
+                        }
+                        mCodec.releaseOutputBuffer(index, false);
+
+                        if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                            if (!mEndOfStream) {
+                                if (DEBUG) {
+                                    Log.e(TAG, "Unexpected EOF.");
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (IllegalStateException e) {
+                Log.e(TAG, "Error on video thread.", e);
+            } finally {
+                mCodec.stop();
+            }
+
+        }
     }
 }

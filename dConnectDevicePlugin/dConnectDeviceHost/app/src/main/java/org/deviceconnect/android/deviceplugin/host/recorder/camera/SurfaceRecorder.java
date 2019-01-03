@@ -284,20 +284,10 @@ class SurfaceRecorder {
             final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
             final int timeoutUs = 1000 * 1000;
 
-            int fps = 30;
-            long start = 0L;
-            long now;
-            double base = 0.0;
-
             try {
                 while (!Thread.interrupted()) {
                     int index = mMediaCodec.dequeueOutputBuffer(info, timeoutUs);
                     if (index >= 0) {
-                        long time = System.currentTimeMillis();
-                        if (start == 0L) {
-                            start = time;
-                        }
-                        now = time;
 
                         ByteBuffer outputBuffer = mMediaCodec.getOutputBuffer(index);
                         if (outputBuffer == null) {
@@ -311,14 +301,8 @@ class SurfaceRecorder {
                             info.size = 0;
                         }
                         if (info.size != 0) {
-                            outputBuffer.position(info.offset);
-                            outputBuffer.limit(info.offset + info.size);
-                            if (now - start >= base) {
-                                base += 1000 / fps;
-
-                                info.presentationTimeUs = getPTSUs();
-                                mMuxer.writeSampleData(mTrackIndex, outputBuffer, info);
-                            }
+                            info.presentationTimeUs = getPTSUs();
+                            mMuxer.writeSampleData(mTrackIndex, outputBuffer, info);
                         }
                         mMediaCodec.releaseOutputBuffer(index, false);
 

@@ -7,10 +7,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 
-class Camera2MJPEGPreviewServer implements CameraPreviewServer {
+class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private static final String MIME_TYPE = "video/x-mjpeg";
 

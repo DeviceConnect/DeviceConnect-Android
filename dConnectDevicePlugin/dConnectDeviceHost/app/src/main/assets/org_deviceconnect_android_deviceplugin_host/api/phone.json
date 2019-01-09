@@ -1,0 +1,669 @@
+{
+    "swagger": "2.0",
+    "basePath": "/gotapi/phone",
+    "info": {
+        "title": "Phone Profile",
+        "version": "2.0.0",
+        "description": "周辺機器からスマートフォンの通話機能もしくは通話操作機能を提供するAPI。"
+    },
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/callState": {
+            "get": {
+                "operationId": "phoneCallStateChangeGet",
+                "x-type": "one-shot",
+                "summary": "現在の通話状態を取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/CallStateResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "state": "ringing",
+                                "phoneNumber": "090XXXXXXXX"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/call": {
+            "post": {
+                "operationId": "phoneCallPost",
+                "x-type": "one-shot",
+                "summary": "スマートフォンに対して電話発信要求をリクエストする。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "phoneNumber",
+                        "description": "電話番号。電話番号を示す文字列。文字には数字の0〜9のみを使用可能。長さは11桁または13桁のいずれかとする。11桁は国内電話、13桁は国際電話として扱う。",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhoneControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/acceptCall": {
+            "post": {
+                "operationId": "phoneAcceptCallPost",
+                "x-type": "one-shot",
+                "summary": "スマートフォンに対して着信応答要求をリクエストする。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "phoneNumber",
+                        "description": "発信元の電話番号。onCallStateChange イベントで受信した電話番号をそのまま指定すること。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhoneControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/rejectCall": {
+            "post": {
+                "operationId": "phoneRejectCallPost",
+                "x-type": "one-shot",
+                "summary": "スマートフォンに対して着信拒否要求をリクエストする。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "phoneNumber",
+                        "description": "発信元の電話番号。onCallStateChange イベントで受信した電話番号をそのまま指定すること。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhoneControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/endCall": {
+            "post": {
+                "operationId": "phoneEndCallPost",
+                "x-type": "one-shot",
+                "summary": "スマートフォンに対して通話終了要求をリクエストする。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "phoneNumber",
+                        "description": "発信元の電話番号。onCallStateChange イベントで受信した電話番号をそのまま指定すること。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhoneControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/set": {
+            "put": {
+                "operationId": "phoneSetPut",
+                "x-type": "one-shot",
+                "summary": "スマートフォンに対して電話に関する設定項目(サイレント・マナー・音あり)の設定をリクエストする。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "mode",
+                        "description": "電話のモード。電話のモードを指定<br>0:サイレント<br>1:マナー<br>2:音あり",
+                        "in": "formData",
+                        "required": true,
+                        "type": "integer",
+                        "enum": [0, 1, 2]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhoneControlResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/onConnect": {
+            "get": {
+                "operationId": "phoneOnConnectGet",
+                "x-type": "one-shot",
+                "summary": "スマートフォンに対して行った電話発信要求によるスマートフォン上での通話の開始、通話の失敗、通話の終了状態を、周辺機器に通知するイベントを取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PhoneStatusResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "phoneStatus": {
+                                    "phoneNumber": "01234567890",
+                                    "state": 2
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "phoneOnConnectPut",
+                "x-type": "event",
+                "summary": "スマートフォンに対して行った電話発信要求によるスマートフォン上での通話の開始、通話の失敗、通話の終了状態を、周辺機器に通知するイベントを開始する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "interval",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/PhoneStatusEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "profile": "phone",
+                            "attribute": "onconnect",
+                            "phoneStatus": {
+                                "phoneNumber": "01234567890",
+                                "state": 2
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "phoneOnConnectDelete",
+                "x-type": "event",
+                "summary": "スマートフォンに対して行った電話発信要求によるスマートフォン上での通話の開始、通話の失敗、通話の終了状態を、周辺機器に通知するイベントを停止する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/onCallStateChange": {
+            "get": {
+                "operationId": "phoneOnCallStateChangeGet",
+                "x-type": "one-shot",
+                "summary": "通話状態の変更通知イベントのキャッシュを取得する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/CallStateResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "state": "ringing",
+                                "phoneNumber": "090XXXXXXXX"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "phoneOnCallStateChangePut",
+                "x-type": "event",
+                "summary": "通話状態の変更通知イベントを開始する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "interval",
+                        "description": "デバイスプラグインがイベントを送信する間隔。",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/CallStateEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "profile": "phone",
+                            "attribute": "onconnect",
+                            "state": "ringing",
+                            "phoneNumber": "090XXXXXXXX"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "phoneOnConnectDelete",
+                "x-type": "event",
+                "summary": "通話状態の変更通知イベントを停止する。",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    "definitions": {
+        "CallStateResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "$ref": "#/definitions/CallStateInfo"
+                }
+            ]
+        },
+        "CallStateEvent": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                },
+                {
+                    "$ref": "#/definitions/CallStateInfo"
+                }
+            ]
+        },
+        "CallStateInfo": {
+            "type": "object",
+            "required": [
+                "state",
+                "phoneNumber"
+            ],
+            "properties": {
+                "state": {
+                    "type": "string",
+                    "title": "通話状態",
+                    "description": "相手先との通話の状態を示す。 <table> <tr><th>ringing</th><td>着信中</td></tr> <tr><th>dialing</th><td>発信中</td></tr> <tr><th>active</th><td>通話中</td></tr> <tr><th>on-hold</th><td>保留中</td></tr> <tr><th>standby</th><td>待受中</td></tr> </table>",
+                    "enum": [
+                        "ringing",
+                        "dialing",
+                        "active",
+                        "on-hold",
+                        "standby"
+                    ]
+                },
+                "phoneNumber": {
+                    "type": "string",
+                    "title": "電話番号",
+                    "description": "相手先の電話番号。数字以外の記号は含めない。"
+                }
+            }
+        },
+        "PhoneStatusResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "$ref": "#/definitions/PhoneStatusInfo"
+                }
+            ]
+        },
+        "PhoneStatusEvent": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                },
+                {
+                    "$ref": "#/definitions/PhoneStatusInfo"
+                }
+            ]
+        },
+        "PhoneStatusInfo": {
+            "type": "object",
+            "required": [
+                "phoneStatus"
+            ],
+            "properties": {
+                "phoneStatus": {
+                    "type": "object",
+                    "title": "電話機能の状態",
+                    "description": "電話機能の状態を保持するオブジェクト。特定の相手先との通話状態の変化を通知する。",
+                    "required": [
+                        "phoneNumber",
+                        "state"
+                    ],
+                    "properties": {
+                        "phoneNumber": {
+                            "type": "string",
+                            "title": "電話番号",
+                            "description": "相手先の電話番号を示す文字列。文字には数字の0〜9のみを使用可能。長さは11桁または13桁のいずれかとする。11桁は国内電話、13桁は国際電話として扱う。"
+                        },
+                        "state": {
+                            "type": "number",
+                            "title": "通話状態",
+                            "description": "通話状態を示す定数。<br>0: 通話開始<br>1: 通話失敗<br>2: 通話終了",
+                            "enum": [0, 1, 2]
+                        }
+                    }
+                }
+            }
+        },
+        "PhoneControlResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventRegistrationResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventUnregistrationResponse": {
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": [
+                "result",
+                "product",
+                "version"
+            ],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "title": "処理結果",
+                    "description": "0: 正常応答<br>0以外: 異常応答"
+                },
+                "product": {
+                    "type": "string",
+                    "title": "システム名",
+                    "description": "DeviceConnectシステムの名前。"
+                },
+                "version": {
+                    "type": "string",
+                    "title": "システムバージョン",
+                    "description": "DeviceConnectシステムのバージョン名。"
+                },
+                "hmac": {
+                    "type": "string",
+                    "title": "署名",
+                    "description": "レスポンスに対する署名。アプリケーション側から事前にHMACキーを共有されていた場合は必須。"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": [
+                "serviceId",
+                "profile",
+                "interface",
+                "attribute"
+            ],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "title": "サービスID",
+                    "description": "イベントを送信したサービスのID"
+                },
+                "profile": {
+                    "type": "string",
+                    "title": "プロファイル名",
+                    "description": "プロファイル名。"
+                },
+                "interface": {
+                    "type": "string",
+                    "title": "インターフェース名",
+                    "description": "インターフェース名。"
+                },
+                "attribute": {
+                    "type": "string",
+                    "title": "アトリビュート名",
+                    "description": "アトリビュート名。"
+                }
+            }
+        }
+    }
+}

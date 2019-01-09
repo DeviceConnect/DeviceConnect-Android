@@ -14,10 +14,6 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -127,16 +123,6 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     private final HandlerThread mPhotoThread = new HandlerThread("photo");
 
     /**
-     * フラッシュライト使用中フラグ.
-     */
-    private boolean mUseFlashLight = false;
-
-    /**
-     * フラッシュライト状態.
-     */
-    private boolean mFlashLightState = false;
-
-    /**
      * コンストラクタ.
      *
      * @param context コンテキスト
@@ -173,7 +159,8 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         });
         mPreviewServers.add(mMjpegServer);
 
-        // TODO RTSPサーバーの追加
+        Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
+        mPreviewServers.add(rtspServer);
     }
 
     private CameraProxy getCameraProxy() {
@@ -181,8 +168,11 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     }
 
     private void releaseCameraProxy(final CameraProxy camera) {
-        // TODO
         camera.release();
+    }
+
+    public void setPreviewSurface(final Surface previewSurface) {
+        mCameraProxy.setPreviewSurface(previewSurface);
     }
 
     @Override
@@ -393,34 +383,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
-    /**
-     * カメラの取り付けられた向きを取得します.
-     *
-     * @return カメラの取り付けられた向き
-     */
-    private int getSensorOrientation() {
-        return Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
-    }
-
-    /**
-     * Retrieves the JPEG orientation from the specified screen rotation.
-     *
-     * @param rotation The screen rotation.
-     * @return The JPEG orientation (one of 0, 90, 270, and 360)
-     */
-    private int getOrientation(int rotation) {
-        // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-        // We have to take that into account and rotate JPEG properly.
-        // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
-        // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
-        return (ORIENTATIONS.get(rotation) + getSensorOrientation() + 270) % 360;
-    }
-
-    private ImageReader createImageReader(final Size pictureSize, final int format) {
-        return Camera2Helper.createImageReader(pictureSize.getWidth(), pictureSize.getHeight(), format);
-    }
-
-    private boolean onAcceptPreviewRequest() {
+    public boolean onAcceptPreviewRequest() {
         final CountDownLatch lock = new CountDownLatch(1);
         final Boolean[] result = new Boolean[1];
         startPreview(new PreviewCallback() {
@@ -465,14 +428,14 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         }
     };
 
-    private interface PreviewCallback {
+    interface PreviewCallback {
         void onStart();
         void onError();
     }
 
     private boolean mIsPreviewStarted;
 
-    private void startPreview(final @NonNull PreviewCallback callback) {
+    void startPreview(final @NonNull PreviewCallback callback) {
         final CameraProxy camera = getCameraProxy();
         camera.setPreviewListener(mPreviewListener);
         final Handler handler = new Handler(mPreviewThread.getLooper()) {
@@ -516,7 +479,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         camera.start(handler, errorHandler);
     }
 
-    private void stopPreview() {
+    void stopPreview() {
         CameraProxy camera = getCameraProxy();
         camera.stopPreview();
         mIsPreviewStarted = false;

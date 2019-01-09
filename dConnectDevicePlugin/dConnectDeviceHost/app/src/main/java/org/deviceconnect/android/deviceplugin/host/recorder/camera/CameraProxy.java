@@ -21,9 +21,8 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
-import net.majorkernelpanic.streaming.rtsp.RtspServer;
-
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
@@ -57,6 +56,8 @@ class CameraProxy {
     private CameraDevice mCameraDevice;
 
     private CameraCaptureSession mCaptureSession;
+
+    private Surface mPreviewSurface;
 
     private ImageReader mPreviewImageReader;
 
@@ -163,6 +164,10 @@ class CameraProxy {
         success(MessageType.CLOSE);
     }
 
+    public void setPreviewSurface(final Surface previewSurface) {
+        mPreviewSurface = previewSurface;
+    }
+
     public synchronized void createSession() throws CameraAccessException {
         if (mCameraDevice == null) {
             throw new IllegalStateException("camera is not open.");
@@ -179,8 +184,13 @@ class CameraProxy {
         mPhotoImageReader = createImageReader(options.getPictureSize(), ImageFormat.YUV_420_888);
         mPhotoImageReader.setOnImageAvailableListener(mStillImageListener, mBackgroundHandler);
 
-        List<Surface> outputs = new ArrayList<>();
-        outputs.add(mPreviewImageReader.getSurface());
+        List<Surface> outputs = new LinkedList<>();
+        Surface previewSurface = mPreviewSurface;
+        if (previewSurface != null) {
+            outputs.add(previewSurface);
+        } else {
+            outputs.add(mPreviewImageReader.getSurface());
+        }
         outputs.add(mPhotoImageReader.getSurface());
         mCameraDevice.createCaptureSession(outputs, mSessionStateCallback, mBackgroundHandler);
     }
@@ -208,7 +218,12 @@ class CameraProxy {
         }
 
         final CaptureRequest.Builder requestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-        requestBuilder.addTarget(mPreviewImageReader.getSurface());
+        Surface previewSurface = mPreviewSurface;
+        if (previewSurface != null) {
+            requestBuilder.addTarget(mPreviewSurface);
+        } else {
+            requestBuilder.addTarget(mPreviewImageReader.getSurface());
+        }
         requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
         requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
 
@@ -250,6 +265,7 @@ class CameraProxy {
             mPreviewImageReader = null;
         }
         mPreviewRequestBuilder = null;
+        mPreviewSurface = null;
     }
 
     public synchronized void takePicture() throws CameraAccessException {

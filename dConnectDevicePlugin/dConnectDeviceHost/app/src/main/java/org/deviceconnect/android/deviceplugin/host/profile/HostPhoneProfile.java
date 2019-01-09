@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.telecom.TelecomManager;
 import android.util.Log;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
@@ -29,9 +31,11 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.PhoneProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants;
 
 /**
@@ -206,11 +210,119 @@ public class HostPhoneProfile extends PhoneProfile {
         }
     };
 
+    private final DConnectApi mGetCallStateApi = new GetApi() {
+
+        @Override
+        public String getAttribute() {
+            return "callState";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // TODO GET /gotapi/phone/callState 実装
+            return true;
+        }
+    };
+
+    private final DConnectApi mPutOnCallStateChangeApi = new PutApi() {
+
+        @Override
+        public String getAttribute() {
+            return "onCallStateChange";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // TODO PUT /gotapi/phone/onCallStateChange 実装
+            return true;
+        }
+    };
+
+    private final DConnectApi mDeleteOnCallStateChangeApi = new DeleteApi() {
+
+        @Override
+        public String getAttribute() {
+            return "onCallStateChange";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // TODO DELETE /gotapi/phone/onCallStateChange 実装
+            return true;
+        }
+    };
+
+    private final DConnectApi mPostAcceptCallApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return "acceptCall";
+        }
+
+        @SuppressWarnings("MissingPermission")
+        @TargetApi(26)
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // TODO パーミッション確認
+            TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+            telecomMgr.acceptRingingCall();
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    private final DConnectApi mPostRejectCallApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return "rejectCall";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return mPostEndCallApi.onRequest(request, response);
+        }
+    };
+
+    private final DConnectApi mPostEndCallApi = new PostApi() {
+
+        @Override
+        public String getAttribute() {
+            return "endCall";
+        }
+
+        @SuppressWarnings("MissingPermission")
+        @TargetApi(28)
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            // TODO パーミッション確認
+            TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+            telecomMgr.endCall();
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
     public HostPhoneProfile() {
         addApi(mPostCallApi);
         addApi(mPutSetApi);
         addApi(mPutOnConnectApi);
         addApi(mDeleteOnConnectApi);
+
+        addApi(mGetCallStateApi);
+        addApi(mPutOnCallStateChangeApi);
+        addApi(mDeleteOnCallStateChangeApi);
+        if (checkMinSdkVersion(Build.VERSION_CODES.O)) {
+            addApi(mPostAcceptCallApi);
+        }
+        if (checkMinSdkVersion(Build.VERSION_CODES.P)) {
+            addApi(mPostRejectCallApi);
+            addApi(mPostEndCallApi);
+        }
+    }
+
+    private boolean checkMinSdkVersion(final int minLevel) {
+        return Build.VERSION.SDK_INT >= minLevel;
     }
 
     private void onPostCallInternal(final Intent request, final Intent response, final String phoneNumber) {

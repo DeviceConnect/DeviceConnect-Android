@@ -18,13 +18,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.telecom.TelecomManager;
-import android.util.Log;
+import android.telephony.TelephonyManager;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -38,6 +39,10 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
 /**
  * Phoneプロファイル.
  * 
@@ -45,10 +50,59 @@ import org.deviceconnect.profile.PhoneProfileConstants;
  */
 public class HostPhoneProfile extends PhoneProfile {
 
+    private static final String[] PERMISSIONS;
+    static {
+        List<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.CALL_PHONE);
+        permissions.add(Manifest.permission.PROCESS_OUTGOING_CALLS);
+        permissions.add(Manifest.permission.READ_PHONE_STATE);
+        if (checkMinSdkVersion(Build.VERSION_CODES.O)) {
+            permissions.add(Manifest.permission.ANSWER_PHONE_CALLS);
+        }
+        if (checkMinSdkVersion(Build.VERSION_CODES.P)) {
+            permissions.add(Manifest.permission.READ_CALL_LOG);
+        }
+        PERMISSIONS = permissions.toArray(new String[permissions.size()]);
+    }
+
     /**
      * 電話番号のサイズ.
      */
     private static final int MAX_PHONE_NUMBER_SIZE = 13;
+
+    /**
+     * 現在の通話状態.
+     */
+    private CallState mCurrentCallState;
+
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
+
+    private boolean doPrivileged(final Runnable action, final Intent response) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                    PERMISSIONS,
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            action.run();
+                            sendResponse(response);
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            MessageUtils.setIllegalServerStateError(response,
+                                    "CALL_PHONE permission not granted.");
+                            sendResponse(response);
+                        }
+                    });
+            return false;
+        }
+        action.run();
+        return true;
+    }
 
     private final DConnectApi mPostCallApi = new PostApi() {
 
@@ -61,26 +115,12 @@ public class HostPhoneProfile extends PhoneProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             final String phoneNumber = getPhoneNumber(request);
             if (phoneNumber != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
-                        new String[] { Manifest.permission.CALL_PHONE, Manifest.permission.PROCESS_OUTGOING_CALLS },
-                        new PermissionUtility.PermissionRequestCallback() {
-                            @Override
-                            public void onSuccess() {
-                                onPostCallInternal(request, response, phoneNumber);
-                                sendResponse(response);
-                            }
-
-                            @Override
-                            public void onFail(@NonNull String deniedPermission) {
-                                MessageUtils.setIllegalServerStateError(response,
-                                    "CALL_PHONE permission not granted.");
-                                sendResponse(response);
-                            }
-                        });
-                    return false;
-                }
-                onPostCallInternal(request, response, phoneNumber);
+                return doPrivileged(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPostCallInternal(request, response, phoneNumber);
+                    }
+                }, response);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "phoneNumber is invalid.");
             }
@@ -219,7 +259,10 @@ public class HostPhoneProfile extends PhoneProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // TODO GET /gotapi/phone/callState 実装
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            CallState currentState = mCurrentCallState;
+            response.putExtra("state", currentState.getName());
+            response.putExtra("phoneNumber", currentState.getPhoneNumber());
             return true;
         }
     };
@@ -233,8 +276,30 @@ public class HostPhoneProfile extends PhoneProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // TODO PUT /gotapi/phone/onCallStateChange 実装
-            return true;
+            return doPrivileged(new Runnable() {
+                @Override
+                public void run() {
+                    EventError error = EventManager.INSTANCE.addEvent(request);
+                    if (error == EventError.NONE) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        switch (error) {
+                            case FAILED:
+                                MessageUtils.setUnknownError(response, "Do not unregister event.");
+                                break;
+                            case INVALID_PARAMETER:
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                break;
+                            case NOT_FOUND:
+                                MessageUtils.setUnknownError(response, "Event not found.");
+                                break;
+                            default:
+                                MessageUtils.setUnknownError(response);
+                                break;
+                        }
+                    }
+                }
+            }, response);
         }
     };
 
@@ -247,7 +312,25 @@ public class HostPhoneProfile extends PhoneProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // TODO DELETE /gotapi/phone/onCallStateChange 実装
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                switch (error) {
+                    case FAILED:
+                        MessageUtils.setUnknownError(response, "Do not unregister event.");
+                        break;
+                    case INVALID_PARAMETER:
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        break;
+                    case NOT_FOUND:
+                        MessageUtils.setUnknownError(response, "Event not found.");
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response);
+                        break;
+                }
+            }
             return true;
         }
     };
@@ -263,11 +346,14 @@ public class HostPhoneProfile extends PhoneProfile {
         @TargetApi(26)
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // TODO パーミッション確認
-            TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
-            telecomMgr.acceptRingingCall();
-            setResult(response, IntentDConnectMessage.RESULT_OK);
-            return true;
+            return doPrivileged(new Runnable() {
+                @Override
+                public void run() {
+                    TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+                    telecomMgr.acceptRingingCall();
+                    setResult(response, IntentDConnectMessage.RESULT_OK);
+                }
+            }, response);
         }
     };
 
@@ -295,15 +381,23 @@ public class HostPhoneProfile extends PhoneProfile {
         @TargetApi(28)
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            // TODO パーミッション確認
-            TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
-            telecomMgr.endCall();
-            setResult(response, IntentDConnectMessage.RESULT_OK);
-            return true;
+            return doPrivileged(new Runnable() {
+                @Override
+                public void run() {
+                    TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+                    telecomMgr.endCall();
+                    setResult(response, IntentDConnectMessage.RESULT_OK);
+                }
+            }, response);
         }
     };
 
-    public HostPhoneProfile() {
+    /**
+     * コンストラクタ.
+     */
+    public HostPhoneProfile(final TelephonyManager telephonyManager) {
+        mCurrentCallState = detectCurrentCallState(telephonyManager);
+
         addApi(mPostCallApi);
         addApi(mPutSetApi);
         addApi(mPutOnConnectApi);
@@ -321,7 +415,7 @@ public class HostPhoneProfile extends PhoneProfile {
         }
     }
 
-    private boolean checkMinSdkVersion(final int minLevel) {
+    private static boolean checkMinSdkVersion(final int minLevel) {
         return Build.VERSION.SDK_INT >= minLevel;
     }
 
@@ -365,5 +459,114 @@ public class HostPhoneProfile extends PhoneProfile {
         Intent intent = new Intent(Intent.ACTION_CALL, uri);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);
+    }
+
+    public void onNewOutGoingCall(final Intent intent) {
+        mLogger.info("onNewOutGoingCall");
+        String phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
+        CallState nextState = CallState.DIALING;
+        nextState(nextState, phoneNumber);
+
+        sendOnConnectEvent(intent);
+    }
+
+    public void onPhoneStateChanged(final Intent intent) {
+        CallState currentState = mCurrentCallState;
+        String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+        String phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+        mLogger.info("onPhoneStateChanged: state=" + state + " phoneNumber=" + phoneNumber);
+
+        if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
+            nextState(CallState.STANDBY);
+        } else if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state) && phoneNumber != null) {
+            if (currentState == CallState.RINGING || currentState == CallState.DIALING) {
+                nextState(CallState.ACTIVE, phoneNumber);
+            }
+        } else if (TelephonyManager.EXTRA_STATE_RINGING.equals(state) && phoneNumber != null) {
+            nextState(CallState.RINGING, phoneNumber);
+        }
+    }
+
+    private void nextState(final CallState nextState, final String phoneNumber) {
+        mLogger.info("nextState: " + nextState.getName() + " - " + phoneNumber);
+        nextState.setPhoneNumber(phoneNumber);
+        mCurrentCallState = nextState;
+        sendOnCallStateChangeEvent(nextState, phoneNumber);
+    }
+
+    private void nextState(final CallState nextState) {
+        nextState(nextState, "");
+    }
+
+    private void sendOnCallStateChangeEvent(final CallState state, final String phoneNumber) {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, "phone", null,
+                "onCallStateChange");
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent intent = EventManager.createEventMessage(event);
+            HostPhoneProfile.setAttribute(intent, "onCallStateChange");
+            intent.putExtra("state", state.getName());
+            intent.putExtra("phoneNumber", phoneNumber);
+            sendEvent(intent, event.getAccessToken());
+        }
+    }
+
+    private void sendOnConnectEvent(final Intent intent) {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, HostPhoneProfile.PROFILE_NAME, null,
+                HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent mIntent = EventManager.createEventMessage(event);
+            HostPhoneProfile.setAttribute(mIntent, HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
+            Bundle phoneStatus = new Bundle();
+            HostPhoneProfile.setPhoneNumber(phoneStatus, intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER));
+            HostPhoneProfile.setState(phoneStatus, PhoneProfileConstants.CallState.START);
+            HostPhoneProfile.setPhoneStatus(mIntent, phoneStatus);
+            sendEvent(mIntent, event.getAccessToken());
+        }
+    }
+
+    private CallState detectCurrentCallState(final TelephonyManager telephonyManager) {
+        int state = telephonyManager.getCallState();
+        switch (state) {
+            case TelephonyManager.CALL_STATE_IDLE:
+                return CallState.STANDBY;
+            case TelephonyManager.CALL_STATE_RINGING:
+                return CallState.RINGING;
+            case TelephonyManager.CALL_STATE_OFFHOOK:
+            default:
+                return CallState.UNKNOWN;
+        }
+    }
+
+    private enum CallState {
+
+        STANDBY("standby"),
+        RINGING("ringing"),
+        DIALING("dialing"),
+        ACTIVE("active"),
+        ON_HOLD("on-hold"),
+        UNKNOWN("unknown");
+
+        private final String mName;
+        private String mPhoneNumber;
+
+        CallState(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public String getPhoneNumber() {
+            return mPhoneNumber;
+        }
+
+        public void setPhoneNumber(String phoneNumber) {
+            mPhoneNumber = phoneNumber;
+        }
     }
 }

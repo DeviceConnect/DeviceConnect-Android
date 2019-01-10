@@ -15,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.BuildConfig;
+import android.telephony.TelephonyManager;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
@@ -48,7 +49,6 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -84,12 +84,24 @@ public class HostDeviceService extends DConnectMessageService {
 
     /** レコーダ管理クラス. */
     private HostDeviceRecorderManager mRecorderMgr;
+
+    /**
+     * Phone プロファイルの実装.
+     */
+    private HostPhoneProfile mPhoneProfile;
+
+    /**
+     * ブロードキャストレシーバー.
+     */
     private final BroadcastReceiver mHostConnectionReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
+            mLogger.info("onReceived: action=" + action);
             if (Intent.ACTION_NEW_OUTGOING_CALL.equals(action)) {
                 onReceivedOutGoingCall(intent);
+            } else if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
+                onReceivedPhoneStateChanged(intent);
             } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
                     || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
                 onChangedWifiStatus();
@@ -130,7 +142,8 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostKeyEventProfile());
         hostService.addProfile(new HostMediaPlayerProfile(mHostMediaPlayerManager));
         hostService.addProfile(new HostNotificationProfile());
-        hostService.addProfile(new HostPhoneProfile());
+        mPhoneProfile = new HostPhoneProfile((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
+        hostService.addProfile(mPhoneProfile);
         hostService.addProfile(new HostSettingProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
@@ -157,6 +170,7 @@ public class HostDeviceService extends DConnectMessageService {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_NEW_OUTGOING_CALL);
+        filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
@@ -285,19 +299,11 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private void onReceivedOutGoingCall(final Intent intent) {
-        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostPhoneProfile.PROFILE_NAME, null,
-                HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
+        mPhoneProfile.onNewOutGoingCall(intent);
+    }
 
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            Intent mIntent = EventManager.createEventMessage(event);
-            HostPhoneProfile.setAttribute(mIntent, HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
-            Bundle phoneStatus = new Bundle();
-            HostPhoneProfile.setPhoneNumber(phoneStatus, intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER));
-            HostPhoneProfile.setState(phoneStatus, CallState.START);
-            HostPhoneProfile.setPhoneStatus(mIntent, phoneStatus);
-            sendEvent(mIntent, event.getAccessToken());
-        }
+    private void onReceivedPhoneStateChanged(final Intent intent) {
+        mPhoneProfile.onPhoneStateChanged(intent);
     }
 
     private WifiManager getWifiManager() {

@@ -39,8 +39,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements HostDevicePhotoRecorder {
 
@@ -57,12 +55,12 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     /**
      * カメラターゲットIDの定義.
      */
-    private static final String ID_BASE = "photo";
+    private static final String ID_BASE = "camera";
 
     /**
      * カメラ名の定義.
      */
-    private static final String NAME_BASE = "Photo Camera";
+    private static final String NAME_BASE = "Camera";
 
     /**
      * ファイル名に付けるプレフィックス.
@@ -116,7 +114,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
      */
     private final Camera2MJPEGPreviewServer mMjpegServer;
 
-    private final CameraProxy mCameraProxy;
+    private final CameraWrapper mCameraWrapper;
 
     private HandlerThread mPreviewThread = new HandlerThread("preview");
 
@@ -132,136 +130,51 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
                                 final @NonNull String cameraId,
                                 final @NonNull FileManager fileManager) {
         super(context, cameraId);
-        mCameraProxy = new CameraProxy(context, cameraId);
+        mCameraWrapper = new CameraWrapper(context, cameraId);
         mPreviewThread.start();
         mPhotoThread.start();
         mFileManager = fileManager;
 
         mMjpegServer = new Camera2MJPEGPreviewServer(this);
-        mMjpegServer.setPreviewServerListener(new Camera2MJPEGPreviewServer.PreviewServerListener() {
-            @Override
-            public boolean onAccept() {
-                boolean result = onAcceptPreviewRequest();
-                if (DEBUG) {
-                    Log.d(TAG, "Started preview.");
-                }
-                return result;
-            }
-
-            @Override
-            public void onStart() {
-            }
-
-            @Override
-            public void onStop() {
-                stopPreview();
-            }
-        });
-        mPreviewServers.add(mMjpegServer);
-
         Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
+        mPreviewServers.add(mMjpegServer);
         mPreviewServers.add(rtspServer);
     }
 
-    private CameraProxy getCameraProxy() {
-        return mCameraProxy;
-    }
-
-    private void releaseCameraProxy(final CameraProxy camera) {
-        camera.release();
-    }
-
-    public void setPreviewSurface(final Surface previewSurface) {
-        mCameraProxy.setPreviewSurface(previewSurface);
+    CameraWrapper getCameraWrapper() {
+        return mCameraWrapper;
     }
 
     @Override
     public void takePhoto(final @NonNull OnPhotoEventListener listener) {
-        final CameraProxy camera = getCameraProxy();
-        final Handler handler = new Handler(mPhotoThread.getLooper()) {
-            @Override
-            public void handleMessage(final Message msg) {
-                try {
-                    switch (msg.what) {
-                        case CameraProxy.MessageType.HELLO:
-                            camera.open();
-                            break;
-                        case CameraProxy.MessageType.OPEN:
-                            if (DEBUG) {
-                                Log.d(TAG, "takePhoto: OPEN");
-                            }
-                            camera.createSession();
-                            break;
-                        case CameraProxy.MessageType.CREATE_SESSION:
-                            if (DEBUG) {
-                                Log.d(TAG, "takePhoto: CREATE_SESSION");
-                            }
-                            camera.startPreview();
-                            break;
-                        case CameraProxy.MessageType.START_PREVIEW:
-                            if (DEBUG) {
-                                Log.d(TAG, "takePhoto: START_PREVIEW");
-                            }
-                            camera.autoFocus();
-                            break;
-                        case CameraProxy.MessageType.AUTO_FOCUS:
-                            if (DEBUG) {
-                                Log.d(TAG, "takePhoto: AUTO_FOCUS");
-                            }
-                            camera.autoExposure();
-                            break;
-                        case CameraProxy.MessageType.AUTO_EXPOSURE:
-                            if (DEBUG) {
-                                Log.d(TAG, "takePhoto: AUTO_EXPOSURE");
-                            }
-                            camera.takePicture();
-                            break;
-                        case CameraProxy.MessageType.TAKE_PICTURE:
-                            if (DEBUG) {
-                                Log.d(TAG, "takePhoto: TAKE_PICTURE");
-                            }
-                            Image photo = (Image) msg.obj;
-                            if (photo == null) {
-                                releaseCameraProxy(camera);
-                                listener.onFailedTakePhoto("Failed to access image.");
-                                return;
-                            }
-                            storePhoto(photo, listener);
-                            photo.close();
-                            if (mIsPreviewStarted) {
-                                camera.startPreview();
-                            } else {
-                                camera.destroy();
-                            }
-                            releaseCameraProxy(camera);
-                            break;
-                        default:
-                            break;
+        try {
+            final CameraWrapper camera = getCameraWrapper();
+            final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.YUV_420_888);
+            stillImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+                @Override
+                public void onImageAvailable(final ImageReader reader) {
+                    Image photo = reader.acquireNextImage();
+                    if (photo == null) {
+                        listener.onFailedTakePhoto("Failed to acquire image.");
+                        return;
                     }
-                } catch (CameraAccessException e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to take photo.", e);
-                    }
-                    releaseCameraProxy(camera);
-                    listener.onFailedTakePhoto("Failed to take photo.");
+                    storePhoto(photo, listener);
+                    photo.close();
                 }
-            }
-        };
-        final Handler errorHandler = new Handler(mPhotoThread.getLooper()) {
-            @Override
-            public void handleMessage(final Message msg) {
-                releaseCameraProxy(camera);
-                listener.onFailedTakePhoto("Failed to take photo.");
-            }
-        };
-        camera.start(handler, errorHandler);
+            }, new Handler(mPhotoThread.getLooper()));
+
+            camera.takeStillImage(stillImageReader.getSurface());
+        } catch (CameraException e) {
+            Log.e(TAG, "Failed to take photo.", e);
+            listener.onFailedTakePhoto("Failed to take photo.");
+        }
     }
 
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
         int width = image.getWidth();
         int height = image.getHeight();
-        byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
-        byte[] rotated = rotateJPEG(jpeg, width, height, 50);
+        byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 80);
+        byte[] rotated = rotateJPEG(jpeg, width, height, 80);
 
         // ファイル保存
         mFileManager.saveFile(createNewFileName(), rotated, true, new FileManager.SaveFileCallback() {
@@ -286,7 +199,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         });
     }
 
-    private byte[] rotateJPEG(final byte[] jpeg, int width, int height, int quality) {
+    byte[] rotateJPEG(final byte[] jpeg, int width, int height, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
 
         //Log.d(TAG, "bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight() + " width=" + width + " height=" + height);
@@ -383,106 +296,14 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
-    public boolean onAcceptPreviewRequest() {
-        final CountDownLatch lock = new CountDownLatch(1);
-        final Boolean[] result = new Boolean[1];
-        startPreview(new PreviewCallback() {
-            @Override
-            public void onStart() {
-                result[0] = true;
-                lock.countDown();
-            }
-
-            @Override
-            public void onError() {
-                result[0] = false;
-                lock.countDown();
-            }
-        });
-        try {
-            lock.await(10 * 1000, TimeUnit.MILLISECONDS);
-            if (result[0] == null) {
-                return false;
-            }
-            return result[0];
-        } catch (InterruptedException e) {
-            return false;
-        }
+    void startPreview(final Surface previewSurface) throws CameraException {
+        CameraWrapper camera = getCameraWrapper();
+        camera.startPreview(previewSurface);
     }
 
-    private ImageReader.OnImageAvailableListener mPreviewListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(final ImageReader reader) {
-            // ビットマップ取得
-            final Image image = reader.acquireNextImage();
-            if (image == null || image.getPlanes() == null) {
-                return;
-            }
-            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-            byte[] jpeg = new byte[buffer.remaining()];
-            buffer.get(jpeg);
-            byte[] rotated = rotateJPEG(jpeg, image.getHeight(), image.getWidth(), 100); // NOTE: swap width and height.
-            image.close();
-
-            mMjpegServer.offerMedia(rotated);
-        }
-    };
-
-    interface PreviewCallback {
-        void onStart();
-        void onError();
-    }
-
-    private boolean mIsPreviewStarted;
-
-    void startPreview(final @NonNull PreviewCallback callback) {
-        final CameraProxy camera = getCameraProxy();
-        camera.setPreviewListener(mPreviewListener);
-        final Handler handler = new Handler(mPreviewThread.getLooper()) {
-            @Override
-            public void handleMessage(final Message msg) {
-                try {
-                    switch (msg.what) {
-                        case CameraProxy.MessageType.HELLO:
-                            camera.open();
-                            break;
-                        case CameraProxy.MessageType.OPEN:
-                            camera.createSession();
-                            break;
-                        case CameraProxy.MessageType.CREATE_SESSION:
-                            camera.startPreview();
-                            break;
-                        case CameraProxy.MessageType.START_PREVIEW:
-                            mIsPreviewStarted = true;
-                            releaseCameraProxy(camera);
-                            callback.onStart();
-                            break;
-                        default:
-                            break;
-                    }
-                } catch (CameraAccessException e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to take photo.", e);
-                    }
-                    releaseCameraProxy(camera);
-                    callback.onError();
-                }
-            }
-        };
-        final Handler errorHandler = new Handler(mPreviewThread.getLooper()) {
-            @Override
-            public void handleMessage(final Message msg) {
-                releaseCameraProxy(camera);
-                callback.onError();
-            }
-        };
-        camera.start(handler, errorHandler);
-    }
-
-    void stopPreview() {
-        CameraProxy camera = getCameraProxy();
+    void stopPreview() throws CameraException {
+        CameraWrapper camera = getCameraWrapper();
         camera.stopPreview();
-        mIsPreviewStarted = false;
     }
 
     @Override
@@ -490,63 +311,30 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
         return mFacing == CameraFacing.BACK;
     }
 
-    private ImageReader mDummyImageReader;
-
     @Override
     public void turnOnFlashLight() {
-        final CameraProxy camera = getCameraProxy();
-        final Handler handler = new Handler(mPhotoThread.getLooper()) {
-            @Override
-            public void handleMessage(final Message msg) {
-                try {
-                    switch (msg.what) {
-                        case CameraProxy.MessageType.HELLO:
-                            camera.open();
-                            break;
-                        case CameraProxy.MessageType.OPEN:
-                            camera.createSession();
-                            break;
-                        case CameraProxy.MessageType.CREATE_SESSION:
-                            camera.startPreview();
-                            break;
-                        case CameraProxy.MessageType.START_PREVIEW:
-                            camera.turnOnTorch();
-                            break;
-                        default:
-                            break;
-                    }
-                } catch (CameraAccessException e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to take photo.", e);
-                    }
-                    releaseCameraProxy(camera);
-                }
-            }
-        };
-        final Handler errorHandler = new Handler(mPhotoThread.getLooper()) {
-            @Override
-            public void handleMessage(final Message msg) {
-                releaseCameraProxy(camera);
-            }
-        };
-        camera.start(handler, errorHandler);
+        try {
+            CameraWrapper camera = getCameraWrapper();
+            camera.turnOnTorch();
+        } catch (CameraException e) {
+            Log.e(TAG, "Failed to turn on flash light.", e);
+        }
     }
 
     @Override
     public void turnOffFlashLight() {
-        final CameraProxy camera = getCameraProxy();
+        CameraWrapper camera = getCameraWrapper();
         camera.turnOffTorch();
-        releaseCameraProxy(camera);
     }
 
     @Override
     public boolean isFlashLightState() {
-        return mCameraProxy.isTorchOn();
+        return mCameraWrapper.isTorchOn();
     }
 
     @Override
     public boolean isUseFlashLight() {
-        return mCameraProxy.isUseTorch();
+        return mCameraWrapper.isUseTorch();
     }
 
     @Override
@@ -582,24 +370,24 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
 
     @Override
     public PictureSize getPictureSize() {
-        return new PictureSize(mCameraProxy.getOptions().getPictureSize());
+        return new PictureSize(getCameraWrapper().getOptions().getPictureSize());
     }
 
     @Override
     public void setPictureSize(final PictureSize size) {
         Size newSize = new Size(size.getWidth(), size.getHeight());
-        mCameraProxy.getOptions().setPictureSize(newSize);
+        mCameraWrapper.getOptions().setPictureSize(newSize);
     }
 
     @Override
     public PictureSize getPreviewSize() {
-        return new PictureSize(mCameraProxy.getOptions().getPreviewSize());
+        return new PictureSize(mCameraWrapper.getOptions().getPreviewSize());
     }
 
     @Override
     public void setPreviewSize(final PictureSize size) {
         Size newSize = new Size(size.getWidth(), size.getHeight());
-        mCameraProxy.getOptions().setPreviewSize(newSize);
+        mCameraWrapper.getOptions().setPreviewSize(newSize);
     }
 
     @Override
@@ -625,7 +413,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     @Override
     public List<PictureSize> getSupportedPictureSizes() {
         List<PictureSize> result = new ArrayList<>();
-        for (Size size : mCameraProxy.getOptions().getSupportedPictureSizeList()) {
+        for (Size size : mCameraWrapper.getOptions().getSupportedPictureSizeList()) {
             result.add(new PictureSize(size));
         }
         return result;
@@ -634,7 +422,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     @Override
     public List<PictureSize> getSupportedPreviewSizes() {
         List<PictureSize> result = new ArrayList<>();
-        for (Size size : mCameraProxy.getOptions().getSupportedPreviewSizeList()) {
+        for (Size size : mCameraWrapper.getOptions().getSupportedPreviewSizeList()) {
             result.add(new PictureSize(size));
         }
         return result;

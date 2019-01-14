@@ -69,12 +69,6 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         mRecorder = recorder;
     }
 
-    interface PreviewServerListener {
-        Session onAccept() throws Exception;
-        void onStart();
-        void onStop();
-    }
-
     @Override
     public String getMimeType() {
         return MIME_TYPE;
@@ -212,24 +206,13 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mHandler);
             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
             intervals = (long)(1000f / mQuality.framerate);
-            HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
-            HostDeviceRecorder.PictureSize resolutionSize = new HostDeviceRecorder.PictureSize(previewSize.getWidth(), previewSize.getWidth());
-            if (resolutionSize.getWidth() < previewSize.getHeight()) {
-                resolutionSize = new HostDeviceRecorder.PictureSize(previewSize.getHeight(), previewSize.getHeight());
+
+            try {
+                mRecorder.startPreview(mSourceSurface);
+                Log.d(TAG, "Started camera preview.");
+            } catch (CameraException e) {
+                Log.e(TAG, "Failed to start camera preview.", e);
             }
-
-            mRecorder.setPreviewSurface(mSourceSurface);
-            mRecorder.startPreview(new Camera2PhotoRecorder.PreviewCallback() {
-                @Override
-                public void onStart() {
-                    Log.d(TAG, "Started camera preview.");
-                }
-
-                @Override
-                public void onError() {
-                    Log.e(TAG, "Failed to start camera preview.");
-                }
-            });
 
             // 録画タスクを起床
             queueEvent(mDrawTask);
@@ -253,7 +236,11 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                 mEncoderSurface.release();
                 mEncoderSurface = null;
             }
-            mRecorder.stopPreview();
+            try {
+                mRecorder.stopPreview();
+            } catch (CameraException e) {
+                Log.e(TAG, "Failed to stop camera preview.", e);
+            }
             makeCurrent();
         }
 

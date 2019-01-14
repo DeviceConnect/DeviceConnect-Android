@@ -6,48 +6,86 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
+import android.graphics.ImageFormat;
+import android.media.Image;
+import android.media.ImageReader;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
+
+import java.nio.ByteBuffer;
 
 
 class Camera2MJPEGPreviewServer implements PreviewServer {
 
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final String TAG = "host.dplugin";
+
     private static final String MIME_TYPE = "video/x-mjpeg";
 
-    private final AbstractPreviewServerProvider mServerProvider;
+    private final Camera2PhotoRecorder mRecorder;
 
     private final Object mLockObj = new Object();
 
     private MixedReplaceMediaServer mServer;
 
-    private PreviewServerListener mPreviewServerListener;
+    private ImageReader mPreviewReader;
+
+    private HandlerThread mPreviewThread;
+
+    private Handler mPreviewHandler;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
         @Override
         public boolean onAccept() {
-            if (mPreviewServerListener != null) {
-                return mPreviewServerListener.onAccept();
+            try {
+                if (DEBUG) {
+                    Log.d(TAG, "MediaServerCallback.onAccept: recorder=" + mRecorder.getName());
+                }
+                CameraWrapper camera = mRecorder.getCameraWrapper();
+                mPreviewReader = camera.createPreviewReader(ImageFormat.JPEG);
+                mPreviewReader.setOnImageAvailableListener(mPreviewListener, mPreviewHandler);
+                mRecorder.startPreview(mPreviewReader.getSurface());
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start preview.", e);
+                return false;
             }
-            return false;
         }
     };
 
-    interface PreviewServerListener {
-        boolean onAccept();
-        void onStart();
-        void onStop();
-    }
+    private ImageReader.OnImageAvailableListener mPreviewListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(final ImageReader reader) {
+            try {
+                // ビットマップ取得
+                final Image image = reader.acquireNextImage();
+                if (image == null || image.getPlanes() == null) {
+                    return;
+                }
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] jpeg = new byte[buffer.remaining()];
+                buffer.get(jpeg);
+                byte[] rotated = mRecorder.rotateJPEG(jpeg, image.getHeight(), image.getWidth(), 100); // NOTE: swap width and height.
+                image.close();
+
+                offerMedia(rotated);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to send preview frame.", e);
+            }
+        }
+    };
 
     Camera2MJPEGPreviewServer(final Camera2PhotoRecorder recorder) {
-        mServerProvider = recorder;
+        mRecorder = recorder;
     }
 
-    void setPreviewServerListener(final PreviewServerListener listener) {
-        mPreviewServerListener = listener;
-    }
-
-    void offerMedia(final byte[] jpeg) {
+    private void offerMedia(final byte[] jpeg) {
         MixedReplaceMediaServer server = mServer;
         if (server != null) {
             server.offerMedia(jpeg);
@@ -62,6 +100,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         synchronized (mLockObj) {
+            mPreviewThread = new HandlerThread("MotionJPEG");
+            mPreviewThread.start();
+            mPreviewHandler = new Handler(mPreviewThread.getLooper());
+
             final String uri;
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
@@ -69,10 +111,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 mServer.setContentType("image/jpg");
                 mServer.setCallback(mMediaServerCallback);
                 uri = mServer.start();
-
-                if (mPreviewServerListener != null) {
-                    mPreviewServerListener.onStart();
-                }
             } else {
                 uri = mServer.getUrl();
             }
@@ -87,11 +125,24 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 mServer.stop();
                 mServer = null;
             }
-            mServerProvider.hideNotification();
 
-            if (mPreviewServerListener != null) {
-                mPreviewServerListener.onStop();
+            CameraWrapper camera = mRecorder.getCameraWrapper();
+            if (camera != null) {
+                try {
+                    camera.stopPreview();
+                } catch (CameraException e) {
+                    Log.e(TAG, "Failed to stop preview.", e);
+                }
             }
+            if (mPreviewReader != null) {
+                mPreviewReader.close();
+                mPreviewReader = null;
+            }
+            mPreviewThread.quit();
+            mPreviewThread = null;
+            mPreviewHandler = null;
+
+            mRecorder.hideNotification();
         }
     }
 }

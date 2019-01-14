@@ -37,9 +37,11 @@ class CameraProxy {
         static final int CLOSE = 2;
         static final int START_PREVIEW = 3;
         static final int STOP_PREVIEW = 4;
-        static final int AUTO_FOCUS = 5;
-        static final int AUTO_EXPOSURE = 6;
-        static final int TAKE_PICTURE = 7;
+        static final int START_RECORDING = 5;
+        static final int STOP_RECORDING = 6;
+        static final int AUTO_FOCUS = 7;
+        static final int AUTO_EXPOSURE = 8;
+        static final int TAKE_PICTURE = 9;
         static final int CREATE_SESSION = 10;
     }
 
@@ -58,6 +60,8 @@ class CameraProxy {
     private CameraCaptureSession mCaptureSession;
 
     private Surface mPreviewSurface;
+
+    private Surface mVideoSurface;
 
     private ImageReader mPreviewImageReader;
 
@@ -85,6 +89,12 @@ class CameraProxy {
     private final String mCameraId;
 
     private final Options mOptions = new Options();
+
+    private boolean mIsTouchOn;
+
+    private boolean mUseTouch;
+
+    private CaptureRequest.Builder mPreviewRequestBuilder;
 
     CameraProxy(final Context context, final String cameraId) {
         mBackgroundThread.start();
@@ -168,38 +178,45 @@ class CameraProxy {
         mPreviewSurface = previewSurface;
     }
 
+    public void setVideoSurface(final Surface videoSurface) {
+        mVideoSurface = videoSurface;
+    }
+
+    public void setPhotoImageReader(ImageReader photoImageReader) {
+        mPhotoImageReader = photoImageReader;
+    }
+
     public synchronized void createSession() throws CameraAccessException {
         if (mCameraDevice == null) {
             throw new IllegalStateException("camera is not open.");
+        }
+        if (mPhotoImageReader == null && mPreviewImageReader == null) {
+            throw new IllegalStateException("No reader is not set.");
         }
         if (mCaptureSession != null) {
             success(MessageType.CREATE_SESSION);
             return;
         }
 
-        Options options = mOptions;
-        mPreviewImageReader = createImageReader(options.getPreviewSize(), ImageFormat.JPEG);
-        mPreviewImageReader.setOnImageAvailableListener(mPreviewListener, mBackgroundHandler);
-
-        mPhotoImageReader = createImageReader(options.getPictureSize(), ImageFormat.YUV_420_888);
-        mPhotoImageReader.setOnImageAvailableListener(mStillImageListener, mBackgroundHandler);
+        if (mPreviewImageReader != null) {
+            mPreviewImageReader.setOnImageAvailableListener(mPreviewListener, mBackgroundHandler);
+        }
 
         List<Surface> outputs = new LinkedList<>();
-        Surface previewSurface = mPreviewSurface;
-        if (previewSurface != null) {
-            outputs.add(previewSurface);
-        } else {
+        if (mPreviewSurface != null) {
+            outputs.add(mPreviewSurface);
+        } else if (mPreviewImageReader != null) {
             outputs.add(mPreviewImageReader.getSurface());
         }
-        outputs.add(mPhotoImageReader.getSurface());
+        if (mPhotoImageReader != null) {
+            outputs.add(mPhotoImageReader.getSurface());
+        }
         mCameraDevice.createCaptureSession(outputs, mSessionStateCallback, mBackgroundHandler);
     }
 
     public void setPreviewListener(final ImageReader.OnImageAvailableListener listener) {
         mPreviewListener = listener;
     }
-
-    private CaptureRequest.Builder mPreviewRequestBuilder;
 
     public synchronized void startPreview() throws CameraAccessException {
         if (mPreviewRequestBuilder != null) {
@@ -213,9 +230,6 @@ class CameraProxy {
         if (mCaptureSession == null) {
             throw new IllegalStateException("capture session is not created.");
         }
-        if (mPreviewImageReader == null) {
-            throw new IllegalStateException("surface is not created.");
-        }
 
         final CaptureRequest.Builder requestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
         Surface previewSurface = mPreviewSurface;
@@ -226,6 +240,7 @@ class CameraProxy {
         }
         requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
         requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+        mPreviewRequestBuilder = requestBuilder;
 
         CaptureRequest request = requestBuilder.build();
         mCaptureSession.setRepeatingRequest(request, new CameraCaptureSession.CaptureCallback() {
@@ -236,7 +251,6 @@ class CameraProxy {
             public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
                 if (mIsFirstFrame) {
                     mIsFirstFrame = false;
-                    mPreviewRequestBuilder = requestBuilder;
                     success(MessageType.START_PREVIEW);
                 }
             }
@@ -244,6 +258,53 @@ class CameraProxy {
     }
 
     public synchronized void stopPreview() {
+        destroy();
+    }
+
+    private CaptureRequest.Builder mRepeatingRequestBuilder;
+
+    public synchronized void startRecording() throws CameraAccessException {
+        if (mCameraDevice == null) {
+            throw new IllegalStateException("camera is not open.");
+        }
+        if (mCaptureSession == null) {
+            throw new IllegalStateException("capture session is not created.");
+        }
+        Surface videoSurface = mVideoSurface;
+        if (videoSurface == null) {
+            throw new IllegalStateException("surface for video recording is not set.");
+        }
+
+        final CaptureRequest.Builder requestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+        requestBuilder.addTarget(videoSurface);
+        Surface previewSurface = mPreviewSurface;
+        if (previewSurface != null) {
+            requestBuilder.addTarget(mPreviewSurface);
+        } else {
+            requestBuilder.addTarget(mPreviewImageReader.getSurface());
+        }
+        requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+        requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+        mRepeatingRequestBuilder = requestBuilder;
+
+        CaptureRequest request = requestBuilder.build();
+        mCaptureSession.setRepeatingRequest(request, new CameraCaptureSession.CaptureCallback() {
+
+            private boolean mIsFirstFrame = true;
+
+            @Override
+            public void onCaptureStarted(final @NonNull CameraCaptureSession session,
+                                         final @NonNull CaptureRequest request,
+                                         final long timestamp, final long frameNumber) {
+                if (mIsFirstFrame) {
+                    mIsFirstFrame = false;
+                    success(MessageType.START_RECORDING);
+                }
+            }
+        }, mBackgroundHandler);
+    }
+
+    public void stopRecording() {
         destroy();
     }
 
@@ -398,9 +459,6 @@ class CameraProxy {
         }, mBackgroundHandler);
     }
 
-    private boolean mIsTouchOn;
-    private boolean mUseTouch;
-
     public synchronized void turnOnTorch() throws CameraAccessException {
         if (mIsTouchOn) {
             return;
@@ -463,10 +521,6 @@ class CameraProxy {
             error(MessageType.CREATE_SESSION);
         }
     };
-
-    private ImageReader createImageReader(final Size pictureSize, final int format) {
-        return Camera2Helper.createImageReader(pictureSize.getWidth(), pictureSize.getHeight(), format);
-    }
 
     public Options getOptions() {
         return mOptions;

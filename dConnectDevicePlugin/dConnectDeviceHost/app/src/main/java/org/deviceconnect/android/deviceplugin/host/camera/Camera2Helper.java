@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -27,6 +27,8 @@ import java.util.List;
 
 /**
  * カメラ操作を行うためのユーティリティクラス.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public final class Camera2Helper {
     private Camera2Helper() {}
@@ -38,7 +40,7 @@ public final class Camera2Helper {
      * @param cameraId カメラID
      * @return カメラの取り付けられた向き
      */
-    static int getSensorOrientation(final CameraManager cameraManager, final String cameraId) {
+    public static int getSensorOrientation(final CameraManager cameraManager, final String cameraId) {
         try {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             Integer sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
@@ -79,7 +81,7 @@ public final class Camera2Helper {
      * @return カメラID
      * @throws CameraAccessException カメラの操作に失敗した場合に発生
      */
-    static String getCameraId(final CameraManager cameraManager, final int facing) throws CameraAccessException {
+    public static String getCameraId(final CameraManager cameraManager, final int facing) throws CameraAccessException {
         for (String cameraId : cameraManager.getCameraIdList()) {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             Integer supportFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
@@ -98,7 +100,7 @@ public final class Camera2Helper {
      * @return サポートしているプレビューサイズのリスト
      */
     @NonNull
-    static List<Size> getSupportedPreviewSizes(final CameraManager cameraManager, final String cameraId) {
+    public static List<Size> getSupportedPreviewSizes(final CameraManager cameraManager, final String cameraId) {
         List<Size> previewSizes = new ArrayList<>();
         try {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
@@ -121,7 +123,7 @@ public final class Camera2Helper {
      * @return サポートしている写真サイズのリスト
      */
     @NonNull
-    static List<Size> getSupportedPictureSizes(final CameraManager cameraManager, final String cameraId) {
+    public static List<Size> getSupportedPictureSizes(final CameraManager cameraManager, final String cameraId) {
         List<Size> pictureSizes = new ArrayList<>();
         try {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
@@ -144,7 +146,7 @@ public final class Camera2Helper {
      * @param imageFormat 写真のフォーマット
      * @return ImageReader のインスタンス
      */
-    static ImageReader createImageReader(final int width, final int height, final int imageFormat) {
+    public static ImageReader createImageReader(final int width, final int height, final int imageFormat) {
         return ImageReader.newInstance(height, width, imageFormat, 1);
     }
 
@@ -154,7 +156,7 @@ public final class Camera2Helper {
      * @param context コンテキスト
      * @return スクリーンの向き
      */
-    static int getScreenOrientation(final Context context) {
+    public static int getScreenOrientation(final Context context) {
         return context.getResources().getConfiguration().orientation;
     }
 
@@ -164,7 +166,7 @@ public final class Camera2Helper {
      * @param context コンテキスト
      * @return 画面の向き
      */
-    static int getDisplayRotation(final Context context) {
+    public static int getDisplayRotation(final Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         return wm == null ? 0 : wm.getDefaultDisplay().getRotation();
     }
@@ -175,7 +177,7 @@ public final class Camera2Helper {
      * @param context コンテキスト
      * @return 画面の向き
      */
-    static int getDisplayRotation2(final Context context) {
+    public static int getDisplayRotation2(final Context context) {
         switch (getDisplayRotation(context)) {
             default:
             case Surface.ROTATION_0:

@@ -12,12 +12,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Camera;
+import android.hardware.camera2.CameraAccessException;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.BuildConfig;
 import android.telephony.TelephonyManager;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
@@ -82,6 +85,9 @@ public class HostDeviceService extends DConnectMessageService {
     /** メディアプレイヤー管理クラス. */
     private HostMediaPlayerManager mHostMediaPlayerManager;
 
+    /** カメラ管理クラス. */
+    private CameraWrapperManager mCameraWrapperManager;
+
     /** レコーダ管理クラス. */
     private HostDeviceRecorderManager mRecorderMgr;
 
@@ -126,8 +132,9 @@ public class HostDeviceService extends DConnectMessageService {
         mHostBatteryManager = new HostBatteryManager(this);
         mHostBatteryManager.getBatteryInfo();
 
+        mCameraWrapperManager = new CameraWrapperManager(this);
         mRecorderMgr = new HostDeviceRecorderManager(this);
-        mRecorderMgr.createRecorders(mFileMgr);
+        mRecorderMgr.createRecorders(mCameraWrapperManager, mFileMgr);
         mRecorderMgr.start();
 
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);

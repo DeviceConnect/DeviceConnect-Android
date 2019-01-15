@@ -23,6 +23,7 @@ import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
 import net.majorkernelpanic.streaming.video.SurfaceH264Stream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
 
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 
@@ -210,7 +211,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             try {
                 mRecorder.startPreview(mSourceSurface);
                 Log.d(TAG, "Started camera preview.");
-            } catch (CameraException e) {
+            } catch (CameraWrapperException e) {
                 Log.e(TAG, "Failed to start camera preview.", e);
             }
 
@@ -238,7 +239,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             }
             try {
                 mRecorder.stopPreview();
-            } catch (CameraException e) {
+            } catch (CameraWrapperException e) {
                 Log.e(TAG, "Failed to stop camera preview.", e);
             }
             makeCurrent();

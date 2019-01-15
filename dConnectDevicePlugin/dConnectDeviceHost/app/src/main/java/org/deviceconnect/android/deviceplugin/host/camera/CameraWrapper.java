@@ -1,4 +1,10 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+/*
+ CameraWrapper.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
+package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -28,6 +34,11 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * カメラ操作クラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @SuppressWarnings("MissingPermission")
 public class CameraWrapper {
 
@@ -41,7 +52,11 @@ public class CameraWrapper {
 
     private final HandlerThread mBackgroundThread = new HandlerThread("background");
 
+    private final HandlerThread mSessionConfigurationThread = new HandlerThread("session-config");
+
     private final Handler mBackgroundHandler;
+
+    private final Handler mSessionConfigurationHandler;
 
     private final ImageReader mDummyPreviewReader;
 
@@ -72,6 +87,8 @@ public class CameraWrapper {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        mSessionConfigurationThread.start();
+        mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
         mOptions = initOptions();
 
         mDummyPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.JPEG);
@@ -86,12 +103,25 @@ public class CameraWrapper {
         }, mBackgroundHandler);
     }
 
+    public String getId() {
+        return mCameraId;
+    }
+
     public synchronized void destroy() {
+        close();
+        mBackgroundThread.quit();
+        mSessionConfigurationThread.quit();
+    }
+
+    private void close() {
+        if (mCaptureSession != null) {
+            mCaptureSession.close();
+            mCaptureSession = null;
+        }
         if (mCameraDevice != null) {
             mCameraDevice.close();
             mCameraDevice = null;
         }
-        mBackgroundThread.quit();
     }
 
     public Options getOptions() {
@@ -131,7 +161,7 @@ public class CameraWrapper {
         return options;
     }
 
-    private synchronized CameraDevice openCamera() throws CameraException {
+    private synchronized CameraDevice openCamera() throws CameraWrapperException {
         if (mCameraDevice != null) {
             return mCameraDevice;
         }
@@ -157,16 +187,16 @@ public class CameraWrapper {
                 }
             }, mBackgroundHandler);
             if (!lock.await(30, TimeUnit.SECONDS)) {
-                throw new CameraException("Failed to open camera.");
+                throw new CameraWrapperException("Failed to open camera.");
             }
             if (cameras[0] == null) {
-                throw new CameraException("Failed to open camera.");
+                throw new CameraWrapperException("Failed to open camera.");
             }
             return cameras[0];
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         } catch (InterruptedException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
@@ -186,8 +216,11 @@ public class CameraWrapper {
         return surfaceList;
     }
 
-    private synchronized CameraCaptureSession createCaptureSession(final CameraDevice cameraDevice) throws CameraException {
+    private synchronized CameraCaptureSession createCaptureSession(final CameraDevice cameraDevice) throws CameraWrapperException {
         try {
+            if (mCaptureSession != null) {
+                mCaptureSession.close();
+            }
             final CountDownLatch lock = new CountDownLatch(1);
             final CameraCaptureSession[] sessions = new CameraCaptureSession[1];
             cameraDevice.createCaptureSession(createSurfaceList(), new CameraCaptureSession.StateCallback() {
@@ -201,24 +234,24 @@ public class CameraWrapper {
                 public void onConfigureFailed(final @NonNull CameraCaptureSession session) {
                     lock.countDown();
                 }
-            }, mBackgroundHandler);
+            }, mSessionConfigurationHandler);
             if (!lock.await(30, TimeUnit.SECONDS)) {
-                throw new CameraException("Failed to configure capture session.");
+                throw new CameraWrapperException("Failed to configure capture session.");
             }
             if (sessions[0] == null) {
-                throw new CameraException("Failed to configure capture session.");
+                throw new CameraWrapperException("Failed to configure capture session.");
             }
             return sessions[0];
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         } catch (InterruptedException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
-    public synchronized void startPreview(final Surface previewSurface) throws CameraException {
-        if (mIsPreview) {
-            throw new CameraException("preview is started already.");
+    public synchronized void startPreview(final Surface previewSurface, final boolean isResume) throws CameraWrapperException {
+        if (mIsPreview && !isResume) {
+            throw new CameraWrapperException("preview is started already.");
         }
         mIsPreview = true;
         mPreviewSurface = previewSurface;
@@ -244,11 +277,11 @@ public class CameraWrapper {
             }, mBackgroundHandler);
             mCaptureSession = captureSession;
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
-    public synchronized void stopPreview() throws CameraException {
+    public synchronized void stopPreview() throws CameraWrapperException {
         if (!mIsPreview) {
             return;
         }
@@ -260,12 +293,14 @@ public class CameraWrapper {
         }
         if (mIsRecording) {
             startRecording(mRecordingSurface);
+        } else {
+            close();
         }
     }
 
-    public synchronized void startRecording(final Surface recordingSurface) throws CameraException {
+    public synchronized void startRecording(final Surface recordingSurface) throws CameraWrapperException {
         if (mIsRecording) {
-            throw new CameraException("recording is started already.");
+            throw new CameraWrapperException("recording is started already.");
         }
         mIsRecording = true;
         mRecordingSurface = recordingSurface;
@@ -282,11 +317,11 @@ public class CameraWrapper {
             captureSession.setRepeatingRequest(request.build(), null, null);
             mCaptureSession = captureSession;
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
-    public synchronized void stopRecording() throws CameraException {
+    public synchronized void stopRecording() throws CameraWrapperException {
         if (!mIsRecording) {
             return;
         }
@@ -298,12 +333,14 @@ public class CameraWrapper {
         }
         if (mIsPreview) {
             startRecording(mPreviewSurface);
+        } else {
+            close();
         }
     }
 
-    public synchronized void takeStillImage(final Surface stillImageSurface) throws CameraException {
+    public synchronized void takeStillImage(final Surface stillImageSurface) throws CameraWrapperException {
         if (mIsTakingStillImage) {
-            throw new CameraException("still image is taking now.");
+            throw new CameraWrapperException("still image is taking now.");
         }
         mIsTakingStillImage = true;
         mStillImageSurface = stillImageSurface;
@@ -337,20 +374,22 @@ public class CameraWrapper {
                         if (mIsRecording) {
                             startRecording(mRecordingSurface);
                         } else if (mIsPreview) {
-                            startPreview(mPreviewSurface);
+                            startPreview(mPreviewSurface, true);
+                        } else {
+                            close();
                         }
-                    } catch (CameraException e) {
+                    } catch (CameraWrapperException e) {
                         Log.e(TAG, "Failed to resume recording or preview.", e);
                     }
                 }
             }, mBackgroundHandler);
         } catch (Exception e) {
             mIsTakingStillImage = false;
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
-    private void autoFocus(final CameraDevice cameraDevice) throws CameraException {
+    private void autoFocus(final CameraDevice cameraDevice) throws CameraWrapperException {
         try {
             final CountDownLatch lock = new CountDownLatch(1);
             final CaptureResult[] results = new CaptureResult[1];
@@ -400,16 +439,16 @@ public class CameraWrapper {
             }, mBackgroundHandler);
             lock.await(10, TimeUnit.SECONDS);
             if (results[0] == null) {
-                throw new CameraException("Failed auto focus.");
+                throw new CameraWrapperException("Failed auto focus.");
             }
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         } catch (InterruptedException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
-    private void autoExposure(final CameraDevice cameraDevice) throws CameraException {
+    private void autoExposure(final CameraDevice cameraDevice) throws CameraWrapperException {
         try {
             final CountDownLatch lock = new CountDownLatch(1);
             final CaptureResult[] results = new CaptureResult[1];
@@ -459,16 +498,16 @@ public class CameraWrapper {
             }, mBackgroundHandler);
             lock.await(10, TimeUnit.SECONDS);
             if (results[0] == null) {
-                throw new CameraException("Failed auto focus.");
+                throw new CameraWrapperException("Failed auto focus.");
             }
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         } catch (InterruptedException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
-    public synchronized void turnOnTorch() throws CameraException {
+    public synchronized void turnOnTorch() throws CameraWrapperException {
         if (mIsTouchOn) {
             return;
         }
@@ -494,7 +533,7 @@ public class CameraWrapper {
             }, mBackgroundHandler);
             mUseTouch = true;
         } catch (CameraAccessException e) {
-            throw new CameraException(e);
+            throw new CameraWrapperException(e);
         }
     }
 
@@ -502,9 +541,7 @@ public class CameraWrapper {
         if (mUseTouch && mIsTouchOn) {
             mIsTouchOn = false;
             mUseTouch = false;
-
-            mCaptureSession.close();
-            mCaptureSession = null;
+            close();
         }
     }
 
@@ -539,43 +576,43 @@ public class CameraWrapper {
 
         private List<Size> mSupportedPreviewSizeList = new ArrayList<>();
 
-        Size getPictureSize() {
+        public Size getPictureSize() {
             return mPictureSize;
         }
 
-        void setPictureSize(final Size pictureSize) {
+        public void setPictureSize(final Size pictureSize) {
             mPictureSize = pictureSize;
         }
 
-        Size getPreviewSize() {
+        public Size getPreviewSize() {
             return mPreviewSize;
         }
 
-        void setPreviewSize(final Size previewSize) {
+        public void setPreviewSize(final Size previewSize) {
             mPreviewSize = previewSize;
         }
 
-        List<Size> getSupportedPictureSizeList() {
+        public List<Size> getSupportedPictureSizeList() {
             return mSupportedPictureSizeList;
         }
 
-        void setSupportedPictureSizeList(final List<Size> supportedPictureSizeList) {
+        public void setSupportedPictureSizeList(final List<Size> supportedPictureSizeList) {
             mSupportedPictureSizeList = new ArrayList<>(supportedPictureSizeList);
         }
 
-        List<Size> getSupportedPreviewSizeList() {
+        public List<Size> getSupportedPreviewSizeList() {
             return mSupportedPreviewSizeList;
         }
 
-        void setSupportedPreviewSizeList(final List<Size> supportedPreviewSizeList) {
+        public void setSupportedPreviewSizeList(final List<Size> supportedPreviewSizeList) {
             mSupportedPreviewSizeList = new ArrayList<>(supportedPreviewSizeList);
         }
 
-        Size getDefaultPictureSize() {
+        public Size getDefaultPictureSize() {
             return getDefaultSizeFromeList(mSupportedPictureSizeList);
         }
 
-        Size getDefaultPreviewSize() {
+        public Size getDefaultPreviewSize() {
             return getDefaultSizeFromeList(mSupportedPreviewSizeList);
         }
 

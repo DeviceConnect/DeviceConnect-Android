@@ -29,6 +29,9 @@ import android.view.Surface;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
@@ -135,13 +138,14 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      * コンストラクタ.
      *
      * @param context コンテキスト
-     * @param cameraId カメラID
+     * @param camera カメラ
+     * @param fileManager ファイルマネージャ
      */
     public Camera2Recorder(final @NonNull Context context,
-                           final @NonNull String cameraId,
+                           final @NonNull CameraWrapper camera,
                            final @NonNull FileManager fileManager) {
-        super(context, cameraId);
-        mCameraWrapper = new CameraWrapper(context, cameraId);
+        super(context, camera.getId());
+        mCameraWrapper = camera;
         mPreviewThread.start();
         mPhotoThread.start();
         mFileManager = fileManager;
@@ -175,7 +179,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             }, new Handler(mPhotoThread.getLooper()));
 
             camera.takeStillImage(stillImageReader.getSurface());
-        } catch (CameraException e) {
+        } catch (CameraWrapperException e) {
             Log.e(TAG, "Failed to take photo.", e);
             listener.onFailedTakePhoto("Failed to take photo.");
         }
@@ -307,12 +311,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
-    void startPreview(final Surface previewSurface) throws CameraException {
+    void startPreview(final Surface previewSurface) throws CameraWrapperException {
         CameraWrapper camera = getCameraWrapper();
-        camera.startPreview(previewSurface);
+        camera.startPreview(previewSurface, false);
     }
 
-    void stopPreview() throws CameraException {
+    void stopPreview() throws CameraWrapperException {
         CameraWrapper camera = getCameraWrapper();
         camera.stopPreview();
     }
@@ -339,7 +343,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             listener.onFailed(this, "Failed to initialize surface recorder: " + e.getMessage());
         } catch (RecorderException e) {
             listener.onFailed(this, "Failed to start recording because of recorder problem: " + e.getMessage());
-        } catch (CameraException e) {
+        } catch (CameraWrapperException e) {
             listener.onFailed(this, "Failed to start recording because of camera problem: " + e.getMessage());
         }
     }
@@ -360,7 +364,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             File videoFile = mSurfaceRecorder.getOutputFile();
             registerVideo(videoFile);
             listener.onStopped(this, videoFile.getAbsolutePath());
-        } catch (CameraException e) {
+        } catch (CameraWrapperException e) {
             listener.onFailed(this, "Failed to start recording: " + e.getMessage());
         }
     }
@@ -405,7 +409,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         try {
             CameraWrapper camera = getCameraWrapper();
             camera.turnOnTorch();
-        } catch (CameraException e) {
+        } catch (CameraWrapperException e) {
             Log.e(TAG, "Failed to turn on flash light.", e);
         }
     }

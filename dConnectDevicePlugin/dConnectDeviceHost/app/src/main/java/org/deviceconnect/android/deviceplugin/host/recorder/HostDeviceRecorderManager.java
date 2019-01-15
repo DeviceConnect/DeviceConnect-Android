@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCastRecorder;
@@ -51,16 +53,10 @@ public class HostDeviceRecorderManager {
         mHostDeviceService = service;
     }
 
-    public void createRecorders(final FileManager fileMgr) {
-        CameraManager cameraMgr = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
-
+    public void createRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
-        try {
-            for (String cameraId : cameraMgr.getCameraIdList()) {
-                photoRecorders.add(new Camera2Recorder(mHostDeviceService, cameraId, fileMgr));
-            }
-        } catch (CameraAccessException e) {
-            mLogger.warning("No camera feature is available. Failed to get camera id list: " + e.getMessage());
+        for (CameraWrapper camera : cameraMgr.getCameraList()) {
+            photoRecorders.add(new Camera2Recorder(mHostDeviceService, camera, fileMgr));
         }
 
         if (!photoRecorders.isEmpty()) {
@@ -93,6 +89,9 @@ public class HostDeviceRecorderManager {
     }
 
     public HostDeviceRecorder getRecorder(final String id) {
+        if (mRecorders.length == 0) {
+            return null;
+        }
         if (id == null) {
             return mRecorders[0];
         }

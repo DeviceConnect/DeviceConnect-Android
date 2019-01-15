@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 
 /**

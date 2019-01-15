@@ -14,6 +14,8 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
@@ -130,7 +132,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             if (camera != null) {
                 try {
                     camera.stopPreview();
-                } catch (CameraException e) {
+                } catch (CameraWrapperException e) {
                     Log.e(TAG, "Failed to stop preview.", e);
                 }
             }

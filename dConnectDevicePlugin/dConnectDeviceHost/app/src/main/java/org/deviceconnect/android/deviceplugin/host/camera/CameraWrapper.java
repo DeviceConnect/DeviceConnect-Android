@@ -158,7 +158,7 @@ public class CameraWrapper {
         options.setSupportedPictureSizeList(supportedPictureList);
         options.setPictureSize(supportedPictureList.get(0));
 
-        List<Size> supportedPreviewList = Camera2Helper.getSupportedPictureSizes(mCameraManager, mCameraId);
+        List<Size> supportedPreviewList = Camera2Helper.getSupportedPreviewSizes(mCameraManager, mCameraId);
         options.setSupportedPreviewSizeList(supportedPreviewList);
         options.setPreviewSize(supportedPreviewList.get(0));
 
@@ -588,6 +588,10 @@ public class CameraWrapper {
 
         private List<Size> mSupportedPreviewSizeList = new ArrayList<>();
 
+        private double mPreviewMaxFrameRate = 30.0d; //fps
+
+        private int mPreviewBitRate = 1000 * 1000; //bps
+
         public Size getPictureSize() {
             return mPictureSize;
         }
@@ -652,6 +656,22 @@ public class CameraWrapper {
                 return defaultSize;
             }
             return sizeList.get(0);
+        }
+
+        public double getPreviewMaxFrameRate() {
+            return mPreviewMaxFrameRate;
+        }
+
+        public void setPreviewMaxFrameRate(final double previewMaxFrameRate) {
+            mPreviewMaxFrameRate = previewMaxFrameRate;
+        }
+
+        public int getPreviewBitRate() {
+            return mPreviewBitRate;
+        }
+
+        public void setPreviewBitRate(final int previewBitRate) {
+            mPreviewBitRate = previewBitRate;
         }
     }
 }

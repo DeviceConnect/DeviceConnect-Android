@@ -493,22 +493,22 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public double getMaxFrameRate() {
-        return 0;  // TODO
+        return mCameraWrapper.getOptions().getPreviewMaxFrameRate();
     }
 
     @Override
     public void setMaxFrameRate(final double frameRate) {
-        // TODO
+        mCameraWrapper.getOptions().setPreviewMaxFrameRate(frameRate);
     }
 
     @Override
     public int getPreviewBitRate() {
-        return 0;  // TODO
+        return mCameraWrapper.getOptions().getPreviewBitRate();
     }
 
     @Override
     public void setPreviewBitRate(final int bitRate) {
-        // TODO
+        mCameraWrapper.getOptions().setPreviewBitRate(bitRate);
     }
 
     @Override

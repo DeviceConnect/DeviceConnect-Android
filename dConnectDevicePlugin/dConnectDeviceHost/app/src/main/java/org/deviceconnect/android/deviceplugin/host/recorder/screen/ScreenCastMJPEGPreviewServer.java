@@ -33,7 +33,7 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     private MixedReplaceMediaServer mServer;
 
-    private int mJpegQuality = 100;
+    private int mJpegQuality;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
         @Override

@@ -24,13 +24,13 @@ public interface PreviewServer {
 
     /**
      * プレビューの品質を取得します.
-     * @return 0-100
+     * @return 1-100
      */
     int getQuality();
 
     /**
      * プレビューの品質を設定します.
-     * @param quality 0-100
+     * @param quality 1-100
      */
     void setQuality(int quality);
 

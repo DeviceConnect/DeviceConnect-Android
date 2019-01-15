@@ -16,11 +16,10 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.message.DConnectMessageService;
 
 public class HostRecorderSettingFragment extends Fragment {
@@ -48,8 +47,8 @@ public class HostRecorderSettingFragment extends Fragment {
 
                     ViewGroup container = getView().findViewById(R.id.host_recorder_container);
                     for (HostDeviceRecorder recorder : mRecorderManager.getRecorders()) {
-                        if (recorder instanceof PreviewServerProvider) {
-                            PreviewServer server = ((PreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
+                        if (recorder instanceof AbstractPreviewServerProvider) {
+                            PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
                             if (server != null) {
                                 View recorderSettingsView = inflater.inflate(R.layout.host_setting_recorder_photo_jpeg_item, null);
                                 final TextView nameView = recorderSettingsView.findViewById(R.id.host_recorder_name);
@@ -58,12 +57,13 @@ public class HostRecorderSettingFragment extends Fragment {
                                 nameView.setText(recorder.getName());
                                 int q = server.getQuality();
                                 qualityView.setText(q + "%");
-                                qualityBar.setProgress(q);
+                                qualityBar.setMax(99);
+                                qualityBar.setProgress(q - 1);
                                 qualityBar.setTag(recorder.getId());
                                 qualityBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                                     @Override
                                     public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
-                                        qualityView.setText(progress + "%");
+                                        qualityView.setText((progress + 1) + "%");
                                     }
 
                                     @Override
@@ -71,12 +71,12 @@ public class HostRecorderSettingFragment extends Fragment {
 
                                     @Override
                                     public void onStopTrackingTouch(final SeekBar seekBar) {
-                                        int q = seekBar.getProgress();
+                                        int q = seekBar.getProgress() + 1;
                                         qualityView.setText(q + "%");
 
-                                        PreviewServerProvider provider = (PreviewServerProvider) mRecorderManager.getRecorder((String) seekBar.getTag());
+                                        AbstractPreviewServerProvider provider = (AbstractPreviewServerProvider) mRecorderManager.getRecorder((String) seekBar.getTag());
                                         PreviewServer server = provider.getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
-                                        server.setQuality(q);
+                                        provider.setPreviewQuality(server, q);
                                     }
                                 });
                                 container.addView(recorderSettingsView);

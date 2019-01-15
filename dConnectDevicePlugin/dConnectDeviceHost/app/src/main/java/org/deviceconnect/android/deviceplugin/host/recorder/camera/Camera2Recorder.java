@@ -151,6 +151,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mFileManager = fileManager;
 
         mMjpegServer = new Camera2MJPEGPreviewServer(this);
+        mMjpegServer.setQuality(readPreviewQuality(mMjpegServer));
         Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
         mPreviewServers.add(mMjpegServer);
         mPreviewServers.add(rtspServer);
@@ -585,4 +586,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return null;
     }
 
+    @Override
+    protected int getDefaultPreviewQuality(final String mimeType) {
+        return 80;
+    }
 }

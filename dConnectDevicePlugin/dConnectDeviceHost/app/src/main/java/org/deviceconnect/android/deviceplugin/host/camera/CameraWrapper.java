@@ -82,7 +82,7 @@ public class CameraWrapper {
 
     private boolean mUseTouch;
 
-    private byte mPreviewJpegQuality = 80;
+    private byte mPreviewJpegQuality;
 
     public CameraWrapper(final @NonNull Context context, final @NonNull String cameraId) {
         mCameraId = cameraId;

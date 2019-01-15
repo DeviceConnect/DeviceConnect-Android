@@ -104,6 +104,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mScreenCastMgr = new ScreenCastManager(context);
         mScreenCastRTSPServer = new ScreenCastRTSPPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer = new ScreenCastMJPEGPreviewServer(context, this, mScreenCastMgr);
+        mScreenCastMJPEGServer.setQuality(readPreviewQuality(mScreenCastMJPEGServer));
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -137,6 +138,11 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
             }
         }
         return null;
+    }
+
+    @Override
+    protected int getDefaultPreviewQuality(final String mimeType) {
+        return 100;
     }
 
     @Override
@@ -369,5 +375,4 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     private String createNewFileName() {
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
-
 }

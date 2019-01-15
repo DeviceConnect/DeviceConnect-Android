@@ -9,8 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,7 +27,6 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Host Device Recorder Manager.
@@ -37,8 +34,6 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceRecorderManager {
-
-    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /** List of HostDeviceRecorder. */
     private HostDeviceRecorder[] mRecorders;

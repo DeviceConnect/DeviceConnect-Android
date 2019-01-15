@@ -23,11 +23,17 @@ public class HostSettingActivity extends DConnectSettingPageFragmentActivity {
     private String mServiceId;
 
     /** ページ数. */
-    private static final int PAGE_COUNT = 1;
+    private static final int PAGE_COUNT = 2;
 
     @Override
     public Fragment createPage(final int position) {
-        return new HostGpsSettingFragment();
+        if (position == 1) {
+            return new HostGpsSettingFragment();
+        } else if (position == 0) {
+            return new HostRecorderSettingFragment();
+        } else {
+            return null;
+        }
     }
 
     @Override

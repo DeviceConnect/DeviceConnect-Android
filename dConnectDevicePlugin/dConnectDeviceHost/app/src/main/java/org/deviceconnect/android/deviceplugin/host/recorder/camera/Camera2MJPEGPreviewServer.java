@@ -73,10 +73,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] jpeg = new byte[buffer.remaining()];
                 buffer.get(jpeg);
-                byte[] rotated = mRecorder.rotateJPEG(jpeg, image.getHeight(), image.getWidth(), 100); // NOTE: swap width and height.
+                jpeg = mRecorder.rotateJPEG(jpeg, image.getHeight(), image.getWidth(), 100); // NOTE: swap width and height.
                 image.close();
 
-                offerMedia(rotated);
+                offerMedia(jpeg);
             } catch (Exception e) {
                 Log.e(TAG, "Failed to send preview frame.", e);
             }
@@ -92,6 +92,16 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         if (server != null) {
             server.offerMedia(jpeg);
         }
+    }
+
+    @Override
+    public int getQuality() {
+        return mRecorder.getCameraWrapper().getPreviewJpegQuality();
+    }
+
+    @Override
+    public void setQuality(int quality) {
+        mRecorder.getCameraWrapper().setPreviewJpegQuality(quality);
     }
 
     @Override

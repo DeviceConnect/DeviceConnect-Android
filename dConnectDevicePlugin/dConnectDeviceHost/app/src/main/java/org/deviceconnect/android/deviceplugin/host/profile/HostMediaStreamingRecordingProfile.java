@@ -160,7 +160,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewWidth = getPreviewWidth(request);
             Integer previewHeight = getPreviewHeight(request);
             Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
-            Integer previewBitRate = parseInteger(request, "previewBitRate");;
+            Integer previewBitRate = parseInteger(request, "previewBitRate");
 
             HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {

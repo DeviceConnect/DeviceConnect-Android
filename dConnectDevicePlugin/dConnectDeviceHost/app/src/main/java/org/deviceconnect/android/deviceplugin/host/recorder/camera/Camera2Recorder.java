@@ -173,6 +173,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                         listener.onFailedTakePhoto("Failed to acquire image.");
                         return;
                     }
+
                     storePhoto(photo, listener);
                     photo.close();
                 }
@@ -572,6 +573,16 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     @Override
     public List<PreviewServer> getServers() {
         return mPreviewServers;
+    }
+
+    @Override
+    public PreviewServer getServerForMimeType(final String mimeType) {
+        for (PreviewServer server : getServers()) {
+            if (server.getMimeType().equals(mimeType)) {
+                return server;
+            }
+        }
+        return null;
     }
 
 }

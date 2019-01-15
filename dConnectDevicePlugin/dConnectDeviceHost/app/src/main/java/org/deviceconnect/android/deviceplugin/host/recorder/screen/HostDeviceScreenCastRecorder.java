@@ -130,6 +130,16 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
+    public PreviewServer getServerForMimeType(final String mimeType) {
+        for (PreviewServer server : getServers()) {
+            if (server.getMimeType().equals(mimeType)) {
+                return server;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void initialize() {
         // Nothing to do.
     }

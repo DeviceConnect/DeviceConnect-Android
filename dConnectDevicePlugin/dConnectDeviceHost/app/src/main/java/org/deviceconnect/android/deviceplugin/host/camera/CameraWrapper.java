@@ -82,6 +82,8 @@ public class CameraWrapper {
 
     private boolean mUseTouch;
 
+    private byte mPreviewJpegQuality = 80;
+
     public CameraWrapper(final @NonNull Context context, final @NonNull String cameraId) {
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -105,6 +107,14 @@ public class CameraWrapper {
 
     public String getId() {
         return mCameraId;
+    }
+
+    public int getPreviewJpegQuality() {
+        return mPreviewJpegQuality;
+    }
+
+    public void setPreviewJpegQuality(int previewJpegQuality) {
+        mPreviewJpegQuality = (byte) previewJpegQuality;
     }
 
     public boolean isTakingStillImage() {
@@ -272,6 +282,7 @@ public class CameraWrapper {
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             request.addTarget(mPreviewSurface);
+            request.set(CaptureRequest.JPEG_QUALITY, mPreviewJpegQuality);
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {

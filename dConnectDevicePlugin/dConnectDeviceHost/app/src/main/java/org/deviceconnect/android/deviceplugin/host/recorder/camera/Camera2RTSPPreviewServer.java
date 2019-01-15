@@ -129,8 +129,16 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
     }
 
     @Override
-    public void eraseSession(Session session) {
+    public void eraseSession(Session session) {}
 
+    @Override
+    public int getQuality() {
+        return 0; // Not support.
+    }
+
+    @Override
+    public void setQuality(int quality) {
+        // Not support.
     }
 
     private Session startPreviewStreaming(final Socket clientSocket) throws IOException {

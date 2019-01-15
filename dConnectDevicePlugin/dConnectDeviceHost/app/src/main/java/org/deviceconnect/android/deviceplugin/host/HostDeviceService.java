@@ -12,8 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Camera;
-import android.hardware.camera2.CameraAccessException;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.BuildConfig;
@@ -191,6 +189,7 @@ public class HostDeviceService extends DConnectMessageService {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
         mFileDataManager.stopTimer();
+        mCameraWrapperManager.destroy();
         unregisterReceiver(mHostConnectionReceiver);
         super.onDestroy();
     }
@@ -266,6 +265,24 @@ public class HostDeviceService extends DConnectMessageService {
      */
     public FileManager getFileManager() {
         return mFileMgr;
+    }
+
+    /**
+     * カメラ管理クラスを取得する.
+     *
+     * @return カメラ管理クラス
+     */
+    public CameraWrapperManager getCameraManager() {
+        return mCameraWrapperManager;
+    }
+
+    /**
+     * レコーダー管理クラスを取得する.
+     *
+     * @return レコーダー管理クラス
+     */
+    public HostDeviceRecorderManager getRecorderManager() {
+        return mRecorderMgr;
     }
 
     private int stopWebServer(final Intent intent) {

@@ -23,6 +23,18 @@ public interface PreviewServer {
     void stopWebServer();
 
     /**
+     * プレビューの品質を取得します.
+     * @return 0-100
+     */
+    int getQuality();
+
+    /**
+     * プレビューの品質を設定します.
+     * @param quality 0-100
+     */
+    void setQuality(int quality);
+
+    /**
      * Callback interface used to receive the result of starting a web server.
      */
     interface OnWebServerStartCallback {

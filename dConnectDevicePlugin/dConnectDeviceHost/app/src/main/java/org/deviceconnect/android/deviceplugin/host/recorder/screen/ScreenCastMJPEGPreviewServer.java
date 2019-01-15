@@ -33,6 +33,8 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     private MixedReplaceMediaServer mServer;
 
+    private int mJpegQuality = 100;
+
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
         @Override
         public boolean onAccept() {
@@ -51,6 +53,16 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
         super(context, serverProvider);
         mScreenCastMgr = screenCastMgr;
         mPreview = new ScreenCaster();
+    }
+
+    @Override
+    public int getQuality() {
+        return mJpegQuality;
+    }
+
+    @Override
+    public void setQuality(int quality) {
+        mJpegQuality = quality;
     }
 
     @Override
@@ -138,7 +150,7 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
                                     continue;
                                 }
                                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, baos);
                                 byte[] media = baos.toByteArray();
                                 mServer.offerMedia(media);
 

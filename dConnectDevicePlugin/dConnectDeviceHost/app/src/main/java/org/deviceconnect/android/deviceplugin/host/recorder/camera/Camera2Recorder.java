@@ -190,8 +190,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
         int width = image.getWidth();
         int height = image.getHeight();
-        byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 80);
-        byte[] rotated = rotateJPEG(jpeg, width, height, 80);
+        byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
+        byte[] rotated = rotateJPEG(jpeg, 100);
 
         // ファイル保存
         mFileManager.saveFile(createNewFileName(), rotated, true, new FileManager.SaveFileCallback() {
@@ -216,7 +216,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         });
     }
 
-    byte[] rotateJPEG(final byte[] jpeg, int width, int height, int quality) {
+    byte[] rotateJPEG(final byte[] jpeg, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
 
         //Log.d(TAG, "bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight() + " width=" + width + " height=" + height);
@@ -231,7 +231,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             degrees = 0;
         }
         m.postRotate(degrees);
-        rotated = Bitmap.createBitmap(bitmap, 0, 0, width, height, m, true);
+        rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         rotated.compress(Bitmap.CompressFormat.JPEG, quality, baos);
         byte[] result = baos.toByteArray();

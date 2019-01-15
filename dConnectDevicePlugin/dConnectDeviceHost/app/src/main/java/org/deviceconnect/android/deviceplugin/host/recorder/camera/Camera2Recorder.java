@@ -1,11 +1,13 @@
 /*
- Camera2PhotoRecorder.java
+ Camera2Recorder.java
  Copyright (c) 2018 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,12 +15,12 @@ import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
-import android.hardware.camera2.CameraAccessException;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaMetadataRetriever;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Size;
@@ -28,11 +30,14 @@ import android.view.Surface;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,7 +45,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements HostDevicePhotoRecorder {
+public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevicePhotoRecorder, HostDeviceStreamRecorder {
 
     /**
      * ログ出力用タグ.
@@ -96,6 +101,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
             add("image/jpg");
             add("video/x-mjpeg");
             add("video/x-rtp");
+            add("video/mp4");
         }
     };
 
@@ -114,6 +120,11 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
      */
     private final Camera2MJPEGPreviewServer mMjpegServer;
 
+    /**
+     * {@link SurfaceRecorder} のインスタンス.
+     */
+    private SurfaceRecorder mSurfaceRecorder;
+
     private final CameraWrapper mCameraWrapper;
 
     private HandlerThread mPreviewThread = new HandlerThread("preview");
@@ -126,9 +137,9 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
      * @param context コンテキスト
      * @param cameraId カメラID
      */
-    public Camera2PhotoRecorder(final @NonNull Context context,
-                                final @NonNull String cameraId,
-                                final @NonNull FileManager fileManager) {
+    public Camera2Recorder(final @NonNull Context context,
+                           final @NonNull String cameraId,
+                           final @NonNull FileManager fileManager) {
         super(context, cameraId);
         mCameraWrapper = new CameraWrapper(context, cameraId);
         mPreviewThread.start();
@@ -307,6 +318,84 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
     }
 
     @Override
+    public boolean canPauseRecording() {
+        return false;
+    }
+
+    @Override
+    public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
+        if (mSurfaceRecorder != null) {
+            listener.onFailed(this, "Recording has started already.");
+            return;
+        }
+        try {
+            CameraWrapper camera = getCameraWrapper();
+            mSurfaceRecorder = new SurfaceRecorder(camera.getOptions().getPictureSize());
+            mSurfaceRecorder.initMuxer(mFileManager.getBasePath());
+            mSurfaceRecorder.start();
+            camera.startRecording(mSurfaceRecorder.getInputSurface());
+            listener.onRecorded(this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
+        } catch (IOException e) {
+            listener.onFailed(this, "Failed to initialize surface recorder: " + e.getMessage());
+        } catch (RecorderException e) {
+            listener.onFailed(this, "Failed to start recording because of recorder problem: " + e.getMessage());
+        } catch (CameraException e) {
+            listener.onFailed(this, "Failed to start recording because of camera problem: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public synchronized void stopRecording(final StoppingListener listener) {
+        if (mSurfaceRecorder == null) {
+            listener.onFailed(this, "Recording has stopped already.");
+            return;
+        }
+        try {
+            mSurfaceRecorder.stop();
+            mSurfaceRecorder = null;
+
+            CameraWrapper camera = getCameraWrapper();
+            camera.stopRecording();
+
+            File videoFile = mSurfaceRecorder.getOutputFile();
+            registerVideo(videoFile);
+            listener.onStopped(this, videoFile.getAbsolutePath());
+        } catch (CameraException e) {
+            listener.onFailed(this, "Failed to start recording: " + e.getMessage());
+        }
+    }
+
+    private void registerVideo(final File videoFile) {
+        if (checkVideoFile(videoFile)) {
+            // Content Providerに登録する.
+            MediaMetadataRetriever mediaMeta = new MediaMetadataRetriever();
+            mediaMeta.setDataSource(videoFile.toString());
+            ContentResolver resolver = getContext().getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Video.Media.TITLE, videoFile.getName());
+            values.put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.getName());
+            values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
+            values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
+            values.put(MediaStore.Video.Media.DATA, videoFile.toString());
+            resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+        }
+    }
+
+    private boolean checkVideoFile(final @NonNull File file) {
+        return file.exists() && file.length() > 0;
+    }
+
+    @Override
+    public void pauseRecording() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void resumeRecording() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isBack() {
         return mFacing == CameraFacing.BACK;
     }
@@ -355,7 +444,7 @@ public class Camera2PhotoRecorder extends AbstractCamera2Recorder implements Hos
 
     @Override
     public String getName() {
-        return NAME_BASE + " - " + mFacing.getName();
+        return mFacing.getName() + " " + NAME_BASE;
     }
 
     @Override

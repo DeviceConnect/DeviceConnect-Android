@@ -17,8 +17,7 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2PhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2VideoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCastRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -43,10 +42,7 @@ public class HostDeviceRecorderManager {
     private HostDeviceRecorder[] mRecorders;
 
     /** HostDevicePhotoRecorder. */
-    private Camera2PhotoRecorder mDefaultPhotoRecorder;
-
-    /** HostDevicePhotoRecorder. */
-    private Camera2VideoRecorder mDefaultVideoRecorder;
+    private Camera2Recorder mDefaultPhotoRecorder;
 
     /** コンテキスト. */
     private HostDeviceService mHostDeviceService;
@@ -58,12 +54,10 @@ public class HostDeviceRecorderManager {
     public void createRecorders(final FileManager fileMgr) {
         CameraManager cameraMgr = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
 
-        List<Camera2PhotoRecorder> photoRecorders = new ArrayList<>();
-        List<Camera2VideoRecorder> videoRecorders = new ArrayList<>();
+        List<Camera2Recorder> photoRecorders = new ArrayList<>();
         try {
             for (String cameraId : cameraMgr.getCameraIdList()) {
-                photoRecorders.add(new Camera2PhotoRecorder(mHostDeviceService, cameraId, fileMgr));
-                videoRecorders.add(new Camera2VideoRecorder(mHostDeviceService, cameraId, fileMgr));
+                photoRecorders.add(new Camera2Recorder(mHostDeviceService, cameraId, fileMgr));
             }
         } catch (CameraAccessException e) {
             mLogger.warning("No camera feature is available. Failed to get camera id list: " + e.getMessage());
@@ -72,13 +66,9 @@ public class HostDeviceRecorderManager {
         if (!photoRecorders.isEmpty()) {
             mDefaultPhotoRecorder = photoRecorders.get(0);
         }
-        if (!videoRecorders.isEmpty()) {
-            mDefaultVideoRecorder = videoRecorders.get(0);
-        }
 
         List<HostDeviceRecorder> recorders = new ArrayList<>();
         recorders.addAll(photoRecorders);
-        recorders.addAll(videoRecorders);
         recorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
         if (isSupportedMediaProjection()) {
             recorders.add(new HostDeviceScreenCastRecorder(mHostDeviceService, fileMgr));
@@ -128,7 +118,7 @@ public class HostDeviceRecorderManager {
 
     public HostDeviceStreamRecorder getStreamRecorder(final String id) {
         if (id == null) {
-            return mDefaultVideoRecorder;
+            return mDefaultPhotoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {

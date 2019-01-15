@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderMa
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -77,7 +78,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderState(info, RecorderState.INACTIVE);
                                 break;
                         }
-                        if (recorder instanceof HostDevicePhotoRecorder || recorder instanceof HostDeviceStreamRecorder) {
+                        if (recorder instanceof Camera2Recorder) {
                             HostDeviceRecorder.PictureSize size = recorder.getPictureSize();
                             setRecorderImageWidth(info, size.getWidth());
                             setRecorderImageHeight(info, size.getHeight());

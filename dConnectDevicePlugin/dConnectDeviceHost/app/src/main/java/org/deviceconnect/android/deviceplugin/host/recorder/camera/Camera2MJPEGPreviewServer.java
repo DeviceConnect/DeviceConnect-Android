@@ -28,7 +28,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private static final String MIME_TYPE = "video/x-mjpeg";
 
-    private final Camera2PhotoRecorder mRecorder;
+    private final Camera2Recorder mRecorder;
 
     private final Object mLockObj = new Object();
 
@@ -81,7 +81,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         }
     };
 
-    Camera2MJPEGPreviewServer(final Camera2PhotoRecorder recorder) {
+    Camera2MJPEGPreviewServer(final Camera2Recorder recorder) {
         mRecorder = recorder;
     }
 

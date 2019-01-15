@@ -51,7 +51,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
     private VideoQuality mQuality;
 
-    private final Camera2PhotoRecorder mRecorder;
+    private final Camera2Recorder mRecorder;
 
     private final Handler mHandler;
     private final Object mSync = new Object();
@@ -61,7 +61,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
     Camera2RTSPPreviewServer(final Context context,
                              final AbstractPreviewServerProvider serverProvider,
-                             final Camera2PhotoRecorder recorder) {
+                             final Camera2Recorder recorder) {
         super(context, serverProvider);
         final HandlerThread thread = new HandlerThread("ScreenCastRTSPPreviewServer");
         thread.start();

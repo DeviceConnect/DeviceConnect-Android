@@ -337,7 +337,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             mSurfaceRecorder = new SurfaceRecorder(camera.getOptions().getPictureSize());
             mSurfaceRecorder.initMuxer(mFileManager.getBasePath());
             mSurfaceRecorder.start();
-            camera.startRecording(mSurfaceRecorder.getInputSurface());
+            camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
             listener.onRecorded(this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
         } catch (IOException e) {
             listener.onFailed(this, "Failed to initialize surface recorder: " + e.getMessage());
@@ -355,17 +355,22 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             return;
         }
         try {
-            mSurfaceRecorder.stop();
-            mSurfaceRecorder = null;
-
             CameraWrapper camera = getCameraWrapper();
             camera.stopRecording();
 
+            mSurfaceRecorder.stop();
             File videoFile = mSurfaceRecorder.getOutputFile();
             registerVideo(videoFile);
+            mSurfaceRecorder = null;
             listener.onStopped(this, videoFile.getAbsolutePath());
         } catch (CameraWrapperException e) {
-            listener.onFailed(this, "Failed to start recording: " + e.getMessage());
+            if (DEBUG) {
+                Log.w(TAG, "Failed to stop recording.", e);
+            }
+            listener.onFailed(this, "Failed to stop recording: " + e.getMessage());
+        } catch (Throwable e) {
+            Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+            listener.onFailed(this, "Failed to stop recording for unexpected error: " + e.getMessage());
         }
     }
 
@@ -458,6 +463,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public RecorderState getState() {
+        if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
+            return RecorderState.RECORDING;
+        }
         return RecorderState.INACTTIVE;
     }
 

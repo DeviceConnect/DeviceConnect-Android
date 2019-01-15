@@ -107,6 +107,18 @@ public class CameraWrapper {
         return mCameraId;
     }
 
+    public boolean isTakingStillImage() {
+        return mIsTakingStillImage;
+    }
+
+    public boolean isPreview() {
+        return mIsPreview;
+    }
+
+    public boolean isRecording() {
+        return mIsRecording;
+    }
+
     public synchronized void destroy() {
         close();
         mBackgroundThread.quit();
@@ -292,14 +304,14 @@ public class CameraWrapper {
             mCaptureSession = null;
         }
         if (mIsRecording) {
-            startRecording(mRecordingSurface);
+            startRecording(mRecordingSurface, true);
         } else {
             close();
         }
     }
 
-    public synchronized void startRecording(final Surface recordingSurface) throws CameraWrapperException {
-        if (mIsRecording) {
+    public synchronized void startRecording(final Surface recordingSurface, final boolean isResume) throws CameraWrapperException {
+        if (mIsRecording && !isResume) {
             throw new CameraWrapperException("recording is started already.");
         }
         mIsRecording = true;
@@ -332,7 +344,7 @@ public class CameraWrapper {
             mCaptureSession = null;
         }
         if (mIsPreview) {
-            startRecording(mPreviewSurface);
+            startPreview(mPreviewSurface, true);
         } else {
             close();
         }
@@ -372,7 +384,7 @@ public class CameraWrapper {
 
                     try {
                         if (mIsRecording) {
-                            startRecording(mRecordingSurface);
+                            startRecording(mRecordingSurface, true);
                         } else if (mIsPreview) {
                             startPreview(mPreviewSurface, true);
                         } else {
@@ -609,14 +621,14 @@ public class CameraWrapper {
         }
 
         public Size getDefaultPictureSize() {
-            return getDefaultSizeFromeList(mSupportedPictureSizeList);
+            return getDefaultSizeFromList(mSupportedPictureSizeList);
         }
 
         public Size getDefaultPreviewSize() {
-            return getDefaultSizeFromeList(mSupportedPreviewSizeList);
+            return getDefaultSizeFromList(mSupportedPreviewSizeList);
         }
 
-        private static Size getDefaultSizeFromeList(final List<Size> sizeList) {
+        private static Size getDefaultSizeFromList(final List<Size> sizeList) {
             if (sizeList.size() == 0) {
                 return null;
             }

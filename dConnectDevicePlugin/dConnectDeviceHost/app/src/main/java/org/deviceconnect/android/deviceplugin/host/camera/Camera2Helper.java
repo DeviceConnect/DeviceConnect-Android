@@ -129,7 +129,7 @@ public final class Camera2Helper {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             if(map != null) {
-                pictureSizes = Arrays.asList(map.getOutputSizes(ImageFormat.JPEG));
+                pictureSizes = Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888));
                 Collections.sort(pictureSizes, SizeComparator);
             }
         } catch (CameraAccessException e) {
@@ -147,7 +147,7 @@ public final class Camera2Helper {
      * @return ImageReader のインスタンス
      */
     public static ImageReader createImageReader(final int width, final int height, final int imageFormat) {
-        return ImageReader.newInstance(height, width, imageFormat, 1);
+        return ImageReader.newInstance(width, height, imageFormat, 1);
     }
 
     /**

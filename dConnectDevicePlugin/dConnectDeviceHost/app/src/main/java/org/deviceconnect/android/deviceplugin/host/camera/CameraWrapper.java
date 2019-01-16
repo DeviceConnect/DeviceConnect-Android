@@ -238,7 +238,17 @@ public class CameraWrapper {
         return surfaceList;
     }
 
+    private List<Surface> createSurfaceListForStillImage() {
+        List<Surface> surfaceList = new LinkedList<>();
+        surfaceList.add(mStillImageSurface);
+        return surfaceList;
+    }
+
     private synchronized CameraCaptureSession createCaptureSession(final CameraDevice cameraDevice) throws CameraWrapperException {
+        return createCaptureSession(createSurfaceList(), cameraDevice);
+    }
+
+    private synchronized CameraCaptureSession createCaptureSession(final List<Surface> targets, final CameraDevice cameraDevice) throws CameraWrapperException {
         try {
             if (mCaptureSession != null) {
                 mCaptureSession.close();
@@ -362,6 +372,9 @@ public class CameraWrapper {
     }
 
     public synchronized void takeStillImage(final Surface stillImageSurface) throws CameraWrapperException {
+        if (DEBUG) {
+            Log.d(TAG, "takeStillImage: started.");
+        }
         if (mIsTakingStillImage) {
             throw new CameraWrapperException("still image is taking now.");
         }
@@ -369,7 +382,13 @@ public class CameraWrapper {
         mStillImageSurface = stillImageSurface;
         try {
             CameraDevice cameraDevice = openCamera();
-            mCaptureSession = createCaptureSession(cameraDevice);
+            if (DEBUG) {
+                Log.d(TAG, "takeStillImage: Camera is open: cameraId=" + cameraDevice.getId());
+            }
+            mCaptureSession = createCaptureSession(createSurfaceListForStillImage(), cameraDevice);
+            if (DEBUG) {
+                Log.d(TAG, "takeStillImage: Created capture session:");
+            }
             autoFocus(cameraDevice);
             autoExposure(cameraDevice);
 
@@ -378,15 +397,25 @@ public class CameraWrapper {
             request.addTarget(stillImageSurface);
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-            mCaptureSession.stopRepeating();
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
+                public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
+                    if (DEBUG) {
+                        Log.d(TAG, "takeStillImage: onCaptureStarted");
+                    }
+                }
+
+                @Override
                 public void onCaptureCompleted(final @NonNull CameraCaptureSession session, final @NonNull CaptureRequest request, final @NonNull TotalCaptureResult result) {
+                    if (DEBUG) {
+                        Log.d(TAG, "takeStillImage: onCaptureCompleted");
+                    }
                     resumeRepeatingRequest();
                 }
 
                 @Override
                 public void onCaptureFailed(final @NonNull CameraCaptureSession session, final @NonNull CaptureRequest request, final @NonNull CaptureFailure failure) {
+                    Log.e(TAG, "takeStillImage: onCaptureFailed");
                     resumeRepeatingRequest();
                 }
 
@@ -406,7 +435,11 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-        } catch (Exception e) {
+            if (DEBUG) {
+                Log.d(TAG, "takeStillImage: Started capture:");
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, "Failed to take still image.", e);
             mIsTakingStillImage = false;
             throw new CameraWrapperException(e);
         }
@@ -425,7 +458,6 @@ public class CameraWrapper {
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-            mCaptureSession.stopRepeating();
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 @Override
@@ -460,7 +492,8 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-            lock.await(10, TimeUnit.SECONDS);
+            lock.await(60, TimeUnit.SECONDS);
+            mCaptureSession.stopRepeating();
             if (results[0] == null) {
                 throw new CameraWrapperException("Failed auto focus.");
             }
@@ -484,7 +517,6 @@ public class CameraWrapper {
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            mCaptureSession.stopRepeating();
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 @Override
@@ -519,7 +551,8 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-            lock.await(10, TimeUnit.SECONDS);
+            lock.await(60, TimeUnit.SECONDS);
+            mCaptureSession.stopRepeating();
             if (results[0] == null) {
                 throw new CameraWrapperException("Failed auto focus.");
             }

@@ -166,6 +166,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         try {
             final CameraWrapper camera = getCameraWrapper();
             final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.YUV_420_888);
+            if (DEBUG) {
+                int w = stillImageReader.getWidth();
+                int h = stillImageReader.getHeight();
+                Log.d(TAG, "takePhoto: surface: " + w + "x" + h);
+            }
             stillImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(final ImageReader reader) {
@@ -173,6 +178,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                     if (photo == null) {
                         listener.onFailedTakePhoto("Failed to acquire image.");
                         return;
+                    }
+                    if (DEBUG) {
+                        int w = photo.getWidth();
+                        int h = photo.getHeight();
+                        Rect rect = photo.getCropRect();
+                        Log.d(TAG, "takePhoto: onImageAvailable: image=" + w + "x" + h + " rect=" + rect.width() + "x" + rect.height());
                     }
 
                     storePhoto(photo, listener);
@@ -190,11 +201,19 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
         int width = image.getWidth();
         int height = image.getHeight();
-        byte[] jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
-        byte[] rotated = rotateJPEG(jpeg, 100);
+
+        byte[] jpeg;
+        if (image.getFormat() == ImageFormat.JPEG) {
+            jpeg = readJPEG(image);
+        } else if (image.getFormat() == ImageFormat.YUV_420_888) {
+            jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
+        } else {
+            throw new RuntimeException("Unsupported format: " + image.getFormat());
+        }
+        jpeg = rotateJPEG(jpeg, 100);
 
         // ファイル保存
-        mFileManager.saveFile(createNewFileName(), rotated, true, new FileManager.SaveFileCallback() {
+        mFileManager.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
             @Override
             public void onSuccess(@NonNull final String uri) {
                 if (DEBUG) {
@@ -216,10 +235,19 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         });
     }
 
+    private byte[] readJPEG(final Image jpegImage) {
+        ByteBuffer buffer = jpegImage.getPlanes()[0].getBuffer();
+        byte[] data = new byte[buffer.remaining()];
+        buffer.get(data, 0, data.length);
+        return data;
+    }
+
     byte[] rotateJPEG(final byte[] jpeg, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
 
-        //Log.d(TAG, "bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight() + " width=" + width + " height=" + height);
+        if (DEBUG) {
+            Log.d(TAG, "takePhoto: rotateJPEG: bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight());
+        }
 
         int orientation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
         int degrees;

@@ -93,7 +93,7 @@ public class CameraWrapper {
         mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
         mOptions = initOptions();
 
-        mDummyPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.JPEG);
+        mDummyPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.YUV_420_888);
         mDummyPreviewReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(final ImageReader reader) {
@@ -241,6 +241,11 @@ public class CameraWrapper {
     private List<Surface> createSurfaceListForStillImage() {
         List<Surface> surfaceList = new LinkedList<>();
         surfaceList.add(mStillImageSurface);
+        if (mIsPreview) {
+            surfaceList.add(mPreviewSurface);
+        } else {
+            surfaceList.add(mDummyPreviewReader.getSurface());
+        }
         return surfaceList;
     }
 
@@ -296,13 +301,6 @@ public class CameraWrapper {
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-                    if (DEBUG) {
-                        Log.d(TAG, "onCaptureStarted:");
-                    }
-                }
-
                 @Override
                 public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
                     Log.e(TAG, "onCaptureFailed: failure=" + failure.getReason());
@@ -387,9 +385,12 @@ public class CameraWrapper {
             }
             mCaptureSession = createCaptureSession(createSurfaceListForStillImage(), cameraDevice);
             if (DEBUG) {
-                Log.d(TAG, "takeStillImage: Created capture session:");
+                Log.d(TAG, "takeStillImage: Created capture session.");
             }
             autoFocus(cameraDevice);
+            if (DEBUG) {
+                Log.d(TAG, "takeStillImage: ");
+            }
             autoExposure(cameraDevice);
 
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
@@ -417,6 +418,13 @@ public class CameraWrapper {
                 public void onCaptureFailed(final @NonNull CameraCaptureSession session, final @NonNull CaptureRequest request, final @NonNull CaptureFailure failure) {
                     Log.e(TAG, "takeStillImage: onCaptureFailed");
                     resumeRepeatingRequest();
+                }
+
+                @Override
+                public void onCaptureBufferLost(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull Surface target, long frameNumber) {
+                    if (DEBUG) {
+                        Log.w(TAG, "takeStillImage: onCaptureBufferLost");
+                    }
                 }
 
                 private void resumeRepeatingRequest() {

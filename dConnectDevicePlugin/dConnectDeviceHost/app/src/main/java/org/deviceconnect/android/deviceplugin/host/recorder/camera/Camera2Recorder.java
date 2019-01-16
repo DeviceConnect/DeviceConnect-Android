@@ -165,7 +165,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     public void takePhoto(final @NonNull OnPhotoEventListener listener) {
         try {
             final CameraWrapper camera = getCameraWrapper();
-            final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.YUV_420_888);
+            final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.JPEG);
             if (DEBUG) {
                 int w = stillImageReader.getWidth();
                 int h = stillImageReader.getHeight();
@@ -202,14 +202,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         int width = image.getWidth();
         int height = image.getHeight();
 
-        byte[] jpeg;
-        if (image.getFormat() == ImageFormat.JPEG) {
-            jpeg = readJPEG(image);
-        } else if (image.getFormat() == ImageFormat.YUV_420_888) {
-            jpeg = NV21toJPEG(YUV420toNV21(image), width, height, 100);
-        } else {
-            throw new RuntimeException("Unsupported format: " + image.getFormat());
-        }
+        byte[] jpeg = convertToJPEG(image);
         jpeg = rotateJPEG(jpeg, 100);
 
         // ファイル保存
@@ -235,7 +228,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         });
     }
 
-    private byte[] readJPEG(final Image jpegImage) {
+    private static byte[] readJPEG(final Image jpegImage) {
         ByteBuffer buffer = jpegImage.getPlanes()[0].getBuffer();
         byte[] data = new byte[buffer.remaining()];
         buffer.get(data, 0, data.length);
@@ -244,11 +237,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     byte[] rotateJPEG(final byte[] jpeg, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
-
-        if (DEBUG) {
-            Log.d(TAG, "takePhoto: rotateJPEG: bitmap=" + bitmap.getWidth() + "x" + bitmap.getHeight());
-        }
-
         int orientation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
         int degrees;
         Bitmap rotated;
@@ -268,14 +256,26 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return result;
     }
 
-    private static byte[] NV21toJPEG(byte[] nv21, int width, int height, int quality) {
+    static byte[] convertToJPEG(Image image) {
+        byte[] jpeg;
+        if (image.getFormat() == ImageFormat.JPEG) {
+            jpeg = readJPEG(image);
+        } else if (image.getFormat() == ImageFormat.YUV_420_888) {
+            jpeg = NV21toJPEG(YUV420toNV21(image), image.getWidth(), image.getHeight(), 100);
+        } else {
+            throw new RuntimeException("Unsupported format: " + image.getFormat());
+        }
+        return jpeg;
+    }
+
+    static byte[] NV21toJPEG(byte[] nv21, int width, int height, int quality) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
         yuv.compressToJpeg(new Rect(0, 0, width, height), quality, out);
         return out.toByteArray();
     }
 
-    private static byte[] YUV420toNV21(Image image) {
+    static byte[] YUV420toNV21(Image image) {
         Rect crop = image.getCropRect();
         int format = image.getFormat();
         int width = crop.width();

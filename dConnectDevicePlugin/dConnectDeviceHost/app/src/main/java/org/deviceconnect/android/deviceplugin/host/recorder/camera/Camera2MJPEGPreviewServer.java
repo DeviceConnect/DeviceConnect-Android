@@ -70,9 +70,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 if (image == null || image.getPlanes() == null) {
                     return;
                 }
-                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                byte[] jpeg = new byte[buffer.remaining()];
-                buffer.get(jpeg);
+
+                byte[] jpeg = Camera2Recorder.convertToJPEG(image);
                 jpeg = mRecorder.rotateJPEG(jpeg, 100); // NOTE: swap width and height.
                 image.close();
 

@@ -24,8 +24,6 @@ import org.deviceconnect.android.message.DConnectMessageService;
 
 public class HostRecorderSettingFragment extends Fragment {
 
-    private static final String TAG = "host.dplugin";
-
     private static final String PREVIEW_JPEG_MIME_TYPE = "video/x-mjpeg";
 
     private HostDeviceRecorderManager mRecorderManager;

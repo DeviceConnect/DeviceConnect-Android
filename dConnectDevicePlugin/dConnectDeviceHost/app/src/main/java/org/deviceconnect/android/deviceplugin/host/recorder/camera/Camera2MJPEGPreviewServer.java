@@ -19,7 +19,6 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
-import java.nio.ByteBuffer;
 
 
 class Camera2MJPEGPreviewServer implements PreviewServer {

@@ -27,9 +27,9 @@ public class HostSettingActivity extends DConnectSettingPageFragmentActivity {
 
     @Override
     public Fragment createPage(final int position) {
-        if (position == 1) {
+        if (position == 0) {
             return new HostGpsSettingFragment();
-        } else if (position == 0) {
+        } else if (position == 1) {
             return new HostRecorderSettingFragment();
         } else {
             return null;

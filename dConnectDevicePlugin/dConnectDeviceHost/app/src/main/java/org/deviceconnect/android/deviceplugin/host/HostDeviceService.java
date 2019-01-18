@@ -39,6 +39,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
@@ -130,10 +131,8 @@ public class HostDeviceService extends DConnectMessageService {
         mHostBatteryManager = new HostBatteryManager(this);
         mHostBatteryManager.getBatteryInfo();
 
-        mCameraWrapperManager = new CameraWrapperManager(this);
         mRecorderMgr = new HostDeviceRecorderManager(this);
-        mRecorderMgr.createRecorders(mCameraWrapperManager, mFileMgr);
-        mRecorderMgr.start();
+        initRecorders(mRecorderMgr);
 
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
@@ -161,10 +160,14 @@ public class HostDeviceService extends DConnectMessageService {
             hostService.addProfile(new HostProximityProfile());
         }
 
-        HostDeviceRecorder dRecorder = mRecorderMgr.getRecorder(null);
-        if (checkCameraHardware() && dRecorder != null || HostDeviceRecorderManager.isSupportedMediaProjection()) {
+        if (mRecorderMgr.getRecorders().length > 0) {
             hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
-            hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
+        }
+        if (checkCameraHardware()) {
+            HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
+            if (defaultRecorder instanceof HostDevicePhotoRecorder) {
+                hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
+            }
         }
 
         if (checkLocationHardware()) {
@@ -184,12 +187,26 @@ public class HostDeviceService extends DConnectMessageService {
 
     }
 
+    private void initRecorders(final HostDeviceRecorderManager recorderMgr) {
+        if (checkCameraHardware()) {
+            mCameraWrapperManager = new CameraWrapperManager(this);
+            recorderMgr.createCameraRecorders(mCameraWrapperManager, mFileMgr);
+        }
+        if (checkMicrophone()) {
+            recorderMgr.createAudioRecorders();
+        }
+        if (checkMediaProjection()) {
+            recorderMgr.createScreenCastRecorder(mFileMgr);
+        }
+    }
+
     @Override
     public void onDestroy() {
-        mRecorderMgr.stop();
         mRecorderMgr.clean();
         mFileDataManager.stopTimer();
-        mCameraWrapperManager.destroy();
+        if (mCameraWrapperManager != null) {
+            mCameraWrapperManager.destroy();
+        }
         unregisterReceiver(mHostConnectionReceiver);
         super.onDestroy();
     }
@@ -270,7 +287,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * カメラ管理クラスを取得する.
      *
-     * @return カメラ管理クラス
+     * @return カメラ管理クラス. 端末がカメラを持たない場合は<code>null</code>
      */
     public CameraWrapperManager getCameraManager() {
         return mCameraWrapperManager;
@@ -364,7 +381,9 @@ public class HostDeviceService extends DConnectMessageService {
         mHostMediaPlayerManager.forceStop();
 
         // MediaStreamingRecorder リセット
-        mRecorderMgr.clean();
+        if (mRecorderMgr != null) {
+            mRecorderMgr.clean();
+        }
     }
 
     /**
@@ -398,6 +417,22 @@ public class HostDeviceService extends DConnectMessageService {
     private boolean checkSensorHardware() {
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
+    }
+
+    /**
+     * マイク入力を端末がサポートしているかチェックします.
+     * @return マイク入力をサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkMicrophone() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
+    }
+
+    /**
+     * MediaProjection APIを端末がサポートしているかチェックします.
+     * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkMediaProjection() {
+        return HostDeviceRecorderManager.isSupportedMediaProjection();
     }
 
     @Override

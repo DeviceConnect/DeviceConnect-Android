@@ -36,7 +36,7 @@ import java.util.List;
 public class HostDeviceRecorderManager {
 
     /** List of HostDeviceRecorder. */
-    private HostDeviceRecorder[] mRecorders;
+    private final List<HostDeviceRecorder> mRecorders = new ArrayList<>();
 
     /** HostDevicePhotoRecorder. */
     private Camera2Recorder mDefaultPhotoRecorder;
@@ -48,23 +48,23 @@ public class HostDeviceRecorderManager {
         mHostDeviceService = service;
     }
 
-    public void createRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
+    public void createAudioRecorders() {
+        mRecorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
+    }
+
+    public void createScreenCastRecorder(final FileManager fileMgr) {
+        mRecorders.add(new HostDeviceScreenCastRecorder(mHostDeviceService, fileMgr));
+    }
+
+    public void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
         for (CameraWrapper camera : cameraMgr.getCameraList()) {
             photoRecorders.add(new Camera2Recorder(mHostDeviceService, camera, fileMgr));
         }
-
+        mRecorders.addAll(photoRecorders);
         if (!photoRecorders.isEmpty()) {
             mDefaultPhotoRecorder = photoRecorders.get(0);
         }
-
-        List<HostDeviceRecorder> recorders = new ArrayList<>();
-        recorders.addAll(photoRecorders);
-        recorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
-        if (isSupportedMediaProjection()) {
-            recorders.add(new HostDeviceScreenCastRecorder(mHostDeviceService, fileMgr));
-        }
-        mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
     }
 
     public void initialize() {
@@ -79,16 +79,19 @@ public class HostDeviceRecorderManager {
         }
     }
 
-    public HostDeviceRecorder[] getRecorders() {
-        return mRecorders;
+    public synchronized HostDeviceRecorder[] getRecorders() {
+        return mRecorders.toArray(new HostDeviceRecorder[mRecorders.size()]);
     }
 
     public HostDeviceRecorder getRecorder(final String id) {
-        if (mRecorders.length == 0) {
+        if (mRecorders.size() == 0) {
             return null;
         }
         if (id == null) {
-            return mRecorders[0];
+            if (mDefaultPhotoRecorder != null) {
+                return mDefaultPhotoRecorder;
+            }
+            return mRecorders.get(0);
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId())) {
@@ -132,12 +135,6 @@ public class HostDeviceRecorderManager {
             }
         }
         return null;
-    }
-
-    public void start() {
-    }
-
-    public void stop() {
     }
 
     public void stopWebServer(final String id) {

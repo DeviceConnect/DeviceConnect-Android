@@ -27,35 +27,6 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
-
-    flavorDimensions "common"
-
-    productFlavors {
-        thetav {
-            dimension "common"
-            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "false"
-            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "true"
-            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "true"
-            buildConfigField "boolean", "DEFAULT_SSL_USE", "false"
-            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "false"
-        }
-        things {
-            dimension "common"
-            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "true"
-            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "false"
-            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "false"
-            buildConfigField "boolean", "DEFAULT_SSL_USE", "false"
-            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "true"
-        }
-        original {
-            dimension "common"
-            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "true"
-            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "false"
-            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "false"
-            buildConfigField "boolean", "DEFAULT_SSL_USE", "true"
-            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "true"
-        }
-    }
 }
 
 repositories {

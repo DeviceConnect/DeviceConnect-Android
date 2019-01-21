@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.manager.core;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -231,7 +230,8 @@ public abstract class DConnectManager implements DConnectInterface {
             if (mRESTServer != null) {
                 return;
             }
-            if (!BuildConfig.DEFAULT_SSL_USE) { // SSLは認証局用のサービスが起動するため、それを行わないようにする
+            if (!mSettings.isSSL()) {
+                // SSL は認証局用のサービスが起動するため、それを行わないようにする
                 startRESTServer(null);
             } else {
                 mKeyStoreMgr.requestKeyStore(DConnectUtil.getIPAddress(getContext()), new KeyStoreCallback() {

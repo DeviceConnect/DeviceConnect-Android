@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="key_settings_about_appinfo" translatable="false">settings_about_appinfo</string>
     <string name="key_settings_dconn_name" translatable="false">settings_dconn_name</string>
     <string name="key_settings_dconn_uuid" translatable="false">settings_dconn_uuid</string>
@@ -33,5 +34,6 @@
     <string name="key_settings_doze_mode" translatable="false">key_settings_doze_mode</string>
     <string name="key_settings_wake_lock" translatable="false">key_settings_wake_lock</string>
     <string name="key_settings_dconn_availability_visible_name" translatable="false">key_settings_dconn_availability_visible_name</string>
+    <string name="key_settings_dconn_register_network_service_discovery" translatable="false">key_settings_dconn_register_network_service_discovery</string>
 
 </resources>

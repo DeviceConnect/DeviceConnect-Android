@@ -142,7 +142,16 @@ public final class DConnectSettings {
      * @return 起動する場合はtrue、それ以外はfalse
      */
     public boolean isManagerStartFlag() {
-        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_server_on_off), BuildConfig.DEFAULT_MANAGER_ON);
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_server_on_off), isDefaultManagerStartFlag());
+    }
+
+    /**
+     * デフォルトのManagerの起動フラグを取得する.
+     *
+     * @return 起動する場合はtrue、それ以外はfalse
+     */
+    public boolean isDefaultManagerStartFlag() {
+        return false;
     }
 
     /**
@@ -253,7 +262,16 @@ public final class DConnectSettings {
      * @return 使用する場合はtrue、それ以外はfalse
      */
     public boolean isUseALocalOAuth() {
-        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_local_oauth), BuildConfig.DEFAULT_LOCAL_OAUTH_ON);
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_local_oauth), isDefaultUseALocalOAuth());
+    }
+
+    /**
+     * デフォルトの LocalOAuth 使用フラグを取得する.
+     *
+     * @return 使用する場合はtrue、それ以外はfalse
+     */
+    public boolean isDefaultUseALocalOAuth() {
+        return false;
     }
 
     /**
@@ -269,14 +287,20 @@ public final class DConnectSettings {
 
     /**
      * 外部IP承認フラグを取得する.
-     * <p>
-     * デフォルトではfalseに設定されている。
-     * </p>
      *
      * @return trueの場合は許可、falseの場合は不許可
      */
     public boolean allowExternalIP() {
-        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_allow_external_ip), BuildConfig.DEFAULT_EXTERNAL_IP_ON);
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_allow_external_ip), defaultAllowExternalIP());
+    }
+
+    /**
+     * 外部IP承認フラグのデフォルト値を取得します.
+     *
+     * @return trueの場合は許可、falseの場合は不許可
+     */
+    public boolean defaultAllowExternalIP() {
+        return true;
     }
 
     /**
@@ -533,6 +557,24 @@ public final class DConnectSettings {
      */
     public boolean isAvailabilityVisibleName() {
         return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_availability_visible_name), false);
+    }
+
+    /**
+     * プラグインの検索登録フラグを設定します.
+     *
+     * @param flag 検索登録フラグ
+     */
+    public void setRegisterNetworkServiceDiscovery(final boolean flag) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_register_network_service_discovery), flag);
+        editor.apply();
+    }
+
+    /**
+     * プラグインの検索登録フラグを設定取得します.
+     */
+    public boolean isRegisterNetworkServiceDiscovery() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_register_network_service_discovery), true);
     }
 
     /**

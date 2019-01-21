@@ -6,14 +6,13 @@
  */
 package org.deviceconnect.android.manager.core;
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.compat.MessageConverter;
@@ -58,7 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.deviceconnect.android.manager.core.plugin.ConnectionType.*;
+import static org.deviceconnect.android.manager.core.plugin.ConnectionType.BROADCAST;
 
 /**
  * Device Connect のメイン処理を行うクラス.
@@ -152,6 +151,7 @@ class DConnectCore extends DevicePluginContext {
     };
 
     private DConnectInterface mInterface;
+
     /**
      * コンストラクタ.
      *
@@ -181,7 +181,7 @@ class DConnectCore extends DevicePluginContext {
         mPluginManager.addEventListener(new DevicePluginManager.DevicePluginEventListener() {
             @Override
             public void onDeviceFound(final DevicePlugin plugin) {
-                if (BuildConfig.DEFAULT_SEARCH_PROFILE) {
+                if (mSettings.isRegisterNetworkServiceDiscovery()) {
                     // 見つけたプラグインを有効にする
                     plugin.apply();
                     if (plugin.isEnabled()) {

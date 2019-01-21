@@ -52,7 +52,10 @@ public class DConnectService extends Service {
      * デバッグ用タグ.
      */
     private static final String TAG = "DConnectService";
-    /** Notification Id. */
+
+    /**
+     * Notification Id.
+     */
     private static final int ONGOING_NOTIFICATION_ID = 4035;
 
     /**
@@ -60,7 +63,9 @@ public class DConnectService extends Service {
      */
     private static final String TAG_WAKE_LOCK = "dconnect:DeviceConnectManager";
 
-    /** ロガー. */
+    /**
+     * ロガー.
+     */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
@@ -72,13 +77,20 @@ public class DConnectService extends Service {
      * Device Connect Manager 本体.
      */
     private DConnectManager mManager;
-    /** WakeLockのインスタンス. */
+
+    /**
+     * WakeLockのインスタンス.
+     */
     private PowerManager.WakeLock mWakeLock;
 
-    /** バインドするためのクラス. */
+    /**
+     * バインドするためのクラス.
+     */
     private final IBinder mLocalBinder = new LocalBinder();
 
-    /** スレッドプール. */
+    /**
+     * スレッドプール.
+     */
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(10);
 
     /**
@@ -94,6 +106,7 @@ public class DConnectService extends Service {
             return DConnectService.this;
         }
     }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -106,7 +119,9 @@ public class DConnectService extends Service {
         super.onCreate();
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
+
         initManager();
+
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {
             startManager();
@@ -196,6 +211,7 @@ public class DConnectService extends Service {
             mLogger.warning("Failed to start a DConnectManager." + e.getMessage());
         }
     }
+
     /**
      * Hostプラグインを追加します.
      */
@@ -218,10 +234,12 @@ public class DConnectService extends Service {
 
         plugin.enable();
     }
+
     /**
      * プラグインのIDを作成します.
+     *
      * @param packageName パッケージ名
-     * @param className クラス名
+     * @param className   クラス名
      * @return プラグインID
      */
     private String createMD5(final String packageName, final String className) {
@@ -231,9 +249,9 @@ public class DConnectService extends Service {
             return "host_plugin_id";
         }
     }
+
     private void initManager() {
         mManager = new DConnectManager(this, mSettings) {
-
             @Override
             public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
                 return DConnectBroadcastReceiver.class;
@@ -263,6 +281,7 @@ public class DConnectService extends Service {
             // ignore.
         }
     }
+
     private void onKeepAliveCommand(final Intent intent) {
         String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
         if (status.equals("RESPONSE")) {
@@ -280,6 +299,7 @@ public class DConnectService extends Service {
             }
         }
     }
+
     /// IBinderを通じて実行されるメソッド
 
     public void setEnableKeepAlive(boolean enable) {
@@ -289,6 +309,7 @@ public class DConnectService extends Service {
             mManager.getKeepAliveManager().disableKeepAlive();
         }
     }
+
     public void openPluginSettings(final String pluginId) {
         DevicePlugin plugin = mManager.getPluginManager().getDevicePlugin(pluginId);
         if (plugin == null) {
@@ -326,6 +347,7 @@ public class DConnectService extends Service {
             }
         });
     }
+
     /**
      * キーストアをSDカード上のファイルとして出力する.
      *
@@ -341,7 +363,8 @@ public class DConnectService extends Service {
         }
         mManager.getKeyStoreManager().exportKeyStore(new File(dir, "keystore.p12"));
     }
-     /**
+
+    /**
      * DConnectManagerを起動する.
      */
     public synchronized void startInternal() {
@@ -362,9 +385,10 @@ public class DConnectService extends Service {
             stopManager();
         }
     }
+
     /**
      * ルート証明書を「信頼できる証明書」としてインストールする.
-     *
+     * <p>
      * インストール前にユーザーに対して、認可ダイアログが表示される.
      * 認可されない場合は、インストールされない.
      */
@@ -421,9 +445,10 @@ public class DConnectService extends Service {
             mWakeLock = null;
         }
     }
+
     /**
      * WebSocketを切断する.
-     *
+     * <p>
      * NOTE: Android 7以降ではメインスレッド上で切断すると例外が発生する場合があるため、
      * 別スレッド上で実行している.
      *
@@ -436,24 +461,27 @@ public class DConnectService extends Service {
             }
         });
     }
+
     /**
      * RESTfulサーバが動作しているかを確認する.
+     *
      * @return 動作している場合にはtrue、それ以外はfalse
      */
     public boolean isRunning() {
         return mManager != null && mManager.isRunning();
     }
+
     public WebSocketInfoManager getWebSocketInfoManager() {
         if (!isRunning()) {
             return null;
         }
         return mManager.getWebSocketInfoManager();
     }
+
     public DevicePluginManager getPluginManager() {
         if (mManager == null || !mManager.isRunning()) {
             return null;
         }
         return mManager.getPluginManager();
     }
-
 }

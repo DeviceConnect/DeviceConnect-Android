@@ -16,7 +16,6 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;
@@ -521,10 +520,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         // プロファイル名の取得
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         if (profileName == null) {
-            Log.d("ABC", "/????");
-            Log.d("ABC", "request: " + request);
-            Log.d("ABC", "request extras: " + request.getExtras());
-
             MessageUtils.setNotSupportProfileError(response);
             sendResponse(response);
             return;

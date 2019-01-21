@@ -1,0 +1,91 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.manager"
+        minSdkVersion 24
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    flavorDimensions "common"
+
+    productFlavors {
+        thetav {
+            dimension "common"
+            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "false"
+            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "true"
+            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "true"
+            buildConfigField "boolean", "DEFAULT_SSL_USE", "false"
+            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "false"
+        }
+        things {
+            dimension "common"
+            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "true"
+            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "false"
+            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "false"
+            buildConfigField "boolean", "DEFAULT_SSL_USE", "false"
+            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "true"
+        }
+        original {
+            dimension "common"
+            buildConfigField "boolean", "DEFAULT_LOCAL_OAUTH_ON", "true"
+            buildConfigField "boolean", "DEFAULT_EXTERNAL_IP_ON", "false"
+            buildConfigField "boolean", "DEFAULT_MANAGER_ON", "false"
+            buildConfigField "boolean", "DEFAULT_SSL_USE", "true"
+            buildConfigField "boolean", "DEFAULT_SEARCH_PROFILE", "true"
+        }
+    }
+}
+
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
+
+dependencies {
+    implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation('com.android.support:appcompat-v7:26.1.0') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
+    androidTestImplementation 'com.android.support:support-annotations:26.1.0'
+    androidTestImplementation('com.android.support.test:runner:1.0.2') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
+    androidTestImplementation('com.android.support.test:rules:1.0.2') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
+    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
+    implementation project(':dconnect-manager-core')
+    implementation project(':dconnect-device-plugin-sdk')
+    implementation project(':dconnect-server-nano-httpd')
+    implementation project(':dconnect-device-plugin-host')
+    compileOnly 'com.google.android.things:androidthings:1.0'
+
+}

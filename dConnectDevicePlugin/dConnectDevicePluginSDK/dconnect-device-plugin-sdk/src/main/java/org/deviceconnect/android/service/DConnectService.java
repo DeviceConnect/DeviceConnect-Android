@@ -277,10 +277,6 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
     public boolean onRequest(final Intent request, final Intent response) {
         DConnectProfile profile = getProfile(DConnectProfile.getProfile(request));
         if (profile == null) {
-            Log.d("ABC", "/????222");
-            Log.d("ABC", "request: " + request);
-            Log.d("ABC", "request extras: " + request.getExtras());
-
             MessageUtils.setNotSupportProfileError(response);
             return true;
         }

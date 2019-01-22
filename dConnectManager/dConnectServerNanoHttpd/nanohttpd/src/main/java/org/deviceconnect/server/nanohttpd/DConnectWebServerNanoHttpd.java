@@ -203,9 +203,11 @@ public class DConnectWebServerNanoHttpd {
                 // クロスドメイン対応としてOPTIONSがきたらDevice Connect で対応しているメソッドを返す
                 // Device Connect 対応外のメソッドだがエラーにはしないのでここで処理を終了。
                 r = newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
-                r.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-            } else {
+                r.addHeader("Access-Control-Allow-Methods", "GET");
+            } else if (Method.GET.equals(session.getMethod())) {
                 r = defaultRespond(headers, session, uri);
+            } else {
+                r = newMethodNotAllowedResponse();
             }
 
             if (mCors != null) {
@@ -251,9 +253,8 @@ public class DConnectWebServerNanoHttpd {
                 File f = new File(homeDir, uri);
                 if (f.isDirectory() && !uri.endsWith("/")) {
                     uri += "/";
-                    Response res = newFixedLengthResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
+                    Response res = newRedirectResponse(uri);
                     res.addHeader("Accept-Ranges", "bytes");
-                    res.addHeader("Location", uri);
                     return res;
                 }
 
@@ -291,11 +292,11 @@ public class DConnectWebServerNanoHttpd {
         private Response serveAssets(final String uri, final String queryString, final Map<String, String> header, final String homeDir) {
             Response retValue;
 
-            String filePath = renameUriFromAssets(uri, homeDir);
+            String filePath = renameUriForAssets(uri, homeDir);
 
             String mime = header.get("content-type");
-            // httpの仕様より、content-typeでMIME Typeが特定できない場合はURIから
-            // MIME Typeを推測する。
+            // http の仕様より、content-type で MIME Type が特定できない場合は
+            // URI から MIME Type を推測する。
             if (mime == null || !MIME_TYPES.containsValue(mime)) {
                 mime = getMimeTypeFromURI(filePath);
             }
@@ -304,18 +305,8 @@ public class DConnectWebServerNanoHttpd {
             try {
                 in = mContext.getAssets().open(filePath);
 
-                // ETag のためのハッシュ計算
-                int hashCode = 0;
-                if (mVersion != null) {
-                    hashCode += mVersion.hashCode();
-                }
-                hashCode += filePath.hashCode();
-                if (queryString != null) {
-                    hashCode += queryString.hashCode();
-                }
-
                 // If-None-Match対応
-                String etag = Integer.toHexString(hashCode);
+                String etag = createETag(filePath, queryString);
                 if (etag.equals(header.get("if-none-match"))) {
                     retValue = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
                 } else {
@@ -338,7 +329,6 @@ public class DConnectWebServerNanoHttpd {
                         // ignore.
                     }
                 }
-
                 retValue = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, Response.Status.NOT_FOUND.getDescription());
             }
 
@@ -466,7 +456,7 @@ public class DConnectWebServerNanoHttpd {
          * @param homeDir ドキュメントルート
          * @return Assets にあるファイルパス
          */
-        private String renameUriFromAssets(final String uri, final String homeDir) {
+        private String renameUriForAssets(final String uri, final String homeDir) {
             String filePath = uri;
 
             // パスに何も入力されていない場合には index.html に飛ばす
@@ -543,13 +533,27 @@ public class DConnectWebServerNanoHttpd {
         }
 
         /**
+         * リダイレクトする場合のレスポンスを返却します.
+         *
+         * @param uri リダイレクト先のURI
+         * @return レスポンス
+         */
+        private Response newRedirectResponse(final String uri) {
+            Response res = newFixedLengthResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML,
+                    "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
+            res.addHeader("Location", uri);
+            return res;
+        }
+
+        /**
          * アクセス拒否のレスポンスを返却します.
          *
          * @param s アクセス拒否のメッセージ
          * @return レスポンス
          */
         private Response newForbiddenResponse(final String s) {
-            return newFixedLengthResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
+            return newFixedLengthResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT,
+                    "FORBIDDEN: " + s);
         }
 
         /**
@@ -559,7 +563,8 @@ public class DConnectWebServerNanoHttpd {
          * @return レスポンス
          */
         private Response newInternalErrorResponse(final String s) {
-            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERROR: " + s);
+            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                    "INTERNAL ERROR: " + s);
         }
 
         /**
@@ -568,7 +573,18 @@ public class DConnectWebServerNanoHttpd {
          * @return レスポンス
          */
         private Response newNotFoundResponse() {
-            return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+            return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT,
+                    "Error 404, file not found.");
+        }
+
+        /**
+         * 許可されていないメソッドの場合のレスポンスを返却します.
+         *
+         * @return レスポンス
+         */
+        private Response newMethodNotAllowedResponse() {
+            return newFixedLengthResponse(Response.Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT,
+                    "Error 405, The method specified in the request is not allowed.");
         }
 
         /**
@@ -676,6 +692,26 @@ public class DConnectWebServerNanoHttpd {
             }
             return Integer.toHexString(hashCode);
         }
+        /**
+         * ETagを作成します.
+         *
+         * @param filePath ファイル
+         * @param queryParameter クエリ
+         * @return ETag
+         */
+        private String createETag(final String filePath, final String queryParameter) {
+            int hashCode = 0;
+            if (mVersion != null) {
+                hashCode += mVersion.hashCode();
+            }
+            hashCode += filePath.hashCode();
+            if (queryParameter != null) {
+                hashCode += queryParameter.hashCode();
+            }
+
+            // If-None-Match対応
+            return Integer.toHexString(hashCode);
+        }
 
         /**
          * ファイルサイズを文字列に変換します.
@@ -704,7 +740,7 @@ public class DConnectWebServerNanoHttpd {
          */
         private boolean canServeUri(final String uri, final String homeDir) {
             if (isAssets(homeDir)) {
-                String filePath = renameUriFromAssets(homeDir + uri, homeDir);
+                String filePath = renameUriForAssets(homeDir + uri, homeDir);
                 InputStream in = null;
                 try {
                     in = mContext.getAssets().open(filePath);

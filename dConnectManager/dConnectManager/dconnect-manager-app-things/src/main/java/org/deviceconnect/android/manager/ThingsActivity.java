@@ -24,7 +24,6 @@ import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.core.util.VersionName;
 import org.deviceconnect.android.manager.util.IpAddressFetcher;
-import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectWebServerNanoHttpd;
 
 /**
@@ -85,7 +84,7 @@ public class ThingsActivity extends Activity {
     private void startManager() {
         mSettings = new DConnectSettings(this);
         mSettings.setUseALocalOAuth(false);
-        mSettings.setRequireOrigin(false);
+        mSettings.setRequireOrigin(true);
         mSettings.setAllowExternalIP(true);
         mSettings.setProductName(getString(R.string.app_name));
 
@@ -121,10 +120,16 @@ public class ThingsActivity extends Activity {
 
             @Override
             public void onStarted() {
+                if (DEBUG) {
+                    Log.i(TAG, "DConnectManager is started.");
+                }
             }
 
             @Override
             public void onStopped() {
+                if (DEBUG) {
+                    Log.i(TAG, "DConnectManager is stopped.");
+                }
             }
 
             @Override
@@ -138,9 +143,10 @@ public class ThingsActivity extends Activity {
                     Log.e(TAG, "An error occurred in DConnectManager.", e);
                 }
 
-                // DConnectManagerでエラーが発生したので終了処理をしておく
+                // DConnectManager でエラーが発生したので終了処理をしておく
                 stopManager();
                 stopWebServer();
+                finish();
             }
         });
 
@@ -205,16 +211,6 @@ public class ThingsActivity extends Activity {
      * Webサーバを起動します.
      */
     private void startWebServer() {
-        DConnectServerConfig config = new DConnectServerConfig.Builder()
-                .port(mSettings.getWebPort())
-                .documentRootPath(mSettings.getDocumentRootPath())
-                .build();
-
-        if (DEBUG) {
-            Log.d(TAG, "WebServer");
-            Log.d(TAG, "    config: " + config);
-        }
-
         mWebServer = new DConnectWebServerNanoHttpd.Builder()
                 .port(mSettings.getWebPort())
                 .addDocumentRoot(mSettings.getDocumentRootPath())
@@ -288,5 +284,4 @@ public class ThingsActivity extends Activity {
         }
         return versionName;
     }
-
 }

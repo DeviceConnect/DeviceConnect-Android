@@ -8,20 +8,19 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.graphics.SurfaceTexture;
 import android.media.Image;
 import android.media.ImageReader;
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.renderscript.Matrix4f;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
@@ -31,16 +30,21 @@ import com.serenegiant.glutils.EglTask;
 import com.serenegiant.glutils.GLDrawer2D;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.IntBuffer;
+import java.nio.ByteBuffer;
 
 
+/**
+ * カメラのプレビューをMJPEG形式で配信するサーバー.
+ *
+ * {@link SurfaceTexture} をもとに実装.
+ */
 class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -210,43 +214,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private final class DrawTask extends EglTask {
 
-        // 取得したピクセルデータは R (赤) と B (青) が逆になっています。
-        // また垂直方向も逆になっているので以下のように ColorMatrix と Matrix を使用して修正します。
-        /*
-         * カラーチャネルを交換するために ColorMatrix と ColorMatrixFilter を使用します。
-         *
-         * 5x4 のマトリックス: [
-         *   a, b, c, d, e,
-         *   f, g, h, i, j,
-         *   k, l, m, n, o,
-         *   p, q, r, s, t
-         * ]
-         *
-         * RGBA カラーへ適用する場合、以下のように計算します:
-         *
-         * R' = a * R + b * G + c * B + d * A + e;
-         * G' = f * R + g * G + h * B + i * A + j;
-         * B' = k * R + l * G + m * B + n * A + o;
-         * A' = p * R + q * G + r * B + s * A + t;
-         *
-         * R (赤) と B (青) を交換したいので以下の様になります。
-         *
-         * R' = B => 0, 0, 1, 0, 0
-         * G' = G => 0, 1, 0, 0, 0
-         * B' = R => 1, 0, 0, 0, 0
-         * A' = A => 0, 0, 0, 1, 0
-         */
-        private final Paint mPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
-        {
-            // R (赤) と B (青) が逆なので交換します。
-            mPaint.setColorFilter(new ColorMatrixColorFilter(new ColorMatrix(new float[] {
-                0, 0, 1, 0, 0,
-                0, 1, 0, 0, 0,
-                1, 0, 0, 0, 0,
-                0, 0, 0, 1, 0
-            })));
-        }
-
         private long intervals;
         private EGLBase.IEglSurface mEncoderSurface;
         private GLDrawer2D mDrawer;
@@ -257,9 +224,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
         private HostDeviceRecorder.PictureSize mSize;
         private Bitmap mBitmap;
-        private Canvas mCanvas;
-        private int[] mPixels;
-        private IntBuffer mPixelBuffer;
+        private ByteBuffer mByteBuffer;
         private ByteArrayOutputStream mOutput;
         private int mJpegQuality;
 
@@ -277,16 +242,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mSize = new HostDeviceRecorder.PictureSize(size.getHeight(), size.getWidth());
             mBitmap = Bitmap.createBitmap(mSize.getWidth(), mSize.getHeight(), Bitmap.Config.ARGB_8888);
 
-            // 上下が逆さまなので垂直方向に反転させます。
-            final Matrix matrix = new Matrix();
-            matrix.postScale(1.0f, -1.0f);
-            matrix.postTranslate(0, mSize.getHeight());
-            mCanvas = new Canvas(mBitmap);
-            mCanvas.concat(matrix);
-
-            mPixels = new int[mSize.getWidth() * mSize.getHeight()];
-            mPixelBuffer = IntBuffer.wrap(mPixels);
-            mOutput = new ByteArrayOutputStream(mSize.getWidth() * mSize.getHeight());
+            int w = mSize.getWidth();
+            int h = mSize.getHeight();
+            mByteBuffer = ByteBuffer.allocateDirect(w * h * 4);
+            mOutput = new ByteArrayOutputStream();
 
             mSourceTexture.setDefaultBufferSize(mSize.getWidth(), mSize.getHeight());	// これを入れないと映像が取れない
             mSourceSurface = new Surface(mSourceTexture);
@@ -394,19 +353,18 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                     if (localRequestDraw) {
                         mSourceTexture.updateTexImage();
                         mSourceTexture.getTransformMatrix(mTexMatrix);
+                        Matrix.scaleM(mTexMatrix, 0, 1, -1, 0);
+                        Matrix.translateM(mTexMatrix, 0, 0, -1, 0);
                     }
+
                     // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
                     mEncoderSurface.makeCurrent();
                     mDrawer.draw(mTexId, mTexMatrix, 0);
 
-
                     GLES20.glFinish();
-                    mPixelBuffer.clear();
-                    mPixelBuffer.position(0);
-                    GLES20.glReadPixels(0, 0, mSize.getWidth(), mSize.getHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPixelBuffer);
-
-                    mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                    mCanvas.drawBitmap(mPixels, 0, mSize.getWidth(), 0, 0, mSize.getWidth(), mSize.getHeight(), false, mPaint);
+                    mByteBuffer.rewind();
+                    GLES20.glReadPixels(0, 0, mSize.getWidth(), mSize.getHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
+                    mBitmap.copyPixelsFromBuffer(mByteBuffer);
 
                     mOutput.reset();
                     mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);

@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -22,9 +24,8 @@ import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.core.util.VersionName;
 import org.deviceconnect.android.manager.util.IpAddressFetcher;
-import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
-import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.deviceconnect.server.nanohttpd.DConnectWebServerNanoHttpd;
 
 /**
  * Android Things 用の Device Connect 起動用 Activity.
@@ -55,7 +56,7 @@ public class ThingsActivity extends Activity {
     /**
      * Webサーバ.
      */
-    private DConnectServer mWebServer;
+    private DConnectWebServerNanoHttpd mWebServer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -214,7 +215,12 @@ public class ThingsActivity extends Activity {
             Log.d(TAG, "    config: " + config);
         }
 
-        mWebServer = new DConnectServerNanoHttpd(config, this, null);
+        mWebServer = new DConnectWebServerNanoHttpd.Builder()
+                .port(mSettings.getWebPort())
+                .addDocumentRoot(mSettings.getDocumentRootPath())
+                .cors("*")
+                .version(getVersion(this))
+                .build();
         mWebServer.start();
     }
 
@@ -223,7 +229,7 @@ public class ThingsActivity extends Activity {
      */
     private void stopWebServer() {
         if (mWebServer != null) {
-            mWebServer.shutdown();
+            mWebServer.stop();
             mWebServer = null;
         }
     }
@@ -236,4 +242,51 @@ public class ThingsActivity extends Activity {
         TextView ipAddress = findViewById(R.id.activity_things_ip_address);
         ipAddress.setText(fetcher.getWifiIPv4Address());
     }
+
+    /**
+     * バージョンコードとバージョン名からバージョンを取得します.
+     *
+     * @param context コンテキスト
+     * @return バージョンの文字列
+     */
+    private static String getVersion(final Context context) {
+        return getVersionName(context) + "_" + getVersionCode(context);
+    }
+
+    /**
+     * バージョンコードを取得する
+     *
+     * @param context コンテキスト
+     * @return VersionCode
+     */
+    private static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionCode;
+    }
+
+    /**
+     * バージョン名を取得する
+     *
+     * @param context コンテキスト
+     * @return VersionName
+     */
+    private static String getVersionName(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        String versionName = "";
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionName = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionName;
+    }
+
 }

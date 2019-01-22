@@ -11,37 +11,48 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.NotificationUtil;
-import org.deviceconnect.server.DConnectServer;
-import org.deviceconnect.server.DConnectServerConfig;
-import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.deviceconnect.server.nanohttpd.DConnectWebServerNanoHttpd;
 
 import java.util.logging.Logger;
 
 /**
  * Webサーバ用のサービス.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class DConnectWebService extends Service {
-    /** ロガー. */
+    /**
+     * ロガー.
+     */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
-    /** Notification Id. */
+
+    /**
+     * Notification Id.
+     */
     private static final int ONGOING_NOTIFICATION_ID = 8080;
 
-    /** Webサーバ. */
-    private DConnectServer mWebServer;
+    /**
+     * Webサーバ.
+     */
+    private DConnectWebServerNanoHttpd mWebServer;
 
-    /** DConnectの設定. */
+    /**
+     * DConnectの設定.
+     */
     private DConnectSettings mSettings;
 
-    /** バインドクラス. */
+    /**
+     * バインドクラス.
+     */
     private final IBinder mLocalBinder = new LocalBinder();
 
     @Override
@@ -59,6 +70,7 @@ public class DConnectWebService extends Service {
         super.onCreate();
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
+
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isWebServerStartFlag()) {
             startWebServer();
@@ -68,7 +80,7 @@ public class DConnectWebService extends Service {
                     getString(R.string.web_service_on_channel_title),
                     getString(R.string.web_service_on_channel_desc),
                     ONGOING_NOTIFICATION_ID
-                    );
+            );
         }
     }
 
@@ -78,21 +90,11 @@ public class DConnectWebService extends Service {
         super.onDestroy();
     }
 
-    @Override
-    public int onStartCommand(final Intent intent, final int flags, final int startId) {
-
-        return START_STICKY;
-    }
-
     /**
      * Webサーバを起動する.
      */
     public synchronized void startWebServer() {
         if (mWebServer == null) {
-            DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
-            builder.port(mSettings.getWebPort())
-                    .documentRootPath(mSettings.getDocumentRootPath());
-
             if (BuildConfig.DEBUG) {
                 mLogger.info("Web Server was Started.");
                 mLogger.info("Host: " + mSettings.getHost());
@@ -100,16 +102,21 @@ public class DConnectWebService extends Service {
                 mLogger.info("Document Root: " + mSettings.getDocumentRootPath());
             }
 
-            mWebServer = new DConnectServerNanoHttpd(builder.build(), this, null);
+            mWebServer = new DConnectWebServerNanoHttpd.Builder()
+                    .port(mSettings.getWebPort())
+                    .addDocumentRoot(mSettings.getDocumentRootPath())
+                    .cors("*")
+                    .version(getVersion(this))
+                    .build();
             mWebServer.start();
+
             NotificationUtil.showNotification(this,
                     DConnectUtil.getIPAddress(this) + ":" + mSettings.getWebPort(),
                     getString(R.string.web_service_on_channel_id),
                     getString(R.string.service_web_server),
                     getString(R.string.web_service_on_channel_title),
                     getString(R.string.web_service_on_channel_desc),
-                    ONGOING_NOTIFICATION_ID
-                    );
+                    ONGOING_NOTIFICATION_ID);
 
             IntentFilter filter = new IntentFilter();
             filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -122,8 +129,12 @@ public class DConnectWebService extends Service {
      */
     public synchronized void stopWebServer() {
         if (mWebServer != null) {
-            unregisterReceiver(mWiFiReceiver);
-            mWebServer.shutdown();
+            try {
+                unregisterReceiver(mWiFiReceiver);
+            } catch (Exception e) {
+                // ignore.
+            }
+            mWebServer.stop();
             mWebServer = null;
             NotificationUtil.hideNotification(this);
         }
@@ -137,10 +148,49 @@ public class DConnectWebService extends Service {
     }
 
     /**
-     * フォアグランドを停止する。
+     * バージョンコードとバージョン名からバージョンを取得します.
+     *
+     * @param context コンテキスト
+     * @return バージョンの文字列
      */
-    private void hideNotification() {
-        stopForeground(true);
+    private static String getVersion(final Context context) {
+        return getVersionName(context) + "_" + getVersionCode(context);
+    }
+
+    /**
+     * バージョンコードを取得する
+     *
+     * @param context コンテキスト
+     * @return VersionCode
+     */
+    private static int getVersionCode(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        int versionCode = 0;
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionCode;
+    }
+
+    /**
+     * バージョン名を取得する
+     *
+     * @param context コンテキスト
+     * @return VersionName
+     */
+    private static String getVersionName(final Context context) {
+        PackageManager pm = context.getPackageManager();
+        String versionName = "";
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            versionName = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            // ignore.
+        }
+        return versionName;
     }
 
     /**

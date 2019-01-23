@@ -8,7 +8,6 @@ package org.deviceconnect.android.manager.core.request;
 
 import android.content.Intent;
 
-
 import org.deviceconnect.android.manager.core.BuildConfig;
 import org.deviceconnect.android.manager.core.event.EventBroker;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
@@ -55,15 +54,6 @@ public class DeliveryRequest extends LocalOAuthRequest {
             mLogger.info(String.format("Delivery Request: %s, intent: %s",
                     mDevicePlugin.getPackageName(), mRequest.getExtras()));
         }
-
-        // プラグインのサポートしない命令にエラーを返す
-//        String profileName = DConnectProfile.getProfile(mRequest);
-//        if (profileName != null && !mDevicePlugin.supportsProfile(profileName)) {
-//            Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-//            MessageUtils.setNotSupportProfileError(response);
-//            sendResponse(response);
-//            return;
-//        }
 
         // 命令をデバイスプラグインに送信
         Intent request = createRequestMessage(mRequest, mDevicePlugin);

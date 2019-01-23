@@ -8,7 +8,6 @@ package org.deviceconnect.android.manager.core.request;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.manager.core.BuildConfig;
 import org.deviceconnect.android.manager.core.DConnectConst;
 import org.deviceconnect.android.manager.core.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.core.DConnectLocalOAuth.OAuthData;
@@ -23,8 +22,6 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 /**
  * LocalOAuthを行うためのリクエスト.
@@ -133,10 +130,134 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
     /**
      * プラグイン側のアクセストークンを更新したときに呼び出されるコールバック.
      *
-     * @param plugin プラグイン
+     * @param plugin         プラグイン
      * @param newAccessToken 新しいアクセストークン
      */
     protected void onAccessTokenUpdated(final DevicePlugin plugin, final String newAccessToken) {
+    }
+
+    /**
+     * Local OAuthの有効期限切れの場合にリトライを行う.
+     */
+    void executeRequest() {
+        String profile = mRequest.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+        String origin = getRequestOrigin(mRequest);
+
+        if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
+            String accessToken = getAccessTokenForPlugin(origin, serviceId);
+            if (accessToken != null) {
+                executeRequest(accessToken);
+            } else {
+                OAuthData oauth = mLocalOAuth.getOAuthData(origin, serviceId);
+                if (oauth == null) {
+                    // OAuthData が存在しない場合には、プラグインに生成要求を行う
+                    ClientData clientData = executeClient(serviceId, origin);
+                    if (clientData == null) {
+                        sendResponse(mResponse);
+                        return;
+                    } else if (clientData.mClientId == null) {
+                        // プラグイン側で、アクセストークン不要のレスポンスが返ってきた場合の処理
+                        executeRequest(null);
+                        return;
+                    } else {
+                        // クライアントデータを保存
+                        mLocalOAuth.setOAuthData(origin, serviceId, clientData.mClientId);
+                        oauth = mLocalOAuth.getOAuthData(origin, serviceId);
+                    }
+                }
+
+                accessToken = mLocalOAuth.getAccessToken(oauth.getId());
+                if (accessToken == null) {
+                    // 再度アクセストークンを取得してから再度実行
+                    accessToken = executeGetAccessToken(serviceId, origin, oauth.getClientId());
+                    if (accessToken == null) {
+                        sendResponse(mResponse);
+                    } else {
+                        // アクセストークンを保存
+                        mLocalOAuth.setAccessToken(oauth.getId(), accessToken);
+                        onAccessTokenUpdated(mDevicePlugin, accessToken);
+                        executeRequest(accessToken);
+                    }
+                } else {
+                    executeRequest(accessToken);
+                }
+            }
+        } else {
+            executeRequest(null);
+        }
+    }
+
+    /**
+     * ClientData を作成するためのリクエストを実行します.
+     *
+     * @param serviceId サービスID
+     * @param origin オリジン
+     * @return ClientDataのインスタンス、エラーの場合は null
+     */
+    private ClientData executeClient(final String serviceId, final String origin) {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        CreateClientRequest request = new CreateClientRequest();
+        request.setDestination(mDevicePlugin);
+        request.setDevicePluginManager(mPluginMgr);
+        request.setRequest(mRequest);
+        request.setContext(getContext());
+        request.setServiceId(serviceId);
+        request.setOrigin(origin);
+        request.setLocalOAuth(mLocalOAuth);
+        request.setDConnectInterface(mInterface);
+        request.setReportedRoundTrip(false);
+        request.setOnResponseCallback((response) -> {
+            mResponse = response;
+            latch.countDown();
+        });
+        mRequestManager.addRequest(request);
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            // ignore.
+        }
+
+        return request.getClientData();
+    }
+
+    /**
+     * アクセストークンを作成するためのリクエストを実行します.
+     *
+     * @param serviceId サービスID
+     * @param origin オリジン
+     * @param clientId クライアントID
+     * @return アクセストークン、エラーの場合には null
+     */
+    private String executeGetAccessToken(String serviceId, String origin, String clientId) {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        GetAccessTokenRequest request = new GetAccessTokenRequest();
+        request.setDestination(mDevicePlugin);
+        request.setDevicePluginManager(mPluginMgr);
+        request.setRequest(mRequest);
+        request.setContext(getContext());
+        request.setServiceId(serviceId);
+        request.setOrigin(origin);
+        request.setClientId(clientId);
+        request.setLocalOAuth(mLocalOAuth);
+        request.setDConnectInterface(mInterface);
+        request.setReportedRoundTrip(false);
+        request.setOnResponseCallback((response) -> {
+            mResponse = response;
+            latch.countDown();
+        });
+        mRequestManager.addRequest(request);
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            // ignore.
+        }
+
+        return request.getAccessToken();
     }
 
     /**
@@ -174,49 +295,6 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
             }
         }
         return false;
-    }
-
-    /**
-     * Local OAuthの有効期限切れの場合にリトライを行う.
-     */
-    protected void executeRequest() {
-        mUseAccessToken = false;
-
-        String profile = mRequest.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
-        String origin = getRequestOrigin(mRequest);
-
-        if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
-            String accessToken = getAccessTokenForPlugin(origin, serviceId);
-            if (accessToken != null) {
-                executeRequest(accessToken);
-            } else {
-                // 認証を行うリクエスト
-                OAuthRequest request = new OAuthRequest();
-                request.setDestination(mDevicePlugin);
-                request.setDevicePluginManager(mPluginMgr);
-                request.setRequest(mRequest);
-                request.setContext(getContext());
-                request.setServiceId(serviceId);
-                request.setOrigin(origin);
-                request.setLocalOAuth(mLocalOAuth);
-                request.setReportedRoundTrip(false);
-                new Thread(() -> request.run()).start();
-                request.waitForLocalOAuth();
-
-                if (request.isNeedAccessToken()) {
-                    accessToken = getAccessTokenForPlugin(origin, serviceId);
-                    if (accessToken != null) {
-                        onAccessTokenUpdated(mDevicePlugin, accessToken);
-                        executeRequest(accessToken);
-                    }
-                } else {
-                    executeRequest(null);
-                }
-            }
-        } else {
-            executeRequest(null);
-        }
     }
 
     /**
@@ -279,130 +357,137 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
          * クライアントシークレット.
          */
         String mClientSecret;
+
+        @Override
+        public String toString() {
+            return "ClientData{" +
+                    "mClientId='" + mClientId + '\'' +
+                    ", mClientSecret='" + mClientSecret + '\'' +
+                    '}';
+        }
     }
 
     /**
-     * Local OAuthの処理を行うリクエスト.
+     * Local OAuth を行うための基底リクエスト.
+     *
      */
-    private static class OAuthRequest extends DConnectPluginRequest {
-        /** 送信元のオリジン. */
+    private static abstract class OAuthRequest extends DConnectPluginRequest {
+        /**
+         * 送信元のオリジン.
+         */
         private String mOrigin;
-        /** 送信先のサービスID. */
+
+        /**
+         * 送信先のサービスID.
+         */
         private String mServiceId;
-        /** 認証フラグ. */
-        private boolean mNeedAccessToken = true;
-        /** 認証結果を受け取るまで待機するためのオブジェクト. */
-        private CountDownLatch mLatch = new CountDownLatch(1);
-        /** LocalOAuth管理クラス. */
+
+        /**
+         * LocalOAuth管理クラス.
+         */
         private DConnectLocalOAuth mLocalOAuth;
-        /** ロガー. */
-        private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
         /**
          * オリジンを設定する.
+         *
          * @param origin オリジン
          */
-        public void setOrigin(final String origin) {
+        void setOrigin(final String origin) {
             mOrigin = origin;
         }
 
         /**
          * サービスIDを設定する.
+         *
          * @param id サービスID
          */
-        public void setServiceId(final String id) {
+        void setServiceId(final String id) {
             mServiceId = id;
         }
 
         /**
-         * LocalOAuth管理オブジェクトを設定する.
+         * LocalOAuth 管理オブジェクトを設定する.
+         *
          * @param localOAuth LocalOAuth管理オブジェクト
          */
         void setLocalOAuth(final DConnectLocalOAuth localOAuth) {
             mLocalOAuth = localOAuth;
         }
 
+        /**
+         * オリジンを取得します.
+         *
+         * @return オリジン
+         */
+        String getOrigin() {
+            return mOrigin;
+        }
+
+        /**
+         * サービスIDを取得します.
+         *
+         * @return サービスID
+         */
+        String getServiceId() {
+            return mServiceId;
+        }
+
+        /**
+         * LocalOAuth管理オブジェクトを取得します.
+         *
+         * @return LocalOAuth管理オブジェクト
+         */
+        DConnectLocalOAuth getLocalOAuth() {
+            return mLocalOAuth;
+        }
+    }
+
+
+    /**
+     * プラグインに対して ClientData の作成要求を行うクラス.
+     */
+    private static class CreateClientRequest extends OAuthRequest {
+        /**
+         * プラグインの返答から作成する ClientData.
+         * <p>
+         * プラグインからの返答がエラーの場合は null.
+         * </p>
+         */
+        private ClientData mClientData;
+
         @Override
         public void run() {
-            try {
-                authorize();
-            } finally {
-                mLatch.countDown();
+            if (getRequest() == null) {
+                throw new RuntimeException("mRequest is null.");
             }
-        }
 
-        /**
-         * Local OAuthの認可処理を行います.
-         */
-        private void authorize() {
+            if (mDevicePlugin == null) {
+                throw new RuntimeException("mDevicePlugin is null.");
+            }
+
+            // リクエストコードを作成
             mRequestCode = UUID.randomUUID().hashCode();
 
-            OAuthData oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
-            if (oauth == null) {
-                ClientData clientData = executeCreateClient(mServiceId);
-                if (clientData == null) {
-                    // MEMO executeCreateClientの中でレスポンスは返しているので
-                    // ここでは何も処理を行わない。
-                    return;
-                } else if (clientData.mClientId == null) {
-                    // MEMO プラグインが認証を不要としていた場合の処理
-                    mNeedAccessToken = false;
-                    return;
-                } else {
-                    // クライアントデータを保存
-                    mLocalOAuth.setOAuthData(mOrigin, mServiceId, clientData.mClientId);
-                    oauth = mLocalOAuth.getOAuthData(mOrigin, mServiceId);
-                }
-            }
-
-            String accessToken = mLocalOAuth.getAccessToken(oauth.getId());
-            if (accessToken == null) {
-                // 再度アクセストークンを取得してから再度実行
-                accessToken = executeAccessToken(mServiceId, oauth.getClientId());
-                if (accessToken != null) {
-                    // アクセストークンを保存
-                    mLocalOAuth.setAccessToken(oauth.getId(), accessToken);
-                }
-            }
+            // リクエストを実行
+            executeRequest();
         }
 
         /**
-         * アクセストークンが必要か確認します.
-         * @return 必要な場合はtrue、不要な場合はfalse
+         * プラグインからの ClientData を取得します.
+         *
+         * @return ClientData
          */
-        boolean isNeedAccessToken() {
-            return mNeedAccessToken;
+        ClientData getClientData() {
+            return mClientData;
         }
 
         /**
-         * Local OAuthの実行を待ちます.
+         * Client を作成するリクエストを実行します.
          */
-        void waitForLocalOAuth() {
-            // レスポンスが返却されるまで待機
-            try {
-                mLatch.await(mTimeout, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                mLogger.warning("timeout.");
-            }
-        }
+        private void executeRequest() {
+            String serviceId = getServiceId();
+            String origin = getOrigin();
 
-        /**
-         * クライアントの作成をデバイスプラグインに要求する.
-         *
-         * 結果が返ってくるまで、この関数は返り値を返却しない。
-         * 返り値がnullの場合には、クライアントの作成に失敗している。
-         *
-         * [実装要求]
-         * null(エラー)を返す場合には、リクエスト元にレスポンスを返却するので注意が必要。
-         *
-         * @param serviceId サービスID
-         * @return クライアントデータ
-         */
-        private ClientData executeCreateClient(final String serviceId) {
-            // 命令を実行する前にレスポンスを初期化しておく
-            mResponse = null;
-
-            // 各デバイスに送信するリクエストを作成
             Intent request = createRequestMessage(mRequest, mDevicePlugin);
             request.setAction(IntentDConnectMessage.ACTION_GET);
             request.setComponent(mDevicePlugin.getComponentName());
@@ -412,7 +497,7 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
             request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
             request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_CREATE_CLIENT);
             request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
-            request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, mOrigin);
+            request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
             if (sendRequest(request)) {
                 int result = getResult(mResponse);
@@ -420,48 +505,89 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
                     String clientId = mResponse.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID);
                     if (clientId == null) {
                         // クライアントの作成エラー
-                        sendCannotCreateClient();
+                        mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+                        MessageUtils.setAuthorizationError(mResponse, "Cannot create client data.");
                     } else {
                         // クライアントデータを作成
-                        ClientData client = new ClientData();
-                        client.mClientId = clientId;
-                        client.mClientSecret = null;
-                        return client;
+                        mClientData = new ClientData();
+                        mClientData.mClientId = clientId;
+                        mClientData.mClientSecret = null;
                     }
                 } else {
                     int errorCode = getErrorCode(mResponse);
                     if (errorCode == DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE.getCode()) {
                         // authorizationプロファイルに対応していないのでアクセストークンはいらない。
-                        if (BuildConfig.DEBUG) {
-                            mLogger.info("DevicePlugin not support Authorization Profile.");
-                        }
-                        return new ClientData();
-                    } else {
-                        sendResponse(mResponse);
+                        mClientData = new ClientData();
                     }
                 }
+            } else {
+                mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+                MessageUtils.setPluginDisabledError(mResponse, "Failed to access a plugin.");
             }
-            return null;
+
+            sendResponse(mResponse);
+        }
+    }
+
+    /**
+     * プラグインに対してアクセストークンの作成要求を行うクラス.
+     */
+    private static class GetAccessTokenRequest extends OAuthRequest {
+        /**
+         * プラグインの返答から取得したアクセストークン.
+         */
+        private String mAccessToken;
+
+        /**
+         * Client ID.
+         */
+        private String mClientId;
+
+        @Override
+        public void run() {
+            if (getRequest() == null) {
+                throw new RuntimeException("mRequest is null.");
+            }
+
+            if (mDevicePlugin == null) {
+                throw new RuntimeException("mDevicePlugin is null.");
+            }
+
+            if (mClientId == null) {
+                throw new RuntimeException("mClient Id is not set.");
+            }
+
+            // リクエストコードを作成
+            mRequestCode = UUID.randomUUID().hashCode();
+
+            // リクエストを実行
+            executeRequest();
         }
 
         /**
-         * アクセストークンの取得要求をデバイスプラグインに対して行う.
+         * アクセストークンの生成に必要な Client ID を設定します.
          *
-         * 結果が返ってくるまで、この関数は返り値を返却しない。
-         * アクセストークンの取得に失敗した場合にはnullを返却する。
-         *
-         * [実装要求]
-         * null(エラー)を返す場合には、リクエスト元にレスポンスを返却するので注意が必要。
-         *
-         * @param serviceId サービスID
-         * @param clientId クライアントID
+         * @param clientId Client ID
+         */
+        void setClientId(final String clientId) {
+            mClientId = clientId;
+        }
+
+        /**
+         * プラグインから取得したアクセストークンを取得します.
+         * <p>
+         * プラグインからエラーが返ってきた場合には null.
+         * </p>
          * @return アクセストークン
          */
-        private String executeAccessToken(final String serviceId, final String clientId) {
-            // 命令を実行する前にレスポンスを初期化しておく
-            mResponse = null;
+        String getAccessToken() {
+            return mAccessToken;
+        }
 
-            // 各デバイスに送信するリクエストを作成
+        /**
+         * アクセストークンの取得を実行します.
+         */
+        private void executeRequest() {
             Intent request = createRequestMessage(mRequest, mDevicePlugin);
             request.setAction(IntentDConnectMessage.ACTION_GET);
             request.setComponent(mDevicePlugin.getComponentName());
@@ -470,57 +596,45 @@ public abstract class LocalOAuthRequest extends DConnectPluginRequest {
             request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
             request.putExtra(DConnectMessage.EXTRA_INTERFACE, (String) null);
             request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_REQUEST_ACCESS_TOKEN);
-            request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
+            request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, mClientId);
             request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mContext.getString(R.string.app_name));
             request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(getScope()));
 
-            // レスポンスを返却する
             if (sendRequest(request)) {
                 int result = getResult(mResponse);
                 if (result == DConnectMessage.RESULT_OK) {
                     String accessToken = mResponse.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
                     if (accessToken == null) {
-                        sendCannotCreateAccessToken();
+                        // アクセストークン作成失敗
+                        mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+                        MessageUtils.setAuthorizationError(mResponse, "Cannot create access token.");
                     } else {
-                        return accessToken;
+                        mAccessToken = accessToken;
                     }
                 } else {
-                    // 認証エラーで、有効期限切れ・スコープ範囲外以外はClientIdを作り直す処理を入れる
                     int errorCode = getErrorCode(mResponse);
                     if (errorCode == DConnectMessage.ErrorCode.NOT_FOUND_CLIENT_ID.getCode()
                             || errorCode == DConnectMessage.ErrorCode.AUTHORIZATION.getCode()) {
-                        mLocalOAuth.deleteOAuthData(mOrigin, serviceId);
+                        // 認証エラーで、有効期限切れ・スコープ範囲外以外は ClientId を作り直す処理を入れる
+                        getLocalOAuth().deleteOAuthData(getOrigin(), getServiceId());
                     }
-                    sendResponse(mResponse);
                 }
+            } else {
+                mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
+                MessageUtils.setPluginDisabledError(mResponse, "Failed to access a plugin.");
             }
-            return null;
+
+            sendResponse(mResponse);
         }
 
         /**
          * デバイスプラグインでサポートするプロファイルの一覧を取得する.
+         *
          * @return プロファイルの一覧
          */
         private String[] getScope() {
             List<String> list = mDevicePlugin.getSupportProfileNames();
-            return list.toArray(new String[list.size()]);
-        }
-
-        /**
-         * クライアントの作成に失敗した場合のレスポンスを返却する.
-         */
-        private void sendCannotCreateClient() {
-            Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-            MessageUtils.setAuthorizationError(response, "Cannot create client data.");
-            sendResponse(response);
-        }
-        /**
-         * アクセストークンの作成に失敗した場合のレスポンスを返却する.
-         */
-        private void sendCannotCreateAccessToken() {
-            Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-            MessageUtils.setAuthorizationError(response, "Cannot create access token.");
-            sendResponse(response);
+            return list.toArray(new String[0]);
         }
     }
 }

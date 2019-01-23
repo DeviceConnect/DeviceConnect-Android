@@ -252,7 +252,7 @@ public abstract class DConnectManager implements DConnectInterface {
      * Device Connect サーバを停止します.
      */
     public void stopDConnect() {
-        mExecutor.execute(() -> stopRESTServer());
+        mExecutor.execute(this::stopRESTServer);
 
         if (mCore != null) {
             mCore.stop();
@@ -524,9 +524,7 @@ public abstract class DConnectManager implements DConnectInterface {
             }
 
             mWebSocketInfoManager = new WebSocketInfoManager();
-            mWebSocketInfoManager.addOnWebSocketEventListener((origin) -> {
-                mCore.sendTransmitDisconnectEvent(origin);
-            });
+            mWebSocketInfoManager.addOnWebSocketEventListener(mCore::sendTransmitDisconnectEvent);
 
             // KeyStoreが存在する場合には、SSLServerSocketFactoryを作成する
             SSLServerSocketFactory factory = null;
@@ -822,6 +820,13 @@ public abstract class DConnectManager implements DConnectInterface {
             }
         });
     }
+
+    public void onReceivedMessage(final Intent message) {
+        if (mCore != null) {
+            mCore.onReceivedMessage(message);
+        }
+    }
+
     /**
      * プラグインの検索完了を通知します.
      */

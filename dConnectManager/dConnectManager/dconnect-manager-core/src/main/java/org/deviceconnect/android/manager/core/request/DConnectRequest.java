@@ -57,6 +57,12 @@ public abstract class DConnectRequest {
      * レスポンスを返却するコールバック.
      */
     private OnResponseCallback mOnResponseCallback;
+
+    /**
+     * リクエスト管理クラス.
+     */
+    DConnectRequestManager mRequestManager;
+
     protected DConnectInterface mInterface;
 
     /**
@@ -64,6 +70,15 @@ public abstract class DConnectRequest {
      */
     public DConnectRequest() {
         mResponse = null;
+    }
+
+    /**
+     * {@link DConnectRequestManager} を設定します.
+     *
+     * @param requestManager リクエスト管理クラス
+     */
+    public void setRequestManager(final DConnectRequestManager requestManager) {
+        mRequestManager = requestManager;
     }
 
     /**
@@ -78,6 +93,7 @@ public abstract class DConnectRequest {
     public void setDConnectInterface(final DConnectInterface i) {
         mInterface = i;
     }
+
     /**
      * コンテキストを設定する.
      *
@@ -182,7 +198,7 @@ public abstract class DConnectRequest {
      */
     public void sendResponse(final Intent response) {
         // リクエストと同じリクエストコードをレスポンスに追加
-        mResponse.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE,
+        response.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE,
                 mRequest.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, Integer.MIN_VALUE));
 
         if (mOnResponseCallback != null) {

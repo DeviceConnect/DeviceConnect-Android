@@ -10,9 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.compat.MessageConverter;
@@ -25,13 +23,10 @@ import org.deviceconnect.android.manager.core.event.EventBroker;
 import org.deviceconnect.android.manager.core.event.EventSessionTable;
 import org.deviceconnect.android.manager.core.event.KeepAliveManager;
 import org.deviceconnect.android.manager.core.hmac.HmacManager;
-import org.deviceconnect.android.manager.core.plugin.BinderConnection;
-import org.deviceconnect.android.manager.core.plugin.BroadcastConnection;
 import org.deviceconnect.android.manager.core.plugin.ConnectionState;
+import org.deviceconnect.android.manager.core.plugin.DefaultConnectionFactory;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
-import org.deviceconnect.android.manager.core.plugin.DirectConnection;
-import org.deviceconnect.android.manager.core.plugin.InternalConnection;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.plugin.PluginDetectionException;
 import org.deviceconnect.android.manager.core.policy.OriginValidator;
@@ -132,11 +127,17 @@ class DConnectCore extends DevicePluginContext {
      * 最後に処理されるプロファイル.
      */
     private DConnectProfile mDeliveryProfile;
-    /** リクエストのパスを変換するクラス群. */
+
+    /**
+     * リクエストのパスを変換するクラス群.
+     */
     private MessageConverter[] mRequestConverters;
 
-    /** レスポンスのパスを変換するクラス群. */
+    /**
+     * レスポンスのパスを変換するクラス群.
+     */
     private MessageConverter[] mResponseConverters;
+
     /**
      * プラグインからの返答を受け取るコールバック.
      * <p>
@@ -145,7 +146,7 @@ class DConnectCore extends DevicePluginContext {
      */
     private IDConnectCallback mCallback = new IDConnectCallback.Stub() {
         @Override
-        public void sendMessage(final Intent message) throws RemoteException {
+        public void sendMessage(final Intent message) {
             onReceivedMessage(message);
         }
     };
@@ -155,7 +156,7 @@ class DConnectCore extends DevicePluginContext {
     /**
      * コンストラクタ.
      *
-     * @param context コンテキスト
+     * @param context  コンテキスト
      * @param settings Device Connect Manager の設定
      * @throws IllegalArgumentException コンテキストがnullの場合に発生
      */
@@ -208,20 +209,7 @@ class DConnectCore extends DevicePluginContext {
             public void onConnectionStateChanged(final DevicePlugin plugin, final ConnectionState state) {
             }
         });
-        mPluginManager.setConnectionFactory((plugin) -> {
-            switch (plugin.getConnectionType()) {
-                case INTERNAL:
-                    return new InternalConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
-                case BINDER:
-                    return new BinderConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
-                case BROADCAST:
-                    return new BroadcastConnection(context, plugin.getPluginId());
-                case DIRECT:
-                    return new DirectConnection(context, plugin.getPluginId(), plugin.getComponentName(), mCallback);
-                default:
-                    return null;
-            }
-        });
+        mPluginManager.setConnectionFactory(new DefaultConnectionFactory(context, mCallback));
 
         mKeepAliveManager = new KeepAliveManager(getContext(), mEventSessionTable);
         mKeepAliveManager.setKeepAliveFunction(mSettings.isEnableKeepAlive());
@@ -256,10 +244,10 @@ class DConnectCore extends DevicePluginContext {
         mDeliveryProfile.setPluginContext(this);
         mDeliveryProfile.setResponder(this);
 
-        mRequestConverters = new MessageConverter[] {
+        mRequestConverters = new MessageConverter[]{
                 new CompatibleRequestConverter(getPluginManager())
         };
-        mResponseConverters = new MessageConverter[] {
+        mResponseConverters = new MessageConverter[]{
                 new ServiceDiscoveryConverter(),
                 new ServiceInformationConverter()
         };
@@ -277,6 +265,7 @@ class DConnectCore extends DevicePluginContext {
 
     /**
      * DConnectSettings のインスタンスを取得します.
+     *
      * @return DConnectSettings のインスタンス
      */
     public DConnectSettings getSettings() {
@@ -291,6 +280,7 @@ class DConnectCore extends DevicePluginContext {
     public KeepAliveManager getKeepAliveManager() {
         return mKeepAliveManager;
     }
+
     /**
      * プラグイン管理クラスを取得します.
      *
@@ -331,6 +321,7 @@ class DConnectCore extends DevicePluginContext {
             // ignore.
         }
     }
+
     public void setDConnectInterface(final DConnectInterface i) {
         DConnectSystemProfile systemProfile = (DConnectSystemProfile) getProfile(SystemProfileConstants.PROFILE_NAME);
         if (systemProfile != null) {
@@ -340,18 +331,29 @@ class DConnectCore extends DevicePluginContext {
         mRequestManager.setDConnectInterface(i);
 
     }
-    private void onReceivedMessage(final Intent message) {
+
+    /**
+     * プラグインからメッセージを受け取った時の処理を行います.
+     *
+     * @param message メッセージ(レスポンス・イベントなど)
+     */
+    void onReceivedMessage(final Intent message) {
         if (DConnectUtil.checkActionResponse(message)) {
             onReceivedResponse(message);
         } else if (DConnectUtil.checkActionEvent(message)) {
             onReceivedEvent(message);
+        } else {
+            if (BuildConfig.DEBUG) {
+                mLogger.warning("Unknown message type.");
+            }
         }
     }
+
     /**
      * プラグインの有効・無効を設定します.
      *
      * @param pluginId プラグインID
-     * @param enable trueの場合は有効、falseの場合は無効
+     * @param enable   trueの場合は有効、falseの場合は無効
      */
     public void setEnablePlugin(final String pluginId, final boolean enable) {
         final DevicePlugin plugin = mPluginManager.getDevicePlugin(pluginId);
@@ -368,7 +370,7 @@ class DConnectCore extends DevicePluginContext {
      * HMAC キーをアップデートします.
      *
      * @param origin オリジン
-     * @param key キー
+     * @param key    キー
      */
     public void updateHmacKey(final String origin, final String key) {
         if (mHmacManager != null && key != null && !TextUtils.isEmpty(origin)) {
@@ -439,7 +441,7 @@ class DConnectCore extends DevicePluginContext {
             }
         }
         if (BuildConfig.DEBUG) {
-            String message =  "Skipped sending " + action + ": " + skipped.size() + " plugin(s)";
+            String message = "Skipped sending " + action + ": " + skipped.size() + " plugin(s)";
             if (skipped.size() > 0) {
                 message += " below\n" + skipped;
             }
@@ -458,7 +460,8 @@ class DConnectCore extends DevicePluginContext {
 
     /**
      * プラグインに対してメッセージを送信します.
-     * @param plugin プラグイン
+     *
+     * @param plugin  プラグイン
      * @param message メッセージ
      */
     private void sendMessage(final DevicePlugin plugin, final Intent message) {
@@ -575,6 +578,7 @@ class DConnectCore extends DevicePluginContext {
 
     /**
      * レスポンス受信ハンドラー.
+     *
      * @param response レスポンス用Intent
      */
     private void onReceivedResponse(final Intent response) {
@@ -586,6 +590,7 @@ class DConnectCore extends DevicePluginContext {
 
     /**
      * イベントメッセージ受信ハンドラー.
+     *
      * @param event イベント用Intent
      */
     private void onReceivedEvent(final Intent event) {
@@ -597,7 +602,7 @@ class DConnectCore extends DevicePluginContext {
     /**
      * レスポンス用のIntentを作成する.
      *
-     * @param request リクエスト
+     * @param request  リクエスト
      * @param response リクエストに対応するレスポンス
      * @return 送信するレスポンス用Intent
      */
@@ -635,13 +640,13 @@ class DConnectCore extends DevicePluginContext {
         }
 
         intent.setComponent(cn);
+
         //XXXX パスの互換性の担保
         for (MessageConverter converter : mResponseConverters) {
             converter.convert(intent);
         }
         return intent;
     }
-
 
 
     /**
@@ -662,8 +667,9 @@ class DConnectCore extends DevicePluginContext {
     /**
      * 指定されたリクエストがデバイスプラグインに配送するリクエストか確認する.
      * <p>
-     *     /system/deviceで、デバイス側に配信する必要がある。
+     * /system/deviceで、デバイス側に配信する必要がある。
      * </p>
+     *
      * @param request リクエスト
      * @return プラグインに配送する場合にはtrue、それ以外はfalse
      */
@@ -695,5 +701,4 @@ class DConnectCore extends DevicePluginContext {
         VersionName match = VersionName.parse("1.1.0");
         return !(version.compareTo(match) == -1);
     }
-
 }

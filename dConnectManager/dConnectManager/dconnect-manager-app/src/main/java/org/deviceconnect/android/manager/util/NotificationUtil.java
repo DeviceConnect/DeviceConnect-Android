@@ -16,6 +16,7 @@ import org.deviceconnect.android.manager.setting.SettingActivity;
 public final class NotificationUtil {
 
     private NotificationUtil() {}
+
     /**
      * サービスをフォアグランドに設定する。
      */
@@ -64,6 +65,7 @@ public final class NotificationUtil {
             service.startForeground(notificationId, builder.build());
         }
     }
+
     /**
      * DConnectServiceがOFF時にstartForegroundService()が行われた時にキャンセルする.
      */
@@ -91,7 +93,6 @@ public final class NotificationUtil {
             service.startForeground(notificationId, builder.build());
             service.stopForeground(true);
             service.stopSelf();
-
         }
     }
 

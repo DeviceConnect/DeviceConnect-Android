@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 /**
  * dConnect Managerへのイベント受信.
@@ -17,7 +16,6 @@ import android.util.Log;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectBroadcastReceiver extends BroadcastReceiver {
-
     /**
      * 受信したことをDConnectServiceに通知.
      * 

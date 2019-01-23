@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.manager.core.request;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
 import org.deviceconnect.android.manager.core.BuildConfig;
 import org.deviceconnect.android.manager.core.DConnectInterface;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -96,6 +96,7 @@ public class DConnectRequestManager {
         }
 
         synchronized (mRequestList) {
+            request.setRequestManager(this);
             request.setDConnectInterface(mInterface);
             mRequestList.add(request);
         }
@@ -126,7 +127,6 @@ public class DConnectRequestManager {
         synchronized (mRequestList) {
             for (DConnectRequest request : mRequestList) {
                 if (request.hasRequestCode(code)) {
-
                     request.setResponse(response);
                     return;
                 }

@@ -1,3 +1,9 @@
+/*
+ DConnectService.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager;
 
 import android.app.Activity;
@@ -42,6 +48,11 @@ import java.util.logging.Logger;
 
 import static org.deviceconnect.android.manager.core.DConnectConst.EXTRA_EVENT_RECEIVER_ID;
 
+/**
+ * {@link DConnectManager} を動作させるためのサービス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class DConnectService extends Service {
     /**
      * デバッグフラグ.
@@ -66,7 +77,7 @@ public class DConnectService extends Service {
     /**
      * ロガー.
      */
-    protected final Logger mLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
      * Device Connect Manager の設定を保持するクラス.
@@ -113,18 +124,15 @@ public class DConnectService extends Service {
         return mLocalBinder;
     }
 
-
     @Override
     public void onCreate() {
         super.onCreate();
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
-        initManager();
-
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {
-            startManager();
+            startInternal();
         } else {
             NotificationUtil.fakeStartForeground(this,
                     getString(R.string.dconnect_service_on_channel_id),
@@ -145,19 +153,25 @@ public class DConnectService extends Service {
             mLogger.warning("action is null.");
             return START_STICKY;
         }
-        if (!mManager.isRunning()) {
+
+        if (!isRunning()) {
             return START_NOT_STICKY;
         }
+
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
             onKeepAliveCommand(intent);
             return START_STICKY;
+        } else if (IntentDConnectMessage.ACTION_RESPONSE.equals(action)) {
+            onReceivedMessage(intent);
+        } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
+            onReceivedMessage(intent);
         }
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
-        stopManager();
+        stopInternal();
         super.onDestroy();
     }
 
@@ -165,8 +179,30 @@ public class DConnectService extends Service {
      * DConnectManagerを起動します.
      */
     private void startManager() {
-        mSettings = ((DConnectApplication) getApplication()).getSettings();
-        initManager();
+        if (mManager != null) {
+            if (DEBUG) {
+                Log.e(TAG, "DConnectManager is already running.");
+            }
+            return;
+        }
+
+        mManager = new DConnectManager(this, mSettings) {
+            @Override
+            public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
+                return DConnectBroadcastReceiver.class;
+            }
+
+            @Override
+            public Class<? extends Activity> getSettingActivityClass() {
+                return KeywordDialogActivity.class;
+            }
+
+            @Override
+            public Class<? extends Activity> getKeywordActivityClass() {
+                return SettingActivity.class;
+            }
+        };
+
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
@@ -175,10 +211,16 @@ public class DConnectService extends Service {
 
             @Override
             public void onStarted() {
+                if (DEBUG) {
+                    Log.i(TAG, "DConnectManager is started.");
+                }
             }
 
             @Override
             public void onStopped() {
+                if (DEBUG) {
+                    Log.i(TAG, "DConnectManager is stopped.");
+                }
             }
 
             @Override
@@ -197,19 +239,45 @@ public class DConnectService extends Service {
         });
 
         try {
-            mManager.startDConnect();
-            String ip = DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort();
-            NotificationUtil.showNotification(this,
-                    ip,
+            NotificationUtil.showNotification(DConnectService.this,
+                    createIPAddress(),
                     getString(R.string.dconnect_service_on_channel_id),
                     getString(R.string.app_name),
                     getString(R.string.dconnect_service_on_channel_title),
                     getString(R.string.dconnect_service_on_channel_desc),
-                    ONGOING_NOTIFICATION_ID
-            );
+                    ONGOING_NOTIFICATION_ID);
+
+            mManager.startDConnect();
         } catch (Exception e) {
-            mLogger.warning("Failed to start a DConnectManager." + e.getMessage());
+            stopManager();
+
+            if (DEBUG) {
+                mLogger.warning("Failed to start a DConnectManager." + e.getMessage());
+            }
         }
+    }
+
+    /**
+     * DConnectManagerを停止します.
+     */
+    private void stopManager() {
+        try {
+            NotificationUtil.hideNotification(this);
+
+            mManager.stopDConnect();
+            mManager = null;
+        } catch (Exception e) {
+            // ignore.
+        }
+    }
+
+    /**
+     * DConnectManagerにアクセスするためのIPアドレスを作成します.
+     *
+     * @return IPアドレス
+     */
+    private String createIPAddress() {
+        return DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort();
     }
 
     /**
@@ -250,38 +318,11 @@ public class DConnectService extends Service {
         }
     }
 
-    private void initManager() {
-        mManager = new DConnectManager(this, mSettings) {
-            @Override
-            public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
-                return DConnectBroadcastReceiver.class;
-            }
-
-            @Override
-            public Class<? extends Activity> getSettingActivityClass() {
-                return KeywordDialogActivity.class;
-            }
-
-            @Override
-            public Class<? extends Activity> getKeywordActivityClass() {
-                return SettingActivity.class;
-            }
-        };
-    }
-
     /**
-     * DConnectManagerを停止します.
+     * Keep Alive のメッセージ受信した時の処理を行います.
+     *
+     * @param intent Keep Alive のメッセージ
      */
-    private void stopManager() {
-        try {
-            mManager.stopDConnect();
-            NotificationUtil.hideNotification(this);
-            mManager = null;
-        } catch (Exception e) {
-            // ignore.
-        }
-    }
-
     private void onKeepAliveCommand(final Intent intent) {
         String status = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEEPALIVE_STATUS);
         if (status.equals("RESPONSE")) {
@@ -300,9 +341,23 @@ public class DConnectService extends Service {
         }
     }
 
+    /**
+     * BroadcastReceiver からのレスポンスを受信した時の処理を行います.
+     *
+     * @param message Intent
+     */
+    private void onReceivedMessage(final Intent message) {
+        mManager.onReceivedMessage(message);
+    }
+
     /// IBinderを通じて実行されるメソッド
 
-    public void setEnableKeepAlive(boolean enable) {
+    /**
+     * Keep Alive の有効・無効を設定します.
+     *
+     * @param enable 有効の場合はtrue、無効の場合はfalse
+     */
+    public void setEnableKeepAlive(final boolean enable) {
         if (enable) {
             mManager.getKeepAliveManager().enableKeepAlive();
         } else {
@@ -310,6 +365,11 @@ public class DConnectService extends Service {
         }
     }
 
+    /**
+     * プラグインの設定画面を開きます.
+     *
+     * @param pluginId プラグインID
+     */
     public void openPluginSettings(final String pluginId) {
         DevicePlugin plugin = mManager.getPluginManager().getDevicePlugin(pluginId);
         if (plugin == null) {
@@ -328,11 +388,20 @@ public class DConnectService extends Service {
             try {
                 plugin.send(request);
             } catch (MessagingException e) {
-                mLogger.warning("Failed to send event: action = " + request.getAction() + ", destination = " + plugin.getComponentName());
+                if (DEBUG) {
+                    mLogger.warning("Failed to send event: action = " + request.getAction()
+                            + ", destination = " + plugin.getComponentName());
+                }
             }
         });
     }
 
+    /**
+     * プラグインの有効・無効を設定します.
+     *
+     * @param pluginId プラグインID
+     * @param enable 有効の場合はtrue、無効の場合はfalse
+     */
     public void setEnablePlugin(final String pluginId, final boolean enable) {
         final DevicePlugin plugin = mManager.getPluginManager().getDevicePlugin(pluginId);
         if (plugin == null) {
@@ -388,9 +457,11 @@ public class DConnectService extends Service {
 
     /**
      * ルート証明書を「信頼できる証明書」としてインストールする.
+     *
      * <p>
      * インストール前にユーザーに対して、認可ダイアログが表示される.
      * 認可されない場合は、インストールされない.
+     * </p>
      */
     public void installRootCertificate() {
         String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
@@ -427,9 +498,12 @@ public class DConnectService extends Service {
             if (BuildConfig.DEBUG) {
                 mLogger.info("DConnectService acquire WakeLock.");
             }
+
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG_WAKE_LOCK);
-            mWakeLock.acquire();
+            if (pm != null) {
+                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG_WAKE_LOCK);
+                mWakeLock.acquire();
+            }
         }
     }
 
@@ -451,7 +525,7 @@ public class DConnectService extends Service {
      * <p>
      * NOTE: Android 7以降ではメインスレッド上で切断すると例外が発生する場合があるため、
      * 別スレッド上で実行している.
-     *
+     * </p>
      * @param webSocketId 内部的に発行したWebSocket ID
      */
     public void disconnectWebSocket(final String webSocketId) {
@@ -471,17 +545,25 @@ public class DConnectService extends Service {
         return mManager != null && mManager.isRunning();
     }
 
+    /**
+     * WebSocket 管理クラスを取得します.
+     * <p>
+     * DConnectManager が動作していない場合は null を返却します.
+     * </p>
+     * @return WebSocketInfoManager
+     */
     public WebSocketInfoManager getWebSocketInfoManager() {
-        if (!isRunning()) {
-            return null;
-        }
-        return mManager.getWebSocketInfoManager();
+        return isRunning() ? mManager.getWebSocketInfoManager() : null;
     }
 
+    /**
+     * プラグイン管理クラスを取得します.
+     * <p>
+     * DConnectManager が動作していない場合は null を返却します.
+     * </p>
+     * @return プラグイン管理クラス
+     */
     public DevicePluginManager getPluginManager() {
-        if (mManager == null || !mManager.isRunning()) {
-            return null;
-        }
-        return mManager.getPluginManager();
+        return isRunning() ? mManager.getPluginManager() : null;
     }
 }

@@ -133,7 +133,7 @@
         </activity>
 
         <!-- 各アプリやデバイスプラグインからのDConnectMessageを受領するためのBroadcastReceiver. -->
-        <receiver android:name="org.deviceconnect.android.manager.org.deviceconnect.android.DConnectBroadcastReceiver" android:exported="true">
+        <receiver android:name="org.deviceconnect.android.manager.DConnectBroadcastReceiver" android:exported="true">
         </receiver>
 
         <!-- Device Connect Manager本体のサービス. -->

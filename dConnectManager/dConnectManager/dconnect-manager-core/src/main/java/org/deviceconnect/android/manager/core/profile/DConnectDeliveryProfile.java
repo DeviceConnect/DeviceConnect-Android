@@ -105,7 +105,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 req.setRequest(request);
                 req.setDevicePluginManager(mDevicePluginManager);
                 req.setDestination(plugin);
-                req.setOnResponseCallback((resp) -> sendResponse(resp));
+                req.setOnResponseCallback(this::sendResponse);
                 mRequestManager.addRequest(req);
                 return false;
             } else {

@@ -82,7 +82,13 @@ dependencies {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-    androidTestImplementation 'com.android.support:support-annotations:26.1.0'
+    implementation 'com.android.support:support-annotations:28.0.0'
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
+    implementation project(':dconnect-manager-core')
+    implementation project(':dconnect-device-plugin-sdk')
+    implementation project(':dconnect-server-nano-httpd')
+    implementation project(':dconnect-device-plugin-host')
+
     androidTestImplementation('com.android.support.test:runner:1.0.2') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
@@ -92,11 +98,6 @@ dependencies {
         exclude module: 'support-media-compat'
     }
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
-    implementation project(':dconnect-manager-core')
-    implementation project(':dconnect-device-plugin-sdk')
-    implementation project(':dconnect-server-nano-httpd')
-    implementation project(':dconnect-device-plugin-host')
 }
 
 android.testVariants.all { variant ->

@@ -32,17 +32,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-
-    productFlavors {
-    }
 }
 
 
 project.ext {
     if (android.hasProperty('applicationVariants')) {
-        androidVariants = android.applicationVariants;
+        androidVariants = android.applicationVariants
     } else {
-        androidVariants = android.libraryVariants;
+        androidVariants = android.libraryVariants
     }
 }
 
@@ -137,13 +134,13 @@ task downloadDeviceConnectSpec {
 
             // zipを行うと不要なフォルダが作成されてしまうので、削除
             def specRootDir = specOutputDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory();
+                boolean accept(File dir, String name) {
+                    return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory()
                 }
             })[0]
             def apiRootDir = specRootDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return "api" == name && new File(dir, name).isDirectory();
+                boolean accept(File dir, String name) {
+                    return "api" == name && new File(dir, name).isDirectory()
                 }
             })[0]
             apiRootDir.renameTo(apiDir)

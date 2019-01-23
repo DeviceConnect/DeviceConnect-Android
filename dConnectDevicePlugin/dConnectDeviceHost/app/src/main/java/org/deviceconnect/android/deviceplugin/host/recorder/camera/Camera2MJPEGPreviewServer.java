@@ -7,11 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ImageFormat;
-import android.graphics.Paint;
 import android.graphics.SurfaceTexture;
 import android.media.Image;
 import android.media.ImageReader;
@@ -20,7 +16,6 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.renderscript.Matrix4f;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
@@ -105,36 +100,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         }
     };
 
-    private ImageReader.OnImageAvailableListener mPreviewListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(final ImageReader reader) {
-            try {
-                // ビットマップ取得
-                final Image image = reader.acquireNextImage();
-                if (image == null || image.getPlanes() == null) {
-                    return;
-                }
-
-                byte[] jpeg = Camera2Recorder.convertToJPEG(image);
-                jpeg = mRecorder.rotateJPEG(jpeg, 100); // NOTE: swap width and height.
-                image.close();
-
-                offerMedia(jpeg);
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to send preview frame.", e);
-            }
-        }
-    };
-
     Camera2MJPEGPreviewServer(final Camera2Recorder recorder) {
         mRecorder = recorder;
-    }
-
-    private void offerMedia(final byte[] jpeg) {
-        MixedReplaceMediaServer server = mServer;
-        if (server != null) {
-            server.offerMedia(jpeg);
-        }
     }
 
     @Override
@@ -228,7 +195,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         private ByteArrayOutputStream mOutput;
         private int mJpegQuality;
 
-        public DrawTask() {
+        DrawTask() {
             super(null, 0);
         }
 
@@ -256,6 +223,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
             try {
                 mRecorder.startPreview(mSourceSurface);
+                mRecorder.sendNotification();
                 Log.d(TAG, "Started camera preview.");
             } catch (CameraWrapperException e) {
                 Log.e(TAG, "Failed to start camera preview.", e);
@@ -368,7 +336,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
                     mOutput.reset();
                     mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);
-                    mServer.offerMedia(mOutput.toByteArray());
+                    offerMedia(mOutput.toByteArray());
 
                     queueEvent(this);
                 } else {
@@ -376,6 +344,13 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 }
             }
         };
+
+        private void offerMedia(final byte[] jpeg) {
+            MixedReplaceMediaServer server = mServer;
+            if (server != null) {
+                server.offerMedia(jpeg);
+            }
+        }
 
     }
 }

@@ -119,11 +119,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     private final List<PreviewServer> mPreviewServers = new ArrayList<>();
 
     /**
-     * MotionJPEG サーバー.
-     */
-    private final Camera2MJPEGPreviewServer mMjpegServer;
-
-    /**
      * {@link SurfaceRecorder} のインスタンス.
      */
     private SurfaceRecorder mSurfaceRecorder;
@@ -150,10 +145,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mPhotoThread.start();
         mFileManager = fileManager;
 
-        mMjpegServer = new Camera2MJPEGPreviewServer(this);
-        mMjpegServer.setQuality(readPreviewQuality(mMjpegServer));
+        Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(this);
+        mjpegServer.setQuality(readPreviewQuality(mjpegServer));
         Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
-        mPreviewServers.add(mMjpegServer);
+        mPreviewServers.add(mjpegServer);
         mPreviewServers.add(rtspServer);
     }
 
@@ -199,9 +194,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-
         byte[] jpeg = convertToJPEG(image);
         jpeg = rotateJPEG(jpeg, 100);
 
@@ -483,7 +475,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public String getName() {
-        return mFacing.getName() + " " + NAME_BASE;
+        return NAME_BASE + " " + mCameraId + " (" + mFacing.getName() + ")";
     }
 
     @Override
@@ -593,7 +585,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             }
 
             @Override
-            public void onFail(final String deniedPermission) {
+            public void onFail(final @NonNull String deniedPermission) {
                 callback.onDisallowed();
             }
         });

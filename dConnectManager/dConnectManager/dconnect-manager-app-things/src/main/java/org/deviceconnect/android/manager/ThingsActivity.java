@@ -108,6 +108,7 @@ public class ThingsActivity extends Activity {
                 return ThingsActivity.this.getClass();
             }
         };
+
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {

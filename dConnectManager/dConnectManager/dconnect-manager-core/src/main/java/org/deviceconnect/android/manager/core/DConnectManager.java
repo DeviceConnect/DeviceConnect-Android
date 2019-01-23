@@ -184,6 +184,7 @@ public abstract class DConnectManager implements DConnectInterface {
     public KeyStoreManager getKeyStoreManager() {
         return mKeyStoreMgr;
     }
+
     /**
      * WebSocket情報管理クラスを取得します.
      *
@@ -192,6 +193,7 @@ public abstract class DConnectManager implements DConnectInterface {
     public WebSocketInfoManager getWebSocketInfoManager() {
         return mWebSocketInfoManager;
     }
+
     /**
      * イベント通知用のリスナーを設定します.
      *

@@ -110,17 +110,11 @@ public class DConnectWebService extends Service {
                     .build();
             mWebServer.start();
 
-            NotificationUtil.showNotification(this,
-                    DConnectUtil.getIPAddress(this) + ":" + mSettings.getWebPort(),
-                    getString(R.string.web_service_on_channel_id),
-                    getString(R.string.service_web_server),
-                    getString(R.string.web_service_on_channel_title),
-                    getString(R.string.web_service_on_channel_desc),
-                    ONGOING_NOTIFICATION_ID);
-
             IntentFilter filter = new IntentFilter();
             filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
             registerReceiver(mWiFiReceiver, filter);
+
+            showNotification();
         }
     }
 
@@ -129,6 +123,12 @@ public class DConnectWebService extends Service {
      */
     public synchronized void stopWebServer() {
         if (mWebServer != null) {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("Web Server was Stopped.");
+            }
+
+            NotificationUtil.hideNotification(this);
+
             try {
                 unregisterReceiver(mWiFiReceiver);
             } catch (Exception e) {
@@ -136,15 +136,29 @@ public class DConnectWebService extends Service {
             }
             mWebServer.stop();
             mWebServer = null;
-            NotificationUtil.hideNotification(this);
-        }
-        if (BuildConfig.DEBUG) {
-            mLogger.info("Web Server was Stopped.");
         }
     }
 
+    /**
+     * Web サーバの動作中か確認します.
+     *
+     * @return 動作中の場合はtrue、それ以外はfalse
+     */
     public synchronized boolean isRunning() {
         return mWebServer != null;
+    }
+
+    /**
+     * Notification に IP アドレスを表示します.
+     */
+    private void showNotification() {
+        NotificationUtil.showNotification(this,
+                DConnectUtil.getIPAddress(this) + ":" + mSettings.getWebPort(),
+                getString(R.string.web_service_on_channel_id),
+                getString(R.string.service_web_server),
+                getString(R.string.web_service_on_channel_title),
+                getString(R.string.web_service_on_channel_desc),
+                ONGOING_NOTIFICATION_ID);
     }
 
     /**
@@ -213,14 +227,7 @@ public class DConnectWebService extends Service {
     private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            NotificationUtil.showNotification(DConnectWebService.this,
-                    DConnectUtil.getIPAddress(DConnectWebService.this) + ":" + mSettings.getWebPort(),
-                    getString(R.string.web_service_on_channel_id),
-                    getString(R.string.service_web_server),
-                    getString(R.string.web_service_on_channel_title),
-                    getString(R.string.web_service_on_channel_desc),
-                    ONGOING_NOTIFICATION_ID
-            );
+            showNotification();
         }
     };
 }

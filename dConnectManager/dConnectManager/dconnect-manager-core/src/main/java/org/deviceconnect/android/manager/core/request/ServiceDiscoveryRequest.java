@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.core.request;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.util.Log;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.manager.core.BuildConfig;
@@ -102,7 +101,8 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             throw new RuntimeException("mDevicePluginManager is null.");
         }
 
-        final List<DevicePlugin> plugins = mPluginMgr.getEnabledDevicePlugins();
+        List<DevicePlugin> plugins = mPluginMgr.getEnabledDevicePlugins();
+
         mCountDownLatch = new CountDownLatch(plugins.size());
         for (int i = 0; i < plugins.size(); i++) {
             DiscoveryRequestForPlugin request = new DiscoveryRequestForPlugin();
@@ -130,7 +130,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         // パラメータを設定する
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         mResponse.putExtra(IntentDConnectMessage.EXTRA_RESULT, IntentDConnectMessage.RESULT_OK);
-        mResponse.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, mServices.toArray(new Bundle[mServices.size()]));
+        mResponse.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, mServices.toArray(new Bundle[0]));
 
         // レスポンスを返却する
         sendResponse(mResponse);
@@ -143,14 +143,15 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
      */
     private void outputNotRespondedPlugins(final SparseArray<DevicePlugin> notRespondedPlugins) {
         if (notRespondedPlugins.size() > 0) {
-            String notRespondedLog = "Not responded plug-in(s) for service discovery: \n";
+            StringBuilder notRespondedLog = new StringBuilder();
+            notRespondedLog.append("Not responded plug-in(s) for service discovery: \n");
             for (int index = 0; index < notRespondedPlugins.size(); index++) {
                 DevicePlugin plugin = notRespondedPlugins.valueAt(index);
                 if (plugin != null) {
-                    notRespondedLog += " - " + plugin.getDeviceName() + "\n";
+                    notRespondedLog.append(" - ").append(plugin.getDeviceName()).append("\n");
                 }
             }
-            mLogger.warning(notRespondedLog);
+            mLogger.warning(notRespondedLog.toString());
         } else {
             if (BuildConfig.DEBUG) {
                 mLogger.info("All plug-in(s) responded for service discovery.");
@@ -177,6 +178,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
             request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
             request.setComponent(mDevicePlugin.getComponentName());
+
             sendRequest(request);
         }
 

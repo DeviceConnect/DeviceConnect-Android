@@ -69,7 +69,7 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             req.setTimeout(ServiceDiscoveryRequest.TIMEOUT);
             req.setDevicePluginManager(mDevicePluginManager);
             req.setOnResponseCallback((resp) -> sendResponse(resp));
-            new Thread(() -> req.run()).start();
+            new Thread(req::run).start();
             return false;
         }
     };

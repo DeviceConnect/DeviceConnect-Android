@@ -55,6 +55,7 @@ public class DConnectSystemProfile extends SystemProfile {
     private final DConnectRequestManager mRequestManager;
 
     private DConnectInterface mInterface;
+
     /**
      * コンストラクタ.
      *
@@ -73,7 +74,7 @@ public class DConnectSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return mInterface.getSettingActivityClass();
+        return mInterface == null ? null : mInterface.getSettingActivityClass();
     }
 
     private final DConnectApi mGetRequest = new GetApi() {
@@ -145,6 +146,10 @@ public class DConnectSystemProfile extends SystemProfile {
 
                 @Override
                 public void run() {
+                    if (mInterface == null || mInterface.getKeywordActivityClass() == null) {
+                        throw new RuntimeException("DConnectInterface is not set.");
+                    }
+
                     // リクエストコードを作成する
                     mRequestCode = UUID.randomUUID().hashCode();
 

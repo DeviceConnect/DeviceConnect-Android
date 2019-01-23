@@ -8,7 +8,6 @@ package org.deviceconnect.android.manager.core.request;
 
 
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
@@ -34,16 +33,6 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
      * リクエストコード.
      */
     protected int mRequestCode;
-
-    /**
-     * リクエスト開始時刻.
-     */
-    private long mStartDateTime;
-
-    /**
-     * リクエスト完了時刻.
-     */
-    private long mEndDateTime;
 
     /**
      * 通信履歴を保存するかどうかのフラグ.
@@ -105,12 +94,14 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
     boolean sendRequest(final Intent request) {
         boolean forwarded = false;
         boolean responded = false;
+
+        long startDateTime = System.currentTimeMillis();
         try {
-            mStartDateTime = getCurrentDateTime();
             forwarded = forwardRequest(request);
             if (!forwarded) {
                 return false;
             }
+
             if (mResponse == null) {
                 waitForResponse();
             }
@@ -125,16 +116,22 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
                 return false;
             }
         } finally {
-            mEndDateTime = getCurrentDateTime();
+            long endDateTime = System.currentTimeMillis();
             if (forwarded) {
-                reportHistory(request, responded);
+                reportHistory(request, responded, startDateTime, endDateTime);
             }
         }
     }
 
-    private void reportHistory(final Intent request, final boolean responded) {
-        long start = mStartDateTime;
-        long end = mEndDateTime;
+    /**
+     * プラグインに対する履歴を報告します.
+     *
+     * @param request リクエスト
+     * @param responded レスポンスの有無
+     * @param start リクエスト送信時間
+     * @param end レスポンス受信
+     */
+    private void reportHistory(final Intent request, final boolean responded, final long start, final long end) {
         if (responded) {
             if (mIsReportedRoundTripFrag) {
                 mDevicePlugin.reportRoundTrip(request, start, end);
@@ -170,14 +167,6 @@ public abstract class DConnectPluginRequest extends DConnectRequest {
         synchronized (mLockObj) {
             mLockObj.notifyAll();
         }
-    }
-
-    /**
-     * 現時刻を取得します.
-     * @return 現時刻(ms)
-     */
-    private long getCurrentDateTime() {
-        return System.currentTimeMillis();
     }
 
     /**

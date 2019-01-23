@@ -148,6 +148,7 @@ public class DConnectService extends Service {
             mLogger.warning("intent is null.");
             return START_STICKY;
         }
+
         String action = intent.getAction();
         if (action == null) {
             mLogger.warning("action is null.");
@@ -225,6 +226,7 @@ public class DConnectService extends Service {
 
             @Override
             public void onChangedNetwork() {
+                showNotification();
             }
 
             @Override
@@ -238,15 +240,9 @@ public class DConnectService extends Service {
             }
         });
 
-        try {
-            NotificationUtil.showNotification(DConnectService.this,
-                    createIPAddress(),
-                    getString(R.string.dconnect_service_on_channel_id),
-                    getString(R.string.app_name),
-                    getString(R.string.dconnect_service_on_channel_title),
-                    getString(R.string.dconnect_service_on_channel_desc),
-                    ONGOING_NOTIFICATION_ID);
+        showNotification();
 
+        try {
             mManager.startDConnect();
         } catch (Exception e) {
             stopManager();
@@ -269,6 +265,19 @@ public class DConnectService extends Service {
         } catch (Exception e) {
             // ignore.
         }
+    }
+
+    /**
+     * 通知バーに IP アドレスを表示します.
+     */
+    private void showNotification() {
+        NotificationUtil.showNotification(DConnectService.this,
+                createIPAddress(),
+                getString(R.string.dconnect_service_on_channel_id),
+                getString(R.string.app_name),
+                getString(R.string.dconnect_service_on_channel_title),
+                getString(R.string.dconnect_service_on_channel_desc),
+                ONGOING_NOTIFICATION_ID);
     }
 
     /**

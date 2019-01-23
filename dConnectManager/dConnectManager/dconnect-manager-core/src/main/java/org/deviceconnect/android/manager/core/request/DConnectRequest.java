@@ -63,6 +63,9 @@ public abstract class DConnectRequest {
      */
     DConnectRequestManager mRequestManager;
 
+    /**
+     * アプリからの設定を取得するためのインターフェース.
+     */
     protected DConnectInterface mInterface;
 
     /**
@@ -70,6 +73,15 @@ public abstract class DConnectRequest {
      */
     public DConnectRequest() {
         mResponse = null;
+    }
+
+    /**
+     * レスポンスを返却するコールバックを設定します.
+     *
+     * @param callback コールバック
+     */
+    public void setOnResponseCallback(final OnResponseCallback callback) {
+        mOnResponseCallback = callback;
     }
 
     /**
@@ -82,14 +94,10 @@ public abstract class DConnectRequest {
     }
 
     /**
-     * レスポンスを返却するコールバックを設定します.
+     * {@link DConnectInterface} を設定します.
      *
-     * @param callback コールバック
+     * @param i インターフェース
      */
-    public void setOnResponseCallback(final OnResponseCallback callback) {
-        mOnResponseCallback = callback;
-    }
-
     public void setDConnectInterface(final DConnectInterface i) {
         mInterface = i;
     }

@@ -153,6 +153,16 @@ public final class DConnectUtil {
     /**
      * 指定されたアクションがdConnectのアクションをチェックする.
      *
+     * @param intent メッセージ
+     * @return dConnectのアクションの場合はtrue, それ以外はfalse
+     */
+    public static boolean checkAction(final Intent intent) {
+        return intent != null && checkAction(intent.getAction());
+    }
+
+    /**
+     * 指定されたアクションがdConnectのアクションをチェックする.
+     *
      * @param action アクション
      * @return dConnectのアクションの場合はtrue, それ以外はfalse
      */

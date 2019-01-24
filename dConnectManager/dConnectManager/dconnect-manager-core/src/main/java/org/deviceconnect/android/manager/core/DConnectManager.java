@@ -823,10 +823,39 @@ public abstract class DConnectManager implements DConnectInterface {
         });
     }
 
+    /**
+     * 外部からのメッセージを受け取る。
+     * @param message メッセージ
+     */
     public void onReceivedMessage(final Intent message) {
         if (mCore != null) {
-            mCore.onReceivedMessage(message);
+            if (DConnectUtil.checkAction(message)) {
+                mExecutor.execute(() -> {
+                    Intent responseIntent = executeRequest(message);
+                    Intent intent = createResponseIntent(message, responseIntent);
+                    if (intent.getComponent() == null) {
+                        return;
+                    }
+                    mContext.sendBroadcast(intent);
+                });
+            } else if (DConnectUtil.checkActionResponse(message)) {
+                handleResponse(message);
+            } else {
+                mCore.onReceivedMessage(message);
+            }
         }
+    }
+
+    /**
+     * レスポンス用のIntentを作成する.
+     * @param request リクエスト
+     * @param response リクエストに対応するレスポンス
+     * @return 送信するレスポンス用Intent
+     */
+    private Intent createResponseIntent(final Intent request, final Intent response) {
+        ComponentName cn = request.getParcelableExtra(IntentDConnectMessage.EXTRA_RECEIVER);
+        response.setComponent(cn);
+        return response;
     }
 
     /**

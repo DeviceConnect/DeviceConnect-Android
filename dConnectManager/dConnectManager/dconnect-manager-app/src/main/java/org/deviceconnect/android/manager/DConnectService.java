@@ -162,9 +162,7 @@ public class DConnectService extends Service {
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
             onKeepAliveCommand(intent);
             return START_STICKY;
-        } else if (IntentDConnectMessage.ACTION_RESPONSE.equals(action)) {
-            onReceivedMessage(intent);
-        } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
+        } else if (checkDConnectMessage(action)) {
             onReceivedMessage(intent);
         }
         return super.onStartCommand(intent, flags, startId);
@@ -174,6 +172,15 @@ public class DConnectService extends Service {
     public void onDestroy() {
         stopInternal();
         super.onDestroy();
+    }
+
+    private boolean checkDConnectMessage(String action) {
+        return (IntentDConnectMessage.ACTION_GET.equalsIgnoreCase(action)
+                || IntentDConnectMessage.ACTION_PUT.equalsIgnoreCase(action)
+                || IntentDConnectMessage.ACTION_POST.equalsIgnoreCase(action)
+                || IntentDConnectMessage.ACTION_DELETE.equalsIgnoreCase(action)
+                || IntentDConnectMessage.ACTION_RESPONSE.equals(action)
+                || IntentDConnectMessage.ACTION_EVENT.equals(action));
     }
 
     /**

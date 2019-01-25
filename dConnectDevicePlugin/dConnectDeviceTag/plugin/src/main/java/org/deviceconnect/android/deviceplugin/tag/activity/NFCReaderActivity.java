@@ -47,6 +47,11 @@ public class NFCReaderActivity extends NFCBaseActivity {
         }
     }
 
+    @Override
+    protected void onNotResponse() {
+        postTagReaderActivityResult(TagConstants.RESULT_FAILED, null);
+    }
+
     /**
      * 回数設定を取得します.
      *

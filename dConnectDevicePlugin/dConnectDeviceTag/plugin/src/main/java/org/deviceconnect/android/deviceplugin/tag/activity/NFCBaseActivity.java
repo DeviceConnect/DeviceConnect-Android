@@ -67,11 +67,11 @@ public abstract class NFCBaseActivity extends BindServiceActivity implements Tag
     protected void onPause() {
         // NFCが動作中に終了された時に、まだレスポンスを返却していない場合にはエラーを返しておく
         if (mRunning && !isReturnedResponse()) {
-            postTagReaderActivityResult(TagConstants.RESULT_FAILED, null);
+            onNotResponse();
         }
-
         super.onPause();
     }
+
 
     @Override
     protected void onServiceConnected() {
@@ -92,12 +92,17 @@ public abstract class NFCBaseActivity extends BindServiceActivity implements Tag
      *
      * @param tag 接触しているNFC
      */
-    protected abstract void onFoundNFC(Tag tag);
+    protected abstract void onFoundNFC(final Tag tag);
 
     /**
      * NFCが無効になっている場合に呼び出されます.
      */
     protected abstract void onDisableNFC();
+
+    /**
+     * レスポンスを返却していない場合に呼び出されます.
+     */
+    protected abstract void onNotResponse();
 
     /**
      * NFC がサポートされていないことを通知するダイアログを表示します.

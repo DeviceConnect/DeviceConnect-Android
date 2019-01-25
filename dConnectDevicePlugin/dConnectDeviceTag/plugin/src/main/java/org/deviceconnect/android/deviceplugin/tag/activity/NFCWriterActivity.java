@@ -24,6 +24,7 @@ import java.io.IOException;
  * @author NTT DOCOMO, INC.
  */
 public class NFCWriterActivity extends NFCBaseActivity {
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +39,11 @@ public class NFCWriterActivity extends NFCBaseActivity {
     @Override
     protected void onDisableNFC() {
         postTagWriterActivityResult(TagConstants.RESULT_DISABLED);
+    }
+
+    @Override
+    protected void onNotResponse() {
+        postTagWriterActivityResult(TagConstants.RESULT_FAILED);
     }
 
     /**
@@ -140,7 +146,9 @@ public class NFCWriterActivity extends NFCBaseActivity {
                         postTagWriterActivityResult(TagConstants.RESULT_INVALID_FORMAT);
                     }
                 })
-                .setNegativeButton(R.string.activity_nfc_setting_error_btn_cancel, null)
+                .setNegativeButton(R.string.activity_nfc_setting_error_btn_cancel, (dialogInterface, i) ->{
+                    finish();
+                })
                 .show());
     }
 

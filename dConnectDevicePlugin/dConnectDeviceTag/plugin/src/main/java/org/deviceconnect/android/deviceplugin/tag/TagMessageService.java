@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.tag;
 
+import android.content.pm.PackageManager;
+
 import org.deviceconnect.android.deviceplugin.tag.profiles.TagSystemProfile;
 import org.deviceconnect.android.deviceplugin.tag.services.nfc.NFCService;
 import org.deviceconnect.android.deviceplugin.tag.services.qr.QRService;
@@ -49,11 +51,15 @@ public class TagMessageService extends DConnectMessageService {
         mSetting.registerOnChangeListener(this::setUseLocalOAuth);
 
         mFileMgr = new FileManager(this, FileProvider.class.getName());
-        mQRService = new QRService(this);
-        mNFCService = new NFCService(this);
 
+        mQRService = new QRService(this);
         getServiceProvider().addService(mQRService);
-        getServiceProvider().addService(mNFCService);
+
+        // NFC がサポートされていない場合には登録しない
+        if (checkNFCHardware()) {
+            mNFCService = new NFCService(this);
+            getServiceProvider().addService(mNFCService);
+        }
 
         setUseLocalOAuth(mSetting.isUseOAuth());
     }
@@ -93,6 +99,15 @@ public class TagMessageService extends DConnectMessageService {
     @Override
     protected void onDevicePluginReset() {
         EventManager.INSTANCE.removeAll();
+    }
+
+    /**
+     * NFCのサポート状況を取得します.
+     *
+     * @return サポートしている場合にはtrue、それ以外はfalse
+     */
+    private boolean checkNFCHardware() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
     }
 
     /**

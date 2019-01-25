@@ -29,6 +29,11 @@ public abstract class NFCBaseActivity extends BindServiceActivity implements Tag
      */
     private NfcAdapter mNfcAdapter;
 
+    /**
+     * 動作中フラグ.
+     */
+    private boolean mRunning;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +58,19 @@ public abstract class NFCBaseActivity extends BindServiceActivity implements Tag
             flags |= NfcAdapter.FLAG_READER_NFC_V;
 
             mNfcAdapter.enableReaderMode(this, mReaderCallback, flags, opts);
+
+            mRunning = true;
         }
+    }
+
+    @Override
+    protected void onPause() {
+        // NFCが動作中に終了された時に、まだレスポンスを返却していない場合にはエラーを返しておく
+        if (mRunning && !isReturnedResponse()) {
+            postTagReaderActivityResult(TagConstants.RESULT_FAILED, null);
+        }
+
+        super.onPause();
     }
 
     @Override

@@ -383,22 +383,21 @@ public abstract class DConnectManager implements DConnectInterface {
                     return;
                 }
 
-                try {
-                    DConnectWebSocket webSocket = mRESTServer.getWebSocket(info.getRawId());
-                    if (webSocket != null) {
-                        JSONObject root = new JSONObject();
-                        DConnectUtil.convertBundleToJSON(getSettings(), root, event.getExtras());
-                        if (isMainThread()) {
-                            mExecutor.execute(() -> webSocket.sendMessage(root.toString()));
-                        } else {
-                            webSocket.sendMessage(root.toString());
-                        }
-                        if (BuildConfig.DEBUG) {
-                            mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
-                        }
+                DConnectWebSocket webSocket = mRESTServer.getWebSocket(info.getRawId());
+                if (webSocket != null) {
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
                     }
-                } catch (Exception e) {
-                    mLogger.warning("JSONException in sendMessage: " + e.toString());
+
+                    mExecutor.execute(() -> {
+                        try {
+                            JSONObject root = new JSONObject();
+                            DConnectUtil.convertBundleToJSON(getSettings(), root, event.getExtras());
+                            webSocket.sendMessage(root.toString());
+                        } catch (Exception e) {
+                            mLogger.warning("JSONException in sendMessage: " + e.toString());
+                        }
+                    });
                 }
             }
         }

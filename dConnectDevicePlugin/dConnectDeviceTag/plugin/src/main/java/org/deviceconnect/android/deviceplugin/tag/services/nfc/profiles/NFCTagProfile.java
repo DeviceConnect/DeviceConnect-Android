@@ -39,26 +39,15 @@ public class NFCTagProfile extends DConnectProfile {
      * NFC 読み込み結果を受け取るコールバック.
      */
     private final NFCService.ReaderCallback mReaderCallback = (result, tagInfo) -> {
-        if (result == TagConstants.RESULT_SUCCESS) {
-            List<Event> events = EventManager.INSTANCE.getEventList(getService().getId(),
-                    getProfileName(), null, "onRead");
-            for (Event event : events) {
-                Intent message = EventManager.createEventMessage(event);
+        List<Event> events = EventManager.INSTANCE.getEventList(getService().getId(),
+                getProfileName(), null, "onRead");
+        for (Event event : events) {
+            Intent message = EventManager.createEventMessage(event);
+            if (tagInfo != null) {
                 setTagId(message, tagInfo.getTagId());
                 setTags(message, createTagList(tagInfo.getList()));
-                sendEvent(message, event.getAccessToken());
             }
-        } else {
-            List<Event> events = EventManager.INSTANCE.getEventList(getService().getId(),
-                    getProfileName(), null, "onRead");
-            for (Event event : events) {
-                Intent message = EventManager.createEventMessage(event);
-                if (tagInfo != null) {
-                    setTagId(message, tagInfo.getTagId());
-                    setTags(message, createTagList(tagInfo.getList()));
-                }
-                sendEvent(message, event.getAccessToken());
-            }
+            sendEvent(message, event.getAccessToken());
         }
     };
 

@@ -484,6 +484,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
+    public String getStreamMimeType() {
+        return "video/mp4";
+    }
+
+    @Override
     public RecorderState getState() {
         if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
             return RecorderState.RECORDING;

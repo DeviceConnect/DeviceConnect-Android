@@ -95,6 +95,11 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public String getStreamMimeType() {
+        return MIME_TYPE;
+    }
+
+    @Override
     public PictureSize getPictureSize() {
         throw new UnsupportedOperationException();
     }

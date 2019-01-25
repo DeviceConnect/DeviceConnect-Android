@@ -24,6 +24,8 @@ public interface HostDeviceStreamRecorder extends HostDeviceRecorder {
 
     void resumeRecording();
 
+    String getStreamMimeType();
+
     interface RecordingListener {
         void onRecorded(HostDeviceStreamRecorder recorder, String fileName);
         void onFailed(HostDeviceStreamRecorder recorder, String errorMessage);

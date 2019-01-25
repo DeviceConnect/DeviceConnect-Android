@@ -542,7 +542,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setUri(response, mgr.getContentUri() + "/" + fileName);
                             sendResponse(response);
                             mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mgr.getContentUri() + "/" + fileName,
-                                    "/" + fileName, recorder.getMimeType(), null);
+                                    "/" + fileName, recorder.getStreamMimeType(), null);
                         }
 
                         @Override
@@ -550,7 +550,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
                             mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostDeviceRecorder.RecorderState.ERROR,"",
-                                    "", recorder.getMimeType(), errorMessage);
+                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
                 }
@@ -605,7 +605,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setUri(response, mgr.getContentUri() + "/" + fileName);
                             sendResponse(response);
                             mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mgr.getContentUri() + "/" + fileName,
-                                    "/" + fileName, recorder.getMimeType(), null);
+                                    "/" + fileName, recorder.getStreamMimeType(), null);
                         }
 
                         @Override
@@ -613,7 +613,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
                             mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostDeviceRecorder.RecorderState.ERROR,"",
-                                    "", recorder.getMimeType(), errorMessage);
+                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
 

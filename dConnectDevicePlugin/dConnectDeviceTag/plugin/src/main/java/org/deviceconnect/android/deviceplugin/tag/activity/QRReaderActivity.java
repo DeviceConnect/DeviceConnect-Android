@@ -89,6 +89,13 @@ public class QRReaderActivity extends BindServiceActivity implements TagConstant
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_reader);
+
+        // カメラをサポートしていない場合の処理
+        if (!checkCameraHardware()) {
+            postTagReaderActivityResult(TagConstants.RESULT_NOT_SUPPORT, null);
+            finish();
+        }
+
         mTextureView = findViewById(R.id.activity_qr_reader_texture_view);
     }
 
@@ -135,6 +142,15 @@ public class QRReaderActivity extends BindServiceActivity implements TagConstant
 
         mRunning = true;
         startCapture();
+    }
+
+    /**
+     * カメラのサポート状況を取得します.
+     *
+     * @return サポートしている場合にはtrue、それ以外はfalse
+     */
+    private boolean checkCameraHardware() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
     /**

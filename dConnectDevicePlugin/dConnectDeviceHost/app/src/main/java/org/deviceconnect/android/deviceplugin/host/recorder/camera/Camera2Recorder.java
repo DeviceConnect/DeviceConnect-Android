@@ -615,4 +615,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     protected int getDefaultPreviewQuality(final String mimeType) {
         return 80;
     }
+
+    @Override
+    public void onDisplayRotation(final int degree) {
+        for (PreviewServer server : getServers()) {
+            server.onDisplayRotation(degree);
+        }
+    }
 }

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -19,6 +20,7 @@ import android.os.HandlerThread;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
@@ -54,8 +56,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private MixedReplaceMediaServer mServer;
 
-    private ImageReader mPreviewReader;
-
     private HandlerThread mPreviewThread;
 
     private Handler mPreviewHandler;
@@ -66,6 +66,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private Object mSync = new Object();
 
+    private DrawTask mDrawTask;
+
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
         @Override
         public boolean onAccept() {
@@ -73,25 +75,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 if (DEBUG) {
                     Log.d(TAG, "MediaServerCallback.onAccept: recorder=" + mRecorder.getName());
                 }
-                CameraWrapper camera = mRecorder.getCameraWrapper();
-                mPreviewReader = camera.createPreviewReader(ImageFormat.JPEG);
-                mPreviewReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                    @Override
-                    public void onImageAvailable(final ImageReader reader) {
-                        try {
-                            Image image = reader.acquireNextImage();
-                            Log.d(TAG, "onImageAvailable");
-                            if (image == null) {
-                                return;
-                            }
-                            image.close();
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                }, mPreviewHandler);
-                new Thread(new DrawTask()).start();
+                mDrawTask = new DrawTask();
+                new Thread(mDrawTask).start();
                 return true;
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start preview.", e);
@@ -102,6 +87,11 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     Camera2MJPEGPreviewServer(final Camera2Recorder recorder) {
         mRecorder = recorder;
+    }
+
+    private int getCurrentRotation() {
+        WindowManager windowManager = (WindowManager) mRecorder.getContext().getSystemService(Context.WINDOW_SERVICE);
+        return windowManager.getDefaultDisplay().getRotation();
     }
 
     @Override
@@ -153,6 +143,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 return;
             }
             mIsRecording = false;
+            mDrawTask.requestStop();
+            mDrawTask = null;
             if (mServer != null) {
                 mServer.stop();
                 mServer = null;
@@ -166,15 +158,21 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                     Log.e(TAG, "Failed to stop preview.", e);
                 }
             }
-            if (mPreviewReader != null) {
-                mPreviewReader.close();
-                mPreviewReader = null;
-            }
             mPreviewThread.quit();
             mPreviewThread = null;
             mPreviewHandler = null;
 
             mRecorder.hideNotification();
+        }
+    }
+
+    @Override
+    public void onDisplayRotation(final int rotation) {
+        DrawTask drawTask = mDrawTask;
+        synchronized (mLockObj) {
+            if (drawTask != null) {
+                drawTask.onDisplayRotationChange(rotation);
+            }
         }
     }
 
@@ -195,29 +193,52 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         private ByteArrayOutputStream mOutput;
         private int mJpegQuality;
 
+        private final Object mDrawSync = new Object();
+
         DrawTask() {
             super(null, 0);
+        }
+
+        private void createSurface(final HostDeviceRecorder.PictureSize size) {
+            int w = size.getWidth();
+            int h = size.getHeight();
+            mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            mByteBuffer = ByteBuffer.allocateDirect(w * h * 4);
+            mOutput = new ByteArrayOutputStream();
+
+            mSourceTexture = new SurfaceTexture(mTexId);
+            mSourceTexture.setDefaultBufferSize(w, h);	// これを入れないと映像が取れない
+            mSourceSurface = new Surface(mSourceTexture);
+            mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mPreviewHandler);
+            mEncoderSurface = getEgl().createOffscreen(w, h);
+        }
+
+        private void releaseSurface() {
+            if (mSourceSurface != null) {
+                mSourceSurface.release();
+                mSourceSurface = null;
+            }
+            if (mSourceTexture != null) {
+                mSourceTexture.release();
+                mSourceTexture = null;
+            }
+            if (mEncoderSurface != null) {
+                mEncoderSurface.release();
+                mEncoderSurface = null;
+            }
+            if (mBitmap != null && !mBitmap.isRecycled()) {
+                mBitmap.recycle();
+            }
         }
 
         @Override
         protected void onStart() {
             mDrawer = new GLDrawer2D(true);
             mTexId = mDrawer.initTex();
-            mSourceTexture = new SurfaceTexture(mTexId);
 
-            HostDeviceRecorder.PictureSize size = mRecorder.getPreviewSize();
-            mSize = new HostDeviceRecorder.PictureSize(size.getHeight(), size.getWidth());
-            mBitmap = Bitmap.createBitmap(mSize.getWidth(), mSize.getHeight(), Bitmap.Config.ARGB_8888);
+            updateRotation(getCurrentRotation(), mRecorder.getPreviewSize());
+            createSurface(mSize);
 
-            int w = mSize.getWidth();
-            int h = mSize.getHeight();
-            mByteBuffer = ByteBuffer.allocateDirect(w * h * 4);
-            mOutput = new ByteArrayOutputStream();
-
-            mSourceTexture.setDefaultBufferSize(mSize.getWidth(), mSize.getHeight());	// これを入れないと映像が取れない
-            mSourceSurface = new Surface(mSourceTexture);
-            mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mPreviewHandler);
-            mEncoderSurface = getEgl().createOffscreen(mSize.getWidth(), mSize.getHeight()); //.createFromSurface(mPreviewReader.getSurface());
             intervals = (long)(1000f / mRecorder.getMaxFrameRate());
             mJpegQuality = getQuality();
 
@@ -239,21 +260,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 mDrawer.release();
                 mDrawer = null;
             }
-            if (mSourceSurface != null) {
-                mSourceSurface.release();
-                mSourceSurface = null;
-            }
-            if (mSourceTexture != null) {
-                mSourceTexture.release();
-                mSourceTexture = null;
-            }
-            if (mEncoderSurface != null) {
-                mEncoderSurface.release();
-                mEncoderSurface = null;
-            }
-            if (mBitmap != null && !mBitmap.isRecycled()) {
-                mBitmap.recycle();
-            }
+            releaseSurface();
             try {
                 mRecorder.stopPreview();
             } catch (CameraWrapperException e) {
@@ -288,6 +295,12 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
         private long mLastTime = 0;
 
+        private boolean mStopping;
+
+        public void requestStop() {
+            mStopping = true;
+        }
+
         private final Runnable mDrawTask = new Runnable() {
             @Override
             public void run() {
@@ -317,27 +330,29 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 }
                 mLastTime = now;
 
-                if (mIsRecording) {
-                    if (localRequestDraw) {
-                        mSourceTexture.updateTexImage();
-                        mSourceTexture.getTransformMatrix(mTexMatrix);
-                        Matrix.scaleM(mTexMatrix, 0, 1, -1, 0);
-                        Matrix.translateM(mTexMatrix, 0, 0, -1, 0);
+                if (!mStopping) {
+                    synchronized (mDrawSync) {
+                        if (localRequestDraw) {
+                            mSourceTexture.updateTexImage();
+                            mSourceTexture.getTransformMatrix(mTexMatrix);
+                            Matrix.scaleM(mTexMatrix, 0, 1, -1, 0);
+                            Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
+                            Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
+                        }
+
+                        // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                        mEncoderSurface.makeCurrent();
+                        mDrawer.draw(mTexId, mTexMatrix, 0);
+
+                        GLES20.glFinish();
+                        mByteBuffer.rewind();
+                        GLES20.glReadPixels(0, 0, mSize.getWidth(), mSize.getHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
+                        mBitmap.copyPixelsFromBuffer(mByteBuffer);
+
+                        mOutput.reset();
+                        mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);
                     }
-
-                    // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                    mEncoderSurface.makeCurrent();
-                    mDrawer.draw(mTexId, mTexMatrix, 0);
-
-                    GLES20.glFinish();
-                    mByteBuffer.rewind();
-                    GLES20.glReadPixels(0, 0, mSize.getWidth(), mSize.getHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
-                    mBitmap.copyPixelsFromBuffer(mByteBuffer);
-
-                    mOutput.reset();
-                    mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);
                     offerMedia(mOutput.toByteArray());
-
                     queueEvent(this);
                 } else {
                     releaseSelf();
@@ -350,6 +365,67 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             if (server != null) {
                 server.offerMedia(jpeg);
             }
+        }
+
+        private float mRotationDegree;
+        private float mDeltaX;
+        private float mDeltaY;
+
+        private void onDisplayRotationChange(final int rotation) {
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mDrawSync) {
+                        try {
+                            mRecorder.stopPreview();
+
+                            releaseSurface();
+                            updateRotation(rotation, mRecorder.getPreviewSize());
+                            createSurface(mSize);
+
+                            mRecorder.startPreview(mSourceSurface);
+                        } catch (CameraWrapperException e) {
+                            Log.e(TAG, "Failed to restart preview when display rotation is changed.", e);
+                        }
+                    }
+                }
+            });
+        }
+
+        private void updateRotation(final int rotation, final HostDeviceRecorder.PictureSize pictureSize) {
+            int w = 0;
+            int h = 0;
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                    mRotationDegree = 0;
+                    mDeltaX = 0;
+                    mDeltaY = -1;
+                    w = pictureSize.getHeight();
+                    h = pictureSize.getWidth();
+                    break;
+                case Surface.ROTATION_90:
+                    mRotationDegree = 90;
+                    mDeltaX = -1;
+                    mDeltaY = -1;
+                    w = pictureSize.getWidth();
+                    h = pictureSize.getHeight();
+                    break;
+                case Surface.ROTATION_180:
+                    mRotationDegree = 180;
+                    mDeltaX = -1;
+                    mDeltaY = 0;
+                    w = pictureSize.getHeight();
+                    h = pictureSize.getWidth();
+                    break;
+                case Surface.ROTATION_270:
+                    mRotationDegree = 270;
+                    mDeltaX = 0;
+                    mDeltaY = 0;
+                    w = pictureSize.getWidth();
+                    h = pictureSize.getHeight();
+                    break;
+            }
+            mSize = new HostDeviceRecorder.PictureSize(w, h);
         }
 
     }

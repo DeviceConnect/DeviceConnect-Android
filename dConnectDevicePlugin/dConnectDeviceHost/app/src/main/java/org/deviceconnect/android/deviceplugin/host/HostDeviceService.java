@@ -12,10 +12,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.BuildConfig;
 import android.telephony.TelephonyManager;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
@@ -133,6 +135,7 @@ public class HostDeviceService extends DConnectMessageService {
 
         mRecorderMgr = new HostDeviceRecorderManager(this);
         initRecorders(mRecorderMgr);
+        mRecorderMgr.start();
 
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
@@ -202,6 +205,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     @Override
     public void onDestroy() {
+        mRecorderMgr.stop();
         mRecorderMgr.clean();
         mFileDataManager.stopTimer();
         if (mCameraWrapperManager != null) {
@@ -305,6 +309,13 @@ public class HostDeviceService extends DConnectMessageService {
     private int stopWebServer(final Intent intent) {
         mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
         return START_STICKY;
+    }
+
+    @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        int rotation = windowManager.getDefaultDisplay().getRotation();
+        mLogger.info("onConfigurationChanged: rotation=" + rotation);
     }
 
     private void onChangedBluetoothStatus() {

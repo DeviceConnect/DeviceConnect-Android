@@ -35,6 +35,12 @@ public interface PreviewServer {
     void setQuality(int quality);
 
     /**
+     * 端末の画面が回転したタイミングで実行されるメソッド.
+     * @param degree 0, 90, 180, 270 のいずれか.
+     */
+    void onDisplayRotation(int degree);
+
+    /**
      * Callback interface used to receive the result of starting a web server.
      */
     interface OnWebServerStartCallback {

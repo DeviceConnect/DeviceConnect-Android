@@ -58,6 +58,12 @@ public interface HostDeviceRecorder {
 
     boolean isSupportedPreviewSize(int width, int height);
 
+    /**
+     * 端末の画面が回転したタイミングで実行されるメソッド.
+     * @param degree 角度を示す定数
+     */
+    void onDisplayRotation(int degree);
+
     enum RecorderState {
         INACTTIVE,
         PAUSED,

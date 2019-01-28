@@ -7,11 +7,15 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -44,6 +48,24 @@ public class HostDeviceRecorderManager {
     /** コンテキスト. */
     private HostDeviceService mHostDeviceService;
 
+    /** インテントフィルタ. */
+    private final IntentFilter mIntentFilter = new IntentFilter();
+    {
+        mIntentFilter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+    }
+
+    /** ブロードキャストレシーバ. */
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            int rotation = windowManager.getDefaultDisplay().getRotation();
+            for (HostDeviceRecorder recorder : mRecorders) {
+                recorder.onDisplayRotation(rotation);
+            }
+        }
+    };
+
     public HostDeviceRecorderManager(final @NonNull HostDeviceService service) {
         mHostDeviceService = service;
     }
@@ -71,6 +93,14 @@ public class HostDeviceRecorderManager {
         for (HostDeviceRecorder recorder : getRecorders()) {
             recorder.initialize();
         }
+    }
+
+    public void start() {
+        getContext().registerReceiver(mBroadcastReceiver, mIntentFilter);
+    }
+
+    public void stop() {
+        getContext().unregisterReceiver(mBroadcastReceiver);
     }
 
     public void clean() {

@@ -227,6 +227,10 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
         mContext.sendBroadcast(intent);
     }
 
+    @Override
+    public void onDisplayRotation(final int degree) {
+    }
+
     private String getClassnameOfTopActivity() {
         ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> tasks = activityMgr.getRunningTasks(1);

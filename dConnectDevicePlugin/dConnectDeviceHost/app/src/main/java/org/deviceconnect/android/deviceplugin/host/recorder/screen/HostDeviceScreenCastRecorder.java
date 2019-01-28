@@ -375,4 +375,11 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     private String createNewFileName() {
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
+
+    @Override
+    public void onDisplayRotation(final int degree) {
+        for (PreviewServer server : getServers()) {
+            server.onDisplayRotation(degree);
+        }
+    }
 }

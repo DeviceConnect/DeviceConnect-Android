@@ -119,6 +119,10 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
     }
 
     @Override
+    public void onDisplayRotation(final int degree) {
+    }
+
+    @Override
     public Session generateSession(final String uri, final Socket clientSocket) {
         try {
             return startPreviewStreaming(clientSocket);

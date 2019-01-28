@@ -2,7 +2,6 @@ package org.deviceconnect.android.deviceplugin.host.mediaplayer;
 
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;

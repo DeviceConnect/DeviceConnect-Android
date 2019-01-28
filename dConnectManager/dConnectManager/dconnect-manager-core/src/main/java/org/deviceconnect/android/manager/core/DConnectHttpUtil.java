@@ -10,6 +10,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;
@@ -22,6 +23,8 @@ import org.deviceconnect.server.http.HttpResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.UUID;
@@ -170,16 +173,7 @@ final class DConnectHttpUtil {
         // files の時は、Device Connect Managerまでは渡さずに、ここで処理を行う
         if ("files".equalsIgnoreCase(profile)) {
             if (request.getMethod().equals(HttpRequest.Method.GET)) {
-                String uri = parameters.get("uri");
-                try {
-                    ContentResolver r = context.getContentResolver();
-                    response.setBody(r.openInputStream(Uri.parse(uri)));
-                    response.setContentLength(-1);
-                    response.setCode(HttpResponse.StatusCode.OK);
-                } catch (Exception e) {
-                    response.setCode(HttpResponse.StatusCode.NOT_FOUND);
-                    setErrorResponse(response, 1, "Not found a resource.");
-                }
+                serveFile(context, request, response);
             } else {
                 response.setCode(HttpResponse.StatusCode.BAD_REQUEST);
                 setErrorResponse(response, 1, "Not implements a method.");
@@ -225,6 +219,155 @@ final class DConnectHttpUtil {
         intent.putExtra(DConnectConst.EXTRA_INNER_TYPE, DConnectConst.INNER_TYPE_HTTP);
 
         return intent;
+    }
+
+    /**
+     * ファイルを読み込み.
+     *
+     * @param context コンテキスト
+     * @param request リクエスト
+     * @param response レスポンス
+     */
+    private static void serveFile(final Context context, final HttpRequest request, final HttpResponse response) {
+        String uri = request.getQueryParameters().get("uri");
+        String range = request.getHeaders().get("range");
+
+        long startFrom = 0;
+        long endAt = -1;
+        if (range != null) {
+            if (range.startsWith("bytes=")) {
+                range = range.substring("bytes=".length());
+                int minus = range.indexOf('-');
+                try {
+                    if (minus > 0) {
+                        startFrom = Long.parseLong(range.substring(0, minus));
+                        endAt = Long.parseLong(range.substring(minus + 1));
+                    }
+                } catch (NumberFormatException ignored) {
+                    // ignored.
+                }
+            }
+        }
+
+        try {
+            ContentResolver r = context.getContentResolver();
+            InputStream in = r.openInputStream(Uri.parse(uri));
+            if (in == null) {
+                response.setCode(HttpResponse.StatusCode.NOT_FOUND);
+                setErrorResponse(response, 1, "Not found a resource.");
+                return;
+            }
+
+            int fileLen = in.available();
+
+            String etag = Integer.toHexString((uri + fileLen).hashCode());
+
+            String ifRange = request.getHeaders().get("if-range");
+            boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
+
+            String ifNoneMatch = request.getHeaders().get("if-none-match");
+            boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
+
+            if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
+                if (headerIfNoneMatchPresentAndMatching) {
+                    response.setCode(HttpResponse.StatusCode.NOT_MODIFIED);
+                    response.addHeader("ETag", etag);
+                } else {
+                    if (endAt < 0) {
+                        endAt = fileLen - 1;
+                    }
+
+                    int newLen = (int) (endAt - startFrom + 1);
+                    if (newLen < 0) {
+                        newLen = 0;
+                    }
+
+                    in = new TempInputStream(in, newLen);
+                    if (startFrom > 0) {
+                        in.skip(startFrom);
+                    }
+
+                    response.addHeader("Accept-Ranges", "bytes");
+                    response.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
+                    response.addHeader("Content-Length", String.valueOf(newLen));
+                    response.addHeader("ETag", etag);
+                    response.setBody(in);
+                    response.setContentLength(newLen);
+                    response.setCode(HttpResponse.StatusCode.PARTIAL_CONTENT);
+                }
+            } else {
+                if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
+                    // return the size of the file
+                    // 4xx responses are not trumped by if-none-match
+                    response.setCode(HttpResponse.StatusCode.REQUEST_RANGE_NOT_SATISFIABLE);
+                    response.addHeader("Content-Range", "bytes */" + fileLen);
+                    response.addHeader("ETag", etag);
+                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
+                    // full-file-fetch request
+                    // would return entire file
+                    // respond with not-modified
+                    response.setCode(HttpResponse.StatusCode.NOT_MODIFIED);
+                    response.addHeader("ETag", etag);
+                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
+                    // range request that doesn't match current etag
+                    // would return entire (different) file
+                    // respond with not-modified
+                    response.setCode(HttpResponse.StatusCode.NOT_MODIFIED);
+                    response.addHeader("ETag", etag);
+                } else {
+                    // supply the file
+                    response.setBody(in);
+                    response.setCode(HttpResponse.StatusCode.OK);
+                    response.addHeader("Content-Length", String.valueOf(fileLen));
+                    response.addHeader("ETag", etag);
+                    response.addHeader("Accept-Ranges", "bytes");
+                }
+            }
+        } catch (Exception e) {
+            response.setCode(HttpResponse.StatusCode.NOT_FOUND);
+            setErrorResponse(response, 1, "Not found a resource.");
+        }
+    }
+
+    private static class TempInputStream extends InputStream {
+
+        private InputStream mInputStream;
+        private int mFileSize;
+
+        TempInputStream(InputStream in, int fileSize) {
+            mInputStream = in;
+            mFileSize = fileSize;
+        }
+
+        @Override
+        public int read(@NonNull byte[] b) throws IOException {
+            return mInputStream.read(b);
+        }
+
+        @Override
+        public int read(@NonNull byte[] b, int off, int len) throws IOException {
+            return mInputStream.read(b, off, len);
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            return mInputStream.skip(n);
+        }
+
+        @Override
+        public int available() throws IOException {
+            return mFileSize;
+        }
+
+        @Override
+        public void close() throws IOException {
+            mInputStream.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            return mInputStream.read();
+        }
     }
 
     /**

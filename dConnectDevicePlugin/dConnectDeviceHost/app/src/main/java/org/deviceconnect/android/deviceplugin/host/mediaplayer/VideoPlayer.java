@@ -48,7 +48,7 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         setContentView(R.layout.video_player);
-        mVideoView = (VideoView) findViewById(R.id.videoView);
+        mVideoView = findViewById(R.id.videoView);
 
         // 再生するVideoのURI
         Intent mIntent = this.getIntent();

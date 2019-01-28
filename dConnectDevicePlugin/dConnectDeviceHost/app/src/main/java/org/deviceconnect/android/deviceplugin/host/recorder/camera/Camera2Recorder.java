@@ -339,8 +339,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return windowManager.getDefaultDisplay().getRotation();
     }
 
-    private Size getRotatedPictureSize(final CameraWrapper camera) {
-        Size original = camera.getOptions().getPictureSize();
+    PictureSize getRotatedPreviewSize() {
+        Size original = getCameraWrapper().getOptions().getPreviewSize();
         Size rotated;
         int rotation = getRotation();
         switch (rotation) {
@@ -354,7 +354,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 rotated = original;
                 break;
         }
-        return rotated;
+        return new PictureSize(rotated.getWidth(), rotated.getHeight());
     }
 
     void startPreview(final Surface previewSurface) throws CameraWrapperException {

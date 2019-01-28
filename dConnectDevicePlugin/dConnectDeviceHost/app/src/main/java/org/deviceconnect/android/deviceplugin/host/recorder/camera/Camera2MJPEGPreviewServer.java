@@ -8,10 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
-import android.media.Image;
-import android.media.ImageReader;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
@@ -187,13 +184,16 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         private SurfaceTexture mSourceTexture;
         private Surface mSourceSurface;
 
-        private HostDeviceRecorder.PictureSize mSize;
+        private HostDeviceRecorder.PictureSize mPreviewSize;
         private Bitmap mBitmap;
         private ByteBuffer mByteBuffer;
         private ByteArrayOutputStream mOutput;
         private int mJpegQuality;
 
         private final Object mDrawSync = new Object();
+        private int mRotationDegree;
+        private float mDeltaX;
+        private float mDeltaY;
 
         DrawTask() {
             super(null, 0);
@@ -236,8 +236,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mDrawer = new GLDrawer2D(true);
             mTexId = mDrawer.initTex();
 
-            updateRotation(getCurrentRotation(), mRecorder.getPreviewSize());
-            createSurface(mSize);
+            detectDisplayRotation(getCurrentRotation());
+            createSurface(mPreviewSize);
 
             intervals = (long)(1000f / mRecorder.getMaxFrameRate());
             mJpegQuality = getQuality();
@@ -346,7 +346,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
                         GLES20.glFinish();
                         mByteBuffer.rewind();
-                        GLES20.glReadPixels(0, 0, mSize.getWidth(), mSize.getHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
+                        GLES20.glReadPixels(0, 0, mPreviewSize.getWidth(), mPreviewSize.getHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
                         mBitmap.copyPixelsFromBuffer(mByteBuffer);
 
                         mOutput.reset();
@@ -367,65 +367,54 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             }
         }
 
-        private float mRotationDegree;
-        private float mDeltaX;
-        private float mDeltaY;
-
         private void onDisplayRotationChange(final int rotation) {
             queueEvent(new Runnable() {
                 @Override
                 public void run() {
                     synchronized (mDrawSync) {
-                        try {
-                            mRecorder.stopPreview();
-
-                            releaseSurface();
-                            updateRotation(rotation, mRecorder.getPreviewSize());
-                            createSurface(mSize);
-
-                            mRecorder.startPreview(mSourceSurface);
-                        } catch (CameraWrapperException e) {
-                            Log.e(TAG, "Failed to restart preview when display rotation is changed.", e);
+                        if (mBitmap != null && !mBitmap.isRecycled()) {
+                            mBitmap.recycle();
                         }
+                        if (mEncoderSurface != null) {
+                            mEncoderSurface.release();
+                        }
+
+                        // プレビューサイズ更新
+                        detectDisplayRotation(rotation);
+                        int w = mPreviewSize.getWidth();
+                        int h = mPreviewSize.getHeight();
+                        mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                        mSourceTexture.setDefaultBufferSize(w, h);
+                        mEncoderSurface = getEgl().createOffscreen(w, h);
                     }
                 }
             });
         }
 
-        private void updateRotation(final int rotation, final HostDeviceRecorder.PictureSize pictureSize) {
-            int w = 0;
-            int h = 0;
+        private void detectDisplayRotation(final int rotation) {
             switch (rotation) {
                 case Surface.ROTATION_0:
                     mRotationDegree = 0;
                     mDeltaX = 0;
                     mDeltaY = -1;
-                    w = pictureSize.getHeight();
-                    h = pictureSize.getWidth();
                     break;
                 case Surface.ROTATION_90:
                     mRotationDegree = 90;
                     mDeltaX = -1;
                     mDeltaY = -1;
-                    w = pictureSize.getWidth();
-                    h = pictureSize.getHeight();
                     break;
                 case Surface.ROTATION_180:
                     mRotationDegree = 180;
                     mDeltaX = -1;
                     mDeltaY = 0;
-                    w = pictureSize.getHeight();
-                    h = pictureSize.getWidth();
                     break;
                 case Surface.ROTATION_270:
                     mRotationDegree = 270;
                     mDeltaX = 0;
                     mDeltaY = 0;
-                    w = pictureSize.getWidth();
-                    h = pictureSize.getHeight();
                     break;
             }
-            mSize = new HostDeviceRecorder.PictureSize(w, h);
+            mPreviewSize = mRecorder.getRotatedPreviewSize();
         }
 
     }

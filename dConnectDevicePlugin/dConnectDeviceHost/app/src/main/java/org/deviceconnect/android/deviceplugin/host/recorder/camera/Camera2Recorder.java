@@ -380,7 +380,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         }
         try {
             CameraWrapper camera = getCameraWrapper();
-            mSurfaceRecorder = new SurfaceRecorder(getContext(), camera.getOptions().getPictureSize());
+            mSurfaceRecorder = new SurfaceRecorder(getContext(), mFacing, camera.getOptions().getPictureSize());
             mSurfaceRecorder.initMuxer(mFileManager.getBasePath());
             mSurfaceRecorder.start();
             camera.startRecording(mSurfaceRecorder.getInputSurface(), false);

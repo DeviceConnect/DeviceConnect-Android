@@ -17,7 +17,6 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
-import android.view.WindowInsets;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -82,10 +81,10 @@ class SurfaceRecorder {
 
     private final int mRotationHint;
 
-    SurfaceRecorder(final Context context, final Size size) throws IOException {
+    SurfaceRecorder(final Context context, final AbstractCamera2Recorder.CameraFacing facing, final Size size) throws IOException {
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         int rotation = windowManager.getDefaultDisplay().getRotation();
-        mRotationHint = calculateRotationHint(rotation);
+        mRotationHint = calculateRotationHint(rotation, facing);
 
         int width = size.getWidth();
         int height = size.getHeight();
@@ -102,7 +101,7 @@ class SurfaceRecorder {
         mAudioRecord = new AudioRecord(AUDIO_SOURCE, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL_CONFIG, AUDIO_FORMAT, AUDIO_BUFFER_SIZE);
     }
 
-    private static int calculateRotationHint(final int rotation) {
+    private static int calculateRotationHint(final int rotation, final AbstractCamera2Recorder.CameraFacing facing) {
         int degree = 0;
         int base = 90;
         switch (rotation) {
@@ -119,8 +118,8 @@ class SurfaceRecorder {
                 degree = 270;
                 break;
         }
-        int hint = (360 + (base - degree)) % 360;
-        return hint;
+        int delta = facing == AbstractCamera2Recorder.CameraFacing.FRONT ? ((base - degree) + 180) : (base - degree);
+        return (360 + delta) % 360;
     }
 
     private MediaFormat createVideoFormat(int width, int height) {

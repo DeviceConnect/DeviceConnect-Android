@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
@@ -16,6 +17,8 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
+import android.view.WindowInsets;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
@@ -77,7 +80,13 @@ class SurfaceRecorder {
     private Thread mAudioInputThread;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
-    SurfaceRecorder(final Size size) throws IOException {
+    private final int mRotationHint;
+
+    SurfaceRecorder(final Context context, final Size size) throws IOException {
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        int rotation = windowManager.getDefaultDisplay().getRotation();
+        mRotationHint = calculateRotationHint(rotation);
+
         int width = size.getWidth();
         int height = size.getHeight();
         if (DEBUG) {
@@ -91,6 +100,27 @@ class SurfaceRecorder {
         mAudioEncoder = MediaCodec.createEncoderByType(AUDIO_MIME_TYPE);
         mAudioEncoder.configure(createAudioFormat(), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mAudioRecord = new AudioRecord(AUDIO_SOURCE, AUDIO_SAMPLE_RATE, AUDIO_CHANNEL_CONFIG, AUDIO_FORMAT, AUDIO_BUFFER_SIZE);
+    }
+
+    private static int calculateRotationHint(final int rotation) {
+        int degree = 0;
+        int base = 90;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degree = 0;
+                break;
+            case Surface.ROTATION_90:
+                degree = 90;
+                break;
+            case Surface.ROTATION_180:
+                degree = 180;
+                break;
+            case Surface.ROTATION_270:
+                degree = 270;
+                break;
+        }
+        int hint = (360 + (base - degree)) % 360;
+        return hint;
     }
 
     private MediaFormat createVideoFormat(int width, int height) {
@@ -116,6 +146,7 @@ class SurfaceRecorder {
         try {
             mOutputFile = new File(basePath, generateVideoFileName());
             mMuxer = new MediaMuxer(mOutputFile.getAbsolutePath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            mMuxer.setOrientationHint(mRotationHint);
         } catch (IOException e) {
             throw new RecorderException(RecorderException.REASON_FATAL, e);
         }

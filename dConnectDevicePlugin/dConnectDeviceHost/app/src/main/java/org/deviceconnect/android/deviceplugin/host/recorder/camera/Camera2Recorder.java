@@ -26,6 +26,7 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -333,6 +334,29 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
+    private int getRotation() {
+        WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        return windowManager.getDefaultDisplay().getRotation();
+    }
+
+    private Size getRotatedPictureSize(final CameraWrapper camera) {
+        Size original = camera.getOptions().getPictureSize();
+        Size rotated;
+        int rotation = getRotation();
+        switch (rotation) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                rotated = new Size(original.getHeight(), original.getWidth());
+                break;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+            default:
+                rotated = original;
+                break;
+        }
+        return rotated;
+    }
+
     void startPreview(final Surface previewSurface) throws CameraWrapperException {
         CameraWrapper camera = getCameraWrapper();
         camera.startPreview(previewSurface, false);
@@ -356,7 +380,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         }
         try {
             CameraWrapper camera = getCameraWrapper();
-            mSurfaceRecorder = new SurfaceRecorder(camera.getOptions().getPictureSize());
+            mSurfaceRecorder = new SurfaceRecorder(getContext(), camera.getOptions().getPictureSize());
             mSurfaceRecorder.initMuxer(mFileManager.getBasePath());
             mSurfaceRecorder.start();
             camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
@@ -367,6 +391,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             listener.onFailed(this, "Failed to start recording because of recorder problem: " + e.getMessage());
         } catch (CameraWrapperException e) {
             listener.onFailed(this, "Failed to start recording because of camera problem: " + e.getMessage());
+        } catch (Throwable e) {
+            Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+            listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
         }
     }
 

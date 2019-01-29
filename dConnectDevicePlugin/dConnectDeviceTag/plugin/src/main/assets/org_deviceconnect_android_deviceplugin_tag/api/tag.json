@@ -17,9 +17,16 @@
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "formData",
+                        "in": "query",
                         "description": "サービスID。<br>取得対象デバイスを示すIDになります。",
                         "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "uri",
+                        "in": "query",
+                        "description": "画像リソースへのURI。<br>QR コードなどのタグが含まれる画像へのURIを指定することで解析することができます。<br><br>NFC などの画像リソースを使用しないタグでは無視されます。",
+                        "required": false,
                         "type": "string"
                     }
                 ],
@@ -153,7 +160,7 @@
                 "parameters": [
                     {
                         "name": "serviceId",
-                        "in": "formData",
+                        "in": "query",
                         "description": "サービスID。<br>取得対象デバイスを示すIDになります。",
                         "required": true,
                         "type": "string"

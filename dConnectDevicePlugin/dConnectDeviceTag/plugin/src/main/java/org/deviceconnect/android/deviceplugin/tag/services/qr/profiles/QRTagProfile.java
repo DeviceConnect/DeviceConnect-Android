@@ -11,10 +11,13 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 
 import org.deviceconnect.android.deviceplugin.tag.TagMessageService;
 import org.deviceconnect.android.deviceplugin.tag.services.TagConstants;
+import org.deviceconnect.android.deviceplugin.tag.services.TagInfo;
+import org.deviceconnect.android.deviceplugin.tag.services.qr.QRReader;
 import org.deviceconnect.android.deviceplugin.tag.services.qr.QRService;
 import org.deviceconnect.android.deviceplugin.tag.services.qr.QRWriter;
 import org.deviceconnect.android.event.Event;
@@ -46,6 +49,11 @@ public class QRTagProfile extends DConnectProfile {
      */
     private static final int QR_CODE_SIZE = 500;
 
+    /**
+     * リソースのダウンロードを行うクラス.
+     */
+    private ResourceDownloader mResourceDownloader = new ResourceDownloader();
+
     public QRTagProfile() {
 
         // GET /gotapi/tag
@@ -53,28 +61,46 @@ public class QRTagProfile extends DConnectProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String serviceId = (String) request.getExtras().get("serviceId");
+                String uri = (String) request.getExtras().get("uri");
 
-                getQRService().readQRCode((result, tagInfo) -> {
-                    switch (result) {
-                        case TagConstants.RESULT_SUCCESS:
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setTags(response, createTagList(tagInfo.getList()));
-                            break;
-                        case TagConstants.RESULT_NOT_SUPPORT:
-                            MessageUtils.setNotSupportProfileError(response, "This device does not support camera.");
-                            break;
-                        case TagConstants.RESULT_NO_PERMISSION:
-                            MessageUtils.setIllegalDeviceStateError(response, "Plugin has no permission.");
-                            break;
-                        case TagConstants.RESULT_DISABLED:
-                            MessageUtils.setIllegalDeviceStateError(response, "Camera is disabled.");
-                            break;
-                        default:
-                            MessageUtils.setUnknownError(response, "Failed to read a qr code.");
-                            break;
-                    }
-                    sendResponse(response);
-                });
+                if (uri != null) {
+                    mResourceDownloader.download(uri, (Bitmap bitmap) -> {
+                        if (bitmap == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "Failed to download a resource.");
+                        } else {
+                            try {
+                                TagInfo tagInfo = new QRReader().read(bitmap);
+                                setResult(response, DConnectMessage.RESULT_OK);
+                                setTags(response, createTagList(tagInfo.getList()));
+                            } catch (NotFoundException e) {
+                                MessageUtils.setInvalidRequestParameterError(response, "Resource of uri is not a QR code.");
+                            }
+                        }
+                        sendResponse(response);
+                    });
+                } else {
+                    getQRService().readQRCode((result, tagInfo) -> {
+                        switch (result) {
+                            case TagConstants.RESULT_SUCCESS:
+                                setResult(response, DConnectMessage.RESULT_OK);
+                                setTags(response, createTagList(tagInfo.getList()));
+                                break;
+                            case TagConstants.RESULT_NOT_SUPPORT:
+                                MessageUtils.setNotSupportProfileError(response, "This device does not support camera.");
+                                break;
+                            case TagConstants.RESULT_NO_PERMISSION:
+                                MessageUtils.setIllegalDeviceStateError(response, "Plugin has no permission.");
+                                break;
+                            case TagConstants.RESULT_DISABLED:
+                                MessageUtils.setIllegalDeviceStateError(response, "Camera is disabled.");
+                                break;
+                            default:
+                                MessageUtils.setUnknownError(response, "Failed to read a qr code.");
+                                break;
+                        }
+                        sendResponse(response);
+                    });
+                }
                 return false;
             }
         });

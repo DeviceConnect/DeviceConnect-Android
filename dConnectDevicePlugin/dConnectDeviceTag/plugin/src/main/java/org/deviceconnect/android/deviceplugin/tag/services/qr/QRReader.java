@@ -58,7 +58,7 @@ public class QRReader {
      * @return QR解析結果
      * @throws NotFoundException 画像にQRコードが存在しない場合に発生
      */
-    public Result readQR(final Bitmap bitmap) throws NotFoundException {
+    private Result readQR(final Bitmap bitmap) throws NotFoundException {
         LuminanceSource source = createLuminanceSource(bitmap);
         BinaryBitmap b = new BinaryBitmap(new HybridBinarizer(source));
         return mReader.decode(b);

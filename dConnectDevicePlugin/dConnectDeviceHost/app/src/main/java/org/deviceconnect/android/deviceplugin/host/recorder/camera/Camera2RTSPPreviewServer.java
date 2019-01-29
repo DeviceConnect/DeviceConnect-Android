@@ -57,7 +57,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
     private final Camera2Recorder mRecorder;
 
-    private final Handler mHandler;
+    private Handler mHandler;
     private final Object mSync = new Object();
     private volatile boolean mIsRecording;
     private boolean requestDraw;
@@ -67,9 +67,6 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                              final AbstractPreviewServerProvider serverProvider,
                              final Camera2Recorder recorder) {
         super(context, serverProvider);
-        final HandlerThread thread = new HandlerThread("ScreenCastRTSPPreviewServer");
-        thread.start();
-        mHandler = new Handler(thread.getLooper());
         mRecorder = recorder;
     }
 
@@ -90,6 +87,11 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                     return;
                 }
             }
+            if (mHandler == null) {
+                HandlerThread thread = new HandlerThread("ScreenCastRTSPPreviewServer");
+                thread.start();
+                mHandler = new Handler(thread.getLooper());
+            }
             String uri = "rtsp://localhost:" + mRtspServer.getPort();
             callback.onStart(uri);
         }
@@ -97,15 +99,20 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
     @Override
     public void stopWebServer() {
-        synchronized (mLockObj) {
-            if (mRtspServer != null) {
-                mRtspServer.stop();
-                mRtspServer = null;
+        try {
+            synchronized (mLockObj) {
+                if (mRtspServer != null) {
+                    mRtspServer.stop();
+                    mRtspServer = null;
+                }
+                stopPreviewStreaming();
+                mClientSocket = null;
             }
-            stopPreviewStreaming();
-            mClientSocket = null;
+            stopDrawTask();
+        } catch (Throwable e) {
+            Log.e(TAG, "stopWebServer", e);
+            throw e;
         }
-        stopDrawTask();
     }
 
     // DrawTaskの後始末
@@ -114,7 +121,10 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             mIsRecording = false;
             mSync.notifyAll();
         }
-        mHandler.getLooper().quit();
+        if (mHandler != null) {
+            mHandler.getLooper().quit();
+            mHandler = null;
+        }
     }
 
     @Override
@@ -324,27 +334,22 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                     }
                 }
                 if (mIsRecording) {
-                    try {
-                        synchronized (mDrawSync) {
-                            if (localRequestDraw) {
-                                mSourceTexture.updateTexImage();
-                                mSourceTexture.getTransformMatrix(mTexMatrix);
-                                Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
-                                Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
-                            }
-                            // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                            mEncoderSurface.makeCurrent();
-                            mDrawer.draw(mTexId, mTexMatrix, 0);
-                            mEncoderSurface.swap();
-                            // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
-                            makeCurrent();
-                            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                            GLES20.glFlush();
-                            queueEvent(this);
+                    synchronized (mDrawSync) {
+                        if (localRequestDraw) {
+                            mSourceTexture.updateTexImage();
+                            mSourceTexture.getTransformMatrix(mTexMatrix);
+                            Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
+                            Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
                         }
-                    } catch (Throwable e) {
-                        Log.e(TAG, "Failed to draw preview frame.", e);
-                        releaseSelf();
+                        // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                        mEncoderSurface.makeCurrent();
+                        mDrawer.draw(mTexId, mTexMatrix, 0);
+                        mEncoderSurface.swap();
+                        // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
+                        makeCurrent();
+                        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                        GLES20.glFlush();
+                        queueEvent(this);
                     }
                 } else {
                     releaseSelf();

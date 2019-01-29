@@ -140,7 +140,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 return;
             }
             mIsRecording = false;
-            mDrawTask.requestStop();
             mDrawTask = null;
             if (mServer != null) {
                 mServer.stop();
@@ -295,12 +294,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
         private long mLastTime = 0;
 
-        private boolean mStopping;
-
-        public void requestStop() {
-            mStopping = true;
-        }
-
         private final Runnable mDrawTask = new Runnable() {
             @Override
             public void run() {
@@ -330,7 +323,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 }
                 mLastTime = now;
 
-                if (!mStopping) {
+                if (!mIsRecording) {
                     synchronized (mDrawSync) {
                         if (localRequestDraw) {
                             mSourceTexture.updateTexImage();

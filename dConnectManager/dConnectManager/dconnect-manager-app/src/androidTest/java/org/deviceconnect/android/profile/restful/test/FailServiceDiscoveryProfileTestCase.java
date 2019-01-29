@@ -54,7 +54,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
         assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
@@ -80,7 +80,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.put(builder.build(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
         assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
@@ -106,7 +106,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.delete(builder.build());
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
         assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 
@@ -170,7 +170,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         DConnectResponseMessage response = mDConnectSDK.post(builder.build(), null);
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_ERROR));
-        assertThat(response.getErrorCode(), is(ErrorCode.NOT_SUPPORT_ACTION.getCode()));
+        assertThat(response.getErrorCode(), is(ErrorCode.UNKNOWN_ATTRIBUTE.getCode()));
         assertThat(response.getErrorMessage(), is(notNullValue()));
     }
 }

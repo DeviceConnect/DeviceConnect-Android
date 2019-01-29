@@ -146,7 +146,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             StringBuilder notRespondedLog = new StringBuilder();
             notRespondedLog.append("Not responded plug-in(s) for service discovery: \n");
             for (int index = 0; index < notRespondedPlugins.size(); index++) {
-                DevicePlugin plugin = notRespondedPlugins.valueAt(index);
+                DevicePlugin plugin = notRespondedPlugins.get(notRespondedPlugins.keyAt(index));
                 if (plugin != null) {
                     notRespondedLog.append(" - ").append(plugin.getDeviceName()).append("\n");
                 }

@@ -61,7 +61,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
     /**
      * リクエストコードを格納する配列.
      */
-    private SparseArray<DevicePlugin> mRequestCodeArray = new SparseArray<>();
+    private final SparseArray<DevicePlugin> mRequestCodeArray = new SparseArray<>();
 
     /**
      * 発見したサービスを一時的に格納しておくリスト.
@@ -124,7 +124,9 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
         // レスポンスの無かったプラグインのログを出力
         if (BuildConfig.DEBUG) {
-            outputNotRespondedPlugins(mRequestCodeArray);
+            synchronized (mRequestCodeArray) {
+                outputNotRespondedPlugins(mRequestCodeArray);
+            }
         }
 
         // パラメータを設定する
@@ -167,7 +169,10 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         public void run() {
             // リクエストコード発行
             mRequestCode = UUID.randomUUID().hashCode();
-            mRequestCodeArray.put(mRequestCode, mDevicePlugin);
+
+            synchronized (mRequestCodeArray) {
+                mRequestCodeArray.put(mRequestCode, mDevicePlugin);
+            }
 
             // 送信用のIntentを作成
             final Intent request = createRequestMessage(getRequest(), null);
@@ -202,13 +207,17 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
             // レスポンス個数を追加
             mCountDownLatch.countDown();
-            mRequestCodeArray.remove(mRequestCode);
+            synchronized (mRequestCodeArray) {
+                mRequestCodeArray.remove(mRequestCode);
+            }
         }
 
         @Override
         protected void onMessagingError(final MessagingException e) {
             mCountDownLatch.countDown();
-            mRequestCodeArray.remove(mRequestCode);
+            synchronized (mRequestCodeArray) {
+                mRequestCodeArray.remove(mRequestCode);
+            }
         }
     }
 }

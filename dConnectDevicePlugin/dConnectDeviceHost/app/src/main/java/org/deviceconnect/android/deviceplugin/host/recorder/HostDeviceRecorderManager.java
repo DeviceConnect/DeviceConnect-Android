@@ -14,9 +14,11 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
@@ -39,6 +41,10 @@ import java.util.List;
  */
 public class HostDeviceRecorderManager {
 
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final String TAG = "RecorderManager";
+
     /** List of HostDeviceRecorder. */
     private final List<HostDeviceRecorder> mRecorders = new ArrayList<>();
 
@@ -58,9 +64,15 @@ public class HostDeviceRecorderManager {
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
+            if (DEBUG) {
+                Log.d(TAG, "BroadcastReceiver.onReceive: action=" + intent.getAction());
+            }
             WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             int rotation = windowManager.getDefaultDisplay().getRotation();
             for (HostDeviceRecorder recorder : mRecorders) {
+                if (DEBUG) {
+                    Log.d(TAG, "BroadcastReceiver.onReceive: recorder=" + recorder.getId());
+                }
                 recorder.onDisplayRotation(rotation);
             }
         }

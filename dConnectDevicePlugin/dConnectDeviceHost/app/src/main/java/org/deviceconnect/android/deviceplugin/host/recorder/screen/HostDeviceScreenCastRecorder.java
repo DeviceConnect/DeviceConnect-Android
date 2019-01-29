@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
@@ -46,6 +47,10 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     static final String RESULT_DATA = "result_data";
 
     static final String EXTRA_CALLBACK = "callback";
+
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final String TAG = "host.dplugin";
 
     private static final String ID = "screen";
 
@@ -377,9 +382,12 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
-    public void onDisplayRotation(final int degree) {
+    public void onDisplayRotation(final int rotation) {
+        if (DEBUG) {
+            Log.d(TAG, "ScreenCastRecorder.onDisplayRotation: rotation=" + rotation);
+        }
         for (PreviewServer server : getServers()) {
-            server.onDisplayRotation(degree);
+            server.onDisplayRotation(rotation);
         }
     }
 }

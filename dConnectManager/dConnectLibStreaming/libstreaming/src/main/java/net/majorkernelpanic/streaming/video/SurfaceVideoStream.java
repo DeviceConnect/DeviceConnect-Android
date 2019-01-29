@@ -38,7 +38,7 @@ public abstract class SurfaceVideoStream extends VideoStream {
 
     protected final VideoQuality mQuality;
     protected final SharedPreferences mSettings;
-    private final Surface mInputSurface;
+    private Surface mInputSurface;
 
     @SuppressLint({"InlinedApi", "NewApi"})
     public SurfaceVideoStream(final SharedPreferences prefs, final VideoQuality quality) throws IOException {
@@ -46,7 +46,14 @@ public abstract class SurfaceVideoStream extends VideoStream {
 
         mSettings = prefs;
         mQuality = quality;
+        initialize();
+    }
 
+    public Surface getInputSurface() {
+        return mInputSurface;
+    }
+
+    private void initialize() throws IOException {
         EncoderDebugger debugger = EncoderDebugger.debug(mSettings, mQuality.resX, mQuality.resY);
         mMediaCodec = MediaCodec.createByCodecName(debugger.getEncoderName());
         MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", mQuality.resX, mQuality.resY);
@@ -58,8 +65,16 @@ public abstract class SurfaceVideoStream extends VideoStream {
         mInputSurface = mMediaCodec.createInputSurface();
     }
 
-    public Surface getInputSurface() {
-        return mInputSurface;
+    private void restart() throws IOException {
+        stop();
+        initialize();
+        start();
+    }
+
+    public synchronized void changeResolution(final int w, final int h) throws IOException {
+        mQuality.resX = w;
+        mQuality.resY = h;
+        restart();
     }
 
     @SuppressLint({"InlinedApi", "NewApi"})

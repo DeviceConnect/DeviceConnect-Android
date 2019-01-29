@@ -28,8 +28,7 @@
     </style>
 
 
-
-    <style name="AppBaseTheme.AppCompat" parent="Theme.AppCompat.Light" />
+    <style name="AppBaseTheme.AppCompat" parent="Theme.AppCompat.Light.NoActionBar" />
 
     <style name="AppTheme.AppCompat" parent="AppBaseTheme.AppCompat">
         <item name="actionBarStyle">@style/SettingActionBarTheme</item>

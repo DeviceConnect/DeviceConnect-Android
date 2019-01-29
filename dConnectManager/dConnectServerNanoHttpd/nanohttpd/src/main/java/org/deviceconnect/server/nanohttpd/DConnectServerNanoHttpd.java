@@ -500,6 +500,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 request.setQuery(session.getParms());
                 request.setHeaders(session.getHeaders());
                 request.setQueryString(session.getQueryParameterString());
+                request.setRemoteIpAddress(session.getRemoteIpAddress());
+                request.setRemoteHostName(session.getRemoteHostName());
 
                 parseBody(session, request);
 

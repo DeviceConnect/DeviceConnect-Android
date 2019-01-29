@@ -323,7 +323,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 }
                 mLastTime = now;
 
-                if (!mIsRecording) {
+                if (mIsRecording) {
                     synchronized (mDrawSync) {
                         if (localRequestDraw) {
                             mSourceTexture.updateTexImage();

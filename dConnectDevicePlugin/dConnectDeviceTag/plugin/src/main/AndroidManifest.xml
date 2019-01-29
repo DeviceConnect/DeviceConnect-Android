@@ -53,11 +53,13 @@
         <!-- OR コードを読み込むためのカメラを起動する Activity -->
         <activity
             android:name=".activity.QRReaderActivity"
+            android:screenOrientation="portrait"
             android:exported="false"/>
 
         <!-- NFC を読み込むための Activity -->
         <activity
             android:name=".activity.NFCReaderActivity"
+            android:configChanges="keyboardHidden|screenSize|orientation"
             android:theme="@style/AppTheme.AppCompat.Translucent">
 
             <!-- NFC がテキストの場合のフィルター -->
@@ -134,6 +136,7 @@
         <!-- NFC にデータを書き込むための Activity -->
         <activity
             android:name=".activity.NFCWriterActivity"
+            android:configChanges="keyboardHidden|screenSize|orientation"
             android:exported="false"/>
 
         <!-- ファイルを Manager に送信するための ContentProvider -->

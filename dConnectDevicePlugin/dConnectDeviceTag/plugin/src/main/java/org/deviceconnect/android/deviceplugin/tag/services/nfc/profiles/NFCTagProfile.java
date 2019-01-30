@@ -125,7 +125,10 @@ public class NFCTagProfile extends DConnectProfile {
                             MessageUtils.setIllegalDeviceStateError(response, "NFC is disabled.");
                             break;
                         case TagConstants.RESULT_INVALID_FORMAT:
-                            MessageUtils.setIllegalDeviceStateError(response, "Failed to write to NFC because NFC is invalid format.");
+                            MessageUtils.setIllegalDeviceStateError(response, "Failed to write to NFC because NFC is unknown format.");
+                            break;
+                        case TagConstants.RESULT_NOT_WRIATEBLE:
+                            MessageUtils.setIllegalDeviceStateError(response, "Failed to write to NFC because NFC is not writable.");
                             break;
                         default:
                             MessageUtils.setUnknownError(response, "Failed to write to NFC.");

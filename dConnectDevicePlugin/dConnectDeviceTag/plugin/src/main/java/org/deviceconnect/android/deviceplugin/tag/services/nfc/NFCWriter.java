@@ -14,6 +14,8 @@ import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.os.Build;
 
+import org.deviceconnect.android.deviceplugin.tag.services.nfc.exception.NFCWriteException;
+
 import java.io.IOException;
 
 /**
@@ -28,13 +30,16 @@ public class NFCWriter {
      *
      * @param tag 書き込み先のNFCタグ
      * @param uri 書き込むURI
-     * @throws IOException 書き込みに失敗した場合に発生
-     * @throws FormatException NFCがNdef以外のフォーマットの場合に発生
+     * @throws NFCWriteException 書き込みに失敗した場合に発生
      */
-    public void writeUri(final Tag tag, final String uri) throws IOException, FormatException {
+    public void writeUri(final Tag tag, final String uri) throws NFCWriteException {
         Ndef ndef = Ndef.get(tag);
         if (ndef == null) {
-            throw new FormatException("");
+            throw new NFCWriteException(NFCWriteException.ErrorCode.INVALID_FORMAT, "Ndef is not supported.");
+        }
+
+        if (!ndef.isWritable()) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.NOT_WRITABLE, "Ndef is not writable.");
         }
 
         try {
@@ -42,8 +47,16 @@ public class NFCWriter {
             NdefMessage msg = new NdefMessage(new NdefRecord[]{extRecord});
             ndef.connect();
             ndef.writeNdefMessage(msg);
+        } catch (IOException e) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.IO_ERROR, "IO/Error", e);
+        } catch (FormatException e) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.INVALID_FORMAT, "Invalid format.", e);
         } finally {
-            ndef.close();
+            try {
+                ndef.close();
+            } catch (IOException e) {
+                // ignore.
+            }
         }
     }
 
@@ -53,13 +66,16 @@ public class NFCWriter {
      * @param tag 書き込み先のNFCタグ
      * @param languageCode 言語コード
      * @param text 書き込むテキスト
-     * @throws IOException 書き込みに失敗した場合に発生
-     * @throws FormatException NFCがNdef以外のフォーマットの場合に発生
+     * @throws NFCWriteException 書き込みに失敗した場合に発生
      */
-    public void writeText(final Tag tag, final String languageCode, final String text) throws IOException, FormatException {
+    public void writeText(final Tag tag, final String languageCode, final String text) throws NFCWriteException {
         Ndef ndef = Ndef.get(tag);
         if (ndef == null) {
-            throw new FormatException("");
+            throw new NFCWriteException(NFCWriteException.ErrorCode.INVALID_FORMAT, "Ndef is not supported.");
+        }
+
+        if (!ndef.isWritable()) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.NOT_WRITABLE, "Ndef is not writable.");
         }
 
         try {
@@ -67,8 +83,16 @@ public class NFCWriter {
             NdefMessage msg = new NdefMessage(new NdefRecord[]{extRecord});
             ndef.connect();
             ndef.writeNdefMessage(msg);
+        } catch (IOException e) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.IO_ERROR, "IO/Error", e);
+        } catch (FormatException e) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.INVALID_FORMAT, "Invalid format.", e);
         } finally {
-            ndef.close();
+            try {
+                ndef.close();
+            } catch (IOException e) {
+                // ignore.
+            }
         }
     }
 
@@ -78,13 +102,16 @@ public class NFCWriter {
      * @param tag 書き込み先のNFCタグ
      * @param mimeType 言語コード
      * @param mimeData 書き込むデータ
-     * @throws IOException 書き込みに失敗した場合に発生
-     * @throws FormatException NFCがNdef以外のフォーマットの場合に発生
+     * @throws NFCWriteException 書き込みに失敗した場合に発生
      */
-    public void writeMimeType(final Tag tag, final String mimeType, final byte[] mimeData) throws IOException, FormatException {
+    public void writeMimeType(final Tag tag, final String mimeType, final byte[] mimeData) throws NFCWriteException {
         Ndef ndef = Ndef.get(tag);
         if (ndef == null) {
-            throw new FormatException("");
+            throw new NFCWriteException(NFCWriteException.ErrorCode.INVALID_FORMAT, "Ndef is not supported.");
+        }
+
+        if (!ndef.isWritable()) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.NOT_WRITABLE, "Ndef is not writable.");
         }
 
         try {
@@ -92,8 +119,16 @@ public class NFCWriter {
             NdefMessage msg = new NdefMessage(new NdefRecord[]{extRecord});
             ndef.connect();
             ndef.writeNdefMessage(msg);
+        } catch (IOException e) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.IO_ERROR, "IO/Error", e);
+        } catch (FormatException e) {
+            throw new NFCWriteException(NFCWriteException.ErrorCode.INVALID_FORMAT, "Invalid format.", e);
         } finally {
-            ndef.close();
+            try {
+                ndef.close();
+            } catch (IOException e) {
+                // ignore.
+            }
         }
     }
 }

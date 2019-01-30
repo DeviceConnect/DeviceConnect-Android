@@ -88,7 +88,12 @@ public interface TagConstants {
     int RESULT_DISABLED = -3;
 
     /**
-     * フォーマットが不正なために失敗
+     * フォーマットが不正なために失敗.
      */
     int RESULT_INVALID_FORMAT = -4;
+
+    /**
+     * 書き込み許可がないために失敗.
+     */
+    int RESULT_NOT_WRIATEBLE = -5;
 }

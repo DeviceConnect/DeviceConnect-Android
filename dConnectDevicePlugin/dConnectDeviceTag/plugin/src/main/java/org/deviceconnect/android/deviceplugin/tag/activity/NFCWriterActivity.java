@@ -8,15 +8,13 @@ package org.deviceconnect.android.deviceplugin.tag.activity;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.nfc.FormatException;
 import android.nfc.Tag;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.tag.R;
 import org.deviceconnect.android.deviceplugin.tag.services.TagConstants;
+import org.deviceconnect.android.deviceplugin.tag.services.nfc.exception.NFCWriteException;
 import org.deviceconnect.android.deviceplugin.tag.services.nfc.NFCWriter;
-
-import java.io.IOException;
 
 /**
  * NFC を書き込むための Activity.
@@ -140,15 +138,22 @@ public class NFCWriterActivity extends NFCBaseActivity {
                     try {
                         writeTag(tag);
                         postTagWriterActivityResult(TagConstants.RESULT_SUCCESS);
-                    } catch (IOException e) {
-                        postTagWriterActivityResult(TagConstants.RESULT_FAILED);
-                    } catch (FormatException e) {
-                        postTagWriterActivityResult(TagConstants.RESULT_INVALID_FORMAT);
+                    } catch (NFCWriteException e) {
+                        switch (e.getCode()) {
+                            default:
+                            case IO_ERROR:
+                                postTagWriterActivityResult(TagConstants.RESULT_FAILED);
+                                break;
+                            case INVALID_FORMAT:
+                                postTagWriterActivityResult(TagConstants.RESULT_INVALID_FORMAT);
+                                break;
+                            case NOT_WRITABLE:
+                                postTagWriterActivityResult(TagConstants.RESULT_NOT_WRIATEBLE);
+                                break;
+                        }
                     }
                 })
-                .setNegativeButton(R.string.activity_nfc_setting_error_btn_cancel, (dialogInterface, i) ->{
-                    finish();
-                })
+                .setNegativeButton(R.string.activity_nfc_setting_error_btn_cancel, (dialogInterface, i) -> finish())
                 .show());
     }
 
@@ -156,10 +161,9 @@ public class NFCWriterActivity extends NFCBaseActivity {
      * タグに書き込みます.
      *
      * @param tag 書き込み先のNFCタグ
-     * @throws IOException 書き込みに失敗した場合に発生
-     * @throws FormatException 対応していないフォーマットに書き込みを行なった場合に発生
+     * @throws NFCWriteException 書き込みに失敗した場合に発生
      */
-    private void writeTag(final Tag tag) throws IOException, FormatException {
+    private void writeTag(final Tag tag) throws NFCWriteException {
         switch (getTagType()) {
             default:
             case TagConstants.TYPE_TEXT:

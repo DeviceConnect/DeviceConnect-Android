@@ -150,6 +150,10 @@ public class CameraWrapper {
         return mOptions;
     }
 
+    public int getSensorOrientation() {
+        return Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
+    }
+
     public ImageReader createStillImageReader(final int format) {
         return createImageReader(mOptions.getPictureSize(), format);
     }

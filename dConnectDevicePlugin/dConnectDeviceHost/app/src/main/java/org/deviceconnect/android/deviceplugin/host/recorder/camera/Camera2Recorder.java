@@ -41,7 +41,6 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -379,18 +378,30 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             return;
         }
         try {
-            CameraWrapper camera = getCameraWrapper();
-            mSurfaceRecorder = new SurfaceRecorder(getContext(), mFacing, camera.getOptions().getPictureSize());
-            mSurfaceRecorder.initMuxer(mFileManager.getBasePath());
-            mSurfaceRecorder.start();
-            camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
-            listener.onRecorded(this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
-        } catch (IOException e) {
-            listener.onFailed(this, "Failed to initialize surface recorder: " + e.getMessage());
-        } catch (RecorderException e) {
-            listener.onFailed(this, "Failed to start recording because of recorder problem: " + e.getMessage());
-        } catch (CameraWrapperException e) {
-            listener.onFailed(this, "Failed to start recording because of camera problem: " + e.getMessage());
+            final CameraWrapper camera = getCameraWrapper();
+            mSurfaceRecorder = new DefaultSurfaceRecorder(
+                    getContext(),
+                    mFacing,
+                    camera.getSensorOrientation(),
+                    camera.getOptions().getPictureSize(),
+                    mFileManager.getBasePath());
+            mSurfaceRecorder.start(new SurfaceRecorder.OnRecordingStartListener() {
+                @Override
+                public void onRecordingStart() {
+                    try {
+                        camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
+                        listener.onRecorded(Camera2Recorder.this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
+                    } catch (CameraWrapperException e) {
+                        listener.onFailed(Camera2Recorder.this, "Failed to start recording because of camera problem: " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onRecordingStartError(final Throwable e) {
+                    Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+                    listener.onFailed(Camera2Recorder.this, "Failed to start recording for unexpected problem: " + e.getMessage());
+                }
+            });
         } catch (Throwable e) {
             Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
             listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
@@ -406,20 +417,27 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         try {
             CameraWrapper camera = getCameraWrapper();
             camera.stopRecording();
+            mSurfaceRecorder.stop(new SurfaceRecorder.OnRecordingStopListener() {
+                @Override
+                public void onRecordingStop() {
+                    File videoFile = mSurfaceRecorder.getOutputFile();
+                    mSurfaceRecorder = null;
 
-            mSurfaceRecorder.stop();
-            File videoFile = mSurfaceRecorder.getOutputFile();
-            registerVideo(videoFile);
-            mSurfaceRecorder = null;
-            listener.onStopped(this, videoFile.getAbsolutePath());
+                    registerVideo(videoFile);
+                    listener.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
+                }
+
+                @Override
+                public void onRecordingStopError(Throwable e) {
+                    Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+                    listener.onFailed(Camera2Recorder.this, "Failed to stop recording for unexpected error: " + e.getMessage());
+                }
+            });
         } catch (CameraWrapperException e) {
             if (DEBUG) {
                 Log.w(TAG, "Failed to stop recording.", e);
             }
             listener.onFailed(this, "Failed to stop recording: " + e.getMessage());
-        } catch (Throwable e) {
-            Log.e(TAG, "Failed to stop recording for unexpected error.", e);
-            listener.onFailed(this, "Failed to stop recording for unexpected error: " + e.getMessage());
         }
     }
 

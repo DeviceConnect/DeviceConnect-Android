@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
@@ -8,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderMa
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -20,6 +23,31 @@ public class HostCameraProfile extends DConnectProfile {
 
     public HostCameraProfile() {
 
+        addApi(new GetApi() {
+            @Override
+            public String getAttribute() {
+                return "options";
+            }
+
+            @Override
+            public boolean onRequest(final Intent request, final Intent response) {
+                String target = request.getStringExtra("target");
+
+                Camera2Recorder recorder = getCameraRecorder(target);
+                if (recorder == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "camera is not found.");
+                    return true;
+                }
+                Bundle photo = new Bundle();
+                photo.putString("whiteBalance", recorder.getWhiteBalance());
+                Bundle movie = new Bundle();
+                movie.putString("whiteBalance", recorder.getWhiteBalance());
+                response.putExtra("photo", photo);
+                response.putExtra("movie", movie);
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            }
+        });
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
@@ -36,7 +64,9 @@ public class HostCameraProfile extends DConnectProfile {
                     MessageUtils.setInvalidRequestParameterError(response, "camera is not found.");
                     return true;
                 }
-                recorder.setWhiteBalance(whiteBalance);
+                if (!TextUtils.isEmpty(whiteBalance)) {
+                    recorder.setWhiteBalance(whiteBalance);
+                }
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }

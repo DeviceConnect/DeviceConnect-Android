@@ -675,6 +675,11 @@ public class CameraWrapper {
          */
         private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 480;
 
+        /**
+         * デフォルトのホワイトバランス.
+         */
+        private static final String DEFAULT_WHITE_BALANCE = "auto";
+
         private Size mPictureSize;
 
         private Size mPreviewSize;
@@ -687,7 +692,7 @@ public class CameraWrapper {
 
         private int mPreviewBitRate = 1000 * 1000; //bps
 
-        private String mWhiteBalance;
+        private String mWhiteBalance = DEFAULT_WHITE_BALANCE;
 
         public Size getPictureSize() {
             return mPictureSize;

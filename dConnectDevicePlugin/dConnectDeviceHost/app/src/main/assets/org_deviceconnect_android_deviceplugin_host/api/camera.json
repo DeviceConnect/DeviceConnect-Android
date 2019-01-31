@@ -1,0 +1,253 @@
+{
+  "swagger": "2.0",
+  "basePath": "/gotapi/camera",
+  "info": {
+    "title": "Camera Profile",
+    "version": "2.0.0",
+    "description": "スマートデバイス(Cameraデバイスなど）のズーム操作機能を提供するAPI。"
+  },
+  "consumes": [
+    "application/x-www-form-urlencoded",
+    "multipart/form-data"
+  ],
+  "paths": {
+    "/options": {
+      "put": {
+        "x-type": "one-shot",
+        "summary": "カメラの静止画・動画の撮影設定を行います。",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "サービスID。取得対象スマートデバイス",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "撮影するカメラを識別するID。<br>省略された場合にはデフォルトに設定されているカメラに設定を行います。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "whiteBalance",
+            "description": "ホワイトバランスのモードを設定します。",
+            "in": "formData",
+            "required": false,
+            "type": "string",
+            "enum":[
+              "auto",
+              "incandescent",
+              "fluorescent",
+              "warm-fluorescent",
+              "daylight",
+              "cloudy-daylight",
+              "twilight",
+              "shade"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/PutOptionResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": "0",
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "x-type": "one-shot",
+        "summary": "カメラの静止画・動画の撮影設定を取得します.",
+        "description": "",
+        "parameters":[
+          {
+            "name": "serviceId",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "撮影するカメラを識別するID。<br>省略された場合にはデフォルトに設定されているカメラの設定を取得します。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/GetOptionResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": "0",
+                "product": "Example System",
+                "version": "1.0.0",
+                "exposureMode": "RicAutoExposureP",
+                "shutterSpeed": "1/8",
+                "whiteBalance": "RicWbManualGain",
+                "whiteBalanceTemperature": 2500
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CameraGetZoomResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        },
+        {
+          "type": "object",
+          "required": [
+            "zoomPosition"
+          ],
+          "properties": {
+            "zoomPosition": {
+              "type": "number",
+              "title": "カメラの倍率",
+              "description": "カメラの倍率(%)<br>例)<br>QX-10の場合<br>0(%):拡大なし<br>50(%):倍率5倍での拡大"
+            }
+          }
+        }
+      ]
+    },
+    "CameraSetZoomResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "PutOptionResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        }
+      ]
+    },
+    "GetOptionResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/CommonResponse"
+        },
+        {
+          "type": "object",
+          "required": [
+          ],
+          "properties": {
+            "photo": {
+              "$ref": "#/definitions/GetPhotoResponse"
+            },
+            "movie": {
+              "$ref": "#/definitions/GetMovieResponse"
+            }
+          }
+        }
+      ]
+    },
+    "GetPhotoResponse": {
+      "type": "object",
+      "required": [
+      ],
+      "properties": {
+        "exposureMode": {
+          "type": "string",
+          "title": "露出プログラム",
+          "description": "現在設定されている露出プログラムを取得します。"
+        },
+        "shutterSpeed": {
+          "type": "string",
+          "title": "シャッター速度",
+          "description": "現在設定されているシャッター速度を取得します。"
+        },
+        "iosSensitivity": {
+          "type": "string",
+          "title": "ISO感度",
+          "description": "現在設定されているISO感度を取得します。"
+        },
+        "whiteBalance": {
+          "type": "string",
+          "title": "ホワイトバランス",
+          "description": "現在設定されているホワイトバランスを取得します。"
+        },
+        "whiteBalanceTemperature": {
+          "type": "string",
+          "title": "ホワイトバランスの色温度",
+          "description": "現在設定されているホワイトバランスの色温度を取得します。"
+        },
+        "exposureCompensation": {
+          "type": "string",
+          "title": "露出補正",
+          "description": "現在設定されている露出補正を取得します。"
+        }
+      }
+    },
+    "GetMovieResponse": {
+      "type": "object",
+      "required": [
+      ],
+      "properties": {
+        "whiteBalance": {
+          "type": "string",
+          "title": "ホワイトバランス",
+          "description": "現在設定されているホワイトバランスを取得します。"
+        },
+        "whiteBalanceTemperature": {
+          "type": "string",
+          "title": "ホワイトバランスの色温度",
+          "description": "現在設定されているホワイトバランスの色温度を取得します。"
+        }
+      }
+    },
+    "CommonResponse": {
+      "type": "object",
+      "required": [
+        "result",
+        "product",
+        "version"
+      ],
+      "properties": {
+        "result": {
+          "type": "integer",
+          "title": "処理結果",
+          "description": "0: 正常応答<br>0以外: 異常応答"
+        },
+        "product": {
+          "type": "string",
+          "title": "システム名",
+          "description": "DeviceConnectシステムの名前。"
+        },
+        "version": {
+          "type": "string",
+          "title": "システムバージョン",
+          "description": "DeviceConnectシステムのバージョン名。"
+        },
+        "hmac": {
+          "type": "string",
+          "title": "署名",
+          "description": "レスポンスに対する署名。<br>アプリケーション側から事前にHMACキーを共有されていた場合は必須。"
+        }
+      }
+    }
+  }
+}

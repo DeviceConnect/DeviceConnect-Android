@@ -626,6 +626,14 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return false;
     }
 
+    public void setWhiteBalance(final String whiteBalance) {
+        getCameraWrapper().getOptions().setWhiteBalance(whiteBalance);
+    }
+
+    public String getWhiteBalance() {
+        return getCameraWrapper().getOptions().getWhiteBalance();
+    }
+
     @Override
     public void requestPermission(final PermissionCallback callback) {
         CapabilityUtil.requestPermissions(getContext(), new PermissionUtility.PermissionRequestCallback() {

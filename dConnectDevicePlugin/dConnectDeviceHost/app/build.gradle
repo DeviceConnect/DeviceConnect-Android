@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 28
         versionName getVersionName()
     }
@@ -47,6 +47,7 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/NOTICE'
     }
+
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }

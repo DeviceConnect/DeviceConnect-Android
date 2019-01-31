@@ -1,53 +1,97 @@
+/*
+ AccessLogHelper.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.core.accesslog;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+/**
+ * アクセスログのDBを管理するクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 class AccessLogHelper extends SQLiteOpenHelper {
+    /**
+     * DBのファイル名を定義.
+     */
     private static final String DATABASE_NAME = "DeviceConnectAccessLog.db";
-    private static final int DATABASE_VERSION = 1;
-    private static final String TABLE_NAME = "accessLog";
-    private static final String COLUMN_KEY = "name";
 
-    AccessLogHelper(Context context) {
+    /**
+     * DBのバージョンを定義.
+     */
+    private static final int DATABASE_VERSION = 1;
+
+    /**
+     * コンストラクタ.
+     * @param context コンテキスト
+     */
+    AccessLogHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME + " ("
-                + COLUMN_KEY + " TEXT NOT NULL);");
+        AccessLog.createTable(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
-    <T> T read(Process handler) {
+    /**
+     * 読み込み用のDBを開き、ハンドラを呼び出します.
+     * <p>
+     * 指定されたハンドラーから抜けた時点で、SQLiteDatabaseを閉じます。
+     * </p>
+     * @param handler DBの処理を行うハンドラ
+     * @param <T> 処理結果
+     * @return 処理結果
+     */
+    <T> T read(final DBHandler<T> handler) {
         T obj = null;
-        SQLiteDatabase db = getReadableDatabase();
-        try {
+        try (SQLiteDatabase db = getReadableDatabase()) {
             obj = handler.process(db);
-        } finally {
-            db.close();
+        } catch (Exception e) {
+            // ignore.
         }
         return obj;
     }
 
-    <Boolean> Boolean write(Process<Boolean> handler) {
-        Boolean obj = false;
-        SQLiteDatabase db = getReadableDatabase();
-        try {
+    /**
+     * 書き込みのDBを開き、ハンドラを呼び出します.
+     * <p>
+     * 指定されたハンドラーから抜けた時点で、SQLiteDatabaseを閉じます。
+     * </p>
+     * @param handler DBの処理を行うハンドラ
+     * @return 処理結果
+     */
+    Boolean write(final DBHandler<Boolean> handler) {
+        Boolean obj = Boolean.FALSE;
+        try (SQLiteDatabase db = getWritableDatabase()) {
             obj = handler.process(db);
-        } finally {
-            db.close();
+        } catch (Exception e) {
+            // ignore.
         }
         return obj;
     }
 
-    interface Process<T> {
+    /**
+     * DB の処理を行うインターフェース.
+     *
+     * @param <T>
+     */
+    interface DBHandler<T> {
+        /**
+         * SQLiteDatabase がオープンされた場合に処理を行う.
+         *
+         * @param db SQLiteDatabase
+         * @return
+         */
         T process(SQLiteDatabase db);
     }
 }

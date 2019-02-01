@@ -12,8 +12,12 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * アクセスログ.
@@ -31,6 +35,7 @@ public class AccessLog {
     private String mRemoteIpAddress;
     private String mRemoteHostName;
     private long mRequestReceivedTime;
+    private String mRequestHeader;
     private String mRequestMethod;
     private String mRequestPath;
     private String mRequestBody;
@@ -85,6 +90,15 @@ public class AccessLog {
      */
     public long getRequestReceivedTime() {
         return mRequestReceivedTime;
+    }
+
+    /**
+     * リクエストのヘッダーを取得します.
+     *
+     * @return リクエストのヘッダー
+     */
+    public Map<String, String> getRequestHeader() {
+        return stringToHeader(mRequestHeader);
     }
 
     /**
@@ -187,6 +201,15 @@ public class AccessLog {
     }
 
     /**
+     * リクエストのヘッダーを設定します.
+     *
+     * @param header ヘッダー
+     */
+    public void setRequestHeader(Map<String, String> header) {
+        mRequestHeader = headerToString(header);
+    }
+
+    /**
      * リクエストのメソッドを設定します.
      *
      * @param requestMethod リクエストのメソッド
@@ -257,6 +280,7 @@ public class AccessLog {
                 ", mRemoteIpAddress='" + mRemoteIpAddress + '\'' +
                 ", mRemoteHostName='" + mRemoteHostName + '\'' +
                 ", mRequestReceivedTime=" + mRequestReceivedTime +
+                ", mRequestHeader='" + mRequestHeader + '\'' +
                 ", mRequestMethod='" + mRequestMethod + '\'' +
                 ", mRequestPath='" + mRequestPath + '\'' +
                 ", mRequestBody='" + mRequestBody + '\'' +
@@ -279,6 +303,7 @@ public class AccessLog {
                 + AccessLogColumns.REQUEST_IP_ADDRESS + " TEXT,"
                 + AccessLogColumns.REQUEST_HOST_NAME + " TEXT,"
                 + AccessLogColumns.REQUEST_RECEIVED_TIME + " INTEGER,"
+                + AccessLogColumns.REQUEST_HEADER + " TEXT,"
                 + AccessLogColumns.REQUEST_METHOD + " TEXT,"
                 + AccessLogColumns.REQUEST_PATH + " TEXT,"
                 + AccessLogColumns.REQUEST_BODY + " TEXT,"
@@ -314,6 +339,7 @@ public class AccessLog {
         values.put(AccessLogColumns.REQUEST_IP_ADDRESS, accessLog.mRemoteIpAddress);
         values.put(AccessLogColumns.REQUEST_HOST_NAME, accessLog.mRemoteHostName);
         values.put(AccessLogColumns.REQUEST_RECEIVED_TIME, accessLog.mRequestReceivedTime);
+        values.put(AccessLogColumns.REQUEST_HEADER, accessLog.mRequestHeader);
         values.put(AccessLogColumns.REQUEST_METHOD, accessLog.mRequestMethod);
         values.put(AccessLogColumns.REQUEST_PATH, accessLog.mRequestPath);
         values.put(AccessLogColumns.REQUEST_BODY, accessLog.mRequestBody);
@@ -321,6 +347,7 @@ public class AccessLog {
         values.put(AccessLogColumns.RESPONSE_STATUS_CODE, accessLog.mResponseStatusCode);
         values.put(AccessLogColumns.RESPONSE_CONTENT_TYPE, accessLog.mResponseContentType);
         values.put(AccessLogColumns.RESPONSE_BODY, accessLog.mResponseBody);
+
         try {
             return db.insertOrThrow(TABLE_NAME, null, values) != -1;
         } catch (SQLException e) {
@@ -366,10 +393,11 @@ public class AccessLog {
         List<String> list = new ArrayList<>();
 
         String[] columns = {AccessLogColumns.DATE};
+        String orderBy = AccessLogColumns.DATE + " DESC";
 
         Cursor cs = db.query(true, TABLE_NAME, columns,
                 null, null, AccessLogColumns.DATE,
-                null, null, null) ;
+                null, orderBy, null) ;
         if (cs != null) {
             try {
                 while (cs.moveToNext()) {
@@ -398,9 +426,10 @@ public class AccessLog {
 
         String selection = AccessLogColumns.DATE + "=?";
         String[] selectionArgs = {date};
+        String orderBy = AccessLogColumns.REQUEST_RECEIVED_TIME + " DESC";
 
         Cursor cs = db.query(TABLE_NAME, null, selection, selectionArgs,
-                null, null, null);
+                null, null, orderBy);
         if (cs != null) {
             try {
                 while (cs.moveToNext()) {
@@ -430,9 +459,10 @@ public class AccessLog {
 
         String selection = AccessLogColumns.DATE + "=? AND " + AccessLogColumns.REQUEST_IP_ADDRESS + " LIKE ?";
         String[] selectionArgs = {date, "%" + ipAddress + "%"};
+        String orderBy = AccessLogColumns.REQUEST_RECEIVED_TIME + " DESC";
 
         Cursor cs = db.query(TABLE_NAME, null, selection, selectionArgs,
-                null, null, null);
+                null, null, orderBy);
         if (cs != null) {
             try {
                 while (cs.moveToNext()) {
@@ -446,7 +476,6 @@ public class AccessLog {
         }
         return list;
     }
-
 
     /**
      * アクセスログを取得します.
@@ -485,19 +514,53 @@ public class AccessLog {
      */
     private static AccessLog createAccessLog(final Cursor cs) {
         AccessLog accessLog = new AccessLog();
-        accessLog.mId = cs.getInt(cs.getColumnIndex(AccessLogColumns._ID));
+        accessLog.mId = cs.getLong(cs.getColumnIndex(AccessLogColumns._ID));
         accessLog.mDate = cs.getString(cs.getColumnIndex(AccessLogColumns.DATE));
         accessLog.mRemoteIpAddress = cs.getString(cs.getColumnIndex(AccessLogColumns.REQUEST_IP_ADDRESS));
         accessLog.mRemoteHostName = cs.getString(cs.getColumnIndex(AccessLogColumns.REQUEST_HOST_NAME));
-        accessLog.mRequestReceivedTime = cs.getInt(cs.getColumnIndex(AccessLogColumns.REQUEST_RECEIVED_TIME));
+        accessLog.mRequestReceivedTime = cs.getLong(cs.getColumnIndex(AccessLogColumns.REQUEST_RECEIVED_TIME));
+        accessLog.mRequestHeader = cs.getString(cs.getColumnIndex(AccessLogColumns.REQUEST_HEADER));
         accessLog.mRequestMethod = cs.getString(cs.getColumnIndex(AccessLogColumns.REQUEST_METHOD));
         accessLog.mRequestPath = cs.getString(cs.getColumnIndex(AccessLogColumns.REQUEST_PATH));
         accessLog.mRequestBody = cs.getString(cs.getColumnIndex(AccessLogColumns.REQUEST_BODY));
-        accessLog.mResponseSendTime = cs.getInt(cs.getColumnIndex(AccessLogColumns.RESPONSE_SEND_TIME));
+        accessLog.mResponseSendTime = cs.getLong(cs.getColumnIndex(AccessLogColumns.RESPONSE_SEND_TIME));
         accessLog.mResponseStatusCode = cs.getInt(cs.getColumnIndex(AccessLogColumns.RESPONSE_STATUS_CODE));
         accessLog.mResponseContentType = cs.getString(cs.getColumnIndex(AccessLogColumns.RESPONSE_CONTENT_TYPE));
         accessLog.mResponseBody = cs.getString(cs.getColumnIndex(AccessLogColumns.RESPONSE_BODY));
         return accessLog;
+    }
+
+
+    public static Map<String, String> stringToHeader(String string) {
+        Map<String, String> header = new HashMap<>();
+        if (string != null) {
+            String[] p = string.split("\t");
+            for (String a : p) {
+                String[] keyValue = a.split("=");
+                header.put(keyValue[0], keyValue[1]);
+            }
+        }
+        return header;
+    }
+
+    public static String headerToString(Map<String, String> header) {
+        StringBuilder h = new StringBuilder();
+        for (String key : header.keySet()) {
+            String value = header.get(key);
+            if (h.length() > 0) {
+                h.append("\t");
+            }
+            h.append(key).append("=").append(value);
+        }
+        return h.toString();
+    }
+
+    private static String decode(String value) {
+        try {
+            return URLDecoder.decode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return value;
+        }
     }
 
     /**
@@ -527,6 +590,11 @@ public class AccessLog {
         String REQUEST_RECEIVED_TIME = "request_received_time";
 
         /**
+         * リクエストのHTTPヘッダー.
+         */
+        String REQUEST_HEADER = "request_header";
+
+        /**
          * リクエストのHTTPメソッド.
          */
         String REQUEST_METHOD = "request_method";
@@ -540,7 +608,6 @@ public class AccessLog {
          * リクエストのボディ.
          */
         String REQUEST_BODY = "request_body";
-
 
         /**
          * レスポンス送信時刻.

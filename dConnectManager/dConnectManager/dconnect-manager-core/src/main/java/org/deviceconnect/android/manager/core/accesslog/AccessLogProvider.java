@@ -9,7 +9,9 @@ package org.deviceconnect.android.manager.core.accesslog;
 import android.content.Context;
 import android.text.format.DateFormat;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -215,7 +217,10 @@ public class AccessLogProvider {
      * @return 日付の文字列
      */
     public static String dateToString(final long date) {
-        return DateFormat.format("yyyy/MM/dd kk:mm:ss", date).toString();
+        // MEMO Android DateFormat ではミリ秒が表示できない
+        return new java.text.SimpleDateFormat("yyyy/MM/dd kk:mm:ss.SSS", Locale.getDefault())
+                .format(new Date(date));
+//        return DateFormat.format("yyyy/MM/dd kk:mm:ss.SSS", date).toString();
     }
 
     /**

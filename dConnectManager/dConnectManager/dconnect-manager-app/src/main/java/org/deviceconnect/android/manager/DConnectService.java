@@ -214,7 +214,7 @@ public class DConnectService extends Service {
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
-                addDevicePlugin();
+//                addDevicePlugin();
             }
 
             @Override

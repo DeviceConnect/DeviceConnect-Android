@@ -95,6 +95,11 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public String getStreamMimeType() {
+        return MIME_TYPE;
+    }
+
+    @Override
     public PictureSize getPictureSize() {
         throw new UnsupportedOperationException();
     }
@@ -220,6 +225,10 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
         Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
         intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
         mContext.sendBroadcast(intent);
+    }
+
+    @Override
+    public void onDisplayRotation(final int degree) {
     }
 
     private String getClassnameOfTopActivity() {

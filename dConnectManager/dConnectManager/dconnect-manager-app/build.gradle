@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
     buildToolsVersion '28.0.3'
 
     def getVersionName = { ->
@@ -17,8 +17,8 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.manager"
-        minSdkVersion 14
-        targetSdkVersion 26
+        minSdkVersion 21
+        targetSdkVersion 28
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -78,7 +78,7 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation('com.android.support:appcompat-v7:26.1.0') {
+    implementation('com.android.support:appcompat-v7:28.0.0') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }

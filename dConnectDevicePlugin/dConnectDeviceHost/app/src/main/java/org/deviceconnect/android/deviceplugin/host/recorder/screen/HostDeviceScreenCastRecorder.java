@@ -47,6 +47,10 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     static final String EXTRA_CALLBACK = "callback";
 
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final String TAG = "host.dplugin";
+
     private static final String ID = "screen";
 
     private static final String NAME = "AndroidHost Screen";
@@ -104,6 +108,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mScreenCastMgr = new ScreenCastManager(context);
         mScreenCastRTSPServer = new ScreenCastRTSPPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer = new ScreenCastMJPEGPreviewServer(context, this, mScreenCastMgr);
+        mScreenCastMJPEGServer.setQuality(readPreviewQuality(mScreenCastMJPEGServer));
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -127,6 +132,21 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         servers.add(mScreenCastMJPEGServer);
         servers.add(mScreenCastRTSPServer);
         return servers;
+    }
+
+    @Override
+    public PreviewServer getServerForMimeType(final String mimeType) {
+        for (PreviewServer server : getServers()) {
+            if (server.getMimeType().equals(mimeType)) {
+                return server;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected int getDefaultPreviewQuality(final String mimeType) {
+        return 100;
     }
 
     @Override
@@ -360,4 +380,13 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
     }
 
+    @Override
+    public void onDisplayRotation(final int rotation) {
+        if (DEBUG) {
+            Log.d(TAG, "ScreenCastRecorder.onDisplayRotation: rotation=" + rotation);
+        }
+        for (PreviewServer server : getServers()) {
+            server.onDisplayRotation(rotation);
+        }
+    }
 }

@@ -13,8 +13,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import android.support.v4.BuildConfig;
 import android.util.Log;
+
+import org.deviceconnect.android.manager.core.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.List;

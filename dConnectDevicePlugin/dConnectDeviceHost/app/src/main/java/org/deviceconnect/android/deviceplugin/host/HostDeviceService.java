@@ -12,10 +12,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
-import android.util.Log;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
@@ -45,7 +46,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderMa
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.DevicePluginContext;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
@@ -56,11 +57,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Host Device Plugin Context.
+ * Host Device Service.
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDevicePlugin extends DevicePluginContext {
+@SuppressWarnings("deprecation")
+public class HostDeviceService extends DConnectMessageService {
 
     /** サービスID. */
     public static final String SERVICE_ID = "Host";
@@ -112,32 +114,29 @@ public class HostDevicePlugin extends DevicePluginContext {
             } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
                     || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 onChangedBluetoothStatus();
-            } else if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
-                stopWebServer(intent);
             }
         }
     };
 
-    /**
-     * コンストラクタ.
-     *
-     * @param context コンテキスト
-     */
-    public HostDevicePlugin(Context context) {
-        super(context);
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
         // Manager同梱のため、LocalOAuthを無効化
         setUseLocalOAuth(false);
 
-        mFileMgr = new FileManager(context, HostFileProvider.class.getName());
+        mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
-        mHostBatteryManager = new HostBatteryManager(this);
+        mHostBatteryManager = new HostBatteryManager(getPluginContext());
         mHostBatteryManager.getBatteryInfo();
-        mRecorderMgr = new HostDeviceRecorderManager(this);
+
+        mRecorderMgr = new HostDeviceRecorderManager(getPluginContext());
         initRecorders(mRecorderMgr);
         mRecorderMgr.start();
-        mHostMediaPlayerManager = new HostMediaPlayerManager(this);
+
+        mHostMediaPlayerManager = new HostMediaPlayerManager(getPluginContext());
 
         DConnectService hostService = new DConnectService(SERVICE_ID);
         hostService.setName(SERVICE_NAME);
@@ -149,7 +148,7 @@ public class HostDevicePlugin extends DevicePluginContext {
         hostService.addProfile(new HostKeyEventProfile());
         hostService.addProfile(new HostMediaPlayerProfile(mHostMediaPlayerManager));
         hostService.addProfile(new HostNotificationProfile());
-        mPhoneProfile = new HostPhoneProfile((TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE));
+        mPhoneProfile = new HostPhoneProfile((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));
         hostService.addProfile(mPhoneProfile);
         hostService.addProfile(new HostSettingProfile());
         hostService.addProfile(new HostTouchProfile());
@@ -169,7 +168,7 @@ public class HostDevicePlugin extends DevicePluginContext {
         if (checkCameraHardware()) {
             HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
             if (defaultRecorder instanceof HostDevicePhotoRecorder) {
-                hostService.addProfile(new HostLightProfile(context, mRecorderMgr));
+                hostService.addProfile(new HostLightProfile(this, mRecorderMgr));
             }
         }
 
@@ -186,14 +185,13 @@ public class HostDevicePlugin extends DevicePluginContext {
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
-        getContext().registerReceiver(mHostConnectionReceiver, filter);
+        registerReceiver(mHostConnectionReceiver, filter);
 
     }
 
     private void initRecorders(final HostDeviceRecorderManager recorderMgr) {
         if (checkCameraHardware()) {
-            mCameraWrapperManager = new CameraWrapperManager(getContext());
+            mCameraWrapperManager = new CameraWrapperManager(this);
             recorderMgr.createCameraRecorders(mCameraWrapperManager, mFileMgr);
         }
         if (checkMicrophone()) {
@@ -205,30 +203,28 @@ public class HostDevicePlugin extends DevicePluginContext {
     }
 
     @Override
-    public void release() {
+    public void onDestroy() {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
         mFileDataManager.stopTimer();
-        getContext().unregisterReceiver(mHostConnectionReceiver);
         if (mCameraWrapperManager != null) {
             mCameraWrapperManager.destroy();
         }
-        super.release();
-//         unregisterReceiver(mHostConnectionReceiver);
-//         super.onDestroy();
-//     }
-//
-//     @Override
-//     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-//         if (intent == null) {
-//             return START_STICKY;
-//         }
-//
-//         String action = intent.getAction();
-//         if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
-//             return stopWebServer(intent);
-//         }
-//         return super.onStartCommand(intent, flags, startId);
+        unregisterReceiver(mHostConnectionReceiver);
+        super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+        if (intent == null) {
+            return START_STICKY;
+        }
+
+        String action = intent.getAction();
+        if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
+            return stopWebServer(intent);
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     // Managerアンインストール検知時の処理。
@@ -282,10 +278,6 @@ public class HostDevicePlugin extends DevicePluginContext {
         return new HostSystemProfile();
     }
 
-    @Override
-    protected int getPluginXmlResId() {
-        return R.xml.org_deviceconnect_android_deviceplugin_host;
-    }
     /**
      * Get a instance of FileManager.
      *
@@ -313,16 +305,17 @@ public class HostDevicePlugin extends DevicePluginContext {
         return mRecorderMgr;
     }
 
-    private void stopWebServer(final Intent intent) {
+    private int stopWebServer(final Intent intent) {
         mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
+        return START_STICKY;
     }
 
-//    @Override
-//    public void onConfigurationChanged(final Configuration newConfig) {
-//        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-//        int rotation = windowManager.getDefaultDisplay().getRotation();
-//        mLogger.info("onConfigurationChanged: rotation=" + rotation);
-//    }
+    @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        int rotation = windowManager.getDefaultDisplay().getRotation();
+        mLogger.info("onConfigurationChanged: rotation=" + rotation);
+    }
 
     private void onChangedBluetoothStatus() {
         List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,
@@ -365,7 +358,7 @@ public class HostDevicePlugin extends DevicePluginContext {
     }
 
     private WifiManager getWifiManager() {
-        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**
@@ -408,7 +401,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return カメラをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkCameraHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -416,7 +409,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return 位置情報をサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkLocationHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION);
     }
 
     /**
@@ -424,7 +417,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return 近接センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkProximityHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_PROXIMITY);
     }
 
     /**
@@ -432,8 +425,8 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return 加速度センサーをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkSensorHardware() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
-                getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER) ||
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE);
     }
 
     /**
@@ -441,7 +434,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return マイク入力をサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkMicrophone() {
-        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
     }
 
     /**

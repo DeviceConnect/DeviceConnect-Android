@@ -12,16 +12,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.Preview;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
-import org.deviceconnect.android.deviceplugin.host.recorder.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -32,7 +31,6 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.android.profile.spec.IntegerParameterSpec;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -84,7 +82,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderState(info, RecorderState.INACTIVE);
                                 break;
                         }
-                        if (recorder instanceof HostDevicePhotoRecorder || recorder instanceof HostDeviceVideoRecorder) {
+                        if (recorder instanceof Camera2Recorder) {
                             HostDeviceRecorder.PictureSize size = recorder.getPictureSize();
                             setRecorderImageWidth(info, size.getWidth());
                             setRecorderImageHeight(info, size.getHeight());
@@ -166,7 +164,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewWidth = getPreviewWidth(request);
             Integer previewHeight = getPreviewHeight(request);
             Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
-            Integer previewBitRate = parseInteger(request, "previewBitRate");;
+            Integer previewBitRate = parseInteger(request, "previewBitRate");
 
             HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -342,13 +340,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             final HostDevicePhotoRecorder recorder = mRecorderMgr.getCameraRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-                return true;
-            }
-
-            HostDeviceRecorder r = (HostDeviceRecorder) recorder;
-            if (r.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                MessageUtils.setIllegalDeviceStateError(response, r.getName()
-                        + " is already running.");
                 return true;
             }
 
@@ -562,7 +553,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
                             mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostDeviceRecorder.RecorderState.ERROR,"",
-                                    "", recorder.getMimeType(), errorMessage);
+                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
                 }
@@ -624,7 +615,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             MessageUtils.setIllegalServerStateError(response, errorMessage);
                             sendResponse(response);
                             mRecorderMgr.sendEventForRecordingChange(getServiceID(request), HostDeviceRecorder.RecorderState.ERROR,"",
-                                    "", recorder.getMimeType(), errorMessage);
+                                    "", recorder.getStreamMimeType(), errorMessage);
                         }
                     });
 

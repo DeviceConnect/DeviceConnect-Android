@@ -6,8 +6,8 @@
  */
 package org.deviceconnect.android.test;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
-import android.test.AndroidTestCase;
 
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -17,16 +17,21 @@ import org.deviceconnect.message.DConnectSDK;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * DeviceConnectのTestCaseのスーパークラス.
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectTestCase extends AndroidTestCase {
+public abstract class DConnectTestCase {
 
     /**
      * DeviceConnectManagerへのURI.
@@ -68,6 +73,16 @@ public abstract class DConnectTestCase extends AndroidTestCase {
     /** アクセストークン. */
     private static String sAccessToken;
 
+    private Context mContext;
+
+    public Context getContext() {
+        return mContext;
+    }
+
+    public void setContext(Context context) {
+        mContext = context;
+    }
+
     @Before
     public void setUp() throws Exception {
         setContext(InstrumentationRegistry.getContext());
@@ -85,6 +100,9 @@ public abstract class DConnectTestCase extends AndroidTestCase {
             waitForFoundTestService();
         }
     }
+
+    @After
+    public void tearDown() throws Exception {}
 
     /**
      * Manager が起動するまでブロックします.

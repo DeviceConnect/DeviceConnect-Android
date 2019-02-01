@@ -586,6 +586,15 @@ public final class DConnectSettings {
         return 60 * 1000;
     }
 
+    /**
+     * アクセスログの設定を取得します.
+     *
+     * @return アクセスログの設定
+     */
+    public boolean isEnableAccessLog() {
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_accesslog), false);
+    }
+
     @Override
     public String toString() {
         return "{\n" +

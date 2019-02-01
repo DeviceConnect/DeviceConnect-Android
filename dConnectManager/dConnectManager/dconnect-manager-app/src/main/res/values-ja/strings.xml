@@ -52,6 +52,10 @@
     <string name="activity_settings_whitelist_enable">Originブロック機能</string>
     <string name="activity_settings_whitelist_enable_summary">Originホワイトリストに含まれないOrigin上のアプリからのアクセスをブロックします。</string>
     <string name="activity_settings_manage_whitelist">Originホワイトリスト管理</string>
+    <string name="activity_settings_accesslog">アクセスログ</string>
+    <string name="activity_settings_accesslog_title">アクセスログ</string>
+    <string name="activity_settings_accesslog_summary">アクセスログをDBに保存することを許可します。</string>
+    <string name="activity_settings_accesslog_list">アクセスログ管理</string>
     <string name="activity_settings_device_plugin">デバイスプラグイン</string>
     <string name="activity_settings_list_device_plugin">デバイスプラグイン管理</string>
     <string name="activity_settings_restart_device_plugin">全デバイスプラグインを再起動</string>
@@ -233,4 +237,8 @@
 
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
+
+    <!-- ================= AccessLog ================= -->
+    <string name="activity_accesslog_btn_search_ip_address">検索</string>
+    <string name="activity_accesslog_hint_search_ip_address">IPアドレス</string>
 </resources>

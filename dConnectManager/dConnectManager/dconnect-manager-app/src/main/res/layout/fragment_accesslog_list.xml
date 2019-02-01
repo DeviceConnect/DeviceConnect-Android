@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#f0f0f0"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/fragment_search_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_margin="4dp"
+            android:background="@drawable/button_blue"
+            android:text="@string/activity_accesslog_btn_search_ip_address"
+            android:textColor="#FFF"/>
+
+        <EditText
+            android:id="@+id/fragment_search_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/fragment_search_btn"
+            android:hint="@string/activity_accesslog_hint_search_ip_address"/>
+
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/list_view_accesslog_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</LinearLayout>

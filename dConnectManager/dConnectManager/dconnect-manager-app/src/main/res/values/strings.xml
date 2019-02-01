@@ -52,6 +52,10 @@
     <string name="activity_settings_whitelist_enable">Enable origin blocking</string>
     <string name="activity_settings_whitelist_enable_summary">Block requests of applications that the origin is not included in whitelist.</string>
     <string name="activity_settings_manage_whitelist">Manage whitelist</string>
+    <string name="activity_settings_accesslog">AccessLog</string>
+    <string name="activity_settings_accesslog_title">AccessLog</string>
+    <string name="activity_settings_accesslog_summary">Allow saving the access log in the DB.</string>
+    <string name="activity_settings_accesslog_list">Mange AccessLog</string>
     <string name="activity_settings_device_plugin">Device Plug-in</string>
     <string name="activity_settings_list_device_plugin">List of device plug-in</string>
     <string name="activity_settings_restart_device_plugin">Restart all the devices plug-ins</string>
@@ -232,4 +236,8 @@
     <string name="web_service_on_channel_desc">It is a WebServer for placing HTML for DeviceConnect.</string>
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
+
+    <!-- ================= AccessLog ================= -->
+    <string name="activity_accesslog_btn_search_ip_address">Search</string>
+    <string name="activity_accesslog_hint_search_ip_address">IP Address</string>
 </resources>

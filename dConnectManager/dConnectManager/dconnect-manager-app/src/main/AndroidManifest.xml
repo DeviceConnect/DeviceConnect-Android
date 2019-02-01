@@ -196,6 +196,11 @@
             android:exported="false">
         </activity>
 
+        <!-- アクセスログを表示するための Activity -->
+        <activity
+            android:name="org.deviceconnect.android.manager.accesslog.AccessLogActivity"
+            android:exported="false"/>
+
         <!-- Device Connect監視サービス. -->
         <!-- Device ConnectManagerの生存確認を行うため、Device Connect Managerとは別プロセスで動作する。 -->
         <service

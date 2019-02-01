@@ -20,6 +20,8 @@
     <string name="key_settings_about_tos" translatable="false">settings_about_tos</string>
     <string name="key_settings_dconn_whitelist" translatable="false">settings_whitelist</string>
     <string name="key_settings_dconn_whitelist_origin_blocking" translatable="false">settings_whitelist_origin_blocking</string>
+    <string name="key_settings_accesslog" translatable="false">settings_accesslog</string>
+    <string name="key_settings_accesslog_list" translatable="false">settings_accesslog_list</string>
     <string name="key_settings_list_device_plugin" translatable="false">settings_list_device_plugin</string>
     <string name="key_settings_restart_device_plugin" translatable="false">settings_device_plugin</string>
     <string name="key_settings_web_server_on_off" translatable="false">key_settings_web_server_on_off</string>

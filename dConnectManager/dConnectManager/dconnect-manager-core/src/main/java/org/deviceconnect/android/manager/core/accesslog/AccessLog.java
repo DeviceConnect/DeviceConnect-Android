@@ -150,46 +150,101 @@ public class AccessLog {
         return mResponseBody;
     }
 
+    /**
+     * アクセスログが属する日付を設定します.
+     *
+     * @param date 日付
+     */
     public void setDate(String date) {
         mDate = date;
     }
 
+    /**
+     * リクエスト先の IP アドレスを設定します.
+     *
+     * @param remoteIpAddress IDアドレス
+     */
     public void setRemoteIpAddress(String remoteIpAddress) {
         mRemoteIpAddress = remoteIpAddress;
     }
 
+    /**
+     * リクエスト先のホスト名を設定します.
+     *
+     * @param remoteHostName ホスト名
+     */
     public void setRemoteHostName(String remoteHostName) {
         mRemoteHostName = remoteHostName;
     }
 
+    /**
+     * リクエストの受信時間を設定します.
+     *
+     * @param requestReceivedTime リクエストの受信時間(Unix time)
+     */
     public void setRequestReceivedTime(long requestReceivedTime) {
         mRequestReceivedTime = requestReceivedTime;
     }
 
+    /**
+     * リクエストのメソッドを設定します.
+     *
+     * @param requestMethod リクエストのメソッド
+     */
     public void setRequestMethod(String requestMethod) {
         mRequestMethod = requestMethod;
     }
 
+    /**
+     * リクエストのパスを設定します.
+     *
+     * @param requestPath リクエストのパス
+     */
     public void setRequestPath(String requestPath) {
         mRequestPath = requestPath;
     }
 
+    /**
+     * リクエストのボディを設定します.
+     *
+     * @param requestBody リクエストのボディ
+     */
     public void setRequestBody(String requestBody) {
         mRequestBody = requestBody;
     }
 
+    /**
+     * レスポンスの送信時間を設定します.
+     *
+     * @param responseSendTime レスポンスの送信時間
+     */
     public void setResponseSendTime(long responseSendTime) {
         mResponseSendTime = responseSendTime;
     }
 
+    /**
+     * レスポンスのステータスコードを設定します.
+     *
+     * @param responseStatusCode レスポンスのステータスコード
+     */
     public void setResponseStatusCode(int responseStatusCode) {
         mResponseStatusCode = responseStatusCode;
     }
 
+    /**
+     * レスポンスのコンテントタイプを設定します.
+     *
+     * @param responseContentType レスポンスのコンテントタイプ
+     */
     public void setResponseContentType(String responseContentType) {
         mResponseContentType = responseContentType;
     }
 
+    /**
+     * レスポンスのボディを設定します.
+     *
+     * @param responseBody レスポンスのボディ
+     */
     public void setResponseBody(String responseBody) {
         mResponseBody = responseBody;
     }
@@ -330,9 +385,9 @@ public class AccessLog {
     }
 
     /**
-     * アクセスログを取得します.
+     * アクセスログのリストを取得します.
      * <p>
-     * アクセスログがない場合には空のListを返却します。
+     * アクセスログがない場合には空のリストを返却します。
      * </p>
      * @param db SQLiteDatabaseのインスタンス
      * @param date 取得する日付
@@ -358,6 +413,68 @@ public class AccessLog {
             }
         }
         return list;
+    }
+
+    /**
+     * 指定された IP アドレスのアクセスログのリストを取得します.
+     * <p>
+     * アクセスログがない場合には空のリストを返却します。
+     * </p>
+     * @param db SQLiteDatabaseのインスタンス
+     * @param date 取得する日付
+     * @param ipAddress IPアドレス
+     * @return アクセスログのリスト。
+     */
+    static List<AccessLog> getAccessLogsFromIpAddress(final SQLiteDatabase db, final String date, final String ipAddress) {
+        List<AccessLog> list = new ArrayList<>();
+
+        String selection = AccessLogColumns.DATE + "=? AND " + AccessLogColumns.REQUEST_IP_ADDRESS + " LIKE ?";
+        String[] selectionArgs = {date, "%" + ipAddress + "%"};
+
+        Cursor cs = db.query(TABLE_NAME, null, selection, selectionArgs,
+                null, null, null);
+        if (cs != null) {
+            try {
+                while (cs.moveToNext()) {
+                    list.add(createAccessLog(cs));
+                }
+            } catch (Exception e) {
+                // ignore.
+            } finally {
+                cs.close();
+            }
+        }
+        return list;
+    }
+
+
+    /**
+     * アクセスログを取得します.
+     * <p>
+     * アクセスログがない場合には空のListを返却します。
+     * </p>
+     * @param db SQLiteDatabaseのインスタンス
+     * @param id 取得するアクセスログのID
+     * @return アクセスログ。
+     */
+    static AccessLog getAccessLog(final SQLiteDatabase db, final long id) {
+        String selection = AccessLogColumns._ID + "=?";
+        String[] selectionArgs = {String.valueOf(id)};
+
+        Cursor cs = db.query(TABLE_NAME, null, selection, selectionArgs,
+                null, null, null);
+        if (cs != null) {
+            try {
+                if (cs.moveToNext()) {
+                    return createAccessLog(cs);
+                }
+            } catch (Exception e) {
+                // ignore.
+            } finally {
+                cs.close();
+            }
+        }
+        return null;
     }
 
     /**

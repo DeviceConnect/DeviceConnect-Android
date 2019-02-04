@@ -56,7 +56,9 @@ public final class MessageUtils {
 
     /**
      * レスポンスインテントを生成する.
-     * 
+     * <p>
+     * 作成された Intent には result がエラーに設定されます。
+     * </p>
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @return レスポンスインテント

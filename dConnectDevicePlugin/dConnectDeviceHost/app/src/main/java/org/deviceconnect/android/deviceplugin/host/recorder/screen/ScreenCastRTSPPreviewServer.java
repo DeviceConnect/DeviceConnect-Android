@@ -138,7 +138,16 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
 
     @Override
     public void eraseSession(Session session) {
+    }
 
+    @Override
+    public int getQuality() {
+        return 0; // Not support.
+    }
+
+    @Override
+    public void setQuality(int quality) {
+        // Not support.
     }
 
     private Session startScreenCast(final Socket clientSocket) throws IOException {

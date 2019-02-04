@@ -8,15 +8,19 @@ package org.deviceconnect.android.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
+import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.webkit.MimeTypeMap;
 
 import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Locale;
 
 /**
  * ファイル用のContentProvider.
@@ -95,13 +99,7 @@ public class FileProvider extends ContentProvider {
      */
     @Override
     public ParcelFileDescriptor openFile(final Uri uri, final String mode) throws FileNotFoundException {
-        String accessToken = uri.getQueryParameter("");
-        if (!checkAccessToken(accessToken)) {
-            throw new IllegalArgumentException("accessToken is invalid.");
-        }
-        File file = new File(getBasePath(), uri.getPath());
-        ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-        return parcel;
+        return ParcelFileDescriptor.open(get(uri), ParcelFileDescriptor.MODE_READ_ONLY);
     }
 
     /**
@@ -109,14 +107,33 @@ public class FileProvider extends ContentProvider {
      * @return パス
      */
     public File getBasePath() {
+        Context context = getContext();
+        if (context == null) {
+            throw new RuntimeException("context is null.");
+        }
+
         if (mLocation == null) {
-            mLocation = FileLocationParser.parse(getContext(), this.getClass().getName());
+            mLocation = FileLocationParser.parse(context, this.getClass().getName());
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
             return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());
         } else {
-            return new File(getContext().getFilesDir(), mLocation.getPath());
+            return new File(context.getFilesDir(), mLocation.getPath());
         }
+    }
+
+    /**
+     * ファイルを取得します.
+     *
+     * @param uri ファイルへのURI
+     * @return Fileのインスタンス
+     */
+    private File get(final Uri uri) {
+        String accessToken = uri.getQueryParameter("");
+        if (!checkAccessToken(accessToken)) {
+            throw new IllegalArgumentException("accessToken is invalid.");
+        }
+        return new File(getBasePath(), uri.getPath());
     }
 
     /**
@@ -130,8 +147,7 @@ public class FileProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(final Uri uri, final String selection, 
-            final String[] selectionArgs) {
+    public int delete(final Uri uri, final String selection, final String[] selectionArgs) {
         return 0;
     }
 
@@ -151,14 +167,135 @@ public class FileProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(final Uri uri, final String[] projection, 
-            final String selection, final String[] selectionArgs, final String sortOrder) {
-        return null;
+    public Cursor query(final Uri uri, final String[] projection, final String selection, final String[] selectionArgs, final String sortOrder) {
+        File file = get(uri);
+        if (!file.exists()) {
+            return null;
+        }
+        return new FileCursor(file);
     }
 
     @Override
     public int update(final Uri uri, final ContentValues values, 
             final String selection, final String[] selectionArgs) {
         return 0;
+    }
+
+    /**
+     * ファイルの情報を取得するためのCursor.
+     */
+    public static class FileCursor extends AbstractCursor {
+        /**
+         * ファイルサイズを取得するための column.
+         */
+        public static final int FILE_SIZE = 1;
+
+        /**
+         * ファイル更新時間を取得するための column.
+         */
+        public static final int FILE_LAST_MODIFIED = 2;
+
+        /**
+         * ファイルパスを取得するための column.
+         */
+        public static final int FILE_PATH = 3;
+
+        /**
+         * ファイルのマイムタイプを取得するための column.
+         */
+        public static final int FILE_MIME_TYPE = 4;
+
+        /**
+         * ファイル.
+         */
+        private File mFile;
+
+        /**
+         * コンストラクタ.
+         *
+         * @param file 情報を取得するファイル
+         */
+        FileCursor(final File file) {
+            mFile = file;
+        }
+
+        @Override
+        public int getCount() {
+            return 1;
+        }
+
+        @Override
+        public String[] getColumnNames() {
+            return new String[0];
+        }
+
+        @Override
+        public String getString(final int column) {
+            switch (column) {
+                case FILE_PATH:
+                    return mFile.getAbsolutePath();
+                case FILE_MIME_TYPE:
+                    return getMIMEType(mFile);
+            }
+            return null;
+        }
+
+        @Override
+        public short getShort(final int column) {
+            return 0;
+        }
+
+        @Override
+        public int getInt(final int column) {
+            return 0;
+        }
+
+        @Override
+        public long getLong(final int column) {
+            switch (column) {
+                case FILE_SIZE:
+                    return mFile.length();
+                case FILE_LAST_MODIFIED:
+                    return mFile.lastModified();
+            }
+            return 0;
+        }
+
+        @Override
+        public float getFloat(final int column) {
+            return 0;
+        }
+
+        @Override
+        public double getDouble(final int column) {
+            return 0;
+        }
+
+        @Override
+        public boolean isNull(final int column) {
+            return false;
+        }
+
+        /**
+         * ファイル名からMIMEタイプ取得.
+         *
+         * @param file ファイル
+         * @return MIMEタイプ
+         */
+        private String getMIMEType(final File file) {
+            // 拡張子を取得
+            String fileName = file.getName();
+            int pos = fileName.lastIndexOf(".");
+            String ext = (pos >= 0) ? fileName.substring(pos + 1) : null;
+            if (ext != null) {
+                // 小文字に変換
+                ext = ext.toLowerCase(Locale.getDefault());
+                // MIME Typeを返す
+                return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+            } else {
+                // 拡張子が見つからない
+                return null;
+            }
+        }
     }
 }

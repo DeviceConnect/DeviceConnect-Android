@@ -10,10 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -174,12 +171,11 @@ public class HostNotificationProfile extends NotificationProfile {
                 HostNotificationProfile.PROFILE_NAME,
                 null,
                 HostNotificationProfile.ATTRIBUTE_ON_SHOW);
-            HostDeviceService service = (HostDeviceService) getContext();
             synchronized (events) {
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
                     setNotificationId(intent, String.valueOf(notifyId));
-                    service.sendEvent(intent, event.getAccessToken());
+                    sendEvent(intent, event.getAccessToken());
                 }
             }
             return true;
@@ -218,12 +214,11 @@ public class HostNotificationProfile extends NotificationProfile {
                 HostNotificationProfile.PROFILE_NAME,
                 null,
                 HostNotificationProfile.ATTRIBUTE_ON_CLOSE);
-            HostDeviceService service = (HostDeviceService) getContext();
             synchronized (events) {
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
                     intent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                    service.sendEvent(intent, event.getAccessToken());
+                    sendEvent(intent, event.getAccessToken());
                 }
             }
             return true;

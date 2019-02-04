@@ -8,12 +8,14 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.app.ActivityManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -54,6 +56,23 @@ public class HostTouchProfile extends TouchProfile {
     /** Finish touch profile activity action. */
     public static final String ACTION_FINISH_TOUCH_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.touch.FINISH";
+    /** Finish touch event profile activity action. */
+    public static final String ACTION_TOUCH =
+            "org.deviceconnect.android.deviceplugin.host.touch.action.KEY_EVENT";
+
+    /**
+     * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
+     */
+    private BroadcastReceiver mTouchEventBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent.getAction().equals(ACTION_TOUCH)) {
+                // ManagerにEventを送信する
+                intent.setAction(IntentDConnectMessage.ACTION_EVENT);
+                sendEvent(intent, intent.getStringExtra("accessToken"));
+            }
+        }
+    };
     /**
      * Attribute: {@value} .
      */
@@ -210,6 +229,9 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
+
                 setTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -232,6 +254,8 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
                 setTouchEventFlag(FLAG_ON_TOUCH);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -255,6 +279,8 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
                 setTouchEventFlag(FLAG_ON_TOUCH_START);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -278,6 +304,8 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
                 setTouchEventFlag(FLAG_ON_TOUCH_END);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -301,6 +329,8 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
                 setTouchEventFlag(FLAG_ON_DOUBLE_TAP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -324,6 +354,8 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
                 setTouchEventFlag(FLAG_ON_TOUCH_MOVE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -347,6 +379,8 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execTouchProfileActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mTouchEventBR, filter);
                 setTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -368,6 +402,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CHANGE);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -388,6 +423,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -409,6 +445,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_START);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -430,6 +467,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_END);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -451,6 +489,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_DOUBLE_TAP);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -472,6 +511,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_MOVE);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -493,6 +533,7 @@ public class HostTouchProfile extends TouchProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetTouchEventFlag(FLAG_ON_TOUCH_CANCEL);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mTouchEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response,"Can not unregister event.");
@@ -631,6 +672,6 @@ public class HostTouchProfile extends TouchProfile {
     }
 
     public HostDeviceApplication getApp() {
-        return (HostDeviceApplication) ((HostDeviceService)getContext()).getApplication();
+        return (HostDeviceApplication) getContext().getApplicationContext();
     }
 }

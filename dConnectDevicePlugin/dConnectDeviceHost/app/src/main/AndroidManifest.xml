@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
     <uses-feature android:name="android.hardware.camera.flash"/>
@@ -36,41 +37,11 @@
             android:label="@string/app_name_host"
             android:theme="@style/AppTheme"
             android:launchMode="singleTask"/>
-
-        <!-- d-Connect Host Device Plugin Provider. -->
-        <receiver android:name=".HostDeviceProvider">
-        </receiver>
-
-
-        <service
-            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.name"
-                android:value="@string/app_name_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.icon"
-                android:resource="@drawable/dconnect_icon"/>
-        </service>
-
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.recorder.video.VideoRecorderActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:taskAffinity=".recorder"
-            android:screenOrientation="landscape"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
@@ -129,8 +100,23 @@
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
             android:exported="true" >
+            
         </provider>
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
 
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/dconnect_icon"/>
+        </service>
     </application>
 
 </manifest>

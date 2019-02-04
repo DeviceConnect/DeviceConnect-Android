@@ -268,7 +268,8 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
             String attr = eventdata.getAttribute();
             Intent intent = EventManager.createEventMessage(eventdata);
             intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            getBaseContext().sendBroadcast(intent);
+            intent.setAction(HostKeyEventProfile.ACTION_KEYEVENT);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
             mApp.setKeyEventCache(attr, keyevent);
         }
         for (int i = 0; i < changeEvents.size(); i++) {
@@ -277,10 +278,10 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
             Intent intent = EventManager.createEventMessage(eventdata);
             keyevent.putString("state", state);
             intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
-            getBaseContext().sendBroadcast(intent);
+            intent.setAction(HostKeyEventProfile.ACTION_KEYEVENT);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
             mApp.setKeyEventCache(attr, keyevent);
         }
-
     }
 
     /**

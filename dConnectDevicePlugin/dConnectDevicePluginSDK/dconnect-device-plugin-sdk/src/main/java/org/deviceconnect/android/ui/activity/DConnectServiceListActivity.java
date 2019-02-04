@@ -61,7 +61,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
                 @Override
                 public void run() {
                     mMessageService = ((DConnectMessageService.LocalBinder) service).getMessageService();
-                    mProvider = mMessageService.getServiceProvider();
+                    mProvider = mMessageService.getPluginContext().getServiceProvider();
                     mProvider.addServiceListener(DConnectServiceListActivity.this);
                     mIsBound = true;
 
@@ -453,7 +453,7 @@ public abstract class DConnectServiceListActivity extends FragmentActivity
 
         @Override
         public void onDestroy() {
-            super.onDestroyView();
+            super.onDestroy();
             mOnClickServiceListener = null;
         }
     }

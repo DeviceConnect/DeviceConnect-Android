@@ -14,7 +14,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -218,8 +217,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
                     }
                     ProximityProfile.setProximity(response, mProximityBundle);
                     DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                    HostDeviceService service = (HostDeviceService) getContext();
-                    service.sendResponse(response);
+                    sendResponse(response);
                     getSensorManager().unregisterListener(this);
                 }
             }

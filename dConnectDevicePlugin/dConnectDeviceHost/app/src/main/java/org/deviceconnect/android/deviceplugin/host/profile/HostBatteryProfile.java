@@ -10,7 +10,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -199,7 +199,7 @@ public class HostBatteryProfile extends BatteryProfile {
     private final HostBatteryManager.BatteryChargingEventListener mBatteryChargingEventListener = new HostBatteryManager.BatteryChargingEventListener() {
         @Override
         public void onChangeCharging() {
-            List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
+            List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
                     null, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
 
             for (int i = 0; i < events.size(); i++) {
@@ -216,7 +216,7 @@ public class HostBatteryProfile extends BatteryProfile {
     private final HostBatteryManager.BatteryStatusEventListener mBatteryStatusEventListener = new HostBatteryManager.BatteryStatusEventListener() {
         @Override
         public void onChangeStatus() {
-            List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
+            List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostBatteryProfile.PROFILE_NAME,
                     null, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
 
             for (int i = 0; i < events.size(); i++) {

@@ -6,20 +6,31 @@
  */
 package org.deviceconnect.android.manager.accesslog;
 
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.R;
@@ -118,6 +129,21 @@ public class AccessLogActivity extends BaseSettingActivity {
         private Handler mHandler = new Handler(Looper.getMainLooper());
 
         /**
+         * アクセスログ管理クラス.
+         */
+        private AccessLogProvider mAccessLogProvider;
+
+        @Override
+        public void onResume() {
+            super.onResume();
+
+            AccessLogActivity activity = (AccessLogActivity) getActivity();
+            if (activity != null) {
+                mAccessLogProvider = activity.getAccessLogProvider();
+            }
+        }
+
+        /**
          * AccessLogProvider のインスタンスを取得します.
          * <p>
          * Activityがアタッチされていない場合は null を返却します。
@@ -125,11 +151,7 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @return AccessLogProvider のインスタンス
          */
         AccessLogProvider getAccessLogProvider() {
-            AccessLogActivity activity = (AccessLogActivity) getActivity();
-            if (activity != null) {
-                return activity.getAccessLogProvider();
-            }
-            return null;
+            return mAccessLogProvider;
         }
 
         /**
@@ -155,7 +177,148 @@ public class AccessLogActivity extends BaseSettingActivity {
     }
 
     /**
-     * 日付の一覧を表示するフラグメント.
+     * RecyclerViewで使用する RecyclerView.Adapter の基底となるクラス.
+     *
+     * @param <A> データリストの型
+     * @param <T> RecyclerView.ViewHolderを継承した型
+     */
+    private static abstract class BaseAdapter<A, T extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<T> {
+        /**
+         * データのリスト.
+         */
+        List<A> mDataList = new ArrayList<>();
+
+        /**
+         * インフレータ.
+         */
+        LayoutInflater mInflater;
+
+        /**
+         * リストがクリックされたことを通知するリスナー.
+         */
+        OnItemClickListener mOnItemClickListener;
+
+        /**
+         * アクセスログの日付リストの削除を通知するリスナー.
+         */
+        OnItemRemoveListener<A> mOnItemRemoveListener;
+
+        /**
+         * Undo確認用のSnackbar.
+         */
+        Snackbar mSnackbar;
+
+        /**
+         * コンストラクタ.
+         * @param inflater インフレータ
+         */
+        BaseAdapter(LayoutInflater inflater) {
+            mInflater = inflater;
+        }
+
+        /**
+         * Undo確認用のSnackbar を非表示にします.
+         */
+        void dismissSnackbar() {
+            if (mSnackbar != null) {
+                mSnackbar.dismiss();
+            }
+        }
+
+        /**
+         * データリストを更新します.
+         *
+         * @param dataList 更新するアクセスログの日付リスト
+         */
+        void updateDataList(List<A> dataList) {
+            if (dataList == null || mDataList.equals(dataList)) {
+                return;
+            }
+            mDataList = dataList;
+            notifyDataSetChanged();
+        }
+
+        /**
+         * 指定された位置のデータを取得します.
+         *
+         * @param position 位置
+         * @return データ
+         */
+        A getItem(int position) {
+            return mDataList.get(position);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mDataList.size();
+        }
+
+        /**
+         * スワイプされて削除処理が行われた時の処理.
+         *
+         * @param viewHolder viewホルダー
+         * @param recyclerView リサイクルView
+         */
+        void onItemRemove(final RecyclerView.ViewHolder viewHolder, final RecyclerView recyclerView) {
+            final int adapterPosition = viewHolder.getAdapterPosition();
+            final A removeData = mDataList.get(adapterPosition);
+            mSnackbar = Snackbar
+                    .make(recyclerView, R.string.activity_accesslog_remove_date, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.activity_accesslog_undo_remove_date, (View view) -> {
+                        mDataList.add(adapterPosition, removeData);
+                        notifyItemInserted(adapterPosition);
+                        recyclerView.scrollToPosition(adapterPosition);
+                    })
+                    .addCallback(new Snackbar.Callback() {
+                        @Override
+                        public void onDismissed(Snackbar snackbar, int event) {
+                            if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
+                                if (mOnItemRemoveListener != null) {
+                                    mOnItemRemoveListener.onItemDelete(removeData);
+                                }
+                            }
+                        }
+                    });
+            mSnackbar.show();
+            mDataList.remove(adapterPosition);
+            notifyItemRemoved(adapterPosition);
+        }
+
+        /**
+         * リストがクリックされたことを通知するリスナーを設定します.
+         *
+         * @param listener リスナー
+         */
+        void setOnItemClickListener(OnItemClickListener listener) {
+            mOnItemClickListener = listener;
+        }
+
+        /**
+         * アイテムが削除されたことを通知するリスナーを設定します.
+         *
+         * @param listener リスナー
+         */
+        void setOnItemRemoveListener(OnItemRemoveListener<A> listener) {
+            mOnItemRemoveListener = listener;
+        }
+
+        /**
+         * アイテムクリックリスナー.
+         */
+        interface OnItemClickListener {
+            void onItemClick(View view, int position);
+        }
+
+        /**
+         * アイテム削除リスナー.
+         */
+        interface OnItemRemoveListener<A> {
+            void onItemDelete(A data);
+        }
+    }
+
+    /**
+     * アクセスログの日付のリストを表示するフラグメント.
      *
      */
     public static class DateListFragment extends BaseFragment {
@@ -178,11 +341,27 @@ public class AccessLogActivity extends BaseSettingActivity {
             View root = inflater.inflate(R.layout.fragment_accesslog_date_list, container, false);
 
             mListAdapter = new DateListAdapter(inflater);
+            mListAdapter.setOnItemClickListener((v, position) ->
+                    gotoAccessLogListFragment(mListAdapter.getItem(position)));
+            mListAdapter.setOnItemRemoveListener((data) -> {
+                AccessLogProvider provider = getAccessLogProvider();
+                if (provider != null) {
+                    provider.remove(data);
+                }
+            });
 
-            ListView listView = root.findViewById(R.id.list_view_accesslog_date_list);
-            listView.setAdapter(mListAdapter);
-            listView.setOnItemClickListener((parent, view, position, id) ->
-                    gotoAccessLogListFragment((String) mListAdapter.getItem(position)));
+            RecyclerView recyclerView = root.findViewById(R.id.recycler_view_accesslog_date_list);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.setAdapter(mListAdapter);
+            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+
+            ItemTouchHelper helper = new ItemTouchHelper(new SwipeToDeleteCallback(getContext()) {
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    mListAdapter.onItemRemove(viewHolder, recyclerView);
+                }
+            });
+            helper.attachToRecyclerView(recyclerView);
 
             return root;
         }
@@ -197,13 +376,19 @@ public class AccessLogActivity extends BaseSettingActivity {
             }
         }
 
+        @Override
+        public void onPause() {
+            mListAdapter.dismissSnackbar();
+            super.onPause();
+        }
+
         /**
          * リストを更新します.
          *
          * @param dateList 更新するリスト
          */
         private void updateDateList(List<String> dateList) {
-            runOnUiThread(() -> mListAdapter.updateDateList(dateList));
+            runOnUiThread(() -> mListAdapter.updateDataList(dateList));
         }
 
         /**
@@ -217,60 +402,121 @@ public class AccessLogActivity extends BaseSettingActivity {
     }
 
     /**
-     * 日付リストの描画を管理するクラス.
+     * アクセスログの日付リストを管理するアダプタ.
      */
-    private static class DateListAdapter extends BaseAdapter {
+    private static class DateListAdapter extends BaseAdapter<String, DateListAdapter.ViewHolder> {
         /**
-         * 日付のリスト.
+         * コンストラクタ.
+         * @param inflater インフレータ
          */
-        private List<String> mDateList = new ArrayList<>();
-        private LayoutInflater mInflater;
-
         DateListAdapter(LayoutInflater inflater) {
-            mInflater = inflater;
+            super(inflater);
+        }
+
+        @Override
+        public DateListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new ViewHolder(mInflater.inflate(R.layout.item_accesslog_date_list, parent, false));
+        }
+
+        @Override
+        public void onBindViewHolder(DateListAdapter.ViewHolder holder, int position) {
+            holder.mTextView.setText(mDataList.get(position));
         }
 
         /**
-         * 日付のリストを更新します.
-         *
-         * @param dateList 更新する日付
+         * View を保持するクラス.
          */
-        void updateDateList(List<String> dateList) {
-            if (dateList == null || mDateList.equals(dateList)) {
-                return;
+        class ViewHolder extends RecyclerView.ViewHolder {
+            /**
+             * 日付の文字列を表示するView.
+             */
+            TextView mTextView;
+
+            /**
+             * コンストラクタ.
+             * @param itemView RecyclerViewのルートView
+             */
+            ViewHolder(View itemView) {
+                super(itemView);
+                mTextView = itemView.findViewById(R.id.accesslog_date_name);
+                itemView.setOnClickListener((v) -> {
+                    if (mOnItemClickListener != null) {
+                        mOnItemClickListener.onItemClick(itemView, getAdapterPosition());
+                    }
+                });
+                itemView.setOnTouchListener((v, event) -> {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            dismissSnackbar();
+                            break;
+                    }
+                    return false;
+                });
             }
-            mDateList = dateList;
-            notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * RecyclerView スワイプコールバック.
+     */
+    private static abstract class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
+        /**
+         * ゴミ箱のアイコン.
+         */
+        private Drawable mDeleteIcon;
+
+        /**
+         * 背景色.
+         */
+        private ColorDrawable mBackground;
+
+        /**
+         * コンストラクタ.
+         * @param context コンテキスト
+         */
+        SwipeToDeleteCallback(Context context) {
+            super(0, (ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT));
+            mDeleteIcon = ContextCompat.getDrawable(context, android.R.drawable.ic_menu_delete);
+            mBackground = new ColorDrawable(Color.RED);
         }
 
         @Override
-        public int getCount() {
-            return mDateList.size();
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+            return false;
         }
 
         @Override
-        public Object getItem(int position) {
-            return mDateList.get(position);
-        }
+        public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dx, float dy, int actionState, boolean isCurrentlyActive) {
+            View itemView = viewHolder.itemView;
+            int backgroundCornerOffset = 20;
+            int iconMargin = (itemView.getHeight() - mDeleteIcon.getIntrinsicHeight()) / 2;
+            int iconTop = itemView.getTop() + (itemView.getHeight() - mDeleteIcon.getIntrinsicHeight()) / 2;
+            int iconBottom = iconTop + mDeleteIcon.getIntrinsicHeight();
 
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
-            if (view == null) {
-                view = mInflater.inflate(R.layout.item_accesslog_date_list, parent, false);
+            if (dx > 0) { // Swiping to the right
+                int iconLeft = itemView.getLeft() + iconMargin + mDeleteIcon.getIntrinsicWidth();
+                int iconRight = itemView.getLeft() + iconMargin;
+                mDeleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                mBackground.setBounds(itemView.getLeft(), itemView.getTop(),
+                        itemView.getLeft() + ((int) dx) + backgroundCornerOffset,
+                        itemView.getBottom());
+            } else if (dx < 0) { // Swiping to the left
+                int iconLeft = itemView.getRight() - iconMargin - mDeleteIcon.getIntrinsicWidth();
+                int iconRight = itemView.getRight() - iconMargin;
+                mDeleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                mBackground.setBounds(itemView.getRight() + ((int) dx) - backgroundCornerOffset,
+                        itemView.getTop(), itemView.getRight(), itemView.getBottom());
+            } else { // view is unSwiped
+                mBackground.setBounds(0, 0, 0, 0);
             }
 
-            String name = (String) getItem(position);
+            mBackground.draw(c);
 
-            TextView textView = view.findViewById(R.id.accesslog_date_name);
-            textView.setText(name);
+            if (Math.abs(dx) > 96) {
+                mDeleteIcon.draw(c);
+            }
 
-            return view;
+            super.onChildDraw(c, recyclerView, viewHolder, dx, dy, actionState, isCurrentlyActive);
         }
     }
 
@@ -313,13 +559,29 @@ public class AccessLogActivity extends BaseSettingActivity {
             View root = inflater.inflate(R.layout.fragment_accesslog_list, container, false);
 
             mListAdapter = new AccessLogListAdapter(inflater);
+            mListAdapter.setOnItemClickListener((view, position) ->
+                    gotoAccessLogFragment(mListAdapter.getItem(position)));
+            mListAdapter.setOnItemRemoveListener((data) -> {
+                AccessLogProvider provider = getAccessLogProvider();
+                if (provider != null) {
+                    provider.remove(data);
+                }
+            });
 
             mIpAddress = root.findViewById(R.id.fragment_search_edit_text);
 
-            ListView listView = root.findViewById(R.id.list_view_accesslog_list);
-            listView.setAdapter(mListAdapter);
-            listView.setOnItemClickListener((parent, view, position, id) ->
-                    gotoAccessLogFragment((AccessLog) mListAdapter.getItem(position)));
+            RecyclerView recyclerView = root.findViewById(R.id.list_view_accesslog_list);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.setAdapter(mListAdapter);
+            recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+
+            ItemTouchHelper helper = new ItemTouchHelper(new SwipeToDeleteCallback(getContext()) {
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    mListAdapter.onItemRemove(viewHolder, recyclerView);
+                }
+            });
+            helper.attachToRecyclerView(recyclerView);
 
             root.findViewById(R.id.fragment_search_btn).setOnClickListener((v) ->
                     search(mIpAddress.getText().toString()));
@@ -331,6 +593,12 @@ public class AccessLogActivity extends BaseSettingActivity {
         public void onResume() {
             super.onResume();
             searchAccessLog();
+        }
+
+        @Override
+        public void onPause() {
+            mListAdapter.dismissSnackbar();
+            super.onPause();
         }
 
         /**
@@ -354,7 +622,7 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @param accessLogList アクセスログの更新
          */
         private void updateAccessLogList(List<AccessLog> accessLogList) {
-            runOnUiThread(() -> mListAdapter.updateAccessLogList(accessLogList));
+            runOnUiThread(() -> mListAdapter.updateDataList(accessLogList));
         }
 
         /**
@@ -398,66 +666,66 @@ public class AccessLogActivity extends BaseSettingActivity {
     /**
      * アクセスログリストの表示を管理するクラス.
      */
-    private static class AccessLogListAdapter extends BaseAdapter {
-        /**
-         * アクセスログのリスト.
-         */
-        private List<AccessLog> mAccessLogList = new ArrayList<>();
-        private LayoutInflater mInflater;
-
+    private static class AccessLogListAdapter extends BaseAdapter<AccessLog, AccessLogListAdapter.ViewHolder> {
         AccessLogListAdapter(LayoutInflater inflater) {
-            mInflater = inflater;
-        }
-
-        /**
-         * アクセスログのリストを更新します.
-         *
-         * @param accessLog アクセスログのリスト
-         */
-        void updateAccessLogList(List<AccessLog> accessLog) {
-            if (accessLog == null || mAccessLogList.equals(accessLog)) {
-                return;
-            }
-            mAccessLogList = accessLog;
-            notifyDataSetChanged();
+            super(inflater);
         }
 
         @Override
-        public int getCount() {
-            return mAccessLogList.size();
+        public AccessLogListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new ViewHolder(mInflater.inflate(R.layout.item_accesslog_list, parent, false));
         }
 
         @Override
-        public Object getItem(int position) {
-            return mAccessLogList.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-            View view = convertView;
-            if (view == null) {
-                view = mInflater.inflate(R.layout.item_accesslog_list, parent, false);
-                holder = new ViewHolder();
-                holder.mIpAddress = view.findViewById(R.id.item_access_log_ip_address);
-                holder.mPath = view.findViewById(R.id.item_access_log_path);
-                holder.mDate = view.findViewById(R.id.item_access_log_date);
-                view.setTag(holder);
-            } else {
-                holder = (ViewHolder) view.getTag();
-            }
-
-            AccessLog accessLog = (AccessLog) getItem(position);
+        public void onBindViewHolder(AccessLogListAdapter.ViewHolder holder, int position) {
+            AccessLog accessLog = mDataList.get(position);
             holder.mIpAddress.setText(getIpAddress(accessLog));
             holder.mPath.setText(getPath(accessLog));
             holder.mDate.setText(getDate(accessLog));
+        }
 
-            return view;
+        /**
+         * View を保持するクラス.
+         */
+        class ViewHolder extends RecyclerView.ViewHolder {
+            /**
+             * IPアドレスを表示するTextView.
+             */
+            TextView mIpAddress;
+
+            /**
+             * パスを表示するTextView.
+             */
+            TextView mPath;
+
+            /**
+             * 日付を表示するTextView.
+             */
+            TextView mDate;
+
+            /**
+             * コンストラクタ.
+             * @param itemView RecyclerViewのルートView
+             */
+            ViewHolder(View itemView) {
+                super(itemView);
+                mIpAddress = itemView.findViewById(R.id.item_access_log_ip_address);
+                mPath = itemView.findViewById(R.id.item_access_log_path);
+                mDate = itemView.findViewById(R.id.item_access_log_date);
+                itemView.setOnClickListener((v) -> {
+                    if (mOnItemClickListener != null) {
+                        mOnItemClickListener.onItemClick(itemView, getAdapterPosition());
+                    }
+                });
+                itemView.setOnTouchListener((v, event) -> {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            dismissSnackbar();
+                            break;
+                    }
+                    return false;
+                });
+            }
         }
 
         /**
@@ -497,12 +765,6 @@ public class AccessLogActivity extends BaseSettingActivity {
          */
         private String getDate(AccessLog accessLog) {
             return AccessLogProvider.dateToString(accessLog.getRequestReceivedTime());
-        }
-
-        class ViewHolder {
-            TextView mIpAddress;
-            TextView mPath;
-            TextView mDate;
         }
     }
 
@@ -547,6 +809,7 @@ public class AccessLogActivity extends BaseSettingActivity {
             super.onResume();
 
             long id = getAccessLogId();
+            Log.e("ABC", "#### id " + id);
             AccessLogProvider provider = getAccessLogProvider();
             if (provider != null && id != -1) {
                 provider.getAccessLog(id, this::updateAccessLog);
@@ -559,6 +822,10 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @param accessLog アクセスログ
          */
         private void updateAccessLog(AccessLog accessLog) {
+            if (accessLog == null) {
+                return;
+            }
+
             String sb ="Request: " + AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()) + "\r\n";
             sb += "IP: " + accessLog.getRemoteIpAddress() + "\r\n";
             sb += "HostName: " + accessLog.getRemoteHostName() + "\r\n";

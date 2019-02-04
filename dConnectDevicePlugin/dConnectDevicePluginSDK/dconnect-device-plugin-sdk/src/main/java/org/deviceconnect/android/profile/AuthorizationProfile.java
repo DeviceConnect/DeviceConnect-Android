@@ -20,7 +20,7 @@ import org.deviceconnect.android.localoauth.ConfirmAuthParams;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.PublishAccessTokenListener;
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
-import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.message.DConnectMessage;
@@ -88,8 +88,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     @Override
     public boolean onRequest(final Intent request, final Intent response) {
         // Local OAuthを使用しない場合にはNot Supportを返却する
-        DConnectMessageService service = (DConnectMessageService) getContext();
-        if (!service.isUseLocalOAuth()) {
+
+        DevicePluginContext pluginContext = getPluginContext();
+        if (!pluginContext.isUseLocalOAuth()) {
             MessageUtils.setNotSupportProfileError(response);
             return true;
         }

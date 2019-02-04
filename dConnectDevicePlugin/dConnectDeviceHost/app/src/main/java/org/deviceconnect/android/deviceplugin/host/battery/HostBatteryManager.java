@@ -12,7 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.message.DevicePluginContext;
 
 /**
  * バッテリー関連の値の処理と保持.
@@ -64,13 +64,13 @@ public class HostBatteryManager {
     /**
      * Context.
      */
-    private HostDeviceService mHostDeviceService;
+    private DevicePluginContext mHostDevicePluginContext;
 
     private BatteryChargingEventListener mBatteryChargingEventListener;
     private BatteryStatusEventListener mBatteryStatusEventListener;
 
-    public HostBatteryManager(final HostDeviceService service) {
-        mHostDeviceService = service;
+    public HostBatteryManager(final DevicePluginContext pluginContext) {
+        mHostDevicePluginContext = pluginContext;
 
         mIfBatteryCharge = new IntentFilter();
         mIfBatteryCharge.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -83,7 +83,7 @@ public class HostBatteryManager {
     }
 
     private Context getContext() {
-        return mHostDeviceService;
+        return mHostDevicePluginContext.getContext();
     }
 
     public void clear() {

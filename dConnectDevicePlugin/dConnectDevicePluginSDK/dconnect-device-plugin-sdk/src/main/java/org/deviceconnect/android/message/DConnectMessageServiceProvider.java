@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.message;
 
-import org.deviceconnect.android.BuildConfig;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+
+import org.deviceconnect.android.BuildConfig;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.logging.Logger;
 
@@ -21,9 +21,10 @@ import java.util.logging.Logger;
  * Device Connectメッセージサービスプロバイダー.
  * 
  * <p>
- * Device Connectリクエストメッセージを受信し、Device Connectレスポンスメッセージを送信するサービスである。 本インスタンスで処理をするのではなく、
- * {@link #getServiceClass()} で返却した Service で応答処理を行う。
- * 
+ * Device Connectリクエストメッセージを受信し、Device Connectレスポンスメッセージを送信するサービスである。<br>
+ * 本インスタンスで処理をするのではなく、{@link #getServiceClass()} で返却した Service で応答処理を行う。
+ * </p>
+ *
  * @param <T> サービスクラス
  * @author NTT DOCOMO, INC.
  */

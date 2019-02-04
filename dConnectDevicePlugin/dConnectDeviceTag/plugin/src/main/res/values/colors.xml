@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="setting_actionbar_color">#ffffff</color>
+    <color name="plugin_list_row_background_color_not_connected">#ffe0e0e0</color>
+    <color name="plugin_list_row_background_color_connected">#ffffffff</color>
+</resources>

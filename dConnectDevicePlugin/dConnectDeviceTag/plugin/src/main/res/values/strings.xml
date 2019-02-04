@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Tag プラグイン for Device Connect</string>
+
+    <string name="activity_setting_category_oauth_title">認可</string>
+    <string name="activity_setting_category_oauth_enabled">有効</string>
+    <string name="activity_setting_category_oauth_disabled">無効</string>
+
+    <string name="activity_qr_reader_no_permission_title">パーミッションエラー</string>
+    <string name="activity_qr_reader_no_permission_message">パーミッションの許可がありません。</string>
+    <string name="activity_qr_reader_no_permission_ok">はい</string>
+
+    <string name="activity_nfc_setting_error_btn_ok">はい</string>
+    <string name="activity_nfc_setting_error_btn_cancel">いいえ</string>
+    <string name="activity_nfc_setting_error_not_support_nfc_title">エラー</string>
+    <string name="activity_nfc_setting_error_not_support_nfc_message">この端末はNFCをサポートしていません。\nサポートしている端末を使用してください。</string>
+    <string name="activity_nfc_setting_error_disable_nfc_title">エラー</string>
+    <string name="activity_nfc_setting_error_disable_nfc_message">NFCが有効になっていません。\nNFCを有効するために設定画面を開きますか？\n(Reader/Writer,P2Pの項目を有効にしてください。)</string>
+    <string name="activity_nfc_setting_error_unknown_nfc_title">フォーマットエラー</string>
+    <string name="activity_nfc_setting_error_unknown_nfc_message">解析できないNFCフォーマットにです。</string>
+
+    <string name="activity_nfc_read_message">データを読み込むNFCに端末をかざしてください。</string>
+    <string name="activity_nfc_write_message">データを書き込むNFCに端末をかざしてください。</string>
+
+    <string name="activity_nfc_write_dialog_title">NFC設定</string>
+    <string name="activity_nfc_write_dialog_message">NFCにデータを書き込みますが良いでしょうか？</string>
+    <string name="activity_nfc_setting_error_write_dialog_title">NFC書き込みエラー</string>
+    <string name="activity_nfc_setting_error_write_dialog_message">NFCに書き込むことに失敗しました。\n%1$s</string>
+
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/activity_setting_category_oauth_title" >
+        <org.deviceconnect.android.deviceplugin.tag.ui.SwitchPreference
+            android:key="@string/key_settings_ouath_on_off"
+            android:summaryOff="@string/activity_setting_category_oauth_disabled"
+            android:summaryOn="@string/activity_setting_category_oauth_enabled"
+            android:title="@string/activity_setting_category_oauth_title" />
+    </PreferenceCategory>
+</PreferenceScreen>

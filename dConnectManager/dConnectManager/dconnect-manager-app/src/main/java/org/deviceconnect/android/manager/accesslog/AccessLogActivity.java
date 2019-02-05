@@ -24,7 +24,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -217,7 +216,7 @@ public class AccessLogActivity extends BaseSettingActivity {
         }
 
         /**
-         * Undo確認用のSnackbar を非表示にします.
+         * Undo確認用の Snackbar を非表示にします.
          */
         void dismissSnackbar() {
             if (mSnackbar != null) {
@@ -449,6 +448,9 @@ public class AccessLogActivity extends BaseSettingActivity {
                         case MotionEvent.ACTION_DOWN:
                             dismissSnackbar();
                             break;
+                        case MotionEvent.ACTION_UP:
+                            v.performClick();
+                            break;
                     }
                     return false;
                 });
@@ -512,9 +514,7 @@ public class AccessLogActivity extends BaseSettingActivity {
 
             mBackground.draw(c);
 
-            if (Math.abs(dx) > 96) {
-                mDeleteIcon.draw(c);
-            }
+            mDeleteIcon.draw(c);
 
             super.onChildDraw(c, recyclerView, viewHolder, dx, dy, actionState, isCurrentlyActive);
         }
@@ -648,7 +648,7 @@ public class AccessLogActivity extends BaseSettingActivity {
                 String date = getDateString();
                 AccessLogProvider provider = getAccessLogProvider();
                 if (provider != null && date != null) {
-                    provider.getAccessLogsFromIpAddress(date, ipAddress, this::updateAccessLogList);
+                    provider.getAccessLogsFromCondition(date, ipAddress, this::updateAccessLogList);
                 }
             }
         }
@@ -721,6 +721,9 @@ public class AccessLogActivity extends BaseSettingActivity {
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
                             dismissSnackbar();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            v.performClick();
                             break;
                     }
                     return false;
@@ -809,7 +812,6 @@ public class AccessLogActivity extends BaseSettingActivity {
             super.onResume();
 
             long id = getAccessLogId();
-            Log.e("ABC", "#### id " + id);
             AccessLogProvider provider = getAccessLogProvider();
             if (provider != null && id != -1) {
                 provider.getAccessLog(id, this::updateAccessLog);

@@ -445,20 +445,20 @@ public class AccessLog {
     }
 
     /**
-     * 指定された IP アドレスのアクセスログのリストを取得します.
+     * 指定された IP アドレスもしくはパスが一致するアクセスログのリストを取得します.
      * <p>
-     * アクセスログがない場合には空のリストを返却します。
+     * 条件にアクセスログがない場合には空のリストを返却します。
      * </p>
      * @param db SQLiteDatabaseのインスタンス
      * @param date 取得する日付
-     * @param ipAddress IPアドレス
+     * @param condition 条件
      * @return アクセスログのリスト。
      */
-    static List<AccessLog> getAccessLogsFromIpAddress(final SQLiteDatabase db, final String date, final String ipAddress) {
+    static List<AccessLog> getAccessLogsFromCondition(final SQLiteDatabase db, final String date, final String condition) {
         List<AccessLog> list = new ArrayList<>();
 
-        String selection = AccessLogColumns.DATE + "=? AND " + AccessLogColumns.REQUEST_IP_ADDRESS + " LIKE ?";
-        String[] selectionArgs = {date, "%" + ipAddress + "%"};
+        String selection = AccessLogColumns.DATE + "=? AND (" + AccessLogColumns.REQUEST_IP_ADDRESS + " LIKE ? OR " + AccessLogColumns.REQUEST_PATH + " LIKE ?)";
+        String[] selectionArgs = {date, "%" + condition + "%", "%" + condition + "%"};
         String orderBy = AccessLogColumns.REQUEST_RECEIVED_TIME + " DESC";
 
         Cursor cs = db.query(TABLE_NAME, null, selection, selectionArgs,

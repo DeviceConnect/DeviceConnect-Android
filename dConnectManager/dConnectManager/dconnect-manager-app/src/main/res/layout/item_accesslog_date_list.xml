@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/selectableItemBackground"
+    android:background="@drawable/access_log_ripple"
     android:clickable="true"
     android:focusable="true">
 
@@ -11,7 +11,7 @@
         android:id="@+id/accesslog_date_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:padding="12dp"
         android:textAppearance="?android:attr/textAppearanceLarge"/>
 
 </FrameLayout>

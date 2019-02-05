@@ -82,29 +82,29 @@ public class AccessLogProvider {
     }
 
     /**
-     * 指定された日付の中から指定された IP アドレスのアクセスログのリストを取得します.
+     * 指定された日付の中から指定された IP アドレスもしくはパスが一致するアクセスログのリストを取得します.
      * <p>
      * 条件に合うアクセスログが存在しない場合には空のリストを返却します。
      * </p>
      * @param date 日付
-     * @param ipAddress IPアドレス
+     * @param condition 条件
      * @return アクセスログのリスト
      */
-    public List<AccessLog> getAccessLogsFromIpAddress(final String date, final String ipAddress) {
-        return mAccessLogHelper.read((db) -> AccessLog.getAccessLogsFromIpAddress(db, date, ipAddress));
+    public List<AccessLog> getAccessLogsFromCondition(final String date, final String condition) {
+        return mAccessLogHelper.read((db) -> AccessLog.getAccessLogsFromCondition(db, date, condition));
     }
 
     /**
-     * 指定された日付の中から指定された IP アドレスのアクセスログのリストを非同期で取得して、コールバックに通知します.
+     * 指定された日付の中から指定された IP アドレスもしくはパスが一致するアクセスログのリストを非同期で取得して、コールバックに通知します.
      * <p>
      * 条件に合うアクセスログが存在しない場合には空のリストを返却します。
      * </p>
      * @param date 日付
-     * @param ipAddress IPアドレス
+     * @param condition 条件
      * @param callback アクセスログのリストを通知するコールバック
      */
-    public void getAccessLogsFromIpAddress(final String date, final String ipAddress, final Callback<List<AccessLog>> callback) {
-        mExecutorService.execute(() -> callback.onComplete(getAccessLogsFromIpAddress(date, ipAddress)));
+    public void getAccessLogsFromCondition(final String date, final String condition, final Callback<List<AccessLog>> callback) {
+        mExecutorService.execute(() -> callback.onComplete(getAccessLogsFromCondition(date, condition)));
     }
 
     /**

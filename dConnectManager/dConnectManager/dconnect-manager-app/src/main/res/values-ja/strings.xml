@@ -243,4 +243,10 @@
     <string name="activity_accesslog_hint_search_ip_address">IPアドレス or パス</string>
     <string name="activity_accesslog_remove_date">1件を削除しました</string>
     <string name="activity_accesslog_undo_remove_date">元に戻す</string>
+    <string name="activity_accesslog_detail_request">Request</string>
+    <string name="activity_accesslog_detail_response">Response</string>
+    <string name="activity_accesslog_detail_request_time">受信時刻</string>
+    <string name="activity_accesslog_detail_request_ip_address">IP アドレス</string>
+    <string name="activity_accesslog_detail_request_host_name">ホスト名</string>
+    <string name="activity_accesslog_detail_response_time">送信時刻</string>
 </resources>

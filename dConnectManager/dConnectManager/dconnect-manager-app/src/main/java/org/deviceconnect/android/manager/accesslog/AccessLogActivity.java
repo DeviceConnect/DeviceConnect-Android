@@ -553,7 +553,6 @@ public class AccessLogActivity extends BaseSettingActivity {
             }
 
             mBackground.draw(c);
-
             mDeleteIcon.draw(c);
 
             super.onChildDraw(c, recyclerView, viewHolder, dx, dy, actionState, isCurrentlyActive);
@@ -836,7 +835,12 @@ public class AccessLogActivity extends BaseSettingActivity {
         /**
          * 詳細を表示するTextView.
          */
-        private TextView mDetailView;
+        private TextView mRequestView;
+        private TextView mResponseView;
+        private TextView mReuestTimeView;
+        private TextView mIpAddressView;
+        private TextView mHostNameView;
+        private TextView mSendTimeView;
 
         /**
          * AccessLogFragment を作成します.
@@ -856,7 +860,12 @@ public class AccessLogActivity extends BaseSettingActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.fragment_accesslog_detail, container, false);
-            mDetailView = root.findViewById(R.id.fragment_accesslog_detail);
+            mRequestView = root.findViewById(R.id.fragment_accesslog_detail_request);
+            mReuestTimeView = root.findViewById(R.id.fragment_accesslog_detail_request_time);
+            mIpAddressView = root.findViewById(R.id.fragment_accesslog_detail_request_ip_address);
+            mHostNameView = root.findViewById(R.id.fragment_accesslog_detail_request_host_name);
+            mResponseView = root.findViewById(R.id.fragment_accesslog_detail_response);
+            mSendTimeView = root.findViewById(R.id.fragment_accesslog_detail_response_time);
             return root;
         }
 
@@ -881,37 +890,102 @@ public class AccessLogActivity extends BaseSettingActivity {
                 return;
             }
 
-            String sb ="Request: " + AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()) + "\r\n";
-            sb += "IP: " + accessLog.getRemoteIpAddress() + "\r\n";
-            sb += "HostName: " + accessLog.getRemoteHostName() + "\r\n";
-            sb += "\r\n";
-            sb += accessLog.getRequestMethod() + " " + accessLog.getRequestPath() + "\r\n";
+            runOnUiThread(() -> {
+                mReuestTimeView.setText(AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()));
+            });
+
+            runOnUiThread(() -> {
+                mIpAddressView.setText("" + accessLog.getRemoteIpAddress());
+            });
+
+            runOnUiThread(() -> {
+                mHostNameView.setText("" + accessLog.getRemoteHostName());
+            });
+
+            StringBuilder request = new StringBuilder();
+            request.append(accessLog.getRequestMethod()).append(" ").append(accessLog.getRequestPath()).append("\r\n");
             Map<String, String> headers = accessLog.getRequestHeader();
             if (headers != null) {
                 for (String key : headers.keySet()) {
-                    sb += key + ": " + headers.get(key) + "\r\n";
+                    request.append(key).append(": ").append(headers.get(key)).append("\r\n");
                 }
             }
             if (accessLog.getRequestBody() != null) {
-                sb += accessLog.getRequestBody() + "\r\n";
+                request.append(accessLog.getRequestBody()).append("\r\n");
             }
-            sb += "\r\n";
+            runOnUiThread(() -> {
+                mRequestView.setText(request.toString());
+            });
 
-            sb += "Response: " + AccessLogProvider.dateToString(accessLog.getResponseSendTime()) + "\r\n";
-            sb += "\r\n";
-            sb += "HTTP/1.1 " + accessLog.getResponseStatusCode() + "\r\n";
+
+            runOnUiThread(() -> {
+                mSendTimeView.setText(AccessLogProvider.dateToString(accessLog.getResponseSendTime()));
+            });
+
+
+            StringBuilder response = new StringBuilder();
+            response.append("HTTP/1.1 ").append(accessLog.getResponseStatusCode()).append("\r\n");
             if (accessLog.getResponseContentType() != null) {
-                sb += "Content-Type: " + accessLog.getResponseContentType() + "\r\n";
+                response.append("Content-Type: ").append(accessLog.getResponseContentType()).append("\r\n");
             }
-            sb += "\r\n";
+            response.append("\r\n");
             if (accessLog.getResponseBody() != null) {
                 if (isContentType(accessLog.getResponseContentType())) {
-                    sb += reshapeJson(accessLog.getResponseBody()) + "\r\n";
+                    response.append(reshapeJson(accessLog.getResponseBody())).append("\r\n");
                 } else {
-                    sb += accessLog.getResponseBody() + "\r\n";
+                    response.append(accessLog.getResponseBody()).append("\r\n");
                 }
             }
-            updateAccessLog(sb);
+            runOnUiThread(() -> {
+                mResponseView.setText(response.toString());
+            });
+
+//            sb += "HTTP/1.1 " + accessLog.getResponseStatusCode() + "\r\n";
+//            if (accessLog.getResponseContentType() != null) {
+//                sb += "Content-Type: " + accessLog.getResponseContentType() + "\r\n";
+//            }
+//            sb += "\r\n";
+//            if (accessLog.getResponseBody() != null) {
+//                if (isContentType(accessLog.getResponseContentType())) {
+//                    sb += reshapeJson(accessLog.getResponseBody()) + "\r\n";
+//                } else {
+//                    sb += accessLog.getResponseBody() + "\r\n";
+//                }
+//            }
+
+
+
+//            String sb ="Request: " + AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()) + "\r\n";
+//            sb += "IP: " + accessLog.getRemoteIpAddress() + "\r\n";
+//            sb += "HostName: " + accessLog.getRemoteHostName() + "\r\n";
+//            sb += "\r\n";
+//            sb += accessLog.getRequestMethod() + " " + accessLog.getRequestPath() + "\r\n";
+//            Map<String, String> headers = accessLog.getRequestHeader();
+//            if (headers != null) {
+//                for (String key : headers.keySet()) {
+//                    sb += key + ": " + headers.get(key) + "\r\n";
+//                }
+//            }
+//            if (accessLog.getRequestBody() != null) {
+//                sb += accessLog.getRequestBody() + "\r\n";
+//            }
+//            sb += "\r\n";
+//
+//            sb += "Response: " + AccessLogProvider.dateToString(accessLog.getResponseSendTime()) + "\r\n";
+//            sb += "\r\n";
+//            sb += "HTTP/1.1 " + accessLog.getResponseStatusCode() + "\r\n";
+//            if (accessLog.getResponseContentType() != null) {
+//                sb += "Content-Type: " + accessLog.getResponseContentType() + "\r\n";
+//            }
+//            sb += "\r\n";
+//            if (accessLog.getResponseBody() != null) {
+//                if (isContentType(accessLog.getResponseContentType())) {
+//                    sb += reshapeJson(accessLog.getResponseBody()) + "\r\n";
+//                } else {
+//                    sb += accessLog.getResponseBody() + "\r\n";
+//                }
+//            }
+//            updateAccessLog(sb);
         }
 
         /**
@@ -920,7 +994,7 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @param accessLog アクセスログ
          */
         private void updateAccessLog(String accessLog) {
-            runOnUiThread(() -> mDetailView.setText(accessLog));
+//            runOnUiThread(() -> mDetailView.setText(accessLog));
         }
 
         /**

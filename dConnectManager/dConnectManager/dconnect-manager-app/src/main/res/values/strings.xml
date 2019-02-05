@@ -242,4 +242,10 @@
     <string name="activity_accesslog_hint_search_ip_address">IP Address or Path</string>
     <string name="activity_accesslog_remove_date">1 item deleted</string>
     <string name="activity_accesslog_undo_remove_date">Undo</string>
+    <string name="activity_accesslog_detail_request">Request</string>
+    <string name="activity_accesslog_detail_response">Response</string>
+    <string name="activity_accesslog_detail_request_time">Received Time</string>
+    <string name="activity_accesslog_detail_request_ip_address">IP Address</string>
+    <string name="activity_accesslog_detail_request_host_name">Host Name</string>
+    <string name="activity_accesslog_detail_response_time">Send Time</string>
 </resources>

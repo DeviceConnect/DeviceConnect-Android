@@ -16,8 +16,8 @@
             android:id="@+id/fragment_search_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_margin="4dp"
             android:background="@drawable/button_blue"
             android:text="@string/activity_accesslog_btn_search_ip_address"
@@ -28,8 +28,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@id/fragment_search_btn"
             android:layout_toStartOf="@id/fragment_search_btn"
+            android:layout_toLeftOf="@id/fragment_search_btn"
             android:hint="@string/activity_accesslog_hint_search_ip_address"/>
 
     </RelativeLayout>
@@ -37,6 +37,7 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list_view_accesslog_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"/>
 
 </LinearLayout>

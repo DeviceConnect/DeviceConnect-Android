@@ -890,18 +890,6 @@ public class AccessLogActivity extends BaseSettingActivity {
                 return;
             }
 
-            runOnUiThread(() -> {
-                mReuestTimeView.setText(AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()));
-            });
-
-            runOnUiThread(() -> {
-                mIpAddressView.setText("" + accessLog.getRemoteIpAddress());
-            });
-
-            runOnUiThread(() -> {
-                mHostNameView.setText("" + accessLog.getRemoteHostName());
-            });
-
             StringBuilder request = new StringBuilder();
             request.append(accessLog.getRequestMethod()).append(" ").append(accessLog.getRequestPath()).append("\r\n");
             Map<String, String> headers = accessLog.getRequestHeader();
@@ -913,15 +901,6 @@ public class AccessLogActivity extends BaseSettingActivity {
             if (accessLog.getRequestBody() != null) {
                 request.append(accessLog.getRequestBody()).append("\r\n");
             }
-            runOnUiThread(() -> {
-                mRequestView.setText(request.toString());
-            });
-
-
-            runOnUiThread(() -> {
-                mSendTimeView.setText(AccessLogProvider.dateToString(accessLog.getResponseSendTime()));
-            });
-
 
             StringBuilder response = new StringBuilder();
             response.append("HTTP/1.1 ").append(accessLog.getResponseStatusCode()).append("\r\n");
@@ -936,65 +915,34 @@ public class AccessLogActivity extends BaseSettingActivity {
                     response.append(accessLog.getResponseBody()).append("\r\n");
                 }
             }
-            runOnUiThread(() -> {
-                mResponseView.setText(response.toString());
-            });
 
-//            sb += "HTTP/1.1 " + accessLog.getResponseStatusCode() + "\r\n";
-//            if (accessLog.getResponseContentType() != null) {
-//                sb += "Content-Type: " + accessLog.getResponseContentType() + "\r\n";
-//            }
-//            sb += "\r\n";
-//            if (accessLog.getResponseBody() != null) {
-//                if (isContentType(accessLog.getResponseContentType())) {
-//                    sb += reshapeJson(accessLog.getResponseBody()) + "\r\n";
-//                } else {
-//                    sb += accessLog.getResponseBody() + "\r\n";
-//                }
-//            }
-
-
-
-//            String sb ="Request: " + AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()) + "\r\n";
-//            sb += "IP: " + accessLog.getRemoteIpAddress() + "\r\n";
-//            sb += "HostName: " + accessLog.getRemoteHostName() + "\r\n";
-//            sb += "\r\n";
-//            sb += accessLog.getRequestMethod() + " " + accessLog.getRequestPath() + "\r\n";
-//            Map<String, String> headers = accessLog.getRequestHeader();
-//            if (headers != null) {
-//                for (String key : headers.keySet()) {
-//                    sb += key + ": " + headers.get(key) + "\r\n";
-//                }
-//            }
-//            if (accessLog.getRequestBody() != null) {
-//                sb += accessLog.getRequestBody() + "\r\n";
-//            }
-//            sb += "\r\n";
-//
-//            sb += "Response: " + AccessLogProvider.dateToString(accessLog.getResponseSendTime()) + "\r\n";
-//            sb += "\r\n";
-//            sb += "HTTP/1.1 " + accessLog.getResponseStatusCode() + "\r\n";
-//            if (accessLog.getResponseContentType() != null) {
-//                sb += "Content-Type: " + accessLog.getResponseContentType() + "\r\n";
-//            }
-//            sb += "\r\n";
-//            if (accessLog.getResponseBody() != null) {
-//                if (isContentType(accessLog.getResponseContentType())) {
-//                    sb += reshapeJson(accessLog.getResponseBody()) + "\r\n";
-//                } else {
-//                    sb += accessLog.getResponseBody() + "\r\n";
-//                }
-//            }
-//            updateAccessLog(sb);
+            updateAccessLog(AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()),
+                    AccessLogProvider.dateToString(accessLog.getResponseSendTime()),
+                    accessLog.getRemoteIpAddress(),
+                    accessLog.getRemoteHostName(),
+                    request.toString(),
+                    response.toString());
         }
 
         /**
          * アクセスログの文字列を TextView に反映します.
          *
-         * @param accessLog アクセスログ
+         * @param receivedTime 受信時刻
+         * @param sendTime 送信時刻
+         * @param ipAddress IPアドレス
+         * @param hostName ホスト名
+         * @param request リクエスト
+         * @param response レスポンス
          */
-        private void updateAccessLog(String accessLog) {
-//            runOnUiThread(() -> mDetailView.setText(accessLog));
+        private void updateAccessLog(String receivedTime, String sendTime, String ipAddress, String hostName, String request, String response) {
+            runOnUiThread(() -> {
+                mReuestTimeView.setText(receivedTime);
+                mSendTimeView.setText(sendTime);
+                mIpAddressView.setText(ipAddress);
+                mHostNameView.setText(hostName);
+                mRequestView.setText(request);
+                mResponseView.setText(response);
+            });
         }
 
         /**

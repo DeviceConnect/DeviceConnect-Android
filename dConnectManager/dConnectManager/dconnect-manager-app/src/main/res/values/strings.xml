@@ -239,7 +239,7 @@
 
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">Search</string>
-    <string name="activity_accesslog_hint_search_ip_address">IP Address</string>
+    <string name="activity_accesslog_hint_search_ip_address">IP Address or Path</string>
     <string name="activity_accesslog_remove_date">1 item deleted</string>
     <string name="activity_accesslog_undo_remove_date">Undo</string>
 </resources>

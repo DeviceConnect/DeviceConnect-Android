@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager.accesslog;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -24,11 +25,13 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -71,9 +74,18 @@ public class AccessLogActivity extends BaseSettingActivity {
     }
 
     @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            callFragment();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
+                callFragment();
                 FragmentManager manager = getSupportFragmentManager();
                 if (manager.getBackStackEntryCount() > 0) {
                     manager.popBackStack();
@@ -83,6 +95,19 @@ public class AccessLogActivity extends BaseSettingActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Fragment の onReturn メソッドを呼び出します
+     */
+    private void callFragment() {
+        FragmentManager manager = getSupportFragmentManager();
+        List<Fragment> fragments = manager.getFragments();
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof BaseFragment) {
+                ((BaseFragment) fragment).onReturn();
+            }
+        }
     }
 
     /**
@@ -140,6 +165,12 @@ public class AccessLogActivity extends BaseSettingActivity {
             if (activity != null) {
                 mAccessLogProvider = activity.getAccessLogProvider();
             }
+        }
+
+        /**
+         * 前の画面に戻る時に呼び出されます.
+         */
+        void onReturn() {
         }
 
         /**
@@ -266,11 +297,11 @@ public class AccessLogActivity extends BaseSettingActivity {
                     .setAction(R.string.activity_accesslog_undo_remove_date, (View view) -> {
                         mDataList.add(adapterPosition, removeData);
                         notifyItemInserted(adapterPosition);
-                        recyclerView.scrollToPosition(adapterPosition);
                     })
                     .addCallback(new Snackbar.Callback() {
                         @Override
                         public void onDismissed(Snackbar snackbar, int event) {
+                            // 元に戻すの Action 以外のイベントで閉じられた場合には、削除処理を行う
                             if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
                                 if (mOnItemRemoveListener != null) {
                                     mOnItemRemoveListener.onItemDelete(removeData);
@@ -335,6 +366,7 @@ public class AccessLogActivity extends BaseSettingActivity {
             return new DateListFragment();
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.fragment_accesslog_date_list, container, false);
@@ -353,6 +385,14 @@ public class AccessLogActivity extends BaseSettingActivity {
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(mListAdapter);
             recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        mListAdapter.dismissSnackbar();
+                        break;
+                }
+                return false;
+            });
 
             ItemTouchHelper helper = new ItemTouchHelper(new SwipeToDeleteCallback(getContext()) {
                 @Override
@@ -376,10 +416,10 @@ public class AccessLogActivity extends BaseSettingActivity {
         }
 
         @Override
-        public void onPause() {
+        void onReturn() {
             mListAdapter.dismissSnackbar();
-            super.onPause();
         }
+
 
         /**
          * リストを更新します.
@@ -537,7 +577,7 @@ public class AccessLogActivity extends BaseSettingActivity {
         /**
          * 検索窓.
          */
-        private EditText mIpAddress;
+        private EditText mCondition;
 
         /**
          * AccessLogListFragment を作成します.
@@ -554,6 +594,7 @@ public class AccessLogActivity extends BaseSettingActivity {
             return fragment;
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.fragment_accesslog_list, container, false);
@@ -568,12 +609,20 @@ public class AccessLogActivity extends BaseSettingActivity {
                 }
             });
 
-            mIpAddress = root.findViewById(R.id.fragment_search_edit_text);
+            mCondition = root.findViewById(R.id.fragment_search_edit_text);
 
             RecyclerView recyclerView = root.findViewById(R.id.list_view_accesslog_list);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(mListAdapter);
             recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        mListAdapter.dismissSnackbar();
+                        break;
+                }
+                return false;
+            });
 
             ItemTouchHelper helper = new ItemTouchHelper(new SwipeToDeleteCallback(getContext()) {
                 @Override
@@ -583,8 +632,13 @@ public class AccessLogActivity extends BaseSettingActivity {
             });
             helper.attachToRecyclerView(recyclerView);
 
-            root.findViewById(R.id.fragment_search_btn).setOnClickListener((v) ->
-                    search(mIpAddress.getText().toString()));
+            root.findViewById(R.id.fragment_search_btn).setOnClickListener((v) -> {
+                searchAccessLogs(mCondition.getText().toString());
+                InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+            });
 
             return root;
         }
@@ -596,9 +650,8 @@ public class AccessLogActivity extends BaseSettingActivity {
         }
 
         @Override
-        public void onPause() {
+        void onReturn() {
             mListAdapter.dismissSnackbar();
-            super.onPause();
         }
 
         /**
@@ -637,18 +690,18 @@ public class AccessLogActivity extends BaseSettingActivity {
         }
 
         /**
-         * IPアドレスの検索を行います.
+         * 条件に合うアクセスログの検索を行います.
          *
-         * @param ipAddress IPアドレス
+         * @param condition 条件
          */
-        private void search(String ipAddress) {
-            if (ipAddress == null || ipAddress.isEmpty()) {
+        private void searchAccessLogs(String condition) {
+            if (condition == null || condition.isEmpty()) {
                 searchAccessLog();
             } else {
                 String date = getDateString();
                 AccessLogProvider provider = getAccessLogProvider();
                 if (provider != null && date != null) {
-                    provider.getAccessLogsFromCondition(date, ipAddress, this::updateAccessLogList);
+                    provider.getAccessLogsFromCondition(date, condition, this::updateAccessLogList);
                 }
             }
         }

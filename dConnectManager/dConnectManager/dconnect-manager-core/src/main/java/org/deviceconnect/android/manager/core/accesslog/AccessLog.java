@@ -530,8 +530,7 @@ public class AccessLog {
         return accessLog;
     }
 
-
-    public static Map<String, String> stringToHeader(String string) {
+    private static Map<String, String> stringToHeader(String string) {
         Map<String, String> header = new HashMap<>();
         if (string != null) {
             String[] p = string.split("\t");
@@ -543,7 +542,7 @@ public class AccessLog {
         return header;
     }
 
-    public static String headerToString(Map<String, String> header) {
+    private static String headerToString(Map<String, String> header) {
         StringBuilder h = new StringBuilder();
         for (String key : header.keySet()) {
             String value = header.get(key);

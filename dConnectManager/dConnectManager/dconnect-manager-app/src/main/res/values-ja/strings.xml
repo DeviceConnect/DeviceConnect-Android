@@ -240,7 +240,7 @@
 
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">検索</string>
-    <string name="activity_accesslog_hint_search_ip_address">IPアドレス</string>
+    <string name="activity_accesslog_hint_search_ip_address">IPアドレス or パス</string>
     <string name="activity_accesslog_remove_date">1件を削除しました</string>
     <string name="activity_accesslog_undo_remove_date">元に戻す</string>
 </resources>

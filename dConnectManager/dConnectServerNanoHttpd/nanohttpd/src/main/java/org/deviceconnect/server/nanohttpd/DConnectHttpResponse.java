@@ -25,15 +25,18 @@ class DConnectHttpResponse implements HttpResponse {
     private InputStream mInputStream;
     private StatusCode mStatusCode = StatusCode.OK;
     private int mContentLength;
+    private byte[] mBody;
 
     DConnectHttpResponse() {
     }
 
-    String getContentType() {
+    @Override
+    public String getContentType() {
         return mContentType;
     }
 
-    Map<String, String> getHeaders() {
+    @Override
+    public Map<String, String> getHeaders() {
         return mHeaders;
     }
 
@@ -51,11 +54,13 @@ class DConnectHttpResponse implements HttpResponse {
         return mInputStream;
     }
 
-    int getContentLength() {
+    @Override
+    public int getContentLength() {
         return mContentLength;
     }
 
-    StatusCode getStatusCode() {
+    @Override
+    public StatusCode getStatusCode() {
         return mStatusCode;
     }
 
@@ -71,6 +76,7 @@ class DConnectHttpResponse implements HttpResponse {
 
     @Override
     public void setBody(final byte[] body) {
+        mBody = body;
         mInputStream = new ByteArrayInputStream(body);
         mContentLength = body.length;
     }
@@ -88,5 +94,10 @@ class DConnectHttpResponse implements HttpResponse {
     @Override
     public void setCode(final StatusCode code) {
         mStatusCode = code;
+    }
+
+    @Override
+    public byte[] getBody() {
+        return mBody;
     }
 }

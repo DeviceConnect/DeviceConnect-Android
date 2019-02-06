@@ -44,8 +44,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.core.accesslog.AccessLog;
-import org.deviceconnect.android.manager.core.accesslog.AccessLogProvider;
+import org.deviceconnect.server.nanohttpd.accesslog.AccessLog;
+import org.deviceconnect.server.nanohttpd.accesslog.AccessLogProvider;
 import org.deviceconnect.android.manager.setting.BaseSettingActivity;
 import org.json.JSONException;
 import org.json.JSONObject;

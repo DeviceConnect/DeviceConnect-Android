@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.manager.core.accesslog;
+package org.deviceconnect.server.nanohttpd.accesslog;
 
 import android.content.ContentValues;
 import android.database.Cursor;

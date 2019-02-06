@@ -12,8 +12,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -530,6 +528,12 @@ public class AccessLog {
         return accessLog;
     }
 
+    /**
+     * Header の文字列を Map に変換します.
+     *
+     * @param string Header の文字列
+     * @return Map
+     */
     private static Map<String, String> stringToHeader(String string) {
         Map<String, String> header = new HashMap<>();
         if (string != null) {
@@ -542,6 +546,12 @@ public class AccessLog {
         return header;
     }
 
+    /**
+     * Header の Map を文字列に変換します.
+     *
+     * @param header HeaderのMap
+     * @return 文字列
+     */
     private static String headerToString(Map<String, String> header) {
         StringBuilder h = new StringBuilder();
         for (String key : header.keySet()) {
@@ -552,14 +562,6 @@ public class AccessLog {
             h.append(key).append("=").append(value);
         }
         return h.toString();
-    }
-
-    private static String decode(String value) {
-        try {
-            return URLDecoder.decode(value, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return value;
-        }
     }
 
     /**

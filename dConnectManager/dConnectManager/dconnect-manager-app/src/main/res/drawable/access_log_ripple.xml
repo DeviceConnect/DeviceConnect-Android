@@ -2,7 +2,9 @@
 <ripple
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="#CCC">
-
-    <item android:drawable="@drawable/access_log_list"/>
-
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFF"/>
+        </shape>
+    </item>
 </ripple>

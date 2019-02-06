@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/access_log_ripple"
@@ -8,6 +9,16 @@
     android:focusable="true"
     android:orientation="vertical"
     android:padding="12dp">
+
+    <TextView
+        android:id="@+id/item_access_log_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#000"
+        android:textStyle="bold"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,29 +30,20 @@
             android:id="@+id/item_access_log_ip_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#000"
-            android:textStyle="bold"/>
+            android:textColor="#088"
+            android:textStyle="bold"
+            app:autoSizeTextType="uniform"/>
 
         <TextView
-            android:id="@+id/item_access_log_path"
+            android:id="@+id/item_access_log_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ellipsize="end"
-            android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#000"
-            android:textStyle="bold"/>
+            android:textColor="#888"/>
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/item_access_log_date"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="#888"/>
 
 </LinearLayout>

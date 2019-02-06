@@ -7,7 +7,10 @@
 package org.deviceconnect.android.manager.accesslog;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -15,18 +18,23 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -98,7 +106,7 @@ public class AccessLogActivity extends BaseSettingActivity {
     }
 
     /**
-     * Fragment の onReturn メソッドを呼び出します
+     * Fragment の {@link BaseFragment#onReturn()} を呼び出します.
      */
     private void callFragment() {
         FragmentManager manager = getSupportFragmentManager();
@@ -171,6 +179,21 @@ public class AccessLogActivity extends BaseSettingActivity {
          * 前の画面に戻る時に呼び出されます.
          */
         void onReturn() {
+        }
+
+        /**
+         * 前の Fragment に戻ります.
+         * <p>
+         * 前の Fragment がない場合には Activity を終了します。
+         * </p>
+         */
+        void popFragment() {
+            FragmentManager manager = getFragmentManager();
+            if (manager.getBackStackEntryCount() > 0) {
+                manager.popBackStack();
+            } else {
+                getActivity().finish();
+            }
         }
 
         /**
@@ -284,7 +307,7 @@ public class AccessLogActivity extends BaseSettingActivity {
         }
 
         /**
-         * スワイプされて削除処理が行われた時の処理.
+         * スワイプされて削除処理が行われた時の処理を行います.
          *
          * @param viewHolder viewホルダー
          * @param recyclerView リサイクルView
@@ -353,6 +376,11 @@ public class AccessLogActivity extends BaseSettingActivity {
      */
     public static class DateListFragment extends BaseFragment {
         /**
+         * 削除ダイアログ用リクエストコード.
+         */
+        private static final int REQUEST_CODE = 100;
+
+        /**
          * 日付のリストを管理するクラス.
          */
         private DateListAdapter mListAdapter;
@@ -402,7 +430,40 @@ public class AccessLogActivity extends BaseSettingActivity {
             });
             helper.attachToRecyclerView(recyclerView);
 
+            setHasOptionsMenu(true);
+
             return root;
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            super.onCreateOptionsMenu(menu, inflater);
+            inflater.inflate(R.menu.fragment_date_list, menu);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item){
+            switch (item.getItemId()) {
+                case R.id.fragment_accesslog_all_delete:
+                    new DeleteDialogFragment.Builder()
+                            .requestCode(REQUEST_CODE)
+                            .title(getString(R.string.fragment_accesslog_delete_all_title))
+                            .message(getString(R.string.fragment_accesslog_delete_all_message))
+                            .positive(getString(R.string.fragment_accesslog_delete_all_positive))
+                            .negative(getString(R.string.fragment_accesslog_delete_all_nagetive))
+                            .show(getFragmentManager(), this);
+                    break;
+            }
+            return true;
+        }
+
+        @Override
+        public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+            if (requestCode == REQUEST_CODE) {
+                if (resultCode == DialogInterface.BUTTON_POSITIVE) {
+                    deleteAll();
+                }
+            }
         }
 
         @Override
@@ -420,14 +481,35 @@ public class AccessLogActivity extends BaseSettingActivity {
             mListAdapter.dismissSnackbar();
         }
 
-
         /**
          * リストを更新します.
          *
          * @param dateList 更新するリスト
          */
         private void updateDateList(List<String> dateList) {
-            runOnUiThread(() -> mListAdapter.updateDataList(dateList));
+            runOnUiThread(() -> {
+                if (dateList.isEmpty()) {
+                    setNoDateView(View.VISIBLE);
+                } else {
+                    setNoDateView(View.GONE);
+                    mListAdapter.updateDataList(dateList);
+                }
+            });
+        }
+
+        /**
+         * データがないことを表示するViewの表示状態を設定します.
+         *
+         * @param visibility 表示状態
+         */
+        private void setNoDateView(int visibility) {
+            View root = getView();
+            if (root != null) {
+                View v = root.findViewById(R.id.fragment_accesslog_no_data);
+                if (v != null) {
+                    v.setVisibility(visibility);
+                }
+            }
         }
 
         /**
@@ -437,6 +519,16 @@ public class AccessLogActivity extends BaseSettingActivity {
          */
         private void gotoAccessLogListFragment(String date) {
             gotoFragment(AccessLogListFragment.create(date));
+        }
+
+        /**
+         * アクセスログ全削除を行います.
+         */
+        void deleteAll() {
+            AccessLogProvider provider = getAccessLogProvider();
+            if (provider != null) {
+                provider.removeAll((Boolean value) -> getActivity().finish());
+            }
         }
     }
 
@@ -480,16 +572,15 @@ public class AccessLogActivity extends BaseSettingActivity {
                 mTextView = itemView.findViewById(R.id.accesslog_date_name);
                 itemView.setOnClickListener((v) -> {
                     if (mOnItemClickListener != null) {
-                        mOnItemClickListener.onItemClick(itemView, getAdapterPosition());
+                        v.postDelayed(() -> mOnItemClickListener.onItemClick(itemView, getAdapterPosition()), 300);
                     }
                 });
+
+                // 画面がタッチされた時に Snackbar を非表示にする
                 itemView.setOnTouchListener((v, event) -> {
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
                             dismissSnackbar();
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            v.performClick();
                             break;
                     }
                     return false;
@@ -499,70 +590,14 @@ public class AccessLogActivity extends BaseSettingActivity {
     }
 
     /**
-     * RecyclerView スワイプコールバック.
-     */
-    private static abstract class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
-        /**
-         * ゴミ箱のアイコン.
-         */
-        private Drawable mDeleteIcon;
-
-        /**
-         * 背景色.
-         */
-        private ColorDrawable mBackground;
-
-        /**
-         * コンストラクタ.
-         * @param context コンテキスト
-         */
-        SwipeToDeleteCallback(Context context) {
-            super(0, (ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT));
-            mDeleteIcon = ContextCompat.getDrawable(context, android.R.drawable.ic_menu_delete);
-            mBackground = new ColorDrawable(Color.RED);
-        }
-
-        @Override
-        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-            return false;
-        }
-
-        @Override
-        public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dx, float dy, int actionState, boolean isCurrentlyActive) {
-            View itemView = viewHolder.itemView;
-            int backgroundCornerOffset = 20;
-            int iconMargin = (itemView.getHeight() - mDeleteIcon.getIntrinsicHeight()) / 2;
-            int iconTop = itemView.getTop() + (itemView.getHeight() - mDeleteIcon.getIntrinsicHeight()) / 2;
-            int iconBottom = iconTop + mDeleteIcon.getIntrinsicHeight();
-
-            if (dx > 0) { // Swiping to the right
-                int iconLeft = itemView.getLeft() + iconMargin + mDeleteIcon.getIntrinsicWidth();
-                int iconRight = itemView.getLeft() + iconMargin;
-                mDeleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                mBackground.setBounds(itemView.getLeft(), itemView.getTop(),
-                        itemView.getLeft() + ((int) dx) + backgroundCornerOffset,
-                        itemView.getBottom());
-            } else if (dx < 0) { // Swiping to the left
-                int iconLeft = itemView.getRight() - iconMargin - mDeleteIcon.getIntrinsicWidth();
-                int iconRight = itemView.getRight() - iconMargin;
-                mDeleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                mBackground.setBounds(itemView.getRight() + ((int) dx) - backgroundCornerOffset,
-                        itemView.getTop(), itemView.getRight(), itemView.getBottom());
-            } else { // view is unSwiped
-                mBackground.setBounds(0, 0, 0, 0);
-            }
-
-            mBackground.draw(c);
-            mDeleteIcon.draw(c);
-
-            super.onChildDraw(c, recyclerView, viewHolder, dx, dy, actionState, isCurrentlyActive);
-        }
-    }
-
-    /**
      * 指定された日付のアクセスログのリストを表示するフラグメント.
      */
     public static class AccessLogListFragment extends BaseFragment {
+        /**
+         * 削除ダイアログ用リクエストコード.
+         */
+        private static final int REQUEST_CODE = 101;
+
         /**
          * 引数に渡す日付を識別するキーを定義.
          */
@@ -639,13 +674,46 @@ public class AccessLogActivity extends BaseSettingActivity {
                 }
             });
 
+            setHasOptionsMenu(true);
+
             return root;
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            super.onCreateOptionsMenu(menu, inflater);
+            inflater.inflate(R.menu.fragment_date_list, menu);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item){
+            switch (item.getItemId()) {
+                case R.id.fragment_accesslog_all_delete:
+                    new DeleteDialogFragment.Builder()
+                            .requestCode(REQUEST_CODE)
+                            .title(getString(R.string.fragment_accesslog_delete_accesslog_title))
+                            .message(getString(R.string.fragment_accesslog_delete_accesslog_message, getDateString()))
+                            .positive(getString(R.string.fragment_accesslog_delete_accesslog_positive))
+                            .negative(getString(R.string.fragment_accesslog_delete_accesslog_negative))
+                            .show(getFragmentManager(), this);
+                    break;
+            }
+            return true;
+        }
+
+        @Override
+        public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+            if (requestCode == REQUEST_CODE) {
+                if (resultCode == DialogInterface.BUTTON_POSITIVE) {
+                    deleteAccessLogs();
+                }
+            }
         }
 
         @Override
         public void onResume() {
             super.onResume();
-            searchAccessLog();
+            searchAccessLogs(mCondition.getText().toString());
         }
 
         @Override
@@ -669,23 +737,30 @@ public class AccessLogActivity extends BaseSettingActivity {
         }
 
         /**
+         * 指定されている日付のアクセスログを全て削除します.
+         */
+        private void deleteAccessLogs() {
+            String date = getDateString();
+            AccessLogProvider provider = getAccessLogProvider();
+            if (date != null && provider != null) {
+                provider.remove(date, (value) -> popFragment());
+            }
+        }
+
+        /**
          * アクセスログのリストを更新します.
          *
          * @param accessLogList アクセスログの更新
          */
         private void updateAccessLogList(List<AccessLog> accessLogList) {
-            runOnUiThread(() -> mListAdapter.updateDataList(accessLogList));
-        }
-
-        /**
-         * 指定された日付のアクセスログを検索します.
-         */
-        private void searchAccessLog() {
-            String date = getDateString();
-            AccessLogProvider provider = getAccessLogProvider();
-            if (provider != null && date != null) {
-                provider.getAccessLogsOfDate(date, this::updateAccessLogList);
-            }
+            runOnUiThread(() -> {
+                if (accessLogList.isEmpty()) {
+                    setNoDateView(View.VISIBLE);
+                } else {
+                    setNoDateView(View.GONE);
+                    mListAdapter.updateDataList(accessLogList);
+                }
+            });
         }
 
         /**
@@ -694,13 +769,28 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @param condition 条件
          */
         private void searchAccessLogs(String condition) {
-            if (condition == null || condition.isEmpty()) {
-                searchAccessLog();
-            } else {
-                String date = getDateString();
-                AccessLogProvider provider = getAccessLogProvider();
-                if (provider != null && date != null) {
+            String date = getDateString();
+            AccessLogProvider provider = getAccessLogProvider();
+            if (provider != null && date != null) {
+                if (condition == null || condition.isEmpty()) {
+                    provider.getAccessLogsOfDate(date, this::updateAccessLogList);
+                } else {
                     provider.getAccessLogsFromCondition(date, condition, this::updateAccessLogList);
+                }
+            }
+        }
+
+        /**
+         * データがないことを表示するViewの表示状態を設定します.
+         *
+         * @param visibility 表示状態
+         */
+        private void setNoDateView(int visibility) {
+            View root = getView();
+            if (root != null) {
+                View v = root.findViewById(R.id.fragment_accesslog_no_data);
+                if (v != null) {
+                    v.setVisibility(visibility);
                 }
             }
         }
@@ -766,16 +856,15 @@ public class AccessLogActivity extends BaseSettingActivity {
                 mDate = itemView.findViewById(R.id.item_access_log_date);
                 itemView.setOnClickListener((v) -> {
                     if (mOnItemClickListener != null) {
-                        mOnItemClickListener.onItemClick(itemView, getAdapterPosition());
+                        v.postDelayed(() -> mOnItemClickListener.onItemClick(itemView, getAdapterPosition()), 300);
                     }
                 });
+
+                // 画面がタッチされた時に Snackbar を非表示にする
                 itemView.setOnTouchListener((v, event) -> {
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
                             dismissSnackbar();
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            v.performClick();
                             break;
                     }
                     return false;
@@ -833,13 +922,33 @@ public class AccessLogActivity extends BaseSettingActivity {
         private static final String ARGS_ID = "id";
 
         /**
-         * 詳細を表示するTextView.
+         * リクエストの詳細を表示するTextView.
          */
         private TextView mRequestView;
+
+        /**
+         * レスポンスの詳細を表示するTextView.
+         */
         private TextView mResponseView;
-        private TextView mReuestTimeView;
+
+        /**
+         * リクエストを受信した時刻を表示するTextView.
+         */
+        private TextView mRequestTimeView;
+
+        /**
+         * リクエストのリモート先のIPアドレスを表示するTextView.
+         */
         private TextView mIpAddressView;
+
+        /**
+         * リクエストのリモート先のホスト名を表示するTextView.
+         */
         private TextView mHostNameView;
+
+        /**
+         * レスポンスを送信した時刻を表示するTextView.
+         */
         private TextView mSendTimeView;
 
         /**
@@ -861,7 +970,7 @@ public class AccessLogActivity extends BaseSettingActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.fragment_accesslog_detail, container, false);
             mRequestView = root.findViewById(R.id.fragment_accesslog_detail_request);
-            mReuestTimeView = root.findViewById(R.id.fragment_accesslog_detail_request_time);
+            mRequestTimeView = root.findViewById(R.id.fragment_accesslog_detail_request_time);
             mIpAddressView = root.findViewById(R.id.fragment_accesslog_detail_request_ip_address);
             mHostNameView = root.findViewById(R.id.fragment_accesslog_detail_request_host_name);
             mResponseView = root.findViewById(R.id.fragment_accesslog_detail_response);
@@ -890,6 +999,21 @@ public class AccessLogActivity extends BaseSettingActivity {
                 return;
             }
 
+            updateAccessLog(AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()),
+                    AccessLogProvider.dateToString(accessLog.getResponseSendTime()),
+                    accessLog.getRemoteIpAddress(),
+                    accessLog.getRemoteHostName(),
+                    createRequestString(accessLog),
+                    createResponseString(accessLog));
+        }
+
+        /**
+         * アクセスログからリクエスト詳細の文字列を作成します.
+         *
+         * @param accessLog アクセスログ
+         * @return リクエスト詳細の文字列
+         */
+        private String createRequestString(AccessLog accessLog) {
             StringBuilder request = new StringBuilder();
             request.append(accessLog.getRequestMethod()).append(" ").append(accessLog.getRequestPath()).append("\r\n");
             Map<String, String> headers = accessLog.getRequestHeader();
@@ -901,7 +1025,16 @@ public class AccessLogActivity extends BaseSettingActivity {
             if (accessLog.getRequestBody() != null) {
                 request.append(accessLog.getRequestBody()).append("\r\n");
             }
+            return request.toString();
+        }
 
+        /**
+         * アクセスログからレスポンス詳細の文字列を作成します.
+         *
+         * @param accessLog アクセスログ
+         * @return レスポンス詳細
+         */
+        private String createResponseString(AccessLog accessLog) {
             StringBuilder response = new StringBuilder();
             response.append("HTTP/1.1 ").append(accessLog.getResponseStatusCode()).append("\r\n");
             if (accessLog.getResponseContentType() != null) {
@@ -915,13 +1048,7 @@ public class AccessLogActivity extends BaseSettingActivity {
                     response.append(accessLog.getResponseBody()).append("\r\n");
                 }
             }
-
-            updateAccessLog(AccessLogProvider.dateToString(accessLog.getRequestReceivedTime()),
-                    AccessLogProvider.dateToString(accessLog.getResponseSendTime()),
-                    accessLog.getRemoteIpAddress(),
-                    accessLog.getRemoteHostName(),
-                    request.toString(),
-                    response.toString());
+            return response.toString();
         }
 
         /**
@@ -936,7 +1063,7 @@ public class AccessLogActivity extends BaseSettingActivity {
          */
         private void updateAccessLog(String receivedTime, String sendTime, String ipAddress, String hostName, String request, String response) {
             runOnUiThread(() -> {
-                mReuestTimeView.setText(receivedTime);
+                mRequestTimeView.setText(receivedTime);
                 mSendTimeView.setText(sendTime);
                 mIpAddressView.setText(ipAddress);
                 mHostNameView.setText(hostName);
@@ -981,6 +1108,220 @@ public class AccessLogActivity extends BaseSettingActivity {
                 return args.getLong(ARGS_ID);
             }
             return -1;
+        }
+    }
+
+    /**
+     * 削除確認用のダイアログ.
+     */
+    public static class DeleteDialogFragment extends DialogFragment {
+        /**
+         * ダイアログのボタンクリックリスナー.
+         */
+        private final DialogInterface.OnClickListener mOnClickListener = (dialog, id) -> {
+            dismiss();
+
+            Fragment targetFragment = getTargetFragment();
+            if (targetFragment != null) {
+                targetFragment.onActivityResult(getTargetRequestCode(), id, null);
+            }
+        };
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            String title = getArguments().getString("title");
+            String  message = getArguments().getString("message");
+            String  positive = getArguments().getString("positive");
+            String  negative = getArguments().getString("negative");
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            if (title != null) {
+                builder.setTitle(title);
+            }
+            if (message != null) {
+                builder.setMessage(message);
+            }
+            builder.setPositiveButton(positive, mOnClickListener);
+            if (negative != null) {
+                builder.setNegativeButton(negative, mOnClickListener);
+            }
+            return builder.create();
+        }
+
+        /**
+         * インスタンス作成用ビルダー.
+         */
+        public static class Builder {
+            /**
+             * ダイアログのタイトル.
+             */
+            private String mTitle;
+
+            /**
+             * ダイアログのメッセージ.
+             */
+            private String mMessage;
+
+            /**
+             * ダイアログの Positive ボタンのラベル.
+             */
+            private String mPositive;
+
+            /**
+             * ダイアログの Negative ボタンのラベル.
+             */
+            private String mNegative;
+
+            /**
+             * リクエストコード.
+             */
+            private int mRequestCode;
+
+            /**
+             * リクエストコードを設定します.
+             *
+             * @param requestCode リクエストコード
+             * @return Builder
+             */
+            Builder requestCode(int requestCode) {
+                mRequestCode = requestCode;
+                return this;
+            }
+
+            /**
+             * タイトルを設定します.
+             *
+             * @param title タイトル
+             * @return Builder
+             */
+            Builder title(String title) {
+                mTitle = title;
+                return this;
+            }
+
+            /**
+             * メッセージを設定します.
+             *
+             * @param message メッセージ
+             * @return Builder
+             */
+            Builder message(String message) {
+                mMessage = message;
+                return this;
+            }
+
+            /**
+             * Positive ボタンのラベルを設定します.
+             *
+             * @param positive Positive ボタンのラベル
+             * @return Builder
+             */
+            Builder positive(String positive) {
+                mPositive = positive;
+                return this;
+            }
+
+            /**
+             * Negative ボタンのラベルを設定します.
+             *
+             * @param negative negative ボタンのラベル
+             * @return Builder
+             */
+            Builder negative(String negative) {
+                mNegative = negative;
+                return this;
+            }
+
+            /**
+             * ダイアログを表示します.
+             * <p>
+             * targetFragment に指定した Fragment の {@link Fragment#onActivityResult(int, int, Intent)}
+             * にレスポンスを返却します。
+             * </p>
+             * @param fragmentManager 表示するFragmentManager
+             * @param targetFragment ターゲットとなるFragment
+             */
+            void show(FragmentManager fragmentManager, Fragment targetFragment) {
+                Bundle bundle = new Bundle();
+                if (mTitle != null) {
+                    bundle.putString("title", mTitle);
+                }
+                if (mMessage != null) {
+                    bundle.putString("message", mMessage);
+                }
+                if (mPositive != null) {
+                    bundle.putString("positive", mPositive);
+                }
+                if (mNegative != null) {
+                    bundle.putString("negative", mNegative);
+                }
+                DialogFragment dialog = new DeleteDialogFragment();
+                dialog.setArguments(bundle);
+                dialog.setTargetFragment(targetFragment, mRequestCode);
+                dialog.show(fragmentManager, "test");
+            }
+        }
+    }
+
+    /**
+     * RecyclerView スワイプコールバック.
+     */
+    private static abstract class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
+        /**
+         * ゴミ箱のアイコン.
+         */
+        private Drawable mDeleteIcon;
+
+        /**
+         * 背景色.
+         */
+        private ColorDrawable mBackground;
+
+        /**
+         * コンストラクタ.
+         * @param context コンテキスト
+         */
+        SwipeToDeleteCallback(Context context) {
+            super(0, (ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT));
+            mDeleteIcon = ContextCompat.getDrawable(context, android.R.drawable.ic_menu_delete);
+            mBackground = new ColorDrawable(Color.rgb(235, 55, 35));
+        }
+
+        @Override
+        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dx, float dy, int actionState, boolean isCurrentlyActive) {
+            View itemView = viewHolder.itemView;
+            int backgroundCornerOffset = 20;
+            int iconMargin = (itemView.getHeight() - mDeleteIcon.getIntrinsicHeight()) / 2;
+            int iconTop = itemView.getTop() + (itemView.getHeight() - mDeleteIcon.getIntrinsicHeight()) / 2;
+            int iconBottom = iconTop + mDeleteIcon.getIntrinsicHeight();
+
+            if (dx > 0) { // Swiping to the right
+                int iconLeft = itemView.getLeft() + iconMargin + mDeleteIcon.getIntrinsicWidth();
+                int iconRight = itemView.getLeft() + iconMargin;
+                mDeleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                mBackground.setBounds(itemView.getLeft(), itemView.getTop(),
+                        itemView.getLeft() + ((int) dx) + backgroundCornerOffset,
+                        itemView.getBottom());
+            } else if (dx < 0) { // Swiping to the left
+                int iconLeft = itemView.getRight() - iconMargin - mDeleteIcon.getIntrinsicWidth();
+                int iconRight = itemView.getRight() - iconMargin;
+                mDeleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                mBackground.setBounds(itemView.getRight() + ((int) dx) - backgroundCornerOffset,
+                        itemView.getTop(), itemView.getRight(), itemView.getBottom());
+            } else { // view is unSwiped
+                mBackground.setBounds(0, 0, 0, 0);
+            }
+
+            mBackground.draw(c);
+            mDeleteIcon.draw(c);
+
+            super.onChildDraw(c, recyclerView, viewHolder, dx, dy, actionState, isCurrentlyActive);
         }
     }
 }

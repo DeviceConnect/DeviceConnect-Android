@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#f8f8f8"
-        android:padding="8dp">
+        android:padding="12dp">
 
         <Button
             android:id="@+id/fragment_search_btn"
@@ -21,7 +21,8 @@
             android:layout_margin="4dp"
             android:background="@drawable/button_blue"
             android:text="@string/activity_accesslog_btn_search_ip_address"
-            android:textColor="#FFF"/>
+            android:textColor="#FFF"
+            android:textStyle="bold"/>
 
         <EditText
             android:id="@+id/fragment_search_edit_text"
@@ -34,10 +35,23 @@
 
     </RelativeLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_view_accesslog_list"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"/>
+        android:layout_height="match_parent">
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/list_view_accesslog_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"/>
+
+        <TextView
+            android:id="@+id/fragment_accesslog_no_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/fragment_accesslog_empty"
+            android:visibility="gone"/>
+
+    </FrameLayout>
 </LinearLayout>

@@ -249,4 +249,14 @@
     <string name="activity_accesslog_detail_request_ip_address">IP アドレス</string>
     <string name="activity_accesslog_detail_request_host_name">ホスト名</string>
     <string name="activity_accesslog_detail_response_time">送信時刻</string>
+    <string name="fragment_accesslog_date_menu_delete">全削除</string>
+    <string name="fragment_accesslog_delete_all_title">警告</string>
+    <string name="fragment_accesslog_delete_all_message">アクセスログを全て削除しても良いでしょうか？</string>
+    <string name="fragment_accesslog_delete_all_positive">はい</string>
+    <string name="fragment_accesslog_delete_all_nagetive">いいえ</string>
+    <string name="fragment_accesslog_delete_accesslog_title">警告</string>
+    <string name="fragment_accesslog_delete_accesslog_message">%1$s のアクセスログを全て削除しても良いでしょうか？</string>
+    <string name="fragment_accesslog_delete_accesslog_positive">はい</string>
+    <string name="fragment_accesslog_delete_accesslog_negative">いいえ</string>
+    <string name="fragment_accesslog_empty">アクセスログがありません</string>
 </resources>

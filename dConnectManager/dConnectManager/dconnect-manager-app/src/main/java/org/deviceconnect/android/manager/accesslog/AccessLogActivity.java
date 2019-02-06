@@ -813,6 +813,13 @@ public class AccessLogActivity extends BaseSettingActivity {
             super(inflater);
         }
 
+        private static final Object[][] METHOD_COLORS = {
+                {"get", R.drawable.access_log_method_get},
+                {"put", R.drawable.access_log_method_put},
+                {"post", R.drawable.access_log_method_post},
+                {"delete", R.drawable.access_log_method_delete},
+        };
+
         @Override
         public AccessLogListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             return new ViewHolder(mInflater.inflate(R.layout.item_accesslog_list, parent, false));
@@ -824,6 +831,15 @@ public class AccessLogActivity extends BaseSettingActivity {
             holder.mIpAddress.setText(getIpAddress(accessLog));
             holder.mPath.setText(getPath(accessLog));
             holder.mDate.setText(getDate(accessLog));
+
+            String method = accessLog.getRequestMethod();
+            for (Object[] v : METHOD_COLORS) {
+                String m = (String) v[0];
+                if (m.equalsIgnoreCase(method)) {
+                    holder.mMethod.setBackgroundResource((int) v[1]);
+                }
+            }
+            holder.mMethod.setText(method);
         }
 
         /**
@@ -834,6 +850,11 @@ public class AccessLogActivity extends BaseSettingActivity {
              * IPアドレスを表示するTextView.
              */
             TextView mIpAddress;
+
+            /**
+             * メソッドを表示するTextView.
+             */
+            TextView mMethod;
 
             /**
              * パスを表示するTextView.
@@ -852,6 +873,7 @@ public class AccessLogActivity extends BaseSettingActivity {
             ViewHolder(View itemView) {
                 super(itemView);
                 mIpAddress = itemView.findViewById(R.id.item_access_log_ip_address);
+                mMethod = itemView.findViewById(R.id.item_access_log_method);
                 mPath = itemView.findViewById(R.id.item_access_log_path);
                 mDate = itemView.findViewById(R.id.item_access_log_date);
                 itemView.setOnClickListener((v) -> {
@@ -893,12 +915,11 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @return HTTPメソッドとパス
          */
         private String getPath(AccessLog accessLog) {
-            String method = accessLog.getRequestMethod();
             String path = accessLog.getRequestPath();
             if (path == null) {
                 path = "/";
             }
-            return method + " " + path;
+            return path;
         }
 
         /**

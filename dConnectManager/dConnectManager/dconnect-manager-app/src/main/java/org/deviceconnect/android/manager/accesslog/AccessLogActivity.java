@@ -769,6 +769,7 @@ public class AccessLogActivity extends BaseSettingActivity {
          * @param condition 条件
          */
         private void searchAccessLogs(String condition) {
+            mListAdapter.dismissSnackbar();
             String date = getDateString();
             AccessLogProvider provider = getAccessLogProvider();
             if (provider != null && date != null) {

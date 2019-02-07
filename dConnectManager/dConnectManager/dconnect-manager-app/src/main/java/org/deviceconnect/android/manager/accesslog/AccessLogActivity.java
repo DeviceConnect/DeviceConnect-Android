@@ -1044,6 +1044,7 @@ public class AccessLogActivity extends BaseSettingActivity {
                     request.append(key).append(": ").append(headers.get(key)).append("\r\n");
                 }
             }
+            request.append("\r\n");
             if (accessLog.getRequestBody() != null) {
                 request.append(accessLog.getRequestBody()).append("\r\n");
             }

@@ -556,6 +556,23 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             accessLog.setRequestMethod(request.getMethod().name());
             accessLog.setRequestHeader(request.getHeaders());
             String path = request.getQueryString() != null ? request.getUri() + "?" + request.getQueryString() : request.getUri();
+
+            Map<String, String> queryParameters = request.getQueryParameters();
+            if (queryParameters != null) {
+                StringBuilder body = new StringBuilder();
+                for (String key : queryParameters.keySet()) {
+                    if (body.length() > 0) {
+                        body.append("&");
+                    }
+                    if (!key.equals("postData")) {
+                        body.append(key).append("=").append(queryParameters.get(key));
+                    } else {
+                        body.append(key).append("=").append("[File Data]");
+                    }
+                }
+                accessLog.setRequestBody(body.toString());
+            }
+
             accessLog.setRequestPath(path);
             return accessLog;
         }

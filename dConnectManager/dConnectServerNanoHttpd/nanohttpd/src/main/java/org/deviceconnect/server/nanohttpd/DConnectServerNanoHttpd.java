@@ -555,10 +555,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             accessLog.setRequestReceivedTime(System.currentTimeMillis());
             accessLog.setRequestMethod(request.getMethod().name());
             accessLog.setRequestHeader(request.getHeaders());
-            String path = request.getQueryString() != null ? request.getUri() + "?" + request.getQueryString() : request.getUri();
+            accessLog.setRequestPath(getRequestPath(request));
 
-            if (request.getMethod().equals(HttpRequest.Method.PUT) ||
-                    request.getMethod().equals(HttpRequest.Method.POST)) {
+            if (checkMethodPutPost(request.getMethod())) {
                 Map<String, String> queryParameters = request.getQueryParameters();
                 if (queryParameters != null) {
                     StringBuilder body = new StringBuilder();
@@ -576,8 +575,31 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
             }
 
-            accessLog.setRequestPath(path);
             return accessLog;
+        }
+
+        /**
+         * HTTPメソッドが PUT もしくは POST か確認します.
+         *
+         * @param method HTTPメソッド
+         * @return PUTもしくはPOSTの場合はtrue、それ以外はfalse
+         */
+        private boolean checkMethodPutPost(HttpRequest.Method method) {
+            return (method.equals(HttpRequest.Method.PUT) || method.equals(HttpRequest.Method.POST));
+        }
+
+        /**
+         * HTTPメソッドがGETもしくはDELETE時は、QueryString をパスに付加して取得します.
+         * @param request リクエスト
+         * @return リクエストのパス
+         */
+        private String getRequestPath(DConnectHttpRequest request) {
+            if (checkMethodPutPost(request.getMethod())) {
+                return request.getUri();
+            } else {
+                return request.getQueryString() == null ?
+                        request.getUri() : request.getUri() + "?" + request.getQueryString();
+            }
         }
 
         /**

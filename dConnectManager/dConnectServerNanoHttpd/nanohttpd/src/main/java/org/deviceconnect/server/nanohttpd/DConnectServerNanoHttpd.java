@@ -542,6 +542,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             return new NanoWebSocket(handshake);
         }
 
+        /**
+         * HTTPリクエストからアクセスログを作成します.
+         *
+         * @param request リクエスト
+         * @return アクセスログ
+         */
         private AccessLog createAccessLog(DConnectHttpRequest request) {
             AccessLog accessLog = mAccessLogProvider.createAccessLog();
             accessLog.setRemoteIpAddress(request.getRemoteIpAddress());
@@ -554,6 +560,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             return accessLog;
         }
 
+        /**
+         * アクセスログにレスポンスの情報を加えて、DBに保存します.
+         *
+         * @param response レスポンス
+         * @param accessLog アクセスログ
+         */
         private void saveAccessLog(DConnectHttpResponse response, AccessLog accessLog) {
             String contentType = response.getContentType();
             if (contentType != null && contentType.startsWith("application/json")) {

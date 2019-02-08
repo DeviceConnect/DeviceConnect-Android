@@ -87,6 +87,7 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="dconnect" android:host="pages" android:pathPattern="/.*" />
+                <data android:scheme="gotapi" android:host="shortcut" android:pathPattern="/.*" />
             </intent-filter>
         </activity>
 

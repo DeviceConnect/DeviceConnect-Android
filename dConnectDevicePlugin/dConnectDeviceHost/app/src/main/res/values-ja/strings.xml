@@ -23,8 +23,14 @@
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
 
     <string name="host_settings_title">Host設定</string>
+    <string name="host_settings_item_gps">GPS</string>
+    <string name="host_settings_item_jpeg_quality_preview">JPEG 品質 - プレビュー</string>
+    <string name="host_settings_item_demo_page">デモページ</string>
+    <string name="pref_key_settings_gps">pref_key_settings_gps</string>
+    <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
+    <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
 
-    <string name="gps_settings_title">GPS設定 [1/2]</string>
+    <string name="gps_settings_title">GPS設定</string>
     <string name="gps_settings_body">このデバイスプラグインでは、GPS機能を使用しますので、端末のGPS設定画面より設定をONにしてください。</string>
     <string name="gps_settings_button">設定画面を開く</string>
     <string name="gps_settings_gps_detail">Android 6.0からGPSを使用するには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
@@ -32,7 +38,21 @@
     <string name="gps_settings_gps_permission_on">取得済み</string>
     <string name="gps_settings_gps_permission_off">取得</string>
 
-    <string name="recorder_settings_preview_jpeg_title">JPEG品質 - プレビュー [2/2]</string>
+    <string name="recorder_settings_preview_jpeg_title">JPEG品質 - プレビュー</string>
+
+    <string name="demo_page_settings_title">デモページ</string>
+    <string name="demo_page_description">Host プラグインはカメラ機能等のデモページを提供します。\n\n外部ストレージにインストールすると Web ブラウザからデモページにアクセスできるようになります。</string>
+    <string name="demo_page_settings_title_delete">削除</string>
+    <string name="demo_page_settings_title_install">インストール</string>
+    <string name="demo_page_settings_message_delete">デモページを外部ストレージから削除します。よろしいですか？</string>
+    <string name="demo_page_settings_message_install">デモページを外部ストレージにインストールします。よろしいですか？</string>
+    <string name="demo_page_settings_checkbox_shortcut">ホーム画面にショートカットを作成</string>
+    <string name="demo_page_settings_button_cancel">キャンセル</string>
+    <string name="demo_page_settings_button_delete">削除</string>
+    <string name="demo_page_settings_button_install">インストール</string>
+    <string name="demo_page_settings_button_open">開く</string>
+    <string name="demo_page_settings_button_create_shortcut">ショートカットを作成</string>
+    <string name="demo_page_shortcut_label">カメラ</string>
 
     <string name="host_setting_dialog_error_permission">GPSを使用するためのパーミッションが許可されていないために検索できません。\nGPS設定画面から位置情報の許可を取得してください。</string>
     <string name="host_setting_dialog_disable_gps">GPSが無効になっているために検索できません。\nGPS設定画面からGPSを有効に設定してください。</string>

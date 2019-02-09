@@ -25,6 +25,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -35,8 +37,9 @@
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
             android:label="@string/app_name_host"
-            android:theme="@style/AppTheme"
-            android:launchMode="singleTask"/>
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"

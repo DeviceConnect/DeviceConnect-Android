@@ -23,8 +23,14 @@
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
 
     <string name="host_settings_title">Host Settings</string>
+    <string name="host_settings_item_gps">GPS</string>
+    <string name="host_settings_item_jpeg_quality_preview">JPEG Quality - Preview</string>
+    <string name="host_settings_item_demo_page">Demo Page</string>
+    <string name="pref_key_settings_gps">pref_key_settings_gps</string>
+    <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
+    <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
 
-    <string name="gps_settings_title">GPS setting [1/2]</string>
+    <string name="gps_settings_title">GPS setting</string>
     <string name="gps_settings_body">Since this device plug-in uses the GPS function, please turn on the setting from the GPS setting screen of the terminal.</string>
     <string name="gps_settings_button">Open the setting screen</string>
     <string name="gps_settings_gps_detail">To use GPS from Android 6.0, you need permission for location information.\nTo use this device plug-in please allow the following permissions.\nTo cancel the permission, you can do it from the setting screen of the application.</string>
@@ -32,7 +38,21 @@
     <string name="gps_settings_gps_permission_on">Acquired</string>
     <string name="gps_settings_gps_permission_off">Acquisition</string>
 
-    <string name="recorder_settings_preview_jpeg_title">JPEG Quality - Preview [2/2]</string>
+    <string name="recorder_settings_preview_jpeg_title">JPEG Quality - Preview</string>
+
+    <string name="demo_page_settings_title">Demo Page</string>
+    <string name="demo_page_description">Host Plugin provide the demo page for camera feature and so on.\n\nPlease install the demo page on the external storage of this device if you want to access the demo page from web browsers.</string>
+    <string name="demo_page_settings_title_delete">Delete</string>
+    <string name="demo_page_settings_title_install">Install</string>
+    <string name="demo_page_settings_message_delete">The demo page on the external storage will be deleted. OK?</string>
+    <string name="demo_page_settings_message_install">The demo page will be installed on the external storage. OK?</string>
+    <string name="demo_page_settings_checkbox_shortcut">Create a shortcut on the home screen</string>
+    <string name="demo_page_settings_button_cancel">Cancel</string>
+    <string name="demo_page_settings_button_delete">Delete</string>
+    <string name="demo_page_settings_button_install">Install</string>
+    <string name="demo_page_settings_button_open">Open</string>
+    <string name="demo_page_settings_button_create_shortcut">Create shortcut</string>
+    <string name="demo_page_shortcut_label">Camera</string>
 
     <string name="host_setting_dialog_error_permission">It can not be searched because permission to use GPS is not permitted.\nPlease obtain permission of position information from GPS setting screen.</string>
     <string name="host_setting_dialog_disable_gps">Can not search because the GPS is disabled.\nPlease enable GPS by GPS setting screen.</string>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+        android:text="@string/demo_page_settings_message_install"
+        android:textSize="16sp"
+        android:textColor="@color/BLACK"
+        android:layout_margin="12pt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <CheckBox
+        android:id="@+id/checkbox_create_shortcut"
+        android:checked="true"
+        android:text="@string/demo_page_settings_checkbox_shortcut"
+        android:textSize="16sp"
+        android:layout_marginStart="12pt"
+        android:layout_marginEnd="12pt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

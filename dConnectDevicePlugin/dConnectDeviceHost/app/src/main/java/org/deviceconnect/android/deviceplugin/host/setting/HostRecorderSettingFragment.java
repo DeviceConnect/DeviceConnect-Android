@@ -1,3 +1,9 @@
+/*
+ HostRecorderSettingFragment.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.content.ComponentName;
@@ -7,7 +13,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,11 +27,21 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderMa
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.message.DConnectMessageService;
 
-public class HostRecorderSettingFragment extends Fragment {
+/**
+ * レコーダーの設定を行うフラグメント.
+ *
+ * @author NTT DOCOMO, INC.
+ */
+public class HostRecorderSettingFragment extends BaseHostSettingPageFragment {
 
     private static final String PREVIEW_JPEG_MIME_TYPE = "video/x-mjpeg";
 
     private HostDeviceRecorderManager mRecorderManager;
+
+    @Override
+    protected String getPageTitle() {
+        return getString(R.string.recorder_settings_preview_jpeg_title);
+    }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container,

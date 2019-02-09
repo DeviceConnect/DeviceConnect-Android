@@ -1,83 +1,32 @@
 /*
  HostSettingActivity.java
- Copyright (c) 2014 NTT DOCOMO,INC.
+ Copyright (c) 2018 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.host.setting;
 
-import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
+import org.deviceconnect.android.deviceplugin.host.R;
 
 /**
- * 設定用Activity.
- * 
+ * Host プラグインの設定画面.
+ *
  * @author NTT DOCOMO, INC.
  */
-public class HostSettingActivity extends DConnectSettingPageFragmentActivity {
-
-    /** サービスID. */
-    private String mServiceId;
-
-    /** ページ数. */
-    private static final int PAGE_COUNT = 2;
+public class HostSettingActivity extends AppCompatActivity {
 
     @Override
-    public Fragment createPage(final int position) {
-        if (position == 0) {
-            return new HostGpsSettingFragment();
-        } else if (position == 1) {
-            return new HostRecorderSettingFragment();
-        } else {
-            return null;
+    protected void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_host_settings);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // 自分の名前
-        // SystemProfileでデバイスプラグイン一覧を取得
-        // 自分の名前とマッチさせて、PluginをIDを使用する
-        ViewPager vp = getViewPager();
-        vp.addOnPageChangeListener(new OnPageChangeListener() {
-            @Override
-            public void onPageScrollStateChanged(final int state) {
-            }
-
-            @Override
-            public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
-            }
-
-            @Override
-            public void onPageSelected(final int position) {
-            }
-        });
-    }
-
-    /**
-     * サービスIDを取得する.
-     * 
-     * @return サービスID
-     */
-    public String getServiceId() {
-        return mServiceId;
-    }
-
-    /**
-     * サービスIDを設定する.
-     * 
-     * @param serviceId サービスID
-     */
-    public void setServiceId(final String serviceId) {
-        mServiceId = serviceId;
-    }
-
-    @Override
-    public int getPageCount() {
-        return PAGE_COUNT;
     }
 }

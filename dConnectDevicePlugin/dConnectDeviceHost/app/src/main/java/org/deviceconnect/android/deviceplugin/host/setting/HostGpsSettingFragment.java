@@ -17,7 +17,6 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +30,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostGpsSettingFragment extends Fragment {
+public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
     private final Handler mHandler = new Handler();
     private Button mGpsPermissionBtn;
     /**
@@ -40,6 +39,11 @@ public class HostGpsSettingFragment extends Fragment {
     public static final String[] GPS_PERMISSIONS = new String[] {
             Manifest.permission.ACCESS_FINE_LOCATION
     };
+
+    @Override
+    protected String getPageTitle() {
+        return getString(R.string.gps_settings_title);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,

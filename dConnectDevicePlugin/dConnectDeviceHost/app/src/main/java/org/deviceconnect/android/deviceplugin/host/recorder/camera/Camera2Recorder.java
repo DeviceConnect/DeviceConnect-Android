@@ -658,7 +658,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     protected int getDefaultPreviewQuality(final String mimeType) {
-        return 80;
+        return 40;
     }
 
     @Override

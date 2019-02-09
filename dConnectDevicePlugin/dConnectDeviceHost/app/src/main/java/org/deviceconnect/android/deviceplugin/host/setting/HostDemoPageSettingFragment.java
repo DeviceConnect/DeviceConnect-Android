@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.host.setting;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -21,6 +22,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.pm.ShortcutInfoCompat;
 import android.support.v4.content.pm.ShortcutManagerCompat;
@@ -32,6 +36,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 
@@ -41,6 +46,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * デモページの設定を行うフラグメント.
@@ -67,6 +74,10 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private static final String TAG_DELETION = "deletion";
 
+    private static final String[] PERMISSIONS = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
 
     private Button mDeleteButton;
 
@@ -76,6 +87,10 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private Button mCreateShortcutButton;
 
+    private Handler mHandler;
+
+    private final Executor mExecutor = Executors.newSingleThreadExecutor();
+
     @Override
     protected String getPageTitle() {
         return getString(R.string.demo_page_settings_title);
@@ -83,10 +98,10 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     @Nullable
     @Override
-    public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
+    public View onCreateView(final @NonNull LayoutInflater inflater, final @Nullable ViewGroup container,
                              final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.host_setting_demo_page, null);
-
+        mHandler = new Handler(Looper.getMainLooper());
         mDeleteButton = rootView.findViewById(R.id.button_delete_demo_page);
         mDeleteButton.setOnClickListener(this);
         mInstallButton = rootView.findViewById(R.id.button_install_demo_page);
@@ -101,7 +116,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     @Override
     public void onResume() {
         super.onResume();
-        checkStatus(getActivity());
+        updateView(getActivity());
     }
 
     @Override
@@ -118,9 +133,9 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         } else if (v == mOpenButton) {
             openDemoPage(activity);
         } else if (v == mCreateShortcutButton) {
-            createDemoPageShortcut(activity);
+            createShortcut(activity);
         }
-        checkStatus(activity);
+        updateView(activity);
     }
 
     private void showInstallDialog(final Activity activity) {
@@ -181,45 +196,111 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         dialog.show();
     }
 
-    private void onPositiveButton(final String tag, final View content) {
-        Activity activity = getActivity();
+    private void onPositiveButton(final String tag, final View dialogView) {
+        final Activity activity = getActivity();
         if (activity == null) {
             return;
         }
 
+        final File demoDir = getDemoDir();
         if (TAG_INSTALL.equals(tag)) {
-            // TODO I/O処理の別スレッド化
-            try {
-                installDemoPage(activity, getDemoDir());
+            requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    // デモページをインストール
+                    asyncTask(new InstallTask(activity.getAssets(), "demo/camera", getDemoDir(), mHandler) {
+                        @Override
+                        protected void onBeforeTask() {
+                            if (DEBUG) {
+                                Log.d(TAG, "Start to install demo: path=" + demoDir.getAbsolutePath());
+                            }
+                        }
 
-                CheckBox checkBox = content.findViewById(R.id.checkbox_create_shortcut);
-                if (checkBox.isChecked()) {
-                    createDemoPageShortcut(activity);
+                        @Override
+                        protected void onAfterTask() {
+                            if (DEBUG) {
+                                Log.d(TAG, "Installed demo: path=" + demoDir.getAbsolutePath());
+                            }
+
+                            storeInstalledVersion(activity, getCurrentVersionName(activity));
+                            updateView(activity);
+
+                            CheckBox checkBox = dialogView.findViewById(R.id.checkbox_create_shortcut);
+                            if (checkBox.isChecked() && isCreatedShortcut(activity)) {
+                                createShortcut(activity);
+                            }
+                        }
+
+                        @Override
+                        protected void onUnexpectedError(final Throwable e) {
+                            if (DEBUG) {
+                                Log.e(TAG, "Failed to install demo on external storage.", e);
+                            }
+                            // TODO インストール失敗を表示
+                        }
+                    });
                 }
-            } catch (IOException e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to install demo on external storage.", e);
+
+                @Override
+                public void onFail(final @NonNull String deniedPermission) {
+                    // TODO インストール失敗を表示
                 }
-            }
+            });
         } else if (TAG_DELETION.equals(tag)) {
-            // TODO I/O処理の別スレッド化
-            File demoDir = getDemoDir();
-            if (!deleteDir(demoDir)) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to delete demo from external storage.");
+            requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    // デモページをアンインストール
+                    asyncTask(new UninstallTask(demoDir, mHandler) {
+                        @Override
+                        protected void onBeforeTask() {
+                            if (DEBUG) {
+                                Log.d(TAG, "Start to uninstall demo: path=" + demoDir.getAbsolutePath());
+                            }
+                        }
+
+                        @Override
+                        protected void onAfterTask() {
+                            if (DEBUG) {
+                                Log.d(TAG, "Uninstalled demo: path=" + demoDir.getAbsolutePath());
+                            }
+
+                            deleteShortcut(activity);
+                            storeInstalledVersion(activity, null);
+                            updateView(activity);
+                        }
+
+                        @Override
+                        protected void onUnexpectedError(final Throwable e) {
+                            if (DEBUG) {
+                                Log.e(TAG, "Failed to delete demo from external storage.");
+                            }
+                            // TODO 削除失敗を表示
+                        }
+                    });
                 }
-            }
-            deleteDemoPageShortcut(activity);
-            storeInstalledVersion(activity, null);
+
+                @Override
+                public void onFail(final @NonNull String deniedPermission) {
+                    // TODO 削除失敗を表示
+                }
+            });
         }
-        checkStatus(activity);
+    }
+
+    private void asyncTask(final Runnable task) {
+        mExecutor.execute(task);
+    }
+
+    private void requestPermission(final Context context, final PermissionUtility.PermissionRequestCallback callback) {
+        PermissionUtility.requestPermissions(context, mHandler, PERMISSIONS, callback);
     }
 
     private void onNegativeButton(final String tag, final View content) {
         // NOP.
     }
 
-    private void checkStatus(final Context context) {
+    private void updateView(final Context context) {
         if (isInstalledDemoPage(context)) {
             mDeleteButton.setVisibility(View.VISIBLE);
             mDeleteButton.setEnabled(true);
@@ -230,7 +311,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             mOpenButton.setVisibility(View.VISIBLE);
             mOpenButton.setEnabled(true);
 
-            if (isCreatedDemoPageShortcut(context)) {
+            if (isCreatedShortcut(context)) {
                 mCreateShortcutButton.setVisibility(View.VISIBLE);
                 mCreateShortcutButton.setEnabled(false);
             } else {
@@ -261,7 +342,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         return version.equals(currentVersion);
     }
 
-    private boolean isCreatedDemoPageShortcut(final Context context) {
+    private boolean isCreatedShortcut(final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
             List<ShortcutInfo> infoList = shortcutManager.getPinnedShortcuts();
@@ -278,72 +359,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private boolean canInstallDemoPage() {
         return true; // TODO 外部ストレージが無い場合は、UIを無効化
-    }
-
-    private void installDemoPage(final Context context, final File dir) throws IOException {
-        AssetManager assetManager = context.getAssets();
-        copyAssetFileOrDir(assetManager, "demo/camera", dir);
-        storeInstalledVersion(context, getCurrentVersionName(context));
-    }
-
-    private void copyAssetFileOrDir(final AssetManager assetManager, final String assetPath, final File dest) throws IOException {
-        String[] files = assetManager.list(assetPath);
-        if (files.length == 0) {
-            copyAssetFile(assetManager.open(assetPath), dest);
-        } else {
-            if (!dest.exists()) {
-                if (!dest.mkdirs()) {
-                    throw new IOException("Failed to create directory: " + dest.getAbsolutePath());
-                }
-            }
-            for (String file : files) {
-                copyAssetFileOrDir(assetManager, assetPath + "/" + file, new File(dest, file));
-            }
-        }
-    }
-
-    private void copyAssetFile(final InputStream in, final File destFile) throws IOException {
-        OutputStream out = null;
-        try {
-            if (!destFile.exists()) {
-                if (!destFile.createNewFile()) {
-                    throw new IOException("Failed to create file: " + destFile.getAbsolutePath());
-                }
-            }
-            if (DEBUG) {
-                Log.d(TAG, "Created File: " + destFile.getAbsolutePath());
-            }
-            out = new FileOutputStream(destFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = in.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-            if (in != null) {
-                in.close();
-            }
-        }
-    }
-
-    private boolean deleteDir(final File dir) {
-        File[] files = dir.listFiles();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                deleteDir(file);
-            } else if (file.isFile()) {
-                if (!file.delete()) {
-                    return false;
-                }
-            }
-        }
-        if (!dir.delete()) {
-            return false;
-        }
-        return true;
     }
 
     private File getDemoDir() {
@@ -398,7 +413,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
     }
 
-    private void createDemoPageShortcut(final Context context) {
+    private void createShortcut(final Context context) {
         Intent shortcut = createDemoPageIntent();
 
         ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
@@ -413,7 +428,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
     }
 
-    private void deleteDemoPageShortcut(final Context context) {
+    private void deleteShortcut(final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // NOTE: API Level 26 以上ではショートカットを削除できない
 //            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
@@ -422,6 +437,162 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 //            shortcutManager.disableShortcuts(list);
         } else {
 
+        }
+    }
+
+    private static abstract class FileTask implements Runnable {
+
+        private final Handler mCallbackHandler;
+
+        FileTask(final Handler handler) {
+            mCallbackHandler = handler;
+        }
+
+        @Override
+        public void run() {
+            try {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onBeforeTask();
+                    }
+                });
+                execute();
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onAfterTask();
+                    }
+                });
+            } catch (final IOException e) {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onFileError(e);
+                    }
+                });
+            } catch (final Throwable e) {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onUnexpectedError(e);
+                    }
+                });
+            }
+        }
+
+        private void post(final Runnable r) {
+            mCallbackHandler.post(r);
+        }
+
+        protected void onBeforeTask() {}
+
+        protected void execute() throws IOException {}
+
+        protected void onAfterTask() {}
+
+        protected void onFileError(final IOException e) {}
+
+        protected void onUnexpectedError(final Throwable e) {}
+    }
+
+    private static class InstallTask extends FileTask {
+
+        private final AssetManager mAssetManager;
+
+        private final String mAssetPath;
+
+        private final File mDirectory;
+
+        InstallTask(final AssetManager assetManager,
+                    final String assetPath,
+                    final File directory,
+                    final Handler handler) {
+            super(handler);
+            mAssetManager = assetManager;
+            mAssetPath = assetPath;
+            mDirectory = directory;
+        }
+
+        @Override
+        protected void execute() throws IOException {
+            copyAssetFileOrDir(mAssetManager, mAssetPath, mDirectory);
+        }
+
+        private void copyAssetFileOrDir(final AssetManager assetManager, final String assetPath, final File dest) throws IOException {
+            String[] files = assetManager.list(assetPath);
+            if (files.length == 0) {
+                copyAssetFile(assetManager.open(assetPath), dest);
+            } else {
+                if (!dest.exists()) {
+                    if (!dest.mkdirs()) {
+                        throw new IOException("Failed to create directory: " + dest.getAbsolutePath());
+                    }
+                }
+                for (String file : files) {
+                    copyAssetFileOrDir(assetManager, assetPath + "/" + file, new File(dest, file));
+                }
+            }
+        }
+
+        private void copyAssetFile(final InputStream in, final File destFile) throws IOException {
+            OutputStream out = null;
+            try {
+                if (!destFile.exists()) {
+                    if (!destFile.createNewFile()) {
+                        throw new IOException("Failed to create file: " + destFile.getAbsolutePath());
+                    }
+                }
+                if (DEBUG) {
+                    Log.d(TAG, "Created File: " + destFile.getAbsolutePath());
+                }
+                out = new FileOutputStream(destFile);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+            } finally {
+                if (out != null) {
+                    out.close();
+                }
+                if (in != null) {
+                    in.close();
+                }
+            }
+        }
+    }
+
+    private static class UninstallTask extends FileTask {
+
+        private final File mDirectory;
+
+        UninstallTask(final File directory, final Handler handler) {
+            super(handler);
+            mDirectory = directory;
+        }
+
+        @Override
+        protected void execute() throws IOException {
+            if (!deleteDir(mDirectory)) {
+                throw new IOException("Failed to delete directory: " + mDirectory.getAbsolutePath());
+            }
+        }
+
+        private boolean deleteDir(final File dir) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDir(file);
+                    } else if (file.isFile()) {
+                        if (!file.delete()) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return dir.delete();
         }
     }
 }

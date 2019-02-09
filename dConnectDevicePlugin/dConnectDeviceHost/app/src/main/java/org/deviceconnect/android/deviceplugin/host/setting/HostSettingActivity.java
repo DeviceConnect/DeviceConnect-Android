@@ -27,6 +27,7 @@ public class HostSettingActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(R.string.host_settings_title);
         }
     }
 }

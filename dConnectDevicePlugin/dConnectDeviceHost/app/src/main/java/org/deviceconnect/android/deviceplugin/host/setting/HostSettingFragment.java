@@ -37,7 +37,7 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
         boolean result = super.onPreferenceTreeClick(preference);
 
         // 各説明をダイアログで表示
-        Fragment fragment = null;
+        BaseHostSettingPageFragment fragment = null;
         if (getString(R.string.pref_key_settings_gps).equals(preference.getKey())) {
             fragment = new HostGpsSettingFragment();
         } else if (getString(R.string.pref_key_settings_jpeg_quality_preview).equals(preference.getKey())) {
@@ -49,7 +49,7 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
             FragmentTransaction transaction = getFragmentManager()
                     .beginTransaction()
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.add(android.R.id.content, fragment);
+            transaction.add(android.R.id.content, fragment, fragment.getPageTag());
             transaction.addToBackStack("settings");
             transaction.commit();
         }

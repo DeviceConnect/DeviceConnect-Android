@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="host_ok">OK</string>
+    <string name="host_confirm">確認</string>
     <string name="app_name_host">Host (Device Connect Device Plug-in)</string>
 
     <string name="shutter">シャッター</string>
@@ -42,10 +43,15 @@
 
     <string name="demo_page_settings_title">デモページ</string>
     <string name="demo_page_description">Host プラグインはカメラ機能等のデモページを提供します。\n\n外部ストレージにインストールすると Web ブラウザからデモページにアクセスできるようになります。</string>
+    <string name="demo_page_settings_title_error">エラー</string>
     <string name="demo_page_settings_title_delete">削除</string>
     <string name="demo_page_settings_title_install">インストール</string>
     <string name="demo_page_settings_message_delete">デモページを外部ストレージから削除します。よろしいですか？</string>
+    <string name="demo_page_settings_message_delete_completed">正常に削除されました。</string>
+    <string name="demo_page_settings_message_delete_error">デモページの削除に失敗しました。</string>
     <string name="demo_page_settings_message_install">デモページを外部ストレージにインストールします。よろしいですか？</string>
+    <string name="demo_page_settings_message_install_completed">正常にインストールされました。</string>
+    <string name="demo_page_settings_message_install_error">デモページのインストールに失敗しました。</string>
     <string name="demo_page_settings_checkbox_shortcut">ホーム画面にショートカットを作成</string>
     <string name="demo_page_settings_button_cancel">キャンセル</string>
     <string name="demo_page_settings_button_delete">削除</string>

@@ -46,6 +46,11 @@ public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
     }
 
     @Override
+    protected String getPageTag() {
+        return "gps";
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.host_setting_gps, null);

@@ -22,6 +22,8 @@ public abstract class BaseHostSettingPageFragment extends Fragment {
 
     protected abstract String getPageTitle();
 
+    protected abstract String getPageTag();
+
     @Override
     public void onAttach(final Context context) {
         super.onAttach(context);

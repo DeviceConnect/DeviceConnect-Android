@@ -18,7 +18,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
-import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,12 +43,12 @@ import android.widget.TextView;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.demo.DemoPageInstaller;
+import org.deviceconnect.android.deviceplugin.host.demo.InstallTask;
+import org.deviceconnect.android.deviceplugin.host.demo.UninstallTask;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -94,7 +93,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private Handler mHandler;
 
-    private final Executor mExecutor = Executors.newSingleThreadExecutor();
+    private final DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo/camera");
 
     @Override
     protected String getPageTitle() {
@@ -214,27 +213,25 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             return;
         }
 
-        final File demoDir = getDemoDir();
         if (TAG_INSTALL_PROMPT.equals(tag)) {
             requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
                     // デモページをインストール
-                    asyncTask(new InstallTask(activity.getAssets(), "demo/camera", getDemoDir(), mHandler) {
+                    mDemoInstaller.install(activity.getApplicationContext(), new DemoPageInstaller.InstallCallback() {
                         @Override
-                        protected void onBeforeTask() {
+                        public void onBeforeInstall(final File demoDir) {
                             if (DEBUG) {
                                 Log.d(TAG, "Start to install demo: path=" + demoDir.getAbsolutePath());
                             }
                         }
 
                         @Override
-                        protected void onAfterTask() {
+                        public void onAfterInstall(final File demoDir) {
                             if (DEBUG) {
                                 Log.d(TAG, "Installed demo: path=" + demoDir.getAbsolutePath());
                             }
 
-                            storeInstalledVersion(activity, getCurrentVersionName(activity));
                             updateView(activity);
                             showInstallSuccessDialog();
 
@@ -244,7 +241,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                         }
 
                         @Override
-                        protected void onFileError(final IOException e) {
+                        public void onFileError(final IOException e) {
                             if (DEBUG) {
                                 Log.e(TAG, "Failed to install demo on external storage.", e);
                             }
@@ -252,13 +249,13 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                         }
 
                         @Override
-                        protected void onUnexpectedError(final Throwable e) {
+                        public void onUnexpectedError(final Throwable e) {
                             if (DEBUG) {
                                 Log.e(TAG, "Failed to install demo on external storage.", e);
                             }
                             showInstallErrorDialog(e.getMessage());
                         }
-                    });
+                    }, mHandler);
                 }
 
                 @Override
@@ -275,29 +272,29 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    // デモページをアンインストール
-                    asyncTask(new UninstallTask(demoDir, mHandler) {
+                    // デモページをアンインストール
+                    mDemoInstaller.uninstall(activity.getApplicationContext(), new DemoPageInstaller.UninstallCallback() {
                         @Override
-                        protected void onBeforeTask() {
+                        public void onBeforeUninstall(final File demoDir) {
                             if (DEBUG) {
                                 Log.d(TAG, "Start to uninstall demo: path=" + demoDir.getAbsolutePath());
                             }
                         }
 
                         @Override
-                        protected void onAfterTask() {
+                        public void onAfterUninstall(final File demoDir) {
                             if (DEBUG) {
                                 Log.d(TAG, "Uninstalled demo: path=" + demoDir.getAbsolutePath());
                             }
 
                             deleteShortcut(activity);
-                            storeInstalledVersion(activity, null);
+
                             updateView(activity);
                             showDeletionSuccessDialog();
                         }
 
                         @Override
-                        protected void onFileError(final IOException e) {
+                        public void onFileError(final IOException e) {
                             if (DEBUG) {
                                 Log.e(TAG, "Failed to install demo on external storage.", e);
                             }
@@ -305,13 +302,13 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                         }
 
                         @Override
-                        protected void onUnexpectedError(final Throwable e) {
+                        public void onUnexpectedError(final Throwable e) {
                             if (DEBUG) {
                                 Log.e(TAG, "Failed to delete demo from external storage.");
                             }
                             showDeletionErrorDialog(e.getMessage());
                         }
-                    });
+                    }, mHandler);
                 }
 
                 @Override
@@ -320,10 +317,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 }
             });
         }
-    }
-
-    private void asyncTask(final Runnable task) {
-        mExecutor.execute(task);
     }
 
     private void requestPermission(final Context context, final PermissionUtility.PermissionRequestCallback callback) {
@@ -335,7 +328,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     }
 
     private void updateView(final Context context) {
-        if (isInstalledDemoPage(context)) {
+        if (DemoPageInstaller.isInstalledDemoPage(context)) {
             mDeleteButton.setVisibility(View.VISIBLE);
             mDeleteButton.setEnabled(true);
 
@@ -367,15 +360,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
     }
 
-    private boolean isInstalledDemoPage(final Context context) {
-        String version = readInstalledVersion(context);
-        if (version == null) {
-            return false;
-        }
-        String currentVersion = getCurrentVersionName(context);
-        return version.equals(currentVersion);
-    }
-
     private boolean isCreatedShortcut(final Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
@@ -391,27 +375,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
     }
 
-    private boolean canInstallDemoPage() {
-        return true; // TODO 外部ストレージが無い場合は、UIを無効化
-    }
-
-    private File getDemoDir() {
-        return new File(getDemoRootDir(), "demo/camera");
-    }
-
-    private File getDemoRootDir() {
-        File documentDir = getDocumentDir();
-        return new File(documentDir, PLUGIN_DIR_NAME);
-    }
-
-    private File getDocumentDir() {
-        File rootDir = Environment.getExternalStorageDirectory();
-        if (DEBUG) {
-            Log.d(TAG, "Checked External storage path: " + rootDir.getAbsolutePath());
-        }
-        return new File(rootDir, DOCUMENT_DIR_NAME);
-    }
-
     private void openDemoPage(final Activity activity) {
         Intent intent = createDemoPageIntent();
         activity.startActivity(intent);
@@ -421,30 +384,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("gotapi://shortcut/" + PLUGIN_DIR_NAME + "/demo/camera/index.html"));
         return intent;
-    }
-
-    private void storeInstalledVersion(final Context context, final String versionName) {
-        SharedPreferences pref = getPreferences(context);
-        pref.edit().putString(KEY_PLUGIN_VERSION_NAME, versionName).apply();
-    }
-
-    private String readInstalledVersion(final Context context) {
-        SharedPreferences pref = getPreferences(context);
-        return pref.getString(KEY_PLUGIN_VERSION_NAME, null);
-    }
-
-    private SharedPreferences getPreferences(final Context context) {
-        return context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-    }
-
-    private String getCurrentVersionName(final Context context){
-        PackageManager pm = context.getPackageManager();
-        try{
-            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            throw new RuntimeException();
-        }
     }
 
     private void createShortcut(final Context context) {
@@ -471,162 +410,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 //            shortcutManager.disableShortcuts(list);
         } else {
 
-        }
-    }
-
-    private static abstract class FileTask implements Runnable {
-
-        private final Handler mCallbackHandler;
-
-        FileTask(final Handler handler) {
-            mCallbackHandler = handler;
-        }
-
-        @Override
-        public void run() {
-            try {
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onBeforeTask();
-                    }
-                });
-                execute();
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onAfterTask();
-                    }
-                });
-            } catch (final IOException e) {
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onFileError(e);
-                    }
-                });
-            } catch (final Throwable e) {
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        onUnexpectedError(e);
-                    }
-                });
-            }
-        }
-
-        private void post(final Runnable r) {
-            mCallbackHandler.post(r);
-        }
-
-        protected void onBeforeTask() {}
-
-        protected void execute() throws IOException {}
-
-        protected void onAfterTask() {}
-
-        protected void onFileError(final IOException e) {}
-
-        protected void onUnexpectedError(final Throwable e) {}
-    }
-
-    private static class InstallTask extends FileTask {
-
-        private final AssetManager mAssetManager;
-
-        private final String mAssetPath;
-
-        private final File mDirectory;
-
-        InstallTask(final AssetManager assetManager,
-                    final String assetPath,
-                    final File directory,
-                    final Handler handler) {
-            super(handler);
-            mAssetManager = assetManager;
-            mAssetPath = assetPath;
-            mDirectory = directory;
-        }
-
-        @Override
-        protected void execute() throws IOException {
-            copyAssetFileOrDir(mAssetManager, mAssetPath, mDirectory);
-        }
-
-        private void copyAssetFileOrDir(final AssetManager assetManager, final String assetPath, final File dest) throws IOException {
-            String[] files = assetManager.list(assetPath);
-            if (files.length == 0) {
-                copyAssetFile(assetManager.open(assetPath), dest);
-            } else {
-                if (!dest.exists()) {
-                    if (!dest.mkdirs()) {
-                        throw new IOException("Failed to create directory: " + dest.getAbsolutePath());
-                    }
-                }
-                for (String file : files) {
-                    copyAssetFileOrDir(assetManager, assetPath + "/" + file, new File(dest, file));
-                }
-            }
-        }
-
-        private void copyAssetFile(final InputStream in, final File destFile) throws IOException {
-            OutputStream out = null;
-            try {
-                if (!destFile.exists()) {
-                    if (!destFile.createNewFile()) {
-                        throw new IOException("Failed to create file: " + destFile.getAbsolutePath());
-                    }
-                }
-                if (DEBUG) {
-                    Log.d(TAG, "Created File: " + destFile.getAbsolutePath());
-                }
-                out = new FileOutputStream(destFile);
-                byte[] buffer = new byte[1024];
-                int length;
-                while ((length = in.read(buffer)) > 0) {
-                    out.write(buffer, 0, length);
-                }
-            } finally {
-                if (out != null) {
-                    out.close();
-                }
-                if (in != null) {
-                    in.close();
-                }
-            }
-        }
-    }
-
-    private static class UninstallTask extends FileTask {
-
-        private final File mDirectory;
-
-        UninstallTask(final File directory, final Handler handler) {
-            super(handler);
-            mDirectory = directory;
-        }
-
-        @Override
-        protected void execute() throws IOException {
-            if (!deleteDir(mDirectory)) {
-                throw new IOException("Failed to delete directory: " + mDirectory.getAbsolutePath());
-            }
-        }
-
-        private boolean deleteDir(final File dir) {
-            File[] files = dir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        deleteDir(file);
-                    } else if (file.isFile()) {
-                        if (!file.delete()) {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return dir.delete();
         }
     }
 

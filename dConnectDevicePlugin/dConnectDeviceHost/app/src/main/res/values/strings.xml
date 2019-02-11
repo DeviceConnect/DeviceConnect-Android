@@ -52,6 +52,8 @@
     <string name="demo_page_settings_message_install">The demo page will be installed on the external storage. OK?</string>
     <string name="demo_page_settings_message_install_completed">The demo page is installed.</string>
     <string name="demo_page_settings_message_install_error">Failed to install the demo page.</string>
+    <string name="demo_page_settings_message_update_completed">The demo page is updated.</string>
+    <string name="demo_page_settings_message_update_error">Failed to update the demo page.</string>
     <string name="demo_page_settings_checkbox_shortcut">Create a shortcut on the home screen</string>
     <string name="demo_page_settings_button_cancel">Cancel</string>
     <string name="demo_page_settings_button_delete">Delete</string>

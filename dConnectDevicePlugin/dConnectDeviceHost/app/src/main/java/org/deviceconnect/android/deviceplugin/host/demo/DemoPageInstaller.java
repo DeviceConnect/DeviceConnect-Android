@@ -1,11 +1,26 @@
+/*
+ DemoPageInstaller.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.demo;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Icon;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.app.NotificationCompat;
+
+import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +34,17 @@ public class DemoPageInstaller {
         public void onBeforeInstall(final File demoDir) {}
 
         public void onAfterInstall(final File demoDir) {}
+
+        public void onFileError(final IOException e) {}
+
+        public void onUnexpectedError(final Throwable e) {}
+    }
+
+    public static abstract class UpdateCallback {
+
+        public void onBeforeUpdate(final File demoDir) {}
+
+        public void onAfterUpdate(final File demoDir) {}
 
         public void onFileError(final IOException e) {}
 
@@ -65,6 +91,34 @@ public class DemoPageInstaller {
             @Override
             protected void onAfterTask() {
                 callback.onAfterInstall(demoDir);
+            }
+
+            @Override
+            protected void onFileError(IOException e) {
+                callback.onFileError(e);
+            }
+
+            @Override
+            protected void onUnexpectedError(Throwable e) {
+                callback.onUnexpectedError(e);
+            }
+        };
+        queueTask(task);
+    }
+
+    public void update(final Context context,
+                       final UpdateCallback callback,
+                       final Handler handler) {
+        final File demoDir = getDemoDirOnExternalStorage();
+        FileTask task = new UpdateTask(context, mRelativeDirName, demoDir, handler) {
+            @Override
+            protected void onBeforeTask() {
+                callback.onBeforeUpdate(demoDir);
+            }
+
+            @Override
+            protected void onAfterTask() {
+                callback.onAfterUpdate(demoDir);
             }
 
             @Override
@@ -130,6 +184,15 @@ public class DemoPageInstaller {
         return new File(rootDir, DOCUMENT_DIR_NAME);
     }
 
+    public static boolean isUpdateNeeded(final Context context) {
+        String version = readInstalledVersion(context);
+        if (version == null) {
+            return false;
+        }
+        String currentVersion = getCurrentVersionName(context);
+        return !version.equals(currentVersion);
+    }
+
     public static boolean isInstalledDemoPage(final Context context) {
         String version = readInstalledVersion(context);
         if (version == null) {
@@ -166,5 +229,85 @@ public class DemoPageInstaller {
         } catch (PackageManager.NameNotFoundException e) {
             throw new RuntimeException();
         }
+    }
+
+    public static class Notification {
+
+        public static final String ACTON_UPDATE_DEMO = "org.deviceconnect.android.intent.action.UPDATE_DEMO";
+
+        public static final String ACTON_CONFIRM_NEW_DEMO = "org.deviceconnect.android.intent.action.CONFIRM_NEW_DEMO";
+
+        private static final String CHANNEL_ID = "org.deviceconnect.android.deviceconnect.host.channel.demo";
+
+        private static final String CHANNEL_TITLE = "Host Plugin Demo Page";
+
+        private static final String CHANNEL_DESCRIPTION = "Host Plugin Demo Page";
+
+        private static final int NOTIFY_ID = 1;
+
+        public static void cancel(final Context context) {
+            NotificationManager notificationManager =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(NOTIFY_ID);
+        }
+
+        public static void showUpdateSuccess(final Context context) {
+            Intent notifyIntent = new Intent(ACTON_CONFIRM_NEW_DEMO);
+            show(context,
+                    context.getString(R.string.app_name_host),
+                    context.getString(R.string.demo_page_settings_message_update_completed),
+                    notifyIntent);
+        }
+
+        public static void showUpdateError(final Context context) {
+            Intent notifyIntent = new Intent(ACTON_UPDATE_DEMO);
+            show(context,
+                    context.getString(R.string.app_name_host),
+                    context.getString(R.string.demo_page_settings_message_update_error),
+                    notifyIntent);
+        }
+
+        private static void show(final Context context,
+                                 final String title,
+                                 final String body,
+                                 final Intent notifyIntent) {
+            int notifyId = NOTIFY_ID;
+            int iconType = R.drawable.dconnect_icon;
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
+                    notifyId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            android.app.Notification notification;
+            NotificationManager notificationManager =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                NotificationCompat.Builder notificationBuilder =
+                        new NotificationCompat.Builder(context)
+                                .setSmallIcon(iconType)
+                                .setContentTitle(title)
+                                .setContentText(body)
+                                .setContentIntent(pendingIntent);
+                notification = notificationBuilder.build();
+            } else {
+                android.app.Notification.Builder notificationBuilder =
+                        new android.app.Notification.Builder(context)
+                                .setSmallIcon(Icon.createWithResource(context, iconType))
+                                .setContentTitle(title)
+                                .setContentText(body)
+                                .setContentIntent(pendingIntent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    NotificationChannel channel = new NotificationChannel(
+                            CHANNEL_ID,
+                            CHANNEL_TITLE,
+                            NotificationManager.IMPORTANCE_DEFAULT);
+                    channel.setDescription(CHANNEL_DESCRIPTION);
+                    notificationManager.createNotificationChannel(channel);
+                    notificationBuilder.setChannelId(CHANNEL_ID);
+                }
+                notification = notificationBuilder.build();
+            }
+            notificationManager.notify(notifyId, notification);
+        }
+
     }
 }

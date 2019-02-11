@@ -15,11 +15,14 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
+import org.deviceconnect.android.deviceplugin.host.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
@@ -53,6 +56,8 @@ import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -97,6 +102,11 @@ public class HostDeviceService extends DConnectMessageService {
     private HostPhoneProfile mPhoneProfile;
 
     /**
+     * デモページインストーラ.
+     */
+    private DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo/camera");
+
+    /**
      * ブロードキャストレシーバー.
      */
     private final BroadcastReceiver mHostConnectionReceiver = new BroadcastReceiver() {
@@ -118,6 +128,20 @@ public class HostDeviceService extends DConnectMessageService {
         }
     };
 
+    /**
+     * デモページ関連の通知を受信するレシーバー.
+     */
+    private final BroadcastReceiver mDemoNotificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            mLogger.info("Demo Notification: " + action);
+            DemoPageInstaller.Notification.cancel(context);
+            if (DemoPageInstaller.Notification.ACTON_UPDATE_DEMO.equals(action)) {
+                updateDemoPage(context);
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -187,6 +211,15 @@ public class HostDeviceService extends DConnectMessageService {
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mHostConnectionReceiver, filter);
 
+        registerDemoNotification();
+        updateDemoPageIfNeeded();
+    }
+
+    private void registerDemoNotification() {
+        IntentFilter filter  = new IntentFilter();
+        filter.addAction(DemoPageInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
+        filter.addAction(DemoPageInstaller.Notification.ACTON_UPDATE_DEMO);
+        registerReceiver(mDemoNotificationReceiver, filter);
     }
 
     private void initRecorders(final HostDeviceRecorderManager recorderMgr) {
@@ -202,6 +235,43 @@ public class HostDeviceService extends DConnectMessageService {
         }
     }
 
+    private void updateDemoPageIfNeeded() {
+        final Context context = getApplicationContext();
+        if (DemoPageInstaller.isUpdateNeeded(context)) {
+            mLogger.info("Demo page must be updated.");
+            updateDemoPage(context);
+        } else {
+            mLogger.info("Demo page update is not needed.");
+        }
+    }
+
+    private void updateDemoPage(final Context context) {
+        mDemoInstaller.update(context, new DemoPageInstaller.UpdateCallback() {
+            @Override
+            public void onBeforeUpdate(final File demoDir) {
+                mLogger.info("Updating demo page: " + demoDir.getAbsolutePath());
+            }
+
+            @Override
+            public void onAfterUpdate(final File demoDir) {
+                mLogger.info("Updated demo page: " + demoDir.getAbsolutePath());
+                DemoPageInstaller.Notification.showUpdateSuccess(context);
+            }
+
+            @Override
+            public void onFileError(final IOException e) {
+                mLogger.severe("Failed to update demo page for file error: " + e.getMessage());
+                DemoPageInstaller.Notification.showUpdateError(context);
+            }
+
+            @Override
+            public void onUnexpectedError(final Throwable e) {
+                mLogger.severe("Failed to update demo page for unexpected error: " + e.getMessage());
+                DemoPageInstaller.Notification.showUpdateError(context);
+            }
+        }, new Handler(Looper.getMainLooper()));
+    }
+
     @Override
     public void onDestroy() {
         mRecorderMgr.stop();
@@ -211,6 +281,7 @@ public class HostDeviceService extends DConnectMessageService {
             mCameraWrapperManager.destroy();
         }
         unregisterReceiver(mHostConnectionReceiver);
+        unregisterReceiver(mDemoNotificationReceiver);
         super.onDestroy();
     }
 

@@ -38,7 +38,7 @@ class UpdateTask extends FileTask {
         }
 
         // デモページを指定されたディレクトリにインストール.
-        copyAssetFileOrDir(mAssetManager, mAssetPath, mDirectory);
+        unzip(mAssetManager.open(mAssetPath), mDirectory);
 
         // プラグインのバージョンを保存.
         DemoPageInstaller.storeInstalledVersion(getContext());

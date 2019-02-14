@@ -104,7 +104,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * デモページインストーラ.
      */
-    private DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo/camera");
+    private DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo");
 
     /**
      * ブロードキャストレシーバー.

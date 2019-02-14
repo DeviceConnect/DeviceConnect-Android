@@ -85,7 +85,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private Handler mHandler;
 
-    private final DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo/camera");
+    private final DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo");
 
     @Override
     protected String getPageTitle() {

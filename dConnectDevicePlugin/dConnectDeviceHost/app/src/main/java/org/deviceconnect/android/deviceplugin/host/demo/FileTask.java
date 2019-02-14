@@ -7,19 +7,27 @@
 package org.deviceconnect.android.deviceplugin.host.demo;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.os.Handler;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * ファイル操作タスク.
  */
 class FileTask implements Runnable {
+
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final String TAG = "host.dplugin";
 
     private final Context mContext;
 
@@ -81,46 +89,41 @@ class FileTask implements Runnable {
 
     protected void onUnexpectedError(final Throwable e) {}
 
-    static void copyAssetFileOrDir(final AssetManager assetManager,
-                                           final String assetPath,
-                                           final File dest) throws IOException {
-        String[] files = assetManager.list(assetPath);
-        if (files.length == 0) {
-            copyAssetFile(assetManager.open(assetPath), dest);
-        } else {
-            if (!dest.exists()) {
-                if (!dest.mkdirs()) {
-                    throw new IOException("Failed to create directory: " + dest.getAbsolutePath());
+    static void unzip(final InputStream src, final File destDir) throws IOException {
+        try (ZipInputStream in = new ZipInputStream(src)) {
+            ZipEntry entry;
+            while ((entry = in.getNextEntry()) != null) {
+                String name = entry.getName();
+                File targetFile = new File(destDir, name).getCanonicalFile();
+                if (DEBUG) {
+                    Log.d(TAG, "Zip Entry: name=" + name);
                 }
-            }
-            for (String file : files) {
-                copyAssetFileOrDir(assetManager, assetPath + "/" + file, new File(dest, file));
+
+                if (entry.isDirectory()) {
+                    if (!targetFile.mkdirs()) {
+                        throw new IOException("Failed to create new directory: " + targetFile.getAbsolutePath());
+                    }
+                } else {
+                    if (!targetFile.exists()) {
+                        if (!targetFile.createNewFile()) {
+                            throw new IOException("Failed to create new file: " + targetFile.getAbsolutePath());
+                        }
+                    }
+                    try (FileOutputStream out = new FileOutputStream(targetFile)) {
+                        copy(in, out);
+                    }
+                }
             }
         }
     }
 
-    private static void copyAssetFile(final InputStream in, final File destFile) throws IOException {
-        OutputStream out = null;
-        try {
-            if (!destFile.exists()) {
-                if (!destFile.createNewFile()) {
-                    throw new IOException("Failed to create file: " + destFile.getAbsolutePath());
-                }
-            }
-            out = new FileOutputStream(destFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = in.read(buffer)) > 0) {
-                out.write(buffer, 0, length);
-            }
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-            if (in != null) {
-                in.close();
-            }
+    private static void copy(final InputStream src, final OutputStream dest) throws IOException {
+        int len;
+        byte[] buf = new byte[1024];
+        while ((len = src.read(buf)) > 0) {
+            dest.write(buf, 0, len);
         }
+        dest.flush();
     }
 
     static boolean deleteDir(final File dir) {

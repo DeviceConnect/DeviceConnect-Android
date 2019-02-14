@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+def DEMO_ZIP_NAME = "demo.zip"
+
 android {
     compileSdkVersion 28
     buildToolsVersion '28.0.3'
@@ -19,6 +21,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
         versionName getVersionName()
+
+        buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
     }
 
     signingConfigs {
@@ -77,3 +81,14 @@ dependencies {
         exclude module: 'appcompat-v7'
     }
 }
+
+task zipDemo(type:Zip) {
+    File demoDir = new File(projectDir, '../demo')
+    File assetsDir = new File(projectDir, 'src/main/assets')
+
+    from demoDir
+    destinationDir assetsDir
+    archiveName = DEMO_ZIP_NAME
+}
+
+tasks.preBuild.dependsOn(zipDemo)

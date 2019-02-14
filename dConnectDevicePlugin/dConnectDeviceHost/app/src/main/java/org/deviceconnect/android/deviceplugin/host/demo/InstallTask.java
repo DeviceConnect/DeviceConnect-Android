@@ -34,7 +34,7 @@ class InstallTask extends FileTask {
     @Override
     protected void execute() throws IOException {
         // デモページを指定されたディレクトリにインストール.
-        copyAssetFileOrDir(mAssetManager, mAssetPath, mDirectory);
+        unzip(mAssetManager.open(mAssetPath), mDirectory);
 
         // プラグインのバージョンを保存.
         DemoPageInstaller.storeInstalledVersion(getContext());

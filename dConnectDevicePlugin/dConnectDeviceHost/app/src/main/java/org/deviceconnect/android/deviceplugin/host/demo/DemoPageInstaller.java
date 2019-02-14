@@ -20,6 +20,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.io.File;
@@ -74,6 +75,8 @@ public class DemoPageInstaller {
 
     private final String mRelativeDirName;
 
+    private final String mDemoZipName = BuildConfig.DEMO_ZIP;
+
     public DemoPageInstaller(final String relativeDirName) {
         mRelativeDirName = relativeDirName;
     }
@@ -82,7 +85,7 @@ public class DemoPageInstaller {
                         final InstallCallback callback,
                         final Handler handler) {
         final File demoDir = getDemoDirOnExternalStorage();
-        FileTask task = new InstallTask(context, mRelativeDirName, demoDir, handler) {
+        FileTask task = new InstallTask(context, mDemoZipName, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
                 callback.onBeforeInstall(demoDir);
@@ -110,7 +113,7 @@ public class DemoPageInstaller {
                        final UpdateCallback callback,
                        final Handler handler) {
         final File demoDir = getDemoDirOnExternalStorage();
-        FileTask task = new UpdateTask(context, mRelativeDirName, demoDir, handler) {
+        FileTask task = new UpdateTask(context, mDemoZipName, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
                 callback.onBeforeUpdate(demoDir);
@@ -171,7 +174,7 @@ public class DemoPageInstaller {
     }
 
     private File getDemoDirOnExternalStorage() {
-        return new File(getDemoRootDir(), mRelativeDirName /*"demo/camera"*/);
+        return new File(getDemoRootDir(), mRelativeDirName);
     }
 
     private static File getDemoRootDir() {

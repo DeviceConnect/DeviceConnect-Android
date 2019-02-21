@@ -151,8 +151,6 @@ class DConnectCore extends DevicePluginContext {
         }
     };
 
-    private DConnectInterface mInterface;
-
     /**
      * コンストラクタ.
      *
@@ -263,6 +261,10 @@ class DConnectCore extends DevicePluginContext {
         return R.xml.org_deviceconnect_android_manager;
     }
 
+    @Override
+    public String[] getIgnoredProfiles() {
+        return DConnectLocalOAuth.IGNORE_PROFILES;
+    }
     /**
      * DConnectSettings のインスタンスを取得します.
      *

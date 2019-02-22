@@ -206,7 +206,7 @@ public abstract class DConnectManager implements DConnectInterface {
     /**
      * Device Connect サーバを起動します.
      */
-    public void startDConnect() {
+    public void initDConnect() {
         mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);
         mCore.setDConnectInterface(this);
         mCore.setIDConnectCallback(new IDConnectCallback.Stub() {
@@ -227,7 +227,8 @@ public abstract class DConnectManager implements DConnectInterface {
             mCore.searchPlugin();
             postFinishSearchPlugin();
         });
-
+    }
+    public void startDConnect() {
         mExecutor.execute(() -> {
             if (mRESTServer != null) {
                 return;
@@ -255,7 +256,8 @@ public abstract class DConnectManager implements DConnectInterface {
      */
     public void stopDConnect() {
         mExecutor.execute(this::stopRESTServer);
-
+    }
+    public void finalizeDConnect() {
         if (mCore != null) {
             mCore.stop();
             mCore = null;
@@ -272,7 +274,7 @@ public abstract class DConnectManager implements DConnectInterface {
      * @return 動作している場合はtrue、それ以外はfalse
      */
     public boolean isRunning() {
-        return mCore != null && mCore.isRunning();
+        return mRESTServer != null && mRESTServer.isRunning();
     }
 
     /**

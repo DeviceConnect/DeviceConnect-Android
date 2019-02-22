@@ -80,6 +80,9 @@ public class RestartingDialogFragment extends DialogFragment {
             @Override
             protected Void doInBackground(final Void... params) {
                 DevicePluginManager mgr = activity.getPluginManager();
+                if (mgr == null) {
+                    return null;
+                }
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (plugin.isEnabled() && plugin.getPluginId() != null) {

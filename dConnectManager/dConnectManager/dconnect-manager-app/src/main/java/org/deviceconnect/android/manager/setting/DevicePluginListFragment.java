@@ -132,7 +132,7 @@ public class DevicePluginListFragment extends BaseSettingFragment {
 
         mPluginAdapter = new PluginAdapter(getActivity());
         View rootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_pluginlist);
+        ListView listView = rootView.findViewById(R.id.listview_pluginlist);
         listView.setAdapter(mPluginAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

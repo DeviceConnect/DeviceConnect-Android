@@ -69,8 +69,8 @@ android {
     productFlavors {
         DeviceWebApi {
             dimension "common"
-            versionCode 31
-            versionName "2.3.2"
+            versionCode 32
+            versionName "2.3.3"
             manifestPlaceholders = [
                     appIcon: "@drawable/icon",
                     appName: "@string/app_name"

@@ -86,13 +86,6 @@
         <description lang="en">Accesses mediastream recording feature.</description>
     </profile>
 
-    <profile name="phone" expireperiod="86400000">
-        <name lang="ja">電話</name>
-        <description lang="ja">電話機能にアクセスする</description>
-        <name lang="en">Phone</name>
-        <description lang="en">Accesses phone feature.</description>
-    </profile>
-
     <profile name="mediaPlayer" expireperiod="86400000">
         <name lang="ja">メディアプレイヤー</name>
         <description lang="ja">メディアプレイヤー機能にアクセスする</description>

@@ -31,7 +31,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostLightProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
@@ -48,7 +47,6 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -88,9 +86,7 @@ public class HostDeviceService extends DConnectMessageService {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (Intent.ACTION_NEW_OUTGOING_CALL.equals(action)) {
-                onReceivedOutGoingCall(intent);
-            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
                     || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
                 onChangedWifiStatus();
             } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
@@ -130,7 +126,6 @@ public class HostDeviceService extends DConnectMessageService {
         hostService.addProfile(new HostKeyEventProfile());
         hostService.addProfile(new HostMediaPlayerProfile(mHostMediaPlayerManager));
         hostService.addProfile(new HostNotificationProfile());
-        hostService.addProfile(new HostPhoneProfile());
         hostService.addProfile(new HostSettingProfile());
         hostService.addProfile(new HostTouchProfile());
         hostService.addProfile(new HostVibrationProfile());
@@ -280,22 +275,6 @@ public class HostDeviceService extends DConnectMessageService {
             WifiManager wifiMgr = getWifiManager();
             HostConnectionProfile.setEnable(wifiConnecting, wifiMgr.isWifiEnabled());
             HostConnectionProfile.setConnectStatus(mIntent, wifiConnecting);
-            sendEvent(mIntent, event.getAccessToken());
-        }
-    }
-
-    private void onReceivedOutGoingCall(final Intent intent) {
-        List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostPhoneProfile.PROFILE_NAME, null,
-                HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
-
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            Intent mIntent = EventManager.createEventMessage(event);
-            HostPhoneProfile.setAttribute(mIntent, HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
-            Bundle phoneStatus = new Bundle();
-            HostPhoneProfile.setPhoneNumber(phoneStatus, intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER));
-            HostPhoneProfile.setState(phoneStatus, CallState.START);
-            HostPhoneProfile.setPhoneStatus(mIntent, phoneStatus);
             sendEvent(mIntent, event.getAccessToken());
         }
     }

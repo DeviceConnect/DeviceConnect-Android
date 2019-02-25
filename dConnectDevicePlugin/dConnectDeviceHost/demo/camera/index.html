@@ -1,8 +1,88 @@
-<html lang="ja">
+<html>
 <head>
-<title>DEMO</title>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+
+  <script type="module" src="./js/main.js"></script>
+
+  <style>
+    #launch-progress {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+    }
+    #preview {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+  </style>
 </head>
 <body>
-<h1>DEMO</h1>
+
+<div id="app">
+  <v-app>
+
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary">
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn icon dark @click="dialog = true"><v-icon>settings</v-icon></v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+    
+    <!-- プレビュー -->
+    <img id="preview" />
+
+    <!-- くるくる -->
+    <v-progress-circular v-show="launching" indeterminate color="primary" id="launch-progress"></v-progress-circular>
+
+    <!-- レコーダー設定ダイアログ -->
+    <v-dialog
+      v-model="dialog"
+      hide-overlay>
+      <v-card>
+        <v-layout row wrap align-center>
+          <v-flex xs4>
+            <v-subheader>カメラ</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-select :items="recorderNames" v-model="selectedRecorder.id" single-line></v-select>
+          </v-flex>
+          <v-flex xs4>
+            <v-subheader>プレビューサイズ</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-select :items="selectedRecorder.options.previewSizes" v-model="selectedRecorder.previewSize" single-line></v-select>
+          </v-flex>
+          <v-flex xs4>
+            <v-subheader>撮影サイズ</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-select :items="selectedRecorder.options.imageSizes" v-model="selectedRecorder.imageSize" single-line></v-select>
+          </v-flex>
+          <v-flex xs4>
+            <v-subheader>フレームレート</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-text-field :value="selectedRecorder.options.frameRate"></v-text-field>
+          </v-flex>
+        </v-layout>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn color="primary" flat @click="dialog = false">キャンセル</v-btn>
+            <v-btn color="primary" flat @click="dialog = false; changeRecorderOption()">変更</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-app>
+</div>
+
 </body>
+
 </html>

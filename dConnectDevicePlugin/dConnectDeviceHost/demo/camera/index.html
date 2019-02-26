@@ -65,7 +65,7 @@
       <v-toolbar-side-icon @click.stop="showDrawer = !showDrawer"></v-toolbar-side-icon>
       <v-spacer></v-spacer>
       <v-toolbar-items>
-        <v-btn icon dark @click="dialog = true"><v-icon>settings</v-icon></v-btn>
+        <v-btn icon dark @click="dialog = true" :disabled="!settingsEnabled"><v-icon>settings</v-icon></v-btn>
       </v-toolbar-items>
     </v-toolbar>
 
@@ -141,6 +141,43 @@
           <v-layout justify-end>
             <v-btn color="primary" flat @click="dialog = false">キャンセル</v-btn>
             <v-btn color="primary" flat @click="dialog = false; changeRecorderOption()">変更</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- エラー表示 -->
+    <!--
+    <v-snackbar
+      v-model="showError"
+      color="error"
+      vertical
+      :top="true"
+      :timeout="showErrorTime"
+    >
+      {{ connectionErrorText }}
+      <v-btn flat>OK</v-btn>
+    </v-snackbar>
+    -->
+
+    <!-- 接続エラー表示 -->
+    <v-dialog
+      id="error-dialog"
+      v-model="showError"
+      hide-overlay
+      persistent
+      max-width="400"
+    >
+      <v-card>
+        <v-card-title class="headline" color="error">
+          <v-icon large left color="error">error_outline</v-icon>
+          <span class="title font-weight-light">エラー</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>{{ connectionErrorText }}</v-card-text>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn text flat color="error" @click="showError = false; reconnect();">RETRY</v-btn>
           </v-layout>
         </v-card-actions>
       </v-card>

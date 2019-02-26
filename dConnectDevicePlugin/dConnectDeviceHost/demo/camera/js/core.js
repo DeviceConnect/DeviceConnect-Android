@@ -185,7 +185,7 @@ export class DeviceConnectClient {
           this._sessions[host].clientId = clientId;
           return this.requestAccessToken(host, scopes);
         } else {
-          reject({ what: 'connect', reason: 'no-client' });
+          reject({ what: 'connect', reason: 'no-client', errorMessage: 'クライアントIDを取得できませんでした。' });
         }
       })
 
@@ -203,7 +203,7 @@ export class DeviceConnectClient {
           console.log('Connecting to host=' + host);
           return session.connect();
         } else {
-          reject({ what: 'connect', reason: 'no-access-token' });
+          reject({ what: 'connect', reason: 'no-access-token', errorMessage: '本アプリの使用が認可されませんでした。' });
         }
       })
 
@@ -218,12 +218,12 @@ export class DeviceConnectClient {
         if (result === 0) {
           resolve({session, services:json.services});
         } else {
-          reject({ what: 'connect', reason: 'no-service', message: json.errorMessage });
+          reject({ what: 'connect', reason: 'no-service', errorMessage: 'サービス検索に失敗しました。' });
         }
       })
       .catch(err => {
         console.error('Error', err);
-        reject({ what: 'connect', reason: 'disconnected' });
+        reject({ what: 'connect', reason: 'disconnected', errorMessage: 'Device Connect システムと接続できませんでした。' });
       })
     });
   }

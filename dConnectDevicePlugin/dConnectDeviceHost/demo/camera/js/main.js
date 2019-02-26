@@ -18,13 +18,19 @@ const sdk = new SDK.DeviceConnectClient({ appName: 'test' });
 // ルーティング設定
 Vue.component('app-recorder', {
   template: '#app-recorder',
+  props: [],
   mounted () {
+    EventBus.$on('on-launched', this.onLaunched);
     EventBus.$on('on-photo', this.onPhoto);
     EventBus.$on('on-start-recording', this.onStartRecording);
     EventBus.$on('on-stop-recording', this.onStopRecording);
   },
+  beforeDestroy () {
+    this.stopPreview();
+  },
   data () {
     return {
+      launched: false,
       latestPhotoUri: null,
       isRecording: false,
       isStartingRecording: false,
@@ -34,13 +40,13 @@ Vue.component('app-recorder', {
   },
   computed: {
     canTakePhoto: function() {
-      return !this.isRecording;
+      return this.launched && !this.isRecording;
     },
     canStopRecording: function() {
-      return !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
+      return this.launched && !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
     },
     canStartRecording: function() {
-      return !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
+      return this.launched && !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
     }
   },
   methods: {
@@ -55,6 +61,15 @@ Vue.component('app-recorder', {
     stopRecording: function() {
       this.isStoppingRecording = true;
       EventBus.$emit('stop-recording');
+    },
+    startPreview: function() {
+      EventBus.$emit('start-preview');
+    },
+    stopPreview: function() {
+      EventBus.$emit('stop-preview');
+    },
+    onLaunched: function() {
+      this.launched = true;
     },
     onPhoto: function(event) {
       console.log('onPhoto: uri=' + event.uri);
@@ -87,10 +102,15 @@ const router = new VueRouter({
 const app = new Vue({
   el: '#app',
   router,
-  created () {
+  mounted () {
+    EventBus.$on('on-launched', this.onLaunched)
     EventBus.$on('take-photo', function() { app.requestTakePhoto(); })
     EventBus.$on('start-recording', function() { app.startRecording(); })
     EventBus.$on('stop-recording', function() { app.stopRecording(); })
+    EventBus.$on('start-preview', function() { app.startPreview(); })
+    EventBus.$on('stop-preview', function() { app.stopPreview(); })
+    EventBus.$on('connection-error', this.onError)
+    connect();
   },
   data () {
     return {
@@ -98,6 +118,8 @@ const app = new Vue({
       hostService: null,
       launching: true,
       dialog: false,
+      showError: false,
+      showErrorTime: 60000,
       showDrawer: false,
       pages: [
         { path: '/', title: '撮影', icon: 'camera_alt' },
@@ -119,7 +141,9 @@ const app = new Vue({
         previewSize: null,
         imageSize: null,
         frameRate: null
-      }
+      },
+
+      connectionError: null
     }
   },
   computed: {
@@ -128,12 +152,28 @@ const app = new Vue({
       return this.recorders.map((r) => {
         return { text:r.recorder.name, value:r.recorder.id };
       });
+    },
+    connectionErrorText: function() {
+      if (this.connectionError !== null) {
+        return this.connectionError.message;
+      }
+      return '';
+    },
+    settingsEnabled: function() {
+      return !this.launching && (this.connectionError == null);
     }
   },
   methods: {
+    onLaunched() {
+      this.startPreview();
+    },
     showPage: function(path) {
       //updateButton(path);
       router.push({ path: path });
+    },
+    onError: function(event) {
+      this.connectionError = { message: event.message }
+      this.showError = true;
     },
     supportedPreviewSizes: function(recorderId) {
       console.log('supportedPreviewSizes: id=' + recorderId);
@@ -224,67 +264,86 @@ const app = new Vue({
       .catch((err) => {
         console.error('Failed to stop recording.', err);
       });
+    },
+    startPreview() {
+      const target = this.activeRecorderId;
+      startPreview(_currentSession, this.hostService.id, target, '#preview')
+      .catch((err) => {
+        console.error('Failed to start preview.', err);
+      })
+    },
+    stopPreview() {
+      const target = this.activeRecorderId;
+      stopPreview(_currentSession, this.hostService.id, target)
+      .catch((err) => {
+        console.error('Failed to stop preview.', err);
+      })
+    },
+    reconnect() {
+      connect();
     }
   }
 });
 
-sdk.connect({ host, scopes })
-.then(result => {
-  console.log('Connected', result.services);
-  _currentSession = result.session;
-  const services = result.services;
-  app.launching = false;
+function connect() {
+  sdk.connect({ host, scopes })
+  .then(result => {
+    console.log('Connected', result.services);
+    _currentSession = result.session;
+    const services = result.services;
 
-  let hostService = null;
-  for (let k in services) {
-    let service = services[k];
-    if (service.name === 'Host') {
-      hostService = service;
-      break;
+    let hostService = null;
+    for (let k in services) {
+      let service = services[k];
+      if (service.name === 'Host') {
+        hostService = service;
+        break;
+      }
     }
-  }
-  if (hostService === null) {
-    throw new Error('No Host Service.');
-  }
-  app.hostService = hostService;
+    if (hostService === null) {
+      throw new Error('No Host Service.');
+    }
+    app.hostService = hostService;
 
-  // レコーダー情報を取得
-  return getRecorderList(result.session, hostService.id)
-})
-.then(result => {
-  console.log('Recorders:', result.recorders);
-
-  // 各レコーダーのオプションを取得
-  const promises = result.recorders.map(recorder => {
-    return getRecorderOption(result.session, result.serviceId, recorder)
+    // レコーダー情報を取得
+    return getRecorderList(result.session, hostService.id)
   })
-  return Promise.all(promises)
-})
-.then(results => {
-  app.recorders = results;
+  .then(result => {
+    console.log('Recorders:', result.recorders);
 
-  // レコーダー情報を Vue に反映.
-  let current = null;
-  results.forEach(result => {
-    if (result.recorder.id === 'camera_0') {
-      current = result;
-    }
-  });
-  app.recorderSettings.id = current.recorder.id;
-  app.recorderSettings.previewSize = current.recorder.previewWidth + ' x ' + current.recorder.previewHeight;
-  app.recorderSettings.imageSize = current.recorder.imageWidth + ' x ' + current.recorder.imageHeight;
-  app.recorderSettings.frameRate = current.recorder.previewMaxFrameRate;
+    // 各レコーダーのオプションを取得
+    const promises = result.recorders.map(recorder => {
+      return getRecorderOption(result.session, result.serviceId, recorder)
+    })
+    return Promise.all(promises)
+  })
+  .then(results => {
+    app.recorders = results;
 
-  console.log('Recorder Option:', current.options);
-  return startPreview(current.session, current.serviceId, current.recorder.id, '#preview');
-})
-.then((target) => {
-  console.log('Active Recorder: target=' + target);
-  app.activeRecorderId = target;
-})
-.catch(e => {
-  console.warn('Could not connected.', e);
-})
+    // レコーダー情報を Vue に反映.
+    let current = null;
+    results.forEach(result => {
+      if (result.recorder.id === 'camera_0') {
+        current = result;
+      }
+    });
+    const r = current.recorder;
+    const settings = app.recorderSettings;
+    settings.id = r.id;
+    settings.previewSize = r.previewWidth + ' x ' + r.previewHeight;
+    settings.imageSize = r.imageWidth + ' x ' + r.imageHeight;
+    settings.frameRate = r.previewMaxFrameRate;
+
+    app.activeRecorderId = r.id;
+    app.launching = false;
+    EventBus.$emit('on-launched');
+    console.log('Active Recorder: target=' + r.id);
+  })
+  .catch((err) => {
+    console.warn('Could not connected.', err);
+    EventBus.$emit('connection-error', { message: err.errorMessage });
+  })
+}
 
 function getRecorderList(session, serviceId) {
   return new Promise((resolve, reject) => {

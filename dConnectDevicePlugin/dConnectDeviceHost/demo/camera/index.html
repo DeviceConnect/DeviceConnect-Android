@@ -159,18 +159,18 @@
       v-show="!isRecording"
       @click="startRecording()"
       :disabled="!canStartRecording"
-      icon color="primary"><v-icon dark>videocam</v-icon></v-btn>
+      large icon color="primary"><v-icon dark>videocam</v-icon></v-btn>
     <v-btn
       id="stop-recording"
       v-show="isRecording"
       @click="stopRecording()"
       :disabled="!canStopRecording"
-      icon color="primary"><v-icon dark>stop</v-icon></v-btn>
+      large icon color="primary"><v-icon dark>stop</v-icon></v-btn>
     <v-btn
       id="shutter"
       @click="requestTakePhoto()"
       :disabled="!canTakePhoto"
-      icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+      large icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
     <v-avatar
       id="thumbnail"
       v-show="latestPhotoUri !== null"

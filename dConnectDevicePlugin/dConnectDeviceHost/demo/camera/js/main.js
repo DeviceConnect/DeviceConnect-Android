@@ -1,5 +1,7 @@
 import * as SDK from './core.js'
 
+// SDK 初期化
+let _currentSession = null;
 const host = '192.168.11.5';
 const scopes = [
   'serviceDiscovery',
@@ -9,16 +11,37 @@ const scopes = [
   'canvas'
 ];
 const sdk = new SDK.DeviceConnectClient({ appName: 'test' });
-let _currentSession = null;
+
+// ルーティング設定
+Vue.component('app-recorder', {
+  template: '#app-recorder'
+})
+Vue.component('app-qr', {
+  template: '#app-qr'
+})
+const router = new VueRouter({
+  routes: [
+    { path: '/', component: { template: '<app-recorder></app-recorder>' } },
+    //{ path: '/viewer', component: { template: '<app-viewer></app-viewer>' } },
+    { path: '/qr', component: { template: '<app-qr></app-qr>' } }
+  ]
+});
 
 const app = new Vue({
   el: '#app',
+  router,
   data () {
     return {
       host: host,
       hostService: null,
       launching: true,
       dialog: false,
+      showDrawer: false,
+      pages: [
+        { path: '/', title: '撮影', icon: 'camera_alt' },
+        //{ path: '/viewer', title: 'ビューア', icon: 'collections' },
+        { path: '/qr', title: 'QRコード', icon: 'crop_free' }
+      ],
 
       // Host サービスのレコーダーの配列
       recorders: [
@@ -46,6 +69,10 @@ const app = new Vue({
     }
   },
   methods: {
+    showPage: function(path) {
+      //updateButton(path);
+      router.push({ path: path });
+    },
     supportedPreviewSizes: function(recorderId) {
       console.log('supportedPreviewSizes: id=' + recorderId);
       const recorders = this.recorders;

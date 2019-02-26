@@ -6,10 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
-
-  <script type="module" src="./js/main.js"></script>
+  <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
 
   <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+    }
+    .container {
+      margin: 0;
+      padding: 0;
+    }
     #launch-progress {
       position: absolute;
       left: 50%;
@@ -20,6 +28,16 @@
       height: 100vh;
       object-fit: cover;
     }
+    #shutter {
+      position: absolute;
+      left: 50%;
+      bottom: 20pt;
+    }
+    #video {
+      position: absolute;
+      left: 25%;
+      bottom: 20pt;
+    }
   </style>
 </head>
 <body>
@@ -29,14 +47,45 @@
 
     <!-- ツールバー -->
     <v-toolbar dark fixed color="primary">
+      <v-toolbar-side-icon @click.stop="showDrawer = !showDrawer"></v-toolbar-side-icon>
       <v-spacer></v-spacer>
       <v-toolbar-items>
         <v-btn icon dark @click="dialog = true"><v-icon>settings</v-icon></v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    
-    <!-- プレビュー -->
-    <img id="preview" />
+
+    <!-- ナビゲーションドロワー -->
+    <v-navigation-drawer
+      v-model="showDrawer"
+      absolute
+      temporary
+      >
+      <v-list class="pa-1">
+        <v-list-tile avatar>
+          <v-list-tile-content>
+            <v-list-tile-title></v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+
+      <v-list class="pt-0" dense>
+        <v-list-tile
+          v-for="page in pages"
+          :key="page.title"
+          @click="showPage(page.path)"
+        >
+          <v-list-tile-action>
+            <v-icon>{{ page.icon }}</v-icon>
+          </v-list-tile-action>
+
+          <v-list-tile-content>
+            <v-list-tile-title>{{ page.title }}</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+    </v-navigation-drawer>
+
+    <router-view></router-view>
 
     <!-- くるくる -->
     <v-progress-circular v-show="launching" indeterminate color="primary" id="launch-progress"></v-progress-circular>
@@ -86,4 +135,17 @@
 
 </body>
 
+<script type="text/x-template" id="app-recorder">
+  <v-container>
+    <img id="preview" />
+    <v-btn id="video" fab dark color="primary"><v-icon dark>videocam</v-icon></v-btn>
+    <v-btn id="shutter" fab dark color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+  </v-container>
+</script>
+<script type="text/x-template" id="app-qr">
+  <v-container fill-height class="qr-container">
+    <div><img id="qr" src="mock/qr.png"></div>
+  </v-container>
+</script>
+<script type="module" src="./js/main.js"></script>
 </html>

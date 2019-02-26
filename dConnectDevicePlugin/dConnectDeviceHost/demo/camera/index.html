@@ -33,10 +33,22 @@
       left: 50%;
       bottom: 20pt;
     }
-    #video {
+    #start-recording {
       position: absolute;
       left: 25%;
       bottom: 20pt;
+    }
+    #stop-recording {
+      position: absolute;
+      left: 25%;
+      bottom: 20pt;
+    }
+    #thumbnail {
+      position: absolute;
+      right: 30pt;
+      bottom: 30pt;
+      width: 50pt;
+      height: 50pt;
     }
   </style>
 </head>
@@ -135,13 +147,37 @@
 
 </body>
 
+<!-- 撮影画面 -->
 <script type="text/x-template" id="app-recorder">
   <v-container>
     <img id="preview" />
-    <v-btn id="video" fab dark color="primary"><v-icon dark>videocam</v-icon></v-btn>
-    <v-btn id="shutter" fab dark color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+    <v-btn
+      id="start-recording"
+      v-show="!isRecording"
+      @click="startRecording()"
+      :disabled="!canStartRecording"
+      icon color="primary"><v-icon dark>videocam</v-icon></v-btn>
+    <v-btn
+      id="stop-recording"
+      v-show="isRecording"
+      @click="stopRecording()"
+      :disabled="!canStopRecording"
+      icon color="primary"><v-icon dark>stop</v-icon></v-btn>
+    <v-btn
+      id="shutter"
+      @click="requestTakePhoto()"
+      :disabled="!canTakePhoto"
+      icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+    <v-avatar
+      id="thumbnail"
+      v-show="latestPhotoUri !== null"
+      size="50pt" v-ripple tile>
+      <img id="thumbnail-img" :src="latestPhotoUri" @on-photo="onPhoto">
+    </v-avatar>
   </v-container>
 </script>
+
+<!-- QRコード画面 -->
 <script type="text/x-template" id="app-qr">
   <v-container fill-height class="qr-container">
     <div><img id="qr" src="mock/qr.png"></div>

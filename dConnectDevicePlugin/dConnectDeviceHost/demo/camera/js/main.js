@@ -1,5 +1,8 @@
 import * as SDK from './core.js'
 
+// イベントバス
+const EventBus = new Vue();
+
 // SDK 初期化
 let _currentSession = null;
 const host = '192.168.11.5';
@@ -14,7 +17,61 @@ const sdk = new SDK.DeviceConnectClient({ appName: 'test' });
 
 // ルーティング設定
 Vue.component('app-recorder', {
-  template: '#app-recorder'
+  template: '#app-recorder',
+  mounted () {
+    EventBus.$on('on-photo', this.onPhoto);
+    EventBus.$on('on-start-recording', this.onStartRecording);
+    EventBus.$on('on-stop-recording', this.onStopRecording);
+  },
+  data () {
+    return {
+      latestPhotoUri: null,
+      isRecording: false,
+      isStartingRecording: false,
+      isStoppingRecording: false,
+      isTakingPhoto: false
+    }
+  },
+  computed: {
+    canTakePhoto: function() {
+      return !this.isRecording;
+    },
+    canStopRecording: function() {
+      return !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
+    },
+    canStartRecording: function() {
+      return !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
+    }
+  },
+  methods: {
+    requestTakePhoto: function() {
+      this.isTakingPhoto = true;
+      EventBus.$emit('take-photo');
+    },
+    startRecording: function() {
+      this.isStartingRecording = true;
+      EventBus.$emit('start-recording');
+    },
+    stopRecording: function() {
+      this.isStoppingRecording = true;
+      EventBus.$emit('stop-recording');
+    },
+    onPhoto: function(event) {
+      console.log('onPhoto: uri=' + event.uri);
+      this.isTakingPhoto = false;
+      this.latestPhotoUri = event.uri;
+    },
+    onStartRecording: function() {
+      console.log('onStartRecording:');
+      this.isRecording = true;
+      this.isStartingRecording = false;
+    },
+    onStopRecording: function() {
+      console.log('onStopRecording:');
+      this.isRecording = false;
+      this.isStoppingRecording = false;
+    },
+  }
 })
 Vue.component('app-qr', {
   template: '#app-qr'
@@ -30,6 +87,11 @@ const router = new VueRouter({
 const app = new Vue({
   el: '#app',
   router,
+  created () {
+    EventBus.$on('take-photo', function() { app.requestTakePhoto(); })
+    EventBus.$on('start-recording', function() { app.startRecording(); })
+    EventBus.$on('stop-recording', function() { app.stopRecording(); })
+  },
   data () {
     return {
       host: host,
@@ -127,6 +189,40 @@ const app = new Vue({
       })
       .catch((err) => {
         console.error('Failed to restart preview.', err);
+      });
+    },
+    requestTakePhoto: function() {
+      takePhoto(_currentSession, this.hostService.id, this.activeRecorderId)
+      .then((uri) => {
+        console.log('Photo: uri=' + uri);
+        if (uri) {
+          EventBus.$emit('on-photo', { uri: uri.replace('localhost', host) })
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to take photo.', err);
+      })
+    },
+    startRecording: function() {
+      const target = this.activeRecorderId;
+      startRecording(_currentSession, this.hostService.id, target)
+      .then(() => {
+        console.log('Started recording: target=' + target);
+        EventBus.$emit('on-start-recording');
+      })
+      .catch((err) => {
+        console.error('Failed to start recording.', err);
+      });
+    },
+    stopRecording: function() {
+      const target = this.activeRecorderId;
+      stopRecording(_currentSession, this.hostService.id, target)
+      .then(() => {
+        console.log('Stopped recording: target=' + target);
+        EventBus.$emit('on-stop-recording');
+      })
+      .catch((err) => {
+        console.error('Failed to stop recording.', err);
       });
     }
   }
@@ -316,6 +412,78 @@ function stopPreview(session, serviceId, target, imgTagSelector) {
         imgTag.src = null;
       }
       resolve();
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  })
+}
+
+function takePhoto(session, serviceId, target) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'POST',
+      path: '/gotapi/mediaStreamRecording/takePhoto',
+      params: {
+        serviceId,
+        target
+      }
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json.uri);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  })
+}
+
+function startRecording(session, serviceId, target) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'POST',
+      path: '/gotapi/mediaStreamRecording/record',
+      params: {
+        serviceId,
+        target
+      }
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json.uri);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  })
+}
+
+function stopRecording(session, serviceId, target) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'PUT',
+      path: '/gotapi/mediaStreamRecording/stop',
+      params: {
+        serviceId,
+        target
+      }
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json.uri);
     })
     .catch((err) => {
       reject(err);

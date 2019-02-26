@@ -15,6 +15,8 @@ const app = new Vue({
   el: '#app',
   data () {
     return {
+      host: host,
+      hostService: null,
       launching: true,
       dialog: false,
 
@@ -25,19 +27,13 @@ const app = new Vue({
       // プレビュー中のレコーダー
       activeRecorderId: null,
 
-      // レコーダー設定画面で選択されたレコーダー
-      selectedRecorder: {
-        host: null,
-        service: null,
-        id: 'mock',
-        name: 'Mock Recorder',
+      // 現在のレコーダー設定
+      recorderSettings: {
+        enabled: false,
+        id: null,
         previewSize: null,
         imageSize: null,
-        options: {
-          previewSizes: [],
-          imageSizes: [],
-          frameRate: 30
-        }
+        frameRate: null
       }
     }
   },
@@ -45,35 +41,62 @@ const app = new Vue({
     recorderNames: function() {
       console.log('recorderNames: recorders', this.recorders);
       return this.recorders.map((r) => {
-        return { text:r.name, value:r.id };
+        return { text:r.recorder.name, value:r.recorder.id };
       });
     }
   },
   methods: {
-    changeRecorderOption: function() {
-      const recorder = this.selectedRecorder;
-      if (!recorder) {
-        return;
+    supportedPreviewSizes: function(recorderId) {
+      console.log('supportedPreviewSizes: id=' + recorderId);
+      const recorders = this.recorders;
+      if (recorderId && recorders) {
+        for (let k in recorders) {
+          let r = recorders[k];
+          if (recorderId === r.recorder.id) {
+            console.log('options.previewSizes: ' + r.options.previewSizes);
+            return r.options.previewSizes.map(s => s.width + ' x ' + s.height);
+          }
+        }
       }
-      const imageSize = recorder.imageSize.split(' x ');
-      const previewSize = recorder.previewSize.split(' x ');
+      return null;
+    },
+    supportedImageSizes: function(recorderId) {
+      console.log('supportedImageSizes: id=' + recorderId);
+      const recorders = this.recorders;
+      if (recorderId && recorders) {
+        for (let k in recorders) {
+          let r = recorders[k];
+          if (recorderId === r.recorder.id) {
+            console.log('options.imageSizes: ' + r.options.imageSizes);
+            return r.options.imageSizes.map(s => s.width + ' x ' + s.height);
+          }
+        }
+      }
+      return null;
+    },
+    changeRecorderOption: function() {
+      const settings = this.recorderSettings;
+      const imageSize = settings.imageSize.split(' x ');
+      const previewSize = settings.previewSize.split(' x ');
       const options = {
         imageWidth: imageSize[0],
         imageHeight: imageSize[1],
         previewWidth: previewSize[0],
-        previewHeight: previewSize[1]
+        previewHeight: previewSize[1],
+        previewMaxFrameRate: settings.frameRate
       };
-      putRecorderOption(_currentSession, recorder.service, recorder.id, options)
+      const serviceId = this.hostService.id;
+      putRecorderOption(_currentSession, serviceId, settings.id, options)
       .then(() => {
-        console.log('Changed Recorder Option: service=' + recorder.service + ', target=' + recorder.id);
+        console.log('Changed Recorder Option: service=' + serviceId + ', target=' + settings.id);
         if (this.activeRecorderId === null) {
           return Promise.resolve();
         }
-        return stopPreview(_currentSession, recorder.service, this.activeRecorderId)
+        return stopPreview(_currentSession, serviceId, this.activeRecorderId)
       })
       .then(() => {
-        console.log('Changed Recorder Option: service=' + recorder.service + ', target=' + recorder.id);
-        return startPreview(_currentSession, recorder.service, recorder.id, '#preview')
+        console.log('Changed Recorder Option: service=' + serviceId + ', target=' + settings.id);
+        return startPreview(_currentSession, serviceId, settings.id, '#preview')
       })
       .catch((err) => {
         console.error('Failed to restart preview.', err);
@@ -100,6 +123,7 @@ sdk.connect({ host, scopes })
   if (hostService === null) {
     throw new Error('No Host Service.');
   }
+  app.hostService = hostService;
 
   // レコーダー情報を取得
   return getRecorderList(result.session, hostService.id)
@@ -114,51 +138,22 @@ sdk.connect({ host, scopes })
   return Promise.all(promises)
 })
 .then(results => {
+  app.recorders = results;
 
   // レコーダー情報を Vue に反映.
   let current = null;
   results.forEach(result => {
-    const r = result.recorder;
-    const o = result.options;
-    const json = {
-      id:r.id,
-      name:r.name,
-      options:o,
-      imageWidth: r.imageWidth,
-      imageHeight: r.imageHeight,
-      previewWidth: r.previewWidth,
-      previewHeight: r.previewHeight,
-      frameRate:r.previewMaxFrameRate
-    };
-    app.recorders.push(json);
-    if (r.id === 'camera_0') {
-      current = json;
+    if (result.recorder.id === 'camera_0') {
+      current = result;
     }
-  })
-  const result = results[0];
-  const selected = app.selectedRecorder;
-  if (current !== null) {
-    selected.host = result.session.host;
-    selected.service = result.serviceId;
-    selected.id = current.id;
-    selected.previewSize = current.previewWidth + ' x ' + current.previewHeight;
-    selected.imageSize = current.imageWidth + ' x ' + current.imageHeight;
+  });
+  app.recorderSettings.id = current.recorder.id;
+  app.recorderSettings.previewSize = current.recorder.previewWidth + ' x ' + current.recorder.previewHeight;
+  app.recorderSettings.imageSize = current.recorder.imageWidth + ' x ' + current.recorder.imageHeight;
+  app.recorderSettings.frameRate = current.recorder.previewMaxFrameRate;
 
-    const op = selected.options;
-    op.frameRate = current.frameRate;
-    op.previewSizes = current.options.previewSizes.map(s => {
-      const size = (s.width + ' x ' + s.height);
-      return {text:size, value:size}
-    });
-    op.imageSizes = current.options.imageSizes.map(s => {
-      const size = (s.width + ' x ' + s.height);
-      return {text:size, value:size}
-    });
-  }
-  console.log('selected recorder', selected);
-
-  console.log('Recorder Option:', result.options);
-  return startPreview(result.session, result.serviceId, result.recorder.id, '#preview');
+  console.log('Recorder Option:', current.options);
+  return startPreview(current.session, current.serviceId, current.recorder.id, '#preview');
 })
 .then((target) => {
   console.log('Active Recorder: target=' + target);
@@ -167,7 +162,6 @@ sdk.connect({ host, scopes })
 .catch(e => {
   console.warn('Could not connected.', e);
 })
-
 
 function getRecorderList(session, serviceId) {
   return new Promise((resolve, reject) => {

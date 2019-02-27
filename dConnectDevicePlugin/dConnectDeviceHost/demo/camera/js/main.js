@@ -15,6 +15,7 @@ const scopes = [
   'canvas'
 ];
 const sdk = new SDK.DeviceConnectClient({ appName: 'test' });
+const storage = new Storage();
 
 // ルーティング設定
 Vue.component('app-recorder', {
@@ -25,6 +26,9 @@ Vue.component('app-recorder', {
     EventBus.$on('on-photo', this.onPhoto);
     EventBus.$on('on-start-recording', this.onStartRecording);
     EventBus.$on('on-stop-recording', this.onStopRecording);
+    if (app && !app.launching) {
+      this.startPreview();
+    }
   },
   beforeDestroy () {
     this.stopPreview();
@@ -71,6 +75,7 @@ Vue.component('app-recorder', {
     },
     onLaunched: function() {
       this.launched = true;
+      this.startPreview();
     },
     onPhoto: function(event) {
       console.log('onPhoto: uri=' + event.uri);
@@ -86,7 +91,49 @@ Vue.component('app-recorder', {
       console.log('onStopRecording:');
       this.isRecording = false;
       this.isStoppingRecording = false;
+    }
+  }
+})
+Vue.component('app-viewer', {
+  template: '#app-viewer',
+  created () {
+    const mediaList = storage.getObject('mediaList');
+    if (mediaList !== null) {
+      this.mediaList = mediaList;
+    }
+    console.log('Created viewer: mediaList', this.mediaList);
+  },
+  mounted () {
+    //this.openPhotoSwipe();
+  },
+  data () {
+    return {
+      mediaList: []
+    }
+  },
+  methods: {
+    showImage (index) {
+      this.openPhotoSwipe(index);
     },
+    openPhotoSwipe (index) {
+      var pswpElement = document.querySelectorAll('.pswp')[0];
+      console.log('PhotoSwipe: ' + pswpElement);
+
+      var items = this.mediaList.map(media => {
+        return { src:media.uri, w:200, h:200 }
+      });
+      
+      var options = {
+          index,
+          history: false,
+          focus: false,
+          showAnimationDuration: 250,
+          hideAnimationDuration: 250
+      };
+      
+      var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
+      gallery.init();
+    }
   }
 })
 Vue.component('app-qr', {
@@ -95,11 +142,10 @@ Vue.component('app-qr', {
 const router = new VueRouter({
   routes: [
     { path: '/', component: { template: '<app-recorder></app-recorder>' } },
-    //{ path: '/viewer', component: { template: '<app-viewer></app-viewer>' } },
+    { path: '/viewer', component: { template: '<app-viewer></app-viewer>' } },
     { path: '/qr', component: { template: '<app-qr></app-qr>' } }
   ]
 });
-const storage = new Storage();
 
 const app = new Vue({
   el: '#app',
@@ -107,8 +153,9 @@ const app = new Vue({
   mounted () {
     const info = storage.getObject('session');
     console.log('Latest session:', info);
-    sdk.addSession({ host:info.host, accessToken:info.accessToken, scopes:info.scopes });
-
+    if (info !== null) {
+      sdk.addSession({ host:info.host, accessToken:info.accessToken, scopes:info.scopes });
+    }
     EventBus.$on('on-launched', this.onLaunched)
     EventBus.$on('take-photo', function() { app.requestTakePhoto(); })
     EventBus.$on('start-recording', function() { app.startRecording(); })
@@ -129,13 +176,15 @@ const app = new Vue({
       showDrawer: false,
       pages: [
         { path: '/', title: '撮影', icon: 'camera_alt' },
-        //{ path: '/viewer', title: 'ビューア', icon: 'collections' },
+        { path: '/viewer', title: 'ビューア', icon: 'collections' },
         { path: '/qr', title: 'QRコード', icon: 'crop_free' }
       ],
 
       // Host サービスのレコーダーの配列
-      recorders: [
-      ],
+      recorders: [],
+
+      // 撮影したメディアの配列
+      mediaList: [],
 
       // プレビュー中のレコーダー
       activeRecorderId: null,
@@ -170,9 +219,7 @@ const app = new Vue({
     }
   },
   methods: {
-    onLaunched() {
-      this.startPreview();
-    },
+    onLaunched() {},
     showPage: function(path) {
       //updateButton(path);
       router.push({ path: path });
@@ -243,9 +290,11 @@ const app = new Vue({
     },
     requestTakePhoto: function() {
       takePhoto(_currentSession, this.hostService.id, this.activeRecorderId)
-      .then((uri) => {
+      .then((json) => {
+        const uri = json.uri;
         console.log('Photo: uri=' + uri);
         if (uri) {
+          this.storeMedia({ type:'image', uri:json.uri });
           EventBus.$emit('on-photo', { uri: uri.replace('localhost', host) })
         }
       })
@@ -256,7 +305,7 @@ const app = new Vue({
     startRecording: function() {
       const target = this.activeRecorderId;
       startRecording(_currentSession, this.hostService.id, target)
-      .then(() => {
+      .then((json) => {
         console.log('Started recording: target=' + target);
         EventBus.$emit('on-start-recording');
       })
@@ -267,8 +316,9 @@ const app = new Vue({
     stopRecording: function() {
       const target = this.activeRecorderId;
       stopRecording(_currentSession, this.hostService.id, target)
-      .then(() => {
+      .then((json) => {
         console.log('Stopped recording: target=' + target);
+        this.storeMedia({ type:'video', uri:json.uri });
         EventBus.$emit('on-stop-recording');
       })
       .catch((err) => {
@@ -291,6 +341,11 @@ const app = new Vue({
     },
     reconnect() {
       connect();
+    },
+    storeMedia(media) {
+      this.mediaList.push(media);
+      console.log('storeMedia: ', this.mediaList);
+      storage.setObject('mediaList', this.mediaList);
     }
   }
 });
@@ -513,7 +568,8 @@ function takePhoto(session, serviceId, target) {
         reject(json);
         return;
       }
-      resolve(json.uri);
+      json.uri = json.uri.replace('localhost', session.host);
+      resolve(json);
     })
     .catch((err) => {
       reject(err);
@@ -537,7 +593,8 @@ function startRecording(session, serviceId, target) {
         reject(json);
         return;
       }
-      resolve(json.uri);
+      json.uri = json.uri.replace('localhost', session.host);
+      resolve(json);
     })
     .catch((err) => {
       reject(err);
@@ -561,7 +618,8 @@ function stopRecording(session, serviceId, target) {
         reject(json);
         return;
       }
-      resolve(json.uri);
+      json.uri = json.uri.replace('localhost', session.host);
+      resolve(json);
     })
     .catch((err) => {
       reject(err);

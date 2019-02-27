@@ -1,12 +1,17 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.1/photoswipe.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.1/default-skin/default-skin.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
   <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.1/photoswipe.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.1/photoswipe-ui-default.min.js"></script>
 
   <style>
     body {
@@ -146,20 +151,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- エラー表示 -->
-    <!--
-    <v-snackbar
-      v-model="showError"
-      color="error"
-      vertical
-      :top="true"
-      :timeout="showErrorTime"
-    >
-      {{ connectionErrorText }}
-      <v-btn flat>OK</v-btn>
-    </v-snackbar>
-    -->
-
     <!-- 接続エラー表示 -->
     <v-dialog
       id="error-dialog"
@@ -189,7 +180,7 @@
 
 <!-- 撮影画面 -->
 <script type="text/x-template" id="app-recorder">
-  <v-container>
+  <v-container class="viewer-container">
     <img id="preview" />
     <v-btn
       id="start-recording"
@@ -216,6 +207,57 @@
     </v-avatar>
   </v-container>
 </script>
+
+<!-- ビューア画面 -->
+<script type="text/x-template" id="app-viewer">
+  <v-container>
+    <v-layout row wrap>
+      <v-flex xs4 v-for="(item,i) in mediaList" :key="i">
+          <v-card class="grey lighten-3 ma-2" @click="showImage(i)">
+              <v-card-text>
+                <img :src="item.uri" width="100%" alt="">
+              </v-card-text>
+          </v-card>
+      </v-flex>
+    </v-layout>
+
+    <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="pswp__bg"></div>
+      <div class="pswp__scroll-wrap">
+        <div class="pswp__container">
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+        </div>
+        <div class="pswp__ui pswp__ui--hidden">
+          <div class="pswp__top-bar">
+            <div class="pswp__counter"></div>
+            <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+            <!-- <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> -->
+            <!-- <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button> -->
+            <div class="pswp__preloader">
+              <div class="pswp__preloader__icn">
+                <div class="pswp__preloader__cut">
+                  <div class="pswp__preloader__donut"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+            <div class="pswp__share-tooltip"></div>
+          </div>
+          <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+          <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+
+          <div class="pswp__caption">
+            <div class="pswp__caption__center"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </v-container>
+</script>
+
 
 <!-- QRコード画面 -->
 <script type="text/x-template" id="app-qr">

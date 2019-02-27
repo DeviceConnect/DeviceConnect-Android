@@ -230,8 +230,12 @@ const app = new Vue({
         return stopPreview(_currentSession, serviceId, this.activeRecorderId)
       })
       .then(() => {
-        console.log('Changed Recorder Option: service=' + serviceId + ', target=' + settings.id);
+        console.log('Stopped preview: service=' + serviceId + ', target=' + this.activeRecorderId);
         return startPreview(_currentSession, serviceId, settings.id, '#preview')
+      })
+      .then(() => {
+        console.log('Started preview: service=' + serviceId + ', target=' + settings.id);
+        this.activeRecorderId = settings.id;
       })
       .catch((err) => {
         console.error('Failed to restart preview.', err);

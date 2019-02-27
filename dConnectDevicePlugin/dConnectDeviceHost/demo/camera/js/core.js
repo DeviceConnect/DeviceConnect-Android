@@ -3,8 +3,8 @@ class Session {
   constructor(host, scopes, ssl) {
     this._host = host;
     this._scopes = scopes;
-    this._clientId = 'dummy';
-    this._token = 'dummy';
+    this._clientId = null;
+    this._token = null;
     this._webSocket = null;
     this._ssl = ssl || false;
     this._port = 4035;
@@ -151,6 +151,13 @@ export class DeviceConnectClient {
     return this._sessions;
   }
 
+  addSession(args) {
+    const host = args.host;
+    const session = new Session(args.host, args.scopes);
+    session.accessToken = args.accessToken;
+    this._sessions[host] = session;
+  }
+
   /**
    * DeviceConnect システムに接続する.
    *
@@ -165,8 +172,11 @@ export class DeviceConnectClient {
     console.log('connect(): host=' + host)
 
     return new Promise((resolve, reject) => {
-      const session = new Session(host, scopes, ssl);
-      this._sessions[host] = session;
+      let session = this._sessions[host];
+      if (!session) {
+        session = new Session(host, scopes, ssl);
+        this._sessions[host] = session;
+      }
 
       // Check Availability
       this.checkAvailability(host)
@@ -174,19 +184,11 @@ export class DeviceConnectClient {
       // Authorization
       .then(json => {
         console.log('Device Connect system is available: host=' + host);
-        return this.createClient(host);
-      })
-      .then(json => {
-        const result = json.result;
-        const clientId = json.clientId;
-        if (result === 0 && clientId) {
-          console.log('Created client: clientId=' + clientId);
-
-          this._sessions[host].clientId = clientId;
-          return this.requestAccessToken(host, scopes);
-        } else {
-          reject({ what: 'connect', reason: 'no-client', errorMessage: 'クライアントIDを取得できませんでした。' });
+        if (session.accessToken !== null) {
+          console.log('AccessToken: ' + session.accessToken);
+          return Promise.resolve({ result:0, accessToken:session.accessToken });
         }
+        return this.authorize(host, scopes);
       })
 
       // Establish WebSokcet
@@ -239,6 +241,23 @@ export class DeviceConnectClient {
     }).then(res => {
       return res.json();
     });
+  }
+
+  authorize(host, scopes) {
+    return this.createClient(host)
+    .then((json) => {
+      console.log('clientId: ' + json.clientId);
+      const result = json.result;
+      const clientId = json.clientId;
+      if (result === 0 && clientId) {
+        console.log('Created client: clientId=' + clientId);
+
+        this._sessions[host].clientId = clientId;
+        return this.requestAccessToken(host, scopes);
+      } else {
+        reject({ what: 'connect', reason: 'no-client', errorMessage: 'クライアントIDを取得できませんでした。' });
+      }
+    })
   }
 
   createClient(host) {

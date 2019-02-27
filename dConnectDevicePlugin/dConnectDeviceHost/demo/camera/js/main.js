@@ -1,11 +1,12 @@
 import * as SDK from './core.js'
+import Storage from './storage.js'
 
 // イベントバス
 const EventBus = new Vue();
 
 // SDK 初期化
 let _currentSession = null;
-const host = '192.168.11.5';
+const host = '192.168.0.19';
 const scopes = [
   'serviceDiscovery',
   'serviceInformation',
@@ -98,11 +99,16 @@ const router = new VueRouter({
     { path: '/qr', component: { template: '<app-qr></app-qr>' } }
   ]
 });
+const storage = new Storage();
 
 const app = new Vue({
   el: '#app',
   router,
   mounted () {
+    const info = storage.getObject('session');
+    console.log('Latest session:', info);
+    sdk.addSession({ host:info.host, accessToken:info.accessToken, scopes:info.scopes });
+
     EventBus.$on('on-launched', this.onLaunched)
     EventBus.$on('take-photo', function() { app.requestTakePhoto(); })
     EventBus.$on('start-recording', function() { app.startRecording(); })
@@ -286,10 +292,19 @@ const app = new Vue({
 });
 
 function connect() {
-  sdk.connect({ host, scopes })
+  sdk
+  .connect({ host, scopes })
   .then(result => {
     console.log('Connected', result.services);
     _currentSession = result.session;
+
+    // セッション情報を保存
+    storage.setObject('session', {
+      host,
+      scopes,
+      accessToken: _currentSession.accessToken
+    });
+
     const services = result.services;
 
     let hostService = null;

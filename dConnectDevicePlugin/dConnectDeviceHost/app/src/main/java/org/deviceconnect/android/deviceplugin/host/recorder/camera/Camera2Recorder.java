@@ -424,7 +424,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                     mSurfaceRecorder = null;
 
                     registerVideo(videoFile);
-                    listener.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
+                    listener.onStopped(Camera2Recorder.this, videoFile.getName());
                 }
 
                 @Override

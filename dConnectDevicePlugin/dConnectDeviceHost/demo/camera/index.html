@@ -33,6 +33,14 @@
       height: 100vh;
       object-fit: cover;
     }
+    .video-player {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      width: 100vmin;
+      height: 100vmin;
+    }
     #shutter {
       position: absolute;
       left: 50%;
@@ -212,7 +220,7 @@
 <script type="text/x-template" id="app-viewer">
   <v-container>
     <v-layout row wrap>
-      <v-flex xs4 v-for="(item,i) in mediaList" :key="i">
+      <v-flex xs4 v-for="(item,i) in mediaItems" :key="i">
           <v-card class="grey lighten-3 ma-2" @click="showImage(i)">
               <v-card-text>
                 <img :src="item.uri" width="100%" alt="">

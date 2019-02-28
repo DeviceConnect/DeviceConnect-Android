@@ -8,6 +8,12 @@ class Session {
     this._webSocket = null;
     this._ssl = ssl || false;
     this._port = 4035;
+    this._connected = false;
+    this._pendingOffers = [];
+  }
+
+  get connected() {
+    return this._connected;
   }
 
   get host() {
@@ -34,10 +40,16 @@ class Session {
 
   connect() {
     return new Promise((resolve, reject) => {
+      if (this._connected) {
+        resolve({ result: 0 });
+        return;
+      }
+
       const scheme = (this._ssl === false) ? 'ws' : 'wss';
       const host = this._host;
       const url = scheme + '://' + host + ':4035/gotapi/websocket';
       const token = this._token;
+      const session = this;
       console.log('Connecting Websocket: url=' + url);
 
       try {
@@ -55,11 +67,18 @@ class Session {
           const json = JSON.parse(message);
           if (json.result !== undefined) {
             if (json.result === 0) {
-              resolve();
+              session._connected = true;
+              console.log('onmessage: this=', this);
+              resolve(json);
             } else {
-              reject();
+              reject({ what:'ws', code:json.errorCode });
             }
           }
+        };
+        socket.onclose = function(event) {
+          console.log(host + ' - close');
+          session._webSocket = null;
+          session._connected = false;
         };
         this._webSocket = socket;
       } catch (e) {
@@ -73,6 +92,7 @@ class Session {
       this._webSocket.close();
       this._webSocket = null;
     }
+    this._connected = false;
   }
 
   getRestScheme() {
@@ -82,6 +102,23 @@ class Session {
   uri(path) {
     const scheme = this.getRestScheme();
     return scheme + '://' + this._host + ':' + this._port + path;
+  }
+
+  offer(func, params) {
+    if (this._connected === true) {
+      return func(this, params);
+    } else {
+      return new Promise((resolve, reject) => {
+        this._pendingOffers.push({func, params, resolve, reject});
+      });
+    }
+  }
+
+  processPendingOffers() {
+    const session = this;
+    this._pendingOffers.forEach(offer => {
+      func(session, offer.params).then(r => { offer.resolve(r) }).cache(e => { offer.reject(e) })
+    })
   }
 
   request(args) {
@@ -145,6 +182,7 @@ export class DeviceConnectClient {
   constructor(op) {
     this.appName = op.appName || 'Application';
     this._sessions = {};
+    this._pendingOffers = {};
   }
 
   get sessions() {
@@ -211,6 +249,8 @@ export class DeviceConnectClient {
 
       // Service Discovery
       .then(json => {
+        this.processPendingOffers(session);
+
         return this.fetchServices(host);
       })
 
@@ -222,10 +262,6 @@ export class DeviceConnectClient {
         } else {
           reject({ what: 'connect', reason: 'no-service', errorMessage: 'サービス検索に失敗しました。' });
         }
-      })
-      .catch(err => {
-        console.error('Error', err);
-        reject({ what: 'connect', reason: 'disconnected', errorMessage: 'Device Connect システムと接続できませんでした。' });
       })
     });
   }
@@ -294,13 +330,39 @@ export class DeviceConnectClient {
     });
   }
 
-  connectWebSocket(host) {
-    const session = this._sessions[host];
-
-  }
-
   fetchServices(host) {
     const session = this._sessions[host];
     return session.fetch();
+  }
+
+  offer(host, api, params) {
+    const session = this._sessions[host];
+    console.log('offer: session=', session);
+    if (session) {
+      console.log('offer: connected=' + session.connected);
+      if (session.connected) {
+        return session.offer(api, params);
+      }
+    }
+
+    let offers = this._pendingOffers[host];
+    if (!offers) {
+      offers = [];
+      this._pendingOffers[host] = offers;
+    }
+    return new Promise((resolve, reject) => {
+      offers.push({func:api, params, resolve, reject});
+    });
+  }
+
+  processPendingOffers(session) {
+    let offers = this._pendingOffers[session.host];
+    if (!offers) {
+      return;
+    }
+    offers.forEach(offer => {
+      offer.func(session, offer.params).then(r => { offer.resolve(r) }).catch(e => { offer.reject(e) })
+    })
+    this._pendingOffers[session.host] = null;
   }
 }

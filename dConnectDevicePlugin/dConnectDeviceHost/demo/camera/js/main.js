@@ -1,4 +1,5 @@
 import * as SDK from './core.js'
+import * as API from './utils.js'
 import Storage from './storage.js'
 
 // イベントバス
@@ -6,27 +7,29 @@ const EventBus = new Vue();
 
 // SDK 初期化
 let _currentSession = null;
-const host = '192.168.0.19';
+const host = '192.168.11.5';
 const scopes = [
   'serviceDiscovery',
   'serviceInformation',
   'mediaStreamRecording',
   'mediaPlayer',
-  'canvas'
+  'canvas',
+  'file'
 ];
 const sdk = new SDK.DeviceConnectClient({ appName: 'test' });
 const storage = new Storage();
+let app;
 
-// ルーティング設定
+// 撮影画面
 Vue.component('app-recorder', {
   template: '#app-recorder',
-  props: [],
   mounted () {
     EventBus.$on('on-launched', this.onLaunched);
     EventBus.$on('on-photo', this.onPhoto);
     EventBus.$on('on-start-recording', this.onStartRecording);
     EventBus.$on('on-stop-recording', this.onStopRecording);
-    if (app && !app.launching) {
+    this.launched = !app.launching;
+    if (this.launched === true) {
       this.startPreview();
     }
   },
@@ -94,6 +97,8 @@ Vue.component('app-recorder', {
     }
   }
 })
+
+// ビューア画面
 Vue.component('app-viewer', {
   template: '#app-viewer',
   created () {
@@ -104,11 +109,63 @@ Vue.component('app-viewer', {
     console.log('Created viewer: mediaList', this.mediaList);
   },
   mounted () {
-    //this.openPhotoSwipe();
+    console.log('Viewer: mounted: file=', this.$route.params.file);
+
+    // ファイル一覧を取得 → タイル表示
+    const sdk = this.$root.sdk;
+    const host = this.$root.host;
+    sdk.offer(host, API.serviceDiscovery, {})
+    .then((json) => {
+      let hostService = null;
+      json.services.forEach((s) => { if (s.name === 'Host') { hostService = s; } });
+      if (hostService === null) {
+        Promise.reject({ reason:'no-host-service' });
+        return;
+      }
+      console.log('Viewer: Host Service', hostService);
+      return sdk.offer(host, API.getFileList, { serviceId:hostService.id, order:'updateDate,desc' });
+    })
+    .then((json) => {
+      console.log('Viewer: File List: ', json);
+      const batePath = 'http://' + host + ':4035/gotapi/files?uri=content%3A%2F%2Forg.deviceconnect.android.deviceplugin.host.provider.included%2F';
+      const promises = []
+      json.files.forEach((file) => {
+        if (file.fileType === '0') {
+          if (file.mimeType === 'image/jpeg') {
+            promises.push(new Promise((resolve, reject) => {
+              const image = new Image();
+              const uri = batePath + file.fileName;
+              image.onload = function() { resolve({ type: 'image', uri, width:image.width, height:image.height }) }
+              image.src = uri;
+            }))
+          } else if (file.mimeType === 'video/mp4' ) {
+            promises.push(new Promise((resolve, reject) => { resolve({ type: 'video', uri: batePath + file.fileName }) }));
+          }
+        }
+      })
+      Promise.all(promises).then(mediaList => {
+        this.mediaList = mediaList;
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to get file list for viewer.', err)
+    })
   },
   data () {
     return {
+      gallery: null,
       mediaList: []
+    }
+  },
+  computed: {
+    mediaItems() {
+      return this.mediaList.map(m => {
+        if (m.type === 'image') {
+          return { type:m.type, uri:m.uri };
+        } else {
+          return { type:m.type, uri:'../img/play.png' };
+        }
+      });
     }
   },
   methods: {
@@ -120,13 +177,20 @@ Vue.component('app-viewer', {
       console.log('PhotoSwipe: ' + pswpElement);
 
       var items = this.mediaList.map(media => {
-        return { src:media.uri, w:200, h:200 }
-      });
+        if (media.type === 'image') {
+          return { src:media.uri, w:media.width, h:media.height }
+        } else {
+          const html = '<video class="video-player" src="' + media.uri + '" controls></video>';
+          return { html }
+        }
+      }); 
       
       var options = {
           index,
           history: false,
           focus: false,
+          closeOnScroll: false,
+          closeOnVerticalDrag: false,
           showAnimationDuration: 250,
           hideAnimationDuration: 250
       };
@@ -136,18 +200,20 @@ Vue.component('app-viewer', {
     }
   }
 })
+
 Vue.component('app-qr', {
   template: '#app-qr'
 })
+
 const router = new VueRouter({
   routes: [
     { path: '/', component: { template: '<app-recorder></app-recorder>' } },
-    { path: '/viewer', component: { template: '<app-viewer></app-viewer>' } },
+    { path: '/viewer/:file?', component: { template: '<app-viewer></app-viewer>' } },
     { path: '/qr', component: { template: '<app-qr></app-qr>' } }
   ]
 });
 
-const app = new Vue({
+app = new Vue({
   el: '#app',
   router,
   mounted () {
@@ -167,6 +233,7 @@ const app = new Vue({
   },
   data () {
     return {
+      sdk: sdk,
       host: host,
       hostService: null,
       launching: true,
@@ -268,17 +335,17 @@ const app = new Vue({
         previewMaxFrameRate: settings.frameRate
       };
       const serviceId = this.hostService.id;
-      putRecorderOption(_currentSession, serviceId, settings.id, options)
+      API.putRecorderOption(_currentSession, serviceId, settings.id, options)
       .then(() => {
         console.log('Changed Recorder Option: service=' + serviceId + ', target=' + settings.id);
         if (this.activeRecorderId === null) {
           return Promise.resolve();
         }
-        return stopPreview(_currentSession, serviceId, this.activeRecorderId)
+        return API.stopPreview(_currentSession, serviceId, this.activeRecorderId)
       })
       .then(() => {
         console.log('Stopped preview: service=' + serviceId + ', target=' + this.activeRecorderId);
-        return startPreview(_currentSession, serviceId, settings.id, '#preview')
+        return API.startPreview(_currentSession, serviceId, settings.id, '#preview')
       })
       .then(() => {
         console.log('Started preview: service=' + serviceId + ', target=' + settings.id);
@@ -289,13 +356,14 @@ const app = new Vue({
       });
     },
     requestTakePhoto: function() {
-      takePhoto(_currentSession, this.hostService.id, this.activeRecorderId)
+      API.takePhoto(_currentSession, this.hostService.id, this.activeRecorderId)
       .then((json) => {
-        const uri = json.uri;
+        let uri = json.uri;
         console.log('Photo: uri=' + uri);
         if (uri) {
-          this.storeMedia({ type:'image', uri:json.uri });
-          EventBus.$emit('on-photo', { uri: uri.replace('localhost', host) })
+          uri = uri.replace('localhost', host);
+          this.storeMedia({ type:'image', uri });
+          EventBus.$emit('on-photo', { uri })
         }
       })
       .catch((err) => {
@@ -304,7 +372,7 @@ const app = new Vue({
     },
     startRecording: function() {
       const target = this.activeRecorderId;
-      startRecording(_currentSession, this.hostService.id, target)
+      API.startRecording(_currentSession, this.hostService.id, target)
       .then((json) => {
         console.log('Started recording: target=' + target);
         EventBus.$emit('on-start-recording');
@@ -315,11 +383,15 @@ const app = new Vue({
     },
     stopRecording: function() {
       const target = this.activeRecorderId;
-      stopRecording(_currentSession, this.hostService.id, target)
+      API.stopRecording(_currentSession, this.hostService.id, target)
       .then((json) => {
+        let uri = json.uri;
         console.log('Stopped recording: target=' + target);
-        this.storeMedia({ type:'video', uri:json.uri });
-        EventBus.$emit('on-stop-recording');
+        if (uri) {
+          uri = uri.replace('localhost', host);
+          this.storeMedia({ type:'video', uri });
+          EventBus.$emit('on-stop-recording');
+        }
       })
       .catch((err) => {
         console.error('Failed to stop recording.', err);
@@ -327,14 +399,14 @@ const app = new Vue({
     },
     startPreview() {
       const target = this.activeRecorderId;
-      startPreview(_currentSession, this.hostService.id, target, '#preview')
+      API.startPreview(_currentSession, this.hostService.id, target, '#preview')
       .catch((err) => {
         console.error('Failed to start preview.', err);
       })
     },
     stopPreview() {
       const target = this.activeRecorderId;
-      stopPreview(_currentSession, this.hostService.id, target)
+      API.stopPreview(_currentSession, this.hostService.id, target)
       .catch((err) => {
         console.error('Failed to stop preview.', err);
       })
@@ -380,14 +452,14 @@ function connect() {
     app.hostService = hostService;
 
     // レコーダー情報を取得
-    return getRecorderList(result.session, hostService.id)
+    return API.getRecorderList(result.session, hostService.id)
   })
   .then(result => {
     console.log('Recorders:', result.recorders);
 
     // 各レコーダーのオプションを取得
     const promises = result.recorders.map(recorder => {
-      return getRecorderOption(result.session, result.serviceId, recorder)
+      return API.getRecorderOption(result.session, result.serviceId, recorder)
     })
     return Promise.all(promises)
   })
@@ -397,7 +469,7 @@ function connect() {
     // レコーダー情報を Vue に反映.
     let current = null;
     results.forEach(result => {
-      if (result.recorder.id === 'camera_0') {
+      if (result.recorder.id === 'camera_0' || result.recorder.id === 'video_0') {
         current = result;
       }
     });
@@ -414,215 +486,12 @@ function connect() {
     console.log('Active Recorder: target=' + r.id);
   })
   .catch((err) => {
+    if (err.what === 'ws' && err.code === 3) {
+      _currentSession.accessToken = null;
+      storage.setObject('session', { host, scopes, accessToken: null });
+    }
+
     console.warn('Could not connected.', err);
     EventBus.$emit('connection-error', { message: err.errorMessage });
-  })
-}
-
-function getRecorderList(session, serviceId) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'GET',
-      path: '/gotapi/mediaStreamRecording/mediaRecorder',
-      params: {
-        serviceId
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      const recorders = json.recorders;
-      if (result !== 0 || recorders === undefined) {
-        reject(json);
-        return;
-      }
-      resolve({session, serviceId, recorders});
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  });
-}
-
-function getRecorderOption(session, serviceId, recorder) {
-  return new Promise((resolve, reject) => {
-    const target = recorder.id;
-  
-    session.request({
-      method: 'GET',
-      path: '/gotapi/mediaStreamRecording/options',
-      params: {
-        serviceId,
-        target
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      resolve({session, serviceId, recorder, options:json});
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  })
-}
-
-function putRecorderOption(session, serviceId, target, options) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'PUT',
-      path: '/gotapi/mediaStreamRecording/options',
-      params: {
-        serviceId,
-        target,
-        imageWidth: options.imageWidth,
-        imageHeight: options.imageHeight,
-        previewWidth: options.previewWidth,
-        previewHeight: options.previewHeight,
-        mimeType: 'video/x-mjpeg'
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      resolve();
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  })
-}
-
-function startPreview(session, serviceId, target, imgTagSelector) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'PUT',
-      path: '/gotapi/mediaStreamRecording/preview',
-      params: {
-        serviceId,
-        target
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      const imgTag = document.querySelector(imgTagSelector);
-      imgTag.src = json.uri.replace('localhost', session.host);
-      resolve(target);
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  })
-}
-
-function stopPreview(session, serviceId, target, imgTagSelector) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'DELETE',
-      path: '/gotapi/mediaStreamRecording/preview',
-      params: {
-        serviceId,
-        target
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      if (imgTagSelector) {
-        const imgTag = document.querySelector(imgTagSelector);
-        imgTag.src = null;
-      }
-      resolve();
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  })
-}
-
-function takePhoto(session, serviceId, target) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'POST',
-      path: '/gotapi/mediaStreamRecording/takePhoto',
-      params: {
-        serviceId,
-        target
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      json.uri = json.uri.replace('localhost', session.host);
-      resolve(json);
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  })
-}
-
-function startRecording(session, serviceId, target) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'POST',
-      path: '/gotapi/mediaStreamRecording/record',
-      params: {
-        serviceId,
-        target
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      json.uri = json.uri.replace('localhost', session.host);
-      resolve(json);
-    })
-    .catch((err) => {
-      reject(err);
-    })
-  })
-}
-
-function stopRecording(session, serviceId, target) {
-  return new Promise((resolve, reject) => {
-    session.request({
-      method: 'PUT',
-      path: '/gotapi/mediaStreamRecording/stop',
-      params: {
-        serviceId,
-        target
-      }
-    })
-    .then((json) => {
-      const result = json.result;
-      if (result !== 0) {
-        reject(json);
-        return;
-      }
-      json.uri = json.uri.replace('localhost', session.host);
-      resolve(json);
-    })
-    .catch((err) => {
-      reject(err);
-    })
   })
 }

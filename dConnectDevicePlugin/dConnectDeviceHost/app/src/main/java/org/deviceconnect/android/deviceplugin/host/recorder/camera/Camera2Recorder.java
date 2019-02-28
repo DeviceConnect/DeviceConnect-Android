@@ -17,7 +17,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
@@ -125,7 +125,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private final CameraWrapper mCameraWrapper;
 
-    private HandlerThread mPreviewThread = new HandlerThread("preview");
+    private final HandlerThread mPreviewThread = new HandlerThread("preview");
 
     private final HandlerThread mPhotoThread = new HandlerThread("photo");
 
@@ -198,15 +198,17 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         jpeg = rotateJPEG(jpeg, 100);
 
         // ファイル保存
-        mFileManager.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
+        final String filename = createNewFileName();
+        mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
             @Override
             public void onSuccess(@NonNull final String uri) {
                 if (DEBUG) {
                     Log.d(TAG, "Saved photo: uri=" + uri);
                 }
 
-                String filePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
-                listener.onTakePhoto(uri, filePath);
+                String photoFilePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
+                registerPhoto(new File(mFileManager.getBasePath(), filename));
+                listener.onTakePhoto(uri, photoFilePath);
             }
 
             @Override
@@ -442,10 +444,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private void registerVideo(final File videoFile) {
-        if (checkVideoFile(videoFile)) {
-            // Content Providerに登録する.
-            MediaMetadataRetriever mediaMeta = new MediaMetadataRetriever();
-            mediaMeta.setDataSource(videoFile.toString());
+        if (checkMediaFile(videoFile)) {
             ContentResolver resolver = getContext().getContentResolver();
             ContentValues values = new ContentValues();
             values.put(MediaStore.Video.Media.TITLE, videoFile.getName());
@@ -453,11 +452,34 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
             values.put(MediaStore.Video.Media.DATA, videoFile.toString());
-            resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            if (uri != null) {
+                Log.d(TAG, "Registered video: uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register video: file=" + videoFile.getAbsolutePath());
+            }
         }
     }
 
-    private boolean checkVideoFile(final @NonNull File file) {
+    private void registerPhoto(final File photoFile) {
+        if (checkMediaFile(photoFile)) {
+            ContentResolver resolver = getContext().getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, photoFile.getName());
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, photoFile.getName());
+            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.DATA, photoFile.toString());
+            Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (uri != null) {
+                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+            }
+        }
+    }
+
+    private boolean checkMediaFile(final @NonNull File file) {
         return file.exists() && file.length() > 0;
     }
 

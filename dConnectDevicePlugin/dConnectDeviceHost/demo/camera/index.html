@@ -89,15 +89,6 @@
 <div id="app">
   <v-app>
 
-    <!-- ツールバー -->
-    <v-toolbar dark fixed color="primary">
-      <v-toolbar-side-icon @click.stop="showDrawer = !showDrawer"></v-toolbar-side-icon>
-      <v-spacer></v-spacer>
-      <v-toolbar-items>
-        <v-btn icon dark @click="dialog = true" :disabled="!settingsEnabled"><v-icon>settings</v-icon></v-btn>
-      </v-toolbar-items>
-    </v-toolbar>
-
     <!-- ナビゲーションドロワー -->
     <v-navigation-drawer
       v-model="showDrawer"
@@ -205,6 +196,16 @@
 <!-- 撮影画面 -->
 <script type="text/x-template" id="app-recorder">
   <v-container class="viewer-container">
+
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary" class="elevation-0">
+      <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn icon dark @click="requestRecorderSettingDialog()"><v-icon>settings</v-icon></v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+
     <img id="preview" />
     <v-btn
       id="start-recording"
@@ -235,6 +236,44 @@
 <!-- ビューア画面 -->
 <script type="text/x-template" id="app-viewer">
   <v-container>
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary" class="elevation-0">
+      <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn icon dark @click="requestCastDialog()"><v-icon>cast</v-icon></v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+
+    <!-- キャスト設定ダイアログ -->
+    <v-dialog
+      v-model="castDialog"
+    >
+      <v-card>
+        <v-card-title class="headline" color="error">
+          <v-icon left>cast</v-icon>
+          <span class="title font-weight-light">キャスト先選択</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-layout v-show="fetching" justify-center>
+            <v-progress-circular color="primary" indeterminate></v-progress-circular>
+          </v-layout>
+          <v-layout v-show="!fetching">
+            <v-radio-group v-model="currentCastableId">
+              <v-radio v-for="(item, i) in castableItems" :label="item.name" :value="item.id" :key="i" ></v-radio>
+            </v-radio-group>
+          </v-layout>
+        </v-card-text>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn v-show="!fetching" color="primary" flat @click="closeCastDialog(true)">決定</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- グリッド表示 -->
     <v-layout row wrap>
       <v-flex xs4 v-for="(item,i) in mediaItems" :key="i">
           <v-card class="grey lighten-3 ma-2" @click="showImage(i)">
@@ -245,6 +284,7 @@
       </v-flex>
     </v-layout>
 
+    <!-- ギャラリー -->
     <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="pswp__bg"></div>
       <div class="pswp__scroll-wrap">
@@ -257,8 +297,6 @@
           <div class="pswp__top-bar">
             <div class="pswp__counter"></div>
             <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
-            <!-- <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> -->
-            <!-- <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button> -->
             <div class="pswp__preloader">
               <div class="pswp__preloader__icn">
                 <div class="pswp__preloader__cut">
@@ -285,12 +323,19 @@
 
 <!-- QRコード画面 -->
 <script type="text/x-template" id="app-qr">
-  <v-container id="qrcode-page">
-    <div id="qrcode-container"></div>
-    <div id="message">
-      <div class="uri">{{ uri }}</div>
-      <div>{{ message }}</div>
-    </div>
+  <v-container>
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary" class="elevation-0">
+      <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+    </v-toolbar>
+
+    <v-container id="qrcode-page">
+      <div id="qrcode-container"></div>
+      <div id="message">
+        <div class="uri">{{ uri }}</div>
+        <div>{{ message }}</div>
+      </div>
+    </v-container>
   </v-container>
 </script>
 <script type="module" src="./js/main.js"></script>

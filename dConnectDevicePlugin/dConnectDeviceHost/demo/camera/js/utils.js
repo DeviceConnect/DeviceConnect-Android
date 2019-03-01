@@ -19,6 +19,132 @@ export function serviceDiscovery(session, params) {
   });
 }
 
+export function drawImage(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'POST',
+      path: '/gotapi/canvas/drawImage',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+export function deleteImage(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'DELETE',
+      path: '/gotapi/canvas/drawImage',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+export function getMediaList(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'GET',
+      path: '/gotapi/mediaPlayer/mediaList',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+export function setMedia(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'PUT',
+      path: '/gotapi/mediaPlayer/media',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+export function playMedia(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'PUT',
+      path: '/gotapi/mediaPlayer/play',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+export function stopMedia(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'PUT',
+      path: '/gotapi/mediaPlayer/stop',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
 export function getFileList(session, params) {
   return new Promise((resolve, reject) => {
     session.request({

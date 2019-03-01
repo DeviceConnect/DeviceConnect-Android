@@ -58,6 +58,12 @@ Vue.component('app-recorder', {
     }
   },
   methods: {
+    requestDrawer() {
+      EventBus.$emit('show-drawer');
+    },
+    requestRecorderSettingDialog() {
+      EventBus.$emit('show-recorder-setting-dialog');
+    },
     requestTakePhoto: function() {
       this.isTakingPhoto = true;
       EventBus.$emit('take-photo');
@@ -102,59 +108,40 @@ Vue.component('app-recorder', {
 Vue.component('app-viewer', {
   template: '#app-viewer',
   created () {
-    const mediaList = storage.getObject('mediaList');
-    if (mediaList !== null) {
-      this.mediaList = mediaList;
-    }
-    console.log('Created viewer: mediaList', this.mediaList);
+    console.log('Viewer: created: file=' + this.$route.params.file);
+    console.log('Viewer: created: mediaList', this.mediaList);
   },
   mounted () {
-    console.log('Viewer: mounted: file=', this.$route.params.file);
-
-    // ファイル一覧を取得 → タイル表示
-    const sdk = this.$root.sdk;
-    const host = this.$root.host;
-    sdk.offer(host, API.serviceDiscovery, {})
-    .then((json) => {
-      let hostService = null;
-      json.services.forEach((s) => { if (s.name === 'Host') { hostService = s; } });
-      if (hostService === null) {
-        Promise.reject({ reason:'no-host-service' });
-        return;
-      }
-      console.log('Viewer: Host Service', hostService);
-      return sdk.offer(host, API.getFileList, { serviceId:hostService.id, order:'updateDate,desc' });
-    })
-    .then((json) => {
-      console.log('Viewer: File List: ', json);
-      const batePath = 'http://' + host + ':4035/gotapi/files?uri=content%3A%2F%2Forg.deviceconnect.android.deviceplugin.host.provider.included%2F';
-      const promises = []
-      json.files.forEach((file) => {
-        if (file.fileType === '0') {
-          if (file.mimeType === 'image/jpeg') {
-            promises.push(new Promise((resolve, reject) => {
-              const image = new Image();
-              const uri = batePath + file.fileName;
-              image.onload = function() { resolve({ type: 'image', uri, width:image.width, height:image.height }) }
-              image.src = uri;
-            }))
-          } else if (file.mimeType === 'video/mp4' ) {
-            promises.push(new Promise((resolve, reject) => { resolve({ type: 'video', uri: batePath + file.fileName }) }));
-          }
+    const mediaList = storage.getObject('mediaList');
+    console.log('Viewer: mounted: mediaList', mediaList);
+    if (mediaList !== null) {
+      const promises = [];
+      mediaList.forEach((media) => {
+        if (media.type === 'image') {
+          promises.push(new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = function() { resolve({ type:'image', uri:media.uri, width:image.width, height:image.height }) }
+            image.onerror = function() { console.error('Viewer: onerror: uri=' + media.uri) }
+            image.src = media.uri;
+          }))
+        } else {
+          promises.push(new Promise((resolve, reject) => { resolve(media) }))
         }
-      })
+      });
       Promise.all(promises).then(mediaList => {
         this.mediaList = mediaList;
       });
-    })
-    .catch((err) => {
-      console.error('Failed to get file list for viewer.', err)
-    })
+    }
   },
-  data () {
+  data() {
     return {
       gallery: null,
-      mediaList: []
+      castDialog: false, //キャスト設定ダイアログの表示フラグ
+      fetching: false, //キャスト先の候補を取得中
+      mediaList: [], //メディア一覧
+      history: [], //表示履歴: [0]=現在, [1]=前回
+      castableItems: [],
+      currentCastableId: '' //キャスト先のサービスID. 空文字の場合はキャストしない.
     }
   },
   computed: {
@@ -173,19 +160,19 @@ Vue.component('app-viewer', {
       this.openPhotoSwipe(index);
     },
     openPhotoSwipe (index) {
-      var pswpElement = document.querySelectorAll('.pswp')[0];
+      const pswpElement = document.querySelectorAll('.pswp')[0];
       console.log('PhotoSwipe: ' + pswpElement);
 
-      var items = this.mediaList.map(media => {
+      const items = this.mediaList.map(media => {
         if (media.type === 'image') {
-          return { src:media.uri, w:media.width, h:media.height }
+          return { type:'image', src:media.uri, w:media.width, h:media.height }
         } else {
           const html = '<video class="video-player" src="' + media.uri + '" controls></video>';
-          return { html }
+          return { type:'video', html, mediaId:media.id }
         }
       }); 
       
-      var options = {
+      const options = {
           index,
           history: false,
           focus: false,
@@ -195,8 +182,106 @@ Vue.component('app-viewer', {
           hideAnimationDuration: 250
       };
       
-      var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
+      const gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
+      const viewer = this;
+      gallery.listen('beforeChange', function() {
+        viewer.history[1] = viewer.history[0];
+        viewer.history[0] = gallery.currItem;
+        viewer.onMediaChange(gallery)
+      });
+      gallery.listen('close', function() { viewer.onGallaryClose(gallery) });
       gallery.init();
+    },
+    onMediaChange(gallery) {
+      const serviceId = this.currentCastableId;
+      if (serviceId !== '') {
+        const item = gallery.currItem;
+        console.log('Viewer: gallery: beforeChange: index=' + gallery.getCurrentIndex(), item);
+
+        // 前回の画面を閉じてから、メディア再生.
+        this.closeMedia(this.history[1], serviceId)
+        .then((json) => {
+          return this.openMedia(item, serviceId);
+        });
+      }
+    },
+    onGallaryClose(gallery) {
+      const serviceId = this.currentCastableId;
+      if (serviceId !== '') {
+        this.closeMedia(gallery.currItem, serviceId);
+      }
+    },
+    openMedia(item, serviceId) {
+      if (item.type === 'image') {
+        return this.drawImage({ serviceId, uri:item.src, mimeType:'image/jpeg', mode:'scales' });
+      } else if (item.type === 'video') {
+        return this.startVideo({ serviceId, mediaId:item.mediaId });
+      }
+    },
+    closeMedia(item, serviceId) {
+      if (!item) {
+        return Promise.resolve({result:0});
+      }
+      if (item.type === 'image') {
+        return this.deleteImage({ serviceId });
+      } else if (item.type === 'video') {
+        return this.stopVideo({ serviceId });
+      }
+    },
+    requestDrawer() {
+      EventBus.$emit('show-drawer');
+    },
+    requestCastDialog() {
+      this.castDialog = true;
+      if (this.fetching) {
+        return;
+      }
+      this.fetching = true;
+
+      this.offer(API.serviceDiscovery)
+      .then((json) => {
+        console.log('Viewer: ', json);
+        let castableList = [];
+        const expectedScopes = ['canvas', 'mediaPlayer'];
+        if (json.services) {
+          castableList = json.services.filter(service => {
+            return service.scopes.some(scope => {
+              return expectedScopes.some(expected => { return expected === scope; })
+            })
+          })
+        }
+        castableList.splice(0, 0, { id: '', name: 'キャストしない' });
+        console.log('Viwer: castable services', castableList);
+        this.castableItems = castableList.map(castable => { return { id:castable.id, name:castable.name } })
+        this.fetching = false;
+      })
+      .catch((err) => {
+        console.error('Viewer: Failed to fetch services.', err);
+        this.fetching = false;
+      })
+    },
+    closeCastDialog(change) {
+      this.castDialog = false;
+    },
+    drawImage(params) {
+      return this.offer(API.drawImage, params);
+    },
+    deleteImage(params) {
+      return this.offer(API.deleteImage, params);
+    },
+    startVideo(params) {
+      this.offer(API.setMedia, params)
+      .then((json) => {
+        console.log('Viewer: Set video');
+        return this.offer(API.playMedia, { serviceId:params.serviceId })
+      })
+    },
+    stopVideo(params) {
+      return this.offer(API.stopMedia, params);
+    },
+    offer(api, params) {
+      params = params || {};
+      return this.$root.sdk.offer(this.$root.host, api, params)
     }
   }
 })
@@ -235,22 +320,30 @@ Vue.component('app-qr', {
       parent.innerHTML = html;
       const element = parent.firstChild;
       return element;
+    },
+    requestDrawer() {
+      EventBus.$emit('show-drawer');
     }
   }
 })
 
-const router = new VueRouter({
-  routes: [
-    { path: '/', component: { template: '<app-recorder></app-recorder>' } },
-    { path: '/viewer/:file?', component: { template: '<app-viewer></app-viewer>' } },
-    { path: '/qr', component: { template: '<app-qr></app-qr>' } }
-  ]
-});
+const routes = [
+  { path: '/', component: { template: '<app-recorder></app-recorder>' } },
+  { path: '/viewer/:file?', component: { template: '<app-viewer></app-viewer>' } },
+  { path: '/qr', component: { template: '<app-qr></app-qr>' } }
+];
+const router = new VueRouter({ routes });
 
 app = new Vue({
   el: '#app',
   router,
-  mounted () {
+  created() {
+    this.checkMode(this.$router.currentRoute);
+    this.$router.afterEach((to, from) => {
+      this.checkMode(to);
+    })
+  },
+  mounted() {
     const info = storage.getObject('session');
     console.log('Latest session:', info);
     if (info !== null) {
@@ -263,10 +356,13 @@ app = new Vue({
     EventBus.$on('start-preview', function() { app.startPreview(); })
     EventBus.$on('stop-preview', function() { app.stopPreview(); })
     EventBus.$on('connection-error', this.onError)
+    EventBus.$on('show-drawer', this.openDrawer)
+    EventBus.$on('show-recorder-setting-dialog', this.openRecorderSettingDialog)
     connect();
   },
-  data () {
+  data() {
     return {
+      mode: null, // 'recorder', 'viewer', 'qr'
       sdk: sdk,
       host: host,
       hostService: null,
@@ -276,9 +372,9 @@ app = new Vue({
       showErrorTime: 60000,
       showDrawer: false,
       pages: [
-        { path: '/', title: '撮影', icon: 'camera_alt' },
-        { path: '/viewer', title: 'ビューア', icon: 'collections' },
-        { path: '/qr', title: 'QRコード', icon: 'crop_free' }
+        { mode:'recorder', path: '/', title: '撮影', icon: 'camera_alt' },
+        { mode:'viewer', path: '/viewer', title: 'ビューア', icon: 'collections' },
+        { mode:'qr', path: '/qr', title: 'QRコード', icon: 'crop_free' }
       ],
 
       // Host サービスのレコーダーの配列
@@ -321,8 +417,16 @@ app = new Vue({
   },
   methods: {
     onLaunched() {},
+    openDrawer() { this.showDrawer = true; },
+    openRecorderSettingDialog() { this.dialog = true; },
+    checkMode(route) {
+      for (let k in routes) { if (route.path.startsWith(routes[k].path)) { this.mode = routes[k].mode; break; } }
+      console.log('App: Current Mode: ' + this.mode + ' for ' + route.path);
+    },
+    isMode(mode) {
+      return this.mode === mode;
+    },
     showPage: function(path) {
-      //updateButton(path);
       router.push({ path: path });
     },
     onError: function(event) {
@@ -336,7 +440,6 @@ app = new Vue({
         for (let k in recorders) {
           let r = recorders[k];
           if (recorderId === r.recorder.id) {
-            console.log('options.previewSizes: ' + r.options.previewSizes);
             return r.options.previewSizes.map(s => s.width + ' x ' + s.height);
           }
         }
@@ -350,7 +453,6 @@ app = new Vue({
         for (let k in recorders) {
           let r = recorders[k];
           if (recorderId === r.recorder.id) {
-            console.log('options.imageSizes: ' + r.options.imageSizes);
             return r.options.imageSizes.map(s => s.width + ' x ' + s.height);
           }
         }
@@ -393,10 +495,11 @@ app = new Vue({
       API.takePhoto(_currentSession, this.hostService.id, this.activeRecorderId)
       .then((json) => {
         let uri = json.uri;
-        console.log('Photo: uri=' + uri);
-        if (uri) {
+        const path = json.path;
+        console.log('Photo: path=' + path + ', uri=' + uri);
+        if (uri && path) {
           uri = uri.replace('localhost', host);
-          this.storeMedia({ type:'image', uri });
+          this.storeMedia({ type:'image', uri, path });
           EventBus.$emit('on-photo', { uri })
         }
       })
@@ -417,14 +520,39 @@ app = new Vue({
     },
     stopRecording: function() {
       const target = this.activeRecorderId;
+      const media = {};
       API.stopRecording(_currentSession, this.hostService.id, target)
       .then((json) => {
         let uri = json.uri;
+        const path = json.path;
         console.log('Stopped recording: target=' + target);
-        if (uri) {
+        if (uri && path) {
           uri = uri.replace('localhost', host);
-          this.storeMedia({ type:'video', uri });
+          media.type = 'video';
+          media.uri = uri;
+          media.path = path;
+          return API.getMediaList(_currentSession, { serviceId: this.hostService.id });
+        } else {
+          reject(); // TODO: エラー詳細を通知
+        }
+      })
+      .then((json) => {
+        // path に対応する mediaId を特定.
+        // (MediaPlayer Play APIのパラメータとして必要)
+        let mediaId = null;
+        json.media.some((m) => {
+          if (media.path.includes(m.title)) {
+            mediaId = m.mediaId;
+            return true;
+          }
+        });
+        console.log('Recorder: Recorded Video: mediaId=' + mediaId);
+        if (mediaId !== null) {
+          media.id = mediaId;
+          this.storeMedia(media);
           EventBus.$emit('on-stop-recording');
+        } else {
+          reject(); // TODO: エラー詳細を通知
         }
       })
       .catch((err) => {

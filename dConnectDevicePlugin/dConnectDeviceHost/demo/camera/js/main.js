@@ -201,8 +201,42 @@ Vue.component('app-viewer', {
   }
 })
 
+// QRコード画面
 Vue.component('app-qr', {
-  template: '#app-qr'
+  template: '#app-qr',
+  created() {
+    this.uri = location.protocol + '//' + location.host + '/org.deviceconnect.android.deviceplugin.host/demo/camera/index.html';
+  },
+  mounted() {
+    console.log('QR Code: uri=' + this.uri);
+    const container = document.querySelector('#qrcode-container');
+    container.appendChild(this.generateQR(this.uri));
+  },
+  data() {
+    return {
+      uri: null,
+      message: '「QRコード」は株式会社デンソーウェーブの登録商標です。'
+    }
+  },
+  methods: {
+    generateQR(text) {
+      const qr = qrcode(11, 'L');
+      qr.addData(text);
+      qr.make();
+
+      const img = this.createElementFromHTML(qr.createImgTag());
+      img.id = 'qrcode';
+      img.removeAttribute('width');
+      img.removeAttribute('height');
+      return img;
+    },
+    createElementFromHTML(html) {
+      const parent = document.createElement('div');
+      parent.innerHTML = html;
+      const element = parent.firstChild;
+      return element;
+    }
+  }
 })
 
 const router = new VueRouter({

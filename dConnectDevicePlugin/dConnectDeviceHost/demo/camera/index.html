@@ -12,6 +12,7 @@
   <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.1/photoswipe.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.1/photoswipe-ui-default.min.js"></script>
+  <script src="./libs/qrcode.js"></script>
 
   <style>
     body {
@@ -65,6 +66,21 @@
       bottom: 30pt;
       width: 50pt;
       height: 50pt;
+    }
+    #qrcode-page {
+      position: absolute;
+      top: 50%;
+      -webkit-transform: translate(0, -50%);
+      text-align: center;
+    }
+    #qrcode {
+      width: 50vmin;
+      height: 50vmin;
+    }
+    #message .uri {
+      font-size: 1em;
+      font-weight: bold;
+      margin: 1.5em;
     }
   </style>
 </head>
@@ -269,8 +285,12 @@
 
 <!-- QRコード画面 -->
 <script type="text/x-template" id="app-qr">
-  <v-container fill-height class="qr-container">
-    <div><img id="qr" src="mock/qr.png"></div>
+  <v-container id="qrcode-page">
+    <div id="qrcode-container"></div>
+    <div id="message">
+      <div class="uri">{{ uri }}</div>
+      <div>{{ message }}</div>
+    </div>
   </v-container>
 </script>
 <script type="module" src="./js/main.js"></script>

@@ -82,6 +82,10 @@ Vue.component('app-recorder', {
     stopPreview: function() {
       EventBus.$emit('stop-preview');
     },
+    showMedia: function() {
+      const encodedUri = encodeURIComponent(this.latestPhotoUri);
+      EventBus.$emit('show-media', { uri:encodedUri });
+    },
     onLaunched: function() {
       this.launched = true;
       this.startPreview();
@@ -107,16 +111,15 @@ Vue.component('app-recorder', {
 // ビューア画面
 Vue.component('app-viewer', {
   template: '#app-viewer',
-  created () {
-    console.log('Viewer: created: file=' + this.$route.params.file);
-    console.log('Viewer: created: mediaList', this.mediaList);
-  },
   mounted () {
+    const fileUri = this.$route.params.file;
+    console.log('Viewer: created: file=' + fileUri);
+
     const mediaList = storage.getObject('mediaList');
     console.log('Viewer: mounted: mediaList', mediaList);
     if (mediaList !== null) {
       const promises = [];
-      mediaList.forEach((media) => {
+      mediaList.forEach((media, index) => {
         if (media.type === 'image') {
           promises.push(new Promise((resolve, reject) => {
             const image = new Image();
@@ -129,7 +132,16 @@ Vue.component('app-viewer', {
         }
       });
       Promise.all(promises).then(mediaList => {
+        let mediaIndex = -1;
+        mediaList.forEach((media, index) => {
+          if (media.uri === fileUri) {
+            mediaIndex = index;
+          }
+        });
         this.mediaList = mediaList;
+        if (mediaIndex >= 0) {
+          this.showImage(mediaIndex);
+        }
       });
     }
   },
@@ -334,6 +346,7 @@ const routes = [
 ];
 const router = new VueRouter({ routes });
 
+// アプリケーション定義
 app = new Vue({
   el: '#app',
   router,
@@ -358,6 +371,7 @@ app = new Vue({
     EventBus.$on('connection-error', this.onError)
     EventBus.$on('show-drawer', this.openDrawer)
     EventBus.$on('show-recorder-setting-dialog', this.openRecorderSettingDialog)
+    EventBus.$on('show-media', this.openMedia)
     connect();
   },
   data() {
@@ -575,6 +589,9 @@ app = new Vue({
     },
     reconnect() {
       connect();
+    },
+    openMedia(args) {
+      router.push({ path: '/viewer/' + args.uri });
     },
     storeMedia(media) {
       this.mediaList.push(media);

@@ -226,6 +226,7 @@
       large icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
     <v-avatar
       id="thumbnail"
+      @click="showMedia()"
       v-show="latestPhotoUri !== null"
       size="50pt" v-ripple tile>
       <img id="thumbnail-img" :src="latestPhotoUri" @on-photo="onPhoto">

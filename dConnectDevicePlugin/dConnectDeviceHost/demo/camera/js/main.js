@@ -7,7 +7,7 @@ const EventBus = new Vue();
 
 // SDK 初期化
 let _currentSession = null;
-const host = '192.168.11.5';
+const host = ipAddress() || location.hostname;
 const scopes = [
   'serviceDiscovery',
   'serviceInformation',
@@ -673,4 +673,8 @@ function connect() {
     console.warn('Could not connected.', err);
     EventBus.$emit('connection-error', { message: err.errorMessage });
   })
+}
+
+function ipAddress() {
+  return (new URL(document.location)).searchParams.get('ip');
 }

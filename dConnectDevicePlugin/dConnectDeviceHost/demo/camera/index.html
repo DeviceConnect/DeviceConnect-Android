@@ -286,7 +286,7 @@
           <v-card class="grey lighten-3 ma-2" @click="showImage(i)">
               <v-card-text>
                 <img :src="item.uri" width="100%" alt="">
-                <v-icon class="video-mark" x-large color="white">play_circle_filled</v-icon>
+                <v-icon v-show="item.type === 'video'" class="video-mark" x-large color="white">play_circle_filled</v-icon>
               </v-card-text>
           </v-card>
       </v-flex>

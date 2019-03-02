@@ -67,6 +67,12 @@
       width: 50pt;
       height: 50pt;
     }
+    .video-mark {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      -webkit-transform: translate(-50%, -50%);
+    }
     #qrcode-page {
       position: absolute;
       top: 50%;
@@ -227,9 +233,9 @@
     <v-avatar
       id="thumbnail"
       @click="showMedia()"
-      v-show="latestPhotoUri !== null"
+      v-show="latestMediaThumbnailUri !== null"
       size="50pt" v-ripple tile>
-      <img id="thumbnail-img" :src="latestPhotoUri" @on-photo="onPhoto">
+      <img id="thumbnail-img" :src="latestMediaThumbnailUri" @on-photo="onPhoto">
     </v-avatar>
   </v-container>
 </script>
@@ -280,6 +286,7 @@
           <v-card class="grey lighten-3 ma-2" @click="showImage(i)">
               <v-card-text>
                 <img :src="item.uri" width="100%" alt="">
+                <v-icon class="video-mark" x-large color="white">play_circle_filled</v-icon>
               </v-card-text>
           </v-card>
       </v-flex>

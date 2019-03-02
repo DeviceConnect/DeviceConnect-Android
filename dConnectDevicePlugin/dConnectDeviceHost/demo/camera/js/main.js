@@ -39,7 +39,8 @@ Vue.component('app-recorder', {
   data () {
     return {
       launched: false,
-      latestPhotoUri: null,
+      latestMediaUri: null,
+      latestMediaThumbnailUri: null,
       isRecording: false,
       isStartingRecording: false,
       isStoppingRecording: false,
@@ -83,7 +84,7 @@ Vue.component('app-recorder', {
       EventBus.$emit('stop-preview');
     },
     showMedia: function() {
-      const encodedUri = encodeURIComponent(this.latestPhotoUri);
+      const encodedUri = encodeURIComponent(this.latestMediaUri);
       EventBus.$emit('show-media', { uri:encodedUri });
     },
     onLaunched: function() {
@@ -92,16 +93,19 @@ Vue.component('app-recorder', {
     },
     onPhoto: function(event) {
       console.log('onPhoto: uri=' + event.uri);
+      this.latestMediaUri = event.uri;
+      this.latestMediaThumbnailUri = event.uri;
       this.isTakingPhoto = false;
-      this.latestPhotoUri = event.uri;
     },
     onStartRecording: function() {
       console.log('onStartRecording:');
       this.isRecording = true;
       this.isStartingRecording = false;
     },
-    onStopRecording: function() {
-      console.log('onStopRecording:');
+    onStopRecording: function(event) {
+      console.log('onStopRecording: uri=' + event.uri + ', thumbnailUri= ' + event.thumbnailUri);
+      this.latestMediaUri = event.uri;
+      this.latestMediaThumbnailUri = event.thumbnailUri;
       this.isRecording = false;
       this.isStoppingRecording = false;
     }
@@ -132,12 +136,15 @@ Vue.component('app-viewer', {
         }
       });
       Promise.all(promises).then(mediaList => {
+
+        // 指定されたメディアのインデックスを特定.
         let mediaIndex = -1;
         mediaList.forEach((media, index) => {
           if (media.uri === fileUri) {
             mediaIndex = index;
           }
         });
+
         this.mediaList = mediaList;
         if (mediaIndex >= 0) {
           this.showImage(mediaIndex);
@@ -162,7 +169,7 @@ Vue.component('app-viewer', {
         if (m.type === 'image') {
           return { type:m.type, uri:m.uri };
         } else {
-          return { type:m.type, uri:'../img/play.png' };
+          return { type:m.type, uri:m.thumbnailUri };
         }
       });
     }
@@ -566,17 +573,22 @@ app = new Vue({
         // path に対応する mediaId を特定.
         // (MediaPlayer Play APIのパラメータとして必要)
         let mediaId = null;
+        let thumbnailUri = null;
         json.media.some((m) => {
           if (media.path.includes(m.title)) {
             mediaId = m.mediaId;
+            if (m.imageUri) {
+              thumbnailUri = m.imageUri.replace('localhost', host);
+            }
             return true;
           }
         });
         console.log('Recorder: Recorded Video: mediaId=' + mediaId);
         if (mediaId !== null) {
           media.id = mediaId;
+          media.thumbnailUri = thumbnailUri;
           this.storeMedia(media);
-          EventBus.$emit('on-stop-recording');
+          EventBus.$emit('on-stop-recording', { uri:media.uri, thumbnailUri });
         } else {
           reject(); // TODO: エラー詳細を通知
         }

@@ -98,8 +98,8 @@
     <!-- ナビゲーションドロワー -->
     <v-navigation-drawer
       v-model="showDrawer"
-      absolute
       temporary
+      fixed
       >
       <v-list class="pa-1">
         <v-list-tile avatar>
@@ -217,19 +217,16 @@
       id="start-recording"
       v-show="!isRecording"
       @click="startRecording()"
-      :disabled="!canStartRecording"
-      large icon color="primary"><v-icon dark>videocam</v-icon></v-btn>
+      large fab icon color="primary"><v-icon dark>videocam</v-icon></v-btn>
     <v-btn
       id="stop-recording"
       v-show="isRecording"
       @click="stopRecording()"
-      :disabled="!canStopRecording"
-      large icon color="primary"><v-icon dark>stop</v-icon></v-btn>
+      large fab icon color="red"><v-icon dark>stop</v-icon></v-btn>
     <v-btn
       id="shutter"
       @click="requestTakePhoto()"
-      :disabled="!canTakePhoto"
-      large icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+      large fab icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
     <v-avatar
       id="thumbnail"
       @click="showMedia()"
@@ -242,7 +239,7 @@
 
 <!-- ビューア画面 -->
 <script type="text/x-template" id="app-viewer">
-  <v-container>
+  <v-container grid-list-sm fluid>
     <!-- ツールバー -->
     <v-toolbar dark fixed color="primary" class="elevation-0">
       <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
@@ -251,6 +248,7 @@
         <v-btn icon dark @click="requestCastDialog()"><v-icon>cast</v-icon></v-btn>
       </v-toolbar-items>
     </v-toolbar>
+    <v-toolbar class="elevation-0"></v-toolbar> <!-- サムネイル位置調整用のダミー -->
 
     <!-- キャスト設定ダイアログ -->
     <v-dialog
@@ -283,11 +281,9 @@
     <!-- グリッド表示 -->
     <v-layout row wrap>
       <v-flex xs4 v-for="(item,i) in mediaItems" :key="i">
-          <v-card class="grey lighten-3 ma-2" @click="showImage(i)">
-              <v-card-text>
-                <img :src="item.uri" width="100%" alt="">
-                <v-icon v-show="item.type === 'video'" class="video-mark" x-large color="white">play_circle_filled</v-icon>
-              </v-card-text>
+          <v-card flat tile @click="showImage(i)">
+            <v-img :src="item.uri" width="100%" alt=""></v-img>
+            <v-icon v-show="item.type === 'video'" class="video-mark" x-large color="white">play_circle_filled</v-icon>
           </v-card>
       </v-flex>
     </v-layout>

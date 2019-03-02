@@ -49,7 +49,7 @@ Vue.component('app-recorder', {
   },
   computed: {
     canTakePhoto: function() {
-      return this.launched && !this.isRecording;
+      return this.launched;
     },
     canStopRecording: function() {
       return this.launched && !this.isStartingRecording && !this.isStoppingRecording && !this.isTakingPhoto;
@@ -66,14 +66,23 @@ Vue.component('app-recorder', {
       EventBus.$emit('show-recorder-setting-dialog');
     },
     requestTakePhoto: function() {
+      if (!this.canTakePhoto) {
+        return;
+      }
       this.isTakingPhoto = true;
       EventBus.$emit('take-photo');
     },
     startRecording: function() {
+      if (!this.canStartRecording) {
+        return;
+      }
       this.isStartingRecording = true;
       EventBus.$emit('start-recording');
     },
     stopRecording: function() {
+      if (!this.canStopRecording) {
+        return;
+      }
       this.isStoppingRecording = true;
       EventBus.$emit('stop-recording');
     },

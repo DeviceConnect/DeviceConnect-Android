@@ -268,6 +268,9 @@ Vue.component('app-viewer', {
         });
       }
     },
+    showRecorder() {
+      EventBus.$emit('show-recorder');
+    },
     requestDrawer() {
       EventBus.$emit('show-drawer');
     },
@@ -398,6 +401,7 @@ app = new Vue({
     EventBus.$on('stop-preview', function() { app.stopPreview(); })
     EventBus.$on('connection-error', this.onError)
     EventBus.$on('show-drawer', this.openDrawer)
+    EventBus.$on('show-recorder', this.openRecorder)
     EventBus.$on('show-recorder-setting-dialog', this.openRecorderSettingDialog)
     EventBus.$on('show-media', this.openMedia)
     connect();
@@ -622,6 +626,9 @@ app = new Vue({
     },
     reconnect() {
       connect();
+    },
+    openRecorder(args) {
+      router.push({ path: '/' });
     },
     openMedia(args) {
       router.push({ path: '/viewer/' + args.uri });

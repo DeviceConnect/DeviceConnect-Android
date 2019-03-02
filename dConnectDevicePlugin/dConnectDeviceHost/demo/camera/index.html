@@ -31,7 +31,7 @@
     }
     #preview {
       width: 100vw;
-      height: 100vh;
+      height: 100%;
       object-fit: cover;
     }
     .video-player {
@@ -43,27 +43,27 @@
       height: 100vmin;
     }
     #shutter {
-      position: absolute;
+      position: fixed;
       left: 50%;
-      bottom: 20pt;
+      bottom: 16px;
       -webkit-transform: translate(-50%, 0);
     }
     #start-recording {
-      position: absolute;
+      position: fixed;
       left: 25%;
-      bottom: 20pt;
+      bottom: 24px;
       -webkit-transform: translate(-50%, 0);
     }
     #stop-recording {
-      position: absolute;
+      position: fixed;
       left: 25%;
-      bottom: 20pt;
+      bottom: 24px;
       -webkit-transform: translate(-50%, 0);
     }
     #thumbnail {
-      position: absolute;
-      right: 30pt;
-      bottom: 30pt;
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
       width: 50pt;
       height: 50pt;
     }
@@ -75,8 +75,8 @@
     }
     #qrcode-page {
       position: absolute;
-      top: 50%;
-      -webkit-transform: translate(0, -50%);
+      top: 25%;
+      -webkit-transform: translate(0, -25%);
       text-align: center;
     }
     #qrcode {
@@ -84,9 +84,10 @@
       height: 50vmin;
     }
     #message .uri {
-      font-size: 1em;
-      font-weight: bold;
-      margin: 1.5em;
+      margin-top: 1.0em;
+      margin-bottom: 1.0em;
+      margin-left: 2.0em;
+      margin-right: 2.0em;
     }
   </style>
 </head>
@@ -104,7 +105,7 @@
       <v-list class="pa-1">
         <v-list-tile avatar>
           <v-list-tile-content>
-            <v-list-tile-title></v-list-tile-title>
+            <v-list-tile-title>デモページ</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
@@ -201,11 +202,12 @@
 
 <!-- 撮影画面 -->
 <script type="text/x-template" id="app-recorder">
-  <v-container class="viewer-container">
+  <v-container>
 
     <!-- ツールバー -->
     <v-toolbar dark fixed color="primary" class="elevation-0">
       <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-toolbar-title>撮影</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items>
         <v-btn icon dark @click="requestRecorderSettingDialog()"><v-icon>settings</v-icon></v-btn>
@@ -217,16 +219,16 @@
       id="start-recording"
       v-show="!isRecording"
       @click="startRecording()"
-      large fab icon color="primary"><v-icon dark>videocam</v-icon></v-btn>
+      fab icon fixed color="secondary"><v-icon dark>videocam</v-icon></v-btn>
     <v-btn
       id="stop-recording"
       v-show="isRecording"
       @click="stopRecording()"
-      large fab icon color="red"><v-icon dark>stop</v-icon></v-btn>
+      fab fixed color="red"><v-icon>stop</v-icon></v-btn>
     <v-btn
       id="shutter"
       @click="requestTakePhoto()"
-      large fab icon color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+      large fab fixed color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
     <v-avatar
       id="thumbnail"
       @click="showMedia()"
@@ -243,6 +245,7 @@
     <!-- ツールバー -->
     <v-toolbar dark fixed color="primary" class="elevation-0">
       <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-toolbar-title>ビューア</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items>
         <v-btn icon dark @click="requestCastDialog()"><v-icon>cast</v-icon></v-btn>
@@ -321,6 +324,11 @@
         </div>
       </div>
     </div>
+
+    <!-- 撮影画面遷移ボタン -->
+    <v-btn
+      @click="showRecorder()"
+      large fab fixed bottom right color="primary"><v-icon>camera_alt</v-icon></v-btn>
   </v-container>
 </script>
 
@@ -331,12 +339,13 @@
     <!-- ツールバー -->
     <v-toolbar dark fixed color="primary" class="elevation-0">
       <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-toolbar-title>QRコード</v-toolbar-title>
     </v-toolbar>
 
     <v-container id="qrcode-page">
       <div id="qrcode-container"></div>
       <div id="message">
-        <div class="uri">{{ uri }}</div>
+        <v-textarea auto-grow rows="1" readonly outline label="URL" class="uri" :value="uri"></v-textarea>
         <div>{{ message }}</div>
       </div>
     </v-container>

@@ -235,9 +235,21 @@ Vue.component('app-viewer', {
         return Promise.resolve({result:0});
       }
       if (item.type === 'image') {
-        return this.deleteImage({ serviceId });
+        return this.deleteImage({ serviceId }).catch((err) => {
+          if (err.errorCode === 16) {
+            return Promise.resolve({ result: 0 });
+          } else {
+            return Promise.reject(err);
+          }
+        });
       } else if (item.type === 'video') {
-        return this.stopVideo({ serviceId });
+        return this.stopVideo({ serviceId }).catch((err) => {
+          if (err.errorCode === 16) {
+            return Promise.resolve({ result: 0 });
+          } else {
+            return Promise.reject(err);
+          }
+        });
       }
     },
     requestDrawer() {

@@ -17,6 +17,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -31,8 +32,8 @@ import android.view.WindowManager;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
@@ -41,6 +42,7 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -445,6 +447,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private void registerVideo(final File videoFile) {
         if (checkMediaFile(videoFile)) {
+            String filePath = videoFile.getAbsolutePath();
             ContentResolver resolver = getContext().getContentResolver();
             ContentValues values = new ContentValues();
             values.put(MediaStore.Video.Media.TITLE, videoFile.getName());
@@ -452,13 +455,101 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
             values.put(MediaStore.Video.Media.DATA, videoFile.toString());
+            long thumbnailId = registerVideoThumbnail(videoFile);
+            if (thumbnailId > -1) {
+                values.put(MediaStore.Video.Media.MINI_THUMB_MAGIC, thumbnailId);
+            }
             Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
-            if (uri != null) {
-                Log.d(TAG, "Registered video: uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register video: file=" + videoFile.getAbsolutePath());
+
+            // 動画IDをサムネイルDBに挿入.
+            try {
+                if (uri != null && thumbnailId > -1) {
+                    String id = uri.getLastPathSegment();
+                    if (id != null) {
+                        long videoId = Long.parseLong(id);
+                        boolean updated = updateThumbnailInfo(thumbnailId, videoId);
+                        if (updated) {
+                            if (DEBUG) {
+                                Log.d(TAG, "Updated videoID on thumbnail info: videoId="
+                                        + videoId + ", thumbnailId=" + thumbnailId);
+                            }
+                        } else {
+                            Log.w(TAG, "Failed to update videoID on thumbnail info: videoId="
+                                    + videoId + ", thumbnailId=" + thumbnailId);
+                        }
+                    }
+                }
+            } catch (NumberFormatException e) {
+                Log.w(TAG, "Failed to parse videoID as long type: video URI=" + uri, e);
+            }
+            if (DEBUG) {
+                if (uri != null) {
+                    Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
+                } else {
+                    Log.e(TAG, "Failed to register video: file=" + filePath);
+                }
             }
         }
+    }
+
+    private long registerVideoThumbnail(final File videoFile) {
+        String videoFilePath = videoFile.getAbsolutePath();
+        final int kind = MediaStore.Images.Thumbnails.MINI_KIND;
+        Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFilePath, kind);
+
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, data);
+        String fileName = videoFile.getName() + ".jpg";
+
+        try {
+            String thumbnailFilePath = mFileManager.saveFile(fileName, data.toByteArray());
+            if (DEBUG) {
+                Log.d(TAG, "Stored thumbnail file: path=" + thumbnailFilePath);
+            }
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Video.Thumbnails.DATA, thumbnailFilePath);
+            values.put(MediaStore.Video.Thumbnails.WIDTH, thumbnail.getWidth());
+            values.put(MediaStore.Video.Thumbnails.HEIGHT, thumbnail.getHeight());
+            values.put(MediaStore.Video.Thumbnails.KIND, kind);
+            ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
+            Uri uri = resolver.insert(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) {
+                Log.e(TAG, "Failed to register video thumbnail on content provider: videoFilePath=" + videoFilePath);
+                return -1;
+            }
+            if (DEBUG) {
+                Log.d(TAG, "Registered video thumbnail: uri=" + uri.toString());
+            }
+            String id = uri.getLastPathSegment();
+            if (id == null) {
+                Log.e(TAG, "Thumbnail ID is not found in URI: " + uri);
+                return -1;
+            }
+            return Long.parseLong(id);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to store video thumbnail by FileManager: videoFilePath=" + videoFilePath, e);
+            return -1;
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
+            return -1;
+        } finally {
+            thumbnail.recycle();
+        }
+    }
+
+    private boolean updateThumbnailInfo(final long thumbnailId, final long videoId) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Video.Thumbnails.VIDEO_ID, videoId);
+        return updateThumbnailInfo(thumbnailId, values);
+    }
+
+    private boolean updateThumbnailInfo(final long thumbnailId, final ContentValues values) {
+        ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
+        Uri uri = MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
+        String where = MediaStore.Video.Thumbnails._ID + " =?";
+        String[] args = { Long.toString(thumbnailId) };
+        int result = resolver.update(uri, values, where, args);
+        return result == 1;
     }
 
     private void registerPhoto(final File photoFile) {
@@ -471,10 +562,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.DATA, photoFile.toString());
             Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            if (uri != null) {
-                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+            if (DEBUG) {
+                if (uri != null) {
+                    Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+                } else {
+                    Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+                }
             }
         }
     }

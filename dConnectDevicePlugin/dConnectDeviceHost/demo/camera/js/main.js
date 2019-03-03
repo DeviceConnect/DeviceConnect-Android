@@ -677,21 +677,27 @@ function connect() {
     console.log('Recorders:', result.recorders);
 
     // 各レコーダーのオプションを取得
-    const promises = result.recorders.map(recorder => {
+    const promises = result.recorders
+    .map(recorder => {
       return API.getRecorderOption(result.session, result.serviceId, recorder)
     })
     return Promise.all(promises)
   })
   .then(results => {
-    app.recorders = results;
+    app.recorders = results.filter(result => {
+      const types = result.options.mimeType;
+      return (((types.includes('image/jpg')
+        || types.includes('image/jpeg'))
+        || types.includes('video/mp4'))
+        && types.includes('video/x-mjpeg'));
+    });
 
     // レコーダー情報を Vue に反映.
     let current = null;
-    results.forEach(result => {
-      if (result.recorder.id === 'camera_0' || result.recorder.id === 'video_0') {
-        current = result;
-      }
-    });
+    results.forEach(result => { if (result.recorder.id === 'camera_0') { current = result; } });
+    if (current == null) {
+      current = results[0];
+    }
     const r = current.recorder;
     const settings = app.recorderSettings;
     settings.id = r.id;

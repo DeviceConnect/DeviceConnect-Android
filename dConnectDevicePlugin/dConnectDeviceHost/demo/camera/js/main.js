@@ -333,7 +333,7 @@ Vue.component('app-viewer', {
 Vue.component('app-qr', {
   template: '#app-qr',
   created() {
-    this.uri = location.protocol + '//' + location.host + '/org.deviceconnect.android.deviceplugin.host/demo/camera/index.html';
+    this.uri = location.protocol + '//' + location.host + '/index.html' + location.search;
   },
   mounted() {
     console.log('QR Code: uri=' + this.uri);

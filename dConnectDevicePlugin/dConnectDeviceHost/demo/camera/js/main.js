@@ -517,7 +517,8 @@ app = new Vue({
         previewMaxFrameRate: settings.frameRate
       };
       const serviceId = this.hostService.id;
-      API.putRecorderOption(_currentSession, serviceId, settings.id, options)
+      console.log('Changing Recorder Option...', options);
+      API.putRecorderOptions(_currentSession, serviceId, settings.id, options)
       .then(() => {
         console.log('Changed Recorder Option: service=' + serviceId + ', target=' + settings.id);
         if (this.activeRecorderId === null) {
@@ -679,7 +680,7 @@ function connect() {
     // 各レコーダーのオプションを取得
     const promises = result.recorders
     .map(recorder => {
-      return API.getRecorderOption(result.session, result.serviceId, recorder)
+      return API.getRecorderOptions(result.session, result.serviceId, recorder)
     })
     return Promise.all(promises)
   })

@@ -190,7 +190,7 @@ export function getRecorderList(session, serviceId) {
   });
 }
 
-export function getRecorderOption(session, serviceId, recorder) {
+export function getRecorderOptions(session, serviceId, recorder) {
   return new Promise((resolve, reject) => {
     const target = recorder.id;
   
@@ -216,7 +216,7 @@ export function getRecorderOption(session, serviceId, recorder) {
   })
 }
 
-export function putRecorderOption(session, serviceId, target, options) {
+export function putRecorderOptions(session, serviceId, target, options) {
   return new Promise((resolve, reject) => {
     session.request({
       method: 'PUT',
@@ -228,6 +228,7 @@ export function putRecorderOption(session, serviceId, target, options) {
         imageHeight: options.imageHeight,
         previewWidth: options.previewWidth,
         previewHeight: options.previewHeight,
+        previewMaxFrameRate: options.previewMaxFrameRate,
         mimeType: 'video/x-mjpeg'
       }
     })

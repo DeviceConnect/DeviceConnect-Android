@@ -248,7 +248,12 @@
       <v-toolbar-title>ビューア</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items>
-        <v-btn icon dark @click="requestCastDialog()"><v-icon>cast</v-icon></v-btn>
+          <v-btn icon dark @click="requestCastDialog()">
+              <v-badge v-model="hasCastTarget" right bottom overlap color="success">
+                <template v-slot:badge><v-icon dark small>done</v-icon></template>
+                <v-icon>cast</v-icon>
+              </v-badge>
+          </v-btn>
       </v-toolbar-items>
     </v-toolbar>
     <v-toolbar class="elevation-0"></v-toolbar> <!-- サムネイル位置調整用のダミー -->
@@ -268,7 +273,7 @@
             <v-progress-circular color="primary" indeterminate></v-progress-circular>
           </v-layout>
           <v-layout v-show="!fetching">
-            <v-radio-group v-model="currentCastableId">
+            <v-radio-group v-model="currentCastTargetId">
               <v-radio v-for="(item, i) in castableItems" :label="item.name" :value="item.id" :key="i" ></v-radio>
             </v-radio-group>
           </v-layout>

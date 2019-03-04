@@ -126,10 +126,19 @@ Vue.component('app-viewer', {
   template: '#app-viewer',
   mounted () {
     const fileUri = this.$route.params.file;
-    console.log('Viewer: created: file=' + fileUri);
+    console.log('Viewer: mounted: file=' + fileUri);
+    
+    const castTargetId = storage.getString('castTargetId');
+    if (castTargetId != null) {
+      this.currentCastTargetId = castTargetId;
+      this.hasCastTarget = true;
+    }
+    console.log('Viewer: mounted: castTargetId=' + castTargetId);
+    console.log('Viewer: mounted: currentCastTargetId=' + this.currentCastTargetId);
 
     const mediaList = storage.getObject('mediaList');
     console.log('Viewer: mounted: mediaList', mediaList);
+
     if (mediaList !== null) {
       const promises = [];
       mediaList.forEach((media, index) => {
@@ -161,6 +170,10 @@ Vue.component('app-viewer', {
       });
     }
   },
+  beforeDestroy() {
+    console.log('Viewer: beforeDestroy: currentCastTargetId=' + this.currentCastTargetId);
+    storage.setString('castTargetId', this.currentCastTargetId);
+  },
   data() {
     return {
       gallery: null,
@@ -169,7 +182,13 @@ Vue.component('app-viewer', {
       mediaList: [], //メディア一覧
       history: [], //表示履歴: [0]=現在, [1]=前回
       castableItems: [],
-      currentCastableId: '' //キャスト先のサービスID. 空文字の場合はキャストしない.
+      currentCastTargetId: null, //キャスト先のサービスID. 空文字の場合はキャストしない.
+      hasCastTarget: false
+    }
+  },
+  watch: {
+    currentCastTargetId: function(newValue) {
+      this.hasCastTarget = newValue != null;
     }
   },
   computed: {
@@ -221,8 +240,8 @@ Vue.component('app-viewer', {
       gallery.init();
     },
     onMediaChange(gallery) {
-      const serviceId = this.currentCastableId;
-      if (serviceId !== '') {
+      const serviceId = this.currentCastTargetId;
+      if (serviceId !== null) {
         const item = gallery.currItem;
         console.log('Viewer: gallery: beforeChange: index=' + gallery.getCurrentIndex(), item);
 
@@ -234,8 +253,8 @@ Vue.component('app-viewer', {
       }
     },
     onGallaryClose(gallery) {
-      const serviceId = this.currentCastableId;
-      if (serviceId !== '') {
+      const serviceId = this.currentCastTargetId;
+      if (serviceId !== null) {
         this.closeMedia(gallery.currItem, serviceId);
       }
     },
@@ -293,7 +312,7 @@ Vue.component('app-viewer', {
             })
           })
         }
-        castableList.splice(0, 0, { id: '', name: 'キャストしない' });
+        castableList.splice(0, 0, { id: null, name: 'キャストしない' });
         console.log('Viwer: castable services', castableList);
         this.castableItems = castableList.map(castable => { return { id:castable.id, name:castable.name } })
         this.fetching = false;

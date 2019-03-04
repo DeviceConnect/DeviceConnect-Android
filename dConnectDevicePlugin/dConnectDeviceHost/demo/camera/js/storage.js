@@ -5,12 +5,20 @@ export default class {
     console.log('Local Storage: ' + localStorage.length);
   }
 
+  setString(key, value) {
+    this._storage.setItem(key, value);
+  }
+
+  getString(key) {
+    return this._storage.getItem(key);
+  }
+
   setObject(key, value) {
     this._storage.setItem(key, JSON.stringify(value));
   }
 
   getObject(key) {
-    const value = this._storage.getItem(key);
+    const value = this.getString(key);
     console.log('Local Storage: key=' + key + ', value=' + value);
     if (value == null) {
       return null;

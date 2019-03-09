@@ -68,6 +68,17 @@
                     android:targetClass="org.deviceconnect.android.manager.setting.WebSocketListActivity" />
         </PreferenceScreen>
         <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/key_settings_accesslog"
+            android:summary="@string/activity_settings_accesslog_summary"
+            android:title="@string/activity_settings_accesslog_title" />
+        <PreferenceScreen
+            android:key="@string/key_settings_accesslog_list"
+            android:title="@string/activity_settings_accesslog">
+            <intent android:targetPackage="org.deviceconnect.android.manager"
+                    android:targetClass="org.deviceconnect.android.manager.accesslog.AccessLogActivity" />
+        </PreferenceScreen>
+        <CheckBoxPreference
             android:key="@string/key_settings_dconn_observer_on_off"
             android:summary="@string/activity_settings_observer_summary"
             android:title="@string/activity_settings_observer" />

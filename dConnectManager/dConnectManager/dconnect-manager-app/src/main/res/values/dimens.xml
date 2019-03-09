@@ -5,4 +5,7 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="item_deviceplugin_margin">4dp</dimen>
+    
+    <dimen name="access_log_method_corner">4dp</dimen>
+
 </resources>

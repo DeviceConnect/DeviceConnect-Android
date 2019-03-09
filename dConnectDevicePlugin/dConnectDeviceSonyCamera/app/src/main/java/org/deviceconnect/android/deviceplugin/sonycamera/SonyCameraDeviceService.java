@@ -220,7 +220,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         for (Event evt : eventList) {
             Bundle photo = new Bundle();
             photo.putString("uri", uri);
-            photo.putString("mimeType", "image/jpg");
+            photo.putString("mimeType", "image/jpeg");
 
             Intent intent = EventManager.createEventMessage(evt);
             intent.putExtra("photo", photo);

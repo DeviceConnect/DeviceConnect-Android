@@ -76,9 +76,9 @@ public class MixedReplaceMediaServer {
 
     /**
      * Content type.
-     * Default is "image/jpg".
+     * Default is "image/jpeg".
      */
-    private String mContentType = "image/jpg";
+    private String mContentType = "image/jpeg";
 
     /**
      * Stop flag.
@@ -173,7 +173,7 @@ public class MixedReplaceMediaServer {
     /**
      * Set a content type.
      * <p>
-     * Default is "image/jpg".
+     * Default is "image/jpeg".
      * </p>
      *
      * @param contentType content type

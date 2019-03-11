@@ -13,16 +13,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.manager.core.DConnectCore;
 import org.deviceconnect.android.manager.core.DConnectInterface;
 import org.deviceconnect.android.manager.core.R;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
-import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.request.DConnectRequest;
-import org.deviceconnect.android.manager.core.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.core.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -45,27 +43,17 @@ public class DConnectSystemProfile extends SystemProfile {
     /**
      * プロファイル管理クラス.
      */
-    private final DConnectProfileProvider mProvider;
-
-    /**
-     * プラグイン管理クラス.
-     */
-    private final DevicePluginManager mPluginMgr;
-
-    private final DConnectRequestManager mRequestManager;
+    private final DConnectCore mCore;
 
     private DConnectInterface mInterface;
 
     /**
      * コンストラクタ.
      *
-     * @param provider  プロファイル管理クラス
-     * @param pluginMgr プラグイン管理クラス
+     * @param core  DConnectのコア
      */
-    public DConnectSystemProfile(final DConnectProfileProvider provider, final DevicePluginManager pluginMgr, final DConnectRequestManager requestManager) {
-        mProvider = provider;
-        mPluginMgr = pluginMgr;
-        mRequestManager = requestManager;
+    public DConnectSystemProfile(final DConnectCore core) {
+        mCore = core;
 
         addApi(mGetRequest);
         addApi(mPutKeywordRequest);
@@ -87,18 +75,17 @@ public class DConnectSystemProfile extends SystemProfile {
             setUuid(response, sp.getString(getContext().getString(R.string.key_settings_dconn_uuid), null));
             // サポートしているプロファイル一覧設定
             List<String> supports = new ArrayList<String>();
-            List<DConnectProfile> profiles = mProvider.getProfileList();
+            List<DConnectProfile> profiles = mCore.getProfileList();
             for (int i = 0; i < profiles.size(); i++) {
                 supports.add(profiles.get(i).getProfileName());
             }
             setSupports(response, supports.toArray(new String[supports.size()]));
-
             // プラグインの一覧を設定
             List<Bundle> plugins = new ArrayList<Bundle>();
-            List<DevicePlugin> p = mPluginMgr.getDevicePlugins();
+            List<DevicePlugin> p = mCore.getPluginManager().getDevicePlugins();
             for (int i = 0; i < p.size(); i++) {
                 DevicePlugin plugin = p.get(i);
-                String serviceId = mPluginMgr.appendServiceId(plugin, null);
+                String serviceId = mCore.getPluginManager().appendServiceId(plugin, null);
                 Bundle b = new Bundle();
                 b.putString(PARAM_ID, serviceId);
                 b.putString(PARAM_NAME, plugin.getDeviceName());
@@ -192,7 +179,7 @@ public class DConnectSystemProfile extends SystemProfile {
             };
             req.setContext(getContext());
             req.setRequest(request);
-            mRequestManager.addRequest(req);
+            mCore.getRequestManager().addRequest(req);
             return false;
         }
     };
@@ -213,9 +200,9 @@ public class DConnectSystemProfile extends SystemProfile {
             RemoveEventsRequest req = new RemoveEventsRequest();
             req.setContext(getContext());
             req.setRequest(request);
-            req.setDevicePluginManager(mPluginMgr);
+            req.setDevicePluginManager(mCore.getPluginManager());
             req.setOnResponseCallback((resp) -> sendResponse(resp));
-            mRequestManager.addRequest(req);
+            mCore.getRequestManager().addRequest(req);
             return false;
         }
     };

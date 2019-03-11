@@ -77,7 +77,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {
-            AvailabilityProfileConstants.PROFILE_NAME.toLowerCase(),
             AuthorizationProfileConstants.PROFILE_NAME.toLowerCase(),
             SystemProfileConstants.PROFILE_NAME.toLowerCase(),
             ServiceDiscoveryProfileConstants.PROFILE_NAME.toLowerCase()
@@ -383,13 +382,22 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     }
 
     /**
+     * LocalOAuthで無視するプロファイル群.
+     * プラグインごとに無視するプロファイルを選びたい場合は、このメソッドをオーバライドすること.
+     *
+     * @return LocalOAuthで無視するプロファイル群
+     */
+    public String[] getIgnoredProfiles() {
+        return IGNORE_PROFILES;
+    }
+    /**
      * 指定されたプロファイルはLocal OAuth認証を無視して良いかを確認する.
      *
      * @param profileName プロファイル名
      * @return 無視して良い場合はtrue、それ以外はfalse
      */
     public boolean isIgnoredProfile(final String profileName) {
-        for (String name : IGNORE_PROFILES) {
+        for (String name : getIgnoredProfiles()) {
             if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
                 return true;
             }
@@ -439,7 +447,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
 
         if (isUseLocalOAuth()) {
             CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
-                    event.getStringExtra(DConnectMessage.EXTRA_PROFILE), IGNORE_PROFILES);
+                    event.getStringExtra(DConnectMessage.EXTRA_PROFILE), getIgnoredProfiles());
             if (!result.checkResult()) {
                 return false;
             }
@@ -529,7 +537,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         if (isUseLocalOAuth()) {
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
-                    profileName.toLowerCase(), IGNORE_PROFILES);
+                    profileName.toLowerCase(), getIgnoredProfiles());
             if (result.checkResult()) {
                 send = executeRequest(profileName, request, response);
             } else {

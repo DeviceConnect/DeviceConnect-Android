@@ -52,6 +52,10 @@
     <string name="activity_settings_whitelist_enable">Originブロック機能</string>
     <string name="activity_settings_whitelist_enable_summary">Originホワイトリストに含まれないOrigin上のアプリからのアクセスをブロックします。</string>
     <string name="activity_settings_manage_whitelist">Originホワイトリスト管理</string>
+    <string name="activity_settings_accesslog">アクセスログ</string>
+    <string name="activity_settings_accesslog_title">アクセスログ</string>
+    <string name="activity_settings_accesslog_summary">アクセスログをDBに保存することを許可します。</string>
+    <string name="activity_settings_accesslog_list">アクセスログ管理</string>
     <string name="activity_settings_device_plugin">デバイスプラグイン</string>
     <string name="activity_settings_list_device_plugin">デバイスプラグイン管理</string>
     <string name="activity_settings_restart_device_plugin">全デバイスプラグインを再起動</string>
@@ -233,4 +237,26 @@
 
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
+
+    <!-- ================= AccessLog ================= -->
+    <string name="activity_accesslog_btn_search_ip_address">検索</string>
+    <string name="activity_accesslog_hint_search_ip_address">IPアドレス or パス</string>
+    <string name="activity_accesslog_remove_date">1件を削除しました</string>
+    <string name="activity_accesslog_undo_remove_date">元に戻す</string>
+    <string name="activity_accesslog_detail_request">Request</string>
+    <string name="activity_accesslog_detail_response">Response</string>
+    <string name="activity_accesslog_detail_request_time">受信時刻</string>
+    <string name="activity_accesslog_detail_request_ip_address">IP アドレス</string>
+    <string name="activity_accesslog_detail_request_host_name">ホスト名</string>
+    <string name="activity_accesslog_detail_response_time">送信時刻</string>
+    <string name="fragment_accesslog_date_menu_delete">全削除</string>
+    <string name="fragment_accesslog_delete_all_title">警告</string>
+    <string name="fragment_accesslog_delete_all_message">アクセスログを全て削除しても良いでしょうか？</string>
+    <string name="fragment_accesslog_delete_all_positive">はい</string>
+    <string name="fragment_accesslog_delete_all_nagetive">いいえ</string>
+    <string name="fragment_accesslog_delete_accesslog_title">警告</string>
+    <string name="fragment_accesslog_delete_accesslog_message">%1$s のアクセスログを全て削除しても良いでしょうか？</string>
+    <string name="fragment_accesslog_delete_accesslog_positive">はい</string>
+    <string name="fragment_accesslog_delete_accesslog_negative">いいえ</string>
+    <string name="fragment_accesslog_empty">アクセスログがありません</string>
 </resources>

@@ -99,4 +99,16 @@ public interface HttpRequest {
      * @return パラメータ
      */
     String getQueryString();
+
+    /**
+     * 接続先の IP アドレスを取得する.
+     * @return 接続先の IP アドレス
+     */
+    String getRemoteIpAddress();
+
+    /**
+     * 接続先の Host 名を取得する.
+     * @return 接続先の Host 名
+     */
+    String getRemoteHostName();
 }

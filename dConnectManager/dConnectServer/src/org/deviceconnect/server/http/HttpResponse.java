@@ -7,6 +7,7 @@
 package org.deviceconnect.server.http;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Httpレスポンスのデータを保持するクラス.
@@ -130,10 +131,22 @@ public interface HttpResponse {
     void setContentType(final String contentType);
 
     /**
+     * Content-Typeを取得する.
+     * @return 設定するContent-Type
+     */
+    String getContentType();
+
+    /**
      * Content-Lengthを設定する.
      * @param contentLength コンテンツのサイズ
      */
     void setContentLength(final int contentLength);
+
+    /**
+     * Content-Lengthの値を取得する.
+     * @return Content-Lengthの値
+     */
+    int getContentLength();
 
     /**
      * Bodyにデータを設定する.
@@ -150,12 +163,22 @@ public interface HttpResponse {
 
     /**
      * レスポンスにヘッダーを追加する.
-     * 当メソッドではContent-Typeを追加しない。Content-Typeを設定する場合はsetContentTypeを使うこと。
-     * 
+     *
+     * <p>
+     * 当メソッドではContent-Typeを追加しない。
+     * Content-Typeを設定する場合はsetContentTypeを使うこと。
+     * </p>
+     *
      * @param name ヘッダー名
      * @param value 値
      */
     void addHeader(final String name, final String value);
+
+    /**
+     * ヘッダー一覧を取得する.
+     * @return ヘッダー一覧
+     */
+    Map<String, String> getHeaders();
 
     /**
      * ステータスコードを設定する.
@@ -163,4 +186,12 @@ public interface HttpResponse {
      * @param code ステータスコード
      */
     void setCode(final StatusCode code);
+
+    /**
+     * ステータスコードを取得する.
+     * @return ステータスコード
+     */
+    StatusCode getStatusCode();
+
+    byte[] getBody();
 }

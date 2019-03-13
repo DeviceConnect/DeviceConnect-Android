@@ -18,10 +18,10 @@ import java.util.Map;
 class DConnectHttpRequest implements HttpRequest {
 
     private Method mMethod;
-
     private String mUri;
     private String mQueryString;
-
+    private String mRemoteIpAddress;
+    private String mRemoteHostName;
     private Map<String, String> mHeaders;
     private Map<String, String> mQuery;
     private Map<String, String> mFiles;
@@ -42,8 +42,16 @@ class DConnectHttpRequest implements HttpRequest {
         mQuery = query;
     }
 
-    public void setQueryString(String queryString) {
+    void setQueryString(final String queryString) {
         mQueryString = queryString;
+    }
+
+    void setRemoteIpAddress(final String ipAddress) {
+        mRemoteIpAddress = ipAddress;
+    }
+
+    void setRemoteHostName(final String hostName) {
+        mRemoteHostName = hostName;
     }
 
     void setFiles(final Map<String, String> files) {
@@ -81,7 +89,17 @@ class DConnectHttpRequest implements HttpRequest {
     }
 
     @Override
+    public String getRemoteIpAddress() {
+        return mRemoteIpAddress;
+    }
+
+    @Override
+    public String getRemoteHostName() {
+        return mRemoteHostName;
+    }
+
+    @Override
     public String toString() {
-        return mMethod + " " + mUri + "\nQuery: " + mQuery + "\nHeaders: " + mHeaders + "\nFiles: " + mFiles;
+        return mMethod + " " + mUri + "\nQuery: " + mQueryString + "\nHeaders: " + mHeaders + "\nFiles: " + mFiles;
     }
 }

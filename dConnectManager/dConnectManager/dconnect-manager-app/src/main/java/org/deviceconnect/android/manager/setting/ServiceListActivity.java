@@ -11,6 +11,7 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -702,6 +703,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
             TextView textView = view.findViewById(R.id.item_name);
             if (textView != null) {
+                textView.setTextColor(Color.BLACK);
                 textView.setText(service.getName());
             }
 

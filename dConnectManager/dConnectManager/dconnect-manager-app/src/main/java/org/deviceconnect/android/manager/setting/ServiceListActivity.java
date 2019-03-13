@@ -11,6 +11,7 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -46,6 +48,7 @@ import org.deviceconnect.android.manager.util.ServiceDiscovery;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +83,14 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      * ガイド表示設定用のキーを定義する.
      */
     private static final String KEY_SHOW_GUIDE = "show_guide";
+    /**
+     * Hostプラグインの検索リトライ回数.
+     */
+    private static final int RETRY_COUNT = 5;
+    /**
+     * 検索ダイアログ.
+     */
+    private WeakReference<DialogFragment> mDialog;
 
     /**
      * ガイド用のレイアウト一覧.
@@ -132,9 +143,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     /**
      * Device Connect Managerの起動スイッチのリスナー
      */
-    private final CompoundButton.OnCheckedChangeListener mSwitchActionListener = (buttonView, isChecked) -> {
-                switchDConnectServer(isChecked);
-            };
+    private final CompoundButton.OnCheckedChangeListener mSwitchActionListener = (buttonView, isChecked) -> switchDConnectServer(isChecked);
 
     /**
      * ガイドの表示ページ.
@@ -146,7 +155,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      */
     private DConnectSettings mSettings;
     /**
-     * ServiceDiscoveryのリトライ回数.
+     * Hostデバイスが見つかるまでに行うServiceDiscoveryのリトライ回数が、現在何回目かを保持する.
      */
     private int mRetry;
 
@@ -155,9 +164,9 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_list);
 
-        mServiceListGridView = (GridView) findViewById(R.id.activity_service_list_grid_view);
-        mButtonReloadServiceList = (Button) findViewById(R.id.activity_service_list_search_button);
-        mSwitchAction = (Switch) findViewById(R.id.activity_service_list_manager_switch);
+        mServiceListGridView = findViewById(R.id.activity_service_list_grid_view);
+        mButtonReloadServiceList = findViewById(R.id.activity_service_list_search_button);
+        mSwitchAction = findViewById(R.id.activity_service_list_manager_switch);
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
@@ -235,36 +244,29 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     private void initUI(boolean isRunning) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mServiceAdapter = new ServiceAdapter(getPluginManager());
+        runOnUiThread(() -> {
+            mServiceAdapter = new ServiceAdapter(getPluginManager());
 
-                if (mServiceListGridView != null) {
-                    mServiceListGridView.setAdapter(mServiceAdapter);
-                    mServiceListGridView.setOnItemClickListener((parent, view, position, id) -> {
-                        openServiceInfo(position);
-                    });
-                    mServiceListGridView.setOnItemLongClickListener((parent, view, position, id) -> {
-                        openPluginSetting(position);
-                        return true;
-                    });
-                }
+            if (mServiceListGridView != null) {
+                mServiceListGridView.setAdapter(mServiceAdapter);
+                mServiceListGridView.setOnItemClickListener((parent, view, position, id) -> openServiceInfo(position));
+                mServiceListGridView.setOnItemLongClickListener((parent, view, position, id) -> {
+                    openPluginSetting(position);
+                    return true;
+                });
+            }
 
-                if (mButtonReloadServiceList != null) {
-                    mButtonReloadServiceList.setOnClickListener((v) -> {
-                        reloadServiceList();
-                    });
-                }
+            if (mButtonReloadServiceList != null) {
+                mButtonReloadServiceList.setOnClickListener((v) -> reloadServiceList());
+            }
 
-                if (mSwitchAction != null) {
-                    mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
-                    mSwitchAction.setChecked(isRunning);
-                }
-                setEnableSearchButton(isRunning);
-                if (isRunning) {
-                    reloadServiceList();
-                }
+            if (mSwitchAction != null) {
+                mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
+                mSwitchAction.setChecked(isRunning);
+            }
+            setEnableSearchButton(isRunning);
+            if (isRunning) {
+                reloadServiceList();
             }
         });
     }
@@ -275,9 +277,17 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      */
     private void setEnableSearchButton(final boolean running) {
         Button btn = findViewById(R.id.activity_service_list_search_button);
-        if (btn != null) {
-            if (getManagerService() != null) {
+        FrameLayout fl = findViewById(R.id.activity_service_no_service);
+        if (getManagerService() != null) {
+            if (btn != null) {
                 btn.setEnabled(running);
+            }
+            if (fl != null) {
+                if (running) {
+                    fl.setVisibility(View.GONE);
+                } else {
+                    fl.setVisibility(View.VISIBLE);
+                }
             }
         }
     }
@@ -318,16 +328,12 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         View guideView = findViewById(R.id.activity_service_guide);
         if (guideView != null) {
             guideView.setVisibility(View.VISIBLE);
-            guideView.setOnClickListener((v) -> {
-                nextGuide();
-            });
+            guideView.setOnClickListener((v) -> nextGuide());
         }
 
-        Button button = (Button) findViewById(R.id.activity_service_guide_button);
+        Button button = findViewById(R.id.activity_service_guide_button);
         if (button != null) {
-            button.setOnClickListener((v) -> {
-                nextGuide();
-            });
+            button.setOnClickListener((v) -> nextGuide());
         }
     }
 
@@ -476,15 +482,12 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             return;
         }
 
-        mServiceDiscovery = new ServiceDiscovery(this, mSettings) {
-            private static final int RETRY_COUNT = 5;
-            private DialogFragment mDialog;
-
+        mServiceDiscovery = new ServiceDiscovery(this, mSettings, new ServiceDiscovery.Callback() {
             @Override
-            protected void onPreExecute() {
+            public void onPreExecute() {
                 try {
-                    mDialog = new ServiceDiscoveryDialogFragment();
-                    mDialog.show(getFragmentManager(), null);
+                    mDialog = new WeakReference<>(new ServiceDiscoveryDialogFragment());
+                    mDialog.get().show(getFragmentManager(), null);
                 } catch (Exception e) {
                     if (DEBUG) {
                         Log.w(TAG, "Failed to open the dialog for service discovery.");
@@ -493,9 +496,9 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             }
 
             @Override
-            protected void onPostExecute(final List<ServiceContainer> serviceContainers) {
+            public void onPostExecute(List<ServiceContainer> serviceContainers) {
                 try {
-                    mDialog.dismiss();
+                    mDialog.get().dismiss();
 
                     View view = findViewById(R.id.activity_service_no_service);
                     if (view != null) {
@@ -532,7 +535,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                     }
                 }
             }
-        };
+        });
         mServiceDiscovery.execute();
     }
 
@@ -693,13 +696,14 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View view = convertView;
             if (view == null) {
-                view = getLayoutInflater().inflate(R.layout.item_service_list, null);
+                view = View.inflate(getApplicationContext(), R.layout.item_service_list, null);
             }
 
             ServiceContainer service = (ServiceContainer) getItem(position);
 
             TextView textView = view.findViewById(R.id.item_name);
             if (textView != null) {
+                textView.setTextColor(Color.BLACK);
                 textView.setText(service.getName());
             }
 

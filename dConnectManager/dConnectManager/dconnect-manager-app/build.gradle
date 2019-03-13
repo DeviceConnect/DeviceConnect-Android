@@ -64,6 +64,20 @@ android {
         }
     }
 
+    flavorDimensions "api"
+    productFlavors {
+        minApi21 {
+            dimension "api"
+            minSdkVersion 21
+            versionCode android.defaultConfig.versionCode
+        }
+        minApi28 {
+            dimension "api"
+            minSdkVersion 28
+            versionCode 10000 + android.defaultConfig.versionCode
+        }
+    }
+
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }

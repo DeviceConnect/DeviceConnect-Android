@@ -30,17 +30,16 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.DConnectApplication;
 import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
+import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
+import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.manager.util.PauseHandler;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
@@ -111,6 +110,9 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private CheckBoxPreference mObserverPreferences;
     /** Webサーバのポート設定テキストエディッタ. */
     private EditTextPreference mWebPortPreferences;
+
+    /** アクセスログ設定用チェックボックス */
+    private CheckBoxPreference mCheckBoxAccessLogPreferences;
 
     /**
      * 一時中断用ハンドラー.
@@ -250,6 +252,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // Manager名の表示オンオフのチェックボックス.
         mCheckBoxManagerNameVisiblePreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_availability_visible_name));
+
+        // アクセスログ設定のON/OFF
+        mCheckBoxAccessLogPreferences = (CheckBoxPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_accesslog));
 
         // ドキュメントルートパス
         EditTextPreference editDocPreferences = (EditTextPreference)
@@ -745,6 +751,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxExternalIpPreferences.setEnabled(enabled);
         mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+        mCheckBoxAccessLogPreferences.setEnabled(enabled);
     }
 
     /**

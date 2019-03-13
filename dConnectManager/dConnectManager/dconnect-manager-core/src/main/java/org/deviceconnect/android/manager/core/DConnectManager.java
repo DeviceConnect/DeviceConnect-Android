@@ -515,6 +515,7 @@ public abstract class DConnectManager implements DConnectInterface {
         try {
             final DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
             builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
+                    .accessLog(mSettings.isEnableAccessLog())
                     .documentRootPath(mCore.getFileMgr().getBasePath().getAbsolutePath())
                     .cachePath(mCore.getFileMgr().getBasePath().getAbsolutePath());
 

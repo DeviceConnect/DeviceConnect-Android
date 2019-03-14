@@ -183,15 +183,15 @@ public class DConnectCore extends DevicePluginContext {
                 if (mSettings.isRegisterNetworkServiceDiscovery()) {
                     // 見つけたプラグインを有効にする
                     plugin.apply();
-                    if (plugin.isEnabled()) {
-                        RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
-                        req.setContext(context);
-                        req.setDestination(plugin);
-                        req.setDevicePluginManager(mPluginManager);
-                        if (mRequestManager != null) {
-                            mRequestManager.addRequest(req);
-                        }
-                    }
+//                    if (plugin.isEnabled()) {
+//                        RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
+//                        req.setContext(context);
+//                        req.setDestination(plugin);
+//                        req.setDevicePluginManager(mPluginManager);
+//                        if (mRequestManager != null) {
+//                            mRequestManager.addRequest(req);
+//                        }
+//                    }
                 }
                 getServiceProvider().addService(plugin);
             }

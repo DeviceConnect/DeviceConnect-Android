@@ -229,6 +229,7 @@ public abstract class DConnectManager implements DConnectInterface {
         });
     }
     public void startDConnect() {
+        initDConnect();
         mExecutor.execute(() -> {
             if (mRESTServer != null) {
                 return;

@@ -20,6 +20,8 @@ import java.util.List;
  */
 public interface HostDeviceRecorder {
 
+    String MIME_TYPE_JPEG = "image/jpeg";
+
     void initialize();
 
     void clean();

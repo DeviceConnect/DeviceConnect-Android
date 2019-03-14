@@ -74,7 +74,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
      */
     private List<String> mMimeTypes = new ArrayList<String>() {
         {
-            add("image/png");
+            add(MIME_TYPE_JPEG);
             add(ScreenCastMJPEGPreviewServer.MIME_TYPE);
             add(ScreenCastRTSPPreviewServer.MIME_TYPE);
         }
@@ -352,7 +352,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
                                 @Override
                                 public void onSuccess(@NonNull final String uri) {
                                     mState = RecorderState.INACTTIVE;
-                                    listener.onTakePhoto(uri, null);
+                                    listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
                                 }
 
                                 @Override

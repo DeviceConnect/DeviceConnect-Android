@@ -166,7 +166,7 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
                 recorder.putString("id", TARGET_ID);
                 recorder.putString("name", DEVICE_NAME);
                 recorder.putString("state", state);
-                recorder.putString("mimeType", "image/jpg");
+                recorder.putString("mimeType", "image/jpeg");
                 if (size != null) {
                     recorder.putInt("imageWidth", size[0]);
                     recorder.putInt("imageHeight", size[1]);

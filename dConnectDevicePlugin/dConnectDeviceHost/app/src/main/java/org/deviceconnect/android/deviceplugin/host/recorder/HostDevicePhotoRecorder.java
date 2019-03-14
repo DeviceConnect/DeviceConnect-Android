@@ -21,7 +21,7 @@ public interface HostDevicePhotoRecorder {
     boolean isUseFlashLight();
 
     interface OnPhotoEventListener {
-        void onTakePhoto(String uri, String filePath);
+        void onTakePhoto(String uri, String filePath, String mimeType);
         void onFailedTakePhoto(String errorMessage);
     }
 }

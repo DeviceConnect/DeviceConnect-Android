@@ -301,13 +301,19 @@ export class DeviceConnectClient {
       console.log('clientId: ' + json.clientId);
       const result = json.result;
       const clientId = json.clientId;
-      if (result === 0 && clientId) {
+      if (result === 0) {
         console.log('Created client: clientId=' + clientId);
 
         this._sessions[host].clientId = clientId;
         return this.requestAccessToken(host, scopes);
       } else {
-        reject({ what: 'connect', reason: 'no-client', errorMessage: 'クライアントIDを取得できませんでした。' });
+        console.warn('authorize: createClient: erroCode=' + json.errorCode);
+        if (json.errorCode === 2) {
+          // LocalOAuth が OFF の場合はダミーのアクセストークンを返す.
+          // WebSocket 接続確立時にダミーを送信する必要がある.
+          return Promise.resolve({ result:0, accessToken:'dummy' });
+        }
+        return Promise.reject({ what: 'connect', reason: 'no-client', errorMessage: 'クライアントIDを取得できませんでした。' });
       }
     })
   }

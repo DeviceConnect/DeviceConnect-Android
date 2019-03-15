@@ -6,7 +6,11 @@ export default class {
   }
 
   setString(key, value) {
-    this._storage.setItem(key, value);
+    if (value !== null) {
+      this._storage.setItem(key, value);
+    } else {
+      this._storage.removeItem(key);
+    }
   }
 
   getString(key) {

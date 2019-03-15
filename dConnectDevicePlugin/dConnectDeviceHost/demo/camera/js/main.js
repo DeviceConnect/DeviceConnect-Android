@@ -129,12 +129,14 @@ Vue.component('app-viewer', {
     console.log('Viewer: mounted: file=' + fileUri);
     
     const castTargetId = storage.getString('castTargetId');
-    if (castTargetId != null) {
-      this.currentCastTargetId = castTargetId;
-      this.hasCastTarget = true;
+    if (castTargetId !== null) {
+      console.log('Viewer: mounted: castTargetId is found: ', castTargetId);
+    } else {
+      console.log('Viewer: mounted: castTargetId is not found: ', castTargetId);
+      castTargetId = '';
     }
-    console.log('Viewer: mounted: castTargetId=' + castTargetId);
-    console.log('Viewer: mounted: currentCastTargetId=' + this.currentCastTargetId);
+    this.hasCastTarget = castTargetId !== '';
+    console.log('Viewer: mounted: currentCastTargetId: ', this.currentCastTargetId);
 
     const mediaList = storage.getObject('mediaList');
     console.log('Viewer: mounted: mediaList', mediaList);
@@ -188,7 +190,7 @@ Vue.component('app-viewer', {
   },
   watch: {
     currentCastTargetId: function(newValue) {
-      this.hasCastTarget = newValue != null;
+      this.hasCastTarget = newValue !== '';
     }
   },
   computed: {
@@ -312,7 +314,7 @@ Vue.component('app-viewer', {
             })
           })
         }
-        castableList.splice(0, 0, { id: null, name: 'キャストしない' });
+        castableList.splice(0, 0, { id: '', name: 'キャストしない' });
         console.log('Viwer: castable services', castableList);
         this.castableItems = castableList.map(castable => { return { id:castable.id, name:castable.name } })
         this.fetching = false;
@@ -324,6 +326,9 @@ Vue.component('app-viewer', {
     },
     closeCastDialog(change) {
       this.castDialog = false;
+      const id = this.currentCastTargetId;
+      console.log('Viewer: closeCastDialog: currentCastTargetId', id);
+      storage.setString('castTargetId', this.currentCastTargetId);
     },
     drawImage(params) {
       return this.offer(API.drawImage, params);

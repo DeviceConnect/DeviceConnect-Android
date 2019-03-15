@@ -357,7 +357,7 @@ Vue.component('app-viewer', {
 Vue.component('app-qr', {
   template: '#app-qr',
   created() {
-    this.uri = location.protocol + '//' + location.host + '/index.html' + location.search;
+    this.uri = location.protocol + '//' + location.host + location.pathname + location.search;
   },
   mounted() {
     console.log('QR Code: uri=' + this.uri);

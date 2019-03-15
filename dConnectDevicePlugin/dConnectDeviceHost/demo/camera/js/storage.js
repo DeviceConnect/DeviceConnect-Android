@@ -18,12 +18,14 @@ export default class {
   }
 
   setObject(key, value) {
-    this._storage.setItem(key, JSON.stringify(value));
+    const strValue = JSON.stringify(value);
+    console.log('LocalStorage: setObject: key=' + key + ', value=' + strValue);
+    this._storage.setItem(key, strValue);
   }
 
   getObject(key) {
     const value = this.getString(key);
-    console.log('Local Storage: key=' + key + ', value=' + value);
+    console.log('LocalStorage: getObject: key=' + key + ', value=' + value);
     if (value == null) {
       return null;
     }

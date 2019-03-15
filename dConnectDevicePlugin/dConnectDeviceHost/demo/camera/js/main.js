@@ -125,57 +125,7 @@ Vue.component('app-recorder', {
 Vue.component('app-viewer', {
   template: '#app-viewer',
   mounted () {
-    const fileUri = this.$route.params.file;
-    console.log('Viewer: mounted: file=' + fileUri);
-    
-    let castTargetId = storage.getString('castTargetId');
-    if (castTargetId !== null) {
-      console.log('Viewer: mounted: castTargetId is found: ', castTargetId);
-    } else {
-      console.log('Viewer: mounted: castTargetId is not found: ', castTargetId);
-      castTargetId = '';
-    }
-    this.currentCastTargetId = castTargetId;
-    this.hasCastTarget = castTargetId !== '';
-    console.log('Viewer: mounted: currentCastTargetId: ', this.currentCastTargetId);
-
-    const mediaList = storage.getObject('mediaList');
-    console.log('Viewer: mounted: mediaList', mediaList);
-
-    if (mediaList !== null) {
-      const promises = [];
-      mediaList.forEach((media, index) => {
-        if (media.type === 'image') {
-          promises.push(new Promise((resolve, reject) => {
-            const image = new Image();
-            image.onload = function() { resolve({ type:'image', uri:media.uri, width:image.width, height:image.height }) }
-            image.onerror = function() { console.error('Viewer: onerror: uri=' + media.uri) }
-            image.src = media.uri;
-          }))
-        } else {
-          promises.push(new Promise((resolve, reject) => { resolve(media) }))
-        }
-      });
-      Promise.all(promises).then(mediaList => {
-
-        // 指定されたメディアのインデックスを特定.
-        let mediaIndex = -1;
-        mediaList.forEach((media, index) => {
-          if (media.uri === fileUri) {
-            mediaIndex = index;
-          }
-        });
-
-        this.mediaList = mediaList;
-        if (mediaIndex >= 0) {
-          this.showImage(mediaIndex);
-        }
-      });
-    }
-  },
-  beforeDestroy() {
-    console.log('Viewer: beforeDestroy: currentCastTargetId=' + this.currentCastTargetId);
-    storage.setString('castTargetId', this.currentCastTargetId);
+    this.init();
   },
   data() {
     return {
@@ -206,6 +156,55 @@ Vue.component('app-viewer', {
     }
   },
   methods: {
+    init() {
+      const fileUri = this.$route.params.file;
+      console.log('Viewer: init: file=' + fileUri);
+      
+      let castTargetId = storage.getString('castTargetId');
+      if (castTargetId !== null) {
+        console.log('Viewer: init: castTargetId is found: ', castTargetId);
+      } else {
+        console.log('Viewer: init: castTargetId is not found: ', castTargetId);
+        castTargetId = '';
+      }
+      this.currentCastTargetId = castTargetId;
+      this.hasCastTarget = castTargetId !== '';
+      console.log('Viewer: init: currentCastTargetId: ', this.currentCastTargetId);
+  
+      const mediaList = storage.getObject('mediaList');
+      console.log('Viewer: init: get mediaList', mediaList);
+  
+      if (mediaList !== null) {
+        const promises = [];
+        mediaList.forEach((media, index) => {
+          if (media.type === 'image') {
+            promises.push(new Promise((resolve, reject) => {
+              const image = new Image();
+              image.onload = function() { resolve({ type:'image', uri:media.uri, width:image.width, height:image.height }) }
+              image.onerror = function() { console.error('Viewer: onerror: uri=' + media.uri) }
+              image.src = media.uri;
+            }))
+          } else {
+            promises.push(new Promise((resolve, reject) => { resolve(media) }))
+          }
+        });
+        Promise.all(promises).then(mediaList => {
+  
+          // 指定されたメディアのインデックスを特定.
+          let mediaIndex = -1;
+          mediaList.forEach((media, index) => {
+            if (media.uri === fileUri) {
+              mediaIndex = index;
+            }
+          });
+  
+          this.mediaList = mediaList;
+          if (mediaIndex >= 0) {
+            this.showImage(mediaIndex);
+          }
+        });
+      }
+    },
     showImage (index) {
       this.openPhotoSwipe(index);
     },
@@ -429,6 +428,14 @@ app = new Vue({
     EventBus.$on('show-recorder', this.openRecorder)
     EventBus.$on('show-recorder-setting-dialog', this.openRecorderSettingDialog)
     EventBus.$on('show-media', this.openMedia)
+
+    // メディア一覧の復元
+    const mediaList = storage.getObject('mediaList');
+    if (mediaList !== null) {
+      this.mediaList = mediaList;
+    }
+
+    // Device Connect システムと接続
     connect();
   },
   data() {
@@ -660,8 +667,9 @@ app = new Vue({
       router.push({ path: '/viewer/' + args.uri });
     },
     storeMedia(media) {
+      console.log('storeMedia: before: ', this.mediaList);
       this.mediaList.push(media);
-      console.log('storeMedia: ', this.mediaList);
+      console.log('storeMedia: after: ', this.mediaList);
       storage.setObject('mediaList', this.mediaList);
     }
   }

@@ -196,6 +196,13 @@ export class DeviceConnectClient {
     this._sessions[host] = session;
   }
 
+  deleteSession(host) {
+    if (this._sessions[host]) {
+      this._sessions[host].disconnect();
+    }
+    this._sessions[host] = undefined;
+  }
+
   /**
    * DeviceConnect システムに接続する.
    *

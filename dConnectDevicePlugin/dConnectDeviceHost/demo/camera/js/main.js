@@ -737,7 +737,7 @@ function connect() {
   })
   .catch((err) => {
     if (err.reason === 'ws-invalid-access-token') {
-      _currentSession.accessToken = null;
+      sdk.deleteSession(host);
       storage.setObject('session', { host, scopes, accessToken: null });
     }
 

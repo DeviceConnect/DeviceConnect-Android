@@ -348,7 +348,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 public void onSuccess() {
                     recorder.takePhoto(new HostDevicePhotoRecorder.OnPhotoEventListener() {
                         @Override
-                        public void onTakePhoto(final String uri, final String filePath) {
+                        public void onTakePhoto(final String uri, final String filePath, final String mimeType) {
                             setResult(response, DConnectMessage.RESULT_OK);
                             setUri(response, uri);
                             setPath(response, filePath);
@@ -361,7 +361,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             Bundle photo = new Bundle();
                             photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
                             photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
-                            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+                            photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, mimeType);
 
                             for (Event evt : evts) {
                                 Intent intent = EventManager.createEventMessage(evt);

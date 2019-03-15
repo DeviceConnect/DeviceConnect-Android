@@ -129,7 +129,23 @@ public class DConnectService extends Service {
         super.onCreate();
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
+        mManager = new DConnectManager(this, mSettings) {
+            @Override
+            public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
+                return DConnectBroadcastReceiver.class;
+            }
 
+            @Override
+            public Class<? extends Activity> getSettingActivityClass() {
+                return KeywordDialogActivity.class;
+            }
+
+            @Override
+            public Class<? extends Activity> getKeywordActivityClass() {
+                return SettingActivity.class;
+            }
+        };
+        mManager.initDConnect();
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {
             startInternal();
@@ -171,6 +187,8 @@ public class DConnectService extends Service {
     @Override
     public void onDestroy() {
         stopInternal();
+        mManager.finalizeDConnect();
+        mManager = null;
         super.onDestroy();
     }
 
@@ -187,30 +205,6 @@ public class DConnectService extends Service {
      * DConnectManagerを起動します.
      */
     private void startManager() {
-        if (mManager != null) {
-            if (DEBUG) {
-                Log.e(TAG, "DConnectManager is already running.");
-            }
-            return;
-        }
-
-        mManager = new DConnectManager(this, mSettings) {
-            @Override
-            public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
-                return DConnectBroadcastReceiver.class;
-            }
-
-            @Override
-            public Class<? extends Activity> getSettingActivityClass() {
-                return KeywordDialogActivity.class;
-            }
-
-            @Override
-            public Class<? extends Activity> getKeywordActivityClass() {
-                return SettingActivity.class;
-            }
-        };
-
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
@@ -268,7 +262,6 @@ public class DConnectService extends Service {
             NotificationUtil.hideNotification(this);
 
             mManager.stopDConnect();
-            mManager = null;
         } catch (Exception e) {
             // ignore.
         }
@@ -569,7 +562,7 @@ public class DConnectService extends Service {
      * @return WebSocketInfoManager
      */
     public WebSocketInfoManager getWebSocketInfoManager() {
-        return isRunning() ? mManager.getWebSocketInfoManager() : null;
+        return  mManager.getWebSocketInfoManager();
     }
 
     /**
@@ -580,6 +573,6 @@ public class DConnectService extends Service {
      * @return プラグイン管理クラス
      */
     public DevicePluginManager getPluginManager() {
-        return isRunning() ? mManager.getPluginManager() : null;
+        return mManager.getPluginManager();
     }
 }

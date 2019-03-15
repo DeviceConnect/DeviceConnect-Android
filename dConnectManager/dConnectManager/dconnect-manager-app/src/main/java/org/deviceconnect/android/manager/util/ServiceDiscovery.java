@@ -22,9 +22,27 @@ import java.util.Map;
 public class ServiceDiscovery extends Authorization {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "Manager";
-
-    public ServiceDiscovery(final Context context, final DConnectSettings settings) {
+    public interface Callback {
+        void onPreExecute();
+        void onPostExecute(final List<ServiceContainer> serviceContainers);
+    }
+    private Callback mCallback;
+    public ServiceDiscovery(final Context context, final DConnectSettings settings, final Callback callback) {
         super(context, settings);
+        mCallback = callback;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        if (mCallback != null) {
+            mCallback.onPreExecute();
+        }
+    }
+    @Override
+    protected void onPostExecute(final List<ServiceContainer> serviceContainers) {
+        if (mCallback != null) {
+            mCallback.onPostExecute(serviceContainers);
+        }
     }
 
     @Override
@@ -99,15 +117,12 @@ public class ServiceDiscovery extends Authorization {
         return service;
     }
 
-    private Comparator<ServiceContainer> mComparator = new Comparator<ServiceContainer>() {
-        @Override
-        public int compare(final ServiceContainer lhs, final ServiceContainer rhs) {
-            String name1 = lhs.getName();
-            String name2 = rhs.getName();
-            if (name1 == null || name2 == null) {
-                return 0;
-            }
-            return name1.compareTo(name2);
+    private Comparator<ServiceContainer> mComparator = (lhs, rhs) -> {
+        String name1 = lhs.getName();
+        String name2 = rhs.getName();
+        if (name1 == null || name2 == null) {
+            return 0;
         }
+        return name1.compareTo(name2);
     };
 }

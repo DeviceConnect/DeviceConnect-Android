@@ -49,6 +49,9 @@ public final class DConnectServerConfig {
     /** 文字コード. */
     private String mCharset = "UTF-8";
 
+    /** アクセスログ機能の有効. */
+    private boolean mEnableAccessLog;
+
     /**
      * 最大コネクション数を取得する.
      * 
@@ -129,6 +132,15 @@ public final class DConnectServerConfig {
     }
 
     /**
+     * アクセスログが有効になっているか確認する.
+     *
+     * @return アクセスログが有効の場合にはtrue、それ以外はfalse
+     */
+    public boolean isEnableAccessLog() {
+        return mEnableAccessLog;
+    }
+
+    /**
      * コンストラクタ.
      * 
      * @param builder ビルダー。
@@ -144,6 +156,7 @@ public final class DConnectServerConfig {
         this.mCachePath = builder.mCachePath;
         this.mIpWhiteList = builder.mIpWhiteList;
         this.mCharset = builder.mCharset;
+        this.mEnableAccessLog = builder.mEnableAccessLog;
     }
 
     /**
@@ -181,6 +194,9 @@ public final class DConnectServerConfig {
         /** 文字コード. */
         private String mCharset = "UTF-8";
 
+        /** アクセスログ機能の設定. **/
+        private boolean mEnableAccessLog;
+
         /**
          * DConnectServerConfigのインスタンスを設定された設定値で生成する.
          * 
@@ -208,6 +224,7 @@ public final class DConnectServerConfig {
                     ", mHost='" + mHost + '\'' +
                     ", mIpWhiteList=" + mIpWhiteList +
                     ", mCharset='" + mCharset + '\'' +
+                    ", mEnableAccessLog='" + mEnableAccessLog + '\'' +
                     '}';
         }
 
@@ -333,6 +350,17 @@ public final class DConnectServerConfig {
          */
         public Builder charset(final String charset) {
             mCharset = charset;
+            return this;
+        }
+
+        /**
+         * アクセスログを設定する.
+         *
+         * @param enable 有効にする場合はtrue、それ以外はfalse
+         * @return ビルダー。
+         */
+        public Builder accessLog(final boolean enable) {
+            mEnableAccessLog = enable;
             return this;
         }
     }

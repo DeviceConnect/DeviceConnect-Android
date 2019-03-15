@@ -135,6 +135,7 @@ Vue.component('app-viewer', {
       console.log('Viewer: mounted: castTargetId is not found: ', castTargetId);
       castTargetId = '';
     }
+    this.currentCastTargetId = castTargetId;
     this.hasCastTarget = castTargetId !== '';
     console.log('Viewer: mounted: currentCastTargetId: ', this.currentCastTargetId);
 
@@ -243,7 +244,7 @@ Vue.component('app-viewer', {
     },
     onMediaChange(gallery) {
       const serviceId = this.currentCastTargetId;
-      if (serviceId !== null) {
+      if (serviceId !== '') {
         const item = gallery.currItem;
         console.log('Viewer: gallery: beforeChange: index=' + gallery.getCurrentIndex(), item);
 
@@ -256,7 +257,7 @@ Vue.component('app-viewer', {
     },
     onGallaryClose(gallery) {
       const serviceId = this.currentCastTargetId;
-      if (serviceId !== null) {
+      if (serviceId !== '') {
         this.closeMedia(gallery.currItem, serviceId);
       }
     },

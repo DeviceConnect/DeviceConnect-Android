@@ -128,7 +128,7 @@ Vue.component('app-viewer', {
     const fileUri = this.$route.params.file;
     console.log('Viewer: mounted: file=' + fileUri);
     
-    const castTargetId = storage.getString('castTargetId');
+    let castTargetId = storage.getString('castTargetId');
     if (castTargetId !== null) {
       console.log('Viewer: mounted: castTargetId is found: ', castTargetId);
     } else {

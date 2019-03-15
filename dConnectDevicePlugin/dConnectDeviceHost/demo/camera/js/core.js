@@ -246,6 +246,15 @@ export class DeviceConnectClient {
           reject({ what: 'connect', reason: 'no-access-token', errorMessage: '本アプリの使用が認可されませんでした。' });
         }
       })
+      .catch(err => {
+        if (err.code === 4) {
+          reject({ what: 'connect', reason: 'ws-duplicated', errorMessage: '別ブラウザで既にWebSocketが接続されています。' });
+        } else if (err.code === 3) {
+          reject({ what: 'connect', reason: 'ws-invalid-access-token', errorMessage: 'アクセストークンが不正のためにWebSocketを接続できませんでした。' });
+        } else {
+          reject({ what: 'connect', reason: 'ws-unknown--error', errorMessage: '不明なエラーによりWebSocketを接続できませんでした。' });
+        }
+      })
 
       // Service Discovery
       .then(json => {

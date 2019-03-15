@@ -731,7 +731,7 @@ function connect() {
     console.log('Active Recorder: target=' + r.id);
   })
   .catch((err) => {
-    if (err.what === 'ws' && err.code === 3) {
+    if (err.reason === 'ws-invalid-access-token') {
       _currentSession.accessToken = null;
       storage.setObject('session', { host, scopes, accessToken: null });
     }

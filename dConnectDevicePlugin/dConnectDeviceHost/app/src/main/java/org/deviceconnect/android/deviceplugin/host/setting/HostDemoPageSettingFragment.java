@@ -209,45 +209,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    // デモページをインストール
-                    mDemoInstaller.install(activity.getApplicationContext(), new DemoPageInstaller.InstallCallback() {
-                        @Override
-                        public void onBeforeInstall(final File demoDir) {
-                            if (DEBUG) {
-                                Log.d(TAG, "Start to install demo: path=" + demoDir.getAbsolutePath());
-                            }
-                        }
-
-                        @Override
-                        public void onAfterInstall(final File demoDir) {
-                            if (DEBUG) {
-                                Log.d(TAG, "Installed demo: path=" + demoDir.getAbsolutePath());
-                            }
-
-                            updateView(activity);
-                            showInstallSuccessDialog();
-
-                            if (((InstallDialogFragment) dialogFragment).isChecked()) {
-                                createShortcut(activity);
-                            }
-                        }
-
-                        @Override
-                        public void onFileError(final IOException e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Failed to install demo on external storage.", e);
-                            }
-                            showInstallErrorDialog(e.getMessage());
-                        }
-
-                        @Override
-                        public void onUnexpectedError(final Throwable e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Failed to install demo on external storage.", e);
-                            }
-                            showInstallErrorDialog(e.getMessage());
-                        }
-                    }, mHandler);
+                    install(activity, dialogFragment);
                 }
 
                 @Override
@@ -264,43 +226,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    // デモページをアンインストール
-                    mDemoInstaller.uninstall(activity.getApplicationContext(), new DemoPageInstaller.UninstallCallback() {
-                        @Override
-                        public void onBeforeUninstall(final File demoDir) {
-                            if (DEBUG) {
-                                Log.d(TAG, "Start to uninstall demo: path=" + demoDir.getAbsolutePath());
-                            }
-                        }
-
-                        @Override
-                        public void onAfterUninstall(final File demoDir) {
-                            if (DEBUG) {
-                                Log.d(TAG, "Uninstalled demo: path=" + demoDir.getAbsolutePath());
-                            }
-
-                            deleteShortcut(activity);
-
-                            updateView(activity);
-                            showDeletionSuccessDialog();
-                        }
-
-                        @Override
-                        public void onFileError(final IOException e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Failed to install demo on external storage.", e);
-                            }
-                            showDeletionErrorDialog(e.getMessage());
-                        }
-
-                        @Override
-                        public void onUnexpectedError(final Throwable e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Failed to delete demo from external storage.");
-                            }
-                            showDeletionErrorDialog(e.getMessage());
-                        }
-                    }, mHandler);
+                    uninstall(activity);
                 }
 
                 @Override
@@ -309,6 +235,88 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 }
             });
         }
+    }
+
+    private void install(final Activity activity, final MessageDialogFragment dialogFragment) {
+        // デモページをインストール
+        mDemoInstaller.install(activity.getApplicationContext(), new DemoPageInstaller.InstallCallback() {
+            @Override
+            public void onBeforeInstall(final File demoDir) {
+                if (DEBUG) {
+                    Log.d(TAG, "Start to install demo: path=" + demoDir.getAbsolutePath());
+                }
+            }
+
+            @Override
+            public void onAfterInstall(final File demoDir) {
+                if (DEBUG) {
+                    Log.d(TAG, "Installed demo: path=" + demoDir.getAbsolutePath());
+                }
+
+                updateView(activity);
+                showInstallSuccessDialog();
+
+                if (((InstallDialogFragment) dialogFragment).isChecked()) {
+                    createShortcut(activity);
+                }
+            }
+
+            @Override
+            public void onFileError(final IOException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to install demo on external storage.", e);
+                }
+                showInstallErrorDialog(e.getMessage());
+            }
+
+            @Override
+            public void onUnexpectedError(final Throwable e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to install demo on external storage.", e);
+                }
+                showInstallErrorDialog(e.getMessage());
+            }
+        }, mHandler);
+    }
+
+    private void uninstall(final Activity activity) {
+        // デモページをアンインストール
+        mDemoInstaller.uninstall(activity.getApplicationContext(), new DemoPageInstaller.UninstallCallback() {
+            @Override
+            public void onBeforeUninstall(final File demoDir) {
+                if (DEBUG) {
+                    Log.d(TAG, "Start to uninstall demo: path=" + demoDir.getAbsolutePath());
+                }
+            }
+
+            @Override
+            public void onAfterUninstall(final File demoDir) {
+                if (DEBUG) {
+                    Log.d(TAG, "Uninstalled demo: path=" + demoDir.getAbsolutePath());
+                }
+
+                deleteShortcut(activity);
+
+                updateView(activity);
+                showDeletionSuccessDialog();
+            }
+
+            @Override
+            public void onFileError(final IOException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to install demo on external storage.", e);
+                }
+                showDeletionErrorDialog(e.getMessage());
+            }
+
+            @Override
+            public void onUnexpectedError(final Throwable e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to delete demo from external storage.");
+                }
+                showDeletionErrorDialog(e.getMessage());
+            }
+        }, mHandler);
     }
 
     private void requestPermission(final Context context, final PermissionUtility.PermissionRequestCallback callback) {

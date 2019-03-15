@@ -47,6 +47,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private static final String MIME_TYPE = "video/x-mjpeg";
 
+    private static final int MIN_FRAME_SIZE = 2084;
+
     private final Camera2Recorder mRecorder;
 
     private final Object mLockObj = new Object();
@@ -345,7 +347,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                         mOutput.reset();
                         mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);
                     }
-                    offerMedia(mOutput.toByteArray());
+                    byte[] jpeg = mOutput.toByteArray();
+                    if (jpeg.length >= MIN_FRAME_SIZE) { // FIXME: 複数のクライアントから同時接続されると黒いフレームが頻繁に生成されてしまう現象への措置
+                        offerMedia(jpeg);
+                    }
                     queueEvent(this);
                 } else {
                     releaseSelf();

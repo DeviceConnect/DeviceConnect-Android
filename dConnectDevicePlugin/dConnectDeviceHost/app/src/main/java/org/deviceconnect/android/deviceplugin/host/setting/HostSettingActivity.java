@@ -7,8 +7,10 @@
 package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 
@@ -29,5 +31,20 @@ public class HostSettingActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.host_settings_title);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch(item.getItemId()) {
+            case android.R.id.home:
+                FragmentManager mgr = getSupportFragmentManager();;
+                if (mgr != null && mgr.getFragments().size() > 1) {
+                    mgr.popBackStack();
+                } else {
+                    finish();
+                }
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

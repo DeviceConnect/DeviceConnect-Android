@@ -42,31 +42,6 @@
       width: 100vmin;
       height: 100vmin;
     }
-    #shutter {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      -webkit-transform: translate(-50%, 0);
-    }
-    #start-recording {
-      position: fixed;
-      left: 25%;
-      bottom: 24px;
-      -webkit-transform: translate(-50%, 0);
-    }
-    #stop-recording {
-      position: fixed;
-      left: 25%;
-      bottom: 24px;
-      -webkit-transform: translate(-50%, 0);
-    }
-    #thumbnail {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      width: 50pt;
-      height: 50pt;
-    }
     .video-mark {
       position: absolute;
       left: 50%;
@@ -88,6 +63,61 @@
       margin-bottom: 1.0em;
       margin-left: 2.0em;
       margin-right: 2.0em;
+    }
+
+    @media screen and (orientation: portrait) {
+      #shutter {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        -webkit-transform: translate(-50%, 0);
+      }
+      #start-recording {
+        position: fixed;
+        left: 25%;
+        bottom: 24px;
+        -webkit-transform: translate(-50%, 0);
+      }
+      #stop-recording {
+        position: fixed;
+        left: 25%;
+        bottom: 24px;
+        -webkit-transform: translate(-50%, 0);
+      }
+      #thumbnail {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 50pt;
+        height: 50pt;
+      }
+    }
+    @media screen and (orientation: landscape) {
+      #shutter {
+        position: fixed;
+        top: 50%;
+        right: 16px;
+        -webkit-transform: translate(-50%, 0);
+      }
+      #start-recording {
+        position: fixed;
+        top: 25%;
+        right: 24px;
+        -webkit-transform: translate(-50%, 0);
+      }
+      #stop-recording {
+        position: fixed;
+        top: 25%;
+        right: 24px;
+        -webkit-transform: translate(-50%, 0);
+      }
+      #thumbnail {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 50pt;
+        height: 50pt;
+      }
     }
   </style>
 </head>

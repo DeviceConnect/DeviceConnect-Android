@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostCameraProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostConnectionProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientationProfile;
@@ -188,6 +189,7 @@ public class HostDeviceService extends DConnectMessageService {
 
         if (mRecorderMgr.getRecorders().length > 0) {
             hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
+            hostService.addProfile(new HostCameraProfile());
         }
         if (checkCameraHardware()) {
             HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);

@@ -304,6 +304,7 @@ public class CameraWrapper {
             request.set(CaptureRequest.JPEG_QUALITY, mPreviewJpegQuality);
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            setWhiteBalance(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
@@ -391,17 +392,17 @@ public class CameraWrapper {
             if (DEBUG) {
                 Log.d(TAG, "takeStillImage: Created capture session.");
             }
-            autoFocus(cameraDevice);
-            if (DEBUG) {
-                Log.d(TAG, "takeStillImage: ");
+            if (!mIsPreview) {
+                autoFocus(cameraDevice);
+                autoExposure(cameraDevice);
             }
-            autoExposure(cameraDevice);
 
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);
             request.addTarget(stillImageSurface);
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+            setWhiteBalance(request);
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
@@ -457,6 +458,42 @@ public class CameraWrapper {
         }
     }
 
+    private void setWhiteBalance(final CaptureRequest.Builder request) {
+        Integer whiteBalance = getWhiteBalanceOption();
+        if (DEBUG) {
+            Log.d(TAG, "White Balance: " + whiteBalance);
+        }
+        if (whiteBalance != null) {
+            request.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+            request.set(CaptureRequest.CONTROL_AWB_MODE, whiteBalance);
+        }
+    }
+
+    private Integer getWhiteBalanceOption() {
+        String whiteBalance = getOptions().getWhiteBalance();
+        Integer mode;
+        if ("auto".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_AUTO;
+        } else if ("incandescent".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT;
+        } else if ("fluorescent".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT;
+        } else if ("warm-fluorescent".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT;
+        } else if ("daylight".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT;
+        } else if ("cloudy-daylight".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT;
+        } else if ("twilight".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_TWILIGHT;
+        } else if ("shade".equals(whiteBalance)) {
+            mode = CameraMetadata.CONTROL_AWB_MODE_SHADE;
+        } else {
+            mode = null;
+        }
+        return mode;
+    }
+
     private void autoFocus(final CameraDevice cameraDevice) throws CameraWrapperException {
         try {
             final CountDownLatch lock = new CountDownLatch(1);
@@ -468,8 +505,9 @@ public class CameraWrapper {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
             request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            setWhiteBalance(request);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 @Override
@@ -527,8 +565,9 @@ public class CameraWrapper {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
             request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+            setWhiteBalance(request);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 @Override
@@ -636,6 +675,11 @@ public class CameraWrapper {
          */
         private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 480;
 
+        /**
+         * デフォルトのホワイトバランス.
+         */
+        private static final String DEFAULT_WHITE_BALANCE = "auto";
+
         private Size mPictureSize;
 
         private Size mPreviewSize;
@@ -647,6 +691,8 @@ public class CameraWrapper {
         private double mPreviewMaxFrameRate = 30.0d; //fps
 
         private int mPreviewBitRate = 1000 * 1000; //bps
+
+        private String mWhiteBalance = DEFAULT_WHITE_BALANCE;
 
         public Size getPictureSize() {
             return mPictureSize;
@@ -728,6 +774,14 @@ public class CameraWrapper {
 
         public void setPreviewBitRate(final int previewBitRate) {
             mPreviewBitRate = previewBitRate;
+        }
+
+        public String getWhiteBalance() {
+            return mWhiteBalance;
+        }
+
+        public void setWhiteBalance(final String whiteBalance) {
+            mWhiteBalance = whiteBalance;
         }
     }
 }

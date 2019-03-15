@@ -86,6 +86,13 @@
         <description lang="en">Accesses mediastream recording feature.</description>
     </profile>
 
+    <profile name="camera" expireperiod="86400000">
+        <name lang="ja">カメラ</name>
+        <description lang="ja">カメラ機能にアクセスする</description>
+        <name lang="en">Camera</name>
+        <description lang="en">Accesses camera feature.</description>
+    </profile>
+
     <profile name="phone" expireperiod="86400000">
         <name lang="ja">電話</name>
         <description lang="ja">電話機能にアクセスする</description>

@@ -28,9 +28,11 @@ Vue.component('app-recorder', {
     EventBus.$on('on-photo', this.onPhoto);
     EventBus.$on('on-start-recording', this.onStartRecording);
     EventBus.$on('on-stop-recording', this.onStopRecording);
-    this.launched = !app.launching;
-    if (this.launched === true) {
-      this.startPreview();
+    if (app) {
+      this.launched = !app.launching;
+      if (this.launched === true) {
+        this.startPreview();
+      }
     }
   },
   beforeDestroy () {

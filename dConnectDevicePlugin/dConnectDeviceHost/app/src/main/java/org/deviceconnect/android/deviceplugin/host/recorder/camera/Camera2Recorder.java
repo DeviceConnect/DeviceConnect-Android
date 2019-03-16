@@ -98,10 +98,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      */
     private static final SparseIntArray ROTATIONS = new SparseIntArray();
     static {
-        ROTATIONS.append(Surface.ROTATION_0, 90);
-        ROTATIONS.append(Surface.ROTATION_90, 0);
-        ROTATIONS.append(Surface.ROTATION_180, 270);
-        ROTATIONS.append(Surface.ROTATION_270, 180);
+        ROTATIONS.append(Surface.ROTATION_0, 0);
+        ROTATIONS.append(Surface.ROTATION_90, 90);
+        ROTATIONS.append(Surface.ROTATION_180, 180);
+        ROTATIONS.append(Surface.ROTATION_270, 270);
     }
 
     /**
@@ -252,16 +252,13 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     byte[] rotateJPEG(final byte[] jpeg, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
-        int rotation = ROTATIONS.get(mCurrentRotation);
-        int degrees;
+        int deviceRotation = ROTATIONS.get(mCurrentRotation);
+        int cameraRotation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
+        int degrees = (360 - deviceRotation + cameraRotation) % 360;
         Bitmap rotated;
         Matrix m = new Matrix();
-        if (mFacing == CameraFacing.BACK) {
-            degrees = rotation;
-        } else if (mFacing == CameraFacing.FRONT) {
-            degrees = 360 - rotation;
-        } else {
-            degrees = 0;
+        if (mFacing == CameraFacing.FRONT) {
+            degrees = (180 - degrees) % 360;
         }
         m.postRotate(degrees);
         rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);

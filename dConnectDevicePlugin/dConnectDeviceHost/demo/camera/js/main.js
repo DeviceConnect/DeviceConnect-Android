@@ -397,9 +397,9 @@ Vue.component('app-qr', {
 })
 
 const routes = [
-  { path: '/', component: { template: '<app-recorder></app-recorder>' } },
-  { path: '/viewer/:file?', component: { template: '<app-viewer></app-viewer>' } },
-  { path: '/qr', component: { template: '<app-qr></app-qr>' } }
+  { name: 'recorder', path: '/', component: { template: '<app-recorder></app-recorder>' } },
+  { name: 'viewer', path: '/viewer/:file?', component: { template: '<app-viewer></app-viewer>' } },
+  { name: 'qr', path: '/qr', component: { template: '<app-qr></app-qr>' } }
 ];
 const router = new VueRouter({ routes });
 
@@ -500,14 +500,26 @@ app = new Vue({
     openDrawer() { this.showDrawer = true; },
     openRecorderSettingDialog() { this.dialog = true; },
     checkMode(route) {
-      for (let k in routes) { if (route.path.startsWith(routes[k].path)) { this.mode = routes[k].mode; break; } }
+      this.mode = this.getMode(route.path);
       console.log('App: Current Mode: ' + this.mode + ' for ' + route.path);
+    },
+    getMode(path) {
+      for (let k in routes) { if (path.startsWith(routes[k].path)) { return routes[k].mode; } }
+      return routes[0].mode;
     },
     isMode(mode) {
       return this.mode === mode;
     },
     showPage: function(path) {
-      router.push({ path: path });
+      const currentRoute = router.currentRoute;
+      const next = router.resolve(path);
+      console.log('showPath: current route: ', currentRoute);
+      console.log('showPath: next route: ', next.route);
+      if (currentRoute.name === next.route.name) {
+        this.showDrawer = false;
+      } else {
+        router.push({ path: path });
+      }
     },
     onError: function(event) {
       this.connectionError = { message: event.message }

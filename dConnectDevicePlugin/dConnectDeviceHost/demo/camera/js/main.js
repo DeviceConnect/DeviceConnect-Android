@@ -7,7 +7,7 @@ const EventBus = new Vue();
 
 // SDK 初期化
 let _currentSession = null;
-const host = ipAddress() || location.hostname;
+const host = getHostName();
 const scopes = [
   'serviceDiscovery',
   'serviceInformation',
@@ -430,10 +430,10 @@ app = new Vue({
     })
   },
   mounted() {
-    const info = storage.getObject('session');
-    console.log('Latest session:', info);
-    if (info !== null) {
-      sdk.addSession({ host:info.host, accessToken:info.accessToken, scopes:info.scopes });
+    const accessToken = loadAccessToken();
+    console.log('Latest accessToken: ' + accessToken);
+    if (accessToken && accessToken !== '') {
+      sdk.addSession({ host, accessToken, scopes });
     }
     EventBus.$on('on-launched', this.onLaunched)
     EventBus.$on('take-photo', function() { app.requestTakePhoto(); })
@@ -721,12 +721,8 @@ function connect() {
     console.log('Connected', result.services);
     _currentSession = result.session;
 
-    // セッション情報を保存
-    storage.setObject('session', {
-      host,
-      scopes,
-      accessToken: _currentSession.accessToken
-    });
+    // アクセストークンを保存
+    storeAccessToken(_currentSession.accessToken);
 
     const services = result.services;
 
@@ -786,7 +782,7 @@ function connect() {
   .catch((err) => {
     if (err.reason === 'ws-invalid-access-token') {
       sdk.deleteSession(host);
-      storage.setObject('session', { host, scopes, accessToken: null });
+      clearAccessToken();
     }
 
     console.warn('Could not connected.', err);
@@ -794,6 +790,57 @@ function connect() {
   })
 }
 
-function ipAddress() {
-  return (new URL(document.location)).searchParams.get('ip');
+/**
+ * Cookieに保存していたアクセストークンを取得する.
+ * <p>
+ * 注: アクセストークンは本アプリのホスティングされるオリジンごとに作成、保存される.
+ * </p>
+ * @return アクセストークン. 未保存の場合はnull
+ */
+function loadAccessToken() {
+  return getCookie(accessTokenKey());
+}
+
+/**
+ * Cookieにアクセストークンを取得する.
+ * <p>
+ * 注: アクセストークンは本アプリのホスティングされるオリジンごとに作成、保存される.
+ * </p>
+ * @param accessToken アクセストークン
+ */
+function storeAccessToken(accessToken) {
+  document.cookie = accessTokenKey() + '=' + accessToken;
+}
+
+function clearAccessToken() {
+  storeAccessToken('');
+}
+
+function accessTokenKey() {
+  return 'accessToken-' + decodeURIComponent(getHostName());
+}
+
+function getHostName() {
+  return (new URL(document.location)).searchParams.get('ip') || location.hostname;
+}
+
+/**
+ * Cookieに保存していた値を取得する.
+ *
+ * @param {String} name Cookie名
+ */
+function getCookie(name) {
+  let result = null;
+  let cookieName = name + '=';
+  let allcookies = document.cookie;
+  let position = allcookies.indexOf(cookieName);
+  if (position != -1) {
+    let startIndex = position + cookieName.length;
+    let endIndex = allcookies.indexOf(';', startIndex);
+    if (endIndex == -1) {
+      endIndex = allcookies.length;
+    }
+    result = decodeURIComponent(allcookies.substring(startIndex, endIndex));
+  }
+  return result;
 }

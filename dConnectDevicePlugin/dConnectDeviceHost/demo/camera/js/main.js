@@ -34,6 +34,11 @@ Vue.component('app-recorder', {
         this.startPreview();
       }
     }
+
+    // プレビューのコールバックを設定
+    const preview = document.querySelector('#preview');
+    preview.onload = function() { this.onPreviewLoad(); }.bind(this);
+    preview.onerror = function() { this.onPreviewError(); }.bind(this);
   },
   beforeDestroy () {
     this.stopPreview();
@@ -46,7 +51,8 @@ Vue.component('app-recorder', {
       isRecording: false,
       isStartingRecording: false,
       isStoppingRecording: false,
-      isTakingPhoto: false
+      isTakingPhoto: false,
+      showPreviewError: false
     }
   },
   computed: {
@@ -94,6 +100,9 @@ Vue.component('app-recorder', {
     stopPreview: function() {
       EventBus.$emit('stop-preview');
     },
+    restartPreview() {
+      EventBus.$emit('restart-preview');
+    },
     showMedia: function() {
       const encodedUri = encodeURIComponent(this.latestMediaUri);
       EventBus.$emit('show-media', { uri:encodedUri });
@@ -119,6 +128,13 @@ Vue.component('app-recorder', {
       this.latestMediaThumbnailUri = event.thumbnailUri;
       this.isRecording = false;
       this.isStoppingRecording = false;
+    },
+    onPreviewLoad: function() {
+      console.log('Recorder: onPreviewLoad');
+    },
+    onPreviewError: function() {
+      console.log('Recorder: onPreviewError');
+      this.showPreviewError = true;
     }
   }
 })
@@ -425,6 +441,7 @@ app = new Vue({
     EventBus.$on('stop-recording', function() { app.stopRecording(); })
     EventBus.$on('start-preview', function() { app.startPreview(); })
     EventBus.$on('stop-preview', function() { app.stopPreview(); })
+    EventBus.$on('restart-preview', function() { app.restartPreview(); })
     EventBus.$on('connection-error', this.onError)
     EventBus.$on('show-drawer', this.openDrawer)
     EventBus.$on('show-recorder', this.openRecorder)
@@ -450,6 +467,7 @@ app = new Vue({
       dialog: false,
       showError: false,
       showErrorTime: 60000,
+      showPreviewError: false,
       showDrawer: false,
       pages: [
         { mode:'recorder', path: '/', title: '撮影', icon: 'camera_alt' },
@@ -658,17 +676,24 @@ app = new Vue({
       });
     },
     startPreview() {
-      const target = this.activeRecorderId;
-      API.startPreview(_currentSession, this.hostService.id, target, '#preview')
+      API.startPreview(_currentSession, this.hostService.id, this.activeRecorderId, '#preview')
       .catch((err) => {
         console.error('Failed to start preview.', err);
       })
     },
     stopPreview() {
-      const target = this.activeRecorderId;
-      API.stopPreview(_currentSession, this.hostService.id, target)
+      API.stopPreview(_currentSession, this.hostService.id, this.activeRecorderId)
       .catch((err) => {
         console.error('Failed to stop preview.', err);
+      })
+    },
+    restartPreview() {
+      API.stopPreview(_currentSession, this.hostService.id, this.activeRecorderId)
+      .then((target) => {
+        return API.startPreview(_currentSession, this.hostService.id, this.activeRecorderId, '#preview');
+      })
+      .catch((err) => {
+        console.error('Failed to restart preview.', err);
       })
     },
     reconnect() {

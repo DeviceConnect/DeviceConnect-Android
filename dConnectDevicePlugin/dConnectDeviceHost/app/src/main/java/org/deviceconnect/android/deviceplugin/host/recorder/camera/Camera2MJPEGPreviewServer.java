@@ -65,6 +65,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private Object mSync = new Object();
 
+    private final Object mDrawTaskSync = new Object();
+
     private DrawTask mDrawTask;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
@@ -74,9 +76,15 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 if (DEBUG) {
                     Log.d(TAG, "MediaServerCallback.onAccept: recorder=" + mRecorder.getName());
                 }
-                mDrawTask = new DrawTask();
-                new Thread(mDrawTask).start();
-                return true;
+                synchronized (mDrawTaskSync) {
+                    if (mDrawTask == null) {
+                        mDrawTask = new DrawTask();
+                        new Thread(mDrawTask).start();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start preview.", e);
                 return false;
@@ -252,7 +260,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             }
 
             // 録画タスクを起床
-            queueEvent(mDrawTask);
+            queueEvent(mSurfaceDrawTask);
         }
 
         @Override
@@ -268,6 +276,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 Log.e(TAG, "Failed to stop camera preview.", e);
             }
             makeCurrent();
+
+            mDrawTask = null;
         }
 
         @Override
@@ -296,7 +306,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
         private long mLastTime = 0;
 
-        private final Runnable mDrawTask = new Runnable() {
+        private final Runnable mSurfaceDrawTask = new Runnable() {
             @Override
             public void run() {
                 boolean localRequestDraw;

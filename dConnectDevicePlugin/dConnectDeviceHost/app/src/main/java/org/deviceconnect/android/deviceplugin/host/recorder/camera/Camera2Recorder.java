@@ -87,15 +87,21 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      */
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
+
     /**
-     * 画面の向きを格納するリスト.
+     * 写真の JPEG 品質.
      */
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private static final int PHOTO_JPEG_QUALITY = 100;
+
+    /**
+     * 端末の回転方向を格納するリスト.
+     */
+    private static final SparseIntArray ROTATIONS = new SparseIntArray();
     static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+        ROTATIONS.append(Surface.ROTATION_0, 90);
+        ROTATIONS.append(Surface.ROTATION_90, 0);
+        ROTATIONS.append(Surface.ROTATION_180, 270);
+        ROTATIONS.append(Surface.ROTATION_270, 180);
     }
 
     /**
@@ -130,6 +136,16 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     private final HandlerThread mPreviewThread = new HandlerThread("preview");
 
     private final HandlerThread mPhotoThread = new HandlerThread("photo");
+
+    /**
+     * 現在の端末の回転方向.
+     *
+     * @see Surface#ROTATION_0
+     * @see Surface#ROTATION_90
+     * @see Surface#ROTATION_180
+     * @see Surface#ROTATION_270
+     */
+    private int mCurrentRotation;
 
     /**
      * コンストラクタ.
@@ -197,7 +213,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
         byte[] jpeg = convertToJPEG(image);
-        jpeg = rotateJPEG(jpeg, 100);
+        if (DEBUG) {
+            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(getContext()));
+        }
+        jpeg = rotateJPEG(jpeg, PHOTO_JPEG_QUALITY);
 
         // ファイル保存
         final String filename = createNewFileName();
@@ -233,12 +252,14 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     byte[] rotateJPEG(final byte[] jpeg, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
-        int orientation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
+        int rotation = ROTATIONS.get(mCurrentRotation);
         int degrees;
         Bitmap rotated;
         Matrix m = new Matrix();
-        if (mFacing == CameraFacing.FRONT || mFacing == CameraFacing.BACK) {
-            degrees = orientation;
+        if (mFacing == CameraFacing.BACK) {
+            degrees = rotation;
+        } else if (mFacing == CameraFacing.FRONT) {
+            degrees = 360 - rotation;
         } else {
             degrees = 0;
         }
@@ -786,6 +807,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public void onDisplayRotation(final int degree) {
+        mCurrentRotation = degree;
         for (PreviewServer server : getServers()) {
             server.onDisplayRotation(degree);
         }

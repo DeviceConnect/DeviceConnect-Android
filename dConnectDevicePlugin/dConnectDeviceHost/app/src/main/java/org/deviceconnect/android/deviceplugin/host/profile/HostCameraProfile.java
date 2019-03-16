@@ -1,3 +1,9 @@
+/*
+ HostCameraProfile.java
+ Copyright (c) 2018 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
@@ -14,6 +20,11 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
+/**
+ * Camera Profile. (Experimental)
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class HostCameraProfile extends DConnectProfile {
 
     @Override
@@ -40,10 +51,7 @@ public class HostCameraProfile extends DConnectProfile {
                 }
                 Bundle photo = new Bundle();
                 photo.putString("whiteBalance", recorder.getWhiteBalance());
-                Bundle movie = new Bundle();
-                movie.putString("whiteBalance", recorder.getWhiteBalance());
                 response.putExtra("photo", photo);
-                response.putExtra("movie", movie);
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }

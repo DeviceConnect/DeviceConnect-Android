@@ -125,6 +125,8 @@ public class HostDeviceService extends DConnectMessageService {
             } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
                     || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 onChangedBluetoothStatus();
+            } else if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
+                stopWebServer(intent);
             }
         }
     };
@@ -211,6 +213,7 @@ public class HostDeviceService extends DConnectMessageService {
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
         registerReceiver(mHostConnectionReceiver, filter);
 
         registerDemoNotification();

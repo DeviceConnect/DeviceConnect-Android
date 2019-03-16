@@ -7,120 +7,13 @@
   <link href="./libs/photoswipe/4.1.1/default-skin/default-skin.min.css" rel="stylesheet">
   <link href="./libs/material-design-icons-3.0.1/iconfont/material-icons.css" rel="stylesheet">
   <link href="./libs/vuetify/1.5.4/vuetify.min.css" rel="stylesheet">
+  <link href="./css/index.css" rel="stylesheet">
   <script src="./libs/vue/2.6.8/vue.min.js"></script>
   <script src="./libs/vuetify/1.5.4/vuetify.min.js"></script>
   <script src="./libs/vue-router/3.0.2/vue-router.min.js"></script>
   <script src="./libs/photoswipe/4.1.1/photoswipe.min.js"></script>
   <script src="./libs/photoswipe/4.1.1/photoswipe-ui-default.min.js"></script>
   <script src="./libs/qrcode-generator-20170724/js/qrcode.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-    }
-    .container {
-      margin: 0;
-      padding: 0;
-    }
-    #launch-progress {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      -webkit-transform: translate(-50%, -50%);
-    }
-    #preview {
-      width: 100vw;
-      height: 100%;
-      object-fit: cover;
-    }
-    .video-player {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      -webkit-transform: translate(-50%, -50%);
-      width: 100vmin;
-      height: 100vmin;
-    }
-    .video-mark {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      -webkit-transform: translate(-50%, -50%);
-    }
-    #qrcode-page {
-      position: absolute;
-      top: 25%;
-      -webkit-transform: translate(0, -25%);
-      text-align: center;
-    }
-    #qrcode {
-      width: 50vmin;
-      height: 50vmin;
-    }
-    #message .uri {
-      margin-top: 1.0em;
-      margin-bottom: 1.0em;
-      margin-left: 2.0em;
-      margin-right: 2.0em;
-    }
-
-    @media screen and (orientation: portrait) {
-      #shutter {
-        position: fixed;
-        left: 50%;
-        bottom: 16px;
-        -webkit-transform: translate(-50%, 0);
-      }
-      #start-recording {
-        position: fixed;
-        left: 25%;
-        bottom: 24px;
-        -webkit-transform: translate(-50%, 0);
-      }
-      #stop-recording {
-        position: fixed;
-        left: 25%;
-        bottom: 24px;
-        -webkit-transform: translate(-50%, 0);
-      }
-      #thumbnail {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        width: 50pt;
-        height: 50pt;
-      }
-    }
-    @media screen and (orientation: landscape) {
-      #shutter {
-        position: fixed;
-        top: 50%;
-        right: 16px;
-        -webkit-transform: translate(-50%, 0);
-      }
-      #start-recording {
-        position: fixed;
-        top: 25%;
-        right: 24px;
-        -webkit-transform: translate(-50%, 0);
-      }
-      #stop-recording {
-        position: fixed;
-        top: 25%;
-        right: 24px;
-        -webkit-transform: translate(-50%, 0);
-      }
-      #thumbnail {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        width: 50pt;
-        height: 50pt;
-      }
-    }
-  </style>
 </head>
 <body>
 
@@ -133,26 +26,30 @@
       temporary
       fixed
       >
-      <v-list class="pa-1">
-        <v-list-tile avatar>
-          <v-list-tile-content>
-            <v-list-tile-title>デモページ</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list>
 
-      <v-list class="pt-0" dense>
+      <v-toolbar flat>
+        <v-list>
+          <v-list-tile>
+            <v-list-tile-title class="title">
+              デモページ
+            </v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+      </v-toolbar>
+
+      <v-list class="pt-0">
         <v-list-tile
           v-for="page in pages"
           :key="page.title"
           @click="showPage(page.path)"
+          class="pt-3"
         >
           <v-list-tile-action>
-            <v-icon>{{ page.icon }}</v-icon>
+            <v-icon large>{{ page.icon }}</v-icon>
           </v-list-tile-action>
 
           <v-list-tile-content>
-            <v-list-tile-title>{{ page.title }}</v-list-tile-title>
+            <v-list-tile-title class="subheading">{{ page.title }}</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
@@ -168,7 +65,7 @@
       v-model="dialog"
       hide-overlay>
       <v-card>
-        <v-layout row wrap align-center>
+        <v-layout row wrap align-center class="recorder-dialog-layout">
           <v-flex xs4>
             <v-subheader>カメラ</v-subheader>
           </v-flex>
@@ -318,7 +215,7 @@
     </v-dialog>
 
     <!-- グリッド表示 -->
-    <v-layout row wrap>
+    <v-layout row wrap id="viewer-media-list">
       <v-flex xs4 v-for="(item,i) in mediaItems" :key="i">
           <v-card flat tile @click="showImage(i)">
             <v-img :src="item.uri" width="100%" alt=""></v-img>

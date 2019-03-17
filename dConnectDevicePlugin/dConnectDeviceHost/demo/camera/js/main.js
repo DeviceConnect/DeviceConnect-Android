@@ -493,7 +493,7 @@ app = new Vue({
     }
 
     // Device Connect システムと接続
-    connect();
+    startAndConnect();
   },
   data() {
     return {
@@ -741,7 +741,7 @@ app = new Vue({
       })
     },
     reconnect() {
-      connect();
+      startAndConnect();
     },
     openRecorder(args) {
       router.push({ path: '/' });
@@ -757,6 +757,27 @@ app = new Vue({
     }
   }
 });
+
+function startAndConnect() {
+  sdk.checkAvailability(host)
+  .then(() => { connect(); })
+  .catch(err => {
+    if (!sdk.isAndroid()) {
+      EventBus.$emit('connection-error', { message: 'DeviceConnect システムが見つかりませんでした。' });
+      return;
+    }
+    console.log('connect: start device connect manager.');
+    sdk.startDeviceConnect({
+      host,
+      oncheck(count) { console.log('connect: oncheck: count=' + count); },
+      onstart() { connect(); },
+      onerror() {
+        console.warn('Failed to start device connect manager', err);
+        EventBus.$emit('connection-error', { message: 'DeviceConnect システムを起動できませんでした。' });
+      }
+    })
+  })
+}
 
 function connect() {
   sdk

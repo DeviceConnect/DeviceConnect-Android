@@ -203,6 +203,37 @@ export class DeviceConnectClient {
     this._sessions[host] = undefined;
   }
 
+  isAndroid() {
+    var userAgent = window.navigator.userAgent.toLowerCase();
+    return (userAgent.indexOf('android') != -1);
+  }
+
+  startDeviceConnect(option) {
+    location.href = 'gotapi://start/server';
+    this.waitAvailable(option);
+  }
+
+  waitAvailable(option) {
+    option.oncheck = option.oncheck || function() {};
+    option.count = option.count || 10;
+
+    option.oncheck(option.count);
+    option.count--;
+    this.checkAvailability(option.host)
+    .then((json) => {
+      option.onstart(json);
+    })
+    .catch((err) => {
+      if (option.count <= 0) {
+        option.onerror();
+      } else {
+        setTimeout(function(op) {
+          this.waitAvailable(op);
+        }.bind(this, option), option.interval || 1000);
+      }
+    })
+  }
+
   /**
    * DeviceConnect システムに接続する.
    *
@@ -223,18 +254,8 @@ export class DeviceConnectClient {
         this._sessions[host] = session;
       }
 
-      // Check Availability
-      this.checkAvailability(host)
-
       // Authorization
-      .then(json => {
-        console.log('Device Connect system is available: host=' + host);
-        if (session.accessToken !== null) {
-          console.log('AccessToken: ' + session.accessToken);
-          return Promise.resolve({ result:0, accessToken:session.accessToken });
-        }
-        return this.authorize(host, scopes);
-      })
+      this.authorize(session, host, scopes)
 
       // Establish WebSokcet
       .then(json => {
@@ -295,7 +316,11 @@ export class DeviceConnectClient {
     });
   }
 
-  authorize(host, scopes) {
+  authorize(session, host, scopes) {
+    if (session.accessToken !== null) {
+      console.log('AccessToken: ' + session.accessToken);
+      return Promise.resolve({ result:0, accessToken:session.accessToken });
+    }
     return this.createClient(host)
     .then((json) => {
       console.log('clientId: ' + json.clientId);

@@ -31,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 
 
@@ -46,8 +47,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
     private static final String TAG = "host.dplugin";
 
     private static final String MIME_TYPE = "video/x-mjpeg";
-
-    private static final int MIN_FRAME_SIZE = 2084;
 
     private final Camera2Recorder mRecorder;
 
@@ -67,28 +66,33 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private final Object mDrawTaskSync = new Object();
 
+    private Thread mDrawTaskThread;
+
     private DrawTask mDrawTask;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
         @Override
-        public boolean onAccept() {
+        public boolean onAccept(final Socket socket) {
             try {
                 if (DEBUG) {
                     Log.d(TAG, "MediaServerCallback.onAccept: recorder=" + mRecorder.getName());
                 }
-                synchronized (mDrawTaskSync) {
-                    if (mDrawTask == null) {
-                        mDrawTask = new DrawTask();
-                        new Thread(mDrawTask).start();
-                        return true;
-                    } else {
-                        return false;
-                    }
+                if (mRecorder.isStartedPreview()) {
+                    return false;
                 }
+                return startDrawTask();
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start preview.", e);
                 return false;
             }
+        }
+
+        @Override
+        public void onClosed(final Socket socket) {
+            if (DEBUG) {
+                Log.d(TAG, "MediaServerCallback.onClosed: recorder=" + mRecorder.getName());
+            }
+            stopDrawTask();
         }
     };
 
@@ -150,7 +154,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 return;
             }
             mIsRecording = false;
-            mDrawTask = null;
+            stopDrawTask();
             if (mServer != null) {
                 mServer.stop();
                 mServer = null;
@@ -169,6 +173,28 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mPreviewHandler = null;
 
             mRecorder.hideNotification();
+        }
+    }
+
+    private boolean startDrawTask() {
+        synchronized (mDrawTaskSync) {
+            if (mDrawTaskThread == null) {
+                mDrawTask = new DrawTask();
+                mDrawTaskThread = new Thread(mDrawTask);
+                mDrawTaskThread.start();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    private void stopDrawTask() {
+        synchronized (mDrawTaskSync) {
+            if (mDrawTaskThread != null) {
+                mDrawTaskThread.interrupt();
+                mDrawTaskThread = null;
+            }
         }
     }
 
@@ -269,6 +295,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 mDrawer.release();
                 mDrawer = null;
             }
+            mDrawTask = null;
             releaseSurface();
             try {
                 mRecorder.stopPreview();
@@ -276,8 +303,6 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 Log.e(TAG, "Failed to stop camera preview.", e);
             }
             makeCurrent();
-
-            mDrawTask = null;
         }
 
         @Override
@@ -358,9 +383,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                         mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);
                     }
                     byte[] jpeg = mOutput.toByteArray();
-                    if (jpeg.length >= MIN_FRAME_SIZE) { // FIXME: 複数のクライアントから同時接続されると黒いフレームが頻繁に生成されてしまう現象への措置
-                        offerMedia(jpeg);
-                    }
+                    offerMedia(jpeg);
                     queueEvent(this);
                 } else {
                     releaseSelf();

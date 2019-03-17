@@ -378,6 +378,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return new PictureSize(rotated.getWidth(), rotated.getHeight());
     }
 
+    boolean isStartedPreview() {
+        CameraWrapper camera = getCameraWrapper();
+        return camera.isPreview();
+    }
+
     void startPreview(final Surface previewSurface) throws CameraWrapperException {
         CameraWrapper camera = getCameraWrapper();
         camera.startPreview(previewSurface, false);

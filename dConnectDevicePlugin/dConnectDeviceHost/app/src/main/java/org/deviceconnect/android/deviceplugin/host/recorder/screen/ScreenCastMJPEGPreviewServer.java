@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
+import java.net.Socket;
 import java.util.logging.Logger;
 
 
@@ -36,14 +37,26 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
     private int mJpegQuality;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
+
         @Override
-        public boolean onAccept() {
+        public boolean onAccept(final Socket socket) {
             synchronized (mLockObj) {
                 if (!mPreview.isStarted()) {
                     mPreview.start();
+                    return true;
+                } else {
+                    return false;
                 }
             }
-            return true;
+        }
+
+        @Override
+        public void onClosed(final Socket socket) {
+            synchronized (mLockObj) {
+                if (mPreview.isStarted()) {
+                    mPreview.stop();
+                }
+            }
         }
     };
 

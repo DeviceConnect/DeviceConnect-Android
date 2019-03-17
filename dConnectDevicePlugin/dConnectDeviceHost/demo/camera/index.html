@@ -145,21 +145,49 @@
     <!-- プレビュー表示 -->
     <img id="preview" />
 
-    <!-- ボタン -->
+    <!-- 撮影モード切り替えボタン -->
+    <div class="camera-mode-btn-group">
+        <v-btn class="blue darken-2" dark v-show="recorderMode === 'photo'">
+          <v-icon>camera_alt</v-icon><span class="spacer"></span><span>写真</span>
+        </v-btn>
+        <v-btn class="blue-grey lighten-2" dark v-show="recorderMode !== 'photo'" @click="recorderMode = 'photo'">
+          <v-icon>camera_alt</v-icon><span class="spacer"></span><span>写真</span>
+        </v-btn>
+        <v-btn class="blue darken-2" dark v-show="recorderMode === 'video'">
+          <v-icon>videocam</v-icon><span class="spacer"></span><span>ビデオ</span>
+        </v-btn>
+        <v-btn class="blue-grey lighten-2" dark v-show="recorderMode !== 'video'" @click="recorderMode = 'video'">
+          <v-icon>videocam</v-icon><span class="spacer"></span><span>ビデオ</span>
+        </v-btn>
+    </div>
+
+    <!-- 動画撮影開始ボタン -->
     <v-btn
       id="start-recording"
-      v-show="!isRecording"
+      v-show="!isRecording && recorderMode === 'video'"
       @click="startRecording()"
-      fab icon fixed color="secondary"><v-icon dark>videocam</v-icon></v-btn>
+      large fab fixed color="primary"><v-icon dark>fiber_manual_record</v-icon></v-btn>
+
+    <!-- 動画撮影停止ボタン -->
     <v-btn
       id="stop-recording"
-      v-show="isRecording"
+      v-show="isRecording && recorderMode === 'video'"
       @click="stopRecording()"
-      fab fixed color="red"><v-icon>stop</v-icon></v-btn>
+      large fab fixed color="red"><v-icon>stop</v-icon></v-btn>
+    
+    <!-- シャッターボタン (写真モード時)  -->
     <v-btn
       id="shutter"
       @click="requestTakePhoto()"
-      large fab fixed color="primary"><v-icon dark>camera_alt</v-icon></v-btn>
+      v-show="recorderMode === 'photo'"
+      large fab fixed color="primary"><v-icon dark>camera</v-icon></v-btn>
+    
+    <!-- シャッターボタン (動画モード時) -->
+    <v-btn
+      id="shutter-with-video"
+      @click="requestTakePhoto()"
+      v-show="recorderMode === 'video'"
+      fab fixed color="secondary"><v-icon dark>camera</v-icon></v-btn>
 
     <!-- サムネイル表示 -->
     <v-avatar

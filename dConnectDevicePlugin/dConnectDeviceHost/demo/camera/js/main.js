@@ -23,6 +23,10 @@ let app;
 // 撮影画面
 Vue.component('app-recorder', {
   template: '#app-recorder',
+  created () {
+    // 撮影モードの復元
+    this.recorderMode = storage.getString('recorderMode') || 'photo';
+  },
   mounted () {
     EventBus.$on('on-launched', this.onLaunched);
     EventBus.$on('on-photo', this.onPhoto);
@@ -45,6 +49,7 @@ Vue.component('app-recorder', {
   },
   data () {
     return {
+      recorderMode: 'photo',
       launched: false,
       latestMediaUri: null,
       latestMediaThumbnailUri: null,
@@ -53,6 +58,11 @@ Vue.component('app-recorder', {
       isStoppingRecording: false,
       isTakingPhoto: false,
       showPreviewError: false
+    }
+  },
+  watch: {
+    recorderMode: function(newValue) {
+      storage.setString('recorderMode', newValue);
     }
   },
   computed: {

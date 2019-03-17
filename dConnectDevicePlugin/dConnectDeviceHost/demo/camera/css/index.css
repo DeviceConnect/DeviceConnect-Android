@@ -9,6 +9,10 @@ body {
   padding: 0;
 }
 
+.spacer {
+  width: 10px;
+}
+
 #launch-progress {
   position: absolute;
   left: 50%;
@@ -20,6 +24,12 @@ body {
   width: 100vw;
   height: 100%;
   object-fit: cover;
+}
+
+.camera-mode-btn-group {
+  position: absolute;
+  left: 2px;
+  top: 60px;
 }
 
 .recorder-dialog-layout {
@@ -46,8 +56,8 @@ body {
 }
 #qrcode-page {
   position: absolute;
-  top: 25%;
-  -webkit-transform: translate(0, -25%);
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
   text-align: center;
 }
 #qrcode {
@@ -68,16 +78,22 @@ body {
     bottom: 16px;
     -webkit-transform: translate(-50%, 0);
   }
-  #start-recording {
+  #shutter-with-video {
     position: fixed;
     left: 25%;
     bottom: 24px;
     -webkit-transform: translate(-50%, 0);
   }
+  #start-recording {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    -webkit-transform: translate(-50%, 0);
+  }
   #stop-recording {
     position: fixed;
-    left: 25%;
-    bottom: 24px;
+    left: 50%;
+    bottom: 16px;
     -webkit-transform: translate(-50%, 0);
   }
   #thumbnail {
@@ -95,16 +111,22 @@ body {
     right: 16px;
     -webkit-transform: translate(-50%, 0);
   }
-  #start-recording {
+  #shutter-with-video {
     position: fixed;
     top: 25%;
     right: 24px;
     -webkit-transform: translate(-50%, 0);
   }
+  #start-recording {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    -webkit-transform: translate(-50%, 0);
+  }
   #stop-recording {
     position: fixed;
-    top: 25%;
-    right: 24px;
+    top: 50%;
+    right: 16px;
     -webkit-transform: translate(-50%, 0);
   }
   #thumbnail {

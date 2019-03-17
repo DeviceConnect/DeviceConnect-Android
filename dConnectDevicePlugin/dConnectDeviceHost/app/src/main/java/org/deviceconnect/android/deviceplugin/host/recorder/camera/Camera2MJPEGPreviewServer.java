@@ -192,7 +192,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
     private void stopDrawTask() {
         synchronized (mDrawTaskSync) {
             if (mDrawTaskThread != null) {
-                mDrawTaskThread.interrupt();
+                mDrawTask.release(false);
                 mDrawTaskThread = null;
             }
         }

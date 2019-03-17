@@ -526,7 +526,10 @@ app = new Vue({
   methods: {
     onLaunched() {},
     openDrawer() { this.showDrawer = true; },
-    openRecorderSettingDialog() { this.dialog = true; },
+    openRecorderSettingDialog() {
+      this.dialog = true;
+      this.stopPreview();
+    },
     checkMode(route) {
       this.mode = this.getMode(route.path);
       console.log('App: Current Mode: ' + this.mode + ' for ' + route.path);
@@ -578,6 +581,9 @@ app = new Vue({
         }
       }
       return null;
+    },
+    restoreRecorderOption: function() {
+      this.startPreview();
     },
     changeRecorderOption: function() {
       const settings = this.recorderSettings;

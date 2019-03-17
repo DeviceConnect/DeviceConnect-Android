@@ -94,7 +94,7 @@
         </v-layout>
         <v-card-actions>
           <v-layout justify-end>
-            <v-btn color="primary" flat @click="dialog = false">キャンセル</v-btn>
+            <v-btn color="primary" flat @click="dialog = false; restoreRecorderOption()">キャンセル</v-btn>
             <v-btn color="primary" flat @click="dialog = false; changeRecorderOption()">変更</v-btn>
           </v-layout>
         </v-card-actions>

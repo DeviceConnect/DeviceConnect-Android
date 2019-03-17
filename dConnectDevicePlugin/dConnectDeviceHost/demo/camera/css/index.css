@@ -108,25 +108,25 @@ body {
   #shutter {
     position: fixed;
     top: 50%;
-    right: 16px;
+    right: 0px;
     -webkit-transform: translate(-50%, 0);
   }
   #shutter-with-video {
     position: fixed;
     top: 25%;
-    right: 24px;
+    right: 8px;
     -webkit-transform: translate(-50%, 0);
   }
   #start-recording {
     position: fixed;
     top: 50%;
-    right: 16px;
+    right: 0px;
     -webkit-transform: translate(-50%, 0);
   }
   #stop-recording {
     position: fixed;
     top: 50%;
-    right: 16px;
+    right: 0px;
     -webkit-transform: translate(-50%, 0);
   }
   #thumbnail {

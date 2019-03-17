@@ -7,7 +7,7 @@ const EventBus = new Vue();
 
 // SDK 初期化
 let _currentSession = null;
-const host = getHostName();
+const host = getHostName() || location.hostname;
 const scopes = [
   'serviceDiscovery',
   'serviceInformation',
@@ -834,11 +834,11 @@ function clearAccessToken() {
 }
 
 function accessTokenKey() {
-  return 'accessToken-' + decodeURIComponent(getHostName());
+  return 'accessToken' + (getHostName() || 'localhost' ) + decodeURIComponent(location.origin);
 }
 
 function getHostName() {
-  return (new URL(document.location)).searchParams.get('ip') || location.hostname;
+  return (new URL(document.location)).searchParams.get('ip');
 }
 
 /**

@@ -31,7 +31,7 @@ Vue.component('app-recorder', {
     if (app) {
       this.launched = !app.launching;
       if (this.launched === true) {
-        this.startPreview();
+        this.onLaunched();
       }
     }
 
@@ -53,6 +53,7 @@ Vue.component('app-recorder', {
       launched: false,
       latestMediaUri: null,
       latestMediaThumbnailUri: null,
+      isPrepared: false,
       isRecording: false,
       isStartingRecording: false,
       isStoppingRecording: false,
@@ -118,9 +119,35 @@ Vue.component('app-recorder', {
       const encodedUri = encodeURIComponent(this.latestMediaUri);
       EventBus.$emit('show-media', { uri:encodedUri });
     },
+    checkRecorderState(hostServiceId) {
+      //現在のレコーダーの状態を確認
+      console.log('Recorder: checkRecorderState: serviceId=' + hostServiceId);
+      this.$root.sdk.offer(host, API.getRecorderList, { serviceId: hostServiceId })
+      .then((result) => {
+        console.log('Recorder: checkRecorderState: ', result.recorders);
+        let recorder = null;
+        for (let k in result.recorders) {
+          recorder = result.recorders[k];
+          if (recorder.id === this.$root.activeRecorderId) {
+            break;
+          }
+        }
+        if (recorder !== null) {
+          this.isRecording = recorder.state === 'recording';
+          this.isPrepared = true;
+        } else {
+          EventBus.$emit('connection-error', { message: '現在のカメラの状態を確認できませんでした。' });
+        }
+      })
+      .catch((err) => {
+        console.error('Recorder: checkRecorderState: error', err);
+        EventBus.$emit('connection-error', { message: 'カメラ一覧を取得できませんでした。' });
+      });
+    },
     onLaunched: function() {
       this.launched = true;
       this.startPreview();
+      this.checkRecorderState(this.$root.hostService.id);
     },
     onPhoto: function(event) {
       console.log('onPhoto: uri=' + event.uri);
@@ -757,7 +784,8 @@ function connect() {
     app.hostService = hostService;
 
     // レコーダー情報を取得
-    return API.getRecorderList(result.session, hostService.id)
+    console.log('connect: getRecorderList: serviceId=' + hostService.id);
+    return API.getRecorderList(result.session, { serviceId: hostService.id })
   })
   .then(result => {
     console.log('Recorders:', result.recorders);

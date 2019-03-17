@@ -166,14 +166,12 @@ export function getFileList(session, params) {
   });
 }
 
-export function getRecorderList(session, serviceId) {
+export function getRecorderList(session, params) {
   return new Promise((resolve, reject) => {
     session.request({
       method: 'GET',
       path: '/gotapi/mediaStreamRecording/mediaRecorder',
-      params: {
-        serviceId
-      }
+      params
     })
     .then((json) => {
       const result = json.result;
@@ -182,7 +180,7 @@ export function getRecorderList(session, serviceId) {
         reject(json);
         return;
       }
-      resolve({session, serviceId, recorders});
+      resolve({session, serviceId:params.serviceId, recorders});
     })
     .catch((err) => {
       reject(err);

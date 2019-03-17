@@ -17,6 +17,18 @@ export default class {
     return this._storage.getItem(key);
   }
 
+  setInt(key, value) {
+    return this.setString(key, new Number(value).toString());
+  }
+
+  getInt(key, fallback) {
+    let value = this.getString(key);
+    if (value === null) {
+      return fallback;
+    }
+    return parseInt(value);
+  }
+
   setObject(key, value) {
     const strValue = JSON.stringify(value);
     this._storage.setItem(key, strValue);

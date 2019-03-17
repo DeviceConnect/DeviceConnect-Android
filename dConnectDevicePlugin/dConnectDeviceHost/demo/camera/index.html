@@ -147,11 +147,11 @@
 
     <!-- 撮影モード切り替えボタン -->
     <div class="camera-mode-btn-group">
-      <v-btn-toggle mandatory>
-        <v-btn color="primary" flat @click="recorderMode = 'photo'">
+      <v-btn-toggle mandatory v-model="recorderMode">
+        <v-btn color="primary" flat>
           <v-icon>camera_alt</v-icon>
         </v-btn>
-        <v-btn color="primary" flat @click="recorderMode = 'video'">
+        <v-btn color="primary" flat>
           <v-icon>videocam</v-icon>
         </v-btn>
       </v-btn-toggle>
@@ -160,14 +160,14 @@
     <!-- 動画撮影開始ボタン -->
     <v-btn
       id="start-recording"
-      v-show="!isRecording && recorderMode === 'video'"
+      v-show="!isRecording && recorderMode === 1"
       @click="startRecording()"
       large fab fixed color="primary"><v-icon dark>fiber_manual_record</v-icon></v-btn>
 
     <!-- 動画撮影停止ボタン -->
     <v-btn
       id="stop-recording"
-      v-show="isRecording && recorderMode === 'video'"
+      v-show="isRecording && recorderMode === 1"
       @click="stopRecording()"
       large fab fixed color="red"><v-icon>stop</v-icon></v-btn>
     
@@ -175,14 +175,14 @@
     <v-btn
       id="shutter"
       @click="requestTakePhoto()"
-      v-show="recorderMode === 'photo'"
+      v-show="recorderMode === 0"
       large fab fixed color="primary"><v-icon dark>camera</v-icon></v-btn>
     
     <!-- シャッターボタン (動画モード時) -->
     <v-btn
       id="shutter-with-video"
       @click="requestTakePhoto()"
-      v-show="recorderMode === 'video'"
+      v-show="recorderMode === 1"
       fab fixed color="secondary"><v-icon dark>camera</v-icon></v-btn>
 
     <!-- サムネイル表示 -->

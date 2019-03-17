@@ -162,7 +162,9 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
     }
 
     @Override
-    public void eraseSession(Session session) {}
+    public void eraseSession(final Session session) {
+        stopPreviewStreaming();
+    }
 
     @Override
     public int getQuality() {
@@ -208,6 +210,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         if (session.getDestination() == null) {
             session.setDestination(clientSocket.getInetAddress().getHostAddress());
         }
+
+        mRecorder.sendNotification();
         return session;
     }
 
@@ -217,6 +221,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                 mVideoStream.stop();
                 mVideoStream = null;
                 mIsRecording = false;
+
+                mRecorder.hideNotification();
             }
         }
     }

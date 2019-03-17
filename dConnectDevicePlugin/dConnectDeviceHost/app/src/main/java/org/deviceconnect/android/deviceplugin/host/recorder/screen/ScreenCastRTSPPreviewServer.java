@@ -139,7 +139,8 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
     }
 
     @Override
-    public void eraseSession(Session session) {
+    public void eraseSession(final Session session) {
+        stopScreenCast();
     }
 
     @Override
@@ -199,7 +200,6 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
                 mScreenCast = null;
                 mIsStartedCast = false;
             }
-
         }
     }
 

@@ -26,13 +26,6 @@ body {
   object-fit: cover;
 }
 
-.camera-mode-btn-group {
-  position: absolute;
-  left: 50%;
-  top: 70px;
-  -webkit-transform: translate(-50%, 0);
-}
-
 .recorder-dialog-layout {
   padding: 8px 24px 8px 8px;
 }
@@ -73,6 +66,12 @@ body {
 }
 
 @media screen and (orientation: portrait) {
+  .camera-mode-btn-group {
+    position: absolute;
+    left: 50%;
+    top: 70px;
+    -webkit-transform: translate(-50%, 0);
+  }
   #shutter {
     position: fixed;
     left: 50%;
@@ -106,6 +105,11 @@ body {
   }
 }
 @media screen and (orientation: landscape) {
+  .camera-mode-btn-group {
+    position: absolute;
+    left: 16px;
+    top: 70px;
+  }
   #shutter {
     position: fixed;
     top: 50%;

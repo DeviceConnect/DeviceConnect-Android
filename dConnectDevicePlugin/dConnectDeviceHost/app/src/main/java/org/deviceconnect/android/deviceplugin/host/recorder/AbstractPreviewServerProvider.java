@@ -78,7 +78,6 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     public void sendNotification() {
         PendingIntent contentIntent = createPendingIntent();
         Notification notification = createNotification(contentIntent, null);
-        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_AUTO_CANCEL;
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
 
@@ -109,7 +108,8 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
             builder.setWhen(System.currentTimeMillis());
-            builder.setAutoCancel(false);
+            builder.setAutoCancel(true);
+            builder.setOngoing(true);
             return builder.build();
         } else {
             Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
@@ -121,7 +121,8 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + getName() + ")");
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
             builder.setWhen(System.currentTimeMillis());
-            builder.setAutoCancel(false);
+            builder.setAutoCancel(true);
+            builder.setOngoing(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId != null) {
                 builder.setChannelId(channelId);
             }

@@ -147,18 +147,14 @@
 
     <!-- 撮影モード切り替えボタン -->
     <div class="camera-mode-btn-group">
-        <v-btn class="blue darken-2" dark v-show="recorderMode === 'photo'">
-          <v-icon>camera_alt</v-icon><span class="spacer"></span><span>写真</span>
+      <v-btn-toggle mandatory>
+        <v-btn color="primary" flat @click="recorderMode = 'photo'">
+          <v-icon>camera_alt</v-icon>
         </v-btn>
-        <v-btn class="blue-grey lighten-2" dark v-show="recorderMode !== 'photo'" @click="recorderMode = 'photo'">
-          <v-icon>camera_alt</v-icon><span class="spacer"></span><span>写真</span>
+        <v-btn color="primary" flat @click="recorderMode = 'video'">
+          <v-icon>videocam</v-icon>
         </v-btn>
-        <v-btn class="blue darken-2" dark v-show="recorderMode === 'video'">
-          <v-icon>videocam</v-icon><span class="spacer"></span><span>ビデオ</span>
-        </v-btn>
-        <v-btn class="blue-grey lighten-2" dark v-show="recorderMode !== 'video'" @click="recorderMode = 'video'">
-          <v-icon>videocam</v-icon><span class="spacer"></span><span>ビデオ</span>
-        </v-btn>
+      </v-btn-toggle>
     </div>
 
     <!-- 動画撮影開始ボタン -->

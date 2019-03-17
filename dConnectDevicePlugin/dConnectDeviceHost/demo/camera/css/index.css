@@ -28,8 +28,9 @@ body {
 
 .camera-mode-btn-group {
   position: absolute;
-  left: 2px;
-  top: 60px;
+  left: 50%;
+  top: 70px;
+  -webkit-transform: translate(-50%, 0);
 }
 
 .recorder-dialog-layout {

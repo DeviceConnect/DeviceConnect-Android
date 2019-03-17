@@ -33,6 +33,8 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import java.io.IOException;
 import java.net.Socket;
 
+import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
+
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements RtspServer.Delegate {
@@ -110,7 +112,9 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             }
             stopDrawTask();
         } catch (Throwable e) {
-            Log.e(TAG, "stopWebServer", e);
+            if (DEBUG) {
+                Log.e(TAG, "stopWebServer", e);
+            }
             throw e;
         }
     }
@@ -260,9 +264,13 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
             try {
                 mRecorder.startPreview(mSourceSurface);
-                Log.d(TAG, "Started camera preview.");
+                if (DEBUG) {
+                    Log.d(TAG, "Started camera preview.");
+                }
             } catch (CameraWrapperException e) {
-                Log.e(TAG, "Failed to start camera preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to start camera preview.", e);
+                }
             }
 
             // 録画タスクを起床
@@ -290,7 +298,9 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             try {
                 mRecorder.stopPreview();
             } catch (CameraWrapperException e) {
-                Log.e(TAG, "Failed to stop camera preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to stop camera preview.", e);
+                }
             }
             makeCurrent();
         }
@@ -331,7 +341,9 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                             localRequestDraw = requestDraw;
                             requestDraw = false;
                         } catch (final InterruptedException e) {
-                            Log.v(TAG, "draw:InterruptedException");
+                            if (DEBUG) {
+                                Log.v(TAG, "draw:InterruptedException");
+                            }
                             return;
                         }
                     }
@@ -382,7 +394,9 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                             mVideoStream.changeResolution(w, h);
                             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
                         } catch (Throwable e) {
-                            Log.e(TAG, "Failed to update preview rotation.", e);
+                            if (DEBUG) {
+                                Log.e(TAG, "Failed to update preview rotation.", e);
+                            }
                         }
                     }
                 }

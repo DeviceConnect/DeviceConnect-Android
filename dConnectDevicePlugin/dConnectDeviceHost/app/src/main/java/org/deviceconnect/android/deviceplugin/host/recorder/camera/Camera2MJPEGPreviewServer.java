@@ -34,6 +34,8 @@ import java.io.ByteArrayOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
+import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
+
 
 /**
  * カメラのプレビューをMJPEG形式で配信するサーバー.
@@ -82,7 +84,9 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 }
                 return startDrawTask();
             } catch (Exception e) {
-                Log.e(TAG, "Failed to start preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to start preview.", e);
+                }
                 return false;
             }
         }
@@ -165,7 +169,9 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 try {
                     camera.stopPreview();
                 } catch (CameraWrapperException e) {
-                    Log.e(TAG, "Failed to stop preview.", e);
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to stop preview.", e);
+                    }
                 }
             }
             mPreviewThread.quit();
@@ -280,9 +286,13 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             try {
                 mRecorder.startPreview(mSourceSurface);
                 mRecorder.sendNotification();
-                Log.d(TAG, "Started camera preview.");
+                if (DEBUG) {
+                    Log.d(TAG, "Started camera preview.");
+                }
             } catch (CameraWrapperException e) {
-                Log.e(TAG, "Failed to start camera preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to start camera preview.", e);
+                }
             }
 
             // 録画タスクを起床
@@ -300,7 +310,9 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             try {
                 mRecorder.stopPreview();
             } catch (CameraWrapperException e) {
-                Log.e(TAG, "Failed to stop camera preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to stop camera preview.", e);
+                }
             }
             makeCurrent();
         }
@@ -343,7 +355,9 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                             localRequestDraw = requestDraw;
                             requestDraw = false;
                         } catch (final InterruptedException e) {
-                            Log.v(TAG, "draw:InterruptedException");
+                            if (DEBUG) {
+                                Log.v(TAG, "draw:InterruptedException");
+                            }
                             return;
                         }
                     }

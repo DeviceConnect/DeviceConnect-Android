@@ -308,7 +308,9 @@ public class CameraWrapper {
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-                    Log.e(TAG, "onCaptureFailed: failure=" + failure.getReason());
+                    if (DEBUG) {
+                        Log.e(TAG, "onCaptureFailed: failure=" + failure.getReason());
+                    }
                 }
             }, mBackgroundHandler);
             mCaptureSession = captureSession;
@@ -421,7 +423,9 @@ public class CameraWrapper {
 
                 @Override
                 public void onCaptureFailed(final @NonNull CameraCaptureSession session, final @NonNull CaptureRequest request, final @NonNull CaptureFailure failure) {
-                    Log.e(TAG, "takeStillImage: onCaptureFailed");
+                    if (DEBUG) {
+                        Log.e(TAG, "takeStillImage: onCaptureFailed");
+                    }
                     resumeRepeatingRequest();
                 }
 
@@ -444,7 +448,9 @@ public class CameraWrapper {
                             close();
                         }
                     } catch (CameraWrapperException e) {
-                        Log.e(TAG, "Failed to resume recording or preview.", e);
+                        if (DEBUG) {
+                            Log.e(TAG, "Failed to resume recording or preview.", e);
+                        }
                     }
                 }
             }, mBackgroundHandler);
@@ -452,7 +458,9 @@ public class CameraWrapper {
                 Log.d(TAG, "takeStillImage: Started capture:");
             }
         } catch (Throwable e) {
-            Log.e(TAG, "Failed to take still image.", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to take still image.", e);
+            }
             mIsTakingStillImage = false;
             throw new CameraWrapperException(e);
         }

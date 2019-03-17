@@ -206,7 +206,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
             camera.takeStillImage(stillImageReader.getSurface());
         } catch (CameraWrapperException e) {
-            Log.e(TAG, "Failed to take photo.", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to take photo.", e);
+            }
             listener.onFailedTakePhoto("Failed to take photo.");
         }
     }
@@ -425,12 +427,16 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
                 @Override
                 public void onRecordingStartError(final Throwable e) {
-                    Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+                    }
                     listener.onFailed(Camera2Recorder.this, "Failed to start recording for unexpected problem: " + e.getMessage());
                 }
             });
         } catch (Throwable e) {
-            Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+            }
             listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
         }
     }
@@ -456,7 +462,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
                 @Override
                 public void onRecordingStopError(Throwable e) {
-                    Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+                    }
                     listener.onFailed(Camera2Recorder.this, "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             });
@@ -537,7 +545,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
             Uri uri = resolver.insert(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, values);
             if (uri == null) {
-                Log.e(TAG, "Failed to register video thumbnail on content provider: videoFilePath=" + videoFilePath);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to register video thumbnail on content provider: videoFilePath=" + videoFilePath);
+                }
                 return -1;
             }
             if (DEBUG) {
@@ -545,15 +555,21 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             }
             String id = uri.getLastPathSegment();
             if (id == null) {
-                Log.e(TAG, "Thumbnail ID is not found in URI: " + uri);
+                if (DEBUG) {
+                    Log.e(TAG, "Thumbnail ID is not found in URI: " + uri);
+                }
                 return -1;
             }
             return Long.parseLong(id);
         } catch (IOException e) {
-            Log.e(TAG, "Failed to store video thumbnail by FileManager: videoFilePath=" + videoFilePath, e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to store video thumbnail by FileManager: videoFilePath=" + videoFilePath, e);
+            }
             return -1;
         } catch (NumberFormatException e) {
-            Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
+            }
             return -1;
         } finally {
             thumbnail.recycle();
@@ -620,7 +636,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             CameraWrapper camera = getCameraWrapper();
             camera.turnOnTorch();
         } catch (CameraWrapperException e) {
-            Log.e(TAG, "Failed to turn on flash light.", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to turn on flash light.", e);
+            }
         }
     }
 

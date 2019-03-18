@@ -493,7 +493,7 @@ app = new Vue({
     }
 
     // Device Connect システムと接続
-    startAndConnect();
+    this.startAndConnect();
   },
   data() {
     return {
@@ -506,6 +506,7 @@ app = new Vue({
       showError: false,
       showErrorTime: 60000,
       showPreviewError: false,
+      showLaunchDialog: false,
       showDrawer: false,
       pages: [
         { mode:'recorder', path: '/', title: '撮影', icon: 'camera_alt' },
@@ -740,8 +741,8 @@ app = new Vue({
         console.error('Failed to restart preview.', err);
       })
     },
-    reconnect() {
-      startAndConnect();
+    reconnect(force) {
+      this.startAndConnect(force);
     },
     openRecorder(args) {
       router.push({ path: '/' });
@@ -754,30 +755,34 @@ app = new Vue({
       this.mediaList.push(media);
       console.log('storeMedia: after: ', this.mediaList);
       storage.setObject('mediaList', this.mediaList);
+    },
+    startAndConnect(force) {
+      sdk.checkAvailability(host)
+      .then(() => { connect(); })
+      .catch(err => {
+        if (!sdk.isAndroid()) {
+          EventBus.$emit('connection-error', { message: 'DeviceConnect システムが見つかりませんでした。' });
+          return;
+        }
+        if (!force) {
+          this.showLaunchDialog = true;
+          return;
+        }
+        
+        console.log('connect: start device connect manager.');
+        sdk.startDeviceConnect({
+          host,
+          oncheck(count) { console.log('connect: oncheck: count=' + count); },
+          onstart() { connect(); },
+          onerror() {
+            console.warn('Failed to start device connect manager', err);
+            EventBus.$emit('connection-error', { message: 'DeviceConnect システムを起動できませんでした。' });
+          }
+        })
+      })
     }
   }
 });
-
-function startAndConnect() {
-  sdk.checkAvailability(host)
-  .then(() => { connect(); })
-  .catch(err => {
-    if (!sdk.isAndroid()) {
-      EventBus.$emit('connection-error', { message: 'DeviceConnect システムが見つかりませんでした。' });
-      return;
-    }
-    console.log('connect: start device connect manager.');
-    sdk.startDeviceConnect({
-      host,
-      oncheck(count) { console.log('connect: oncheck: count=' + count); },
-      onstart() { connect(); },
-      onerror() {
-        console.warn('Failed to start device connect manager', err);
-        EventBus.$emit('connection-error', { message: 'DeviceConnect システムを起動できませんでした。' });
-      }
-    })
-  })
-}
 
 function connect() {
   sdk

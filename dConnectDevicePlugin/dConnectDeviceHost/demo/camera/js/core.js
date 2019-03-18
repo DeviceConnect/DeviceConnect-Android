@@ -209,7 +209,7 @@ export class DeviceConnectClient {
   }
 
   startDeviceConnect(option) {
-    location.href = 'gotapi://start/server';
+    location.href = 'gotapi://start/server?package=org.deviceconnect.android.manager';
     this.waitAvailable(option);
   }
 

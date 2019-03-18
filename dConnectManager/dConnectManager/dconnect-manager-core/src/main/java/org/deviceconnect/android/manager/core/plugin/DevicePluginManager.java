@@ -94,12 +94,12 @@ public class DevicePluginManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (DConnectConst.ACTION_PACKAGE_ADDED.equals(action)) {
+            if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
                 String packageName = intent.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
                 if (packageName != null) {
                     checkAndAddDevicePlugin(packageName);
                 }
-            } else if (DConnectConst.ACTION_PACKAGE_REMOVED.equals(action)) {
+            } else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
                 String packageName = intent.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
                 if (packageName != null) {
                     checkAndRemoveDevicePlugin(packageName);

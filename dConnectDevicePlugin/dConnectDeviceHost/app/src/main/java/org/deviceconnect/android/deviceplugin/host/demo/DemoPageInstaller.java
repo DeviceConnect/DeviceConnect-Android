@@ -84,7 +84,7 @@ public class DemoPageInstaller {
     public void install(final Context context,
                         final InstallCallback callback,
                         final Handler handler) {
-        final File demoDir = getDemoDirOnExternalStorage();
+        final File demoDir = getDemoDirOnStorage();
         FileTask task = new InstallTask(context, mDemoZipName, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
@@ -112,7 +112,7 @@ public class DemoPageInstaller {
     public void update(final Context context,
                        final UpdateCallback callback,
                        final Handler handler) {
-        final File demoDir = getDemoDirOnExternalStorage();
+        final File demoDir = getDemoDirOnStorage();
         FileTask task = new UpdateTask(context, mDemoZipName, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
@@ -140,7 +140,7 @@ public class DemoPageInstaller {
     public void uninstall(final Context context,
                           final UninstallCallback callback,
                           final Handler handler) {
-        final File demoDir = getDemoDirOnExternalStorage();
+        final File demoDir = getDemoDirOnStorage();
         FileTask task = new UninstallTask(context, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
@@ -170,10 +170,10 @@ public class DemoPageInstaller {
     }
 
     private boolean canInstallDemoPage() {
-        return true; // TODO 外部ストレージが無い場合は、UIを無効化
+        return true; // TODO ストレージが無い場合は、UIを無効化
     }
 
-    private File getDemoDirOnExternalStorage() {
+    public File getDemoDirOnStorage() {
         return new File(getDemoRootDir(), mRelativeDirName);
     }
 
@@ -203,6 +203,11 @@ public class DemoPageInstaller {
         }
         String currentVersion = getCurrentVersionName(context);
         return version.equals(currentVersion);
+    }
+
+    public boolean existsDemoDir() {
+        File demoDir = getDemoDirOnStorage();
+        return demoDir.exists();
     }
 
     static void storeInstalledVersion(final Context context) {

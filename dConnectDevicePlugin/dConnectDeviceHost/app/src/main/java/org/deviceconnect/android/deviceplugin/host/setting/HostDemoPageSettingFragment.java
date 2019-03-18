@@ -68,6 +68,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private static final String TAG_INSTALL_PROMPT = "install";
 
+    private static final String TAG_OVERWRITE_PROMPT = "overwrite";
+
     private static final String TAG_DELETION_PROMPT = "deletion";
 
     private static final String[] PERMISSIONS = {
@@ -78,6 +80,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     private Button mDeleteButton;
 
     private Button mInstallButton;
+
+    private Button mOverwriteButton;
 
     private Button mOpenButton;
 
@@ -107,6 +111,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         mDeleteButton.setOnClickListener(this);
         mInstallButton = rootView.findViewById(R.id.button_install_demo_page);
         mInstallButton.setOnClickListener(this);
+        mOverwriteButton = rootView.findViewById(R.id.button_overwrite_demo_page);
+        mOverwriteButton.setOnClickListener(this);
         mOpenButton = rootView.findViewById(R.id.button_open_demo_page);
         mOpenButton.setOnClickListener(this);
         mCreateShortcutButton = rootView.findViewById(R.id.button_create_demo_page_shortcut);
@@ -131,6 +137,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             showDeletionPromptDialog();
         } else if (v == mInstallButton) {
             showInstallPromptDialog();
+        } else if (v == mOverwriteButton) {
+            showOverwritePromptDialog();
         } else if (v == mOpenButton) {
             openDemoPage(activity);
         } else if (v == mCreateShortcutButton) {
@@ -179,6 +187,29 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 R.string.demo_page_settings_message_install_error, detail);
     }
 
+    private void showOverwritePromptDialog() {
+        File demoDir = mDemoInstaller.getDemoDirOnStorage();
+
+        OverwriteDialogFragment.Builder b = new OverwriteDialogFragment.Builder();
+        b.tag(TAG_OVERWRITE_PROMPT);
+        b.setDemoDirPath(demoDir.getAbsolutePath());
+        b.title(getString(R.string.demo_page_settings_title_overwrite));
+        b.positive(getString(R.string.demo_page_settings_button_overwrite));
+        b.negative(getString(R.string.demo_page_settings_button_cancel));
+        b.build().show(getFragmentManager());
+    }
+
+    private void showOverwriteSuccessDialog() {
+        showMessageDialog(
+                R.string.demo_page_settings_title_overwrite,
+                R.string.demo_page_settings_message_overwrite_completed);
+    }
+
+    private void showOverwriteErrorDialog(final String detail) {
+        showErrorDialog(R.string.demo_page_settings_title_error,
+                R.string.demo_page_settings_message_overwrite_error, detail);
+    }
+
     private void showDeletionPromptDialog() {
         DeletionDialogFragment.Builder b = new DeletionDialogFragment.Builder();
         b.tag(TAG_DELETION_PROMPT);
@@ -205,36 +236,28 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             return;
         }
 
-        if (TAG_INSTALL_PROMPT.equals(tag)) {
-            requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
-                @Override
-                public void onSuccess() {
+        requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                if (TAG_INSTALL_PROMPT.equals(tag)) {
                     install(activity, dialogFragment);
-                }
-
-                @Override
-                public void onFail(final @NonNull String deniedPermission) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showInstallErrorDialog("Denied permission: " + deniedPermission);
-                        }
-                    });
-                }
-            });
-        } else if (TAG_DELETION_PROMPT.equals(tag)) {
-            requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
-                @Override
-                public void onSuccess() {
+                } else if (TAG_OVERWRITE_PROMPT.equals(tag)) {
+                    overwrite(activity);
+                } else if (TAG_DELETION_PROMPT.equals(tag)) {
                     uninstall(activity);
                 }
+            }
 
-                @Override
-                public void onFail(final @NonNull String deniedPermission) {
-                    showDeletionErrorDialog("Denied permission: " + deniedPermission);
-                }
-            });
-        }
+            @Override
+            public void onFail(final @NonNull String deniedPermission) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showInstallErrorDialog("Denied permission: " + deniedPermission);
+                    }
+                });
+            }
+        });
     }
 
     private void install(final Activity activity, final MessageDialogFragment dialogFragment) {
@@ -275,6 +298,44 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                     Log.e(TAG, "Failed to install demo on external storage.", e);
                 }
                 showInstallErrorDialog(e.getMessage());
+            }
+        }, mHandler);
+    }
+
+    private void overwrite(final Activity activity) {
+        // デモページを上書き (更新処理と同一のロジック)
+        mDemoInstaller.update(activity.getApplicationContext(), new DemoPageInstaller.UpdateCallback() {
+            @Override
+            public void onBeforeUpdate(final File demoDir) {
+                if (DEBUG) {
+                    Log.d(TAG, "Start to overwrite demo: path=" + demoDir.getAbsolutePath());
+                }
+            }
+
+            @Override
+            public void onAfterUpdate(final File demoDir) {
+                if (DEBUG) {
+                    Log.d(TAG, "Overwritten demo: path=" + demoDir.getAbsolutePath());
+                }
+
+                updateView(activity);
+                showOverwriteSuccessDialog();
+            }
+
+            @Override
+            public void onFileError(final IOException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to overwrite demo on external storage.", e);
+                }
+                showOverwriteErrorDialog(e.getMessage());
+            }
+
+            @Override
+            public void onUnexpectedError(final Throwable e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to overwrite demo on external storage.", e);
+                }
+                showOverwriteErrorDialog(e.getMessage());
             }
         }, mHandler);
     }
@@ -335,6 +396,9 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             mInstallButton.setVisibility(View.GONE);
             mInstallButton.setEnabled(false);
 
+            mOverwriteButton.setVisibility(View.GONE);
+            mOverwriteButton.setEnabled(false);
+
             mOpenButton.setVisibility(View.VISIBLE);
             mOpenButton.setEnabled(true);
 
@@ -349,8 +413,18 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             mDeleteButton.setVisibility(View.VISIBLE);
             mDeleteButton.setEnabled(false);
 
-            mInstallButton.setVisibility(View.VISIBLE);
-            mInstallButton.setEnabled(true);
+            if (mDemoInstaller.existsDemoDir()) {
+                // 既に同名のフォルダがある場合は上書きして良いか確認
+                mOverwriteButton.setVisibility(View.VISIBLE);
+                mOverwriteButton.setEnabled(true);
+                mInstallButton.setVisibility(View.GONE);
+                mInstallButton.setEnabled(false);
+            } else {
+                mInstallButton.setVisibility(View.VISIBLE);
+                mInstallButton.setEnabled(true);
+                mOverwriteButton.setVisibility(View.GONE);
+                mOverwriteButton.setEnabled(false);
+            }
 
             mOpenButton.setVisibility(View.GONE);
             mOpenButton.setEnabled(false);
@@ -436,6 +510,42 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         boolean isChecked() {
             CheckBox checkBox = mView.findViewById(R.id.checkbox_create_shortcut);
             return checkBox.isChecked();
+        }
+    }
+
+    public static class OverwriteDialogFragment extends MessageDialogFragment {
+
+        static final String KEY_DEMO_DIR_PATH = "demoDirPath";
+
+        private View mView;
+
+        @Override
+        protected void onExtendDialog(final @NonNull AlertDialog.Builder builder,
+                                      final @NonNull LayoutInflater layoutInflater,
+                                      final @NonNull Bundle arguments) {
+            mView = layoutInflater.inflate(R.layout.dialog_host_demo_page_overwrite, null);
+            final Bundle args = getArguments();
+            String demoDirPath = args.getString(KEY_DEMO_DIR_PATH);
+
+            TextView promptView = mView.findViewById(R.id.prompt_message_demo_page_overwrite);
+            String prompt = getString(R.string.demo_page_settings_message_overwrite);
+            prompt = prompt.replace("{{demoDirPath}}", demoDirPath);
+            promptView.setText(prompt);
+            builder.setView(mView);
+        }
+
+        static class Builder extends MessageDialogFragment.Builder {
+
+            Builder setDemoDirPath(final String demoDirPath) {
+                mArguments.putString(KEY_DEMO_DIR_PATH, demoDirPath);
+                return this;
+            }
+
+            OverwriteDialogFragment build() {
+                OverwriteDialogFragment f = new OverwriteDialogFragment();
+                f.setArguments(mArguments);
+                return f;
+            }
         }
     }
 

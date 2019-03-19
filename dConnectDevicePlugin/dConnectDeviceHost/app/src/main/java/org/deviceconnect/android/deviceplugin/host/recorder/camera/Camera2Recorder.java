@@ -17,7 +17,8 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.MediaMetadataRetriever;
+import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
@@ -31,8 +32,8 @@ import android.view.WindowManager;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
@@ -41,6 +42,7 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -85,15 +87,21 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      */
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
+
     /**
-     * 画面の向きを格納するリスト.
+     * 写真の JPEG 品質.
      */
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private static final int PHOTO_JPEG_QUALITY = 100;
+
+    /**
+     * 端末の回転方向を格納するリスト.
+     */
+    private static final SparseIntArray ROTATIONS = new SparseIntArray();
     static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+        ROTATIONS.append(Surface.ROTATION_0, 0);
+        ROTATIONS.append(Surface.ROTATION_90, 90);
+        ROTATIONS.append(Surface.ROTATION_180, 180);
+        ROTATIONS.append(Surface.ROTATION_270, 270);
     }
 
     /**
@@ -125,9 +133,19 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private final CameraWrapper mCameraWrapper;
 
-    private HandlerThread mPreviewThread = new HandlerThread("preview");
+    private final HandlerThread mPreviewThread = new HandlerThread("preview");
 
     private final HandlerThread mPhotoThread = new HandlerThread("photo");
+
+    /**
+     * 現在の端末の回転方向.
+     *
+     * @see Surface#ROTATION_0
+     * @see Surface#ROTATION_90
+     * @see Surface#ROTATION_180
+     * @see Surface#ROTATION_270
+     */
+    private int mCurrentRotation;
 
     /**
      * コンストラクタ.
@@ -188,25 +206,32 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
             camera.takeStillImage(stillImageReader.getSurface());
         } catch (CameraWrapperException e) {
-            Log.e(TAG, "Failed to take photo.", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to take photo.", e);
+            }
             listener.onFailedTakePhoto("Failed to take photo.");
         }
     }
 
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
         byte[] jpeg = convertToJPEG(image);
-        jpeg = rotateJPEG(jpeg, 100);
+        if (DEBUG) {
+            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(getContext()));
+        }
+        jpeg = rotateJPEG(jpeg, PHOTO_JPEG_QUALITY);
 
         // ファイル保存
-        mFileManager.saveFile(createNewFileName(), jpeg, true, new FileManager.SaveFileCallback() {
+        final String filename = createNewFileName();
+        mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
             @Override
             public void onSuccess(@NonNull final String uri) {
                 if (DEBUG) {
                     Log.d(TAG, "Saved photo: uri=" + uri);
                 }
 
-                String filePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
-                listener.onTakePhoto(uri, filePath, MIME_TYPE_JPEG);
+                String photoFilePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
+                registerPhoto(new File(mFileManager.getBasePath(), filename));
+                listener.onTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
             }
 
             @Override
@@ -229,14 +254,13 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     byte[] rotateJPEG(final byte[] jpeg, int quality) {
         Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
-        int orientation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
-        int degrees;
+        int deviceRotation = ROTATIONS.get(mCurrentRotation);
+        int cameraRotation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
+        int degrees = (360 - deviceRotation + cameraRotation) % 360;
         Bitmap rotated;
         Matrix m = new Matrix();
-        if (mFacing == CameraFacing.FRONT || mFacing == CameraFacing.BACK) {
-            degrees = orientation;
-        } else {
-            degrees = 0;
+        if (mFacing == CameraFacing.FRONT) {
+            degrees = (180 - degrees) % 360;
         }
         m.postRotate(degrees);
         rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
@@ -356,6 +380,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return new PictureSize(rotated.getWidth(), rotated.getHeight());
     }
 
+    boolean isStartedPreview() {
+        CameraWrapper camera = getCameraWrapper();
+        return camera.isPreview();
+    }
+
     void startPreview(final Surface previewSurface) throws CameraWrapperException {
         CameraWrapper camera = getCameraWrapper();
         camera.startPreview(previewSurface, false);
@@ -398,12 +427,16 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
                 @Override
                 public void onRecordingStartError(final Throwable e) {
-                    Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+                    }
                     listener.onFailed(Camera2Recorder.this, "Failed to start recording for unexpected problem: " + e.getMessage());
                 }
             });
         } catch (Throwable e) {
-            Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+            }
             listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
         }
     }
@@ -424,12 +457,14 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                     mSurfaceRecorder = null;
 
                     registerVideo(videoFile);
-                    listener.onStopped(Camera2Recorder.this, videoFile.getAbsolutePath());
+                    listener.onStopped(Camera2Recorder.this, videoFile.getName());
                 }
 
                 @Override
                 public void onRecordingStopError(Throwable e) {
-                    Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+                    }
                     listener.onFailed(Camera2Recorder.this, "Failed to stop recording for unexpected error: " + e.getMessage());
                 }
             });
@@ -442,10 +477,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private void registerVideo(final File videoFile) {
-        if (checkVideoFile(videoFile)) {
-            // Content Providerに登録する.
-            MediaMetadataRetriever mediaMeta = new MediaMetadataRetriever();
-            mediaMeta.setDataSource(videoFile.toString());
+        if (checkMediaFile(videoFile)) {
+            String filePath = videoFile.getAbsolutePath();
             ContentResolver resolver = getContext().getContentResolver();
             ContentValues values = new ContentValues();
             values.put(MediaStore.Video.Media.TITLE, videoFile.getName());
@@ -453,11 +486,132 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
             values.put(MediaStore.Video.Media.DATA, videoFile.toString());
-            resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            long thumbnailId = registerVideoThumbnail(videoFile);
+            if (thumbnailId > -1) {
+                values.put(MediaStore.Video.Media.MINI_THUMB_MAGIC, thumbnailId);
+            }
+            Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+
+            // 動画IDをサムネイルDBに挿入.
+            try {
+                if (uri != null && thumbnailId > -1) {
+                    String id = uri.getLastPathSegment();
+                    if (id != null) {
+                        long videoId = Long.parseLong(id);
+                        boolean updated = updateThumbnailInfo(thumbnailId, videoId);
+                        if (updated) {
+                            if (DEBUG) {
+                                Log.d(TAG, "Updated videoID on thumbnail info: videoId="
+                                        + videoId + ", thumbnailId=" + thumbnailId);
+                            }
+                        } else {
+                            Log.w(TAG, "Failed to update videoID on thumbnail info: videoId="
+                                    + videoId + ", thumbnailId=" + thumbnailId);
+                        }
+                    }
+                }
+            } catch (NumberFormatException e) {
+                Log.w(TAG, "Failed to parse videoID as long type: video URI=" + uri, e);
+            }
+            if (DEBUG) {
+                if (uri != null) {
+                    Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
+                } else {
+                    Log.e(TAG, "Failed to register video: file=" + filePath);
+                }
+            }
         }
     }
 
-    private boolean checkVideoFile(final @NonNull File file) {
+    private long registerVideoThumbnail(final File videoFile) {
+        String videoFilePath = videoFile.getAbsolutePath();
+        final int kind = MediaStore.Images.Thumbnails.MINI_KIND;
+        Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFilePath, kind);
+
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, data);
+        String fileName = videoFile.getName() + ".jpg";
+
+        try {
+            String thumbnailFilePath = mFileManager.saveFile(fileName, data.toByteArray());
+            if (DEBUG) {
+                Log.d(TAG, "Stored thumbnail file: path=" + thumbnailFilePath);
+            }
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Video.Thumbnails.DATA, thumbnailFilePath);
+            values.put(MediaStore.Video.Thumbnails.WIDTH, thumbnail.getWidth());
+            values.put(MediaStore.Video.Thumbnails.HEIGHT, thumbnail.getHeight());
+            values.put(MediaStore.Video.Thumbnails.KIND, kind);
+            ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
+            Uri uri = resolver.insert(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to register video thumbnail on content provider: videoFilePath=" + videoFilePath);
+                }
+                return -1;
+            }
+            if (DEBUG) {
+                Log.d(TAG, "Registered video thumbnail: uri=" + uri.toString());
+            }
+            String id = uri.getLastPathSegment();
+            if (id == null) {
+                if (DEBUG) {
+                    Log.e(TAG, "Thumbnail ID is not found in URI: " + uri);
+                }
+                return -1;
+            }
+            return Long.parseLong(id);
+        } catch (IOException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Failed to store video thumbnail by FileManager: videoFilePath=" + videoFilePath, e);
+            }
+            return -1;
+        } catch (NumberFormatException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
+            }
+            return -1;
+        } finally {
+            thumbnail.recycle();
+        }
+    }
+
+    private boolean updateThumbnailInfo(final long thumbnailId, final long videoId) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Video.Thumbnails.VIDEO_ID, videoId);
+        return updateThumbnailInfo(thumbnailId, values);
+    }
+
+    private boolean updateThumbnailInfo(final long thumbnailId, final ContentValues values) {
+        ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
+        Uri uri = MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
+        String where = MediaStore.Video.Thumbnails._ID + " =?";
+        String[] args = { Long.toString(thumbnailId) };
+        int result = resolver.update(uri, values, where, args);
+        return result == 1;
+    }
+
+    private void registerPhoto(final File photoFile) {
+        if (checkMediaFile(photoFile)) {
+            ContentResolver resolver = getContext().getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, photoFile.getName());
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, photoFile.getName());
+            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.DATA, photoFile.toString());
+            Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (DEBUG) {
+                if (uri != null) {
+                    Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+                } else {
+                    Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+                }
+            }
+        }
+    }
+
+    private boolean checkMediaFile(final @NonNull File file) {
         return file.exists() && file.length() > 0;
     }
 
@@ -482,7 +636,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             CameraWrapper camera = getCameraWrapper();
             camera.turnOnTorch();
         } catch (CameraWrapperException e) {
-            Log.e(TAG, "Failed to turn on flash light.", e);
+            if (DEBUG) {
+                Log.e(TAG, "Failed to turn on flash light.", e);
+            }
         }
     }
 
@@ -626,6 +782,14 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return false;
     }
 
+    public void setWhiteBalance(final String whiteBalance) {
+        getCameraWrapper().getOptions().setWhiteBalance(whiteBalance);
+    }
+
+    public String getWhiteBalance() {
+        return getCameraWrapper().getOptions().getWhiteBalance();
+    }
+
     @Override
     public void requestPermission(final PermissionCallback callback) {
         CapabilityUtil.requestPermissions(getContext(), new PermissionUtility.PermissionRequestCallback() {
@@ -658,11 +822,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     protected int getDefaultPreviewQuality(final String mimeType) {
-        return 80;
+        return 40;
     }
 
     @Override
     public void onDisplayRotation(final int degree) {
+        mCurrentRotation = degree;
         for (PreviewServer server : getServers()) {
             server.onDisplayRotation(degree);
         }

@@ -1,0 +1,366 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+  <link href="./libs/photoswipe/4.1.1/photoswipe.min.css" rel="stylesheet">
+  <link href="./libs/photoswipe/4.1.1/default-skin/default-skin.min.css" rel="stylesheet">
+  <link href="./libs/material-design-icons-3.0.1/iconfont/material-icons.css" rel="stylesheet">
+  <link href="./libs/vuetify/1.5.4/vuetify.min.css" rel="stylesheet">
+  <link href="./css/index.css" rel="stylesheet">
+  <script src="./libs/vue/2.6.8/vue.min.js"></script>
+  <script src="./libs/vuetify/1.5.4/vuetify.min.js"></script>
+  <script src="./libs/vue-router/3.0.2/vue-router.min.js"></script>
+  <script src="./libs/photoswipe/4.1.1/photoswipe.min.js"></script>
+  <script src="./libs/photoswipe/4.1.1/photoswipe-ui-default.min.js"></script>
+  <script src="./libs/qrcode-generator-20170724/js/qrcode.js"></script>
+</head>
+<body>
+
+<div id="app">
+  <v-app>
+
+    <!-- ナビゲーションドロワー -->
+    <v-navigation-drawer
+      v-model="showDrawer"
+      temporary
+      fixed
+      >
+
+      <v-toolbar flat>
+        <v-list>
+          <v-list-tile>
+            <v-list-tile-title class="title">
+              デモページ
+            </v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+      </v-toolbar>
+
+      <v-list class="pt-0">
+        <v-list-tile
+          v-for="page in pages"
+          :key="page.title"
+          @click="showPage(page.path)"
+          class="pt-3"
+        >
+          <v-list-tile-action>
+            <v-icon large>{{ page.icon }}</v-icon>
+          </v-list-tile-action>
+
+          <v-list-tile-content>
+            <v-list-tile-title class="subheading">{{ page.title }}</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+      </v-list>
+    </v-navigation-drawer>
+
+    <router-view></router-view>
+
+    <!-- くるくる -->
+    <v-progress-circular v-show="launching" indeterminate color="primary" id="launch-progress"></v-progress-circular>
+
+    <!-- レコーダー設定ダイアログ -->
+    <v-dialog
+      v-model="dialog"
+      hide-overlay>
+      <v-card>
+        <v-layout row wrap align-center class="recorder-dialog-layout">
+          <v-flex xs4>
+            <v-subheader>カメラ</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-select :items="recorderNames" v-model="recorderSettings.id" single-line></v-select>
+          </v-flex>
+          <v-divider light></v-divider>
+          <v-flex xs4>
+            <v-subheader>プレビューサイズ</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-select :items="supportedPreviewSizes(recorderSettings.id)" v-model="recorderSettings.previewSize" single-line></v-select>
+          </v-flex>
+          <v-flex xs4>
+            <v-subheader>撮影サイズ</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-select :items="supportedImageSizes(recorderSettings.id)" v-model="recorderSettings.imageSize" single-line></v-select>
+          </v-flex>
+          <v-flex xs4>
+            <v-subheader>フレームレート</v-subheader>
+          </v-flex>
+          <v-flex xs8>
+            <v-text-field v-model="recorderSettings.frameRate"></v-text-field>
+          </v-flex>
+        </v-layout>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn color="primary" flat @click="dialog = false; restoreRecorderOption()">キャンセル</v-btn>
+            <v-btn color="primary" flat @click="dialog = false; changeRecorderOption()">変更</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 接続エラー表示 -->
+    <v-dialog
+      id="error-dialog"
+      v-model="showError"
+      hide-overlay
+      persistent
+      max-width="400">
+      <v-card>
+        <v-card-title class="title" color="error">
+          <v-icon large left color="error">error_outline</v-icon>
+          <span class="title font-weight-light">エラー</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>{{ connectionErrorText }}</v-card-text>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn text flat color="error" @click="showError = false; reconnect();">リトライ</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- DeviceConnect起動確認ダイアログ -->
+    <v-dialog
+      id="error-dialog"
+      v-model="showLaunchDialog"
+      hide-overlay
+      persistent
+      max-width="400">
+      <v-card>
+        <v-card-title class="title" color="error">
+          <v-icon large left></v-icon>
+          <span class="title font-weight-light">確認</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>DeviceConnect システムが起動していない可能性があります。起動しますか？</v-card-text>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn text flat color="primary" @click="showLaunchDialog = false">キャンセル</v-btn>
+            <v-btn text flat color="primary" @click="showLaunchDialog = false; reconnect(true);">起動</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+  </v-app>
+</div>
+
+</body>
+
+<!-- 撮影画面 -->
+<script type="text/x-template" id="app-recorder">
+  <v-container id="recorder-container">
+
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary">
+      <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-toolbar-title>撮影</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn icon dark @click="requestRecorderSettingDialog()"><v-icon>settings</v-icon></v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+
+    <!-- プレビュー表示 -->
+    <img id="preview" />
+
+    <!-- 撮影モード切り替えボタン -->
+    <div class="camera-mode-btn-group">
+      <v-btn-toggle mandatory v-model="recorderMode" v-show="isPrepared">
+        <v-btn color="primary" flat>
+          <v-icon>camera_alt</v-icon>
+        </v-btn>
+        <v-btn color="primary" flat>
+          <v-icon>videocam</v-icon>
+        </v-btn>
+      </v-btn-toggle>
+    </div>
+
+    <!-- 動画撮影開始ボタン -->
+    <v-btn
+      id="start-recording"
+      v-show="isPrepared && !isRecording && recorderMode === 1"
+      @click="startRecording()"
+      large fab fixed color="primary"><v-icon dark>fiber_manual_record</v-icon></v-btn>
+
+    <!-- 動画撮影停止ボタン -->
+    <v-btn
+      id="stop-recording"
+      v-show="isPrepared && isRecording && recorderMode === 1"
+      @click="stopRecording()"
+      large fab fixed color="red"><v-icon>stop</v-icon></v-btn>
+    
+    <!-- シャッターボタン (写真モード時)  -->
+    <v-btn
+      id="shutter"
+      @click="requestTakePhoto()"
+      v-show="isPrepared && recorderMode === 0"
+      large fab fixed color="primary"><v-icon dark>camera</v-icon></v-btn>
+    
+    <!-- シャッターボタン (動画モード時) -->
+    <v-btn
+      id="shutter-with-video"
+      @click="requestTakePhoto()"
+      v-show="isPrepared && recorderMode === 1"
+      fab fixed color="secondary"><v-icon dark>camera</v-icon></v-btn>
+
+    <!-- サムネイル表示 -->
+    <v-avatar
+      id="thumbnail"
+      @click="showMedia()"
+      v-show="isPrepared && latestMediaThumbnailUri !== null"
+      size="50pt" v-ripple tile>
+      <img id="thumbnail-img" :src="latestMediaThumbnailUri" @on-photo="onPhoto">
+    </v-avatar>
+
+    <!-- プレビュー取得エラー表示 -->
+    <v-dialog
+      id="preview-error-dialog"
+      v-model="showPreviewError"
+      hide-overlay
+      persistent
+      max-width="400">
+      <v-card>
+        <v-card-title class="title" color="error">
+          <v-icon left color="error">error_outline</v-icon>
+          <span class="subheading font-weight-light">エラー</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <p>プレビューのURLにアクセスできませんでした。別タブでプレビューを取得している可能性があります。</p>
+          <p>プレビューを強制終了した後、リトライしますか？</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn color="primary" flat @click="showPreviewError = false">キャンセル</v-btn>
+            <v-btn text flat color="primary" @click="showPreviewError = false; restartPreview();">強制終了してリトライ</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
+</script>
+
+<!-- ビューア画面 -->
+<script type="text/x-template" id="app-viewer">
+  <v-container grid-list-sm fluid>
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary">
+      <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-toolbar-title>ビューア</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+          <v-btn icon dark @click="requestCastDialog()">
+              <v-badge v-model="hasCastTarget" right bottom overlap color="success">
+                <template v-slot:badge><v-icon dark small>done</v-icon></template>
+                <v-icon>cast</v-icon>
+              </v-badge>
+          </v-btn>
+      </v-toolbar-items>
+    </v-toolbar>
+    <v-toolbar class="elevation-0"></v-toolbar> <!-- サムネイル位置調整用のダミー -->
+
+    <!-- キャスト設定ダイアログ -->
+    <v-dialog
+      v-model="castDialog"
+    >
+      <v-card>
+        <v-card-title class="headline" color="error">
+          <v-icon left>cast</v-icon>
+          <span class="title font-weight-light">キャスト先選択</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-layout v-show="fetching" justify-center>
+            <v-progress-circular color="primary" indeterminate></v-progress-circular>
+          </v-layout>
+          <v-layout v-show="!fetching">
+            <v-radio-group v-model="currentCastTargetId">
+              <v-radio v-for="(item, i) in castableItems" :label="item.name" :value="item.id" :key="i" ></v-radio>
+            </v-radio-group>
+          </v-layout>
+        </v-card-text>
+        <v-card-actions>
+          <v-layout justify-end>
+            <v-btn v-show="!fetching" color="primary" flat @click="closeCastDialog(true)">決定</v-btn>
+          </v-layout>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- グリッド表示 -->
+    <v-layout row wrap id="viewer-media-list">
+      <v-flex xs4 v-for="(item,i) in mediaItems" :key="i">
+          <v-card flat tile @click="showImage(i)">
+            <v-img :src="item.uri" width="100%" alt=""></v-img>
+            <v-icon v-show="item.type === 'video'" class="video-mark" x-large color="white">play_circle_filled</v-icon>
+          </v-card>
+      </v-flex>
+    </v-layout>
+
+    <!-- ギャラリー -->
+    <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="pswp__bg"></div>
+      <div class="pswp__scroll-wrap">
+        <div class="pswp__container">
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+          <div class="pswp__item"></div>
+        </div>
+        <div class="pswp__ui pswp__ui--hidden">
+          <div class="pswp__top-bar">
+            <div class="pswp__counter"></div>
+            <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+            <div class="pswp__preloader">
+              <div class="pswp__preloader__icn">
+                <div class="pswp__preloader__cut">
+                  <div class="pswp__preloader__donut"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+            <div class="pswp__share-tooltip"></div>
+          </div>
+          <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+          <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+
+          <div class="pswp__caption">
+            <div class="pswp__caption__center"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 撮影画面遷移ボタン -->
+    <v-btn
+      @click="showRecorder()"
+      large fab fixed bottom right color="primary"><v-icon>camera_alt</v-icon></v-btn>
+  </v-container>
+</script>
+
+
+<!-- QRコード画面 -->
+<script type="text/x-template" id="app-qr">
+  <v-container>
+    <!-- ツールバー -->
+    <v-toolbar dark fixed color="primary">
+      <v-toolbar-side-icon @click.stop="requestDrawer()"></v-toolbar-side-icon>
+      <v-toolbar-title>QRコード</v-toolbar-title>
+    </v-toolbar>
+
+    <v-container id="qrcode-page">
+      <div id="qrcode-container"></div>
+      <div id="message">
+        <v-textarea auto-grow rows="1" readonly outline label="URL" class="uri" :value="uri"></v-textarea>
+        <div>{{ message }}</div>
+      </div>
+    </v-container>
+  </v-container>
+</script>
+<script type="module" src="./js/main.js"></script>
+</html>

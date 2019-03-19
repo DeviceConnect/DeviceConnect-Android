@@ -94,19 +94,30 @@ public class DevicePluginManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (DConnectConst.ACTION_PACKAGE_ADDED.equals(action)) {
-                String packageName = intent.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
+            mLogger.info("PluginManager: Received: action=" + action);
+            if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
+                String packageName = getPackageName(intent);
+                mLogger.info("PluginManager: added package: name=" + packageName);
                 if (packageName != null) {
                     checkAndAddDevicePlugin(packageName);
                 }
-            } else if (DConnectConst.ACTION_PACKAGE_REMOVED.equals(action)) {
-                String packageName = intent.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
+            } else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
+                String packageName = getPackageName(intent);
                 if (packageName != null) {
                     checkAndRemoveDevicePlugin(packageName);
                 }
             }
         }
     };
+
+    private String getPackageName(final Intent intent) {
+        String pkgName = intent.getDataString();
+        int idx = pkgName.indexOf(":");
+        if (idx != -1) {
+            pkgName = pkgName.substring(idx + 1);
+        }
+        return pkgName;
+    }
 
     /**
      * デバイスプラグイン一覧.
@@ -174,8 +185,10 @@ public class DevicePluginManager {
         packageFilter.addDataScheme("package");
         try {
             mContext.registerReceiver(mPackageReceiver, packageFilter);
+            mLogger.info("PluginManager: Started plugin monitoring.");
         } catch (Exception e) {
             // ignore.
+            mLogger.severe("PluginManager: Failed to start plugin monitoring: " + e.getMessage());
         }
     }
 
@@ -185,8 +198,10 @@ public class DevicePluginManager {
     public void stopMonitoring() {
         try {
             mContext.unregisterReceiver(mPackageReceiver);
+            mLogger.info("PluginManager: Stopped plugin monitoring.");
         } catch (Exception e) {
             // ignore.
+            mLogger.severe("PluginManager: Failed to stop plugin monitoring: " + e.getMessage());
         }
 
     }
@@ -229,8 +244,12 @@ public class DevicePluginManager {
         if (mConnectionFactory != null) {
             plugin.setConnection(mConnectionFactory.createConnectionForPlugin(plugin));
             plugin.addConnectionStateListener(mStateListener);
+            mLogger.info("PluginManager: created connection to plugin: package=" + plugin.getPackageName());
+        } else {
+            mLogger.info("PluginManager: No connection factory: package=" + plugin.getPackageName());
         }
         mPlugins.put(plugin.getPluginId(), plugin);
+        mLogger.info("PluginManager: added to plugin list: package=" + plugin.getPackageName() + ", ID=" + plugin.getPluginId());
         notifyFound(plugin);
     }
 
@@ -406,8 +425,10 @@ public class DevicePluginManager {
         try {
             int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
+            mLogger.info("PluginManager: get package info: " + pkg);
             if (pkg != null) {
                 List<DevicePlugin> plugins = getInstalledPluginsForPackage(pkgMgr, pkg);
+                mLogger.info("PluginManager: installed plugins: size=" + plugins.size());
                 for (DevicePlugin plugin : filterPlugin(plugins)) {
                     addDevicePlugin(plugin);
                 }

@@ -7,16 +7,6 @@ public interface DConnectConst {
     String LOCALHOST_DCONNECT = "localhost.deviceconnect.org";
 
     /**
-     * アクション名: パッケージインストール通知.
-     */
-    String ACTION_PACKAGE_ADDED = "org.deviceconnect.android.action.PACKAGE_ADDED";
-
-    /**
-     * アクション名: パッケージアンインストール通知.
-     */
-    String ACTION_PACKAGE_REMOVED = "org.deviceconnect.android.action.PACKAGE_REMOVED";
-
-    /**
      * 起動用URIスキーム名.
      */
     String SCHEME_LAUNCH = "dconnect";

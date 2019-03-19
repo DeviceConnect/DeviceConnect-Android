@@ -140,6 +140,10 @@
         <receiver android:name="org.deviceconnect.android.manager.DConnectBroadcastReceiver" android:exported="true">
         </receiver>
 
+        <!-- アプリケーションのインストールやアンインストールといったイベントを受領するためのBroadcastReceiver. -->
+        <receiver android:name="org.deviceconnect.android.manager.PackageBroadcastReceiver" android:exported="true">
+        </receiver>
+
         <!-- Device Connect Manager本体のサービス. -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"

@@ -850,6 +850,15 @@ public abstract class DConnectManager implements DConnectInterface {
     }
 
     /**
+     * Android アプリケーションのインストールまたはアンインストールの通知を受け取る。
+     * @param message メッセージ
+     */
+    public void onReceivedPackageMessage(final Intent message) {
+        DevicePluginManager pluginManager = mCore.getPluginManager();
+        pluginManager.onReceivePackageMessage(message);
+    }
+
+    /**
      * プラグインの検索完了を通知します.
      */
     private void postFinishSearchPlugin() {

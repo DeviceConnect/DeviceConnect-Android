@@ -398,7 +398,6 @@ public class DConnectCore extends DevicePluginContext {
                 mSettings.requireOrigin(), mSettings.isBlockingOrigin());
 
         mHmacManager = new HmacManager(getContext());
-        mPluginManager.startMonitoring();
 
         mRequestManager.start();
 
@@ -411,7 +410,6 @@ public class DConnectCore extends DevicePluginContext {
     public void stop() {
         sendTerminatedEvent();
 
-        mPluginManager.stopMonitoring();
         mPluginManager.disconnectAllPlugins();
         mRequestManager.stop();
 

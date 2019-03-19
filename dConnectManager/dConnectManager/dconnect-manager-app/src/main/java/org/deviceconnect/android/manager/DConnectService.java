@@ -19,7 +19,6 @@ import android.util.Log;
 
 //import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
-import org.deviceconnect.android.manager.core.DConnectConst;
 import org.deviceconnect.android.manager.core.DConnectManager;
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.WebSocketInfoManager;
@@ -128,7 +127,6 @@ public class DConnectService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        mLogger.info("DConnectService.onCreate()");
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
         mManager = new DConnectManager(this, mSettings) {
@@ -180,9 +178,6 @@ public class DConnectService extends Service {
         if (IntentDConnectMessage.ACTION_KEEPALIVE.equals(action)) {
             onKeepAliveCommand(intent);
             return START_STICKY;
-        } else if (checkPackageMessage(action)) {
-            onReceivedPackageMessage(intent);
-            return START_STICKY;
         } else if (checkDConnectMessage(action)) {
             onReceivedMessage(intent);
         }
@@ -191,26 +186,19 @@ public class DConnectService extends Service {
 
     @Override
     public void onDestroy() {
-        mLogger.info("DConnectService.onDestroy()");
-
         stopInternal();
         mManager.finalizeDConnect();
         mManager = null;
         super.onDestroy();
     }
 
-    private boolean checkDConnectMessage(final String action) {
-        return IntentDConnectMessage.ACTION_GET.equalsIgnoreCase(action)
+    private boolean checkDConnectMessage(String action) {
+        return (IntentDConnectMessage.ACTION_GET.equalsIgnoreCase(action)
                 || IntentDConnectMessage.ACTION_PUT.equalsIgnoreCase(action)
                 || IntentDConnectMessage.ACTION_POST.equalsIgnoreCase(action)
                 || IntentDConnectMessage.ACTION_DELETE.equalsIgnoreCase(action)
                 || IntentDConnectMessage.ACTION_RESPONSE.equals(action)
-                || IntentDConnectMessage.ACTION_EVENT.equals(action);
-    }
-
-    private boolean checkPackageMessage(final String action) {
-        return DConnectConst.ACTION_PACKAGE_ADDED.equals(action)
-                || DConnectConst.ACTION_PACKAGE_REMOVED.equals(action);
+                || IntentDConnectMessage.ACTION_EVENT.equals(action));
     }
 
     /**
@@ -369,15 +357,6 @@ public class DConnectService extends Service {
      */
     private void onReceivedMessage(final Intent message) {
         mManager.onReceivedMessage(message);
-    }
-
-    /**
-     * {@link PackageBroadcastReceiver} からのメッセージを受信した時の処理を行います.
-     *
-     * @param message Intent
-     */
-    private void onReceivedPackageMessage(final Intent message) {
-        mManager.onReceivedPackageMessage(message);
     }
 
     /// IBinderを通じて実行されるメソッド

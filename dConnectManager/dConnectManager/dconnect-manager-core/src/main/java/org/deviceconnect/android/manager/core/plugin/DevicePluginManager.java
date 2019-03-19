@@ -6,9 +6,11 @@
  */
 package org.deviceconnect.android.manager.core.plugin;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
@@ -20,6 +22,7 @@ import android.content.res.XmlResourceParser;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.TransactionTooLargeException;
+import android.util.Log;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
@@ -85,6 +88,27 @@ public class DevicePluginManager {
     private static final String VALUE_META_DATA = "enable";
 
     /**
+     * インストールされたPlug-inの情報を取得するためのReceiver.
+     */
+    private final BroadcastReceiver mPackageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
+                String packageName = intent.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
+                if (packageName != null) {
+                    checkAndAddDevicePlugin(packageName);
+                }
+            } else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
+                String packageName = intent.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
+                if (packageName != null) {
+                    checkAndRemoveDevicePlugin(packageName);
+                }
+            }
+        }
+    };
+
+    /**
      * デバイスプラグイン一覧.
      */
     private final Map<String, DevicePlugin> mPlugins = new ConcurrentHashMap<>();
@@ -139,22 +163,32 @@ public class DevicePluginManager {
     }
 
     /**
-     * Android アプリケーションのインストールまたはアンインストールの通知を受け取る。
-     * @param message メッセージ
+     * プラグインの追加、削除の監視を開始します.
      */
-    public void onReceivePackageMessage(final Intent message) {
-        String action = message.getAction();
-        if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
-            String packageName = message.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
-            if (packageName != null) {
-                checkAndAddDevicePlugin(packageName);
-            }
-        } else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-            String packageName = message.getStringExtra(DConnectConst.EXTRA_PACKAGE_NAME);
-            if (packageName != null) {
-                checkAndRemoveDevicePlugin(packageName);
-            }
+    public void startMonitoring() {
+        // Plug-in情報受付用のIntent-filter
+        IntentFilter packageFilter = new IntentFilter();
+        packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        packageFilter.addDataScheme("package");
+        try {
+            mContext.registerReceiver(mPackageReceiver, packageFilter);
+        } catch (Exception e) {
+            // ignore.
         }
+    }
+
+    /**
+     * プラグインの追加、削除の監視を停止します.
+     */
+    public void stopMonitoring() {
+        try {
+            mContext.unregisterReceiver(mPackageReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
+
     }
 
     /**

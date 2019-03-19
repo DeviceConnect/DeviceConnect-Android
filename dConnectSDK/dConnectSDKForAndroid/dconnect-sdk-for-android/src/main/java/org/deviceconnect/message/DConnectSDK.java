@@ -406,6 +406,13 @@ public abstract class DConnectSDK {
     public abstract void removeEventListener(final Uri uri);
 
     /**
+     * イベントを削除する.
+     * @param uri 削除するイベントへのURI
+     * @param listener 削除するリスナー
+     */
+    public abstract void removeEventListener(final Uri uri, final OnEventListener listener);
+
+    /**
      * サーバからのレスポンス受信時にサーバの認証を行うかどうかを設定する.
      * <p>
      * サーバ認証を行うためのHMACのキーをDConnectSDKの内部で保持するために、

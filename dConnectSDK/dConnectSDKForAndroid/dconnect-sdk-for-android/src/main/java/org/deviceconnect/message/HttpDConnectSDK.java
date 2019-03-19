@@ -472,4 +472,19 @@ class HttpDConnectSDK extends DConnectSDK {
             mWebSocketClient.removeEventListener(uri);
         }
     }
+
+    @Override
+    public void removeEventListener(Uri uri, OnEventListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+        delete(uri, new OnResponseListener() {
+            @Override
+            public void onResponse(final DConnectResponseMessage response) {
+            }
+        });
+        if (mWebSocketClient != null) {
+            mWebSocketClient.removeEventListener(uri, listener);
+        }
+    }
 }

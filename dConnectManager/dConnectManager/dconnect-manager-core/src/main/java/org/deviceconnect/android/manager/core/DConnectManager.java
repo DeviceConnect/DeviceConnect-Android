@@ -17,6 +17,7 @@ import android.os.RemoteException;
 
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.core.event.AbstractEventSessionFactory;
 import org.deviceconnect.android.manager.core.event.EventSession;
 import org.deviceconnect.android.manager.core.event.KeepAliveManager;
@@ -52,8 +53,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Filter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -135,6 +139,12 @@ public abstract class DConnectManager implements DConnectInterface {
         if (settings == null) {
             throw new IllegalArgumentException("settings is null.");
         }
+        setupLogger("dconnect.manager");
+        setupLogger("dconnect.server");
+        setupLogger("mixed-replace-media");
+        setupLogger("org.deviceconnect.dplugin");
+        setupLogger("org.deviceconnect.localoauth");
+        setupLogger("LocalCA");
 
         mContext = context;
         mSettings = settings;
@@ -210,6 +220,7 @@ public abstract class DConnectManager implements DConnectInterface {
         if (mCore != null) {
             return;
         }
+
         mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);
         mCore.setDConnectInterface(this);
         mCore.setIDConnectCallback(new IDConnectCallback.Stub() {
@@ -230,6 +241,26 @@ public abstract class DConnectManager implements DConnectInterface {
             mCore.searchPlugin();
             postFinishSearchPlugin();
         });
+    }
+
+    private void setupLogger(final String name) {
+        Logger logger = Logger.getLogger(name);
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
+        } else {
+            logger.setLevel(Level.OFF);
+            logger.setFilter(new Filter() {
+                @Override
+                public boolean isLoggable(final LogRecord record) {
+                    return false;
+                }
+            });
+        }
     }
 
     public void startDConnect() {

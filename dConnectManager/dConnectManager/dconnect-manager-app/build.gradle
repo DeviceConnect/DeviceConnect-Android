@@ -107,7 +107,7 @@ android.testVariants.all { variant ->
     task("generateJavadocForManagerJUnit", type: Javadoc, overwrite: true) {
         title = "Android Device Connect Manager Unit Test"
         description = "Generates Javadoc for JUnit"
-        source = android.sourceSets.main.java.sourceFiles
+        source = android.sourceSets.androidTest.java.sourceFiles
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
         classpath += configurations.compile
         destinationDir = new File("${project.getRootDir()}/DeviceConnectManager-JUnit-Javadoc/")
@@ -121,9 +121,13 @@ android.testVariants.all { variant ->
             charSet = 'UTF-8'
         }
 
-        exclude '**/org/deviceconnect/android/logger/**'
-        exclude '**/org/deviceconnect/android/test/**'
-        exclude '**/org/deviceconnect/android/test/http/**'
+        include '**/org/deviceconnect/android/manager/test/**'
+        include '**/org/deviceconnect/android/profile/intent/test/**'
+        include '**/org/deviceconnect/android/profile/restful/test/**'
+        include '**/org/deviceconnect/android/test/**'
+        include '**/org/deviceconnect/android/test/http/**'
+        exclude '**/HttpUtil.java'
+        exclude '**/DConnectTestCase.java'
         exclude '**/IntentDConnectTestCase.java'
         exclude '**/RESTfulDConnectTestCase.java'
         exclude '**/BuildConfig.java'

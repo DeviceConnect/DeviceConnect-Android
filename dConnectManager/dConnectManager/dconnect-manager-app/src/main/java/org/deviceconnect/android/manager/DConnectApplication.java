@@ -14,7 +14,9 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 
+import java.util.logging.Filter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -34,6 +36,10 @@ public class DConnectApplication extends HostDeviceApplication {
     public void onCreate() {
         super.onCreate();
         setupLogger("dconnect.manager");
+        setupLogger("dconnect.server");
+        setupLogger("mixed-replace-media");
+        setupLogger("org.deviceconnect.dplugin");
+        setupLogger("org.deviceconnect.localoauth");
         setupLogger("LocalCA");
 
         initialize();
@@ -50,6 +56,12 @@ public class DConnectApplication extends HostDeviceApplication {
             logger.setUseParentHandlers(false);
         } else {
             logger.setLevel(Level.OFF);
+            logger.setFilter(new Filter() {
+                @Override
+                public boolean isLoggable(final LogRecord record) {
+                    return false;
+                }
+            });
         }
     }
 

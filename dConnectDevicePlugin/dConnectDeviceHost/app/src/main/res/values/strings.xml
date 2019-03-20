@@ -65,6 +65,8 @@
     <string name="demo_page_settings_button_overwrite">Overwrite</string>
     <string name="demo_page_settings_button_open">Open</string>
     <string name="demo_page_settings_button_create_shortcut">Create shortcut</string>
+    <string name="demo_page_settings_button_create_shortcut_success">Created a shortcut to demo on Home.</string>
+    <string name="demo_page_settings_button_create_shortcut_error">Failed to create a shortcut to demo on Home.</string>
     <string name="demo_page_shortcut_label">Camera</string>
 
     <string name="host_setting_dialog_error_permission">It can not be searched because permission to use GPS is not permitted.\nPlease obtain permission of position information from GPS setting screen.</string>

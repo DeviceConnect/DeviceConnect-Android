@@ -9,7 +9,6 @@ package org.deviceconnect.android.localoauth;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.RenamingDelegatingContext;
 
 import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.localoauth.oauthserver.db.SQLiteToken;
@@ -39,13 +38,13 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class LocalOAuth2MainTest {
 
-    private static Context mContext;
+    private Context mContext;
 
     private LocalOAuth2Main mLocalOAuth2Main;
 
     @Before
     public void execBeforeClass() {
-        mContext = new RenamingDelegatingContext(InstrumentationRegistry.getInstrumentation().getTargetContext(), "test_");
+        mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mLocalOAuth2Main = new LocalOAuth2Main(mContext);
     }
 

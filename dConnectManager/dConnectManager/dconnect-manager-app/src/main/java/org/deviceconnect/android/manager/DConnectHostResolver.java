@@ -68,7 +68,7 @@ public class DConnectHostResolver extends AppCompatActivity implements AlertDial
 
                 @Override
                 public void onFail(final @NonNull String deniedPermission) {
-                    // NOP.
+                    finish();
                 }
             });
         }

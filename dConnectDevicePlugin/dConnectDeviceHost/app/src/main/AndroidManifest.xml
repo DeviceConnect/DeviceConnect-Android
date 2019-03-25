@@ -99,6 +99,13 @@
             android:launchMode="singleInstance">
         </activity>
 
+        <!-- パーミッション要求画面 -->
+        <activity
+            android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
+            android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
+
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"

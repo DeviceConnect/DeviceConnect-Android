@@ -57,7 +57,13 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private static final String TAG = "host.dplugin";
 
+    private static final String DOCUMENT_DIR_NAME = "org.deviceconnect.android.manager";
+
     private static final String PLUGIN_DIR_NAME = "org.deviceconnect.android.deviceplugin.host";
+
+    private static final String PREFERENCE_NAME =  "demo_page_info";
+
+    private static final String KEY_PLUGIN_VERSION_NAME = "plugin_version_name";
 
     private static final String CAMERA_DEMO_SHORTCUT_ID = "1";
 
@@ -71,10 +77,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    private static final String[] DEMO_PERMISSIONS = {
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO
-    };
 
     private Button mDeleteButton;
 
@@ -384,10 +386,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         PermissionUtility.requestPermissions(context, mHandler, PERMISSIONS, callback);
     }
 
-    private void requestPermissionForDemo(final Context context, final PermissionUtility.PermissionRequestCallback callback) {
-        PermissionUtility.requestPermissions(context, mHandler, DEMO_PERMISSIONS, callback);
-    }
-
     public void onNegativeButton(final String tag, final MessageDialogFragment dialogFragment) {
         // NOP.
     }
@@ -464,18 +462,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     }
 
     private void openDemoPage(final Activity activity) {
-        requestPermissionForDemo(activity, new PermissionUtility.PermissionRequestCallback() {
-            @Override
-            public void onSuccess() {
-                Intent intent = createDemoPageIntent();
-                activity.startActivity(intent);
-            }
-
-            @Override
-            public void onFail(final @NonNull String deniedPermission) {
-                // NOP.
-            }
-        });
+        Intent intent = createDemoPageIntent();
+        activity.startActivity(intent);
     }
 
     private Intent createDemoPageIntent() {

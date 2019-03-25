@@ -232,6 +232,13 @@
         <!-- アプリ起動を受領し、監視プログラムを立ち上げるためのBroadcastReceiver. -->
         <receiver android:name="org.deviceconnect.android.observer.receiver.ObserverReceiver">
         </receiver>
+
+        <!-- パーミッション要求画面 -->
+        <activity
+            android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
+            android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
     </application>
 
 </manifest>

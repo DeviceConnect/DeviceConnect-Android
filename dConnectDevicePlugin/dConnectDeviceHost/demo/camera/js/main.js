@@ -814,7 +814,7 @@ function connect() {
       }
     }
     if (hostService === null) {
-      throw new Error('No Host Service.');
+      return Promise.reject({ errorMessage: 'Host サービスが見つかりませんでした。' });
     }
     app.hostService = hostService;
 

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.AndroidTestCase;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -24,7 +23,7 @@ import static org.junit.Assert.assertThat;
 
 
 @RunWith(AndroidJUnit4.class)
-public class ServiceInformationProfileTest extends AndroidTestCase {
+public class ServiceInformationProfileTest {
 
     @Test
     public void testOnRequest() throws Exception {

@@ -23,6 +23,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
+
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
     <uses-feature android:name="android.hardware.camera.flash"/>
@@ -31,43 +34,14 @@
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
             android:label="@string/app_name_host"
-            android:theme="@style/AppTheme"
-            android:launchMode="singleTask"/>
-
-        <!-- d-Connect Host Device Plugin Provider. -->
-        <receiver android:name=".HostDeviceProvider">
-        </receiver>
-
-
-        <service
-            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.name"
-                android:value="@string/app_name_for_device_web_api"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.icon"
-                android:resource="@drawable/ic_launcher"/>
-        </service>
-
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.recorder.video.VideoRecorderActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:taskAffinity=".recorder"
-            android:screenOrientation="landscape"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
@@ -122,11 +96,34 @@
             android:launchMode="singleInstance">
         </activity>
 
+        <!-- パーミッション要求画面 -->
+        <activity
+            android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
+            android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
+
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
             android:exported="true" >
+
         </provider>
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.name"
+                android:value="@string/app_name_host"/>
+
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin.icon"
+                android:resource="@drawable/ic_launcher"/>
+        </service>
     </application>
 
 </manifest>

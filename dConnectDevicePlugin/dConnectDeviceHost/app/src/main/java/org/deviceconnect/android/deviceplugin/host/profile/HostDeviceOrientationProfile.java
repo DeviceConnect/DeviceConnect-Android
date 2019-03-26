@@ -14,7 +14,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -203,8 +202,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                         Bundle orientation = createOrientation();
                         setResult(response, DConnectMessage.RESULT_OK);
                         setOrientation(response, orientation);
-                        HostDeviceService service = (HostDeviceService) getContext();
-                        service.sendResponse(response);
+                        sendResponse(response);
 
                         if (isEmptyEventList()) {
                             mSensorManager.unregisterListener(this);

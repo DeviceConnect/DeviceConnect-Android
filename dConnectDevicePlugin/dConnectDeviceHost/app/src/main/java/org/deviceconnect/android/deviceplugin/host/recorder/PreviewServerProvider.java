@@ -30,6 +30,8 @@ public interface PreviewServerProvider {
 
     List<PreviewServer> getServers();
 
+    PreviewServer getServerForMimeType(String mimeType);
+
     void stopWebServers();
 
 }

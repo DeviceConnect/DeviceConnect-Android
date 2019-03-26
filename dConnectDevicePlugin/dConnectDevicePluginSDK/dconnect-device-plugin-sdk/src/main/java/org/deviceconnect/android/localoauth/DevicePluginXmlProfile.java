@@ -19,13 +19,13 @@ import java.util.Map;
 public class DevicePluginXmlProfile implements Parcelable {
     
     /** プロファイル. */
-    protected final String mProfile;
+    private final String mProfile;
     
     /** 有効期限(秒). */
-    protected final long mExpirePeriod;
+    private final long mExpirePeriod;
     
     /** ロケール別プロファイル情報. */
-    protected final Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
+    private final Map<String, DevicePluginXmlProfileLocale> mProfileLocales;
 
     /** プロファイル定義ディレクトリのパス. nullの場合は assets/api と同じ扱いとする. */
     private String mSpecPath;
@@ -35,10 +35,10 @@ public class DevicePluginXmlProfile implements Parcelable {
      * @param profile プロファイル名
      * @param expirePeriod 有効期限(秒)
      */
-    public DevicePluginXmlProfile(final String profile, final long expirePeriod) {
+    DevicePluginXmlProfile(final String profile, final long expirePeriod) {
         mProfile = profile;
         mExpirePeriod = expirePeriod;
-        mProfileLocales = new HashMap<String, DevicePluginXmlProfileLocale>();
+        mProfileLocales = new HashMap<>();
     }
     
     /**

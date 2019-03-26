@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.util.LongSparseArray;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -790,8 +791,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             // 動画用のテーブルキー設定.
             mVideoParam = new String[] { MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
                     MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
-                    MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED };
-
+                    MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED,
+                    MediaStore.Video.Media.MINI_THUMB_MAGIC };
             mVideoUriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
 
             ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
@@ -854,15 +855,15 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     private int getMusicList(final Cursor cursorMusic, final ArrayList<MediaList> list) {
         int counter = 0;
         do {
-            String mId = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
-            String mType = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
-            String mTitle = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
-            int mDuration = (cursorMusic.getInt(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION)))
+            String id = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
+            String mimeType = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
+            String title = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            int duration = (cursorMusic.getInt(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION)))
                     / UNIT_SEC;
-            String mArtist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-            String mComp = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
+            String artist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            String composer = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
 
-            list.add(new MediaList(mId, mType, mTitle, mArtist, mDuration, mComp, null, false));
+            list.add(new MediaList(id, mimeType, title, artist, duration, composer, null, null,false));
             counter++;
         } while (cursorMusic.moveToNext());
         return counter;
@@ -875,21 +876,61 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      * @param list List
      * @return counter Video data count.
      */
-    private int getVideoList(final Cursor cursorVideo, final ArrayList<MediaList> list) {
+    private int getVideoList(final Cursor cursorVideo, final List<MediaList> list) {
         int counter = 0;
         do {
-            String mLang = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
-            String mId = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media._ID));
-            String mType = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
-            String mTitle = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.TITLE));
-            int mDuration = (cursorVideo.getInt(cursorVideo.getColumnIndex(MediaStore.Video.Media.DURATION)))
-                    / UNIT_SEC;
-            String mArtist = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.ARTIST));
+            LongSparseArray<ThumbnailInfo> thumbnails = queryThumbnailInfoList();
 
-            list.add(new MediaList(mId, mType, mTitle, mArtist, mDuration, null, mLang, true));
+            String lang = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
+            String id = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media._ID));
+            String type = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
+            String title = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.TITLE));
+            int duration = (cursorVideo.getInt(cursorVideo.getColumnIndex(MediaStore.Video.Media.DURATION)))
+                    / UNIT_SEC;
+            String artist = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.ARTIST));
+            String thumbnailUri;
+            if (!cursorVideo.isNull(cursorVideo.getColumnIndex(MediaStore.Video.Media.MINI_THUMB_MAGIC))) {
+                int thumbnailId = cursorVideo.getInt(cursorVideo.getColumnIndex(MediaStore.Video.Media.MINI_THUMB_MAGIC));
+                ThumbnailInfo info = thumbnails.get(thumbnailId);
+                thumbnailUri = info == null ? null : info.getUri();
+            } else {
+                thumbnailUri = null;
+            }
+            list.add(new MediaList(id, type, title, artist, duration, null, lang, thumbnailUri, true));
             counter++;
         } while (cursorVideo.moveToNext());
+
         return counter;
+    }
+
+    private LongSparseArray<ThumbnailInfo> queryThumbnailInfoList() {
+        ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
+        Uri uri = MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
+        LongSparseArray<ThumbnailInfo> result = new LongSparseArray<>();
+        try (Cursor cursor = resolver.query(uri, null,
+                null, null, null)) {
+            if (cursor == null) {
+                return result;
+            }
+            if (cursor.moveToFirst()) {
+                do {
+                    ThumbnailInfo info = createThumbnailInfo(cursor);
+                    result.put(info.getId(), info);
+                } while (cursor.moveToNext());
+            }
+            return result;
+        }
+    }
+
+    private ThumbnailInfo createThumbnailInfo(final Cursor cursor) {
+        ThumbnailInfo info = new ThumbnailInfo();
+        info.setId(cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Thumbnails._ID)));
+        info.setVideoId(cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Thumbnails.VIDEO_ID)));
+        info.setUri(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Thumbnails.DATA)));
+        info.setWidth(cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Thumbnails.WIDTH)));
+        info.setHeight(cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Thumbnails.HEIGHT)));
+        info.setKind(cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Thumbnails.KIND)));
+        return info;
     }
 
     /**
@@ -902,7 +943,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      * @param sortflag Sort flag.
      * @return counter Video data count.
      */
-    private int getMediaDataList(final ArrayList<MediaList> orglist, final List<Bundle> medialist, final Integer offset,
+    private int getMediaDataList(final List<MediaList> orglist, final List<Bundle> medialist, final Integer offset,
             final Integer limit, final SortOrder sortflag) {
 
         switch (sortflag) {
@@ -976,11 +1017,13 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             String mTitle = orglist.get(i).getTitle();
             String mArtist = orglist.get(i).getArtist();
             int mDuration = orglist.get(i).getDuration();
+            String mThumbnailUri = orglist.get(i).getThumbnailUri();
 
             setMediaId(medium, mId);
             setMIMEType(medium, mType);
             setTitle(medium, mTitle);
             setDuration(medium, mDuration);
+            setImageUri(medium, mThumbnailUri);
 
             if (orglist.get(i).isVideo()) {
                 String mLang = orglist.get(i).getLanguage();
@@ -1124,10 +1167,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         private String mArtist;
         /** Duration. */
         private int mDuration;
-        /** Composer(Audio only). */
+        /** Composer (Audio only). */
         private String mComposer;
-        /** Language(Video only). */
+        /** Language (Video only). */
         private String mLanguage;
+        /** Thumbnail URI. */
+        private String mThumbnailUri;
         /** Video flag. */
         private boolean mIsVideo;
 
@@ -1141,10 +1186,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
          * @param duration Duration.
          * @param composer Composer(Audio only).
          * @param language Language(Video only).
-         * @param isvideo Video flag.
+         * @param thumbnailUri Thumbnail URI.
+         * @param isVideo Video flag.
          */
         public MediaList(final String id, final String type, final String title, final String artist,
-                final int duration, final String composer, final String language, final boolean isvideo) {
+                         final int duration, final String composer, final String language,
+                         final String thumbnailUri, final boolean isVideo) {
             this.setId(id);
             this.setType(type);
             this.setTitle(title);
@@ -1152,7 +1199,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             this.setDuration(duration);
             this.setComposer(composer);
             this.setLanguage(language);
-            this.setVideo(isvideo);
+            this.setThumbnailUri(thumbnailUri);
+            this.setVideo(isVideo);
         }
 
         /**
@@ -1279,6 +1327,22 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
          */
         public void setLanguage(final String language) {
             this.mLanguage = language;
+        }
+
+        /**
+         * Get Thumbnail URI.
+         * @return Thumbnail URI
+         */
+        public String getThumbnailUri() {
+            return mThumbnailUri;
+        }
+
+        /**
+         * Set Thumbnail URI.
+         * @param thumbnailUri Thumbnail URI
+         */
+        public void setThumbnailUri(String thumbnailUri) {
+            mThumbnailUri = thumbnailUri;
         }
 
         /**
@@ -1461,6 +1525,74 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         } catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    /**
+     * サムネイル情報.
+     */
+    private static class ThumbnailInfo {
+
+        private long mId;
+        private long mVideoId;
+        private String mUri;
+        private int mWidth;
+        private int mHeight;
+
+        /**
+         * 解像度の種類.
+         * @see MediaStore.Images.Thumbnails#MINI_KIND
+         * @see MediaStore.Images.Thumbnails#MICRO_KIND
+         * @see MediaStore.Images.Thumbnails#FULL_SCREEN_KIND
+         */
+        private int mKind;
+
+        public long getId() {
+            return mId;
+        }
+
+        public void setId(final long id) {
+            mId = id;
+        }
+
+        public long getVideoId() {
+            return mVideoId;
+        }
+
+        public void setVideoId(long videoId) {
+            mVideoId = videoId;
+        }
+
+        public String getUri() {
+            return mUri;
+        }
+
+        public void setUri(final String uri) {
+            mUri = uri;
+        }
+
+        public int getWidth() {
+            return mWidth;
+        }
+
+        public void setWidth(final int width) {
+            mWidth = width;
+        }
+
+        public int getHeight() {
+            return mHeight;
+        }
+
+        public void setHeight(final int height) {
+            mHeight = height;
+        }
+
+        public int getKind() {
+            return mKind;
+        }
+
+        public void setKind(final int kind) {
+            mKind = kind;
         }
     }
 }

@@ -1,7 +1,10 @@
 apply plugin: 'com.android.library'
 
+def DEMO_ZIP_NAME = "demo.zip"
+
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     def getVersionName = { ->
         def version
@@ -15,13 +18,14 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 26
+        minSdkVersion 21
+        targetSdkVersion 28
         versionName getVersionName()
         manifestPlaceholders = [
                 appIcon: "@drawable/dconnect_icon",
                 appName: "@string/app_name"
         ]
+        buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
     }
 
     signingConfigs {
@@ -39,6 +43,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.releaseConfig
         }
+    }
+
+    productFlavors {
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
 
     packagingOptions {
@@ -66,7 +78,30 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation('com.android.support:appcompat-v7:28.0.0') {
+        exclude module: 'animated-vector-drawable'
+        exclude module: 'support-media-compat'
+    }
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
+    implementation project(':dconnect-device-plugin-sdk')
     implementation project(':dconnect-device-plugin-linking')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.2'
     implementation project(':libstreaming')
+    implementation('com.serenegiant:common:2.12.5') {
+        exclude module: 'support-v4'
+        //exclude module: 'recyclerview-v7'
+        exclude module: 'support-fragment'
+        exclude module: 'support-core-ui'
+        exclude module: 'appcompat-v7'
+    }
 }
+
+task zipDemo(type:Zip) {
+    File demoDir = new File(projectDir, '../demo')
+    File assetsDir = new File(projectDir, 'src/main/assets')
+
+    from demoDir
+    destinationDir assetsDir
+    archiveName = DEMO_ZIP_NAME
+}
+
+tasks.preBuild.dependsOn(zipDemo)

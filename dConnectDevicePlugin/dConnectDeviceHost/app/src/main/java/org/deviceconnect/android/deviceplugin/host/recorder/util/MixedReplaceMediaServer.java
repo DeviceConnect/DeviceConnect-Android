@@ -40,10 +40,14 @@ import java.util.logging.Logger;
  */
 public class MixedReplaceMediaServer {
 
+    /**
+     * Media Server Callback
+     */
     public interface Callback {
 
-        boolean onAccept();
+        boolean onAccept(Socket socket);
 
+        void onClosed(Socket socket);
     }
 
     /** Logger. */
@@ -76,9 +80,9 @@ public class MixedReplaceMediaServer {
     
     /**
      * Content type.
-     * Default is "image/jpg".
+     * Default is "image/jpeg".
      */
-    private String mContentType = "image/jpg";
+    private String mContentType = "image/jpeg";
     
     /**
      * Stop flag.
@@ -112,12 +116,19 @@ public class MixedReplaceMediaServer {
         mCallback = callback;
     }
 
-    private boolean notifyOnAccept() {
+    private boolean notifyOnAccept(final Socket socket) {
         Callback callback = mCallback;
         if (callback != null) {
-            return callback.onAccept();
+            return callback.onAccept(socket);
         }
         return true;
+    }
+
+    private void notifyOnClose(final Socket socket) {
+        Callback callback = mCallback;
+        if (callback != null) {
+            callback.onClosed(socket);
+        }
     }
 
     /**
@@ -145,7 +156,7 @@ public class MixedReplaceMediaServer {
     /**
      * Set a content type.
      * <p>
-     * Default is "image/jpg".
+     * Default is "image/jpeg".
      * </p>
      * @param contentType content type
      */
@@ -359,9 +370,12 @@ public class MixedReplaceMediaServer {
         public void run() {
             mLogger.fine("accept client.");
             mRunnables.add(this);
+
+            boolean isAccept = false;
+
             try {
                 mStream = mSocket.getOutputStream();
-                if(!notifyOnAccept()) {
+                if(!notifyOnAccept(mSocket)) {
                     mStream.write(generateInternalServerError().getBytes());
                     mStream.flush();
                     return;
@@ -379,6 +393,8 @@ public class MixedReplaceMediaServer {
                     mStream.write(generateServiceUnavailable().getBytes());
                     mStream.flush();
                 } else {
+                    isAccept = true;
+
                     mStream.write(generateHttpHeader().getBytes());
                     mStream.flush();
 
@@ -410,6 +426,10 @@ public class MixedReplaceMediaServer {
                 }
             } finally {
                 mLogger.fine("socket close.");
+                if (isAccept) {
+                    notifyOnClose(mSocket);
+                }
+
                 if (mStream != null) {
                     try {
                         mStream.close();

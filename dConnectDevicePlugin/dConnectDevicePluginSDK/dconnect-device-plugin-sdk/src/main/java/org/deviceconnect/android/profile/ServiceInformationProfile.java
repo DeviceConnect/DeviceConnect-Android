@@ -6,8 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
@@ -17,11 +20,8 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service Information プロファイル.

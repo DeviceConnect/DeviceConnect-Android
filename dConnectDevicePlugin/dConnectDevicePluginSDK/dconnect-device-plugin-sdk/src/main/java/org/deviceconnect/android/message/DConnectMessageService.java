@@ -6,80 +6,43 @@
  */
 package org.deviceconnect.android.message;
 
-import android.Manifest;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.net.ConnectivityManager;
-import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import android.support.v4.content.ContextCompat;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.IDConnectPlugin;
-import org.deviceconnect.android.compat.AuthorizationRequestConverter;
-import org.deviceconnect.android.compat.LowerCaseConverter;
-import org.deviceconnect.android.compat.MessageConverter;
-import org.deviceconnect.android.compat.ServiceDiscoveryRequestConverter;
 import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
-import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
-import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
-import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
-import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
-import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
-import org.deviceconnect.android.service.DConnectService;
-import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
-import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
 import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
-import org.deviceconnect.android.ssl.KeyStoreManager;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.SystemProfileConstants;
-import org.json.JSONException;
 
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Device Connectメッセージサービス.
@@ -92,191 +55,94 @@ import javax.net.ssl.TrustManagerFactory;
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectMessageService extends Service implements DConnectProfileProvider {
-
-    /** 
-     * LocalOAuthで無視するプロファイル群.
-     */
-    private static final String[] IGNORE_PROFILES = {
-        AuthorizationProfileConstants.PROFILE_NAME.toLowerCase(),
-        SystemProfileConstants.PROFILE_NAME.toLowerCase(),
-        ServiceDiscoveryProfileConstants.PROFILE_NAME.toLowerCase()
-    };
-
-    /** プロファイル仕様定義ファイルの拡張子. */
-    private static final String SPEC_FILE_EXTENSION = ".json";
-    
     /**
      * ロガー.
      */
     private Logger mLogger = Logger.getLogger("org.deviceconnect.dplugin");
 
     /**
-     * プロファイルインスタンスマップ.
+     * プラグインのコンテキスト.
      */
-    private Map<String, DConnectProfile> mProfileMap = new HashMap<>();
+    private DevicePluginContext mPluginContext;
 
     /**
-     * Local OAuth使用フラグ.
-     * <p>
-     * デフォルトではtrueにしておくこと。
-     * </p>
+     * プラグインにリクエストを配送するスレッド.
      */
-    private boolean mUseLocalOAuth = true;
+    private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     /**
-     * サービスを管理するクラス.
+     * 同じ apk 内からバインドされた場合のバインダー.
      */
-    private DConnectServiceProvider mServiceProvider;
-
-    /**
-     * リクエストを変換するコンバータクラス.
-     */
-    private final MessageConverter[] mRequestConverters = {
-        new ServiceDiscoveryRequestConverter(),
-        new AuthorizationRequestConverter(),
-        new LowerCaseConverter()
-    };
-
-    /**
-     * プラグインのスペック.
-     */
-    private DConnectPluginSpec mPluginSpec;
-
-    private LocalOAuth2Main mLocalOAuth2Main;
-
     private final IBinder mLocalBinder = new LocalBinder();
 
+    /**
+     * 外部からバインドされた場合のバインダー.
+     */
     private final IBinder mRemoteBinder = new PluginBinder();
 
-    private final Map<String, MessageSender> mBindingSenders = new ConcurrentHashMap<>();
-
-    private final MessageSender mDefaultSender = new MessageSender() {
-        @Override
-        public void send(final Intent message) {
-            sendBroadcast(message);
-        }
-    };
-
-    private KeyStoreManager mKeyStoreMgr;
-
-    private ScheduledExecutorService mExecutorService;
-
-    private boolean mIsEnabled;
-
-    private BroadcastReceiver mWiFiBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            // 証明書を更新
-            requestAndNotifyKeyStore();
-        }
-    };
-
+    /**
+     * Device Connect Manager がアンインストールされた場合の通知を受け取るレシーバ.
+     */
     private final BroadcastReceiver mUninstallReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            handleMessage(intent);
+        public void onReceive(final Context context, final Intent intent) {
+            if (mPluginContext != null) {
+                mPluginContext.handleMessage(intent);
+            }
         }
     };
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        setLogLevel();
-
-        // イベント管理クラスの初期化
-        EventCacheController ctrl = getEventCacheController();
-        if (ctrl == null) {
-            ctrl = getDefaultEventCacheController();
-        }
-        EventManager.INSTANCE.setController(ctrl);
-
-        // プラグインの提供するAPIの仕様を取得
-        mPluginSpec = loadPluginSpec();
-
-        // サービス管理クラスの初期化
-        DConnectServiceManager serviceManager = new DConnectServiceManager();
-        serviceManager.setPluginSpec(mPluginSpec);
-        serviceManager.setContext(getContext());
-        mServiceProvider = serviceManager;
-        mExecutorService = Executors.newSingleThreadScheduledExecutor();
-
-        // LocalOAuthの初期化
-        mLocalOAuth2Main = new LocalOAuth2Main(this);
-
-        // キーストア管理クラスの初期化
-        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), getKeyStoreFileName(), getCertificateAlias());
-        if (usesAutoCertificateRequest()) {
-            requestAndNotifyKeyStore();
-
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            registerReceiver(mWiFiBroadcastReceiver, filter);
-        }
-
-        // 認証プロファイルの追加
-        addProfile(new AuthorizationProfile(this, mLocalOAuth2Main));
-
-        // 必須プロファイルの追加
-        addProfile(new ServiceDiscoveryProfile(mServiceProvider));
-        addProfile(getSystemProfile());
-
-        registerReceiver();
-    }
-
-    private void registerReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED);
-        filter.addDataScheme("package");
-        registerReceiver(mUninstallReceiver, filter);
-    }
-
-    @Override
-    public void onDestroy() {
-        // スレッドの停止
-        if (mExecutorService != null) {
-            mExecutorService.shutdown();
-        }
-
-        // LocalOAuthの後始末
-        mLocalOAuth2Main.destroy();
-        mLocalOAuth2Main = null;
-
-        // コールバック一覧を削除
-        mBindingSenders.clear();
-
-        if (usesAutoCertificateRequest()) {
-            unregisterReceiver(mWiFiBroadcastReceiver);
-        }
-
-        unregisterReceiver(mUninstallReceiver);
-
-        super.onDestroy();
-    }
 
     @Override
     public IBinder onBind(final Intent intent) {
         if (BuildConfig.DEBUG) {
             mLogger.info("onBind: " + getClass().getName());
         }
+
+        // 同じパッケージから呼び出されている場合
         if (isCalledFromLocal()) {
             if (BuildConfig.DEBUG) {
                 mLogger.info("onBind: Local binder");
             }
             return mLocalBinder;
         }
+
         if (BuildConfig.DEBUG) {
             mLogger.info("onBind: Remote binder");
         }
         return mRemoteBinder;
     }
 
-    private boolean isCalledFromLocal() {
-        return getPackageName().equals(getCallingPackage());
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        setLogLevel();
+
+        mPluginContext = createPluginContext();
+
+        if (mPluginContext == null) {
+            // プラグインコンテキストが作成できなかったので終了
+            mLogger.severe("Failed to create a plugin context.");
+            stopSelf();
+        }
+
+        registerReceiver();
     }
 
-    private String getCallingPackage() {
-        int uid = Binder.getCallingUid();
-        return getPackageManager().getNameForUid(uid);
+    @Override
+    public void onDestroy() {
+        if (mExecutorService != null) {
+            mExecutorService.shutdown();
+            mExecutorService = null;
+        }
+
+        if (mPluginContext != null) {
+            mPluginContext.release();
+            mPluginContext = null;
+        }
+
+        unregisterReceiver();
+
+        super.onDestroy();
     }
 
     @Override
@@ -289,7 +155,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         String action = intent.getAction();
         if (action == null) {
-            mLogger.warning("request action is null. ");
+            mLogger.warning("request action is null.");
             return START_STICKY;
         }
 
@@ -298,531 +164,38 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return START_STICKY;
     }
 
-    private void handleMessage(final Intent intent) {
-        String action = intent.getAction();
-        if (checkRequestAction(action)) {
-            onRequest(intent);
-        } else if (checkManagerUninstall(intent)) {
-            onManagerUninstalled();
-        } else if (checkManagerLaunched(action)) {
-            onManagerLaunched();
-        } else if (checkManagerTerminated(action)) {
-            onManagerTerminated();
-        } else if (checkManagerEventTransmitDisconnect(action)) {
-            onManagerEventTransmitDisconnected(intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN));
-        } else if (checkDevicePluginReset(action)) {
-            onDevicePluginReset();
-        } else if (checkDevicePluginEnabled(action)) {
-            mIsEnabled = true;
-            onDevicePluginEnabled();
-        } else if (checkDevicePluginDisabled(action)) {
-            mIsEnabled = false;
-            onDevicePluginDisabled();
-        }
-    }
-
-    protected boolean usesAutoCertificateRequest() {
-        return false;
-    }
-
-    protected String getKeyStoreFileName() {
-        return "keystore.p12";
-    }
-
-    protected String getCertificateAlias() {
-        return getContext().getPackageName();
-    }
-
-    protected void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
-        mKeyStoreMgr.requestKeyStore(ipAddress, callback);
-    }
-
-    private void requestAndNotifyKeyStore() {
-        requestAndNotifyKeyStore(getCurrentIPAddress());
-    }
-
-
-    private String getCurrentIPAddress() {
-        Context appContext = getContext().getApplicationContext();
-        int state = ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_WIFI_STATE);
-        if (state != PackageManager.PERMISSION_GRANTED) {
-            return null;
-        }
-        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-    }
-
-    private void requestAndNotifyKeyStore(final String ipAddress) {
-        requestKeyStore(ipAddress, new KeyStoreCallback() {
-            @Override
-            public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
-                onKeyStoreUpdated(keyStore, cert, rootCert);
-            }
-
-            @Override
-            public void onError(final KeyStoreError error) {
-                onKeyStoreUpdateError(error);
-            }
-        });
-    }
-
-    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
-    }
-
-    protected void onKeyStoreUpdateError(final KeyStoreError error) {
-    }
-
-    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "0000".toCharArray());
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(keyStore);
-        sslContext.init(
-                keyManagerFactory.getKeyManagers(),
-                trustManagerFactory.getTrustManagers(),
-                new SecureRandom()
-        );
-        return sslContext;
-    }
-
     /**
-     * デバッグログの出力レベルを設定する.
+     * プラグインコンテキストを作成します.
      * <p>
-     * デバッグフラグがfalseの場合には、ログを出力しないようにすること。
+     * オーバーライドされなければ、{@link DefaultPluginContext} を作成します。
      * </p>
+     * @return プラグインコンテキスト
      */
-    private void setLogLevel() {
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler(mLogger.getName());
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.ALL);
-            mLogger.setUseParentHandlers(false);
-        } else {
-            mLogger.setLevel(Level.OFF);
-        }
+    public DevicePluginContext createPluginContext() {
+        return new DefaultPluginContext(this);
     }
 
     /**
-     * サービスを管理するクラスを取得する.
+     * プラグインコンテキストを取得します.
      *
-     * @return サービス管理クラス
+     * @return プラグインコンテキスト
      */
-    public final DConnectServiceProvider getServiceProvider() {
-        return mServiceProvider;
-    }
-
-    protected final void setServiceProvider(final DConnectServiceProvider provider) {
-        mServiceProvider = provider;
-    }
-
-    protected final DConnectPluginSpec getPluginSpec() {
-        return mPluginSpec;
-    }
-
-    private DConnectPluginSpec loadPluginSpec() {
-        final Map<String, DevicePluginXmlProfile> supportedProfiles = DevicePluginXmlUtil.getSupportProfiles(this, getPackageName());
-
-        final AssetManager assets = getAssets();
-        final DConnectPluginSpec pluginSpec = new DConnectPluginSpec();
-        for (Map.Entry<String, DevicePluginXmlProfile> entry : supportedProfiles.entrySet()) {
-            String profileName = entry.getKey();
-            DevicePluginXmlProfile profile = entry.getValue();
-            try {
-                List<String> dirList = new ArrayList<>();
-                String assetsPath = profile.getSpecPath();
-                if (assetsPath != null) {
-                    dirList.add(assetsPath);
-                }
-                dirList.add("api");
-                String filePath = null;
-                for (String dir : dirList) {
-                    String[] fileNames = assets.list(dir);
-                    String fileName = findProfileSpecName(fileNames, profileName);
-                    if (fileName != null) {
-                        filePath = dir + "/" + fileName;
-                        break;
-                    }
-                }
-                if (filePath == null) {
-                    throw new RuntimeException("Profile spec is not found: " + profileName);
-                }
-                pluginSpec.addProfileSpec(profileName.toLowerCase(), assets.open(filePath));
-
-                if (BuildConfig.DEBUG) {
-                    mLogger.info("Loaded a profile spec: " + profileName);
-                }
-            } catch (IOException | JSONException e) {
-                throw new RuntimeException("Failed to load a profile spec: " + profileName, e);
-            }
-        }
-        return pluginSpec;
-    }
-
-    private static String findProfileSpecName(final String[] fileNames, final String profileName) {
-        if (fileNames == null) {
-            return null;
-        }
-        for (String fileFullName : fileNames) {
-            if (!fileFullName.endsWith(SPEC_FILE_EXTENSION)) {
-                continue;
-            }
-            String fileName = fileFullName.substring(0,
-                    fileFullName.length() - SPEC_FILE_EXTENSION.length());
-            if (fileName.equalsIgnoreCase(profileName)) {
-                return fileFullName;
-            }
-        }
-        return null;
+    public DevicePluginContext getPluginContext() {
+        return mPluginContext;
     }
 
     /**
-     * 指定されたアクションがDevice Connectのアクションかチェックします.
-     * @param action チェックするアクション
-     * @return Device Connectのアクションの場合はtrue、それ以外はfalse
-     */
-    private boolean checkRequestAction(String action) {
-        return IntentDConnectMessage.ACTION_GET.equals(action)
-                || IntentDConnectMessage.ACTION_POST.equals(action)
-                || IntentDConnectMessage.ACTION_PUT.equals(action)
-                || IntentDConnectMessage.ACTION_DELETE.equals(action);
-    }
-
-    /**
-     * リクエストのプロファイル名などを変換する.
+     * EventCacheControllerのインスタンスを返す.
      *
-     * @param request 変換処理を行うリクエスト
-     */
-    private void convertRequest(final Intent request) {
-        for (MessageConverter converter : mRequestConverters) {
-            converter.convert(request);
-        }
-    }
-
-    /**
-     * Device Connect Managerがアンインストールされたかをチェックします.
-     * @param intent intentパラメータ
-     * @return アンインストール時はtrue、それ以外はfalse
-     */
-    private boolean checkManagerUninstall(final Intent intent) {
-        return Intent.ACTION_PACKAGE_FULLY_REMOVED.equals(intent.getAction()) &&
-                intent.getExtras().getBoolean(Intent.EXTRA_DATA_REMOVED) &&
-                intent.getDataString().contains("package:org.deviceconnect.android.manager");
-    }
-
-    /**
-     * Device Connect Manager 起動通知を受信したかをチェックします.
-     * @param action チェックするアクション
-     * @return Manager 起動検知でtrue、それ以外はfalse
-     */
-    private boolean checkManagerLaunched(String action) {
-        return IntentDConnectMessage.ACTION_MANAGER_LAUNCHED.equals(action);
-    }
-
-    /**
-     * Device Connect Manager 正常終了通知を受信したかをチェックします.
-     * @param action チェックするアクション
-     * @return Manager 正常終了検知でtrue、それ以外はfalse
-     */
-    private boolean checkManagerTerminated(String action) {
-        return IntentDConnectMessage.ACTION_MANAGER_TERMINATED.equals(action);
-    }
-
-    /**
-     * Device Connect Manager のEvent 送信経路切断通知を受信したかチェックします.
-     * @param action チェックするアクション
-     * @return 検知受信でtrue、それ以外はfalse
-     */
-    private boolean checkManagerEventTransmitDisconnect(String action) {
-        return IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT.equals(action);
-    }
-
-    /**
-     * Device Plug-inへのReset要求を受信したかチェックします.
-     * @param action チェックするアクション
-     * @return Reset要求受信でtrue、それ以外はfalse
-     */
-    private boolean checkDevicePluginReset(String action) {
-        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET.equals(action);
-    }
-
-    /**
-     * プラグイン有効通知を受信したかチェックします.
-     * @param action チェックするアクション
-     * @return プラグイン有効通知でtrue、それ以外はfalse
-     */
-    private boolean checkDevicePluginEnabled(String action) {
-        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_ENABLED.equals(action);
-    }
-
-    /**
-     * プラグイン無効通知を受信したかチェックします.
-     * @param action チェックするアクション
-     * @return プラグイン無効通知でtrue、それ以外はfalse
-     */
-    private boolean checkDevicePluginDisabled(String action) {
-        return IntentDConnectMessage.ACTION_DEVICEPLUGIN_DISABLED.equals(action);
-    }
-
-    private void onRequest(final Intent request) {
-        convertRequest(request);
-        mExecutorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                onRequest(request, MessageUtils.createResponseIntent(request));
-            }
-        });
-    }
-
-    private MessageSender getMessageSender(final Intent message) {
-        ComponentName target = message.getComponent();
-        String targetPackage = target.getPackageName();
-        MessageSender sender = mBindingSenders.get(targetPackage);
-        if (sender != null) {
-            return sender;
-        } else {
-            return mDefaultSender;
-        }
-    }
-
-    /**
-     * ブロードキャストで受信したリクエストをプロファイルに振り分ける.
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     */
-    protected void onRequest(final Intent request, final Intent response) {
-
-        if (BuildConfig.DEBUG) {
-            mLogger.info("request: " + request);
-            mLogger.info("request extras: " + request.getExtras());
-        }
-
-        // プロファイル名の取得
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        if (profileName == null) {
-            MessageUtils.setNotSupportProfileError(response);
-            sendResponse(response);
-            return;
-        }
-
-        boolean send = true;
-        if (isUseLocalOAuth()) {
-            // アクセストークン
-            String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
-            // LocalOAuth処理
-            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken, profileName,
-                IGNORE_PROFILES);
-            if (result.checkResult()) {
-                send = executeRequest(profileName, request, response);
-            } else {
-                if (accessToken == null) {
-                    MessageUtils.setEmptyAccessTokenError(response);
-                } else if (!result.isExistAccessToken()) {
-                    MessageUtils.setNotFoundClientId(response);
-                } else if (!result.isExistClientId()) {
-                    MessageUtils.setNotFoundClientId(response);
-                } else if (!result.isExistScope()) {
-                    MessageUtils.setScopeError(response);
-                } else if (!result.isNotExpired()) {
-                    MessageUtils.setExpiredAccessTokenError(response);
-                } else {
-                    MessageUtils.setAuthorizationError(response);
-                }
-            }
-        } else {
-            send = executeRequest(profileName, request, response);
-        }
-
-        if (send) {
-            sendResponse(response);
-        }
-    }
-
-    /**
-     * リクエストを実行する.
-     *
-     * @param profileName プロファイル名
-     * @param request リクエスト
-     * @param response レスポンス
-     * @return trueの場合には即座にレスポンスを返却する、それ以外の場合にはレスポンスを返却しない
-     */
-    protected boolean executeRequest(final String profileName, final Intent request,
-                                   final Intent response) {
-        DConnectProfile profile = getProfile(profileName);
-        if (profile == null) {
-            String serviceId = DConnectProfile.getServiceID(request);
-            DConnectService service = getServiceProvider().getService(serviceId);
-            if (service != null) {
-                return service.onRequest(request, response);
-            } else {
-                MessageUtils.setNotFoundServiceError(response);
-                return true;
-            }
-        } else {
-            return profile.onRequest(request, response);
-        }
-    }
-
-    @Override
-    public List<DConnectProfile> getProfileList() {
-        return new ArrayList<>(mProfileMap.values());
-    }
-
-    @Override
-    public DConnectProfile getProfile(final String name) {
-        if (name == null) {
-            return null;
-        }
-        //XXXX パスの大文字小文字の無視
-        return mProfileMap.get(name.toLowerCase());
-    }
-
-    @Override
-    public void addProfile(final DConnectProfile profile) {
-        if (profile == null) {
-            return;
-        }
-        String profileName = profile.getProfileName().toLowerCase();
-        profile.setContext(this);
-        DConnectProfileSpec profileSpec = mPluginSpec.findProfileSpec(profileName);
-        if (profileSpec != null) {
-            profile.setProfileSpec(profileSpec);
-        }
-
-        //XXXX パスの大文字小文字の無視
-        mProfileMap.put(profileName, profile);
-    }
-
-    @Override
-    public void removeProfile(final DConnectProfile profile) {
-        if (profile == null) {
-            return;
-        }
-        //XXXX パスの大文字小文字の無視
-        mProfileMap.remove(profile.getProfileName().toLowerCase());
-    }
-
-    /**
-     * コンテキストの取得する.
-     * 
-     * @return コンテキスト
-     */
-    public final Context getContext() {
-        return this;
-    }
-
-    /**
-     * Device Connect Managerにレスポンスを返却するためのメソッド.
-     * @param response レスポンス
-     * @return 送信成功の場合true、それ以外はfalse
-     */
-    public final boolean sendResponse(final Intent response) {
-        // TODO チェックが必要な追加すること。
-        if (response == null) {
-            throw new IllegalArgumentException("response is null.");
-        }
-
-        if (BuildConfig.DEBUG) {
-            mLogger.info("sendResponse: " + response);
-            mLogger.info("sendResponse Extra: " + response.getExtras());
-        }
-
-        MessageSender sender = getMessageSender(response);
-        if (sender != null) {
-            sender.send(response);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Device Connectにイベントを送信する.
-     * 
-     * @param event イベントパラメータ
-     * @param accessToken 送り先のアクセストークン
-     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
-     */
-    public final boolean sendEvent(final Intent event, final String accessToken) {
-        // TODO 返り値をもっと詳細なものにするか要検討
-        if (event == null) {
-            throw new IllegalArgumentException("Event is null.");
-        }
-
-        if (isUseLocalOAuth()) {
-            CheckAccessTokenResult result = mLocalOAuth2Main.checkAccessToken(accessToken,
-                    event.getStringExtra(DConnectMessage.EXTRA_PROFILE), IGNORE_PROFILES);
-            if (!result.checkResult()) {
-                return false;
-            }
-        }
-
-        if (BuildConfig.DEBUG) {
-            mLogger.info("sendEvent: " + event);
-            mLogger.info("sendEvent Extra: " + event.getExtras());
-        }
-
-        MessageSender sender = getMessageSender(event);
-        if (sender != null) {
-            sender.send(event);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Device Connectにイベントを送信する.
-     *
-     * @param event イベントパラメータ
-     * @param bundle パラメータ
-     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
-     */
-    public final boolean sendEvent(final Event event, final Bundle bundle) {
-        Intent intent = EventManager.createEventMessage(event);
-        Bundle original = intent.getExtras();
-        original.putAll(bundle);
-        intent.putExtras(original);
-        return sendEvent(intent, event.getAccessToken());
-    }
-
-    /**
-     * Local OAuth使用フラグを設定する.
      * <p>
-     * このフラグをfalseに設定することで、LocalOAuthの機能をOFFにすることができる。<br>
-     * デフォルトでは、trueになっているので、LocalOAuthが有効になっている。
+     * デフォルトではMemoryCacheControllerを使用する.<br>
+     * 変更したい場合は本メソッドをオーバーライドすること.
      * </p>
-     * @param use フラグ
-     */
-    protected void setUseLocalOAuth(final boolean use) {
-        mUseLocalOAuth = use;
-    }
-
-    /**
-     * Local OAuth使用フラグを取得する.
-     * 
-     * @return 使用する場合にはtrue、それ以外はfalse
-     */
-    public boolean isUseLocalOAuth() {
-        return mUseLocalOAuth;
-    }
-
-    /**
-     * 指定されたプロファイルはLocal OAuth認証を無視して良いかを確認する.
      *
-     * @param profileName プロファイル名
-     * @return 無視して良い場合はtrue、それ以外はfalse
+     * @return EventCacheControllerのインスタンス
      */
-    public boolean isIgnoredProfile(final String profileName) {
-        for (String name : IGNORE_PROFILES) {
-            if (name.equalsIgnoreCase(profileName)) { // MEMO パスの大文字小文字を無視
-                return true;
-            }
-        }
-        return false;
+    protected EventCacheController getEventCacheController() {
+        return new MemoryCacheController();
     }
 
     /**
@@ -836,22 +209,172 @@ public abstract class DConnectMessageService extends Service implements DConnect
     protected abstract SystemProfile getSystemProfile();
 
     /**
-     * EventCacheControllerのインスタンスを返す.
-     *
+     * 証明書を使用するか確認します.
      * <p>
-     * デフォルトではMemoryCacheControllerを使用する.<br>
-     * 変更したい場合は本メソッドをオーバーライドすること.
+     * 使用する場合には、このメソッドをオーバーライドして、trueを返却します。
      * </p>
-     *
-     * @return EventCacheControllerのインスタンス
+     * @return 使用する場合にはtrue、それ以外はfalse
      */
-    protected EventCacheController getEventCacheController() {
-        return getDefaultEventCacheController();
+    protected boolean usesAutoCertificateRequest() {
+        return false;
     }
 
-    private EventCacheController getDefaultEventCacheController() {
-        return new MemoryCacheController();
+    /**
+     * 証明書で使用するキーストアのファイル名を取得します.
+     * <p>
+     * デフォルトでは、keystore.p12 を使用します。
+     * </p>
+     * <p>
+     * キーストアのファイル名を変更したい場合には、このメソッドをオーバーライドします。
+     * </p>
+     * @return キーストアのファイル名
+     */
+    protected String getKeyStoreFileName() {
+        return "keystore.p12";
     }
+
+    /**
+     * 証明書で使用するエイリアス名を取得します.
+     * <p>
+     * デフォルトでは、パッケージ名を返却します。
+     * </p>
+     * <p>
+     * エイリアス名を変更したい場合には、このメソッドをオーバーライドします。
+     * </p>
+     * @return エイリアス名
+     */
+    protected String getCertificateAlias() {
+        return getPackageName();
+    }
+
+    /**
+     * SSLContext のインスタンスを作成します.
+     * <p>
+     * プラグイン内で Web サーバを立ち上げて、Managerと同じ証明書を使いたい場合にはこのSSLContext を使用します。
+     * </p>
+     * @param keyStore キーストア
+     * @return SSLContextのインスタンス
+     * @throws GeneralSecurityException SSLContextの作成に失敗した場合に発生
+     */
+    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
+        return mPluginContext.createSSLContext(keyStore);
+    }
+
+    /**
+     * キーストア作成要求を行います.
+     *
+     * @param ipAddress IPアドレス
+     * @param callback 結果通知用コールバック
+     */
+    protected void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
+        mPluginContext.requestKeyStore(ipAddress, callback);
+    }
+
+    /// Public Method
+
+    /**
+     * サービスを管理するクラスを取得する.
+     *
+     * @return サービス管理クラス
+     */
+    public final DConnectServiceProvider getServiceProvider() {
+        return mPluginContext.getServiceProvider();
+    }
+
+    /**
+     * プラグインが持っているプロファイルの仕様を取得します.
+     *
+     * @return プロファイルのサービス仕様
+     */
+    public final DConnectPluginSpec getPluginSpec() {
+        return mPluginContext.getPluginSpec();
+    }
+
+    /**
+     * Device Connect Managerにレスポンスを返却するためのメソッド.
+     *
+     * @param response レスポンス
+     * @return 送信成功の場合true、それ以外はfalse
+     */
+    public final boolean sendResponse(final Intent response) {
+        return mPluginContext.sendResponse(response);
+    }
+
+    /**
+     * Device Connectにイベントを送信する.
+     *
+     * @param event イベントパラメータ
+     * @param accessToken 送り先のアクセストークン
+     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
+     */
+    public final boolean sendEvent(final Intent event, final String accessToken) {
+        return mPluginContext.sendEvent(event, accessToken);
+    }
+
+    /**
+     * Device Connectにイベントを送信する.
+     *
+     * @param event イベントパラメータ
+     * @param bundle パラメータ
+     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
+     */
+    public final boolean sendEvent(final Event event, final Bundle bundle) {
+        return mPluginContext.sendEvent(event, bundle);
+    }
+
+    /**
+     * Local OAuth使用フラグを設定する.
+     * <p>
+     * このフラグをfalseに設定することで、LocalOAuthの機能をOFFにすることができる。<br>
+     * デフォルトでは、trueになっているので、LocalOAuthが有効になっている。
+     * </p>
+     * @param use フラグ
+     */
+    protected void setUseLocalOAuth(final boolean use) {
+        mPluginContext.setUseLocalOAuth(use);
+    }
+
+    /**
+     * Local OAuth使用フラグを取得する.
+     *
+     * @return 使用する場合にはtrue、それ以外はfalse
+     */
+    public boolean isUseLocalOAuth() {
+        return mPluginContext.isUseLocalOAuth();
+    }
+
+    /**
+     * Device Connect Manager側で本プラグインが有効になっているかどうかを取得する.
+     *
+     * @return 有効になっている場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    public boolean isEnabled() {
+        return mPluginContext.isEnabled();
+    }
+
+    /// DConnectProfileProvider Method
+
+    @Override
+    public List<DConnectProfile> getProfileList() {
+        return mPluginContext.getProfileList();
+    }
+
+    @Override
+    public DConnectProfile getProfile(final String name) {
+        return mPluginContext.getProfile(name);
+    }
+
+    @Override
+    public void addProfile(final DConnectProfile profile) {
+        mPluginContext.addProfile(profile);
+    }
+
+    @Override
+    public void removeProfile(final DConnectProfile profile) {
+        mPluginContext.removeProfile(profile);
+    }
+
+    /// Device Connect Manager からのイベント
 
     /**
      * Device Connect Managerがアンインストールされた時に呼ばれる処理部.
@@ -935,16 +458,217 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
     }
 
+    /// 証明書用イベント
+
     /**
-     * Device Connect Manager側で本プラグインが有効になっているかどうかを取得する.
-     * @return 有効になっている場合は<code>true</code>, そうでない場合は<code>false</code>
+     * キーストアが更新された場合に呼び出されます.
+     * <p>
+     * キーストアが更新された場合に処理を行いたい場合には、このメソッドをオーバーライドします。
+     * </p>
+     * @param keyStore キーストア
+     * @param cert 証明書
+     * @param rootCert ルート証明書
      */
-    protected boolean isEnabled() {
-        return mIsEnabled;
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
     }
 
     /**
-     * Serviceをバインドするためのクラス.
+     * キーストアの更新に失敗した場合に呼び出されます.
+     * <p>
+     * キーストアの更新に失敗した場合に処理を行いたい場合には、このメソッドをオーバーライドします。
+     * </p>
+     * @param error エラー
+     */
+    protected void onKeyStoreUpdateError(final KeyStoreError error) {
+    }
+
+    /// Private Method
+
+    /**
+     * デバッグログの出力レベルを設定する.
+     * <p>
+     * デバッグフラグがfalseの場合には、ログを出力しないようにすること。
+     * </p>
+     */
+    private void setLogLevel() {
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(mLogger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
+            mLogger.setUseParentHandlers(false);
+        } else {
+            mLogger.setLevel(Level.OFF);
+        }
+    }
+
+    /**
+     * 現在のスレッドがメインスレッドか確認します.
+     *
+     * @return メインスレッドの場合はtrue、それ以外はfalse
+     */
+    private boolean isCurrentMainThread() {
+        return Thread.currentThread().equals(getMainLooper().getThread());
+    }
+
+    /**
+     * 送られてきたメッセージを配送します.
+     * <p>
+     * メインスレッドから呼び出された場合には、別スレッドで実行します。<br>
+     * メインスレッド以外から呼び出された場合には、そのままのスレッドで実行します。
+     * </p>
+     * @param message 送られてきたメッセージ
+     */
+    private void handleMessage(final Intent message) {
+        if (isCurrentMainThread()) {
+            mExecutorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    if (mPluginContext != null) {
+                        mPluginContext.handleMessage(message);
+                    }
+                }
+            });
+        } else {
+            if (mPluginContext != null) {
+                mPluginContext.handleMessage(message);
+            }
+        }
+    }
+
+    /**
+     * アンインストールの通知を受け取るレシーバを登録します.
+     */
+    private void registerReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED);
+        filter.addDataScheme("package");
+        registerReceiver(mUninstallReceiver, filter);
+    }
+
+    /**
+     * アンインストールの通知を受け取るレシーバを解除します.
+     */
+    private void unregisterReceiver() {
+        try {
+            unregisterReceiver(mUninstallReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
+    }
+
+    /**
+     * 呼び出し元のパッケージ名が同じか確認します.
+     *
+     * @return 同じ場合にはtrue、それ以外はfalse
+     */
+    private boolean isCalledFromLocal() {
+        return getPackageName().equals(getCallingPackage());
+    }
+
+    /**
+     * 呼び出し元のパッケージ名を取得します.
+     *
+     * @return 呼び出し元のパッケージ名
+     */
+    private String getCallingPackage() {
+        return getPackageManager().getNameForUid(Binder.getCallingUid());
+    }
+
+    /**
+     * DConnectMessageService で使用するプラグインコンテキスト.
+     * <p>
+     * DevicePluginContext と DConnectMessageService を連携させるための実装になっています。
+     * </p>
+     */
+    private class DefaultPluginContext extends DevicePluginContext {
+        /**
+         * コンストラクタ.
+         * @param context コンテキスト
+         */
+        DefaultPluginContext(final Context context) {
+            super(context);
+        }
+
+        @Override
+        public SSLContext createSSLContext(KeyStore keyStore) throws GeneralSecurityException {
+            return DConnectMessageService.this.createSSLContext(keyStore);
+        }
+
+        @Override
+        public EventCacheController getEventCacheController() {
+            return DConnectMessageService.this.getEventCacheController();
+        }
+
+        @Override
+        protected boolean usesAutoCertificateRequest() {
+            return DConnectMessageService.this.usesAutoCertificateRequest();
+        }
+
+        @Override
+        protected String getKeyStoreFileName() {
+            return DConnectMessageService.this.getKeyStoreFileName();
+        }
+
+        @Override
+        protected String getCertificateAlias() {
+            return DConnectMessageService.this.getCertificateAlias();
+        }
+
+        @Override
+        protected SystemProfile getSystemProfile() {
+            return DConnectMessageService.this.getSystemProfile();
+        }
+
+        @Override
+        protected void onManagerUninstalled() {
+            DConnectMessageService.this.onManagerUninstalled();
+        }
+
+        @Override
+        protected void onManagerLaunched() {
+            DConnectMessageService.this.onManagerLaunched();
+        }
+
+        @Override
+        protected void onManagerTerminated() {
+            DConnectMessageService.this.onManagerTerminated();
+        }
+
+        @Override
+        protected void onManagerEventTransmitDisconnected(final String origin) {
+            DConnectMessageService.this.onManagerEventTransmitDisconnected(origin);
+        }
+
+        @Override
+        protected void onDevicePluginReset() {
+            DConnectMessageService.this.onDevicePluginReset();
+        }
+
+        @Override
+        protected void onDevicePluginEnabled() {
+            DConnectMessageService.this.onDevicePluginEnabled();
+        }
+
+        @Override
+        protected void onDevicePluginDisabled() {
+            DConnectMessageService.this.onDevicePluginDisabled();
+        }
+
+        @Override
+        protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+            DConnectMessageService.this.onKeyStoreUpdated(keyStore, cert, rootCert);
+        }
+
+        @Override
+        protected void onKeyStoreUpdateError(final KeyStoreError error) {
+            DConnectMessageService.this.onKeyStoreUpdateError(error);
+        }
+    }
+
+    /**
+     * Service をバインドするためのクラス.
      * <p>
      * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity}で、
      * サービス一覧をを取得するためにバインドされる。
@@ -980,22 +704,16 @@ public abstract class DConnectMessageService extends Service implements DConnect
             return mDelegate.readFileDescriptor(fileId);
         }
     }
-    
-    private class PluginBinder extends IDConnectPlugin.Stub {
 
+    /**
+     * Device Connect Manager と接続するためのバインダー.
+     */
+    private class PluginBinder extends IDConnectPlugin.Stub {
         @Override
         public void registerCallback(final IDConnectCallback callback) throws RemoteException {
-            mBindingSenders.put(getCallingPackage(), new MessageSender() {
-                @Override
-                public void send(final Intent message) {
-                    try {
-                        callback.sendMessage(message);
-                    } catch (RemoteException e) {
-                        mLogger.warning("Failed to send message to Device Connect Manager: message = " +
-                            e.getMessage());
-                    }
-                }
-            });
+            if (mPluginContext != null) {
+                mPluginContext.setIDConnectCallback(callback);
+            }
         }
 
         @Override
@@ -1007,9 +725,5 @@ public abstract class DConnectMessageService extends Service implements DConnect
         public ParcelFileDescriptor readFileDescriptor(final String fileId) throws RemoteException {
             return null; // 将来的に必要になった場合に実装.
         }
-    }
-
-    private interface MessageSender {
-        void send(Intent response);
     }
 }

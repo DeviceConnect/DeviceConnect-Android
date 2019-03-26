@@ -97,7 +97,7 @@ public class SonyCameraPreview extends Thread {
                     }
                 });
                 mServer.setServerName("SonyCameraDevicePlugin Server");
-                mServer.setContentType("image/jpg");
+                mServer.setContentType("image/jpeg");
                 mServer.setTimeSlice(mTimeSlice);
 
                 String ip = mServer.start();

@@ -72,7 +72,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                             + ", available = " + ni.isAvailable()
                             + ", state = " + ni.getDetailedState());
                     if (ni.isConnected() && state == NetworkInfo.State.CONNECTED && type == ConnectivityManager.TYPE_WIFI) {
-                        WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+                        WifiManager wifiMgr = getWifiManager();
+                        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
                         mLogger.info("Active Wi-Fi: SSID = " + wifiInfo.getSSID()
                                 + ", supplicantState = " + wifiInfo.getSupplicantState());
                         if (SonyCameraUtil.checkSSID(wifiInfo.getSSID())) {
@@ -87,6 +88,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             }
         }
     };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -218,7 +220,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         for (Event evt : eventList) {
             Bundle photo = new Bundle();
             photo.putString("uri", uri);
-            photo.putString("mimeType", "image/jpg");
+            photo.putString("mimeType", "image/jpeg");
 
             Intent intent = EventManager.createEventMessage(evt);
             intent.putExtra("photo", photo);

@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -192,7 +191,8 @@ public class TouchProfileActivity extends Activity {
             String attr = eventdata.getAttribute();
             Intent intent = EventManager.createEventMessage(eventdata);
             intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
-            getBaseContext().sendBroadcast(intent);
+            intent.setAction(HostTouchProfile.ACTION_TOUCH);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
             mApp.setTouchCache(attr, touches);
         }
         for (int i = 0; i < touchEvents.size(); i++) {
@@ -201,7 +201,8 @@ public class TouchProfileActivity extends Activity {
             touches.putString("state", state);
             Intent intent = EventManager.createEventMessage(eventdata);
             intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
-            getBaseContext().sendBroadcast(intent);
+            intent.setAction(HostTouchProfile.ACTION_TOUCH);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
             mApp.setTouchCache(attr, touches);
         }
 

@@ -15,7 +15,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
-import android.os.Bundle;
 
 import org.deviceconnect.android.BuildConfig;
 import org.xmlpull.v1.XmlPullParser;
@@ -44,6 +43,39 @@ public final class DevicePluginXmlUtil {
      * デバイスプラグインのxmlファイルの内容を取得する.
      *
      * @param context コンテキスト
+     * @param resId リソースID
+     * @return {@link DevicePluginXml}クラスのインスタンス
+     */
+    public static DevicePluginXml getXml(final Context context, final int resId) {
+        XmlResourceParser xrp = context.getResources().getXml(resId);
+        try {
+            if (xrp != null) {
+                return parseDevicePluginXML(resId, xrp);
+            }
+        } catch (XmlPullParserException e) {
+            // ignore.
+        } catch (IOException e) {
+            // ignore.
+        }
+        return null;
+    }
+
+    /**
+     * デバイスプラグインのxmlファイルを参照し、スコープに対応する有効期限設定値があれば返す.
+     *
+     * @param context コンテキスト
+     * @param resId リソースID
+     * @return not null: xmlで定義されているスコープ名と有効期限[msec]が対応付けされたMap / null: 有効期限設定値無し
+     */
+    public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context, final int resId) {
+        DevicePluginXml xml = getXml(context, resId);
+        return xml != null ? xml.mSupportedProfiles : null;
+    }
+
+    /**
+     * デバイスプラグインのxmlファイルの内容を取得する.
+     *
+     * @param context コンテキスト
      * @param pluginComponent デバイスプラグインを宣言するコンポーネント
      * @return {@link DevicePluginXml}クラスのインスタンス
      */
@@ -57,13 +89,9 @@ public final class DevicePluginXmlUtil {
                 return parseDevicePluginXML(xmlId, xrp);
             }
         } catch (XmlPullParserException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+            // ignore.
         } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+            // ignore.
         }
         return null;
     }
@@ -76,8 +104,7 @@ public final class DevicePluginXmlUtil {
      * @return not null: xmlで定義されているスコープ名と有効期限[msec]が対応付けされたMap / null:
      *         有効期限設定値無し
      */
-    public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context,
-                                                                         final String packageName) {
+    public static Map<String, DevicePluginXmlProfile> getSupportProfiles(final Context context, final String packageName) {
         ComponentInfo pluginComponent = getComponentInfo(context, packageName);
         return getSupportProfiles(context, pluginComponent);
     }
@@ -103,6 +130,28 @@ public final class DevicePluginXmlUtil {
         return null;
     }
 
+    /**
+     * パッケージ名からプラグインのプロファイルを定義したXMLのリソースIDを取得します.
+     *
+     * @param context コンテキスト
+     * @param packageName パッケージ名
+     * @return リソースID
+     */
+    public static int getPluginXmlResourceId(final Context context, final String packageName) {
+        ComponentInfo pluginComponent = getComponentInfo(context, packageName);
+        if (pluginComponent != null && pluginComponent.metaData != null) {
+            return pluginComponent.metaData.getInt(PLUGIN_META_DATA);
+        }
+        return -1;
+    }
+
+    /**
+     * 指定されたパッケージ名からコンポーネント情報を取得します.
+     *
+     * @param context コンテキスト
+     * @param packageName パッケージ名
+     * @return コンポーネント情報
+     */
     private static ComponentInfo getComponentInfo(final Context context, final String packageName) {
         ComponentInfo compInfo = getServiceInfo(context, packageName);
         if (compInfo != null) {
@@ -111,6 +160,13 @@ public final class DevicePluginXmlUtil {
         return getReceiverInfo(context, packageName);
     }
 
+    /**
+     * 指定されたパッケージ名からサービスのコンポーネント情報を取得します.
+     *
+     * @param context コンテキスト
+     * @param packageName パッケージ名
+     * @return コンポーネント情報
+     */
     private static ServiceInfo getServiceInfo(final Context context, final String packageName) {
         try {
             PackageManager pkgMgr = context.getPackageManager();
@@ -143,7 +199,7 @@ public final class DevicePluginXmlUtil {
 
     /**
      * コンポーネントのActivityInfoを取得する.
-     * 
+     *
      * @param context コンテキスト
      * @param packageName package name
      * @return コンポーネントのActivityInfo

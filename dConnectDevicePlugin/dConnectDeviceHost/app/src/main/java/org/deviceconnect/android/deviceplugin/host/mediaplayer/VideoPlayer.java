@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
@@ -48,7 +49,15 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         setContentView(R.layout.video_player);
-        mVideoView = (VideoView) findViewById(R.id.videoView);
+
+        // ステータスバーを消す
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        );
+
+        mVideoView = findViewById(R.id.videoView);
 
         // 再生するVideoのURI
         Intent mIntent = this.getIntent();

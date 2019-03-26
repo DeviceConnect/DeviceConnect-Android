@@ -18,7 +18,9 @@ import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import java.util.logging.Filter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -255,6 +257,12 @@ public class HostDeviceApplication extends LinkingApplication {
             logger.setLevel(Level.ALL);
         } else {
             logger.setLevel(Level.OFF);
+            logger.setFilter(new Filter() {
+                @Override
+                public boolean isLoggable(final LogRecord record) {
+                    return false;
+                }
+            });
         }
     }
 }

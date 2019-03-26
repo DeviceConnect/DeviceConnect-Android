@@ -71,4 +71,9 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
     protected void onConfigChange() {
         // NOP.
     }
+
+    @Override
+    public void onDisplayRotation(final int degree) {
+        // NOP.
+    }
 }

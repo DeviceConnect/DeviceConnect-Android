@@ -1,14 +1,14 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
-        versionName '2.5.2'
+        versionName '2.6.0'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -21,23 +21,25 @@ android {
         exclude 'META-INF/DEPENDENCIES.txt'
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-
-    productFlavors {
-    }
 }
 
 
 project.ext {
     if (android.hasProperty('applicationVariants')) {
-        androidVariants = android.applicationVariants;
+        androidVariants = android.applicationVariants
     } else {
-        androidVariants = android.libraryVariants;
+        androidVariants = android.libraryVariants
     }
 }
 
@@ -45,9 +47,9 @@ project.androidVariants.all { variant ->
     task("generateJavadocForPlugin", type: Javadoc, overwrite: true) {
         title = "Device Plug-in SDK for Android"
         description = "Generates Javadoc for $variant.name."
-        source = variant.javaCompiler.source
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompiler.classpath) + files(ext.androidJar)
+        source = android.sourceSets.main.java.sourceFiles
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += configurations.compile
         destinationDir = new File("${project.getRootDir()}/DevicePluginSDK-Javadoc/")
 
         options {
@@ -76,13 +78,10 @@ repositories {
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
-    implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.android.support:support-v4:28.0.0'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.46'
 
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    androidTestImplementation 'com.android.support:support-annotations:24.0.0'
-    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
 }
 
 // プラグインSDKのバージョンをpluginsdk.xmlに反映
@@ -133,13 +132,13 @@ task downloadDeviceConnectSpec {
 
             // zipを行うと不要なフォルダが作成されてしまうので、削除
             def specRootDir = specOutputDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory();
+                boolean accept(File dir, String name) {
+                    return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory()
                 }
             })[0]
             def apiRootDir = specRootDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return "api" == name && new File(dir, name).isDirectory();
+                boolean accept(File dir, String name) {
+                    return "api" == name && new File(dir, name).isDirectory()
                 }
             })[0]
             apiRootDir.renameTo(apiDir)

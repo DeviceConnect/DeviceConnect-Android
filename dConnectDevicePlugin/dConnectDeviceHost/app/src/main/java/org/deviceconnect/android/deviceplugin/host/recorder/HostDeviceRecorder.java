@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Size;
 
 import java.util.List;
 
@@ -57,6 +58,12 @@ public interface HostDeviceRecorder {
 
     boolean isSupportedPreviewSize(int width, int height);
 
+    /**
+     * 端末の画面が回転したタイミングで実行されるメソッド.
+     * @param degree 角度を示す定数
+     */
+    void onDisplayRotation(int degree);
+
     enum RecorderState {
         INACTTIVE,
         PAUSED,
@@ -68,6 +75,10 @@ public interface HostDeviceRecorder {
 
         private final int mWidth;
         private final int mHeight;
+
+        public PictureSize(final Size size) {
+            this(size.getWidth(), size.getHeight());
+        }
 
         public PictureSize(final int w, final int h) {
             mWidth = w;

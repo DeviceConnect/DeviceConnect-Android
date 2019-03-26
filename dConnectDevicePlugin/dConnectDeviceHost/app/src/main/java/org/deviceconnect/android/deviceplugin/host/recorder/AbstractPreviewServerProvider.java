@@ -14,7 +14,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
@@ -142,4 +144,28 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     public Context getContext() {
         return mContext;
     }
+
+    public void setPreviewQuality(final PreviewServer server, final int quality) {
+        server.setQuality(quality);
+        storePreviewQuality(server, quality);
+    }
+
+    private SharedPreferences getSharedPreferences() {
+        return PreferenceManager.getDefaultSharedPreferences(getContext());
+    }
+
+    protected void storePreviewQuality(final PreviewServer server, int quality) {
+        getSharedPreferences().edit().putInt(getPreviewQualityKey(server), quality).apply();
+    }
+
+    protected int readPreviewQuality(final PreviewServer server) {
+        return getSharedPreferences().getInt(getPreviewQualityKey(server), getDefaultPreviewQuality(server.getMimeType()));
+    }
+
+    protected abstract int getDefaultPreviewQuality(final String mimeType);
+
+    private String getPreviewQualityKey(final PreviewServer server) {
+        return getId() + "-" + server.getMimeType() + "-preview-quality";
+    }
+
 }

@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.screen;
+package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,14 +13,14 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 
 
-public abstract class ScreenCastPreviewServer implements PreviewServer {
+public abstract class AbstractRTSPPreviewServer implements PreviewServer {
 
     protected final Context mContext;
     protected final AbstractPreviewServerProvider mServerProvider;
     private BroadcastReceiver mConfigChangeReceiver;
 
-    ScreenCastPreviewServer(final Context context,
-                            final AbstractPreviewServerProvider serverProvider) {
+    AbstractRTSPPreviewServer(final Context context,
+                              final AbstractPreviewServerProvider serverProvider) {
         mContext = context;
         mServerProvider = serverProvider;
     }
@@ -69,11 +69,6 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
     }
 
     protected void onConfigChange() {
-        // NOP.
-    }
-
-    @Override
-    public void onDisplayRotation(final int degree) {
         // NOP.
     }
 }

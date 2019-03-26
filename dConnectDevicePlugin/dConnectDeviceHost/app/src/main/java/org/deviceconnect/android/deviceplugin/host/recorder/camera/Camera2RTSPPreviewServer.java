@@ -1,20 +1,18 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.screen;
+package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
-import android.media.projection.MediaProjection;
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
@@ -25,28 +23,27 @@ import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
 import net.majorkernelpanic.streaming.video.SurfaceH264Stream;
-import net.majorkernelpanic.streaming.video.SurfaceVideoStream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
-import net.majorkernelpanic.streaming.video.VideoStream;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements RtspServer.Delegate {
+class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements RtspServer.Delegate {
 
-    private static final String TAG = ScreenCastRTSPPreviewServer.class.getSimpleName();
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final String TAG = Camera2RTSPPreviewServer.class.getSimpleName();
 
     static final String MIME_TYPE = "video/x-rtp";
 
     private static final String SERVER_NAME = "Android Host Screen RTSP Server";
-
-    private final ScreenCastManager mScreenCastMgr;
 
     private final Object mLockObj = new Object();
 
@@ -54,28 +51,23 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
 
     private SurfaceH264Stream mVideoStream;
 
-    private ScreenCast mScreenCast;
-
     private RtspServer mRtspServer;
-
-    private boolean mIsStartedCast;
 
     private VideoQuality mQuality;
 
-    private final Handler mHandler;
+    private final Camera2Recorder mRecorder;
+
+    private Handler mHandler;
     private final Object mSync = new Object();
     private volatile boolean mIsRecording;
     private boolean requestDraw;
     private DrawTask mScreenCaptureTask;
 
-    ScreenCastRTSPPreviewServer(final Context context,
-                                final AbstractPreviewServerProvider serverProvider,
-                                final ScreenCastManager screenCastMgr) {
+    Camera2RTSPPreviewServer(final Context context,
+                             final AbstractPreviewServerProvider serverProvider,
+                             final Camera2Recorder recorder) {
         super(context, serverProvider);
-        mScreenCastMgr = screenCastMgr;
-        final HandlerThread thread = new HandlerThread("ScreenCastRTSPPreviewServer");
-        thread.start();
-        mHandler = new Handler(thread.getLooper());
+        mRecorder = recorder;
     }
 
     @Override
@@ -89,11 +81,16 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
             if (mRtspServer == null) {
                 mRtspServer = new RtspServerImpl(SERVER_NAME);
                 mRtspServer.setPort(20000);
-                mRtspServer.setDelegate(ScreenCastRTSPPreviewServer.this);
+                mRtspServer.setDelegate(Camera2RTSPPreviewServer.this);
                 if (!mRtspServer.start()) {
                     callback.onFail();
                     return;
                 }
+            }
+            if (mHandler == null) {
+                HandlerThread thread = new HandlerThread("ScreenCastRTSPPreviewServer");
+                thread.start();
+                mHandler = new Handler(thread.getLooper());
             }
             String uri = "rtsp://localhost:" + mRtspServer.getPort();
             callback.onStart(uri);
@@ -102,15 +99,20 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
 
     @Override
     public void stopWebServer() {
-        synchronized (mLockObj) {
-            if (mRtspServer != null) {
-                mRtspServer.stop();
-                mRtspServer = null;
+        try {
+            synchronized (mLockObj) {
+                if (mRtspServer != null) {
+                    mRtspServer.stop();
+                    mRtspServer = null;
+                }
+                stopPreviewStreaming();
+                mClientSocket = null;
             }
-            stopScreenCast();
-            mClientSocket = null;
+            stopDrawTask();
+        } catch (Throwable e) {
+            Log.e(TAG, "stopWebServer", e);
+            throw e;
         }
-        stopDrawTask();
     }
 
     // DrawTaskの後始末
@@ -119,7 +121,10 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
             mIsRecording = false;
             mSync.notifyAll();
         }
-        mHandler.getLooper().quit();
+        if (mHandler != null) {
+            mHandler.getLooper().quit();
+            mHandler = null;
+        }
     }
 
     @Override
@@ -127,18 +132,30 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
     }
 
     @Override
+    public void onDisplayRotation(final int rotation) {
+        if (DEBUG) {
+            Log.d(TAG, "onDisplayRotation: rotation=" + rotation);
+        }
+        DrawTask drawTask = mScreenCaptureTask;
+        synchronized (mLockObj) {
+            if (drawTask != null) {
+                drawTask.onDisplayRotationChange(rotation);
+            }
+        }
+    }
+
+    @Override
     public Session generateSession(final String uri, final Socket clientSocket) {
         try {
-            return startScreenCast(clientSocket);
-        } catch (IOException e) {
+            return startPreviewStreaming(clientSocket);
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
     @Override
-    public void eraseSession(Session session) {
-    }
+    public void eraseSession(Session session) {}
 
     @Override
     public int getQuality() {
@@ -150,7 +167,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         // Not support.
     }
 
-    private Session startScreenCast(final Socket clientSocket) throws IOException {
+    private Session startPreviewStreaming(final Socket clientSocket) throws IOException {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
 
@@ -169,7 +186,6 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         synchronized (mLockObj) {
             mClientSocket = clientSocket;
             mVideoStream = new SurfaceH264Stream(prefs, videoQuality);
-            mIsStartedCast = true;
             mScreenCaptureTask = new DrawTask(null, 0, videoQuality);
             mIsRecording = true;
             new Thread(mScreenCaptureTask, "ScreenCaptureThread").start();
@@ -188,17 +204,19 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         return session;
     }
 
-    private void stopScreenCast() {
+    private void stopPreviewStreaming() {
         synchronized (mLockObj) {
-            if (mIsStartedCast) {
+            if (mIsRecording) {
                 mVideoStream.stop();
                 mVideoStream = null;
-                mScreenCast.stopCast();
-                mScreenCast = null;
-                mIsStartedCast = false;
+                mIsRecording = false;
             }
-
         }
+    }
+
+    private int getCurrentRotation() {
+        WindowManager windowManager = (WindowManager) mRecorder.getContext().getSystemService(Context.WINDOW_SERVICE);
+        return windowManager.getDefaultDisplay().getRotation();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -211,6 +229,12 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         private SurfaceTexture mSourceTexture;
         private Surface mSourceSurface;
 
+        private HostDeviceRecorder.PictureSize mPreviewSize;
+
+        private final Object mDrawSync = new Object();
+        private int mRotationDegree;
+        private float mDeltaX;
+        private float mDeltaY;
 
         public DrawTask(final EGLBase.IContext sharedContext, final int flags, final VideoQuality quality) {
             super(sharedContext, flags);
@@ -221,19 +245,23 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         protected void onStart() {
             mDrawer = new GLDrawer2D(true);
             mTexId = mDrawer.initTex();
+
+            detectDisplayRotation(getCurrentRotation());
+
             mSourceTexture = new SurfaceTexture(mTexId);
             mSourceTexture.setDefaultBufferSize(mQuality.resX, mQuality.resY);	// これを入れないと映像が取れない
             mSourceSurface = new Surface(mSourceTexture);
             mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mHandler);
             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
             intervals = (long)(1000f / mQuality.framerate);
-            HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
-            HostDeviceRecorder.PictureSize resolutionSize = new HostDeviceRecorder.PictureSize(previewSize.getWidth(), previewSize.getWidth());
-            if (resolutionSize.getWidth() < previewSize.getHeight()) {
-                resolutionSize = new HostDeviceRecorder.PictureSize(previewSize.getHeight(), previewSize.getHeight());
+
+            try {
+                mRecorder.startPreview(mSourceSurface);
+                Log.d(TAG, "Started camera preview.");
+            } catch (CameraWrapperException e) {
+                Log.e(TAG, "Failed to start camera preview.", e);
             }
-            mScreenCast = mScreenCastMgr.createScreenCast(mSourceSurface, resolutionSize);
-            mScreenCast.startCast();
+
             // 録画タスクを起床
             queueEvent(mDrawTask);
         }
@@ -256,9 +284,12 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
                 mEncoderSurface.release();
                 mEncoderSurface = null;
             }
+            try {
+                mRecorder.stopPreview();
+            } catch (CameraWrapperException e) {
+                Log.e(TAG, "Failed to stop camera preview.", e);
+            }
             makeCurrent();
-            mScreenCast.stopCast();
-            mScreenCastMgr.clean();
         }
 
         @Override
@@ -303,24 +334,83 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
                     }
                 }
                 if (mIsRecording) {
-                    if (localRequestDraw) {
-                        mSourceTexture.updateTexImage();
-                        mSourceTexture.getTransformMatrix(mTexMatrix);
+                    synchronized (mDrawSync) {
+                        if (localRequestDraw) {
+                            mSourceTexture.updateTexImage();
+                            mSourceTexture.getTransformMatrix(mTexMatrix);
+                            Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
+                            Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
+                        }
+                        // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                        mEncoderSurface.makeCurrent();
+                        mDrawer.draw(mTexId, mTexMatrix, 0);
+                        mEncoderSurface.swap();
+                        // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
+                        makeCurrent();
+                        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                        GLES20.glFlush();
+                        queueEvent(this);
                     }
-                    // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                    mEncoderSurface.makeCurrent();
-                    mDrawer.draw(mTexId, mTexMatrix, 0);
-                    mEncoderSurface.swap();
-                    // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
-                    makeCurrent();
-                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                    GLES20.glFlush();
-                    queueEvent(this);
                 } else {
                     releaseSelf();
                 }
             }
         };
+
+        private void onDisplayRotationChange(final int rotation) {
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (mDrawSync) {
+                        try {
+                            if (mEncoderSurface != null) {
+                                mEncoderSurface.release();
+                            }
+
+                            // プレビューサイズ更新
+                            detectDisplayRotation(rotation);
+                            if (DEBUG) {
+                                Log.d(TAG, "Reset PreviewSize: " + mPreviewSize.getWidth() + "x" + mPreviewSize.getHeight());
+                            }
+
+                            int w = mPreviewSize.getWidth();
+                            int h = mPreviewSize.getHeight();
+                            mSourceTexture.setDefaultBufferSize(w, h);
+                            mVideoStream.changeResolution(w, h);
+                            mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
+                        } catch (Throwable e) {
+                            Log.e(TAG, "Failed to update preview rotation.", e);
+                        }
+                    }
+                }
+            });
+        }
+
+        private void detectDisplayRotation(final int rotation) {
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                    mRotationDegree = 0;
+                    mDeltaX = 0;
+                    mDeltaY = 0;
+                    break;
+                case Surface.ROTATION_90:
+                    mRotationDegree = -90;
+                    mDeltaX = -1;
+                    mDeltaY = 0;
+                    break;
+                case Surface.ROTATION_180:
+                    mRotationDegree = -180;
+                    mDeltaX = 1;
+                    mDeltaY = -1;
+                    break;
+                case Surface.ROTATION_270:
+                    mRotationDegree = -270;
+                    mDeltaX = 0;
+                    mDeltaY = -1;
+                    break;
+            }
+            mPreviewSize = mRecorder.getRotatedPreviewSize();
+        }
 
     }
 }

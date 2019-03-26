@@ -1,1 +1,1 @@
-include ':app', ':device_plugin_demo_lib'
+include ':app', ':dconnect-demo-lib'

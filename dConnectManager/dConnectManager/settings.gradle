@@ -9,5 +9,5 @@ include 'dconnect-device-plugin-host'
 project(':dconnect-device-plugin-host').projectDir = new File('../../dConnectDevicePlugin/dConnectDeviceHost/app')
 include 'libstreaming'
 project(':libstreaming').projectDir = new File('../dConnectLibStreaming/libstreaming')
-include 'dconnect-device-plugin-demo-lib'
-project(':dconnect-device-plugin-demo-lib').projectDir = new File('../dConnectDemoLib/device_plugin_demo_lib')
+include 'dconnect-demo-lib'
+project(':dconnect-demo-lib').projectDir = new File('../dConnectDemoLib/dconnect-demo-lib')

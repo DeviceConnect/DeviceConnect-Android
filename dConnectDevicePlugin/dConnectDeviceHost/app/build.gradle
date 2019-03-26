@@ -77,7 +77,7 @@ dependencies {
     }
     implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
     implementation project(':dconnect-device-plugin-sdk')
-    implementation project(':dconnect-device-plugin-demo-lib')
+    implementation project(':dconnect-demo-lib')
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {
         exclude module: 'support-v4'

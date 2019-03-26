@@ -52,6 +52,10 @@
     <string name="activity_settings_whitelist_enable">Enable origin blocking</string>
     <string name="activity_settings_whitelist_enable_summary">Block requests of applications that the origin is not included in whitelist.</string>
     <string name="activity_settings_manage_whitelist">Manage whitelist</string>
+    <string name="activity_settings_accesslog">AccessLog</string>
+    <string name="activity_settings_accesslog_title">AccessLog</string>
+    <string name="activity_settings_accesslog_summary">Allow saving the access log in the DB.</string>
+    <string name="activity_settings_accesslog_list">Mange AccessLog</string>
     <string name="activity_settings_device_plugin">Device Plug-in</string>
     <string name="activity_settings_list_device_plugin">List of device plug-in</string>
     <string name="activity_settings_restart_device_plugin">Restart all the devices plug-ins</string>
@@ -232,4 +236,26 @@
     <string name="web_service_on_channel_desc">It is a WebServer for placing HTML for DeviceConnect.</string>
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
+
+    <!-- ================= AccessLog ================= -->
+    <string name="activity_accesslog_btn_search_ip_address">Search</string>
+    <string name="activity_accesslog_hint_search_ip_address">IP Address or Path</string>
+    <string name="activity_accesslog_remove_date">1 item deleted</string>
+    <string name="activity_accesslog_undo_remove_date">Undo</string>
+    <string name="activity_accesslog_detail_request">Request</string>
+    <string name="activity_accesslog_detail_response">Response</string>
+    <string name="activity_accesslog_detail_request_time">Received Time</string>
+    <string name="activity_accesslog_detail_request_ip_address">IP Address</string>
+    <string name="activity_accesslog_detail_request_host_name">Host Name</string>
+    <string name="activity_accesslog_detail_response_time">Send Time</string>
+    <string name="fragment_accesslog_date_menu_delete">Delete All</string>
+    <string name="fragment_accesslog_delete_all_title">Warning</string>
+    <string name="fragment_accesslog_delete_all_message">May I delete all access logs?</string>
+    <string name="fragment_accesslog_delete_all_positive">Yes</string>
+    <string name="fragment_accesslog_delete_all_nagetive">No</string>
+    <string name="fragment_accesslog_delete_accesslog_title">Warning</string>
+    <string name="fragment_accesslog_delete_accesslog_message">May I delete all access logs of %1$s</string>
+    <string name="fragment_accesslog_delete_accesslog_positive">Yes</string>
+    <string name="fragment_accesslog_delete_accesslog_negative">No</string>
+    <string name="fragment_accesslog_empty">No Access Log</string>
 </resources>

@@ -14,6 +14,8 @@ import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.DConnectServerError;
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
+import org.deviceconnect.server.nanohttpd.accesslog.AccessLog;
+import org.deviceconnect.server.nanohttpd.accesslog.AccessLogProvider;
 import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
 import org.deviceconnect.server.nanohttpd.security.Firewall;
 import org.deviceconnect.server.websocket.DConnectWebSocket;
@@ -154,6 +156,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
     private Context mContext;
 
     /**
+     * アクセスログ管理クラス.
+     */
+    private AccessLogProvider mAccessLogProvider;
+
+    /**
      * SSLサーバーソケットファクトリ.
      */
     private SSLServerSocketFactory mServerSocketFactory;
@@ -211,6 +218,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             throw new IllegalArgumentException("keyStoreManager must not be null if SSL is enabled.");
         }
         mServerSocketFactory = socketFactory;
+        mAccessLogProvider = new AccessLogProvider(context);
 
         if (BuildConfig.DEBUG) {
             Handler handler = new AndroidHandler(TAG);
@@ -500,16 +508,20 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 request.setQuery(session.getParms());
                 request.setHeaders(session.getHeaders());
                 request.setQueryString(session.getQueryParameterString());
+                request.setRemoteIpAddress(session.getRemoteIpAddress());
+                request.setRemoteHostName(session.getRemoteHostName());
 
                 parseBody(session, request);
 
-                DConnectHttpResponse response = new DConnectHttpResponse();
-                if (mListener != null && mListener.onReceivedHttpRequest(request, response)) {
-                    return newFixedLengthResponse(response);
+                DConnectHttpResponse response;
+                if (mConfig.isEnableAccessLog()) {
+                    AccessLog accessLog = createAccessLog(request);
+                    response = execute(request);
+                    saveAccessLog(response, accessLog);
                 } else {
-                    return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_APPLICATION_JSON,
-                            "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Not found.\"}");
+                    response = execute(request);
                 }
+                return newFixedLengthResponse(response);
             } catch (OutOfMemoryError e) {
                 return newFixedLengthResponse(Status.BAD_REQUEST, MIME_APPLICATION_JSON,
                         "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Too large request.\"}");
@@ -528,6 +540,101 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         @Override
         protected WebSocket openWebSocket(final IHTTPSession handshake) {
             return new NanoWebSocket(handshake);
+        }
+
+        /**
+         * HTTPリクエストからアクセスログを作成します.
+         *
+         * @param request リクエスト
+         * @return アクセスログ
+         */
+        private AccessLog createAccessLog(DConnectHttpRequest request) {
+            AccessLog accessLog = mAccessLogProvider.createAccessLog();
+            accessLog.setRemoteIpAddress(request.getRemoteIpAddress());
+            accessLog.setRemoteHostName(request.getRemoteHostName());
+            accessLog.setRequestReceivedTime(System.currentTimeMillis());
+            accessLog.setRequestMethod(request.getMethod().name());
+            accessLog.setRequestHeader(request.getHeaders());
+            accessLog.setRequestPath(getRequestPath(request));
+
+            if (checkMethodPutPost(request.getMethod())) {
+                Map<String, String> queryParameters = request.getQueryParameters();
+                if (queryParameters != null) {
+                    StringBuilder body = new StringBuilder();
+                    for (String key : queryParameters.keySet()) {
+                        if (body.length() > 0) {
+                            body.append("&");
+                        }
+                        if (!key.equals("postData")) {
+                            body.append(key).append("=").append(queryParameters.get(key));
+                        } else {
+                            body.append(key).append("=").append("[File Data]");
+                        }
+                    }
+                    accessLog.setRequestBody(body.toString());
+                }
+            }
+
+            return accessLog;
+        }
+
+        /**
+         * HTTPメソッドが PUT もしくは POST か確認します.
+         *
+         * @param method HTTPメソッド
+         * @return PUTもしくはPOSTの場合はtrue、それ以外はfalse
+         */
+        private boolean checkMethodPutPost(HttpRequest.Method method) {
+            return (method.equals(HttpRequest.Method.PUT) || method.equals(HttpRequest.Method.POST));
+        }
+
+        /**
+         * HTTPメソッドがGETもしくはDELETE時は、QueryString をパスに付加して取得します.
+         * @param request リクエスト
+         * @return リクエストのパス
+         */
+        private String getRequestPath(DConnectHttpRequest request) {
+            if (checkMethodPutPost(request.getMethod())) {
+                return request.getUri();
+            } else {
+                return request.getQueryString() == null ?
+                        request.getUri() : request.getUri() + "?" + request.getQueryString();
+            }
+        }
+
+        /**
+         * アクセスログにレスポンスの情報を加えて、DBに保存します.
+         *
+         * @param response レスポンス
+         * @param accessLog アクセスログ
+         */
+        private void saveAccessLog(DConnectHttpResponse response, AccessLog accessLog) {
+            String contentType = response.getContentType();
+            if (contentType != null && contentType.startsWith("application/json")) {
+                accessLog.setResponseBody(new String(response.getBody()));
+            }
+            accessLog.setResponseContentType(contentType);
+            accessLog.setResponseStatusCode(response.getStatusCode().getCode());
+            accessLog.setResponseSendTime(System.currentTimeMillis());
+            mAccessLogProvider.add(accessLog);
+        }
+
+        /**
+         * リクエストを Listener に通知して、実行します.
+         *
+         * @param request リクエスト
+         * @return レスポンス
+         */
+        private DConnectHttpResponse execute(final HttpRequest request) {
+            DConnectHttpResponse response = new DConnectHttpResponse();
+            if (mListener == null || !mListener.onReceivedHttpRequest(request, response)) {
+                byte[] body = "{\"result\" : 1, \"errorCode\" : 1, \"errorMessage\" : \"Not found.\"}".getBytes();
+                response.setCode(HttpResponse.StatusCode.NOT_FOUND);
+                response.setContentType(MIME_APPLICATION_JSON);
+                response.setBody(body);
+                response.setContentLength(body.length);
+            }
+            return response;
         }
 
         /**

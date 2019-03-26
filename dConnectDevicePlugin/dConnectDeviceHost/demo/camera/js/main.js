@@ -531,6 +531,10 @@ app = new Vue({
         imageSize: null,
         frameRate: null
       },
+      
+      // 現在のレコーダー設定のキャッシュ
+      // (設定キャンセル時に設定を戻す時に使う)
+      recorderSettingsCache: null,
 
       connectionError: null
     }
@@ -556,6 +560,8 @@ app = new Vue({
     onLaunched() {},
     openDrawer() { this.showDrawer = true; },
     openRecorderSettingDialog() {
+      this.recorderSettingsCache = JSON.parse(JSON.stringify(this.recorderSettings));
+
       this.dialog = true;
       this.stopPreview();
     },
@@ -612,6 +618,9 @@ app = new Vue({
       return null;
     },
     restoreRecorderOption: function() {
+      // キャンセル時は以前の設定に戻す
+      this.recorderSettings = JSON.parse(JSON.stringify(this.recorderSettingsCache));
+
       this.startPreview();
     },
     changeRecorderOption: function() {

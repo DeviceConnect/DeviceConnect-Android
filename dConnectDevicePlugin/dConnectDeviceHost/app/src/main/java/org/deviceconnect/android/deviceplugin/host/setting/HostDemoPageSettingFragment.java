@@ -35,6 +35,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -356,7 +357,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                     Log.d(TAG, "Uninstalled demo: path=" + demoDir.getAbsolutePath());
                 }
 
-                deleteShortcut(activity);
+                // NOTE: ショートカットの削除はOSに任せる. OSが削除しない場合は、
+                // ユーザーが手動で削除するものとする.
 
                 updateView(activity);
                 showDeletionSuccessDialog();
@@ -435,10 +437,20 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     }
 
     private boolean isCreatedShortcut(final Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (DEBUG) {
+            Log.d(TAG, "DemoPageSetting: isCreatedShortcut");
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
             List<ShortcutInfo> infoList = shortcutManager.getPinnedShortcuts();
+            if (DEBUG) {
+                Log.d(TAG, "DemoPageSetting: isCreatedShortcut: PinnedShortcuts=" + infoList.size());
+                Log.d(TAG, "DemoPageSetting: isCreatedShortcut: DynamicShortcuts=" + shortcutManager.getDynamicShortcuts());
+            }
             for (ShortcutInfo info : infoList) {
+                if (DEBUG) {
+                    Log.d(TAG, "DemoPageSetting: isCreatedShortcut: info=" + info.getPackage());
+                }
                 if (info.getId().equals(CAMERA_DEMO_SHORTCUT_ID)) {
                     return true;
                 }
@@ -468,23 +480,18 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 .setShortLabel(context.getString(R.string.demo_page_shortcut_label))
                 .setIntent(shortcut).build();
         boolean result = ShortcutManagerCompat.requestPinShortcut(context, info, null);
-        if (result) {
-            // TODO 成功ダイアログを表示
-        } else {
-            // TODO 失敗ダイアログを表示
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // OS 8以下の場合はOSが結果を表示しないので、自前で出す
+            if (result) {
+                showShurtcutResult(getString(R.string.demo_page_settings_button_create_shortcut_success));
+            } else {
+                showShurtcutResult(getString(R.string.demo_page_settings_button_create_shortcut_error));
+            }
         }
     }
 
-    private void deleteShortcut(final Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // NOTE: API Level 26 以上ではショートカットを削除できない
-//            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
-//            List<String> list = new ArrayList<>();
-//            list.add(CAMERA_DEMO_SHORTCUT_ID);
-//            shortcutManager.disableShortcuts(list);
-        } else {
-
-        }
+    private void showShurtcutResult(final String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
     }
 
     public static class InstallDialogFragment extends MessageDialogFragment {

@@ -65,6 +65,8 @@
     <string name="demo_page_settings_button_overwrite">上書き</string>
     <string name="demo_page_settings_button_open">開く</string>
     <string name="demo_page_settings_button_create_shortcut">ショートカットを作成</string>
+    <string name="demo_page_settings_button_create_shortcut_success">ホーム画面にショートカットを作成しました。</string>
+    <string name="demo_page_settings_button_create_shortcut_error">ホーム画面でのショートカット作成に失敗しました。</string>
     <string name="demo_page_shortcut_label">カメラ</string>
 
     <string name="host_setting_dialog_error_permission">GPSを使用するためのパーミッションが許可されていないために検索できません。\nGPS設定画面から位置情報の許可を取得してください。</string>

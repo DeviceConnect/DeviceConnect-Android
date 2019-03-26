@@ -299,13 +299,13 @@ public class HostMediaPlayerManager {
                 }
             } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                 if (response != null) {
-                    MessageUtils.setIllegalServerStateError(response, "can't not mount:" + filePath);
+                    MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                     sendResponse(response);
                 }
             }
         } else {
             if (response != null) {
-                MessageUtils.setIllegalServerStateError(response, "can't not mount:" + filePath);
+                MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                 sendResponse(response);
             }
         }

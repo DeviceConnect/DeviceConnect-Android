@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.demo;
+package org.deviceconnect.android.deviceplugin.demo;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -19,9 +19,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,20 +62,24 @@ public class DemoPageInstaller {
 
     private static final String DOCUMENT_DIR_NAME = "org.deviceconnect.android.manager";
 
-    private static final String PLUGIN_DIR_NAME = "org.deviceconnect.android.deviceplugin.host";
-
     private static final String PREFERENCE_NAME =  "demo_page_info";
 
     private static final String KEY_PLUGIN_VERSION_NAME = "plugin_version_name";
 
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
 
+    private final String mPluginPackageName;
+
     private final String mRelativeDirName;
 
-    private final String mDemoZipName = BuildConfig.DEMO_ZIP;
+    private final String mDemoZipName;
 
-    public DemoPageInstaller(final String relativeDirName) {
+    public DemoPageInstaller(final Context context,
+                             final String relativeDirName,
+                             final String demoZipName) {
+        mPluginPackageName = context.getPackageName();
         mRelativeDirName = relativeDirName;
+        mDemoZipName = demoZipName;
     }
 
     public void install(final Context context,
@@ -177,9 +178,9 @@ public class DemoPageInstaller {
         return new File(getDemoRootDir(), mRelativeDirName);
     }
 
-    private static File getDemoRootDir() {
+    private File getDemoRootDir() {
         File documentDir = getDocumentDir();
-        return new File(documentDir, PLUGIN_DIR_NAME);
+        return new File(documentDir, mPluginPackageName);
     }
 
     private static File getDocumentDir() {
@@ -245,42 +246,58 @@ public class DemoPageInstaller {
 
         public static final String ACTON_CONFIRM_NEW_DEMO = "org.deviceconnect.android.intent.action.CONFIRM_NEW_DEMO";
 
-        private static final String CHANNEL_ID = "org.deviceconnect.android.deviceconnect.host.channel.demo";
+        private final int mNotifyId;
 
-        private static final String CHANNEL_TITLE = "Host Plugin Demo Page";
+        private final String mPluginName;
 
-        private static final String CHANNEL_DESCRIPTION = "Host Plugin Demo Page";
+        private final int mPluginIcon;
 
-        private static final int NOTIFY_ID = 1;
+        private final String mChannelId;
 
-        public static void cancel(final Context context) {
+        private final String mChannelTitle;
+
+        private final String mChannelDescription;
+
+        public Notification(final int notifyId,
+                            final String pluginName,
+                            final int pluginIcon,
+                            final String channelId,
+                            final String channelTitle,
+                            final String channelDescription) {
+            mNotifyId = notifyId;
+            mPluginName = pluginName;
+            mPluginIcon = pluginIcon;
+            mChannelId = channelId;
+            mChannelTitle = channelTitle;
+            mChannelDescription = channelDescription;
+        }
+
+        public void cancel(final Context context) {
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(NOTIFY_ID);
+            notificationManager.cancel(mNotifyId);
         }
 
-        public static void showUpdateSuccess(final Context context) {
+        public void showUpdateSuccess(final Context context) {
             Intent notifyIntent = new Intent(ACTON_CONFIRM_NEW_DEMO);
             show(context,
-                    context.getString(R.string.app_name_host),
-                    context.getString(R.string.demo_page_settings_message_update_completed),
-                    notifyIntent);
+                 context.getString(R.string.demo_page_settings_message_update_completed),
+                 notifyIntent);
         }
 
-        public static void showUpdateError(final Context context) {
+        public void showUpdateError(final Context context) {
             Intent notifyIntent = new Intent(ACTON_UPDATE_DEMO);
             show(context,
-                    context.getString(R.string.app_name_host),
-                    context.getString(R.string.demo_page_settings_message_update_error),
-                    notifyIntent);
+                 context.getString(R.string.demo_page_settings_message_update_error),
+                 notifyIntent);
         }
 
-        private static void show(final Context context,
-                                 final String title,
-                                 final String body,
-                                 final Intent notifyIntent) {
-            int notifyId = NOTIFY_ID;
-            int iconType = R.drawable.dconnect_icon;
+        private void show(final Context context,
+                          final String body,
+                          final Intent notifyIntent) {
+            String title = mPluginName;
+            int iconType = mPluginIcon;
+            int notifyId = mNotifyId;
 
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
                     notifyId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -305,12 +322,12 @@ public class DemoPageInstaller {
                                 .setContentIntent(pendingIntent);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     NotificationChannel channel = new NotificationChannel(
-                            CHANNEL_ID,
-                            CHANNEL_TITLE,
+                            mChannelId,
+                            mChannelTitle,
                             NotificationManager.IMPORTANCE_DEFAULT);
-                    channel.setDescription(CHANNEL_DESCRIPTION);
+                    channel.setDescription(mChannelDescription);
                     notificationManager.createNotificationChannel(channel);
-                    notificationBuilder.setChannelId(CHANNEL_ID);
+                    notificationBuilder.setChannelId(mChannelId);
                 }
                 notification = notificationBuilder.build();
             }

@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Device Plugin Demo Library</string>
+
+    <string name="demo_page_settings_message_update_completed">The demo page is updated.</string>
+    <string name="demo_page_settings_message_update_error">Failed to update the demo page.</string>
+</resources>

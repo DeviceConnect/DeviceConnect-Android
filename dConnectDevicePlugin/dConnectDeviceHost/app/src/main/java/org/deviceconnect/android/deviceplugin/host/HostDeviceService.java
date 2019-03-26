@@ -20,9 +20,9 @@ import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
 
+import org.deviceconnect.android.deviceplugin.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
-import org.deviceconnect.android.deviceplugin.host.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
@@ -105,7 +105,12 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * デモページインストーラ.
      */
-    private DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo");
+    private DemoPageInstaller mDemoInstaller;
+
+    /**
+     * デモページアップデート通知.
+     */
+    private DemoPageInstaller.Notification mDemoNotification;
 
     /**
      * ブロードキャストレシーバー.
@@ -139,7 +144,7 @@ public class HostDeviceService extends DConnectMessageService {
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             mLogger.info("Demo Notification: " + action);
-            DemoPageInstaller.Notification.cancel(context);
+            mDemoNotification.cancel(context);
             if (DemoPageInstaller.Notification.ACTON_UPDATE_DEMO.equals(action)) {
                 updateDemoPage(context);
             }
@@ -155,6 +160,17 @@ public class HostDeviceService extends DConnectMessageService {
 
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
+
+        mDemoInstaller = new DemoPageInstaller(getApplicationContext(),
+                "demo", BuildConfig.DEMO_ZIP);
+        mDemoNotification = new DemoPageInstaller.Notification(
+                1,
+                getString(R.string.app_name_host),
+                R.drawable.dconnect_icon,
+                "org.deviceconnect.android.deviceconnect.host.channel.demo",
+                "Host Plugin Demo Page",
+                "Host Plugin Demo Page"
+        );
 
         mHostBatteryManager = new HostBatteryManager(getPluginContext());
         mHostBatteryManager.getBatteryInfo();
@@ -260,19 +276,19 @@ public class HostDeviceService extends DConnectMessageService {
             @Override
             public void onAfterUpdate(final File demoDir) {
                 mLogger.info("Updated demo page: " + demoDir.getAbsolutePath());
-                DemoPageInstaller.Notification.showUpdateSuccess(context);
+                mDemoNotification.showUpdateSuccess(context);
             }
 
             @Override
             public void onFileError(final IOException e) {
                 mLogger.severe("Failed to update demo page for file error: " + e.getMessage());
-                DemoPageInstaller.Notification.showUpdateError(context);
+                mDemoNotification.showUpdateError(context);
             }
 
             @Override
             public void onUnexpectedError(final Throwable e) {
                 mLogger.severe("Failed to update demo page for unexpected error: " + e.getMessage());
-                DemoPageInstaller.Notification.showUpdateError(context);
+                mDemoNotification.showUpdateError(context);
             }
         }, new Handler(Looper.getMainLooper()));
     }

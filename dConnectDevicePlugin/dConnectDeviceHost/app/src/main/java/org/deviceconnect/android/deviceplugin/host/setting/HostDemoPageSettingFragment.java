@@ -38,9 +38,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.demo.DemoPageInstaller;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private Handler mHandler;
 
-    private final DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo");
+    private DemoPageInstaller mDemoInstaller;
 
     @Override
     protected String getPageTitle() {
@@ -106,6 +106,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     @Override
     public View onCreateView(final @NonNull LayoutInflater inflater, final @Nullable ViewGroup container,
                              final Bundle savedInstanceState) {
+        mDemoInstaller = new DemoPageInstaller(getContext(), "demo", BuildConfig.DEMO_ZIP);
+
         View rootView = inflater.inflate(R.layout.host_setting_demo_page, null);
         mHandler = new Handler(Looper.getMainLooper());
         mDeleteButton = rootView.findViewById(R.id.button_delete_demo_page);

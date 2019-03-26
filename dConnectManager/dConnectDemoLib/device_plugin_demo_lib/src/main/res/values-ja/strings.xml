@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Device Plugin Demo Library</string>
+
+    <string name="demo_page_settings_message_update_completed">正常にデモページが更新されました。</string>
+    <string name="demo_page_settings_message_update_error">デモページの更新に失敗しました。</string>
+</resources>

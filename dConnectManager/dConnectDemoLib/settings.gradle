@@ -1,0 +1,1 @@
+include ':app', ':device_plugin_demo_lib'

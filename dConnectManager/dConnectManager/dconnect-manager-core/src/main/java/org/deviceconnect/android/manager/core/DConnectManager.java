@@ -208,6 +208,7 @@ public abstract class DConnectManager implements DConnectInterface {
      */
     public synchronized void initDConnect() {
         if (mCore != null) {
+            mCore.start();
             return;
         }
         mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);

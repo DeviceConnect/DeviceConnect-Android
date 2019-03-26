@@ -108,6 +108,7 @@ public class QRService extends TagService {
     private void startQRReaderActivity(final String requestCode, final boolean once) {
         Intent intent = new Intent();
         intent.setClass(mContext, QRReaderActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.putExtra(TagConstants.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(TagConstants.EXTRA_ONCE, once);
         mContext.startActivity(intent);

@@ -148,6 +148,7 @@ public class NFCService extends TagService {
     private void startNFCReaderActivity(final String requestCode, final boolean once) {
         Intent intent = new Intent();
         intent.setClass(mContext, NFCReaderActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.putExtra(TagConstants.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(TagConstants.EXTRA_ONCE, once);
         mContext.startActivity(intent);
@@ -162,6 +163,7 @@ public class NFCService extends TagService {
     private void startNFCWriterActivity(final String requestCode, final Map<String, String> data) {
         Intent intent = new Intent();
         intent.setClass(mContext, NFCWriterActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.putExtra(TagConstants.EXTRA_REQUEST_CODE, requestCode);
         for (String key : data.keySet()) {
             intent.putExtra(key, data.get(key));

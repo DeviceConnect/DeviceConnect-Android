@@ -59,7 +59,7 @@ import static org.deviceconnect.android.manager.core.plugin.ConnectionType.BROAD
  *
  * @author NTT DOCOMO, INC.
  */
-class DConnectCore extends DevicePluginContext {
+public class DConnectCore extends DevicePluginContext {
     /**
      * ロガー.
      */
@@ -255,7 +255,7 @@ class DConnectCore extends DevicePluginContext {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new DConnectSystemProfile(this, mPluginManager, mRequestManager);
+        return new DConnectSystemProfile(this);
     }
 
     @Override
@@ -289,7 +289,14 @@ class DConnectCore extends DevicePluginContext {
     public DevicePluginManager getPluginManager() {
         return mPluginManager;
     }
-
+    /**
+     * リクエスト管理クラスを取得します.
+     *
+     * @return リクエスト管理クラス
+     */
+    public DConnectRequestManager getRequestManager() {
+        return mRequestManager;
+    }
     /**
      * イベント配送クラスを取得します.
      *

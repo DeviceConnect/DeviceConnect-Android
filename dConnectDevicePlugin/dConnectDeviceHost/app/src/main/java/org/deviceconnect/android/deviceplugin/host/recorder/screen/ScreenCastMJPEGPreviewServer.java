@@ -77,7 +77,7 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
                 mServer.setServerName("HostDevicePlugin Server");
-                mServer.setContentType("image/jpg");
+                mServer.setContentType("image/jpeg");
                 mServer.setCallback(mMediaServerCallback);
                 uri = mServer.start();
             } else {

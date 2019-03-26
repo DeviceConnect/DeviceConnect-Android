@@ -101,7 +101,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      */
     private final List<String> mMimeTypes = new ArrayList<String>() {
         {
-            add("image/jpg");
+            add(MIME_TYPE_JPEG);
             add("video/x-mjpeg");
             add("video/x-rtp");
             add("video/mp4");
@@ -206,7 +206,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 }
 
                 String filePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
-                listener.onTakePhoto(uri, filePath);
+                listener.onTakePhoto(uri, filePath, MIME_TYPE_JPEG);
             }
 
             @Override

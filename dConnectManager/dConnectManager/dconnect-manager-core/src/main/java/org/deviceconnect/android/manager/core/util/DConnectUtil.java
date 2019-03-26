@@ -34,7 +34,9 @@ import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.utils.JSONUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -226,19 +228,39 @@ public final class DConnectUtil {
      */
     private static void convertUri(final DConnectSettings settings, final JSONObject root) throws JSONException {
         @SuppressWarnings("unchecked") // Using legacy API
-                Iterator<String> it = root.keys();
+        Iterator<String> it = root.keys();
         while (it.hasNext()) {
             String key = it.next();
             Object value = root.opt(key);
             if (value instanceof String) {
-                if ("uri".equals(key) && startWithContent((String) value)) {
+                if (isUriKey(key) && startWithContent((String) value)) {
                     String u = createUri(settings, (String) value);
                     root.put(key, u);
                 }
             } else if (value instanceof JSONObject) {
                 convertUri(settings, (JSONObject) value);
+            } else if (value instanceof JSONArray) {
+                JSONArray array = (JSONArray) value;
+                int length = array.length();
+                for (int i = 0; i < length; i++) {
+                    JSONObject json = array.optJSONObject(i);
+                    if (json != null) {
+                        convertUri(settings, json);
+                    }
+                }
             }
         }
+    }
+
+    private static final String PARAM_URI_POSTFIX = "Uri";
+
+    /**
+     * 指定されたキーが URI を示すかどうかをチェックする.
+     * @param key キー
+     * @return URI を示す場合は<code>true</code>. そうでない場合は<code>false</code>
+     */
+    private static boolean isUriKey(final String key) {
+        return DConnectProfileConstants.PARAM_URI.equals(key) || key.endsWith(PARAM_URI_POSTFIX);
     }
 
     /**

@@ -31,7 +31,10 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
 
 import java.io.ByteArrayOutputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
+
+import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
 
 
 /**
@@ -63,22 +66,37 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private Object mSync = new Object();
 
+    private final Object mDrawTaskSync = new Object();
+
+    private Thread mDrawTaskThread;
+
     private DrawTask mDrawTask;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
         @Override
-        public boolean onAccept() {
+        public boolean onAccept(final Socket socket) {
             try {
                 if (DEBUG) {
                     Log.d(TAG, "MediaServerCallback.onAccept: recorder=" + mRecorder.getName());
                 }
-                mDrawTask = new DrawTask();
-                new Thread(mDrawTask).start();
-                return true;
+                if (mRecorder.isStartedPreview()) {
+                    return false;
+                }
+                return startDrawTask();
             } catch (Exception e) {
-                Log.e(TAG, "Failed to start preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to start preview.", e);
+                }
                 return false;
             }
+        }
+
+        @Override
+        public void onClosed(final Socket socket) {
+            if (DEBUG) {
+                Log.d(TAG, "MediaServerCallback.onClosed: recorder=" + mRecorder.getName());
+            }
+            stopDrawTask();
         }
     };
 
@@ -140,7 +158,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 return;
             }
             mIsRecording = false;
-            mDrawTask = null;
+            stopDrawTask();
             if (mServer != null) {
                 mServer.stop();
                 mServer = null;
@@ -151,7 +169,9 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 try {
                     camera.stopPreview();
                 } catch (CameraWrapperException e) {
-                    Log.e(TAG, "Failed to stop preview.", e);
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to stop preview.", e);
+                    }
                 }
             }
             mPreviewThread.quit();
@@ -159,6 +179,28 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mPreviewHandler = null;
 
             mRecorder.hideNotification();
+        }
+    }
+
+    private boolean startDrawTask() {
+        synchronized (mDrawTaskSync) {
+            if (mDrawTaskThread == null) {
+                mDrawTask = new DrawTask();
+                mDrawTaskThread = new Thread(mDrawTask);
+                mDrawTaskThread.start();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    private void stopDrawTask() {
+        synchronized (mDrawTaskSync) {
+            if (mDrawTaskThread != null) {
+                mDrawTask.release(false);
+                mDrawTaskThread = null;
+            }
         }
     }
 
@@ -244,13 +286,17 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             try {
                 mRecorder.startPreview(mSourceSurface);
                 mRecorder.sendNotification();
-                Log.d(TAG, "Started camera preview.");
+                if (DEBUG) {
+                    Log.d(TAG, "Started camera preview.");
+                }
             } catch (CameraWrapperException e) {
-                Log.e(TAG, "Failed to start camera preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to start camera preview.", e);
+                }
             }
 
             // 録画タスクを起床
-            queueEvent(mDrawTask);
+            queueEvent(mSurfaceDrawTask);
         }
 
         @Override
@@ -259,11 +305,14 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                 mDrawer.release();
                 mDrawer = null;
             }
+            mDrawTask = null;
             releaseSurface();
             try {
                 mRecorder.stopPreview();
             } catch (CameraWrapperException e) {
-                Log.e(TAG, "Failed to stop camera preview.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to stop camera preview.", e);
+                }
             }
             makeCurrent();
         }
@@ -294,7 +343,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
         private long mLastTime = 0;
 
-        private final Runnable mDrawTask = new Runnable() {
+        private final Runnable mSurfaceDrawTask = new Runnable() {
             @Override
             public void run() {
                 boolean localRequestDraw;
@@ -306,7 +355,9 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                             localRequestDraw = requestDraw;
                             requestDraw = false;
                         } catch (final InterruptedException e) {
-                            Log.v(TAG, "draw:InterruptedException");
+                            if (DEBUG) {
+                                Log.v(TAG, "draw:InterruptedException");
+                            }
                             return;
                         }
                     }
@@ -345,7 +396,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
                         mOutput.reset();
                         mBitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, mOutput);
                     }
-                    offerMedia(mOutput.toByteArray());
+                    byte[] jpeg = mOutput.toByteArray();
+                    offerMedia(jpeg);
                     queueEvent(this);
                 } else {
                     releaseSelf();

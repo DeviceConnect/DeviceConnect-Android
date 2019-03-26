@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen
+        android:key="@string/pref_key_settings_gps"
+        android:title="@string/host_settings_item_gps" />
+    <PreferenceScreen
+        android:key="@string/pref_key_settings_jpeg_quality_preview"
+        android:title="@string/host_settings_item_jpeg_quality_preview" />
+    <PreferenceScreen
+        android:key="@string/pref_key_settings_demo_page"
+        android:title="@string/host_settings_item_demo_page" />
+</PreferenceScreen>

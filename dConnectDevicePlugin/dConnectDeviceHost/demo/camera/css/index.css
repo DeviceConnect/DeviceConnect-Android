@@ -1,0 +1,165 @@
+html {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: black;
+}
+
+.container {
+  margin: 0;
+  padding: 0;
+}
+
+.spacer {
+  width: 10px;
+}
+
+#launch-progress {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+}
+
+#recorder-container {
+  background-color: #000000;
+}
+
+.recorder-dialog-layout {
+  padding: 8px 24px 8px 8px;
+}
+
+#viewer-media-list {
+  padding: 3px 6px;
+}
+
+.video-player {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  width: 100vmin;
+  height: 100vmin;
+}
+.video-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+}
+#qrcode-page {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+  text-align: center;
+}
+#qrcode {
+  width: 50vmin;
+  height: 50vmin;
+}
+#message .uri {
+  margin-top: 1.0em;
+  margin-bottom: 1.0em;
+  margin-left: 2.0em;
+  margin-right: 2.0em;
+}
+
+@media screen and (orientation: portrait) {
+  #preview {
+    display: block;
+    width: 100%;
+    height: auto;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+  }
+  .camera-mode-btn-group {
+    position: absolute;
+    left: 50%;
+    top: 70px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #shutter {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #shutter-with-video {
+    position: fixed;
+    left: 25%;
+    bottom: 24px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #start-recording {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #stop-recording {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #thumbnail {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 50pt;
+    height: 50pt;
+  }
+}
+@media screen and (orientation: landscape) {
+  #preview {
+    display: block;
+    width: auto;
+    height: 100%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+  }
+  .camera-mode-btn-group {
+    position: absolute;
+    left: 16px;
+    top: 70px;
+  }
+  #shutter {
+    position: fixed;
+    top: 50%;
+    right: 0px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #shutter-with-video {
+    position: fixed;
+    top: 25%;
+    right: 8px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #start-recording {
+    position: fixed;
+    top: 50%;
+    right: 0px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #stop-recording {
+    position: fixed;
+    top: 50%;
+    right: 0px;
+    -webkit-transform: translate(-50%, 0);
+  }
+  #thumbnail {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 50pt;
+    height: 50pt;
+  }
+}

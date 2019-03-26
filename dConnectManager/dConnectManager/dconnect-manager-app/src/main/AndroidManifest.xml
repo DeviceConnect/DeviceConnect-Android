@@ -77,6 +77,21 @@
                       android:path="/server" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".DConnectHostResolver"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.AppCompat.Translucent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="dconnect" android:host="pages" android:pathPattern="/.*" />
+                <data android:scheme="gotapi" android:host="shortcut" android:pathPattern="/.*" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="org.deviceconnect.android.manager.setting.ServiceListActivity"
             android:label="@string/app_name"

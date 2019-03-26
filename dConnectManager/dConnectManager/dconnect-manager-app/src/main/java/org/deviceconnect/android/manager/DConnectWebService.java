@@ -90,6 +90,10 @@ public class DConnectWebService extends Service {
         super.onDestroy();
     }
 
+    public int getPort() {
+        return mSettings.getWebPort();
+    }
+
     /**
      * Webサーバを起動する.
      */

@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
+
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements RtspServer.Delegate {
@@ -137,7 +139,8 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
     }
 
     @Override
-    public void eraseSession(Session session) {
+    public void eraseSession(final Session session) {
+        stopScreenCast();
     }
 
     @Override
@@ -197,7 +200,6 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
                 mScreenCast = null;
                 mIsStartedCast = false;
             }
-
         }
     }
 
@@ -297,7 +299,9 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
                             localRequestDraw = requestDraw;
                             requestDraw = false;
                         } catch (final InterruptedException e) {
-                            Log.v(TAG, "draw:InterruptedException");
+                            if (DEBUG) {
+                                Log.v(TAG, "draw:InterruptedException");
+                            }
                             return;
                         }
                     }

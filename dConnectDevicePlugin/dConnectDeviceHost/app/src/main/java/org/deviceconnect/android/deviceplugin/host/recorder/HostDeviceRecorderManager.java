@@ -13,13 +13,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
@@ -27,6 +24,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Record
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCastRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
@@ -52,7 +50,7 @@ public class HostDeviceRecorderManager {
     private Camera2Recorder mDefaultPhotoRecorder;
 
     /** コンテキスト. */
-    private HostDeviceService mHostDeviceService;
+    private final DevicePluginContext mHostDevicePluginContext;
 
     /** インテントフィルタ. */
     private final IntentFilter mIntentFilter = new IntentFilter();
@@ -78,22 +76,22 @@ public class HostDeviceRecorderManager {
         }
     };
 
-    public HostDeviceRecorderManager(final @NonNull HostDeviceService service) {
-        mHostDeviceService = service;
+    public HostDeviceRecorderManager(final DevicePluginContext pluginContext) {
+        mHostDevicePluginContext = pluginContext;
     }
 
     public void createAudioRecorders() {
-        mRecorders.add(new HostDeviceAudioRecorder(mHostDeviceService));
+        mRecorders.add(new HostDeviceAudioRecorder(getContext()));
     }
 
     public void createScreenCastRecorder(final FileManager fileMgr) {
-        mRecorders.add(new HostDeviceScreenCastRecorder(mHostDeviceService, fileMgr));
+        mRecorders.add(new HostDeviceScreenCastRecorder(getContext(), fileMgr));
     }
 
     public void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
         for (CameraWrapper camera : cameraMgr.getCameraList()) {
-            photoRecorders.add(new Camera2Recorder(mHostDeviceService, camera, fileMgr));
+            photoRecorders.add(new Camera2Recorder(getContext(), camera, fileMgr));
         }
         mRecorders.addAll(photoRecorders);
         if (!photoRecorders.isEmpty()) {
@@ -222,7 +220,7 @@ public class HostDeviceRecorderManager {
         for (Event evt : evts) {
             Intent intent = EventManager.createEventMessage(evt);
             intent.putExtra(MediaStreamRecordingProfile.PARAM_MEDIA, record);
-            mHostDeviceService.sendEvent(intent, evt.getAccessToken());
+            mHostDevicePluginContext.sendEvent(intent, evt.getAccessToken());
         }
     }
 
@@ -231,7 +229,7 @@ public class HostDeviceRecorderManager {
     }
 
     private Context getContext() {
-        return mHostDeviceService;
+        return mHostDevicePluginContext.getContext();
     }
 
 }

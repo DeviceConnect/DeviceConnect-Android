@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceplugin-provider spec-path="org_deviceconnect_android_manager/api" >
+
+    <profile name="availability" expireperiod="86400000">
+        <name lang="ja">生存確認</name>
+        <description lang="ja">マネージャの生存確認を行います.</description>
+        <name lang="en">Availability</name>
+        <description lang="en">Checked to alive a manager.</description>
+    </profile>
+
+    <profile name="serviceDiscovery" expireperiod="86400000">
+        <name lang="ja">デバイス検索</name>
+        <description lang="ja">周辺のデバイスを検索する</description>
+        <name lang="en">Network Service Discovery</name>
+        <description lang="en">Searches near devices.</description>
+    </profile>
+
+</deviceplugin-provider>

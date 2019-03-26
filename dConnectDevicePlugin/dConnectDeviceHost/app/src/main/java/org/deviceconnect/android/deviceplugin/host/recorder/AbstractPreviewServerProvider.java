@@ -19,7 +19,6 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 /**
@@ -135,10 +134,10 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      * @return PendingIntent
      */
     private PendingIntent createPendingIntent() {
-        Intent intent = new Intent(mContext, HostDeviceService.class);
+        Intent intent = new Intent();
         intent.setAction(DELETE_PREVIEW_ACTION);
         intent.putExtra(EXTRA_CAMERA_ID, getId());
-        return PendingIntent.getService(mContext, getNotificationId(), intent, 0);
+        return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
     }
 
     public Context getContext() {

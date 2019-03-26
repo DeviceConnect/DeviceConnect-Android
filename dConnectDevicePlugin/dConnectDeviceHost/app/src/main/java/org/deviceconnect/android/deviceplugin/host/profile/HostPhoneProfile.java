@@ -24,7 +24,7 @@ import android.telephony.TelephonyManager;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -499,7 +499,7 @@ public class HostPhoneProfile extends PhoneProfile {
     }
 
     private void sendOnCallStateChangeEvent(final CallState state, final String phoneNumber) {
-        List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, "phone", null,
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, "phone", null,
                 "onCallStateChange");
 
         for (int i = 0; i < events.size(); i++) {
@@ -513,7 +513,7 @@ public class HostPhoneProfile extends PhoneProfile {
     }
 
     private void sendOnConnectEvent(final Intent intent) {
-        List<Event> events = EventManager.INSTANCE.getEventList(HostDeviceService.SERVICE_ID, HostPhoneProfile.PROFILE_NAME, null,
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID, HostPhoneProfile.PROFILE_NAME, null,
                 HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
 
         for (int i = 0; i < events.size(); i++) {

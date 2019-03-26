@@ -6,9 +6,9 @@
  */
 package org.deviceconnect.android.service;
 
-
 import android.content.Context;
 
+import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
@@ -24,13 +24,16 @@ import java.util.Map;
  * Device Connect APIサービス管理インターフェースのデフォルト実装.
  * @author NTT DOCOMO, INC.
  */
-public class DConnectServiceManager implements DConnectServiceProvider,
-    DConnectService.OnStatusChangeListener {
-
+public class DConnectServiceManager implements DConnectServiceProvider, DConnectService.OnStatusChangeListener {
     /**
      * プラグインがサポートするスペックを管理するクラス.
      */
     private DConnectPluginSpec mPluginSpec;
+
+    /**
+     * プラグインコンテキスト.
+     */
+    private DevicePluginContext mPluginContext;
 
     /**
      * コンテキスト.
@@ -50,11 +53,21 @@ public class DConnectServiceManager implements DConnectServiceProvider,
             = Collections.synchronizedList(new ArrayList<DConnectServiceListener>());
 
     /**
-     * コンテキストを設定する.
-     * @param context コンテキスト
+     * プラグインコンテキストを取得します.
+     *
+     * @return プラグインコンテキスト
      */
-    public void setContext(final Context context) {
-        mContext = context;
+    public DevicePluginContext getPluginContext() {
+        return mPluginContext;
+    }
+
+    /**
+     * プラグインコンテキストを設定します.
+     *
+     * @param pluginContext プラグインコンテキスト
+     */
+    public void setPluginContext(final DevicePluginContext pluginContext) {
+        mPluginContext = pluginContext;
     }
 
     /**
@@ -66,32 +79,40 @@ public class DConnectServiceManager implements DConnectServiceProvider,
     }
 
     /**
+     * コンテキストを設定する.
+     * @param context コンテキスト
+     */
+    public void setContext(final Context context) {
+        mContext = context;
+    }
+
+    /**
      * プラグインがサポートするスペックを管理するクラスを設定する.
      *
      * @param pluginSpec プラグインがサポートするスペック
      */
     public void setPluginSpec(final DConnectPluginSpec pluginSpec) {
-        if (pluginSpec == null) {
-            throw new NullPointerException("pluginSpec is null.");
-        }
         mPluginSpec = pluginSpec;
     }
 
     @Override
     public void addService(final DConnectService service) {
         service.setOnStatusChangeListener(this);
-        service.setContext(mContext);
-        if (mPluginSpec != null) {
-            for (DConnectProfile profile : service.getProfileList()) {
+        service.setContext(getContext());
+        service.setPluginContext(getPluginContext());
+
+        // 既にサービスに登録されているプロファイルにコンテキストなどを設定
+        for (DConnectProfile profile : service.getProfileList()) {
+            profile.setContext(getContext());
+            profile.setPluginContext(getPluginContext());
+            profile.setResponder(getPluginContext());
+            if (mPluginSpec != null) {
                 DConnectProfileSpec profileSpec =
-                    mPluginSpec.findProfileSpec(profile.getProfileName().toLowerCase());
+                        mPluginSpec.findProfileSpec(profile.getProfileName().toLowerCase());
                 if (profileSpec != null) {
                     profile.setProfileSpec(profileSpec);
                 }
             }
-        }
-        for (DConnectProfile profile : service.getProfileList()) {
-            profile.setContext(mContext);
         }
         mDConnectServices.put(service.getId(), service);
 
@@ -125,9 +146,7 @@ public class DConnectServiceManager implements DConnectServiceProvider,
 
     @Override
     public List<DConnectService> getServiceList() {
-        List<DConnectService> list = new ArrayList<DConnectService>();
-        list.addAll(mDConnectServices.values());
-        return list;
+        return new ArrayList<>(mDConnectServices.values());
     }
 
     @Override

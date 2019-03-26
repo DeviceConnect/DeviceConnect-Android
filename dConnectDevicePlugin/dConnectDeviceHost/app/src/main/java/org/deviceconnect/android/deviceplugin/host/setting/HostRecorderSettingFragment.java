@@ -44,7 +44,7 @@ public class HostRecorderSettingFragment extends Fragment {
                     mRecorderManager = hostService.getRecorderManager();
 
                     ViewGroup container = getView().findViewById(R.id.host_recorder_container);
-                    for (HostDeviceRecorder recorder : mRecorderManager.getRecorders()) {
+                    for (HostDeviceRecorder recorder : mRecorderManager.getRecorders())
                         if (recorder instanceof AbstractPreviewServerProvider) {
                             PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
                             if (server != null) {
@@ -65,7 +65,8 @@ public class HostRecorderSettingFragment extends Fragment {
                                     }
 
                                     @Override
-                                    public void onStartTrackingTouch(final SeekBar seekBar) {}
+                                    public void onStartTrackingTouch(final SeekBar seekBar) {
+                                    }
 
                                     @Override
                                     public void onStopTrackingTouch(final SeekBar seekBar) {
@@ -80,7 +81,6 @@ public class HostRecorderSettingFragment extends Fragment {
                                 container.addView(recorderSettingsView);
                             }
                         }
-                    }
                 }
 
                 @Override

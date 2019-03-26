@@ -8,12 +8,14 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.app.ActivityManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -45,6 +47,23 @@ public class HostKeyEventProfile extends KeyEventProfile {
     /** Finish key event profile activity action. */
     public static final String ACTION_FINISH_KEYEVENT_ACTIVITY =
             "org.deviceconnect.android.deviceplugin.host.keyevent.FINISH";
+    /** Finish key event profile activity action. */
+    public static final String ACTION_KEYEVENT =
+            "org.deviceconnect.android.deviceplugin.host.keyevent.action.KEY_EVENT";
+
+    /**
+     * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
+     */
+    private BroadcastReceiver mKeyEventBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent.getAction().equals(ACTION_KEYEVENT)) {
+                // ManagerにEventを送信する
+                intent.setAction(IntentDConnectMessage.ACTION_EVENT);
+                sendEvent(intent, intent.getStringExtra("accessToken"));
+            }
+        }
+    };
     /**
      * Attribute: {@value} .
      */
@@ -82,6 +101,8 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execKeyEventActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_KEYEVENT);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mKeyEventBR, filter);
                 setKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -103,6 +124,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mKeyEventBR);
                 resetKeyEventEventFlag(FLAG_ON_KEY_CHANGE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -145,6 +167,8 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execKeyEventActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_KEYEVENT);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mKeyEventBR, filter);
                 setKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -167,6 +191,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetKeyEventEventFlag(FLAG_ON_DOWN);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mKeyEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
@@ -209,6 +234,8 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execKeyEventActivity(serviceId);
+                IntentFilter filter = new IntentFilter(ACTION_KEYEVENT);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mKeyEventBR, filter);
                 setKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -231,6 +258,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 resetKeyEventEventFlag(FLAG_ON_UP);
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mKeyEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "Can not unregister event.");
@@ -335,6 +363,6 @@ public class HostKeyEventProfile extends KeyEventProfile {
     }
 
     private HostDeviceApplication getApp() {
-        return (HostDeviceApplication) ((HostDeviceService) getContext()).getApplication();
+        return (HostDeviceApplication) getContext().getApplicationContext();
     }
 }

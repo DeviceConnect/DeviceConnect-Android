@@ -15,7 +15,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v4.BuildConfig;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
 
@@ -130,14 +129,14 @@ public class HostDeviceService extends DConnectMessageService {
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
-        mHostBatteryManager = new HostBatteryManager(this);
+        mHostBatteryManager = new HostBatteryManager(getPluginContext());
         mHostBatteryManager.getBatteryInfo();
 
-        mRecorderMgr = new HostDeviceRecorderManager(this);
+        mRecorderMgr = new HostDeviceRecorderManager(getPluginContext());
         initRecorders(mRecorderMgr);
         mRecorderMgr.start();
 
-        mHostMediaPlayerManager = new HostMediaPlayerManager(this);
+        mHostMediaPlayerManager = new HostMediaPlayerManager(getPluginContext());
 
         DConnectService hostService = new DConnectService(SERVICE_ID);
         hostService.setName(SERVICE_NAME);
@@ -164,7 +163,7 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         if (mRecorderMgr.getRecorders().length > 0) {
-            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
+            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
         }
         if (checkCameraHardware()) {
             HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
@@ -359,7 +358,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private WifiManager getWifiManager() {
-        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     /**

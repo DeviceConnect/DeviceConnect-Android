@@ -23,6 +23,7 @@ import android.view.WindowManager;
 import org.deviceconnect.android.deviceplugin.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
+import org.deviceconnect.android.deviceplugin.host.demo.HostDemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
@@ -161,8 +162,7 @@ public class HostDeviceService extends DConnectMessageService {
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
-        mDemoInstaller = new DemoPageInstaller(getApplicationContext(),
-                "demo", BuildConfig.DEMO_ZIP);
+        mDemoInstaller = new HostDemoPageInstaller();
         mDemoNotification = new DemoPageInstaller.Notification(
                 1,
                 getString(R.string.app_name_host),

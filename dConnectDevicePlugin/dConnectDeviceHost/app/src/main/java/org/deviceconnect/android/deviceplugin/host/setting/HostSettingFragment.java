@@ -6,10 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.host.setting;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 
@@ -23,35 +24,36 @@ import org.deviceconnect.android.deviceplugin.host.R;
 public class HostSettingFragment extends PreferenceFragmentCompat {
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(final @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings_host_plugin);
     }
 
     @Override
-    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+    public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
     }
 
     @Override
-    public boolean onPreferenceTreeClick(Preference preference) {
+    public boolean onPreferenceTreeClick(final Preference preference) {
         boolean result = super.onPreferenceTreeClick(preference);
 
-        // 各説明をダイアログで表示
-        BaseHostSettingPageFragment fragment = null;
-        if (getString(R.string.pref_key_settings_gps).equals(preference.getKey())) {
-            fragment = new HostGpsSettingFragment();
-        } else if (getString(R.string.pref_key_settings_jpeg_quality_preview).equals(preference.getKey())) {
-            fragment = new HostRecorderSettingFragment();
-        } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
-            fragment = new HostDemoPageSettingFragment();
+        Activity activity = getActivity();
+        if (activity == null) {
+            return result;
         }
-        if (fragment != null) {
-            FragmentTransaction transaction = getFragmentManager()
-                    .beginTransaction()
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            transaction.add(android.R.id.content, fragment, fragment.getPageTag());
-            transaction.addToBackStack("settings");
-            transaction.commit();
+        Context context = activity.getApplicationContext();
+
+        // 各説明をダイアログで表示
+        Intent intent = null;
+        if (getString(R.string.pref_key_settings_gps).equals(preference.getKey())) {
+            intent = new Intent(context, HostGpsSettingActivity.class);
+        } else if (getString(R.string.pref_key_settings_jpeg_quality_preview).equals(preference.getKey())) {
+            intent = new Intent(context, HostRecorderSettingActivity.class);
+        } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
+            intent = new Intent(context, HostDemoPageSettingActivity.class);
+        }
+        if (intent != null) {
+            activity.startActivity(intent);
         }
 
         return result;

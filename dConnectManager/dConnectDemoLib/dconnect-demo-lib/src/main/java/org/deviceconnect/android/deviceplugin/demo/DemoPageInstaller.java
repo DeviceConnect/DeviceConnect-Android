@@ -74,10 +74,10 @@ public class DemoPageInstaller {
 
     private final String mDemoZipName;
 
-    public DemoPageInstaller(final Context context,
+    public DemoPageInstaller(final String packageName,
                              final String relativeDirName,
                              final String demoZipName) {
-        mPluginPackageName = context.getPackageName();
+        mPluginPackageName = packageName;
         mRelativeDirName = relativeDirName;
         mDemoZipName = demoZipName;
     }

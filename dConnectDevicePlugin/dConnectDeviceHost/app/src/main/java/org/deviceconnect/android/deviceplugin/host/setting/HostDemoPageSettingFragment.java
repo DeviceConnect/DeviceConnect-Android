@@ -41,6 +41,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.demo.HostDemoPageInstaller;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +107,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     @Override
     public View onCreateView(final @NonNull LayoutInflater inflater, final @Nullable ViewGroup container,
                              final Bundle savedInstanceState) {
-        mDemoInstaller = new DemoPageInstaller(getContext(), "demo", BuildConfig.DEMO_ZIP);
+        mDemoInstaller = new HostDemoPageInstaller();
 
         View rootView = inflater.inflate(R.layout.host_setting_demo_page, null);
         mHandler = new Handler(Looper.getMainLooper());
@@ -627,6 +628,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
         static final String KEY_NEGATIVE = "negative";
 
+        private String mTag;
+
         protected void onExtendDialog(final AlertDialog.Builder builder,
                                       final LayoutInflater layoutInflater,
                                       final Bundle arguments) {}
@@ -638,6 +641,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             final Activity activity = getActivity();
             final Bundle args = getArguments();
             if (activity != null && args != null) {
+                mTag = args.getString(KEY_TAG);
+
                 builder.setTitle(args.getString(KEY_TITLE));
                 String message = args.getString(KEY_MESSAGE);
                 if (message != null) {
@@ -649,8 +654,11 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(final DialogInterface dialog, final int which) {
-                                    HostDemoPageSettingFragment l = (HostDemoPageSettingFragment) getFragmentManager().findFragmentByTag("demo");
-                                    l.onPositiveButton(args.getString(KEY_TAG), MessageDialogFragment.this);
+                                    HostDemoPageSettingFragment l = (HostDemoPageSettingFragment) getFragmentManager().findFragmentById(R.id.fragment_demo_page_setting);
+                                    if (l != null) {
+                                        l.onPositiveButton(mTag, MessageDialogFragment.this);
+                                    }
+                                    dialog.dismiss();
                                 }
                             });
                 }
@@ -660,8 +668,11 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(final DialogInterface dialog, final int which) {
-                                    HostDemoPageSettingFragment l = (HostDemoPageSettingFragment) getFragmentManager().findFragmentByTag("demo");
-                                    l.onNegativeButton(args.getString(KEY_TAG), MessageDialogFragment.this);
+                                    HostDemoPageSettingFragment l = (HostDemoPageSettingFragment) getFragmentManager().findFragmentById(R.id.fragment_demo_page_setting);
+                                    if (l != null) {
+                                        l.onNegativeButton(mTag, MessageDialogFragment.this);
+                                    }
+                                    dialog.dismiss();
                                 }
                             });
                 }
@@ -671,10 +682,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
 
         void show(final FragmentManager fragmentManager) {
-            FragmentTransaction t = fragmentManager.beginTransaction();
-            t.add(this, null);
-            t.addToBackStack(null);
-            t.commitAllowingStateLoss();
+            show(fragmentManager, mTag);
         }
 
         static class Builder {

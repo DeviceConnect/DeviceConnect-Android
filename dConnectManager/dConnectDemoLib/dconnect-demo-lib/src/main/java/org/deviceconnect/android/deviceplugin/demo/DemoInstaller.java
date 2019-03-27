@@ -1,5 +1,5 @@
 /*
- DemoPageInstaller.java
+ DemoInstaller.java
  Copyright (c) 2018 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class DemoPageInstaller {
+public class DemoInstaller {
 
     public static abstract class InstallCallback {
 
@@ -68,25 +68,38 @@ public class DemoPageInstaller {
 
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
 
+    private final Context mContext;
+
     private final String mPluginPackageName;
 
     private final String mRelativeDirName;
 
     private final String mDemoZipName;
 
-    public DemoPageInstaller(final String packageName,
-                             final String relativeDirName,
-                             final String demoZipName) {
+    public DemoInstaller(final Context context,
+                         final String relativeDirName,
+                         final String demoZipName) {
+        this(context, context.getPackageName(), relativeDirName, demoZipName);
+    }
+
+    public DemoInstaller(final Context context,
+                         final String packageName,
+                         final String relativeDirName,
+                         final String demoZipName) {
+        mContext = context;
         mPluginPackageName = packageName;
         mRelativeDirName = relativeDirName;
         mDemoZipName = demoZipName;
     }
 
-    public void install(final Context context,
-                        final InstallCallback callback,
+    Context getContext() {
+        return mContext;
+    }
+
+    public void install(final InstallCallback callback,
                         final Handler handler) {
         final File demoDir = getDemoDirOnStorage();
-        FileTask task = new InstallTask(context, mDemoZipName, demoDir, handler) {
+        FileTask task = new InstallTask(mContext, mDemoZipName, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
                 callback.onBeforeInstall(demoDir);
@@ -110,11 +123,10 @@ public class DemoPageInstaller {
         queueTask(task);
     }
 
-    public void update(final Context context,
-                       final UpdateCallback callback,
+    public void update(final UpdateCallback callback,
                        final Handler handler) {
         final File demoDir = getDemoDirOnStorage();
-        FileTask task = new UpdateTask(context, mDemoZipName, demoDir, handler) {
+        FileTask task = new UpdateTask(mContext, mDemoZipName, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
                 callback.onBeforeUpdate(demoDir);
@@ -138,11 +150,10 @@ public class DemoPageInstaller {
         queueTask(task);
     }
 
-    public void uninstall(final Context context,
-                          final UninstallCallback callback,
+    public void uninstall(final UninstallCallback callback,
                           final Handler handler) {
         final File demoDir = getDemoDirOnStorage();
-        FileTask task = new UninstallTask(context, demoDir, handler) {
+        FileTask task = new UninstallTask(mContext, demoDir, handler) {
             @Override
             protected void onBeforeTask() {
                 callback.onBeforeUninstall(demoDir);
@@ -174,6 +185,10 @@ public class DemoPageInstaller {
         return true; // TODO ストレージが無い場合は、UIを無効化
     }
 
+    public String getPluginPackageName() {
+        return mPluginPackageName;
+    }
+
     public File getDemoDirOnStorage() {
         return new File(getDemoRootDir(), mRelativeDirName);
     }
@@ -197,12 +212,12 @@ public class DemoPageInstaller {
         return !version.equals(currentVersion);
     }
 
-    public static boolean isInstalledDemoPage(final Context context) {
-        String version = readInstalledVersion(context);
+    public boolean isInstalledDemoPage() {
+        String version = readInstalledVersion(mContext);
         if (version == null) {
             return false;
         }
-        String currentVersion = getCurrentVersionName(context);
+        String currentVersion = getCurrentVersionName(mContext);
         return version.equals(currentVersion);
     }
 

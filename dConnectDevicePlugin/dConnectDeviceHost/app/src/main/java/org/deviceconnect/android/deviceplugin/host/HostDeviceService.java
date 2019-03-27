@@ -20,10 +20,10 @@ import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
 
-import org.deviceconnect.android.deviceplugin.demo.DemoPageInstaller;
+import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
-import org.deviceconnect.android.deviceplugin.host.demo.HostDemoPageInstaller;
+import org.deviceconnect.android.deviceplugin.host.demo.HostDemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
@@ -106,12 +106,12 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * デモページインストーラ.
      */
-    private DemoPageInstaller mDemoInstaller;
+    private DemoInstaller mDemoInstaller;
 
     /**
      * デモページアップデート通知.
      */
-    private DemoPageInstaller.Notification mDemoNotification;
+    private DemoInstaller.Notification mDemoNotification;
 
     /**
      * ブロードキャストレシーバー.
@@ -146,7 +146,7 @@ public class HostDeviceService extends DConnectMessageService {
             String action = intent.getAction();
             mLogger.info("Demo Notification: " + action);
             mDemoNotification.cancel(context);
-            if (DemoPageInstaller.Notification.ACTON_UPDATE_DEMO.equals(action)) {
+            if (DemoInstaller.Notification.ACTON_UPDATE_DEMO.equals(action)) {
                 updateDemoPage(context);
             }
         }
@@ -162,8 +162,8 @@ public class HostDeviceService extends DConnectMessageService {
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
 
-        mDemoInstaller = new HostDemoPageInstaller();
-        mDemoNotification = new DemoPageInstaller.Notification(
+        mDemoInstaller = new HostDemoInstaller(getApplicationContext());
+        mDemoNotification = new DemoInstaller.Notification(
                 1,
                 getString(R.string.app_name_host),
                 R.drawable.dconnect_icon,
@@ -238,8 +238,8 @@ public class HostDeviceService extends DConnectMessageService {
 
     private void registerDemoNotification() {
         IntentFilter filter  = new IntentFilter();
-        filter.addAction(DemoPageInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
-        filter.addAction(DemoPageInstaller.Notification.ACTON_UPDATE_DEMO);
+        filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
+        filter.addAction(DemoInstaller.Notification.ACTON_UPDATE_DEMO);
         registerReceiver(mDemoNotificationReceiver, filter);
     }
 
@@ -258,7 +258,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     private void updateDemoPageIfNeeded() {
         final Context context = getApplicationContext();
-        if (DemoPageInstaller.isUpdateNeeded(context)) {
+        if (DemoInstaller.isUpdateNeeded(context)) {
             mLogger.info("Demo page must be updated.");
             updateDemoPage(context);
         } else {
@@ -267,7 +267,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     private void updateDemoPage(final Context context) {
-        mDemoInstaller.update(context, new DemoPageInstaller.UpdateCallback() {
+        mDemoInstaller.update(new DemoInstaller.UpdateCallback() {
             @Override
             public void onBeforeUpdate(final File demoDir) {
                 mLogger.info("Updating demo page: " + demoDir.getAbsolutePath());

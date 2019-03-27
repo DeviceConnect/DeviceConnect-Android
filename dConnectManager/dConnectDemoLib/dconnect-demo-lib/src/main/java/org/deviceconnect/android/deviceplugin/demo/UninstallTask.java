@@ -31,7 +31,7 @@ class UninstallTask extends FileTask {
         }
 
         // プラグインのバージョンを削除.
-        DemoPageInstaller.storeInstalledVersion(getContext(), null);
+        DemoInstaller.storeInstalledVersion(getContext(), null);
     }
 
 }

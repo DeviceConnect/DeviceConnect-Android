@@ -41,6 +41,6 @@ class UpdateTask extends FileTask {
         unzip(mAssetManager.open(mAssetPath), mDirectory);
 
         // プラグインのバージョンを保存.
-        DemoPageInstaller.storeInstalledVersion(getContext());
+        DemoInstaller.storeInstalledVersion(getContext());
     }
 }

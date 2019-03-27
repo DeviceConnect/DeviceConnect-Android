@@ -1,5 +1,5 @@
 /*
- HostDemoPageInstaller.java
+ HostDemoInstaller.java
  Copyright (c) 2019 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -7,7 +7,9 @@
 package org.deviceconnect.android.deviceplugin.host.demo;
 
 
-import org.deviceconnect.android.deviceplugin.demo.DemoPageInstaller;
+import android.content.Context;
+
+import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
 /**
@@ -15,12 +17,13 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDemoPageInstaller extends DemoPageInstaller {
+public class HostDemoInstaller extends DemoInstaller {
 
     /**
      * コンストラクタ.
+     * @param context コンテキスト
      */
-    public HostDemoPageInstaller() {
-        super(BuildConfig.PACKAGE_NAME, BuildConfig.DEMO_DIR, BuildConfig.DEMO_ZIP);
+    public HostDemoInstaller(final Context context) {
+        super(context, BuildConfig.PACKAGE_NAME, BuildConfig.DEMO_DIR, BuildConfig.DEMO_ZIP);
     }
 }

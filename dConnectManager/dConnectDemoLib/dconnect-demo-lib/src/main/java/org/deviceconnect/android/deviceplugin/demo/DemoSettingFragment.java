@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.demo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -89,6 +90,8 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
 
     protected abstract String getShortcutUri(final DemoInstaller demoInstaller);
 
+    protected abstract ComponentName getMainActivity(final Context context);
+
     protected abstract void onInstall(final Context context, final boolean createsShortcut);
 
     protected abstract void onOverwrite(final Context context);
@@ -168,7 +171,7 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
         MessageDialogFragment.Builder b = new MessageDialogFragment.Builder();
         b.title(getString(titleId));
         b.message(getString(messageId));
-        b.positive(getString(R.string.ok));
+        b.positive(getString(R.string.demo_lib_ok));
         b.parentId(getId());
         b.build().show(getFragmentManager());
     }
@@ -180,7 +183,7 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
         b.title(getString(titleId));
         b.summary(getString(summaryId));
         b.detail(detail);
-        b.positive(getString(R.string.confirm));
+        b.positive(getString(R.string.demo_lib_confirm));
         b.parentId(getId());
         b.build().show(getFragmentManager());
     }
@@ -483,11 +486,16 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
         Context context = activity.getApplicationContext();
         Intent shortcut = createDemoPageIntent();
 
-        ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
+        ShortcutInfoCompat.Builder builder = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
                 .setIcon(IconCompat.createWithResource(context, getShortcutIconResource(mDemoInstaller)))
                 .setShortLabel(getShortcutShortLabel(mDemoInstaller))
                 .setLongLabel(getShortcutLongLabel(mDemoInstaller))
-                .setIntent(shortcut).build();
+                .setIntent(shortcut);
+        ComponentName mainActivity = getMainActivity(context);
+        if (mainActivity != null) {
+            builder.setActivity(mainActivity);
+        }
+        ShortcutInfoCompat info = builder.build();
         boolean result = ShortcutManagerCompat.requestPinShortcut(context, info, null);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             // OS 8以下の場合はOSが結果を表示しないので、自前で出す

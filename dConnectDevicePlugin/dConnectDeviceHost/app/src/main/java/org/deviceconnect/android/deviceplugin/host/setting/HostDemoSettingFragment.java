@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -67,6 +68,11 @@ public class HostDemoSettingFragment extends DemoSettingFragment implements View
     @Override
     protected String getShortcutUri(final DemoInstaller installer) {
         return "gotapi://shortcut/" + installer.getPluginPackageName() + "/demo/camera/index.html";
+    }
+
+    @Override
+    protected ComponentName getMainActivity(final Context context) {
+        return null;
     }
 
     @Override

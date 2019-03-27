@@ -50,7 +50,7 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
         } else if (getString(R.string.pref_key_settings_jpeg_quality_preview).equals(preference.getKey())) {
             intent = new Intent(context, HostRecorderSettingActivity.class);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
-            intent = new Intent(context, HostDemoPageSettingActivity.class);
+            intent = new Intent(context, HostDemoSettingActivity.class);
         }
         if (intent != null) {
             activity.startActivity(intent);

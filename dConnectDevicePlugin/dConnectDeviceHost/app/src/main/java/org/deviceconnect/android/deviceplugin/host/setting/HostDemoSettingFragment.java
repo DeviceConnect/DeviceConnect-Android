@@ -7,8 +7,10 @@
 package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -27,6 +29,15 @@ public class HostDemoSettingFragment extends DemoSettingFragment implements View
     private static final String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    @Override
+    public void onAttach(final Context context) {
+        super.onAttach(context);
+        Activity activity = getActivity();
+        if (activity != null) {
+            ((AppCompatActivity) activity).getSupportActionBar().setTitle(getString(R.string.demo_page_settings_title));
+        }
+    }
 
     @Override
     protected DemoInstaller createDemoInstaller(final Context context) {

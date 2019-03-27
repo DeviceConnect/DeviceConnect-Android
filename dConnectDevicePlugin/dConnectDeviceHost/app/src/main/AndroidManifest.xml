@@ -53,7 +53,7 @@
             android:launchMode="singleTask">
         </activity>
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoPageSettingActivity"
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingActivity"
             android:label="@string/app_name_host"
             android:theme="@style/AppCompatTheme"
             android:launchMode="singleTask">

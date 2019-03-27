@@ -1,5 +1,5 @@
 /*
- HostDemoPageSettingActivity.java
+ HostDemoSettingActivity.java
  Copyright (c) 2019 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -16,7 +16,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDemoPageSettingActivity extends BaseHostSettingActivity {
+public class HostDemoSettingActivity extends BaseHostSettingActivity {
 
     @Override
     protected void onCreate(final @Nullable Bundle savedInstanceState) {

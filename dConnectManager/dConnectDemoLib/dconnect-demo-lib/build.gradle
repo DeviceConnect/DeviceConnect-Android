@@ -7,7 +7,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 28
         versionCode 1
-        versionName "1.0"
+        versionName "0.9.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -20,13 +20,6 @@ android {
         }
     }
 
-}
-
-repositories {
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
 }
 
 dependencies {
@@ -42,4 +35,19 @@ dependencies {
         exclude module: 'support-media-compat'
     }
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+def repo = new File(rootDir, "repository")
+
+apply plugin: 'maven'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: "file://${repo.absolutePath}"
+            pom.version = android.defaultConfig.versionName
+            pom.groupId = 'org.deviceconnect'
+            pom.artifactId = 'dconnect-demo-lib'
+        }
+    }
 }

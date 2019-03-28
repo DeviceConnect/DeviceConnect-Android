@@ -4,11 +4,10 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.demo;
+package org.deviceconnect.android.deviceplugin.demo;
 
 import android.content.Context;
 import android.os.Handler;
-
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +31,7 @@ class UninstallTask extends FileTask {
         }
 
         // プラグインのバージョンを削除.
-        DemoPageInstaller.storeInstalledVersion(getContext(), null);
+        DemoInstaller.storeInstalledVersion(getContext(), null);
     }
 
 }

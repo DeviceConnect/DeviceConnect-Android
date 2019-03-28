@@ -2,16 +2,16 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@color/title_background">
+    android:background="#ffffff">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="10pt"
         android:orientation="vertical">
 
         <TextView
-            android:text="@string/demo_page_description"
+            android:id="@+id/demo_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#777777"
@@ -24,6 +24,7 @@
             android:orientation="horizontal">
             <Button
                 android:id="@+id/button_delete_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -34,6 +35,7 @@
                 android:layout_margin="5pt"/>
             <Button
                 android:id="@+id/button_install_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -43,6 +45,7 @@
                 android:layout_margin="5pt"/>
             <Button
                 android:id="@+id/button_overwrite_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -52,6 +55,7 @@
                 android:layout_margin="5pt"/>
             <Button
                 android:id="@+id/button_open_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -64,6 +68,7 @@
 
         <Button
             android:id="@+id/button_create_demo_page_shortcut"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

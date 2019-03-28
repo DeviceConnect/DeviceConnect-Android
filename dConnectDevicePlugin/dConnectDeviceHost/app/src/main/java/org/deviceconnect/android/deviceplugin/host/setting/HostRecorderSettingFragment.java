@@ -44,11 +44,6 @@ public class HostRecorderSettingFragment extends BaseHostSettingPageFragment {
     }
 
     @Override
-    protected String getPageTag() {
-        return "mjpegQuality";
-    }
-
-    @Override
     public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.host_setting_recorder_photo_jpeg, null);

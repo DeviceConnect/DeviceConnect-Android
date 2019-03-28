@@ -24,7 +24,6 @@ import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -138,8 +137,9 @@ class DConnectWebSocketClient {
                             }
                         }
                     } else {
+                        String key = createPath(json);
                         synchronized (mListenerMap) {
-                            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(createPath(json));
+                            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
                             if (listeners != null) {
                                 for (DConnectSDK.OnEventListener l : listeners) {
                                     l.onMessage(new DConnectEventMessage(message));
@@ -259,6 +259,20 @@ class DConnectWebSocketClient {
     }
 
     /**
+     * 指定されたイベントのリスナーを持っているか確認します.
+     *
+     * @param uri イベントのURI
+     * @return リスナーが存在する場合はtrue、それ以外はfalse
+     */
+    boolean hasEventListener(final Uri uri) {
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
+            return listeners != null && !listeners.isEmpty();
+        }
+    }
+
+    /**
      * イベント通知リスナーを登録する.
      * @param uri 登録イベントのURI
      * @param listener 通知リスナー
@@ -276,17 +290,19 @@ class DConnectWebSocketClient {
     }
 
     /**
-     * イベント通知リスナーを削除する.
+     * イベント通知リスナーのリストを削除する.
      * @param uri 解除するイベントのURI
      */
     void removeEventListener(final Uri uri) {
+        String key = convertUriToPath(uri);
         synchronized (mListenerMap) {
-            mListenerMap.remove(convertUriToPath(uri));
+            mListenerMap.remove(key);
         }
     }
 
     /**
      * イベント通知リスナーを削除する.
+     *
      * @param uri 解除するイベントのURI
      * @param listener 削除するリスナー
      */
@@ -308,15 +324,22 @@ class DConnectWebSocketClient {
         mWebSocketClient.send("{\"" + DConnectMessage.EXTRA_ACCESS_TOKEN + "\":\"" + accessToken + "\"}");
     }
 
+    /**
+     * SSL接続用のソケットを作成するファクトリークラスを作成します.
+     *
+     * @return SSLSocketFactory
+     * @throws NoSuchAlgorithmException SSLに使用するアルゴリズムが存在しない場合に発生
+     * @throws KeyManagementException
+     */
     private SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
         TrustManager[] transManagers = {
                 new X509TrustManager() {
                     @Override
-                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) {
                     }
 
                     @Override
-                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) {
                     }
 
                     @Override

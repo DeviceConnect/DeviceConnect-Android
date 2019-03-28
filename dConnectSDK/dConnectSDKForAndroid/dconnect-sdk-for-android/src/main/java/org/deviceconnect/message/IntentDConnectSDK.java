@@ -140,23 +140,41 @@ class IntentDConnectSDK extends DConnectSDK {
             throw new NullPointerException("listener is null.");
         }
 
-        put(uri, null, new OnResponseListener() {
-            @Override
-            public void onResponse(final DConnectResponseMessage response) {
-                if (response.getResult() == DConnectMessage.RESULT_OK) {
-                    String key = convertUriToPath(uri);
-                    synchronized (mListenerMap) {
-                        List<OnEventListener> listeners = mListenerMap.get(key);
-                        if (listeners == null) {
-                            listeners = new ArrayList<>();
-                            mListenerMap.put(key, listeners);
-                        }
-                        listeners.add(listener);
-                    }
+        boolean hasEventListener;
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<OnEventListener> listeners = mListenerMap.get(key);
+            hasEventListener = listeners != null && !listeners.isEmpty();
+        }
+
+        if (hasEventListener) {
+            synchronized (mListenerMap) {
+                List<OnEventListener> listeners = mListenerMap.get(key);
+                if (listeners == null) {
+                    listeners = new ArrayList<>();
+                    mListenerMap.put(key, listeners);
                 }
-                listener.onResponse(response);
+                listeners.add(listener);
             }
-        });
+        } else {
+            put(uri, null, new OnResponseListener() {
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                    if (response.getResult() == DConnectMessage.RESULT_OK) {
+                        String key = convertUriToPath(uri);
+                        synchronized (mListenerMap) {
+                            List<OnEventListener> listeners = mListenerMap.get(key);
+                            if (listeners == null) {
+                                listeners = new ArrayList<>();
+                                mListenerMap.put(key, listeners);
+                            }
+                            listeners.add(listener);
+                        }
+                    }
+                    listener.onResponse(response);
+                }
+            });
+        }
     }
 
     @Override
@@ -170,8 +188,10 @@ class IntentDConnectSDK extends DConnectSDK {
             public void onResponse(final DConnectResponseMessage response) {
             }
         });
+
+        String key = convertUriToPath(uri);
         synchronized (mListenerMap) {
-            mListenerMap.remove(convertUriToPath(uri));
+            mListenerMap.remove(key);
         }
     }
 
@@ -181,17 +201,26 @@ class IntentDConnectSDK extends DConnectSDK {
             throw new NullPointerException("uri is null.");
         }
 
-        delete(uri, new OnResponseListener() {
-            @Override
-            public void onResponse(final DConnectResponseMessage response) {
-            }
-        });
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        }
 
+        boolean remove;
+        String key = convertUriToPath(uri);
         synchronized (mListenerMap) {
-            List<OnEventListener> listeners = mListenerMap.get(convertUriToPath(uri));
+            List<OnEventListener> listeners = mListenerMap.get(key);
             if (listeners != null) {
                 listeners.remove(listener);
             }
+            remove = listeners == null || listeners.isEmpty();
+        }
+
+        if (remove) {
+            delete(uri, new OnResponseListener() {
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                }
+            });
         }
     }
 
@@ -344,10 +373,15 @@ class IntentDConnectSDK extends DConnectSDK {
         return sResponseMap.remove(requestCode);
     }
 
+    /**
+     * イベントを受信した時の処理を行う.
+     * @param intent イベントメッセージ
+     */
     private void onReceivedEvent(final Intent intent) {
         try {
+            String key = createPath(intent);
             synchronized (mListenerMap) {
-                List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(createPath(intent));
+                List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
                 if (listeners != null) {
                     for (OnEventListener l : listeners) {
                         l.onMessage(new DConnectEventMessage(intent));
@@ -359,6 +393,11 @@ class IntentDConnectSDK extends DConnectSDK {
         }
     }
 
+    /**
+     * イベントのパスを作成する.
+     * @param intent イベントメッセージ
+     * @return パス
+     */
     private String createPath(final Intent intent) {
         String profile = intent.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String interfaces = intent.getStringExtra(DConnectMessage.EXTRA_INTERFACE);

@@ -34,7 +34,6 @@ import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Random;
@@ -84,7 +83,7 @@ class HttpDConnectSDK extends DConnectSDK {
     /**
      * WebSocketと接続を行うクラス.
      */
-    private DConnectWebSocketClient mWebSocketClient = new DConnectWebSocketClient();
+    private final DConnectWebSocketClient mWebSocketClient = new DConnectWebSocketClient();
 
     /**
      * マルチパートのバウンダリーに付加するハイフンを定義.
@@ -123,11 +122,11 @@ class HttpDConnectSDK extends DConnectSDK {
         TrustManager[] transManagers = {
                 new X509TrustManager() {
                     @Override
-                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) {
                     }
 
                     @Override
-                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) {
                     }
 
                     @Override
@@ -316,7 +315,7 @@ class HttpDConnectSDK extends DConnectSDK {
             }
 
             // マルチパートのContentTypeを設定する
-            if (body != null && body instanceof MultipartEntity) {
+            if (body instanceof MultipartEntity) {
                 conn.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
                 conn.setFixedLengthStreamingMode(calcContentLength(((MultipartEntity) body).getContent(), boundary));
             }
@@ -447,15 +446,19 @@ class HttpDConnectSDK extends DConnectSDK {
             throw new NullPointerException("listener is null.");
         }
 
-        put(uri, null, new OnResponseListener() {
-            @Override
-            public void onResponse(final DConnectResponseMessage response) {
-                if (response.getResult() == DConnectMessage.RESULT_OK) {
-                    mWebSocketClient.addEventListener(uri, listener);
+        if (mWebSocketClient.hasEventListener(uri)) {
+            mWebSocketClient.addEventListener(uri, listener);
+        } else {
+            put(uri, null, new OnResponseListener() {
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                    if (response.getResult() == DConnectMessage.RESULT_OK) {
+                        mWebSocketClient.addEventListener(uri, listener);
+                    }
+                    listener.onResponse(response);
                 }
-                listener.onResponse(response);
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -463,14 +466,14 @@ class HttpDConnectSDK extends DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
+
+        mWebSocketClient.removeEventListener(uri);
+
         delete(uri, new OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
             }
         });
-        if (mWebSocketClient != null) {
-            mWebSocketClient.removeEventListener(uri);
-        }
     }
 
     @Override
@@ -478,13 +481,20 @@ class HttpDConnectSDK extends DConnectSDK {
         if (uri == null) {
             throw new NullPointerException("uri is null.");
         }
-        delete(uri, new OnResponseListener() {
-            @Override
-            public void onResponse(final DConnectResponseMessage response) {
-            }
-        });
-        if (mWebSocketClient != null) {
-            mWebSocketClient.removeEventListener(uri, listener);
+
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        }
+
+        mWebSocketClient.removeEventListener(uri, listener);
+
+        // リスナーが空の場合は停止命令を行う
+        if (!mWebSocketClient.hasEventListener(uri)) {
+            delete(uri, new OnResponseListener() {
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                }
+            });
         }
     }
 }

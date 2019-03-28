@@ -4,13 +4,11 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.demo;
+package org.deviceconnect.android.deviceplugin.demo;
 
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;

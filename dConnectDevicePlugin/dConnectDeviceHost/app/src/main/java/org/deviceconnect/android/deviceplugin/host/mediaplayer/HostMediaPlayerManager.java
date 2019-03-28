@@ -299,15 +299,13 @@ public class HostMediaPlayerManager {
                 }
             } catch (IllegalArgumentException | IllegalStateException | IOException e) {
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "can't not mount:" + filePath);
+                    MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                     sendResponse(response);
                 }
             }
         } else {
             if (response != null) {
-                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "can't not open:" + filePath);
+                MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                 sendResponse(response);
             }
         }

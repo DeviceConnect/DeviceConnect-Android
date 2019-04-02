@@ -1,15 +1,15 @@
 /*
- HostDemoPageSettingFragment.java
+ DemoSettingFragment.java
  Copyright (c) 2018 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.setting;
+package org.deviceconnect.android.deviceplugin.demo;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,8 +23,8 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.pm.ShortcutInfoCompat;
 import android.support.v4.content.pm.ShortcutManagerCompat;
 import android.support.v4.graphics.drawable.IconCompat;
@@ -35,11 +35,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.demo.DemoPageInstaller;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,19 +46,11 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment implements View.OnClickListener {
+public abstract class DemoSettingFragment extends Fragment implements View.OnClickListener {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
-    private static final String TAG = "host.dplugin";
-
-    private static final String DOCUMENT_DIR_NAME = "org.deviceconnect.android.manager";
-
-    private static final String PLUGIN_DIR_NAME = "org.deviceconnect.android.deviceplugin.host";
-
-    private static final String PREFERENCE_NAME =  "demo_page_info";
-
-    private static final String KEY_PLUGIN_VERSION_NAME = "plugin_version_name";
+    private static final String TAG = "demo-lib";
 
     private static final String CAMERA_DEMO_SHORTCUT_ID = "1";
 
@@ -71,11 +59,6 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
     private static final String TAG_OVERWRITE_PROMPT = "overwrite";
 
     private static final String TAG_DELETION_PROMPT = "deletion";
-
-    private static final String[] PERMISSIONS = {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
-
 
     private Button mDeleteButton;
 
@@ -87,25 +70,46 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private Button mCreateShortcutButton;
 
+    private TextView mDescriptionView;
+
     private Handler mHandler;
 
-    private final DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo");
+    private DemoInstaller mDemoInstaller;
 
-    @Override
-    protected String getPageTitle() {
-        return getString(R.string.demo_page_settings_title);
-    }
+    private ShortcutManager mShortcutManager;
 
-    @Override
-    protected String getPageTag() {
-        return "demo";
+    protected abstract DemoInstaller createDemoInstaller(Context context);
+
+    protected abstract String getDemoDescription(final DemoInstaller demoInstaller);
+
+    protected abstract int getShortcutIconResource(final DemoInstaller demoInstaller);
+
+    protected abstract String getShortcutShortLabel(final DemoInstaller demoInstaller);
+
+    protected abstract String getShortcutLongLabel(final DemoInstaller demoInstaller);
+
+    protected abstract String getShortcutUri(final DemoInstaller demoInstaller);
+
+    protected abstract ComponentName getMainActivity(final Context context);
+
+    protected abstract void onInstall(final Context context, final boolean createsShortcut);
+
+    protected abstract void onOverwrite(final Context context);
+
+    protected abstract void onUninstall(final Context context);
+
+    protected Handler getMainHandler() {
+        return mHandler;
     }
 
     @Nullable
     @Override
     public View onCreateView(final @NonNull LayoutInflater inflater, final @Nullable ViewGroup container,
                              final Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.host_setting_demo_page, null);
+        if (DEBUG) {
+            Log.d(TAG, "DemoSettingFragment: onCreateView");
+        }
+        View rootView = inflater.inflate(R.layout.fragment_setting_demo_page, null);
         mHandler = new Handler(Looper.getMainLooper());
         mDeleteButton = rootView.findViewById(R.id.button_delete_demo_page);
         mDeleteButton.setOnClickListener(this);
@@ -117,13 +121,28 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         mOpenButton.setOnClickListener(this);
         mCreateShortcutButton = rootView.findViewById(R.id.button_create_demo_page_shortcut);
         mCreateShortcutButton.setOnClickListener(this);
+        mDescriptionView = rootView.findViewById(R.id.demo_description);
         return rootView;
+    }
+
+    @Override
+    public void onAttach(final Context context) {
+        super.onAttach(context);
+        if (DEBUG) {
+            Log.d(TAG, "DemoSettingFragment: onAttach");
+        }
+        if (mDemoInstaller == null) {
+            mDemoInstaller = createDemoInstaller(context);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 && mShortcutManager == null) {
+            mShortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        updateView(getActivity());
+        updateView();
     }
 
     @Override
@@ -142,9 +161,9 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         } else if (v == mOpenButton) {
             openDemoPage(activity);
         } else if (v == mCreateShortcutButton) {
-            createShortcut(activity);
+            createShortcut();
         }
-        updateView(activity);
+        updateView();
     }
 
     private void showMessageDialog(final int titleId,
@@ -152,7 +171,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         MessageDialogFragment.Builder b = new MessageDialogFragment.Builder();
         b.title(getString(titleId));
         b.message(getString(messageId));
-        b.positive(getString(R.string.host_ok));
+        b.positive(getString(R.string.demo_lib_ok));
+        b.parentId(getId());
         b.build().show(getFragmentManager());
     }
 
@@ -163,7 +183,8 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         b.title(getString(titleId));
         b.summary(getString(summaryId));
         b.detail(detail);
-        b.positive(getString(R.string.host_confirm));
+        b.positive(getString(R.string.demo_lib_confirm));
+        b.parentId(getId());
         b.build().show(getFragmentManager());
     }
 
@@ -173,6 +194,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         b.title(getString(R.string.demo_page_settings_title_install));
         b.positive(getString(R.string.demo_page_settings_button_install));
         b.negative(getString(R.string.demo_page_settings_button_cancel));
+        b.parentId(getId());
         b.build().show(getFragmentManager());
     }
 
@@ -182,7 +204,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 R.string.demo_page_settings_message_install_completed);
     }
 
-    private void showInstallErrorDialog(final String detail) {
+    public void showInstallErrorDialog(final String detail) {
         showErrorDialog(R.string.demo_page_settings_title_error,
                 R.string.demo_page_settings_message_install_error, detail);
     }
@@ -196,6 +218,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         b.title(getString(R.string.demo_page_settings_title_overwrite));
         b.positive(getString(R.string.demo_page_settings_button_overwrite));
         b.negative(getString(R.string.demo_page_settings_button_cancel));
+        b.parentId(getId());
         b.build().show(getFragmentManager());
     }
 
@@ -205,7 +228,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 R.string.demo_page_settings_message_overwrite_completed);
     }
 
-    private void showOverwriteErrorDialog(final String detail) {
+    public void showOverwriteErrorDialog(final String detail) {
         showErrorDialog(R.string.demo_page_settings_title_error,
                 R.string.demo_page_settings_message_overwrite_error, detail);
     }
@@ -216,6 +239,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         b.title(getString(R.string.demo_page_settings_title_delete));
         b.positive(getString(R.string.demo_page_settings_button_delete));
         b.negative(getString(R.string.demo_page_settings_button_cancel));
+        b.parentId(getId());
         b.build().show(getFragmentManager());
     }
 
@@ -225,44 +249,30 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 R.string.demo_page_settings_message_delete_completed);
     }
 
-    private void showDeletionErrorDialog(final String detail) {
+    public void showUninstallErrorDialog(final String detail) {
         showErrorDialog(R.string.demo_page_settings_title_error,
                 R.string.demo_page_settings_message_delete_error, detail);
     }
 
-    public void onPositiveButton(final String tag, final MessageDialogFragment dialogFragment) {
+    void onPositiveButton(final String tag, final MessageDialogFragment dialogFragment) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
         }
 
-        requestPermission(activity, new PermissionUtility.PermissionRequestCallback() {
-            @Override
-            public void onSuccess() {
-                if (TAG_INSTALL_PROMPT.equals(tag)) {
-                    install(activity, dialogFragment);
-                } else if (TAG_OVERWRITE_PROMPT.equals(tag)) {
-                    overwrite(activity);
-                } else if (TAG_DELETION_PROMPT.equals(tag)) {
-                    uninstall(activity);
-                }
-            }
-
-            @Override
-            public void onFail(final @NonNull String deniedPermission) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        showInstallErrorDialog("Denied permission: " + deniedPermission);
-                    }
-                });
-            }
-        });
+        Context context = mDemoInstaller.getContext();
+        if (TAG_INSTALL_PROMPT.equals(tag)) {
+            onInstall(context, ((InstallDialogFragment) dialogFragment).isChecked());
+        } else if (TAG_OVERWRITE_PROMPT.equals(tag)) {
+            onOverwrite(context);
+        } else if (TAG_DELETION_PROMPT.equals(tag)) {
+            onUninstall(context);
+        }
     }
 
-    private void install(final Activity activity, final MessageDialogFragment dialogFragment) {
+    public void install(final boolean createsShortcut) {
         // デモページをインストール
-        mDemoInstaller.install(activity.getApplicationContext(), new DemoPageInstaller.InstallCallback() {
+        mDemoInstaller.install(new DemoInstaller.InstallCallback() {
             @Override
             public void onBeforeInstall(final File demoDir) {
                 if (DEBUG) {
@@ -276,11 +286,11 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                     Log.d(TAG, "Installed demo: path=" + demoDir.getAbsolutePath());
                 }
 
-                updateView(activity);
+                updateView();
                 showInstallSuccessDialog();
 
-                if (((InstallDialogFragment) dialogFragment).isChecked()) {
-                    createShortcut(activity);
+                if (createsShortcut) {
+                    createShortcut();
                 }
             }
 
@@ -302,9 +312,9 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }, mHandler);
     }
 
-    private void overwrite(final Activity activity) {
+    public void overwrite() {
         // デモページを上書き (更新処理と同一のロジック)
-        mDemoInstaller.update(activity.getApplicationContext(), new DemoPageInstaller.UpdateCallback() {
+        mDemoInstaller.update(new DemoInstaller.UpdateCallback() {
             @Override
             public void onBeforeUpdate(final File demoDir) {
                 if (DEBUG) {
@@ -318,7 +328,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                     Log.d(TAG, "Overwritten demo: path=" + demoDir.getAbsolutePath());
                 }
 
-                updateView(activity);
+                updateView();
                 showOverwriteSuccessDialog();
             }
 
@@ -340,9 +350,9 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }, mHandler);
     }
 
-    private void uninstall(final Activity activity) {
+    public void uninstall() {
         // デモページをアンインストール
-        mDemoInstaller.uninstall(activity.getApplicationContext(), new DemoPageInstaller.UninstallCallback() {
+        mDemoInstaller.uninstall(new DemoInstaller.UninstallCallback() {
             @Override
             public void onBeforeUninstall(final File demoDir) {
                 if (DEBUG) {
@@ -356,9 +366,10 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                     Log.d(TAG, "Uninstalled demo: path=" + demoDir.getAbsolutePath());
                 }
 
-                deleteShortcut(activity);
+                // NOTE: ショートカットの削除はOSに任せる. OSが削除しない場合は、
+                // ユーザーが手動で削除するものとする.
 
-                updateView(activity);
+                updateView();
                 showDeletionSuccessDialog();
             }
 
@@ -367,7 +378,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 if (DEBUG) {
                     Log.e(TAG, "Failed to install demo on external storage.", e);
                 }
-                showDeletionErrorDialog(e.getMessage());
+                showUninstallErrorDialog(e.getMessage());
             }
 
             @Override
@@ -375,21 +386,18 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                 if (DEBUG) {
                     Log.e(TAG, "Failed to delete demo from external storage.");
                 }
-                showDeletionErrorDialog(e.getMessage());
+                showUninstallErrorDialog(e.getMessage());
             }
         }, mHandler);
-    }
-
-    private void requestPermission(final Context context, final PermissionUtility.PermissionRequestCallback callback) {
-        PermissionUtility.requestPermissions(context, mHandler, PERMISSIONS, callback);
     }
 
     public void onNegativeButton(final String tag, final MessageDialogFragment dialogFragment) {
         // NOP.
     }
 
-    private void updateView(final Context context) {
-        if (DemoPageInstaller.isInstalledDemoPage(context)) {
+    private void updateView() {
+        mDescriptionView.setText(getDemoDescription(mDemoInstaller));
+        if (mDemoInstaller.isInstalledDemoPage()) {
             mDeleteButton.setVisibility(View.VISIBLE);
             mDeleteButton.setEnabled(true);
 
@@ -402,7 +410,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             mOpenButton.setVisibility(View.VISIBLE);
             mOpenButton.setEnabled(true);
 
-            if (isCreatedShortcut(context)) {
+            if (isCreatedShortcut()) {
                 mCreateShortcutButton.setVisibility(View.VISIBLE);
                 mCreateShortcutButton.setEnabled(false);
             } else {
@@ -434,11 +442,21 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
     }
 
-    private boolean isCreatedShortcut(final Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
+    private boolean isCreatedShortcut() {
+        if (DEBUG) {
+            Log.d(TAG, "DemoPageSetting: isCreatedShortcut");
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            ShortcutManager shortcutManager = mShortcutManager;
             List<ShortcutInfo> infoList = shortcutManager.getPinnedShortcuts();
+            if (DEBUG) {
+                Log.d(TAG, "DemoPageSetting: isCreatedShortcut: PinnedShortcuts=" + infoList.size());
+                Log.d(TAG, "DemoPageSetting: isCreatedShortcut: DynamicShortcuts=" + shortcutManager.getDynamicShortcuts());
+            }
             for (ShortcutInfo info : infoList) {
+                if (DEBUG) {
+                    Log.d(TAG, "DemoPageSetting: isCreatedShortcut: info=" + info.getPackage());
+                }
                 if (info.getId().equals(CAMERA_DEMO_SHORTCUT_ID)) {
                     return true;
                 }
@@ -456,35 +474,41 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
     private Intent createDemoPageIntent() {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("gotapi://shortcut/" + PLUGIN_DIR_NAME + "/demo/camera/index.html"));
+        intent.setData(Uri.parse(getShortcutUri(mDemoInstaller)));
         return intent;
     }
 
-    private void createShortcut(final Context context) {
+    private void createShortcut() {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Context context = activity.getApplicationContext();
         Intent shortcut = createDemoPageIntent();
 
-        ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
-                .setIcon(IconCompat.createWithResource(context, R.drawable.dconnect_icon))
-                .setShortLabel(context.getString(R.string.demo_page_shortcut_label))
-                .setIntent(shortcut).build();
+        ShortcutInfoCompat.Builder builder = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
+                .setIcon(IconCompat.createWithResource(context, getShortcutIconResource(mDemoInstaller)))
+                .setShortLabel(getShortcutShortLabel(mDemoInstaller))
+                .setLongLabel(getShortcutLongLabel(mDemoInstaller))
+                .setIntent(shortcut);
+        ComponentName mainActivity = getMainActivity(context);
+        if (mainActivity != null) {
+            builder.setActivity(mainActivity);
+        }
+        ShortcutInfoCompat info = builder.build();
         boolean result = ShortcutManagerCompat.requestPinShortcut(context, info, null);
-        if (result) {
-            // TODO 成功ダイアログを表示
-        } else {
-            // TODO 失敗ダイアログを表示
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // OS 8以下の場合はOSが結果を表示しないので、自前で出す
+            if (result) {
+                showShurtcutResult(getString(R.string.demo_page_settings_button_create_shortcut_success));
+            } else {
+                showShurtcutResult(getString(R.string.demo_page_settings_button_create_shortcut_error));
+            }
         }
     }
 
-    private void deleteShortcut(final Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // NOTE: API Level 26 以上ではショートカットを削除できない
-//            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
-//            List<String> list = new ArrayList<>();
-//            list.add(CAMERA_DEMO_SHORTCUT_ID);
-//            shortcutManager.disableShortcuts(list);
-        } else {
-
-        }
+    private void showShurtcutResult(final String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
     }
 
     public static class InstallDialogFragment extends MessageDialogFragment {
@@ -495,7 +519,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         protected void onExtendDialog(final @NonNull AlertDialog.Builder builder,
                                       final @NonNull LayoutInflater layoutInflater,
                                       final @NonNull Bundle arguments) {
-            mView = layoutInflater.inflate(R.layout.dialog_host_demo_page_install, null);
+            mView = layoutInflater.inflate(R.layout.dialog_demo_page_install, null);
             builder.setView(mView);
         }
 
@@ -523,7 +547,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         protected void onExtendDialog(final @NonNull AlertDialog.Builder builder,
                                       final @NonNull LayoutInflater layoutInflater,
                                       final @NonNull Bundle arguments) {
-            mView = layoutInflater.inflate(R.layout.dialog_host_demo_page_overwrite, null);
+            mView = layoutInflater.inflate(R.layout.dialog_demo_page_overwrite, null);
             final Bundle args = getArguments();
             String demoDirPath = args.getString(KEY_DEMO_DIR_PATH);
 
@@ -555,7 +579,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         protected void onExtendDialog(final @NonNull AlertDialog.Builder builder,
                                       final @NonNull LayoutInflater layoutInflater,
                                       final @NonNull Bundle arguments) {
-            View view = layoutInflater.inflate(R.layout.dialog_host_demo_page_delete, null);
+            View view = layoutInflater.inflate(R.layout.dialog_demo_page_delete, null);
             builder.setView(view);
         }
 
@@ -579,7 +603,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                                       final @NonNull LayoutInflater layoutInflater,
                                       final @NonNull Bundle arguments) {
 
-            View view = layoutInflater.inflate(R.layout.dialog_host_demo_page_error, null);
+            View view = layoutInflater.inflate(R.layout.dialog_demo_page_error, null);
             TextView summaryView = view.findViewById(R.id.error_summary);
             summaryView.setText(arguments.getString(KEY_ERROR_SUMMARY));
             TextView detailView  = view.findViewById(R.id.error_detail);
@@ -618,6 +642,12 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
 
         static final String KEY_NEGATIVE = "negative";
 
+        static final String KEY_PARENT_ID = "parentId";
+
+        private String mTag;
+
+        private int mParentId;
+
         protected void onExtendDialog(final AlertDialog.Builder builder,
                                       final LayoutInflater layoutInflater,
                                       final Bundle arguments) {}
@@ -629,6 +659,9 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             final Activity activity = getActivity();
             final Bundle args = getArguments();
             if (activity != null && args != null) {
+                mTag = args.getString(KEY_TAG);
+                mParentId = args.getInt(KEY_PARENT_ID, -1);
+
                 builder.setTitle(args.getString(KEY_TITLE));
                 String message = args.getString(KEY_MESSAGE);
                 if (message != null) {
@@ -640,8 +673,14 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(final DialogInterface dialog, final int which) {
-                                    HostDemoPageSettingFragment l = (HostDemoPageSettingFragment) getFragmentManager().findFragmentByTag("demo");
-                                    l.onPositiveButton(args.getString(KEY_TAG), MessageDialogFragment.this);
+                                    FragmentManager mgr = getFragmentManager();
+                                    if (mgr != null) {
+                                        DemoSettingFragment l = (DemoSettingFragment) mgr.findFragmentById(mParentId);
+                                        if (l != null) {
+                                            l.onPositiveButton(mTag, MessageDialogFragment.this);
+                                        }
+                                    }
+                                    dialog.dismiss();
                                 }
                             });
                 }
@@ -651,8 +690,14 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(final DialogInterface dialog, final int which) {
-                                    HostDemoPageSettingFragment l = (HostDemoPageSettingFragment) getFragmentManager().findFragmentByTag("demo");
-                                    l.onNegativeButton(args.getString(KEY_TAG), MessageDialogFragment.this);
+                                    FragmentManager mgr = getFragmentManager();
+                                    if (mgr != null) {
+                                        DemoSettingFragment l = (DemoSettingFragment) mgr.findFragmentById(mParentId);
+                                        if (l != null) {
+                                            l.onNegativeButton(mTag, MessageDialogFragment.this);
+                                        }
+                                    }
+                                    dialog.dismiss();
                                 }
                             });
                 }
@@ -662,10 +707,7 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
         }
 
         void show(final FragmentManager fragmentManager) {
-            FragmentTransaction t = fragmentManager.beginTransaction();
-            t.add(this, null);
-            t.addToBackStack(null);
-            t.commitAllowingStateLoss();
+            show(fragmentManager, mTag);
         }
 
         static class Builder {
@@ -690,6 +732,10 @@ public class HostDemoPageSettingFragment extends BaseHostSettingPageFragment imp
             }
             Builder negative(final String positive) {
                 mArguments.putString(KEY_NEGATIVE, positive);
+                return this;
+            }
+            Builder parentId(final int parentId) {
+                mArguments.putInt(KEY_PARENT_ID, parentId);
                 return this;
             }
             MessageDialogFragment build() {

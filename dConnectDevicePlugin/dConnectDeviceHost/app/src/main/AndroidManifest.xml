@@ -41,6 +41,24 @@
             android:launchMode="singleTask">
         </activity>
         <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingActivity"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSettingActivity"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingActivity"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -98,6 +116,13 @@
             android:excludeFromRecents="true"
             android:launchMode="singleInstance">
         </activity>
+
+        <!-- パーミッション要求画面 -->
+        <activity
+            android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
+            android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
 
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"

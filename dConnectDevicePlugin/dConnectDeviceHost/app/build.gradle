@@ -22,6 +22,8 @@ android {
         targetSdkVersion 28
         versionName getVersionName()
 
+        buildConfigField "String", "PACKAGE_NAME", "\"org.deviceconnect.android.deviceplugin.host\""
+        buildConfigField "String", "DEMO_DIR", "\"demo\""
         buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
     }
 
@@ -43,6 +45,11 @@ android {
     }
 
     productFlavors {
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
 
     packagingOptions {
@@ -72,6 +79,7 @@ dependencies {
     }
     implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
     implementation project(':dconnect-device-plugin-sdk')
+    implementation project(':dconnect-demo-lib')
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {
         exclude module: 'support-v4'

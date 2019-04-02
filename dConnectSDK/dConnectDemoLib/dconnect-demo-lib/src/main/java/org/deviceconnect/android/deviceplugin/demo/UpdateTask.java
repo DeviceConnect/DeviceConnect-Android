@@ -1,10 +1,10 @@
 /*
- InstallTask.java
+ UpdateTask.java
  Copyright (c) 2018 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.demo;
+package org.deviceconnect.android.deviceplugin.demo;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -13,7 +13,7 @@ import android.os.Handler;
 import java.io.File;
 import java.io.IOException;
 
-class InstallTask extends FileTask {
+class UpdateTask extends FileTask {
 
     private final AssetManager mAssetManager;
 
@@ -21,10 +21,10 @@ class InstallTask extends FileTask {
 
     private final File mDirectory;
 
-    InstallTask(final Context context,
-                final String assetPath,
-                final File directory,
-                final Handler handler) {
+    UpdateTask(final Context context,
+               final String assetPath,
+               final File directory,
+               final Handler handler) {
         super(context, handler);
         mAssetManager = context.getAssets();
         mAssetPath = assetPath;
@@ -33,11 +33,14 @@ class InstallTask extends FileTask {
 
     @Override
     protected void execute() throws IOException {
+        if (!deleteDir(mDirectory)) {
+            throw new IOException("Failed to delete directory: " + mDirectory.getAbsolutePath());
+        }
+
         // デモページを指定されたディレクトリにインストール.
         unzip(mAssetManager.open(mAssetPath), mDirectory);
 
         // プラグインのバージョンを保存.
-        DemoPageInstaller.storeInstalledVersion(getContext());
+        DemoInstaller.storeInstalledVersion(getContext());
     }
-
 }

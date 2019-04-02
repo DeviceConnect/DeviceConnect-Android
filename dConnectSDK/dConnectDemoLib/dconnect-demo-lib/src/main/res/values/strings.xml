@@ -1,0 +1,30 @@
+<resources>
+    <string name="demo_lib_ok">OK</string>
+    <string name="demo_lib_confirm">Confirm</string>
+
+    <string name="demo_page_settings_title">Demo Page</string>
+    <string name="demo_page_settings_title_error">Error</string>
+    <string name="demo_page_settings_title_delete">Delete</string>
+    <string name="demo_page_settings_title_install">Install</string>
+    <string name="demo_page_settings_title_overwrite">Overwrite</string>
+    <string name="demo_page_settings_message_delete">The demo page on the external storage will be deleted. OK?</string>
+    <string name="demo_page_settings_message_delete_completed">The demo page is deleted.</string>
+    <string name="demo_page_settings_message_delete_error">Failed to delete the demo page.</string>
+    <string name="demo_page_settings_message_install">The demo page will be installed on the external storage. OK?</string>
+    <string name="demo_page_settings_message_install_completed">The demo page is installed.</string>
+    <string name="demo_page_settings_message_install_error">Failed to install the demo page.</string>
+    <string name="demo_page_settings_message_overwrite">The same name directory of demo page exists. The demo page will be installed in the directory after content of the directory is deleted. OK?\n\nPath:\n{{demoDirPath}}</string>
+    <string name="demo_page_settings_message_overwrite_completed">The demo page is overwritten.</string>
+    <string name="demo_page_settings_message_overwrite_error">Failed to overwrite the demo page.</string>
+    <string name="demo_page_settings_checkbox_shortcut">Create a shortcut on the home screen</string>
+    <string name="demo_page_settings_button_cancel">Cancel</string>
+    <string name="demo_page_settings_button_delete">Delete</string>
+    <string name="demo_page_settings_button_install">Install</string>
+    <string name="demo_page_settings_button_overwrite">Overwrite</string>
+    <string name="demo_page_settings_button_open">Open</string>
+    <string name="demo_page_settings_button_create_shortcut">Create shortcut</string>
+    <string name="demo_page_settings_button_create_shortcut_success">Created a shortcut to demo on Home.</string>
+    <string name="demo_page_settings_button_create_shortcut_error">Failed to create a shortcut to demo on Home.</string>
+    <string name="demo_page_settings_message_update_completed">The demo page is updated.</string>
+    <string name="demo_page_settings_message_update_error">Failed to update the demo page.</string>s
+</resources>

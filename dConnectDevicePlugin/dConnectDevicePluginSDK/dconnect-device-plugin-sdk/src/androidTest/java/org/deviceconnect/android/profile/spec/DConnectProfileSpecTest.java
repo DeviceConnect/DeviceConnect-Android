@@ -2,7 +2,6 @@ package org.deviceconnect.android.profile.spec;
 
 import android.os.Bundle;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.InstrumentationTestCase;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +10,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
-public class DConnectProfileSpecTest extends InstrumentationTestCase {
+public class DConnectProfileSpecTest {
 
     @Test
     public void testDeepCopy() throws Exception {

@@ -448,6 +448,15 @@ class HttpDConnectSDK extends DConnectSDK {
 
         if (mWebSocketClient.hasEventListener(uri)) {
             mWebSocketClient.addEventListener(uri, listener);
+
+            // 既にリスナーが登録されているので、ここでレスポンスを返しておく
+            try {
+                String json = "{\"result\" : 0}";
+                DConnectResponseMessage responseMessage = new DConnectResponseMessage(json);
+                listener.onResponse(responseMessage);
+            } catch (JSONException e) {
+                // ignore.
+            }
         } else {
             put(uri, null, new OnResponseListener() {
                 @Override

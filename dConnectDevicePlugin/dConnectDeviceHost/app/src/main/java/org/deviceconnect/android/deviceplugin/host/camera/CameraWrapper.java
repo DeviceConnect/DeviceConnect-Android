@@ -19,6 +19,7 @@ import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaActionSound;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -84,6 +85,10 @@ public class CameraWrapper {
 
     private byte mPreviewJpegQuality;
 
+    private MediaActionSound mActionSound;
+
+    private final Object mSoundLock = new Object();
+
     public CameraWrapper(final @NonNull Context context, final @NonNull String cameraId) {
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -103,6 +108,29 @@ public class CameraWrapper {
                 }
             }
         }, mBackgroundHandler);
+        loadSound();
+    }
+
+    private void loadSound() {
+        mActionSound = new MediaActionSound();
+        mActionSound.load(MediaActionSound.SHUTTER_CLICK);
+        mActionSound.load(MediaActionSound.START_VIDEO_RECORDING);
+        mActionSound.load(MediaActionSound.STOP_VIDEO_RECORDING);
+    }
+
+    private void releaseSound() {
+        synchronized (mSoundLock) {
+            mActionSound.release();
+            mActionSound = null;
+        }
+    }
+
+    private void playSound(final int key) {
+        synchronized (mSoundLock) {
+            if (mActionSound != null) {
+                mActionSound.play(key);
+            }
+        }
     }
 
     public String getId() {
@@ -130,6 +158,7 @@ public class CameraWrapper {
     }
 
     public synchronized void destroy() {
+        releaseSound();
         close();
         mBackgroundThread.quit();
         mSessionConfigurationThread.quit();
@@ -354,6 +383,8 @@ public class CameraWrapper {
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             captureSession.setRepeatingRequest(request.build(), null, null);
             mCaptureSession = captureSession;
+
+            playSound(MediaActionSound.START_VIDEO_RECORDING);
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
         }
@@ -364,11 +395,14 @@ public class CameraWrapper {
             return;
         }
         mIsRecording = false;
+
         mRecordingSurface = null;
         if (mCaptureSession != null) {
             mCaptureSession.close();
             mCaptureSession = null;
         }
+        playSound(MediaActionSound.STOP_VIDEO_RECORDING);
+
         if (mIsPreview) {
             startPreview(mPreviewSurface, true);
         } else {
@@ -398,6 +432,8 @@ public class CameraWrapper {
                 autoFocus(cameraDevice);
                 autoExposure(cameraDevice);
             }
+
+            playSound(MediaActionSound.SHUTTER_CLICK);
 
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);

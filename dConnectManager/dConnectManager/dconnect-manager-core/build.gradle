@@ -26,9 +26,7 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
-    implementation project(':dconnect-device-plugin-sdk')
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.6.1'
     implementation project(':dconnect-server-nano-httpd')
 
     testImplementation 'junit:junit:4.12'

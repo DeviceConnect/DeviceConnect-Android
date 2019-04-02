@@ -33,6 +33,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author NTT DOCOMO, INC.
  */
 class IntentDConnectSDK extends DConnectSDK {
+
+    /**
+     * パスとサービスIDを接続する文字列.
+     */
+    private static final String JOIN_SERVICE_ID = "_";
+
     /**
      * レスポンスを格納するマップ.
      */
@@ -46,7 +52,7 @@ class IntentDConnectSDK extends DConnectSDK {
     /**
      * リスナーを登録するマップ.
      */
-    private Map<String, HttpDConnectSDK.OnEventListener> mListenerMap = new HashMap<>();
+    private final Map<String, List<HttpDConnectSDK.OnEventListener>> mListenerMap = new HashMap<>();
 
     /**
      * コンテキスト.
@@ -134,15 +140,41 @@ class IntentDConnectSDK extends DConnectSDK {
             throw new NullPointerException("listener is null.");
         }
 
-        put(uri, null, new OnResponseListener() {
-            @Override
-            public void onResponse(final DConnectResponseMessage response) {
-                if (response.getResult() == DConnectMessage.RESULT_OK) {
-                    mListenerMap.put(convertUriToPath(uri), listener);
+        boolean hasEventListener;
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<OnEventListener> listeners = mListenerMap.get(key);
+            hasEventListener = listeners != null && !listeners.isEmpty();
+        }
+
+        if (hasEventListener) {
+            synchronized (mListenerMap) {
+                List<OnEventListener> listeners = mListenerMap.get(key);
+                if (listeners == null) {
+                    listeners = new ArrayList<>();
+                    mListenerMap.put(key, listeners);
                 }
-                listener.onResponse(response);
+                listeners.add(listener);
             }
-        });
+        } else {
+            put(uri, null, new OnResponseListener() {
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                    if (response.getResult() == DConnectMessage.RESULT_OK) {
+                        String key = convertUriToPath(uri);
+                        synchronized (mListenerMap) {
+                            List<OnEventListener> listeners = mListenerMap.get(key);
+                            if (listeners == null) {
+                                listeners = new ArrayList<>();
+                                mListenerMap.put(key, listeners);
+                            }
+                            listeners.add(listener);
+                        }
+                    }
+                    listener.onResponse(response);
+                }
+            });
+        }
     }
 
     @Override
@@ -156,7 +188,40 @@ class IntentDConnectSDK extends DConnectSDK {
             public void onResponse(final DConnectResponseMessage response) {
             }
         });
-        mListenerMap.remove(convertUriToPath(uri));
+
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            mListenerMap.remove(key);
+        }
+    }
+
+    @Override
+    public void removeEventListener(Uri uri, OnEventListener listener) {
+        if (uri == null) {
+            throw new NullPointerException("uri is null.");
+        }
+
+        if (listener == null) {
+            throw new NullPointerException("listener is null.");
+        }
+
+        boolean remove;
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<OnEventListener> listeners = mListenerMap.get(key);
+            if (listeners != null) {
+                listeners.remove(listener);
+            }
+            remove = listeners == null || listeners.isEmpty();
+        }
+
+        if (remove) {
+            delete(uri, new OnResponseListener() {
+                @Override
+                public void onResponse(final DConnectResponseMessage response) {
+                }
+            });
+        }
     }
 
     @Override
@@ -240,7 +305,7 @@ class IntentDConnectSDK extends DConnectSDK {
      * @return パス
      */
     private String convertUriToPath(final Uri uri) {
-        return uri.getPath().toLowerCase();
+        return uri.getPath().toLowerCase() + JOIN_SERVICE_ID + uri.getQueryParameter(DConnectMessage.EXTRA_SERVICE_ID);
     }
 
     /**
@@ -308,22 +373,37 @@ class IntentDConnectSDK extends DConnectSDK {
         return sResponseMap.remove(requestCode);
     }
 
+    /**
+     * イベントを受信した時の処理を行う.
+     * @param intent イベントメッセージ
+     */
     private void onReceivedEvent(final Intent intent) {
         try {
-            DConnectSDK.OnEventListener l = mListenerMap.get(createPath(intent));
-            if (l != null) {
-                l.onMessage(new DConnectEventMessage(intent));
+            String key = createPath(intent);
+            synchronized (mListenerMap) {
+                List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
+                if (listeners != null) {
+                    for (OnEventListener l : listeners) {
+                        l.onMessage(new DConnectEventMessage(intent));
+                    }
+                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // ignore.
         }
     }
 
+    /**
+     * イベントのパスを作成する.
+     * @param intent イベントメッセージ
+     * @return パス
+     */
     private String createPath(final Intent intent) {
         String profile = intent.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String interfaces = intent.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = intent.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
         String uri = "/gotapi";
+        String serviceId = intent.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         if (profile != null) {
             uri += "/";
             uri += profile;
@@ -336,7 +416,12 @@ class IntentDConnectSDK extends DConnectSDK {
             uri += "/";
             uri += attribute;
         }
-        return uri.toLowerCase();
+        uri = uri.toLowerCase();
+        if (serviceId != null) {
+            uri += JOIN_SERVICE_ID;
+            uri += serviceId;
+        }
+        return uri;
     }
 
     /**

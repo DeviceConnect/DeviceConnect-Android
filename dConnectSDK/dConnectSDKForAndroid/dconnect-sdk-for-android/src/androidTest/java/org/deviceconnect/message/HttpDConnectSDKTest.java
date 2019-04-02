@@ -274,7 +274,7 @@ public class HttpDConnectSDKTest {
      * authorizationを呼び出し、レスポンスを受け取れることを確認する。
      * <pre>
      * 【期待する動作】
-     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・DConnectResponseMessageが返却されること。
      * ・resultに0が返却されること。
      * ・versionに1.1が返却されること。
      * ・accessTokenにtest-accessTokeが返却されること。
@@ -476,6 +476,359 @@ public class HttpDConnectSDKTest {
 
         assertThat(resultClientId.get(), is(clientId));
         assertThat(resultAccessToken.get(), is(accessToken));
+    }
+
+    /**
+     * authorizationを呼び出し、OnAuthorizationListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnAuthorizationListener#onError()に通知が来ること。
+     * ・errorCodeとerrorMessageが通知されること。
+     * </pre>
+     */
+    @Test
+    public void authorization_listener_error() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String errorMessage = "error-message";
+        final int errorCode = 10;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        final AtomicReference<Integer> resultErrorCode = new AtomicReference<>();
+        final AtomicReference<String> resultErrorMessage = new AtomicReference<>();
+
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    Uri u = Uri.parse(uri);
+                    if ("/gotapi/authorization/grant".equalsIgnoreCase(u.getPath())) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
+                        return newJsonResponse(jsonObject);
+                    } else if ("/gotapi/authorization/accessToken".equalsIgnoreCase(u.getPath())) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(DConnectMessage.EXTRA_ERROR_CODE, errorCode);
+                        jsonObject.put(DConnectMessage.EXTRA_ERROR_MESSAGE, errorMessage);
+                        return newJsonResponse(jsonObject);
+                    } else {
+                        return newBadRequest("Path is not Authorization Profile.");
+                    }
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.authorization(appName, scopes, new DConnectSDK.OnAuthorizationListener() {
+            @Override
+            public void onResponse(final String clientId, final String accessToken) {
+                latch.countDown();
+            }
+            @Override
+            public void onError(final int errorCode, final String errorMessage) {
+                resultErrorCode.set(errorCode);
+                resultErrorMessage.set(errorMessage);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        assertThat(resultErrorCode.get(), is(errorCode));
+        assertThat(resultErrorMessage.get(), is(errorMessage));
+    }
+
+    /**
+     * refreshAccessToken を呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・DConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・accessTokenにtest-accessTokeが返却されること。
+     * ・expireに1999が返却されること。
+     * ・scopesに配列が返却されること。
+     * </pre>
+     */
+    @Test
+    public void refreshAccessToken() {
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String accessToken = "test-accessToken";
+        final String profile = "battery";
+        final int expirePeriod = 1000;
+        final int expire = 1999;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    Uri u = Uri.parse(uri);
+                    if ("/gotapi/authorization/accessToken".equalsIgnoreCase(u.getPath())) {
+
+                        String name = parms.get(AuthorizationProfileConstants.PARAM_APPLICATION_NAME);
+                        if (!appName.equals(name)) {
+                            return newBadRequest("appName is invalid. appName=" + name);
+                        }
+
+                        String cid = parms.get(AuthorizationProfileConstants.PARAM_CLIENT_ID);
+                        if (!clientId.equals(cid)) {
+                            return newBadRequest("clientId is invalid. clientId=" + cid);
+                        }
+
+                        String ss = parms.get(AuthorizationProfileConstants.PARAM_SCOPE);
+                        for (String s : scopes) {
+                            if (!ss.contains(s)) {
+                                return newBadRequest("scope is invalid. scope=" + ss);
+                            }
+                        }
+
+                        JSONArray scopes = new JSONArray();
+
+                        JSONObject scope1 = new JSONObject();
+                        scope1.put(AuthorizationProfileConstants.PARAM_SCOPE, profile);
+                        scope1.put(AuthorizationProfileConstants.PARAM_EXPIRE_PERIOD, expirePeriod);
+                        scopes.put(scope1);
+
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, accessToken);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_SCOPES, scopes);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_EXPIRE, expire);
+                        return newJsonResponse(jsonObject);
+                    } else {
+                        return newBadRequest("Path is not Authorization Profile.");
+                    }
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectResponseMessage response = sdk.refreshAccessToken(clientId, appName, scopes);
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN), is(accessToken));
+        assertThat(response.getInt(AuthorizationProfileConstants.PARAM_EXPIRE), is(expire));
+        assertThat(response.getList(AuthorizationProfileConstants.PARAM_SCOPES), is(notNullValue()));
+    }
+
+    /**
+     * refreshAccessTokenを呼び出し、OnAuthorizationListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnAuthorizationListenerに通知が来ること。
+     * ・clientIdにtest-clientIdが返却されること。
+     * ・accessTokenにtest-accessTokenが返却されること。
+     * </pre>
+     */
+    @Test
+    public void refreshAccessToken_listener() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String accessToken = "test-accessToken";
+        final String profile = "battery";
+        final int expirePeriod = 1000;
+        final int expire = 1999;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        final AtomicReference<String> resultClientId = new AtomicReference<>();
+        final AtomicReference<String> resultAccessToken = new AtomicReference<>();
+
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    Uri u = Uri.parse(uri);
+                    if ("/gotapi/authorization/accessToken".equalsIgnoreCase(u.getPath())) {
+
+                        String name = parms.get(AuthorizationProfileConstants.PARAM_APPLICATION_NAME);
+                        if (!appName.equals(name)) {
+                            return newBadRequest("appName is invalid. appName=" + name);
+                        }
+
+                        String cid = parms.get(AuthorizationProfileConstants.PARAM_CLIENT_ID);
+                        if (!clientId.equals(cid)) {
+                            return newBadRequest("clientId is invalid. clientId=" + cid);
+                        }
+
+                        String ss = parms.get(AuthorizationProfileConstants.PARAM_SCOPE);
+                        for (String s : scopes) {
+                            if (!ss.contains(s)) {
+                                return newBadRequest("scope is invalid. scope=" + ss);
+                            }
+                        }
+
+                        JSONArray scopes = new JSONArray();
+
+                        JSONObject scope1 = new JSONObject();
+                        scope1.put(AuthorizationProfileConstants.PARAM_SCOPE, profile);
+                        scope1.put(AuthorizationProfileConstants.PARAM_EXPIRE_PERIOD, expirePeriod);
+                        scopes.put(scope1);
+
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, accessToken);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_SCOPES, scopes);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_EXPIRE, expire);
+                        return newJsonResponse(jsonObject);
+                    } else {
+                        return newBadRequest("Path is not Authorization Profile.");
+                    }
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.refreshAccessToken(clientId, appName, scopes, new DConnectSDK.OnAuthorizationListener() {
+            @Override
+            public void onResponse(final String clientId, final String accessToken) {
+                resultClientId.set(clientId);
+                resultAccessToken.set(accessToken);
+                latch.countDown();
+            }
+            @Override
+            public void onError(final int errorCode, final String errorMessage) {
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        assertThat(resultClientId.get(), is(clientId));
+        assertThat(resultAccessToken.get(), is(accessToken));
+    }
+
+    /**
+     * refreshAccessTokenを呼び出し、OnAuthorizationListenerにレスポンスが通知されることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnAuthorizationListener#onError()に通知が来ること。
+     * ・errorCodeとerrorMessageが通知されること。
+     * </pre>
+     */
+    @Test
+    public void refreshAccessToken_listener_error() {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String errorMessage = "error-message";
+        final int errorCode = 10;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        final AtomicReference<Integer> resultErrorCode = new AtomicReference<>();
+        final AtomicReference<String> resultErrorMessage = new AtomicReference<>();
+
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    Uri u = Uri.parse(uri);
+                    if ("/gotapi/authorization/accessToken".equalsIgnoreCase(u.getPath())) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(DConnectMessage.EXTRA_ERROR_CODE, errorCode);
+                        jsonObject.put(DConnectMessage.EXTRA_ERROR_MESSAGE, errorMessage);
+                        return newJsonResponse(jsonObject);
+                    } else {
+                        return newBadRequest("Path is not Authorization Profile.");
+                    }
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        sdk.refreshAccessToken(clientId, appName, scopes, new DConnectSDK.OnAuthorizationListener() {
+            @Override
+            public void onResponse(final String clientId, final String accessToken) {
+                latch.countDown();
+            }
+            @Override
+            public void onError(final int errorCode, final String errorMessage) {
+                resultErrorCode.set(errorCode);
+                resultErrorMessage.set(errorMessage);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("timeout");
+        }
+
+        assertThat(resultErrorCode.get(), is(errorCode));
+        assertThat(resultErrorMessage.get(), is(errorMessage));
     }
 
     /**

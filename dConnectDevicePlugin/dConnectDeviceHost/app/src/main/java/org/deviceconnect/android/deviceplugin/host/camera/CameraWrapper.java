@@ -429,8 +429,20 @@ public class CameraWrapper {
                 Log.d(TAG, "takeStillImage: Created capture session.");
             }
             if (!mIsPreview) {
-                autoFocus(cameraDevice);
-                autoExposure(cameraDevice);
+                try {
+                    autoFocus(cameraDevice);
+                } catch (CameraWrapperException e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to execute auto focus.", e);
+                    }
+                }
+                try {
+                    autoExposure(cameraDevice);
+                } catch (CameraWrapperException e) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Failed to execute auto exposure.", e);
+                    }
+                }
             }
 
             playSound(MediaActionSound.SHUTTER_CLICK);

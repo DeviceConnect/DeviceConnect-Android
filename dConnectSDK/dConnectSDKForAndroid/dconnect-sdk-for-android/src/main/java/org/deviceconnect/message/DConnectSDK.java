@@ -1125,7 +1125,9 @@ public abstract class DConnectSDK {
                     }
                 } else {
                     String accessToken = response.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
-                    listener.onResponse(clientId, accessToken);
+                    if (listener != null) {
+                        listener.onResponse(clientId, accessToken);
+                    }
                 }
             }
         });
@@ -1150,7 +1152,7 @@ public abstract class DConnectSDK {
      *      "battery"
      * };
      *
-     * DConnectResponseMessage response = sdk.reauthorization(clientId, "SampleApp", scopes);
+     * DConnectResponseMessage response = sdk.refreshAccessToken(clientId, "SampleApp", scopes);
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
      *     // Local OAuthの認証に成功
      *     String clientId = response.getString("clientId");
@@ -1166,7 +1168,7 @@ public abstract class DConnectSDK {
      * @param scopes アクセスするプロファイル一覧
      * @return レスポンス
      */
-    public DConnectResponseMessage reauthorization(final String clientId, final String appName, final String[] scopes) {
+    public DConnectResponseMessage refreshAccessToken(final String clientId, final String appName, final String[] scopes) {
         DConnectResponseMessage responseMessage = createAccessToken(clientId, appName, scopes);
         if (responseMessage.getResult() == DConnectMessage.RESULT_OK) {
             responseMessage.put(DConnectMessage.EXTRA_CLIENT_ID, clientId);
@@ -1191,7 +1193,7 @@ public abstract class DConnectSDK {
      *      "battery"
      * };
      *
-     * DConnectResponseMessage response = sdk.reauthorization(clientId, "SampleApp", scopes, new OnAuthorizationListener() {
+     * DConnectResponseMessage response = sdk.refreshAccessToken(clientId, "SampleApp", scopes, new OnAuthorizationListener() {
      *     <code>@</code>Override
      *     public void onResponse(String clientId, String accessToken) {
      *          // Local OAuthの認証に成功
@@ -1209,7 +1211,7 @@ public abstract class DConnectSDK {
      * @param scopes アクセスするプロファイル一覧
      * @param listener Local OAuthのレスポンスを通知するリスナー
      */
-    public void reauthorization(final String clientId, final String appName, final String[] scopes, final OnAuthorizationListener listener) {
+    public void refreshAccessToken(final String clientId, final String appName, final String[] scopes, final OnAuthorizationListener listener) {
         DConnectResponseMessage response = createAccessToken(clientId, appName, scopes);
         if (response.getResult() == DConnectMessage.RESULT_ERROR) {
             if (listener != null) {
@@ -1217,7 +1219,9 @@ public abstract class DConnectSDK {
             }
         } else {
             String accessToken = response.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
-            listener.onResponse(clientId, accessToken);
+            if (listener != null) {
+                listener.onResponse(clientId, accessToken);
+            }
         }
     }
 

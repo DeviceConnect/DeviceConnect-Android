@@ -435,24 +435,6 @@ public class CameraWrapper {
                         Log.w(TAG, "takeStillImage: onCaptureBufferLost");
                     }
                 }
-
-                private void resumeRepeatingRequest() {
-                    mIsTakingStillImage = false;
-
-                    try {
-                        if (mIsRecording) {
-                            startRecording(mRecordingSurface, true);
-                        } else if (mIsPreview) {
-                            startPreview(mPreviewSurface, true);
-                        } else {
-                            close();
-                        }
-                    } catch (CameraWrapperException e) {
-                        if (DEBUG) {
-                            Log.e(TAG, "Failed to resume recording or preview.", e);
-                        }
-                    }
-                }
             }, mBackgroundHandler);
             if (DEBUG) {
                 Log.d(TAG, "takeStillImage: Started capture:");
@@ -461,8 +443,26 @@ public class CameraWrapper {
             if (DEBUG) {
                 Log.e(TAG, "Failed to take still image.", e);
             }
-            mIsTakingStillImage = false;
+            resumeRepeatingRequest();
             throw new CameraWrapperException(e);
+        }
+    }
+
+    private void resumeRepeatingRequest() {
+        mIsTakingStillImage = false;
+
+        try {
+            if (mIsRecording) {
+                startRecording(mRecordingSurface, true);
+            } else if (mIsPreview) {
+                startPreview(mPreviewSurface, true);
+            } else {
+                close();
+            }
+        } catch (CameraWrapperException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Failed to resume recording or preview.", e);
+            }
         }
     }
 
@@ -550,7 +550,7 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-            lock.await(60, TimeUnit.SECONDS);
+            lock.await(10, TimeUnit.SECONDS);
             mCaptureSession.stopRepeating();
             if (results[0] == null) {
                 throw new CameraWrapperException("Failed auto focus.");
@@ -610,7 +610,7 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-            lock.await(60, TimeUnit.SECONDS);
+            lock.await(10, TimeUnit.SECONDS);
             mCaptureSession.stopRepeating();
             if (results[0] == null) {
                 throw new CameraWrapperException("Failed auto focus.");

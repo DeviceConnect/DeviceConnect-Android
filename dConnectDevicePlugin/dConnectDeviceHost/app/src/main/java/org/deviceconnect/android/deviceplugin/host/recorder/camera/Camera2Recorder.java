@@ -137,6 +137,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private final HandlerThread mPhotoThread = new HandlerThread("photo");
 
+    private final Handler mRequestHandler;
+
     /**
      * 現在の端末の回転方向.
      *
@@ -161,6 +163,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mCameraWrapper = camera;
         mPreviewThread.start();
         mPhotoThread.start();
+        HandlerThread requestThread = new HandlerThread("request");
+        requestThread.start();
+        mRequestHandler = new Handler(requestThread.getLooper());
         mFileManager = fileManager;
 
         Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(this);
@@ -176,6 +181,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public void takePhoto(final @NonNull OnPhotoEventListener listener) {
+        mRequestHandler.post(() -> takePhotoInternal(listener));
+    }
+
+    private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
             final CameraWrapper camera = getCameraWrapper();
             final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.JPEG);
@@ -402,6 +411,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
+        mRequestHandler.post(() -> startRecordingInternal(serviceId, listener));
+    }
+
+    public synchronized void startRecordingInternal(final String serviceId, final RecordingListener listener) {
         if (mSurfaceRecorder != null) {
             listener.onFailed(this, "Recording has started already.");
             return;
@@ -443,6 +456,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
+        mRequestHandler.post(() -> stopRecordingInternal(listener));
+    }
+
+    private void stopRecordingInternal(final StoppingListener listener) {
         if (mSurfaceRecorder == null) {
             listener.onFailed(this, "Recording has stopped already.");
             return;
@@ -632,20 +649,24 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public void turnOnFlashLight() {
-        try {
-            CameraWrapper camera = getCameraWrapper();
-            camera.turnOnTorch();
-        } catch (CameraWrapperException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to turn on flash light.", e);
+        mRequestHandler.post(() -> {
+            try {
+                CameraWrapper camera = getCameraWrapper();
+                camera.turnOnTorch();
+            } catch (CameraWrapperException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to turn on flash light.", e);
+                }
             }
-        }
+        });
     }
 
     @Override
     public void turnOffFlashLight() {
-        CameraWrapper camera = getCameraWrapper();
-        camera.turnOffTorch();
+        mRequestHandler.post(() -> {
+            CameraWrapper camera = getCameraWrapper();
+            camera.turnOffTorch();
+        });
     }
 
     @Override
@@ -667,6 +688,13 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         for (PreviewServer server : getServers()) {
             server.stopWebServer();
         }
+        destroy();
+    }
+
+    private void destroy() {
+        mPreviewThread.quit();
+        mPhotoThread.quit();
+        mRequestHandler.getLooper().quit();
     }
 
     @Override

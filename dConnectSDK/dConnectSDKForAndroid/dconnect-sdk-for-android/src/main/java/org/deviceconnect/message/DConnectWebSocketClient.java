@@ -165,6 +165,8 @@ class DConnectWebSocketClient {
 
             @Override
             public void onClose(final int code, final String reason, final boolean remote) {
+                isEstablishedWebSocket = false;
+
                 DConnectWebSocketClient.this.close();
                 if (mOnWebSocketListener != null) {
                     mOnWebSocketListener.onClose();
@@ -183,6 +185,8 @@ class DConnectWebSocketClient {
 
             @Override
             public void onError(final Exception ex) {
+                isEstablishedWebSocket = false;
+
                 if (mOnWebSocketListener != null) {
                     mOnWebSocketListener.onError(ex);
                 }

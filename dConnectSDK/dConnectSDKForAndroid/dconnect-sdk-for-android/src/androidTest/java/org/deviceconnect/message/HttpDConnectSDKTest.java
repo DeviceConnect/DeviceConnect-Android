@@ -479,6 +479,96 @@ public class HttpDConnectSDKTest {
     }
 
     /**
+     * authorizationを呼び出し、レスポンスを受け取れることを確認する。
+     * <pre>
+     * 【期待する動作】
+     * ・OnResponseListenerにDConnectResponseMessageが返却されること。
+     * ・resultに0が返却されること。
+     * ・versionに1.1が返却されること。
+     * ・accessTokenにtest-accessTokeが返却されること。
+     * ・expireに1999が返却されること。
+     * ・scopesに配列が返却されること。
+     * </pre>
+     */
+    @Test
+    public void reauthorization() {
+        final String appName = "test";
+        final String version = "1.1";
+        final String product = "test-manager";
+        final String clientId = "test-clientId";
+        final String accessToken = "test-accessToken";
+        final String profile = "battery";
+        final int expirePeriod = 1000;
+        final int expire = 1999;
+        final String[] scopes = {
+                "serviceDiscovery",
+                "serviceInformation",
+                "battery"
+        };
+        mTestServer.setServerCallback(new TestServer.ServerCallback() {
+            @Override
+            public NanoHTTPD.Response serve(final String uri, final NanoHTTPD.Method method, final Map<String, String> headers,
+                                            final Map<String, String> parms, final Map<String, String> files) {
+                if (!method.equals(NanoHTTPD.Method.GET)) {
+                    return newBadRequest("Method is not GET.");
+                }
+
+                try {
+                    Uri u = Uri.parse(uri);
+                    if ("/gotapi/authorization/accessToken".equalsIgnoreCase(u.getPath())) {
+
+                        String name = parms.get(AuthorizationProfileConstants.PARAM_APPLICATION_NAME);
+                        if (!appName.equals(name)) {
+                            return newBadRequest("appName is invalid. appName=" + name);
+                        }
+
+                        String cid = parms.get(AuthorizationProfileConstants.PARAM_CLIENT_ID);
+                        if (!clientId.equals(cid)) {
+                            return newBadRequest("clientId is invalid. clientId=" + cid);
+                        }
+
+                        String ss = parms.get(AuthorizationProfileConstants.PARAM_SCOPE);
+                        for (String s : scopes) {
+                            if (!ss.contains(s)) {
+                                return newBadRequest("scope is invalid. scope=" + ss);
+                            }
+                        }
+
+                        JSONArray scopes = new JSONArray();
+
+                        JSONObject scope1 = new JSONObject();
+                        scope1.put(AuthorizationProfileConstants.PARAM_SCOPE, profile);
+                        scope1.put(AuthorizationProfileConstants.PARAM_EXPIRE_PERIOD, expirePeriod);
+                        scopes.put(scope1);
+
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                        jsonObject.put(DConnectProfileConstants.PARAM_VERSION, version);
+                        jsonObject.put(DConnectProfileConstants.PARAM_PRODUCT, product);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, accessToken);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_SCOPES, scopes);
+                        jsonObject.put(AuthorizationProfileConstants.PARAM_EXPIRE, expire);
+                        return newJsonResponse(jsonObject);
+                    } else {
+                        return newBadRequest("Path is not Authorization Profile.");
+                    }
+                } catch (JSONException e) {
+                    return newInternalServerError(e.getMessage());
+                }
+            }
+        });
+
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectResponseMessage response = sdk.reauthorization(clientId, appName, scopes);
+        assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
+        assertThat(response.getString(DConnectProfileConstants.PARAM_PRODUCT), is(product));
+        assertThat(response.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN), is(accessToken));
+        assertThat(response.getInt(AuthorizationProfileConstants.PARAM_EXPIRE), is(expire));
+        assertThat(response.getList(AuthorizationProfileConstants.PARAM_SCOPES), is(notNullValue()));
+    }
+
+    /**
      * serviceDiscoveryを呼び出し、レスポンスを受け取れることを確認する。
      * <pre>
      * 【期待する動作】

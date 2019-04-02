@@ -1048,6 +1048,7 @@ public abstract class DConnectSDK {
      * DConnectResponseMessage response = sdk.authorization("SampleApp", scopes);
      * if (response.getResult() == DConnectMessage.RESULT_OK) {
      *     // Local OAuthの認証に成功
+     *     String clientId = response.getString("clientId");
      *     String accessToken = response.getString("accessToken");
      *     sdk.setAccessToken(accessToken);
      * } else {
@@ -1065,7 +1066,11 @@ public abstract class DConnectSDK {
             return response;
         }
         String clientId = response.getString(DConnectMessage.EXTRA_CLIENT_ID);
-        return createAccessToken(clientId, appName, scopes);
+        DConnectResponseMessage responseMessage = createAccessToken(clientId, appName, scopes);
+        if (responseMessage.getResult() == DConnectMessage.RESULT_OK) {
+            responseMessage.put(DConnectMessage.EXTRA_CLIENT_ID, clientId);
+        }
+        return responseMessage;
     }
 
     /**
@@ -1124,6 +1129,96 @@ public abstract class DConnectSDK {
                 }
             }
         });
+    }
+
+    /**
+     * 同期的にアクセストークンの再発行要求を行います.
+     *
+     * <p>
+     * ユーザに使用許可ダイアログを表示して確認を行います。<br>
+     * この関数の中で、Device Connect Manager への通信処理が発生しますので、UIスレッドから呼び出すことはできません。
+     * </p>
+     * <div>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
+     * <pre>
+     * DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     *
+     * String clientId = "xxx";
+     * String[] scopes = {
+     *      "serviceDiscovery",
+     *      "serviceInformation",
+     *      "battery"
+     * };
+     *
+     * DConnectResponseMessage response = sdk.reauthorization(clientId, "SampleApp", scopes);
+     * if (response.getResult() == DConnectMessage.RESULT_OK) {
+     *     // Local OAuthの認証に成功
+     *     String clientId = response.getString("clientId");
+     *     String accessToken = response.getString("accessToken");
+     *     sdk.setAccessToken(accessToken);
+     * } else {
+     *     // Local OAuthの認証に失敗
+     * }
+     * </pre>
+     * </div>
+     * @param clientId クライアントID
+     * @param appName アプリケーション名
+     * @param scopes アクセスするプロファイル一覧
+     * @return レスポンス
+     */
+    public DConnectResponseMessage reauthorization(final String clientId, final String appName, final String[] scopes) {
+        DConnectResponseMessage responseMessage = createAccessToken(clientId, appName, scopes);
+        if (responseMessage.getResult() == DConnectMessage.RESULT_OK) {
+            responseMessage.put(DConnectMessage.EXTRA_CLIENT_ID, clientId);
+        }
+        return responseMessage;
+    }
+
+    /**
+     * 非同期にアクセストークンの再発行要求を行い、リスナーに結果を通知する.
+     * <p>
+     * ユーザに使用許可ダイアログを表示して確認を行います。<br>
+     * </p>
+     * <div>
+     * <span style="margin:0;padding:2px;background:#029EBC;color:#EBF7FA;line-height:140%;font-weight:bold;">サンプルコード</span>
+     * <pre>
+     * final DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.HTTP);
+     *
+     * String clientId = "xxx";
+     * String[] scopes = {
+     *      "serviceDiscovery",
+     *      "serviceInformation",
+     *      "battery"
+     * };
+     *
+     * DConnectResponseMessage response = sdk.reauthorization(clientId, "SampleApp", scopes, new OnAuthorizationListener() {
+     *     <code>@</code>Override
+     *     public void onResponse(String clientId, String accessToken) {
+     *          // Local OAuthの認証に成功
+     *         sdk.setAccessToken(accessToken);
+     *     }
+     *     <code>@</code>Override
+     *     public void onError(int errorCode, String errorMessage) {
+     *          // Local OAuthの認証に失敗
+     *     }
+     * });
+     * </pre>
+     * </div>
+     * @param clientId クライアントID
+     * @param appName アプリケーション名
+     * @param scopes アクセスするプロファイル一覧
+     * @param listener Local OAuthのレスポンスを通知するリスナー
+     */
+    public void reauthorization(final String clientId, final String appName, final String[] scopes, final OnAuthorizationListener listener) {
+        DConnectResponseMessage response = createAccessToken(clientId, appName, scopes);
+        if (response.getResult() == DConnectMessage.RESULT_ERROR) {
+            if (listener != null) {
+                listener.onError(response.getErrorCode(), response.getErrorMessage());
+            }
+        } else {
+            String accessToken = response.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
+            listener.onResponse(clientId, accessToken);
+        }
     }
 
     /**

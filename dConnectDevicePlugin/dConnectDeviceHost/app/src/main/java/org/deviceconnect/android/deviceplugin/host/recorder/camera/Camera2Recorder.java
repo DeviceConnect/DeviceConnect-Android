@@ -717,10 +717,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         for (PreviewServer server : getServers()) {
             server.stopWebServer();
         }
-        destroy();
     }
 
-    private void destroy() {
+    @Override
+    public void destroy() {
         mPreviewThread.quit();
         mPhotoThread.quit();
         mRequestHandler.getLooper().quit();

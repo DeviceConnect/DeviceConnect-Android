@@ -70,6 +70,11 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public void destroy() {
+        // Nothing to do.
+    }
+
+    @Override
     public String getId() {
         return ID;
     }

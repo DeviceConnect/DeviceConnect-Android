@@ -518,24 +518,7 @@ public class CameraWrapper {
                 Log.d(TAG, "takeStillImage: Created capture session.");
             }
             if (!mIsPreview) {
-                if (hasAutoFocus()) {
-                    try {
-                        autoFocus(cameraDevice);
-                    } catch (CameraWrapperException e) {
-                        if (DEBUG) {
-                            Log.w(TAG, "Failed to execute auto focus.", e);
-                        }
-                    }
-                }
-                if (hasAutoExposure()) {
-                    try {
-                        autoExposure(cameraDevice);
-                    } catch (CameraWrapperException e) {
-                        if (DEBUG) {
-                            Log.w(TAG, "Failed to execute auto exposure.", e);
-                        }
-                    }
-                }
+                prepareCapture(cameraDevice);
             }
 
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
@@ -646,7 +629,10 @@ public class CameraWrapper {
         return mode;
     }
 
-    private void autoFocus(final CameraDevice cameraDevice) throws CameraWrapperException {
+    private void prepareCapture(final CameraDevice cameraDevice) throws CameraWrapperException {
+        if (!hasAutoFocus() && !hasAutoExposure()) {
+            return;
+        }
         try {
             final CountDownLatch lock = new CountDownLatch(1);
             final CaptureResult[] results = new CaptureResult[1];
@@ -656,10 +642,13 @@ public class CameraWrapper {
             } else {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
-            request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
-            request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            if (hasAutoFocus()) {
+                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+                request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            }
             if (hasAutoExposure()) {
                 request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+                request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
             }
             setWhiteBalance(request);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
@@ -686,73 +675,18 @@ public class CameraWrapper {
                     Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
                     boolean isAfReady = afState == null
                             || afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED
-                            || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
-                    if (DEBUG) {
-                        Log.d(TAG, "autoFocus: onCaptureCompleted: isAfReady=" + isAfReady);
-                    }
-                    if (isAfReady) {
-                        results[0] = result;
-                        lock.countDown();
-                    }
-                }
-            }, mBackgroundHandler);
-            lock.await(10, TimeUnit.SECONDS);
-            mCaptureSession.stopRepeating();
-            if (results[0] == null) {
-                throw new CameraWrapperException("Failed auto focus.");
-            }
-        } catch (CameraAccessException e) {
-            throw new CameraWrapperException(e);
-        } catch (InterruptedException e) {
-            throw new CameraWrapperException(e);
-        }
-    }
-
-    private void autoExposure(final CameraDevice cameraDevice) throws CameraWrapperException {
-        try {
-            final CountDownLatch lock = new CountDownLatch(1);
-            final CaptureResult[] results = new CaptureResult[1];
-            CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            if (mIsPreview) {
-                request.addTarget(mPreviewSurface);
-            } else {
-                request.addTarget(mDummyPreviewReader.getSurface());
-            }
-            request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-            request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            if (hasAutoFocus()) {
-                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
-            }
-            setWhiteBalance(request);
-            mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
-
-                @Override
-                public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-                    onCaptureResult(partialResult, false);
-                }
-
-                @Override
-                public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-                    onCaptureResult(result, true);
-                }
-
-                @Override
-                public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-                    if (DEBUG) {
-                        Log.e(TAG, "autoFocus: onCaptureFailed");
-                    }
-                    lock.countDown();
-                }
-
-                private void onCaptureResult(final CaptureResult result, final boolean isCompleted) {
+                            || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED
+                            || !hasAutoFocus();
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     boolean isAeReady = aeState == null
                             || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
-                            || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
+                            || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
+                            || !hasAutoExposure();
                     if (DEBUG) {
-                        Log.d(TAG, "autoExposure: onCaptureCompleted: isAeReady=" + isAeReady);
+                        Log.d(TAG, "prepareCapture: onCaptureCompleted: isAfReady=" + isAfReady + " isAeReady=" + isAeReady + " isCompleted=" + isCompleted);
                     }
-                    if (isAeReady) {
+
+                    if (isAfReady && isAeReady && isCompleted) {
                         results[0] = result;
                         lock.countDown();
                     }

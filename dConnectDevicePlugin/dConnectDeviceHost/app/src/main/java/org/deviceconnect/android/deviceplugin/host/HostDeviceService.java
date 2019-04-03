@@ -297,6 +297,7 @@ public class HostDeviceService extends DConnectMessageService {
     public void onDestroy() {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
+        mRecorderMgr.destroy();
         mFileDataManager.stopTimer();
         if (mCameraWrapperManager != null) {
             mCameraWrapperManager.destroy();

@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * カメラ操作クラス.
@@ -254,12 +255,12 @@ public class CameraWrapper {
 
         try {
             final CountDownLatch lock = new CountDownLatch(1);
-            final CameraDevice[] cameras = new CameraDevice[1];
+            final AtomicReference<CameraDevice> cameraRef = new AtomicReference<>();
             mCameraManager.openCamera(mCameraId, new CameraDevice.StateCallback() {
                 @Override
                 public void onOpened(final @NonNull CameraDevice camera) {
                     mCameraDevice = camera;
-                    cameras[0] = camera;
+                    cameraRef.set(camera);
                     lock.countDown();
                 }
 
@@ -273,13 +274,14 @@ public class CameraWrapper {
                     lock.countDown();
                 }
             }, mBackgroundHandler);
-            if (!lock.await(30, TimeUnit.SECONDS)) {
+            if (!lock.await(5, TimeUnit.SECONDS)) {
                 throw new CameraWrapperException("Failed to open camera.");
             }
-            if (cameras[0] == null) {
+            CameraDevice camera = cameraRef.get();
+            if (camera == null) {
                 throw new CameraWrapperException("Failed to open camera.");
             }
-            return cameras[0];
+            return camera;
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
         } catch (InterruptedException e) {
@@ -365,11 +367,11 @@ public class CameraWrapper {
                 mCaptureSession.close();
             }
             final CountDownLatch lock = new CountDownLatch(1);
-            final CameraCaptureSession[] sessions = new CameraCaptureSession[1];
-            cameraDevice.createCaptureSession(createSurfaceList(), new CameraCaptureSession.StateCallback() {
+            final AtomicReference<CameraCaptureSession> sessionRef = new AtomicReference<>();
+            cameraDevice.createCaptureSession(targets, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(final @NonNull CameraCaptureSession session) {
-                    sessions[0] = session;
+                    sessionRef.set(session);
                     lock.countDown();
                 }
 
@@ -378,18 +380,29 @@ public class CameraWrapper {
                     lock.countDown();
                 }
             }, mSessionConfigurationHandler);
-            if (!lock.await(30, TimeUnit.SECONDS)) {
+            if (!lock.await(5, TimeUnit.SECONDS)) {
                 throw new CameraWrapperException("Failed to configure capture session.");
             }
-            if (sessions[0] == null) {
+            CameraCaptureSession session = sessionRef.get();
+            if (session == null) {
                 throw new CameraWrapperException("Failed to configure capture session.");
             }
-            return sessions[0];
+            return session;
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
         } catch (InterruptedException e) {
             throw new CameraWrapperException(e);
         }
+    }
+
+    private void setDefaultCaptureRequest(final CaptureRequest.Builder request) {
+        if (hasAutoFocus()) {
+            request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+        }
+        if (hasAutoExposure()) {
+            request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+        }
+        setWhiteBalance(request);
     }
 
     public synchronized void startPreview(final Surface previewSurface, final boolean isResume) throws CameraWrapperException {
@@ -404,13 +417,7 @@ public class CameraWrapper {
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             request.addTarget(mPreviewSurface);
             request.set(CaptureRequest.JPEG_QUALITY, mPreviewJpegQuality);
-            if (hasAutoFocus()) {
-                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
-            }
-            if (hasAutoExposure()) {
-                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-            }
-            setWhiteBalance(request);
+            setDefaultCaptureRequest(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
@@ -457,12 +464,7 @@ public class CameraWrapper {
                 request.addTarget(mPreviewSurface);
             }
             request.addTarget(mRecordingSurface);
-            if (hasAutoFocus()) {
-                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
-            }
-            if (hasAutoExposure()) {
-                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-            }
+            setDefaultCaptureRequest(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 private boolean mStarted;
@@ -524,13 +526,7 @@ public class CameraWrapper {
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);
             request.addTarget(stillImageSurface);
-            if (hasAutoFocus()) {
-                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
-            }
-            if (hasAutoExposure()) {
-                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-            }
-            setWhiteBalance(request);
+            setDefaultCaptureRequest(request);
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
@@ -635,22 +631,14 @@ public class CameraWrapper {
         }
         try {
             final CountDownLatch lock = new CountDownLatch(1);
-            final CaptureResult[] results = new CaptureResult[1];
+            final AtomicReference<CaptureResult> resultRef = new AtomicReference<>();
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             if (mIsPreview) {
                 request.addTarget(mPreviewSurface);
             } else {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
-            if (hasAutoFocus()) {
-                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
-                request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-            }
-            if (hasAutoExposure()) {
-                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-                request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            }
-            setWhiteBalance(request);
+            setDefaultCaptureRequest(request);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 @Override
@@ -687,14 +675,14 @@ public class CameraWrapper {
                     }
 
                     if (isAfReady && isAeReady && isCompleted) {
-                        results[0] = result;
+                        resultRef.set(result);
                         lock.countDown();
                     }
                 }
             }, mBackgroundHandler);
             lock.await(10, TimeUnit.SECONDS);
             mCaptureSession.stopRepeating();
-            if (results[0] == null) {
+            if (resultRef.get() == null) {
                 throw new CameraWrapperException("Failed auto focus.");
             }
         } catch (CameraAccessException e) {

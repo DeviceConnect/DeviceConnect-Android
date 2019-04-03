@@ -638,7 +638,14 @@ public class CameraWrapper {
             } else {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
-            setDefaultCaptureRequest(request);
+            if (hasAutoFocus()) {
+                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+                request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            }
+            if (hasAutoExposure()) {
+                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+                request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+            }
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 @Override

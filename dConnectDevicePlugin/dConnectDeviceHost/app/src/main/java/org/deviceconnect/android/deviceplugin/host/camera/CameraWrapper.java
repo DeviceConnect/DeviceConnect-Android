@@ -659,22 +659,29 @@ public class CameraWrapper {
                     lock.countDown();
                 }
 
+                private boolean mIsAfReady = !hasAutoFocus();
+                private boolean mIsAeReady = !hasAutoExposure();
+                private boolean mIsCaptureReady;
+
                 private void onCaptureResult(final CaptureResult result, final boolean isCompleted) {
-                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                    boolean isAfReady = afState == null
-                            || afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED
-                            || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED
-                            || !hasAutoFocus();
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    boolean isAeReady = aeState == null
-                            || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
-                            || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
-                            || !hasAutoExposure();
+                    if (!mIsAfReady) {
+                        Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                        mIsAfReady = afState == null
+                                || afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED
+                                || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED;
+                    }
+                    if (!mIsAeReady) {
+                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                        mIsAeReady = aeState == null
+                                || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
+                    }
+                    mIsCaptureReady |= isCompleted;
                     if (DEBUG) {
-                        Log.d(TAG, "prepareCapture: onCaptureCompleted: isAfReady=" + isAfReady + " isAeReady=" + isAeReady + " isCompleted=" + isCompleted);
+                        Log.d(TAG, "prepareCapture: onCaptureCompleted: isAfReady=" + mIsAfReady + " isAeReady=" + mIsAeReady + " isCaptureReady=" + mIsCaptureReady);
                     }
 
-                    if (isAfReady && isAeReady && isCompleted) {
+                    if (mIsAfReady && mIsAeReady && mIsCaptureReady) {
                         resultRef.set(result);
                         lock.countDown();
                     }

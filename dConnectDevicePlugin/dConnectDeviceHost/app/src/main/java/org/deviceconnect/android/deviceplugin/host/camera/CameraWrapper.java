@@ -7,9 +7,11 @@
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
@@ -71,6 +73,8 @@ public class CameraWrapper {
 
     private static final String TAG = "host.dplugin";
 
+    private final Context mContext;
+
     private final String mCameraId;
 
     private final CameraManager mCameraManager;
@@ -86,6 +90,10 @@ public class CameraWrapper {
     private final ImageReader mDummyPreviewReader;
 
     private final Options mOptions;
+
+    private final Integer mAutoFocusMode;
+
+    private final Integer mAutoExposureMode;
 
     private CameraDevice mCameraDevice;
 
@@ -111,7 +119,9 @@ public class CameraWrapper {
 
     private CameraEventListenerHolder mCameraEventListenerHolder;
 
-    public CameraWrapper(final @NonNull Context context, final @NonNull String cameraId) {
+    CameraWrapper(final @NonNull Context context,
+                  final @NonNull String cameraId) throws CameraAccessException {
+        mContext = context;
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mBackgroundThread.start();
@@ -119,17 +129,28 @@ public class CameraWrapper {
         mSessionConfigurationThread.start();
         mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
         mOptions = initOptions();
+        mAutoFocusMode = choiceAutoFocusMode(context, mCameraManager, cameraId);
+        mAutoExposureMode = choiceAutoExposureMode(mCameraManager, cameraId);
 
         mDummyPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.YUV_420_888);
-        mDummyPreviewReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-            @Override
-            public void onImageAvailable(final ImageReader reader) {
-                Image image = reader.acquireNextImage();
-                if (image != null) {
-                    image.close();
-                }
+        mDummyPreviewReader.setOnImageAvailableListener(reader -> {
+            Image image = reader.acquireNextImage();
+            if (image != null) {
+                image.close();
             }
         }, mBackgroundHandler);
+
+        if (DEBUG) {
+            Log.d(TAG, "CameraWrapper: cameraId=" + cameraId + " autoFocus=" + mAutoFocusMode + " autoExposure=" + mAutoExposureMode);
+        }
+    }
+
+    private boolean hasAutoFocus() {
+        return mAutoFocusMode != null;
+    }
+
+    private boolean hasAutoExposure() {
+        return mAutoExposureMode != null;
     }
 
     private void notifyCameraEvent(final CameraEvent event) {
@@ -230,6 +251,7 @@ public class CameraWrapper {
         if (mCameraDevice != null) {
             return mCameraDevice;
         }
+
         try {
             final CountDownLatch lock = new CountDownLatch(1);
             final CameraDevice[] cameras = new CameraDevice[1];
@@ -263,6 +285,47 @@ public class CameraWrapper {
         } catch (InterruptedException e) {
             throw new CameraWrapperException(e);
         }
+    }
+
+    private static Integer choiceAutoFocusMode(final Context context,
+                                               final CameraManager cameraManager,
+                                               final String cameraId) throws CameraAccessException {
+        PackageManager pkgMgr = context.getPackageManager();
+        if (!pkgMgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
+            return null;
+        }
+
+        CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+        int[] afModes = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+        if (afModes == null) {
+            return null;
+        }
+        for (int i = 0; i < afModes.length; i++) {
+            if (afModes[i] == CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+                return afModes[i];
+            }
+        }
+        return null;
+    }
+
+    private static Integer choiceAutoExposureMode(final CameraManager cameraManager,
+                                                  final String cameraId) throws CameraAccessException {
+        CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+        int[] aeModes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
+        if (aeModes == null) {
+            return null;
+        }
+        for (int i = 0; i < aeModes.length; i++) {
+            if (aeModes[i] == CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH) {
+                return aeModes[i];
+            }
+        }
+        for (int i = 0; i < aeModes.length; i++) {
+            if (aeModes[i] == CameraMetadata.CONTROL_AE_MODE_ON) {
+                return aeModes[i];
+            }
+        }
+        return null;
     }
 
     private List<Surface> createSurfaceList() {
@@ -341,8 +404,12 @@ public class CameraWrapper {
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             request.addTarget(mPreviewSurface);
             request.set(CaptureRequest.JPEG_QUALITY, mPreviewJpegQuality);
-            request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            if (hasAutoFocus()) {
+                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+            }
+            if (hasAutoExposure()) {
+                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+            }
             setWhiteBalance(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -390,8 +457,12 @@ public class CameraWrapper {
                 request.addTarget(mPreviewSurface);
             }
             request.addTarget(mRecordingSurface);
-            request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+            if (hasAutoFocus()) {
+                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+            }
+            if (hasAutoExposure()) {
+                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+            }
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
                 private boolean mStarted;
@@ -447,18 +518,22 @@ public class CameraWrapper {
                 Log.d(TAG, "takeStillImage: Created capture session.");
             }
             if (!mIsPreview) {
-                try {
-                    autoFocus(cameraDevice);
-                } catch (CameraWrapperException e) {
-                    if (DEBUG) {
-                        Log.w(TAG, "Failed to execute auto focus.", e);
+                if (hasAutoFocus()) {
+                    try {
+                        autoFocus(cameraDevice);
+                    } catch (CameraWrapperException e) {
+                        if (DEBUG) {
+                            Log.w(TAG, "Failed to execute auto focus.", e);
+                        }
                     }
                 }
-                try {
-                    autoExposure(cameraDevice);
-                } catch (CameraWrapperException e) {
-                    if (DEBUG) {
-                        Log.w(TAG, "Failed to execute auto exposure.", e);
+                if (hasAutoExposure()) {
+                    try {
+                        autoExposure(cameraDevice);
+                    } catch (CameraWrapperException e) {
+                        if (DEBUG) {
+                            Log.w(TAG, "Failed to execute auto exposure.", e);
+                        }
                     }
                 }
             }
@@ -466,8 +541,12 @@ public class CameraWrapper {
             int template = mIsRecording ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE;
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);
             request.addTarget(stillImageSurface);
-            request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+            if (hasAutoFocus()) {
+                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+            }
+            if (hasAutoExposure()) {
+                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+            }
             setWhiteBalance(request);
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -577,9 +656,11 @@ public class CameraWrapper {
             } else {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
-            request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+            request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
             request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            if (hasAutoExposure()) {
+                request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
+            }
             setWhiteBalance(request);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 
@@ -637,9 +718,11 @@ public class CameraWrapper {
             } else {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
-            request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+            request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
             request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+            if (hasAutoFocus()) {
+                request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
+            }
             setWhiteBalance(request);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
 

@@ -471,7 +471,7 @@ public class CameraWrapper {
 
                 @Override
                 public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-                    if (!mStarted) {
+                    if (!mStarted && !isResume) {
                         mStarted = true;
                         notifyCameraEvent(CameraEvent.STARTED_VIDEO_RECORDING);
                     }

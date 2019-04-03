@@ -21,6 +21,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -28,9 +29,11 @@ import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
@@ -161,6 +164,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                            final @NonNull FileManager fileManager) {
         super(context, camera.getId());
         mCameraWrapper = camera;
+        camera.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
+
         mPreviewThread.start();
         mPhotoThread.start();
         HandlerThread requestThread = new HandlerThread("request");
@@ -177,6 +182,30 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     CameraWrapper getCameraWrapper() {
         return mCameraWrapper;
+    }
+
+    private void notifyEventToUser(final CameraWrapper.CameraEvent event) {
+        switch (event) {
+            case SHUTTERED:
+                showToast(getString(R.string.shuttered));
+                break;
+            case STARTED_VIDEO_RECORDING:
+                showToast(getString(R.string.started_video_recording));
+                break;
+            case STOPPED_VIDEO_RECORDING:
+                showToast(getString(R.string.stopped_video_recording));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private String getString(final int stringId) {
+        return getContext().getString(stringId);
+    }
+
+    private void showToast(final String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     @Override

@@ -4,7 +4,9 @@
     <string name="host_confirm">確認</string>
     <string name="app_name_host">Host (Device Connect Device Plug-in)</string>
 
-    <string name="shutter">シャッター</string>
+    <string name="shuttered">シャッター</string>
+    <string name="started_video_recording">録画開始</string>
+    <string name="stopped_video_recording">録画終了</string>
     <string name="zoomin">ズームイン</string>
     <string name="zoomout">ズームアウト</string>
 

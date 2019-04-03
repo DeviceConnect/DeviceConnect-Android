@@ -42,6 +42,31 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("MissingPermission")
 public class CameraWrapper {
 
+    public enum CameraEvent {
+        SHUTTERED,
+        STARTED_VIDEO_RECORDING,
+        STOPPED_VIDEO_RECORDING
+    }
+
+    public interface CameraEventListener {
+        void onEvent(CameraEvent event);
+    }
+
+    private static class CameraEventListenerHolder {
+        private CameraEventListener mListener;
+        private Handler mHandler;
+
+        CameraEventListenerHolder(final @NonNull CameraEventListener listener,
+                                  final @NonNull Handler handler) {
+            mListener = listener;
+            mHandler = handler;
+        }
+
+        void notifyEvent(final CameraEvent event) {
+            mHandler.post(() -> mListener.onEvent(event));
+        }
+    }
+
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
     private static final String TAG = "host.dplugin";
@@ -84,6 +109,8 @@ public class CameraWrapper {
 
     private byte mPreviewJpegQuality;
 
+    private CameraEventListenerHolder mCameraEventListenerHolder;
+
     public CameraWrapper(final @NonNull Context context, final @NonNull String cameraId) {
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -103,6 +130,18 @@ public class CameraWrapper {
                 }
             }
         }, mBackgroundHandler);
+    }
+
+    private void notifyCameraEvent(final CameraEvent event) {
+        CameraEventListenerHolder holder = mCameraEventListenerHolder;
+        if (holder != null) {
+            holder.notifyEvent(event);
+        }
+    }
+
+    public void setCameraEventListener(final CameraEventListener listener,
+                                       final Handler handler) {
+        mCameraEventListenerHolder = new CameraEventListenerHolder(listener, handler);
     }
 
     public String getId() {
@@ -336,7 +375,8 @@ public class CameraWrapper {
         }
     }
 
-    public synchronized void startRecording(final Surface recordingSurface, final boolean isResume) throws CameraWrapperException {
+    public synchronized void startRecording(final Surface recordingSurface,
+                                            final boolean isResume) throws CameraWrapperException {
         if (mIsRecording && !isResume) {
             throw new CameraWrapperException("recording is started already.");
         }
@@ -352,7 +392,18 @@ public class CameraWrapper {
             request.addTarget(mRecordingSurface);
             request.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             request.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-            captureSession.setRepeatingRequest(request.build(), null, null);
+            captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
+
+                private boolean mStarted;
+
+                @Override
+                public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
+                    if (!mStarted) {
+                        mStarted = true;
+                        notifyCameraEvent(CameraEvent.STARTED_VIDEO_RECORDING);
+                    }
+                }
+            }, null);
             mCaptureSession = captureSession;
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
@@ -374,6 +425,7 @@ public class CameraWrapper {
         } else {
             close();
         }
+        notifyCameraEvent(CameraEvent.STOPPED_VIDEO_RECORDING);
     }
 
     public synchronized void takeStillImage(final Surface stillImageSurface) throws CameraWrapperException {
@@ -423,6 +475,7 @@ public class CameraWrapper {
                     if (DEBUG) {
                         Log.d(TAG, "takeStillImage: onCaptureStarted");
                     }
+                    notifyCameraEvent(CameraEvent.SHUTTERED);
                 }
 
                 @Override

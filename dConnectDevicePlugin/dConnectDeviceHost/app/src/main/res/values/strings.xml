@@ -4,7 +4,9 @@
     <string name="host_confirm">Confirm</string>
     <string name="app_name_host">Host (Device Connect Device Plug-in)</string>
 
-    <string name="shutter">Shutter</string>
+    <string name="shuttered">Shuttered</string>
+    <string name="started_video_recording">Started recording</string>
+    <string name="stopped_video_recording">Stopped recording</string>
     <string name="zoomin">Zoomin</string>
     <string name="zoomout">Zoomout</string>
 

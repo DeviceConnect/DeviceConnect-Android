@@ -74,8 +74,6 @@ public class CameraWrapper {
 
     private static final String TAG = "host.dplugin";
 
-    private final Context mContext;
-
     private final String mCameraId;
 
     private final CameraManager mCameraManager;
@@ -122,7 +120,6 @@ public class CameraWrapper {
 
     CameraWrapper(final @NonNull Context context,
                   final @NonNull String cameraId) throws CameraAccessException {
-        mContext = context;
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mBackgroundThread.start();
@@ -710,8 +707,10 @@ public class CameraWrapper {
         }
     }
 
-    public synchronized void turnOnTorch() throws CameraWrapperException {
+    public synchronized void turnOnTorch(final TorchOnListener listener,
+                                         final Handler handler) throws CameraWrapperException {
         if (mIsTouchOn) {
+            notifyTorchOnEvent(listener, handler);
             return;
         }
         try {
@@ -731,6 +730,7 @@ public class CameraWrapper {
                     }
                     if (isTorchOn) {
                         mIsTouchOn = true;
+                        notifyTorchOnEvent(listener, handler);
                     }
                 }
             }, mBackgroundHandler);
@@ -740,11 +740,12 @@ public class CameraWrapper {
         }
     }
 
-    public synchronized void turnOffTorch() {
+    public synchronized void turnOffTorch(final TorchOffListener listener, final Handler handler) {
         if (mUseTouch && mIsTouchOn) {
             mIsTouchOn = false;
             mUseTouch = false;
             close();
+            notifyTorchOffEvent(listener, handler);
         }
     }
 
@@ -754,6 +755,18 @@ public class CameraWrapper {
 
     public boolean isUseTorch() {
         return mUseTouch;
+    }
+
+    private void notifyTorchOnEvent(final TorchOnListener listener, final Handler handler) {
+        if (listener != null && handler != null) {
+            handler.post(listener::onTurnOn);
+        }
+    }
+
+    private void notifyTorchOffEvent(final TorchOffListener listener, final Handler handler) {
+        if (listener != null && handler != null) {
+            handler.post(listener::onTurnOff);
+        }
     }
 
     /**
@@ -879,5 +892,13 @@ public class CameraWrapper {
         public void setWhiteBalance(final String whiteBalance) {
             mWhiteBalance = whiteBalance;
         }
+    }
+
+    public interface TorchOnListener {
+        void onTurnOn();
+    }
+
+    public interface TorchOffListener {
+        void onTurnOff();
     }
 }

@@ -677,24 +677,35 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public void turnOnFlashLight() {
+    public void turnOnFlashLight(final TurnOnFlashLightListener listener,
+                                 final Handler handler) {
         mRequestHandler.post(() -> {
             try {
                 CameraWrapper camera = getCameraWrapper();
-                camera.turnOnTorch();
+                camera.turnOnTorch(listener::onTurnOn, handler);
+                if (listener != null && handler != null) {
+                    handler.post(listener::onRequested);
+                }
             } catch (CameraWrapperException e) {
                 if (DEBUG) {
                     Log.e(TAG, "Failed to turn on flash light.", e);
+                }
+                if (listener != null && handler != null) {
+                    handler.post(() -> { listener.onError(Error.FATAL_ERROR); });
                 }
             }
         });
     }
 
     @Override
-    public void turnOffFlashLight() {
+    public void turnOffFlashLight(final TurnOffFlashLightListener listener,
+                                  final Handler handler) {
         mRequestHandler.post(() -> {
             CameraWrapper camera = getCameraWrapper();
-            camera.turnOffTorch();
+            camera.turnOffTorch(listener::onTurnOff, handler);
+            if (listener != null && handler != null) {
+                handler.post(listener::onRequested);
+            }
         });
     }
 

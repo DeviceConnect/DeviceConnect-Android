@@ -104,6 +104,11 @@ public class HostDeviceService extends DConnectMessageService {
     private HostPhoneProfile mPhoneProfile;
 
     /**
+     * MediaStreamRecordingProfile の実装.
+     */
+    private HostMediaStreamingRecordingProfile mHostMediaStreamRecordingProfile;
+
+    /**
      * デモページインストーラ.
      */
     private DemoInstaller mDemoInstaller;
@@ -206,7 +211,8 @@ public class HostDeviceService extends DConnectMessageService {
         }
 
         if (mRecorderMgr.getRecorders().length > 0) {
-            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
+            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
+            hostService.addProfile(mHostMediaStreamRecordingProfile);
             hostService.addProfile(new HostCameraProfile());
         }
         if (checkCameraHardware()) {
@@ -297,9 +303,13 @@ public class HostDeviceService extends DConnectMessageService {
     public void onDestroy() {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
+        mRecorderMgr.destroy();
         mFileDataManager.stopTimer();
         if (mCameraWrapperManager != null) {
             mCameraWrapperManager.destroy();
+        }
+        if (mHostMediaStreamRecordingProfile != null) {
+            mHostMediaStreamRecordingProfile.destroy();
         }
         unregisterReceiver(mHostConnectionReceiver);
         unregisterReceiver(mDemoNotificationReceiver);

@@ -21,16 +21,20 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
@@ -137,6 +141,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private final HandlerThread mPhotoThread = new HandlerThread("photo");
 
+    private final Handler mRequestHandler;
+
     /**
      * 現在の端末の回転方向.
      *
@@ -159,8 +165,13 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                            final @NonNull FileManager fileManager) {
         super(context, camera.getId());
         mCameraWrapper = camera;
+        camera.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
+
         mPreviewThread.start();
         mPhotoThread.start();
+        HandlerThread requestThread = new HandlerThread("request");
+        requestThread.start();
+        mRequestHandler = new Handler(requestThread.getLooper());
         mFileManager = fileManager;
 
         Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(this);
@@ -174,8 +185,36 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return mCameraWrapper;
     }
 
+    private void notifyEventToUser(final CameraWrapper.CameraEvent event) {
+        switch (event) {
+            case SHUTTERED:
+                showToast(getString(R.string.shuttered));
+                break;
+            case STARTED_VIDEO_RECORDING:
+                showToast(getString(R.string.started_video_recording));
+                break;
+            case STOPPED_VIDEO_RECORDING:
+                showToast(getString(R.string.stopped_video_recording));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private String getString(final int stringId) {
+        return getContext().getString(stringId);
+    }
+
+    private void showToast(final String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void takePhoto(final @NonNull OnPhotoEventListener listener) {
+        mRequestHandler.post(() -> takePhotoInternal(listener));
+    }
+
+    private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
             final CameraWrapper camera = getCameraWrapper();
             final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.JPEG);
@@ -402,6 +441,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
+        mRequestHandler.post(() -> startRecordingInternal(serviceId, listener));
+    }
+
+    public synchronized void startRecordingInternal(final String serviceId, final RecordingListener listener) {
         if (mSurfaceRecorder != null) {
             listener.onFailed(this, "Recording has started already.");
             return;
@@ -443,6 +486,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
+        mRequestHandler.post(() -> stopRecordingInternal(listener));
+    }
+
+    private void stopRecordingInternal(final StoppingListener listener) {
         if (mSurfaceRecorder == null) {
             listener.onFailed(this, "Recording has stopped already.");
             return;
@@ -631,21 +678,42 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public void turnOnFlashLight() {
-        try {
-            CameraWrapper camera = getCameraWrapper();
-            camera.turnOnTorch();
-        } catch (CameraWrapperException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to turn on flash light.", e);
-            }
+    public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
+                                 final @NonNull Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
         }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
+        }
+        mRequestHandler.post(() -> {
+            try {
+                CameraWrapper camera = getCameraWrapper();
+                camera.turnOnTorch(listener::onTurnOn, handler);
+                handler.post(listener::onRequested);
+            } catch (CameraWrapperException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to turn on flash light.", e);
+                }
+                handler.post(() -> { listener.onError(Error.FATAL_ERROR); });
+            }
+        });
     }
 
     @Override
-    public void turnOffFlashLight() {
-        CameraWrapper camera = getCameraWrapper();
-        camera.turnOffTorch();
+    public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
+                                  final @NonNull Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
+        }
+        mRequestHandler.post(() -> {
+            CameraWrapper camera = getCameraWrapper();
+            camera.turnOffTorch(listener::onTurnOff, handler);
+            handler.post(listener::onRequested);
+        });
     }
 
     @Override
@@ -667,6 +735,13 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         for (PreviewServer server : getServers()) {
             server.stopWebServer();
         }
+    }
+
+    @Override
+    public void destroy() {
+        mPreviewThread.quit();
+        mPhotoThread.quit();
+        mRequestHandler.getLooper().quit();
     }
 
     @Override

@@ -286,13 +286,27 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
-    public void turnOnFlashLight() {
-
+    public void turnOnFlashLight(final TurnOnFlashLightListener listener,
+                                 final Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
+        }
+        handler.post(() -> listener.onError(Error.UNSUPPORTED));
     }
 
     @Override
-    public void turnOffFlashLight() {
-
+    public void turnOffFlashLight(final TurnOffFlashLightListener listener,
+                                  final Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
+        }
+        handler.post(() -> listener.onError(Error.UNSUPPORTED));
     }
 
     @Override
@@ -310,62 +324,59 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mScreenCastMgr.requestPermission(new ScreenCastManager.PermissionCallback() {
             @Override
             public void onAllowed() {
-                mPhotoThread.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            mState = RecorderState.RECORDING;
+                mPhotoThread.execute(() -> {
+                    try {
+                        mState = RecorderState.RECORDING;
 
-                            HostDeviceRecorder.PictureSize size = getPreviewSize();
-                            int w = size.getWidth();
-                            int h = size.getHeight();
-                            ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-                            final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size);
-                            final Bitmap[] screenshot = new Bitmap[1];
-                            final CountDownLatch mLatch = new CountDownLatch(1);
-                            imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                                @Override
-                                public void onImageAvailable(final ImageReader reader) {
-                                    if (BuildConfig.DEBUG) {
-                                        mLogger.info("onImageAvailable");
-                                    }
-                                    screenshot[0] = screenCast.getScreenshot();
-                                    mLatch.countDown();
+                        HostDeviceRecorder.PictureSize size = getPreviewSize();
+                        int w = size.getWidth();
+                        int h = size.getHeight();
+                        ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
+                        final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size);
+                        final Bitmap[] screenshot = new Bitmap[1];
+                        final CountDownLatch mLatch = new CountDownLatch(1);
+                        imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+                            @Override
+                            public void onImageAvailable(final ImageReader reader) {
+                                if (BuildConfig.DEBUG) {
+                                    mLogger.info("onImageAvailable");
                                 }
-                            }, mImageReaderHandler);
-                            screenCast.startCast();
-                            mLatch.await(5, TimeUnit.SECONDS);
-                            screenCast.stopCast();
+                                screenshot[0] = screenCast.getScreenshot();
+                                mLatch.countDown();
+                            }
+                        }, mImageReaderHandler);
+                        screenCast.startCast();
+                        mLatch.await(5, TimeUnit.SECONDS);
+                        screenCast.stopCast();
 
-                            Bitmap bitmap = screenshot[0];
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                            byte[] media = baos.toByteArray();
-                            if (media == null) {
+                        Bitmap bitmap = screenshot[0];
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                        byte[] media = baos.toByteArray();
+                        if (media == null) {
+                            mState = RecorderState.INACTTIVE;
+                            listener.onFailedTakePhoto("Failed to get Screenshot.");
+                            return;
+                        }
+
+                        // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
+                        mFileMgr.saveFile(createNewFileName(), media, true, new FileManager.SaveFileCallback() {
+                            @Override
+                            public void onSuccess(@NonNull final String uri) {
                                 mState = RecorderState.INACTTIVE;
-                                listener.onFailedTakePhoto("Failed to get Screenshot.");
-                                return;
+                                listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
                             }
 
-                            // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
-                            mFileMgr.saveFile(createNewFileName(), media, true, new FileManager.SaveFileCallback() {
-                                @Override
-                                public void onSuccess(@NonNull final String uri) {
-                                    mState = RecorderState.INACTTIVE;
-                                    listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
-                                }
-
-                                @Override
-                                public void onFail(@NonNull final Throwable throwable) {
-                                    mState = RecorderState.INACTTIVE;
-                                    listener.onFailedTakePhoto(throwable.getMessage());
-                                }
-                            });
-                        } catch (InterruptedException e) {
-                            listener.onFailedTakePhoto("Taking photo is shutdown.");
-                        } catch (OutOfMemoryError e) {
-                            listener.onFailedTakePhoto("Out of memory.");
-                        }
+                            @Override
+                            public void onFail(@NonNull final Throwable throwable) {
+                                mState = RecorderState.INACTTIVE;
+                                listener.onFailedTakePhoto(throwable.getMessage());
+                            }
+                        });
+                    } catch (InterruptedException e) {
+                        listener.onFailedTakePhoto("Taking photo is shutdown.");
+                    } catch (OutOfMemoryError e) {
+                        listener.onFailedTakePhoto("Out of memory.");
                     }
                 });
             }

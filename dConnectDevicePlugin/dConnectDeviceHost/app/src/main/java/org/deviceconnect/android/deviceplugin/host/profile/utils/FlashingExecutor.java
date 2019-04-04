@@ -21,11 +21,18 @@ import java.util.concurrent.TimeUnit;
 public class FlashingExecutor {
 
     public interface LightControllable {
-        void changeLight(boolean isOn, CompleteListener listener);
+        void changeLight(boolean isOn, LightControlCallback listener);
     }
 
-    public interface CompleteListener {
-        void onComplete();
+    public interface LightControlCallback {
+
+        /**
+         * ライト状態を変更するまでに経過した時間
+         * @param delay 経過時間
+         */
+        void onComplete(final long delay);
+
+        void onFatalError();
     }
 
     private LightControllable mListener;
@@ -45,7 +52,7 @@ public class FlashingExecutor {
     public synchronized void start(long[] flashing) {
         cancelSchedule();
         updateQueue(flashing);
-        setOn(true);
+        resetOn();
         schedule(new Runnable() {
             @Override
             public void run() {
@@ -62,18 +69,23 @@ public class FlashingExecutor {
         final int identifier = mLastIdentifier;
         LightControllable listener = getLightControllable();
         if (listener == null) {
-            next(runnable, identifier);
+            next(runnable, identifier, 0);
             return;
         }
-        listener.changeLight(isOn(), new CompleteListener() {
+        listener.changeLight(isOn(), new LightControlCallback() {
             @Override
-            public void onComplete() {
-                next(runnable, identifier);
+            public void onComplete(final long delay) {
+                next(runnable, identifier, delay);
+            }
+
+            @Override
+            public void onFatalError() {
+                cancelSchedule();
             }
         });
     }
 
-    private synchronized void next(Runnable runnable, int identifier) {
+    private synchronized void next(final Runnable runnable, final int identifier, final long delay) {
         //Return if other execution has been begin.
         if (mLastIdentifier != identifier) {
             return;
@@ -81,7 +93,11 @@ public class FlashingExecutor {
         toggleOnOff();
         Long interval = getNextFlashingInterval();
         if (interval != null) {
-            schedule(runnable, interval);
+            long fixedInterval = interval - delay;
+            if (fixedInterval < 0) {
+                fixedInterval = 0;
+            }
+            schedule(runnable, fixedInterval);
         } else {
             onFinish();
         }
@@ -118,8 +134,8 @@ public class FlashingExecutor {
         return mFlashingQueue.poll();
     }
 
-    private synchronized void setOn(boolean isOn) {
-        mIsOn = isOn;
+    private synchronized void resetOn() {
+        mIsOn = true;
     }
 
     private synchronized boolean isOn() {

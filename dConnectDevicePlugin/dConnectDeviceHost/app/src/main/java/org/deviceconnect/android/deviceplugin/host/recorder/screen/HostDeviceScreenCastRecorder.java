@@ -302,6 +302,16 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
+    public void turnOnFlashLight() {
+        turnOnFlashLight(null, null);
+    }
+
+    @Override
+    public void turnOffFlashLight() {
+        turnOffFlashLight(null, null);
+    }
+
+    @Override
     public boolean isFlashLightState() {
         return false;
     }

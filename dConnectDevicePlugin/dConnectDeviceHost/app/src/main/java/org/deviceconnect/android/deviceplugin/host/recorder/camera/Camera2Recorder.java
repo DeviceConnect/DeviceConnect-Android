@@ -24,6 +24,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -677,20 +678,25 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public void turnOnFlashLight(final TurnOnFlashLightListener listener,
-                                 final Handler handler) {
+    public void turnOnFlashLight(final @Nullable TurnOnFlashLightListener listener,
+                                 final @Nullable Handler handler) {
+        if (listener != null && handler == null) {
+            throw new IllegalArgumentException("handler is mandatory if listener is specified.");
+        }
         mRequestHandler.post(() -> {
             try {
                 CameraWrapper camera = getCameraWrapper();
-                camera.turnOnTorch(listener::onTurnOn, handler);
-                if (listener != null && handler != null) {
+                if (listener != null) {
+                    camera.turnOnTorch(listener::onTurnOn, handler);
                     handler.post(listener::onRequested);
+                } else {
+                    camera.turnOnTorch();
                 }
             } catch (CameraWrapperException e) {
                 if (DEBUG) {
                     Log.e(TAG, "Failed to turn on flash light.", e);
                 }
-                if (listener != null && handler != null) {
+                if (listener != null) {
                     handler.post(() -> { listener.onError(Error.FATAL_ERROR); });
                 }
             }
@@ -698,15 +704,30 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public void turnOffFlashLight(final TurnOffFlashLightListener listener,
-                                  final Handler handler) {
+    public void turnOffFlashLight(final @Nullable TurnOffFlashLightListener listener,
+                                  final @Nullable Handler handler) {
+        if (listener != null && handler == null) {
+            throw new IllegalArgumentException("handler is mandatory if listener is specified.");
+        }
         mRequestHandler.post(() -> {
             CameraWrapper camera = getCameraWrapper();
-            camera.turnOffTorch(listener::onTurnOff, handler);
-            if (listener != null && handler != null) {
+            if (listener != null) {
+                camera.turnOffTorch(listener::onTurnOff, handler);
                 handler.post(listener::onRequested);
+            } else {
+                camera.turnOffTorch();
             }
         });
+    }
+
+    @Override
+    public void turnOnFlashLight() {
+        turnOnFlashLight(null, null);
+    }
+
+    @Override
+    public void turnOffFlashLight() {
+        turnOffFlashLight(null, null);
     }
 
     @Override

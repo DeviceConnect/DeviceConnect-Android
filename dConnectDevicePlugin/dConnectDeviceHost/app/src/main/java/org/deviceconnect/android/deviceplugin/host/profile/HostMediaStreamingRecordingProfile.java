@@ -815,7 +815,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     public void checkCameraLightState() {
         // ライト点灯中なら消灯処理を実施.
         if (mRecorderMgr.getCameraRecorder(null).isUseFlashLight()) {
-            mRecorderMgr.getCameraRecorder(null).turnOffFlashLight(null, null);
+            mRecorderMgr.getCameraRecorder(null).turnOffFlashLight();
         }
     }
 

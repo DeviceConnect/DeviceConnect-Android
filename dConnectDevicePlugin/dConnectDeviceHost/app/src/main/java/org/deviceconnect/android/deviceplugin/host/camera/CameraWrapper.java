@@ -24,6 +24,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -707,8 +708,28 @@ public class CameraWrapper {
         }
     }
 
+    /**
+     * カメラのライトをONにする.
+     *
+     * @throws CameraWrapperException カメラに何らかの致命的なエラーが発生した場合
+     */
+    public synchronized void turnOnTorch() throws CameraWrapperException {
+        turnOnTorch(null, null);
+    }
+
+    /**
+     * カメラのライトをONにする.
+     *
+     * @param listener 実際にライトがONになったタイミングで実行されるリスナー
+     * @param handler リスナーを実行するハンドラー. リスナーを指定する場合は必須
+     * @throws IllegalArgumentException リスナーを指定しているのにハンドラーを指定していない場合
+     * @throws CameraWrapperException カメラに何らかの致命的なエラーが発生した場合
+     */
     public synchronized void turnOnTorch(final TorchOnListener listener,
                                          final Handler handler) throws CameraWrapperException {
+        if (listener != null && handler == null) {
+            throw new IllegalArgumentException("handler is mandatory if listener is specified.");
+        }
         if (mIsTouchOn) {
             notifyTorchOnEvent(listener, handler);
             return;
@@ -740,7 +761,25 @@ public class CameraWrapper {
         }
     }
 
-    public synchronized void turnOffTorch(final TorchOffListener listener, final Handler handler) {
+    /**
+     * カメラのライトをOFFにする.
+     */
+    public synchronized void turnOffTorch() {
+        turnOffTorch(null, null);
+    }
+
+    /**
+     * カメラのライトをOFFにする.
+     *
+     * @param listener 実際にライトがOFFになったタイミングで実行されるリスナー
+     * @param handler リスナーを実行するハンドラー. リスナーを指定する場合は必須
+     * @throws IllegalArgumentException リスナーを指定しているのにハンドラーを指定していない場合
+     */
+    public synchronized void turnOffTorch(final @Nullable TorchOffListener listener,
+                                          final @Nullable Handler handler) {
+        if (listener != null && handler == null) {
+            throw new IllegalArgumentException("handler is mandatory if listener is specified.");
+        }
         if (mUseTouch && mIsTouchOn) {
             mIsTouchOn = false;
             mUseTouch = false;

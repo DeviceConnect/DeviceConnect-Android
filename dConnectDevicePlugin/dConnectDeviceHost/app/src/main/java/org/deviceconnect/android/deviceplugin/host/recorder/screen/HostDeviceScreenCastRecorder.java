@@ -294,9 +294,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         if (handler == null) {
             throw new IllegalArgumentException("handler is null.");
         }
-        if (listener != null && handler != null) {
-            handler.post(() -> listener.onError(Error.UNSUPPORTED));
-        }
+        handler.post(() -> listener.onError(Error.UNSUPPORTED));
     }
 
     @Override
@@ -308,9 +306,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         if (handler == null) {
             throw new IllegalArgumentException("handler is null.");
         }
-        if (listener != null && handler != null) {
-            handler.post(() -> listener.onError(Error.UNSUPPORTED));
-        }
+        handler.post(() -> listener.onError(Error.UNSUPPORTED));
     }
 
     @Override

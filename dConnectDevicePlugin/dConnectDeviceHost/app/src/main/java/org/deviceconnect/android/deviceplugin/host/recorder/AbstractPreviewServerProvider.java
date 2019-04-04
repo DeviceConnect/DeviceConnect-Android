@@ -49,6 +49,11 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     @Override
+    public void destroy() {
+        // Nothing to do.
+    }
+
+    @Override
     public void stopWebServers() {
         for (PreviewServer server : getServers()) {
             server.stopWebServer();

@@ -24,7 +24,19 @@ public interface HostDeviceRecorder {
 
     void initialize();
 
+    /**
+     * プロセス起動時の状態に戻す.
+     *
+     * プラグイン再起動時に呼び出すこと.
+     */
     void clean();
+
+    /**
+     * オブジェクトを破棄する.
+     *
+     * プロセス終了時に呼び出すこと.
+     */
+    void destroy();
 
     String getId();
 

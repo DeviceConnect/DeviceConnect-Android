@@ -288,6 +288,12 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     @Override
     public void turnOnFlashLight(final TurnOnFlashLightListener listener,
                                  final Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
+        }
         if (listener != null && handler != null) {
             handler.post(() -> listener.onError(Error.UNSUPPORTED));
         }
@@ -296,19 +302,15 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     @Override
     public void turnOffFlashLight(final TurnOffFlashLightListener listener,
                                   final Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
+        }
         if (listener != null && handler != null) {
             handler.post(() -> listener.onError(Error.UNSUPPORTED));
         }
-    }
-
-    @Override
-    public void turnOnFlashLight() {
-        turnOnFlashLight(null, null);
-    }
-
-    @Override
-    public void turnOffFlashLight() {
-        turnOffFlashLight(null, null);
     }
 
     @Override

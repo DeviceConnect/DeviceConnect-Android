@@ -725,8 +725,8 @@ public class CameraWrapper {
      * @throws IllegalArgumentException リスナーを指定しているのにハンドラーを指定していない場合
      * @throws CameraWrapperException カメラに何らかの致命的なエラーが発生した場合
      */
-    public synchronized void turnOnTorch(final TorchOnListener listener,
-                                         final Handler handler) throws CameraWrapperException {
+    public synchronized void turnOnTorch(final @Nullable TorchOnListener listener,
+                                         final @Nullable Handler handler) throws CameraWrapperException {
         if (listener != null && handler == null) {
             throw new IllegalArgumentException("handler is mandatory if listener is specified.");
         }

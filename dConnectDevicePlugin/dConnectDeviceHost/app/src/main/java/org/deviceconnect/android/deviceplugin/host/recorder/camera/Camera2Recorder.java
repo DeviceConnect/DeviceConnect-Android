@@ -678,56 +678,42 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public void turnOnFlashLight(final @Nullable TurnOnFlashLightListener listener,
-                                 final @Nullable Handler handler) {
-        if (listener != null && handler == null) {
-            throw new IllegalArgumentException("handler is mandatory if listener is specified.");
+    public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
+                                 final @NonNull Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
         }
         mRequestHandler.post(() -> {
             try {
                 CameraWrapper camera = getCameraWrapper();
-                if (listener != null) {
-                    camera.turnOnTorch(listener::onTurnOn, handler);
-                    handler.post(listener::onRequested);
-                } else {
-                    camera.turnOnTorch();
-                }
+                camera.turnOnTorch(listener::onTurnOn, handler);
+                handler.post(listener::onRequested);
             } catch (CameraWrapperException e) {
                 if (DEBUG) {
                     Log.e(TAG, "Failed to turn on flash light.", e);
                 }
-                if (listener != null) {
-                    handler.post(() -> { listener.onError(Error.FATAL_ERROR); });
-                }
+                handler.post(() -> { listener.onError(Error.FATAL_ERROR); });
             }
         });
     }
 
     @Override
-    public void turnOffFlashLight(final @Nullable TurnOffFlashLightListener listener,
-                                  final @Nullable Handler handler) {
-        if (listener != null && handler == null) {
-            throw new IllegalArgumentException("handler is mandatory if listener is specified.");
+    public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
+                                  final @NonNull Handler handler) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null.");
         }
         mRequestHandler.post(() -> {
             CameraWrapper camera = getCameraWrapper();
-            if (listener != null) {
-                camera.turnOffTorch(listener::onTurnOff, handler);
-                handler.post(listener::onRequested);
-            } else {
-                camera.turnOffTorch();
-            }
+            camera.turnOffTorch(listener::onTurnOff, handler);
+            handler.post(listener::onRequested);
         });
-    }
-
-    @Override
-    public void turnOnFlashLight() {
-        turnOnFlashLight(null, null);
-    }
-
-    @Override
-    public void turnOffFlashLight() {
-        turnOffFlashLight(null, null);
     }
 
     @Override

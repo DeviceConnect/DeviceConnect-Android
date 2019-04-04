@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.os.Handler;
+import android.support.annotation.NonNull;
 
 /**
  * 写真撮影機能を持つレコーダー.
@@ -36,36 +37,18 @@ public interface HostDevicePhotoRecorder {
      *
      * @param listener 処理結果を受け取るためのリスナー.
      * @param handler リスナーを実行するハンドラー. リスナーを指定する場合は必須.
-     * @throws IllegalArgumentException リスナーを指定しているのに、ハンドラーを指定していない場合
+     * @throws IllegalArgumentException リスナーとハンドラーの一方または両方を指定していない場合
      */
-    void turnOnFlashLight(TurnOnFlashLightListener listener, Handler handler);
-
-    /**
-     * カメラのライトを ON にする.
-     *
-     * このメソッドは非同期的に実行される.
-     * 以下の処理と同じ処理が実行される.
-     * turnOnFlashLight(null, null);
-     */
-    void turnOnFlashLight();
+    void turnOnFlashLight(@NonNull TurnOnFlashLightListener listener, @NonNull Handler handler);
 
     /**
      * カメラのライトを OFF にする.
      *
      * @param listener 処理結果を受け取るためのリスナー.
-     * @param handler リスナーを実行するハンドラー. リスナーを指定する場合は必須.
-     * @throws IllegalArgumentException リスナーを指定しているのに、ハンドラーを指定していない場合
+     * @param handler リスナーを実行するハンドラー.
+     * @throws IllegalArgumentException リスナーとハンドラーの一方または両方を指定していない場合
      */
-    void turnOffFlashLight(TurnOffFlashLightListener listener, Handler handler);
-
-    /**
-     * カメラのライトを OFF にする.
-     *
-     * このメソッドは非同期的に実行される.
-     * 以下の処理と同じ処理が実行される.
-     * turnOffFlashLight(null, null);
-     */
-    void turnOffFlashLight();
+    void turnOffFlashLight(@NonNull TurnOffFlashLightListener listener, @NonNull Handler handler);
 
     /**
      * カメラのライトがONかどうかをチェックする.
@@ -138,7 +121,7 @@ public interface HostDevicePhotoRecorder {
         void onRequested();
 
         /**
-         * 実際にライトがONになったタイミングで実行される.
+         * 実際にライトがOFFになったタイミングで実行される.
          */
         void onTurnOff();
 

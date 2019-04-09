@@ -598,10 +598,12 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      */
     private boolean sendMessage(final Intent intent) {
         if (mIDConnectCallback == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.severe("sendMessage: IDConnectCallback is not set.");
+            try {
+                mContext.sendBroadcast(intent);
+                return true;
+            } catch (Exception e) {
+                return false;
             }
-            return false;
         }
 
         try {

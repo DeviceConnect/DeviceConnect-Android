@@ -877,8 +877,6 @@ public abstract class DConnectManager implements DConnectInterface {
                     responseIntent.setComponent(cn);
                     mContext.sendBroadcast(responseIntent);
                 });
-            } else if (DConnectUtil.checkActionResponse(message)) {
-                handleResponse(message);
             } else {
                 mCore.onReceivedMessage(message);
             }

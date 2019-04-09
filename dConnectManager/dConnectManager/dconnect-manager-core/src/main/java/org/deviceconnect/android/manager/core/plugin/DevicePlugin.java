@@ -499,6 +499,7 @@ public class DevicePlugin extends DConnectService {
                 : IntentDConnectMessage.ACTION_DEVICEPLUGIN_DISABLED;
         Intent notification = new Intent(action);
         notification.setComponent(getComponentName());
+        notification.putExtra("", "");
         return notification;
     }
 

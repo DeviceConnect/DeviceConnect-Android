@@ -101,6 +101,12 @@ public enum EventManager {
         return mController.addEvent(event);
     }
 
+    /**
+     * 指定されたイベント登録用のリクエストからイベントデータを取得する.
+     *
+     * @param request イベント登録リクエスト
+     * @return イベントデータ
+     */
     public Event getEvent(final Intent request) {
         checkState();
 
@@ -128,6 +134,12 @@ public enum EventManager {
         return removeEvent(createEvent(request));
     }
 
+    /**
+     * 指定されたイベントを削除する.
+     *
+     * @param event 削除するイベント
+     * @return 処理結果
+     */
     public EventError removeEvent(final Event event) {
         checkState();
         if (event == null) {

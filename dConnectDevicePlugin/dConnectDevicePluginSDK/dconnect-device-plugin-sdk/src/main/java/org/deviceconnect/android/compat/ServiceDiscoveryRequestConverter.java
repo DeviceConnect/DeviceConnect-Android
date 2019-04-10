@@ -1,18 +1,32 @@
 package org.deviceconnect.android.compat;
 
-
 import android.content.Intent;
 
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
+/**
+ * 旧 Service Discovery のリクエストを新 Service Discovery のリクエストに変換するクラス.
+ *
+ * プロファイル名変更
+ *     /networkServiceDiscovery -> /serviceDiscovery
+ *
+ * アトリビュート削除
+ *     /networkServiceDiscovery/getNetworkServices -> /serviceDiscovery
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ServiceDiscoveryRequestConverter implements MessageConverter {
 
-    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
+    /**
+     * プラグイン側のService Discoveryのプロファイル名: {@value}.
+     */
     private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
 
-    /** プラグイン側のService Discoveryのアトリビュート名: {@value}. */
+    /**
+     * プラグイン側のService Discoveryのアトリビュート名: {@value}.
+     */
     private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
 
     @Override

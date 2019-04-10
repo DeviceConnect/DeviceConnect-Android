@@ -7,6 +7,7 @@
     <string name="key_settings_dconn_server_on_off" translatable="false">settings_dconn_server_on_off</string>
     <string name="key_settings_dconn_observer_on_off" translatable="false">settings_dconn_observer_on_off</string>
     <string name="key_settings_dconn_keyword" translatable="false">settings_dconn_server_keyword</string>
+    <string name="key_settings_dconn_ssl_password" translatable="false">settings_dconn_server_ssl_password</string>
     <string name="key_settings_dconn_allow_external_start_and_stop" translatable="false">settings_allow_external_start_and_stop</string>
     <string name="key_settings_dconn_allow_external_ip" translatable="false">settings_dconn_allow_external_ip</string>
     <string name="key_settings_dconn_require_origin" translatable="false">settings_dconn_require_origin</string>

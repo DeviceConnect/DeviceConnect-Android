@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -377,12 +378,15 @@ public class DevicePlugin extends DConnectService {
      *
      * @param isEnabled プラグイン有効状態
      */
-    public void setEnabled(final boolean isEnabled) {
+    private void setEnabled(final boolean isEnabled) {
         mSetting.setEnabled(isEnabled);
     }
 
     /**
      * プラグインを有効化する.
+     * <p>
+     * プラグインに有効化イベントを送信します。
+     * </p>
      */
     public synchronized void enable() {
         setEnabled(true);
@@ -392,6 +396,9 @@ public class DevicePlugin extends DConnectService {
 
     /**
      * プラグインを無効化する.
+     * <p>
+     * プラグインに無効化イベントを送信します。
+     * </p>
      */
     public synchronized void disable() {
         setEnabled(false);
@@ -482,25 +489,82 @@ public class DevicePlugin extends DConnectService {
         }
     }
 
+    /**
+     * WebSocket の切断イベントを送信します.
+     *
+     * @param origin 切断されたWebSocketのオリジン
+     */
+    public void sendTransmitDisconnectEvent(final String origin) {
+        Bundle extras = new Bundle();
+        extras.putString(IntentDConnectMessage.EXTRA_ORIGIN, origin);
+        sendManagerEvent(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT, extras);
+    }
+
+    /**
+     * Device Connect Manager の起動通知を行う.
+     */
+    public void sendLaunchedEvent() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_LAUNCHED);
+    }
+
+    /**
+     * Device Connect Manager の終了通知を行う.
+     */
+    public void sendTerminatedEvent() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+    }
+
+    /**
+     * プラグインに有効化・無効化イベント通知を行う.
+     *
+     * @param isEnabled trueの場合は有効化、falseの場合は無効化
+     */
     private void sendEnableState(boolean isEnabled) {
+        String action = isEnabled ? IntentDConnectMessage.ACTION_DEVICEPLUGIN_ENABLED
+                : IntentDConnectMessage.ACTION_DEVICEPLUGIN_DISABLED;
+        sendManagerEvent(action);
+    }
+
+    /**
+     * プラグインにリセットイベント通知を行う.
+     */
+    public void sendResetDevicePlugin() {
+        sendManagerEvent(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
+    }
+
+    /**
+     * Device Connect Manager のライフサイクルイベントなどをプラグインに送信します.
+     *
+     * @param action アクション
+     */
+    private void sendManagerEvent(final String action) {
+        sendManagerEvent(action, null);
+    }
+
+    /**
+     * デバイスプラグインに対して、Device Connect Managerのライフサイクルについての通知を行う.
+     *
+     * @param action アクション
+     * @param extras 送信するデータ
+     */
+    private void sendManagerEvent(final String action, final Bundle extras) {
         if (mConnection.getState() != ConnectionState.CONNECTED) {
+            mLogger.warning("Plugin not connected. " + getComponentName());
             return;
         }
-        Intent notification = createNotificationIntent(isEnabled);
+
+        Intent request = new Intent(action);
+        request.setComponent(getComponentName());
+        if (extras != null) {
+            request.putExtras(extras);
+        }
+        request.putExtra("pluginId", getPluginId());
+
         try {
-            send(notification);
+            send(request);
         } catch (MessagingException e) {
             mLogger.warning("Failed to send enable-state to " + getComponentName());
         }
-    }
-
-    private Intent createNotificationIntent(final boolean isEnabled) {
-        String action = isEnabled ? IntentDConnectMessage.ACTION_DEVICEPLUGIN_ENABLED
-                : IntentDConnectMessage.ACTION_DEVICEPLUGIN_DISABLED;
-        Intent notification = new Intent(action);
-        notification.setComponent(getComponentName());
-        notification.putExtra("", "");
-        return notification;
     }
 
     @Override

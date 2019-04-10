@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.os.Looper;
 import android.os.RemoteException;
 
 import org.deviceconnect.android.IDConnectCallback;
@@ -42,7 +41,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -53,9 +51,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Filter;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -139,6 +135,7 @@ public abstract class DConnectManager implements DConnectInterface {
         if (settings == null) {
             throw new IllegalArgumentException("settings is null.");
         }
+
         setupLogger("dconnect.manager");
         setupLogger("dconnect.server");
         setupLogger("mixed-replace-media");
@@ -149,6 +146,21 @@ public abstract class DConnectManager implements DConnectInterface {
         mContext = context;
         mSettings = settings;
         mKeyStoreMgr = new EndPointKeyStoreManager(context, DConnectConst.KEYSTORE_FILE_NAME);
+    }
+
+    private void setupLogger(final String name) {
+        Logger logger = Logger.getLogger(name);
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
+        } else {
+            logger.setLevel(Level.OFF);
+            logger.setFilter((record) -> false);
+        }
     }
 
     /**
@@ -244,26 +256,9 @@ public abstract class DConnectManager implements DConnectInterface {
         });
     }
 
-    private void setupLogger(final String name) {
-        Logger logger = Logger.getLogger(name);
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler(logger.getName());
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            logger.addHandler(handler);
-            logger.setLevel(Level.ALL);
-            logger.setUseParentHandlers(false);
-        } else {
-            logger.setLevel(Level.OFF);
-            logger.setFilter(new Filter() {
-                @Override
-                public boolean isLoggable(final LogRecord record) {
-                    return false;
-                }
-            });
-        }
-    }
-
+    /**
+     * Device Connect Manager を開始します.
+     */
     public void startDConnect() {
         initDConnect();
         mExecutor.execute(() -> {
@@ -288,12 +283,17 @@ public abstract class DConnectManager implements DConnectInterface {
             }
         });
     }
+
     /**
      * Device Connect サーバを停止します.
      */
     public void stopDConnect() {
         mExecutor.execute(this::stopRESTServer);
     }
+
+    /**
+     * Device Connect の後始末を行います.
+     */
     public void finalizeDConnect() {
         if (mCore != null) {
             mCore.stop();
@@ -373,7 +373,7 @@ public abstract class DConnectManager implements DConnectInterface {
          * レシーバーのコンポーネント名を設定します.
          * @param broadcastReceiver レシーバーのコンポーネント名
          */
-        public void setBroadcastReceiver(final ComponentName broadcastReceiver) {
+        void setBroadcastReceiver(final ComponentName broadcastReceiver) {
             mBroadcastReceiver = broadcastReceiver;
         }
 
@@ -389,7 +389,7 @@ public abstract class DConnectManager implements DConnectInterface {
         }
 
         @Override
-        public void sendEvent(final Intent event) throws IOException {
+        public void sendEvent(final Intent event) {
             event.setComponent(mBroadcastReceiver);
             getContext().sendBroadcast(event);
         }
@@ -399,16 +399,9 @@ public abstract class DConnectManager implements DConnectInterface {
      * WebSocket のイベントセッション.
      */
     private class WebSocketEventSession extends EventSession {
-        /**
-         * 現在のスレッドがメインスレッドか確認します.
-         * @return メインスレッドの場合はtrue、それ以外はfalse
-         */
-        private boolean isMainThread() {
-            return Thread.currentThread().equals(Looper.getMainLooper().getThread());
-        }
 
         @Override
-        public void sendEvent(final Intent event) throws IOException {
+        public void sendEvent(final Intent event) {
             String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
             if (key == null) {
                 mLogger.warning("sendEvent: key is not specified.");
@@ -570,7 +563,8 @@ public abstract class DConnectManager implements DConnectInterface {
             // KeyStoreが存在する場合には、SSLServerSocketFactoryを作成する
             SSLServerSocketFactory factory = null;
             if (keyStore != null) {
-                factory = createSSLServerSocketFactory(keyStore);
+                // TODO SSLのパスワードの管理をどうするべきか？
+                factory = createSSLServerSocketFactory(keyStore, mSettings.getSSLPassword());
             }
 
             mRESTServer = new DConnectServerNanoHttpd(builder.build(), getContext(), factory);
@@ -807,10 +801,10 @@ public abstract class DConnectManager implements DConnectInterface {
      * @return SSLServerSocketFactoryのインスタンス
      * @throws GeneralSecurityException SSLServerSocketFactoryの作成に失敗した場合に発生
      */
-    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore) throws GeneralSecurityException {
+    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore, final String password) throws GeneralSecurityException {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        keyManagerFactory.init(keyStore, password.toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
         sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());

@@ -43,7 +43,6 @@ import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -173,9 +172,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(), getCertificateAlias());
         if (usesAutoCertificateRequest()) {
             requestAndNotifyKeyStore();
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            context.registerReceiver(mWiFiBroadcastReceiver, filter);
+            registerChangeIpAddress();
         }
 
         // サービス管理クラス
@@ -205,10 +202,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
             mLocalOAuth2Main.destroy();
             mLocalOAuth2Main = null;
         }
-        if (usesAutoCertificateRequest()) {
-            mContext.unregisterReceiver(mWiFiBroadcastReceiver);
-        }
-
+        unregisterChangeIpAddress();
     }
 
     /**
@@ -248,6 +242,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
 
     /**
      * LocalOAuthのインスタンスを取得します.
+     *
      * @return LocalOAuth
      */
     public LocalOAuth2Main getLocalOAuth2Main() {
@@ -390,6 +385,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     public String[] getIgnoredProfiles() {
         return IGNORE_PROFILES;
     }
+
     /**
      * 指定されたプロファイルはLocal OAuth認証を無視して良いかを確認する.
      *
@@ -598,23 +594,27 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      */
     private boolean sendMessage(final Intent intent) {
         if (mIDConnectCallback == null) {
+            // AIDL が設定されていない場合には、Broadcast で Manager にメッセージを送信します。
             try {
                 mContext.sendBroadcast(intent);
                 return true;
             } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    mLogger.severe("mContext.sendBroadcast: exception occurred.");
+                }
+                return false;
+            }
+        } else {
+            try {
+                mIDConnectCallback.sendMessage(intent);
+                return true;
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    mLogger.severe("mIDConnectCallback.sendMessage: exception occurred.");
+                }
                 return false;
             }
         }
-
-        try {
-            mIDConnectCallback.sendMessage(intent);
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                mLogger.severe("sendMessage: exception occurred.");
-            }
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -788,6 +788,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      * @return 自動要求を行う場合はtrue、それ以外はfalse
      */
     protected boolean usesAutoCertificateRequest() {
+        // TODO 実装時に SSL を使用するか決定してしまう。途中で変更することはできなくて良いか？
         return false;
     }
 
@@ -904,35 +905,41 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
 
     /**
      * SSLContext のインスタンスを作成します.
+     *
      * <p>
-     * プラグイン内で Web サーバを立ち上げて、Managerと同じ証明書を使いたい場合にはこのSSLContext を使用します。
+     * プラグイン内で Web サーバを立ち上げて、Manager と同じ証明書を使いたい場合には、この SSLContext を使用します。
      * </p>
+     *
      * @param keyStore キーストア
+     * @param password パスワード
      * @return SSLContextのインスタンス
      * @throws GeneralSecurityException SSLContextの作成に失敗した場合に発生
      */
-    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
+    protected SSLContext createSSLContext(final KeyStore keyStore, final String password) throws GeneralSecurityException {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        keyManagerFactory.init(keyStore, password.toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
-        sslContext.init(
-                keyManagerFactory.getKeyManagers(),
-                trustManagerFactory.getTrustManagers(),
-                new SecureRandom()
-        );
+        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
         return sslContext;
     }
 
-    public void regsiterChangeIpAddress() {
+    /**
+     * IPアドレス変更Broadcastを受け取るためのReceiverを登録します.
+     */
+    private void registerChangeIpAddress() {
         if (usesAutoCertificateRequest()) {
             IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
             mContext.registerReceiver(mWiFiBroadcastReceiver, filter);
         }
     }
 
-    public void unregsiterChangeIpAddress() {
+    /**
+     * IPアドレス変更Broadcastを受け取るためのReceiverを解除します.
+     */
+    private void unregisterChangeIpAddress() {
         if (usesAutoCertificateRequest()) {
             try {
                 mContext.unregisterReceiver(mWiFiBroadcastReceiver);

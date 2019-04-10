@@ -7,7 +7,8 @@
     
     <dimen name="confirm_auth_application_marksize">48dp</dimen>
     <dimen name="confirm_auth_application_item_margin">10dp</dimen>
-    
+    <dimen name="confirm_auth_application_text_padding">2dp</dimen>
+
     <dimen name="confirm_auth_inner_margin">10dp</dimen>
     <dimen name="confirm_auth_linespace1_margin">20dp</dimen>
     <dimen name="confirm_auth_linespace2_margin">5dp</dimen>
@@ -18,6 +19,5 @@
     
     <dimen name="confirm_auth_approval_button_width">150dp</dimen>
     <dimen name="confirm_auth_approval_button_height">40dp</dimen>
-    
-    
+
 </resources>

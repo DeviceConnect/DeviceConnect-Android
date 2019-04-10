@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:background="@color/plugin_guidance_background"
         android:orientation="vertical"
-        android:padding="4dp">
+        android:padding="8dp">
 
         <TextView
             android:id="@+id/textViewExpirePeriod"
@@ -39,6 +39,7 @@
                 android:id="@+id/imageViewApplicationIcon"
                 android:layout_width="@dimen/confirm_auth_application_marksize"
                 android:layout_height="@dimen/confirm_auth_application_marksize"
+                android:layout_gravity="center_vertical"
                 android:layout_marginRight="@dimen/confirm_auth_application_item_margin"
                 android:contentDescription="@string/image_description"
                 android:src="@android:drawable/ic_menu_share"/>
@@ -47,11 +48,12 @@
                 android:id="@+id/textViewAccessToken"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top"
+                android:layout_gravity="center_vertical"
                 android:ellipsize="middle"
                 android:padding="2sp"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@color/text_color"/>
+
         </LinearLayout>
 
         <TextView
@@ -82,6 +84,7 @@
                 android:background="@drawable/confirm_auth_plugin_button"
                 android:text="@string/notapproval"
                 android:textColor="@android:color/white">
+
                 <requestFocus/>
             </Button>
 

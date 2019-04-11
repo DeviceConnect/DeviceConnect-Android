@@ -12,8 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.os.Looper;
-import android.os.RemoteException;
 
 import org.deviceconnect.android.IDConnectCallback;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
@@ -42,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -53,9 +52,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Filter;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -149,6 +146,21 @@ public abstract class DConnectManager implements DConnectInterface {
         mContext = context;
         mSettings = settings;
         mKeyStoreMgr = new EndPointKeyStoreManager(context, DConnectConst.KEYSTORE_FILE_NAME);
+
+        mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);
+        mCore.setDConnectInterface(this);
+        mCore.setIDConnectCallback(new IDConnectCallback.Stub() {
+            @Override
+            public void sendMessage(final Intent message) {
+                try {
+                    if (DConnectUtil.checkActionResponse(message)) {
+                        handleResponse(message);
+                    }
+                } catch (Exception e) {
+                    // ignore.
+                }
+            }
+        });
     }
 
     /**
@@ -187,15 +199,6 @@ public abstract class DConnectManager implements DConnectInterface {
     }
 
     /**
-     * KeyStore管理クラスを取得します.
-     *
-     * @return KeyStore管理クラス
-     */
-    public KeyStoreManager getKeyStoreManager() {
-        return mKeyStoreMgr;
-    }
-
-    /**
      * WebSocket情報管理クラスを取得します.
      *
      * @return WebSocket情報管理クラス
@@ -214,30 +217,31 @@ public abstract class DConnectManager implements DConnectInterface {
     }
 
     /**
-     * Device Connect サーバを起動します.
+     * キーストアを要求します.
+     *
+     * @param ipAddress アドレス
+     * @param callback キーストア要求結果を通知するコールバック
      */
-    public synchronized void initDConnect() {
+    public void requestKeyStore(String ipAddress, KeyStoreCallback callback) {
         if (mCore != null) {
-            mCore.start();
-            return;
+            mCore.requestKeyStore(ipAddress, callback);
         }
+    }
 
-        mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);
-        mCore.setDConnectInterface(this);
-        mCore.setIDConnectCallback(new IDConnectCallback.Stub() {
-            @Override
-            public void sendMessage(final Intent message) throws RemoteException {
-                try {
-                    if (DConnectUtil.checkActionResponse(message)) {
-                        handleResponse(message);
-                    }
-                } catch (Exception e) {
-                    // ignore.
-                }
-            }
-        });
-        mCore.start();
+    /**
+     * キーストアをファイルに出力します.
+     *
+     * @param outputFile アドレス
+     * @throws IOException ファイル出力に失敗した場合に発生
+     */
+    public void exportKeyStore(File outputFile) throws IOException {
+        mKeyStoreMgr.exportKeyStore(outputFile);
+    }
 
+    /**
+     * インストールされているプラグインを検索します.
+     */
+    public void searchPlugin() {
         mExecutor.execute(() -> {
             mCore.searchPlugin();
             postFinishSearchPlugin();
@@ -255,21 +259,23 @@ public abstract class DConnectManager implements DConnectInterface {
             logger.setUseParentHandlers(false);
         } else {
             logger.setLevel(Level.OFF);
-            logger.setFilter(new Filter() {
-                @Override
-                public boolean isLoggable(final LogRecord record) {
-                    return false;
-                }
-            });
+            logger.setFilter((record) -> false);
         }
     }
 
+    /**
+     * Device Connect サーバを開始します.
+     */
     public void startDConnect() {
-        initDConnect();
+        searchPlugin();
+
         mExecutor.execute(() -> {
             if (mRESTServer != null) {
                 return;
             }
+
+            mCore.start();
+
             if (!mSettings.isSSL()) {
                 // SSL は認証局用のサービスが起動するため、それを行わないようにする
                 startRESTServer(null);
@@ -288,21 +294,20 @@ public abstract class DConnectManager implements DConnectInterface {
             }
         });
     }
+
     /**
      * Device Connect サーバを停止します.
      */
     public void stopDConnect() {
-        mExecutor.execute(this::stopRESTServer);
-    }
-    public void finalizeDConnect() {
-        if (mCore != null) {
-            mCore.stop();
-            mCore = null;
-        }
+        mExecutor.execute(() -> {
+            stopRESTServer();
 
-        synchronized (mRequestMap) {
-            mRequestMap.clear();
-        }
+            mCore.stop();
+
+            synchronized (mRequestMap) {
+                mRequestMap.clear();
+            }
+        });
     }
 
     /**
@@ -373,7 +378,7 @@ public abstract class DConnectManager implements DConnectInterface {
          * レシーバーのコンポーネント名を設定します.
          * @param broadcastReceiver レシーバーのコンポーネント名
          */
-        public void setBroadcastReceiver(final ComponentName broadcastReceiver) {
+        void setBroadcastReceiver(final ComponentName broadcastReceiver) {
             mBroadcastReceiver = broadcastReceiver;
         }
 
@@ -389,7 +394,7 @@ public abstract class DConnectManager implements DConnectInterface {
         }
 
         @Override
-        public void sendEvent(final Intent event) throws IOException {
+        public void sendEvent(final Intent event) {
             event.setComponent(mBroadcastReceiver);
             getContext().sendBroadcast(event);
         }
@@ -399,16 +404,8 @@ public abstract class DConnectManager implements DConnectInterface {
      * WebSocket のイベントセッション.
      */
     private class WebSocketEventSession extends EventSession {
-        /**
-         * 現在のスレッドがメインスレッドか確認します.
-         * @return メインスレッドの場合はtrue、それ以外はfalse
-         */
-        private boolean isMainThread() {
-            return Thread.currentThread().equals(Looper.getMainLooper().getThread());
-        }
-
         @Override
-        public void sendEvent(final Intent event) throws IOException {
+        public void sendEvent(final Intent event) {
             String key = event.getStringExtra(IntentDConnectMessage.EXTRA_SESSION_KEY);
             if (key == null) {
                 mLogger.warning("sendEvent: key is not specified.");
@@ -877,8 +874,6 @@ public abstract class DConnectManager implements DConnectInterface {
                     responseIntent.setComponent(cn);
                     mContext.sendBroadcast(responseIntent);
                 });
-            } else if (DConnectUtil.checkActionResponse(message)) {
-                handleResponse(message);
             } else {
                 mCore.onReceivedMessage(message);
             }

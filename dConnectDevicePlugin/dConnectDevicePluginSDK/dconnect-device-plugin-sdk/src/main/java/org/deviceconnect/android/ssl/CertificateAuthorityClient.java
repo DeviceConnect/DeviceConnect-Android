@@ -163,5 +163,4 @@ class CertificateAuthorityClient {
             callback.onError();
         }
     }
-
 }

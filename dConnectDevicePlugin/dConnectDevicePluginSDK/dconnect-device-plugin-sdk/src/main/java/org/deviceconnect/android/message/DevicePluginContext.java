@@ -43,7 +43,6 @@ import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -170,7 +169,8 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         }
 
         // キーストア管理クラスの初期化
-        mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(), getCertificateAlias());
+        mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(),
+                getKeyStorePassword(), getCertificateAlias());
         if (usesAutoCertificateRequest()) {
             requestAndNotifyKeyStore();
             IntentFilter filter = new IntentFilter();
@@ -804,6 +804,23 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     }
 
     /**
+     * 証明書で使用するキーストアのパスワードを取得します.
+     * <p>
+     * デフォルトでは、0000 を使用します。
+     * </p>
+     * <p>
+     * キーストアのパスワードを変更したい場合には、このメソッドをオーバーライドします。
+     * </p>
+     * <p>
+     * TODO ユーザによって設定できるようにした方が良いかもしれない。
+     * </p>
+     * @return キーストアのパスワード
+     */
+    protected String getKeyStorePassword() {
+        return "0000";
+    }
+
+    /**
      * 証明書で使用するエイリアス名を取得します.
      * <p>
      * デフォルトでは、パッケージ名を返却します。
@@ -906,20 +923,17 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      * プラグイン内で Web サーバを立ち上げて、Managerと同じ証明書を使いたい場合にはこのSSLContext を使用します。
      * </p>
      * @param keyStore キーストア
+     * @param password パスワード
      * @return SSLContextのインスタンス
      * @throws GeneralSecurityException SSLContextの作成に失敗した場合に発生
      */
-    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
+    public SSLContext createSSLContext(final KeyStore keyStore, final String password) throws GeneralSecurityException {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        keyManagerFactory.init(keyStore, password.toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
-        sslContext.init(
-                keyManagerFactory.getKeyManagers(),
-                trustManagerFactory.getTrustManagers(),
-                new SecureRandom()
-        );
+        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
         return sslContext;
     }
 

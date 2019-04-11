@@ -17,12 +17,26 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 
+import org.deviceconnect.android.manager.core.DConnectConst;
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.NotificationUtil;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.server.nanohttpd.DConnectWebServerNanoHttpd;
 
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.util.logging.Logger;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Webサーバ用のサービス.
@@ -51,6 +65,11 @@ public class DConnectWebService extends Service {
     private DConnectSettings mSettings;
 
     /**
+     * キーストア管理クラス.
+     */
+    private KeyStoreManager mKeyStoreMgr;
+
+    /**
      * バインドクラス.
      */
     private final IBinder mLocalBinder = new LocalBinder();
@@ -71,6 +90,8 @@ public class DConnectWebService extends Service {
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), DConnectConst.KEYSTORE_FILE_NAME);
+
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isWebServerStartFlag()) {
             startWebServer();
@@ -90,6 +111,10 @@ public class DConnectWebService extends Service {
         super.onDestroy();
     }
 
+    /**
+     * ポート番号を取得します.
+     * @return ポート番号
+     */
     public int getPort() {
         return mSettings.getWebPort();
     }
@@ -97,50 +122,82 @@ public class DConnectWebService extends Service {
     /**
      * Webサーバを起動する.
      */
-    public synchronized void startWebServer() {
-        if (mWebServer == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.info("Web Server was Started.");
-                mLogger.info("Host: " + mSettings.getHost());
-                mLogger.info("Port: " + mSettings.getWebPort());
-                mLogger.info("Document Root: " + mSettings.getDocumentRootPath());
-            }
-
-            mWebServer = new DConnectWebServerNanoHttpd.Builder()
-                    .port(mSettings.getWebPort())
-                    .addDocumentRoot(mSettings.getDocumentRootPath())
-                    .cors("*")
-                    .version(getVersion(this))
-                    .build();
-            mWebServer.start();
-
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            registerReceiver(mWiFiReceiver, filter);
-
-            showNotification();
+    public void startWebServer() {
+        if (mWebServer != null) {
+            return;
         }
+
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Web Server was Started.");
+            mLogger.info("Host: " + mSettings.getHost());
+            mLogger.info("Port: " + mSettings.getWebPort());
+            mLogger.info("SSL: " + mSettings.isSSL());
+            mLogger.info("Document Root: " + mSettings.getDocumentRootPath());
+        }
+
+        if (mSettings.isSSL()) {
+            mKeyStoreMgr.requestKeyStore(DConnectUtil.getIPAddress(this), new KeyStoreCallback() {
+                @Override
+                public void onSuccess(KeyStore keyStore, Certificate certificate, Certificate certificate1) {
+                    try {
+                        startInternal(createSSLServerSocketFactory(keyStore, "0000"));
+                    } catch (GeneralSecurityException e) {
+                        // TODO
+                    }
+                }
+
+                @Override
+                public void onError(KeyStoreError keyStoreError) {
+                    // TODO
+                }
+            });
+        } else {
+            startInternal(null);
+        }
+    }
+
+    /**
+     * Webサーバを起動します.
+     *
+     * @param factory ファクトリー
+     */
+    private synchronized void startInternal(final SSLServerSocketFactory factory) {
+        if (mWebServer != null) {
+            return;
+        }
+
+        mWebServer = new DConnectWebServerNanoHttpd.Builder()
+                .port(mSettings.getWebPort())
+                .ssl(mSettings.isSSL())
+                .serverSocketFactory(factory)
+                .addDocumentRoot(mSettings.getDocumentRootPath())
+                .cors("*")
+                .version(getVersion(this))
+                .build();
+
+        mWebServer.start();
+
+        registerConnectivityReceiver();
+        showNotification();
     }
 
     /**
      * Webサーバを停止する.
      */
     public synchronized void stopWebServer() {
-        if (mWebServer != null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.info("Web Server was Stopped.");
-            }
-
-            NotificationUtil.hideNotification(this);
-
-            try {
-                unregisterReceiver(mWiFiReceiver);
-            } catch (Exception e) {
-                // ignore.
-            }
-            mWebServer.stop();
-            mWebServer = null;
+        if (mWebServer == null) {
+            return;
         }
+
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Web Server was Stopped.");
+        }
+
+        NotificationUtil.hideNotification(this);
+        unregisterConnectivityReceiver();
+
+        mWebServer.stop();
+        mWebServer = null;
     }
 
     /**
@@ -150,6 +207,44 @@ public class DConnectWebService extends Service {
      */
     public synchronized boolean isRunning() {
         return mWebServer != null;
+    }
+
+    /**
+     * ネットワークの変更イベントを受信する BroadcastReceiver を登録します.
+     */
+    private void registerConnectivityReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(mWiFiReceiver, filter);
+    }
+
+    /**
+     * ネットワークの変更イベントを受信する BroadcastReceiver を解除します.
+     */
+    private void unregisterConnectivityReceiver() {
+        try {
+            unregisterReceiver(mWiFiReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
+    }
+
+    /**
+     * SSLServerSocketFactory を作成します.
+     *
+     * @param keyStore キーストア
+     * @param password パスワード
+     * @return SSLServerSocketFactoryのインスタンス
+     * @throws GeneralSecurityException SSLServerSocketFactoryの作成に失敗した場合に発生
+     */
+    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore, final String password) throws GeneralSecurityException {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, password.toCharArray());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+        return sslContext.getServerSocketFactory();
     }
 
     /**

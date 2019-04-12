@@ -44,8 +44,6 @@ import java.util.logging.Logger;
 
 import static org.deviceconnect.android.manager.core.DConnectConst.EXTRA_EVENT_RECEIVER_ID;
 
-//import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
-
 /**
  * {@link DConnectManager} を動作させるためのサービス.
  *
@@ -205,6 +203,9 @@ public class DConnectService extends Service {
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
+                if (DEBUG) {
+                    Log.i(TAG, "Finish search plugin.");
+                }
             }
 
             @Override
@@ -231,8 +232,10 @@ public class DConnectService extends Service {
                 if (DEBUG) {
                     Log.e(TAG, "An error occurred in DConnectManager.", e);
                 }
-                // DConnectManagerでエラーが発生したので終了処理をしておく
+                // DConnectManager でエラーが発生したので、開始フラグをOFFにして停止する
+                mSettings.setManagerStartFlag(false);
                 stopManager();
+                stopSelf();
             }
         });
 
@@ -241,7 +244,10 @@ public class DConnectService extends Service {
         try {
             mManager.startDConnect();
         } catch (Exception e) {
+            // DConnectManager でエラーが発生したので、開始フラグをOFFにして停止する
+            mSettings.setManagerStartFlag(false);
             stopManager();
+            stopSelf();
 
             if (DEBUG) {
                 mLogger.warning("Failed to start a DConnectManager." + e.getMessage());

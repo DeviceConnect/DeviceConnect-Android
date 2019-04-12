@@ -488,6 +488,17 @@ public final class DConnectSettings {
     }
 
     /**
+     * Webサーバの起動フラグを設定する.
+     *
+     * @param flag Webサーバを起動している場合はtrue、それ以外はfalse
+     */
+    public void setWebServerStartFlag(boolean flag) {
+        mPreferences.edit()
+                .putBoolean(mContext.getString(R.string.key_settings_web_server_on_off), flag)
+                .apply();
+    }
+
+    /**
      * 監視するインターバルを取得する.
      *
      * @return インターバル

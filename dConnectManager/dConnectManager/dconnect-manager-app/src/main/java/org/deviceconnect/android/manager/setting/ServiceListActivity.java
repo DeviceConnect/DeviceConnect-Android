@@ -7,15 +7,12 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.animation.Animator;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -44,12 +41,16 @@ import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.AnimationUtil;
 import org.deviceconnect.android.manager.util.ServiceContainer;
-import org.deviceconnect.android.manager.util.ServiceDiscovery;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.DConnectSDK;
+import org.deviceconnect.message.DConnectSDKFactory;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -75,22 +76,11 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private static final String TAG_OPEN_PLUGIN_SETTING = "open_plugin_setting";
 
     /**
-     * ガイド用の設定を保存するファイル名を定義する.
+     * アクセストークンに要求するスコープ.
      */
-    private static final String FILE_NAME = "__service_list__.dat";
-
-    /**
-     * ガイド表示設定用のキーを定義する.
-     */
-    private static final String KEY_SHOW_GUIDE = "show_guide";
-    /**
-     * Hostプラグインの検索リトライ回数.
-     */
-    private static final int RETRY_COUNT = 5;
-    /**
-     * 検索ダイアログ.
-     */
-    private WeakReference<DialogFragment> mDialog;
+    private static final String[] SCOPES = {
+            "serviceDiscovery"
+    };
 
     /**
      * ガイド用のレイアウト一覧.
@@ -106,16 +96,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private ServiceAdapter mServiceAdapter;
 
     /**
-     * ガイドの設定を保持するためのクラス.
-     */
-    private SharedPreferences mSharedPreferences;
-
-    /**
-     * serviceDiscoveryを実行するクラス.
-     */
-    private ServiceDiscovery mServiceDiscovery;
-
-    /**
      * 選択されたサービスを一時的に格納する変数.
      */
     private ServiceContainer mSelectedService;
@@ -123,17 +103,12 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     /**
      * サービスのリスト表示.
      */
-    GridView mServiceListGridView;
+    private GridView mServiceListGridView;
 
     /**
      * サービスリストの再読み込みボタン.
      */
-    Button mButtonReloadServiceList;
-
-    /**
-     * ハンドラ.
-     */
-    private Handler mHandler = new Handler();
+    private Button mButtonReloadServiceList;
 
     /**
      * Device Connect Managerの起動スイッチ.
@@ -151,13 +126,24 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private int mPageIndex;
 
     /**
-     * Device Connect Managerの設定クラス.
+     * Device Connect Manager の設定クラス.
      */
     private DConnectSettings mSettings;
+
     /**
-     * Hostデバイスが見つかるまでに行うServiceDiscoveryのリトライ回数が、現在何回目かを保持する.
+     * 保存するデータ.
      */
-    private int mRetry;
+    private SharedData mSharedData;
+
+    /**
+     * Device Connect Manager へのアクセス.
+     */
+    private DConnectSDK mDConnectSDK;
+
+    /**
+     * サービス検索中.
+     */
+    private boolean mServiceDiscoveryFlag;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -168,28 +154,16 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         mButtonReloadServiceList = findViewById(R.id.activity_service_list_search_button);
         mSwitchAction = findViewById(R.id.activity_service_list_manager_switch);
 
+        mSharedData = new SharedData(getApplicationContext());
         mSettings = ((DConnectApplication) getApplication()).getSettings();
+        mDConnectSDK = DConnectSDKFactory.create(getApplicationContext(), DConnectSDKFactory.Type.HTTP);
 
-        if (loadGuideSettings(ServiceListActivity.this)) {
+        if (mSharedData.isGuideSettings()) {
             startGuide();
         }
-    }
 
-    @Override
-    protected void onManagerDetected(final DConnectService manager, final boolean isRunning) {
-        initUI(isRunning);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mRetry = 0;
-        if (isBonded()) {
-            if (!hasDevicePlugins()) {
-                showNoDevicePlugin();
-            } else {
-                initUI(isDConnectServiceRunning());
-            }
+        if (mSharedData.getAccessToken() != null) {
+            mDConnectSDK.setAccessToken(mSharedData.getAccessToken());
         }
     }
 
@@ -223,13 +197,46 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.activity_service_menu_item_settings) {
-            openSettings();
-        } else if (id == R.id.activity_service_menu_item_help) {
-            openHelp();
+        switch (id) {
+            case R.id.activity_service_menu_item_settings:
+                openSettings();
+                break;
+            case R.id.activity_service_menu_item_help:
+                openHelp();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (isBonded()) {
+            new Thread(() -> {
+                try {
+                    initUI(waitForManagerStartup(getManagerService()));
+                } catch (InterruptedException e) {
+                    // ignore.
+                }
+            }).start();
+        }
+    }
+
+    @Override
+    protected void onManagerBonded(final DConnectService dConnectService) {
+        // 起動時に Device Connect Manager が起動フラグが ON の場合にはダイアログを表示
+        if (mSettings.isManagerStartFlag()) {
+            showStaringManagerDialog();
+        }
+    }
+
+    @Override
+    protected void onManagerDetected(final DConnectService dConnectService, final boolean isRunning) {
+        // 起動中のダイアログが表示されているかもしれないので閉じておく
+        dismissStartingManagerDialog();
+        initUI(isRunning);
     }
 
     @Override
@@ -243,6 +250,11 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     public void onNegativeButton(final String tag) {
     }
 
+    /**
+     * サービス一覧画面のUIを初期化します.
+     *
+     * @param isRunning Device Connect Manager の動作状態
+     */
     private void initUI(boolean isRunning) {
         runOnUiThread(() -> {
             mServiceAdapter = new ServiceAdapter(getPluginManager());
@@ -264,7 +276,9 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 mSwitchAction.setOnCheckedChangeListener(mSwitchActionListener);
                 mSwitchAction.setChecked(isRunning);
             }
+
             setEnableSearchButton(isRunning);
+
             if (isRunning) {
                 reloadServiceList();
             }
@@ -290,35 +304,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
                 }
             }
         }
-    }
-
-    /**
-     * デバイスプラグインを保有しているかを確認する.
-     * @return デバイスプラグインを保有している場合はtrue、それ以外はfalse
-     */
-    private boolean hasDevicePlugins() {
-        DevicePluginManager mgr = getPluginManager();
-        return mgr != null && mgr.getDevicePlugins().size() > 0;
-    }
-
-    /**
-     * ガイド設定の読み込みを行う.
-     * @param context コンテキスト
-     * @return ガイドを表示する場合はtrue、それ以外はfalse
-     */
-    private boolean loadGuideSettings(final Context context) {
-        mSharedPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
-        return mSharedPreferences.getBoolean(KEY_SHOW_GUIDE, true);
-    }
-
-    /**
-     * ガイド設定の設定を行う.
-     * @param showGuideFlag ガイドを表示する場合はtrue、それ以外はfalse
-     */
-    private void saveGuideSettings(final boolean showGuideFlag) {
-        SharedPreferences.Editor editor = mSharedPreferences.edit();
-        editor.putBoolean(KEY_SHOW_GUIDE, showGuideFlag);
-        editor.apply();
     }
 
     /**
@@ -411,11 +396,12 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             });
         }
 
-        saveGuideSettings(result);
+        mSharedData.saveGuideSettings(result);
     }
 
     /**
      * DeviceServiceの起動を切り替える.
+     *
      * @param checked trueの場合は起動する、falseの場合は停止する
      */
     private void switchDConnectServer(final boolean checked) {
@@ -424,119 +410,132 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             return;
         }
 
-        if (mServiceDiscovery != null) {
-            return;
-        }
-
         mSwitchAction.setEnabled(false);
 
         mSettings.setManagerStartFlag(checked);
         if (checked) {
-
-            // DConnectServiceを起動しておかないとbindが切れた時にサービスが止まってしまう
-            Intent intent = new Intent();
-            intent.setClass(this, DConnectService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent);
-            } else {
-                startService(intent);
-            }
-
-            managerService.startInternal();
-            mHandler.postDelayed(() -> {
-                reloadServiceList();
-                mSwitchAction.setEnabled(true);
-            }, 500);
-        } else {
-            managerService.stopInternal();
-            runOnUiThread(() -> {
-                mServiceAdapter.mServices = new ArrayList<>();
-                mServiceAdapter.notifyDataSetInvalidated();
+            showStaringManagerDialog();
+            startManager((Boolean running) -> {
+                initUI(running);
+                dismissStartingManagerDialog();
                 mSwitchAction.setEnabled(true);
             });
-
-            // サービスを停止しておく
-            Intent intent = new Intent();
-            intent.setClass(this, DConnectService.class);
-            stopService(intent);
+        } else {
+            stopManager();
+            runOnUiThread(() -> {
+                mServiceAdapter.clear();
+                mSwitchAction.setEnabled(true);
+            });
         }
         setEnableSearchButton(checked);
     }
 
     /**
+     * サービスの情報をコンテナに格納します.
+     *
+     * @param message サービス情報が入っているメッセージ
+     * @return サービスコンテナ
+     */
+    private ServiceContainer parseService(DConnectMessage message) {
+        ServiceContainer service = new ServiceContainer();
+        service.setId(message.getString("id"));
+        service.setName(message.getString("name"));
+        service.setNetworkType(ServiceDiscoveryProfile.NetworkType.getInstance(message.getString("type")));
+        service.setOnline(message.getBoolean("online"));
+        return service;
+    }
+
+    /**
      * サービス一覧を再読み込みを行う.
      */
-    private void reloadServiceList() {
+    private synchronized void reloadServiceList() {
         if (DEBUG) {
             Log.i(TAG, "reloadServiceList a device plugin.");
         }
 
-        // DConnectServiceが動作していない
+        if (mServiceDiscoveryFlag) {
+            return;
+        }
+        mServiceDiscoveryFlag = true;
+
         DConnectService managerService = getManagerService();
         if (managerService == null || !managerService.isRunning()) {
+            // DConnectServiceが動作していない
             return;
         }
 
-        // 既にserviceDiscoveryが実行されている場合
-        if (mServiceDiscovery != null) {
-            return;
-        }
+        serviceDiscovery();
+    }
 
-        mServiceDiscovery = new ServiceDiscovery(this, mSettings, new ServiceDiscovery.Callback() {
+    /**
+     * Local OAuth の処理を行います.
+     */
+    private void authorization() {
+        mDConnectSDK.authorization(getString(R.string.app_name), SCOPES, new DConnectSDK.OnAuthorizationListener() {
             @Override
-            public void onPreExecute() {
-                try {
-                    mDialog = new WeakReference<>(new ServiceDiscoveryDialogFragment());
-                    mDialog.get().show(getFragmentManager(), null);
-                } catch (Exception e) {
-                    if (DEBUG) {
-                        Log.w(TAG, "Failed to open the dialog for service discovery.");
-                    }
-                }
+            public void onResponse(String clientId, String accessToken) {
+                mSharedData.saveAutoriztion(clientId, accessToken);
+                mDConnectSDK.setAccessToken(accessToken);
+                serviceDiscovery();
             }
-
             @Override
-            public void onPostExecute(List<ServiceContainer> serviceContainers) {
-                try {
-                    mDialog.get().dismiss();
+            public void onError(int errorCode, String errorMessage) {
+                showErrorMessage(errorMessage);
+                mServiceDiscoveryFlag = false;
+            }
+        });
+    }
 
-                    View view = findViewById(R.id.activity_service_no_service);
-                    if (view != null) {
-                        view.setVisibility(serviceContainers.size() == 0 ? View.VISIBLE : View.GONE);
-                    }
+    /**
+     * アクセストークンのリフレッシュ処理を行います.
+     */
+    private void refreshAccessToken() {
+        mDConnectSDK.refreshAccessToken(mSharedData.getClientId(), getString(R.string.app_name), SCOPES, new DConnectSDK.OnAuthorizationListener() {
+            @Override
+            public void onResponse(String clientId, String accessToken) {
+                mSharedData.saveAutoriztion(clientId, accessToken);
+                mDConnectSDK.setAccessToken(accessToken);
+                serviceDiscovery();
+            }
+            @Override
+            public void onError(int errorCode, String errorMessage) {
+                showErrorMessage(errorMessage);
+                mServiceDiscoveryFlag = false;
+            }
+        });
+    }
 
-                    mServiceAdapter.mServices = serviceContainers;
-                    mServiceAdapter.notifyDataSetInvalidated();
-                } catch (Exception e) {
-                    if (DEBUG) {
-                        Log.w(TAG, "Failed to dismiss the dialog for service discovery.");
-                    }
-                } finally {
-                    boolean isHost = false;
-                    // Hostプラグインが見つからない場合はリトライする
-                    for (ServiceContainer service : mServiceAdapter.mServices) {
-                        if (service.getName().contains("Host")) {
-                            isHost = true;
-                            break;
-                        }
-                    }
-                    if (isHost || mRetry == RETRY_COUNT) {
-                        mServiceDiscovery = null;
-                        mRetry = 0;
-                    } else {
-                        mServiceDiscovery = null;
-                        mRetry++;
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        reloadServiceList();
-                    }
+    /**
+     * サービスを検索します.
+     */
+    private void serviceDiscovery() {
+        mDConnectSDK.serviceDiscovery((response) -> {
+            if (response.getResult() == DConnectMessage.RESULT_OK) {
+                mServiceDiscoveryFlag = false;
+                List<ServiceContainer> serviceContainers = new ArrayList<>();
+                List serviceArray = response.getList("services");
+                for (int i = 0; i < serviceArray.size(); i++) {
+                    serviceContainers.add(parseService((DConnectMessage) serviceArray.get(i)));
+                }
+                runOnUiThread(() -> mServiceAdapter.setServices(serviceContainers));
+            } else {
+                switch (DConnectMessage.ErrorCode.getInstance(response.getErrorCode())) {
+                    case AUTHORIZATION:
+                    case EMPTY_ACCESS_TOKEN:
+                    case NOT_FOUND_CLIENT_ID:
+                        authorization();
+                        break;
+                    case SCOPE:
+                    case EXPIRED_ACCESS_TOKEN:
+                        refreshAccessToken();
+                        break;
+                    default:
+                        showErrorMessage(response.getErrorMessage());
+                        mServiceDiscoveryFlag = false;
+                        break;
                 }
             }
         });
-        mServiceDiscovery.execute();
     }
 
     /**
@@ -544,7 +543,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      */
     private void openSettings() {
         Intent intent = new Intent();
-        intent.setClass(this, SettingActivity.class);
+        intent.setClass(getApplicationContext(), SettingActivity.class);
         startActivity(intent);
     }
 
@@ -554,7 +553,7 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     private void openHelp() {
         String url = BuildConfig.URL_HELP_HTML;
         Intent intent = new Intent();
-        intent.setClass(this, WebViewActivity.class);
+        intent.setClass(getApplicationContext(), WebViewActivity.class);
         intent.putExtra(WebViewActivity.EXTRA_URL, url);
         intent.putExtra(WebViewActivity.EXTRA_TITLE, getString(R.string.activity_help_title));
         intent.putExtra(WebViewActivity.EXTRA_SSL, isSSL());
@@ -621,17 +620,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     }
 
     /**
-     * デバイスプラグインが一つもない場合のダイアログを表示する.
-     */
-    private void showNoDevicePlugin() {
-        String title = getString(R.string.activity_service_list_no_plugin_title);
-        String message = getString(R.string.activity_service_list_no_plugin_message);
-        String positive = getString(R.string.activity_service_list_no_plugin_positive);
-        AlertDialogFragment dialog = AlertDialogFragment.create("no-device-plugin", title, message, positive);
-        dialog.show(getFragmentManager(), "no-device-plugin");
-    }
-
-    /**
      * デバイスプラグインの設定画面を開く.
      * <p>
      * {@link #mSelectedService}に格納されているデバイスプラグインの設定画面を開く。
@@ -671,11 +659,51 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
         /**
          * サービス一覧.
          */
-        private List<ServiceContainer> mServices = new ArrayList<>();
+        private final List<ServiceContainer> mServices = new ArrayList<>();
 
+        /**
+         * コンストラクタ.
+         * @param pluginMgr プラグイン管理クラス
+         */
         ServiceAdapter(final DevicePluginManager pluginMgr) {
             mPluginMgr = pluginMgr;
         }
+
+        /**
+         * サービスのリストを設定します.
+         *
+         * @param services サービスのリスト
+         */
+        void setServices(List<ServiceContainer> services) {
+            synchronized (mServices) {
+                Collections.sort(services, mComparator);
+                mServices.clear();
+                mServices.addAll(services);
+            }
+            notifyDataSetChanged();
+        }
+
+        /**
+         * サービスのリストを初期化します.
+         */
+        void clear() {
+            synchronized (mServices) {
+                mServices.clear();
+            }
+            notifyDataSetChanged();
+        }
+
+        /**
+         * サービスの並びをソートします.
+         */
+        private Comparator<ServiceContainer> mComparator = (lhs, rhs) -> {
+            String name1 = lhs.getName();
+            String name2 = rhs.getName();
+            if (name1 == null || name2 == null) {
+                return 0;
+            }
+            return name1.compareTo(name2);
+        };
 
         @Override
         public int getCount() {
@@ -739,10 +767,24 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             return view;
         }
 
+        /**
+         * ネットワークタイプを設定します.
+         *
+         * @param imageView アイコンを表示するView
+         * @param service サービス
+         * @param resId リソースID
+         */
         private void setNetworkTypeIcon(final ImageView imageView, final ServiceContainer service, final int resId) {
             setIcon(imageView, service, ResourcesCompat.getDrawable(getResources(),resId, null));
         }
 
+        /**
+         * サービスのアイコンを設定します.
+         *
+         * @param imageView アイコンを設定するView
+         * @param service サービス
+         * @param icon アイコン
+         */
         private void setIcon(final ImageView imageView, final ServiceContainer service, final Drawable icon) {
             if (icon == null) {
                 imageView.setVisibility(View.GONE);
@@ -757,6 +799,107 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
             }
             imageView.setVisibility(View.VISIBLE);
             imageView.setImageDrawable(newIcon);
+        }
+    }
+
+    /**
+     * データを保管するクラス.
+     */
+    private class SharedData {
+        /**
+         * ガイド用の設定を保存するファイル名を定義する.
+         */
+        private static final String FILE_NAME = "__service_list__.dat";
+
+        /**
+         * ガイド表示設定用のキーを定義する.
+         */
+        private static final String KEY_SHOW_GUIDE = "show_guide";
+
+        /**
+         * クライアントID用のキーを定義する.
+         */
+        private static final String KEY_CLIENT_ID = "clientId";
+
+        /**
+         * アクセストークン用のキーを定義する.
+         */
+        private static final String KEY_ACCESS_TOKEN = "accessToken";
+
+        /**
+         * ガイドの設定を保持するためのクラス.
+         */
+        private SharedPreferences mSharedPreferences;
+
+        /**
+         * コンストラク.
+         * @param context コンテキスト
+         */
+        SharedData(Context context) {
+            mSharedPreferences = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
+        }
+
+        /**
+         * ガイド設定の読み込みを行う.
+         * @return ガイドを表示する場合はtrue、それ以外はfalse
+         */
+        boolean isGuideSettings() {
+            return mSharedPreferences.getBoolean(KEY_SHOW_GUIDE, true);
+        }
+
+        /**
+         * ガイド設定の設定を行う.
+         * @param showGuideFlag ガイドを表示する場合はtrue、それ以外はfalse
+         */
+        void saveGuideSettings(final boolean showGuideFlag) {
+            SharedPreferences.Editor editor = mSharedPreferences.edit();
+            editor.putBoolean(KEY_SHOW_GUIDE, showGuideFlag);
+            editor.apply();
+        }
+
+        /**
+         * クライアントIDを取得します.
+         *
+         * @return クライアントID
+         */
+        String getClientId() {
+            return mSharedPreferences.getString(KEY_CLIENT_ID, null);
+        }
+
+        /**
+         * クライアントIDを設定します.
+         *
+         * @param clientId クライアントID
+         */
+        void setClientId(String clientId) {
+            SharedPreferences.Editor editor = mSharedPreferences.edit();
+            editor.putString(KEY_CLIENT_ID, clientId);
+            editor.apply();
+        }
+
+        /**
+         * アクセストークンを取得します.
+         *
+         * @return アクセストークン
+         */
+        String getAccessToken() {
+            return mSharedPreferences.getString(KEY_ACCESS_TOKEN, null);
+        }
+
+        /**
+         * アクセストークンを設定します.
+         *
+         * @param accessToken アクセストークン
+         */
+        void setAccessToken(String accessToken) {
+            SharedPreferences.Editor editor = mSharedPreferences.edit();
+            editor.putString(KEY_ACCESS_TOKEN, accessToken);
+            editor.apply();
+        }
+
+        void saveAutoriztion(String clientId, String accessToken) {
+            setClientId(clientId);
+            setAccessToken(accessToken);
         }
     }
 }

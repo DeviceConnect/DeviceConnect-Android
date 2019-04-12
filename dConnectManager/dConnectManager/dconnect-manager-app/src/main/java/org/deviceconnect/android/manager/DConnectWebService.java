@@ -142,13 +142,17 @@ public class DConnectWebService extends Service {
                     try {
                         startInternal(createSSLServerSocketFactory(keyStore, "0000"));
                     } catch (GeneralSecurityException e) {
-                        // TODO
+                        mSettings.setWebServerStartFlag(false);
+                        stopWebServer();
+                        stopSelf();
                     }
                 }
 
                 @Override
                 public void onError(KeyStoreError keyStoreError) {
-                    // TODO
+                    mSettings.setWebServerStartFlag(false);
+                    stopWebServer();
+                    stopSelf();
                 }
             });
         } else {
@@ -175,10 +179,15 @@ public class DConnectWebService extends Service {
                 .version(getVersion(this))
                 .build();
 
-        mWebServer.start();
-
-        registerConnectivityReceiver();
-        showNotification();
+        try {
+            mWebServer.start();
+            registerConnectivityReceiver();
+            showNotification();
+        } catch (Exception e) {
+            mSettings.setWebServerStartFlag(false);
+            stopWebServer();
+            throw e;
+        }
     }
 
     /**
@@ -192,6 +201,8 @@ public class DConnectWebService extends Service {
         if (BuildConfig.DEBUG) {
             mLogger.info("Web Server was Stopped.");
         }
+
+        mSettings.setWebServerStartFlag(false);
 
         NotificationUtil.hideNotification(this);
         unregisterConnectivityReceiver();

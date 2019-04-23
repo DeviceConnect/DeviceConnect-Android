@@ -11,7 +11,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -68,8 +68,8 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
         }
 
         @Override
-        public DConnectApiSpec.Method getMethod() {
-            return DConnectApiSpec.Method.PUT;
+        public Method getMethod() {
+            return Method.PUT;
         }
 
         @Override

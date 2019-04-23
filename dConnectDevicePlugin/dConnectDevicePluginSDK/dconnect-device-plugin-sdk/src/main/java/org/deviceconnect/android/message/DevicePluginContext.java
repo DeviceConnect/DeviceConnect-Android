@@ -32,7 +32,6 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -102,11 +101,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     private DConnectServiceManager mServiceProvider;
 
     /**
-     * プラグインが持つプロファイルスペック.
-     */
-    private DConnectPluginSpec mPluginSpec;
-
-    /**
      * 認可クラス(Local OAuth).
      */
     private LocalOAuth2Main mLocalOAuth2Main;
@@ -159,15 +153,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         // LocalOAuthの初期化
         mLocalOAuth2Main = new LocalOAuth2Main(context);
 
-        try {
-            // プロファイルSPECを読み込み
-            mPluginSpec = DConnectProfileHelper.loadPluginSpec(context, createSupportedProfiles());
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                mLogger.warning("Failed to load a profile spec.");
-            }
-        }
-
         // キーストア管理クラスの初期化
         mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(),
                 getKeyStorePassword(), getCertificateAlias());
@@ -182,7 +167,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         mServiceProvider = new DConnectServiceManager();
         mServiceProvider.setContext(context);
         mServiceProvider.setPluginContext(this);
-        mServiceProvider.setPluginSpec(mPluginSpec);
 
         // プロファイルを追加
         addProfile(new AuthorizationProfile(this, mLocalOAuth2Main));
@@ -229,15 +213,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     }
 
     /**
-     * プラグインが持っているプロファイルの仕様を取得します.
-     *
-     * @return プロファイルのサービス仕様
-     */
-    public DConnectPluginSpec getPluginSpec() {
-        return mPluginSpec;
-    }
-
-    /**
      * Device Connect Manager に返答するためのコールバックを設定します.
      *
      * @param callback コールバック
@@ -268,7 +243,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      *
      * @return サポートするプロファイル
      */
-    protected int getPluginXmlResId() {
+    public int getPluginXmlResId() {
         return DevicePluginXmlUtil.getPluginXmlResourceId(getContext(), getContext().getPackageName());
     }
 
@@ -601,7 +576,8 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
             if (BuildConfig.DEBUG) {
                 mLogger.severe("sendMessage: IDConnectCallback is not set.");
             }
-            return false;
+            mContext.sendBroadcast(intent);
+            return true;
         }
 
         try {

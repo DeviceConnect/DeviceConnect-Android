@@ -180,6 +180,7 @@ public abstract class DConnectManager implements DConnectInterface {
     public DConnectSettings getSettings() {
         return mSettings;
     }
+
     /**
      * イベントKeepAlive管理クラスを取得します.
      *

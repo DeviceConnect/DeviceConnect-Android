@@ -1,0 +1,240 @@
+{
+  "swagger": "2.0",
+  "basePath": "/gotapi/testProfile",
+  "info": {
+    "title": "Test Profile",
+    "version": "1.0",
+    "description": ""
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json",
+    "text/html"
+  ],
+  "parameters" : {
+    "skipParam": {
+      "name": "skip",
+      "in": "query",
+      "description": "number of items to skip",
+      "required": true,
+      "type": "integer",
+      "format": "int32"
+    },
+    "limitParam": {
+      "name": "limit",
+      "in": "query",
+      "description": "max records to return",
+      "required": true,
+      "type": "integer",
+      "format": "int32"
+    }
+  },
+  "responses" : {
+    "NotFound": {
+      "description": "Entity not found."
+    },
+    "IllegalInput": {
+      "description": "Illegal input for operation."
+    },
+    "GeneralError": {
+      "description": "General Error",
+      "schema": {
+        "$ref": "#/definitions/GeneralError"
+      }
+    }
+  },
+  "paths": {
+    "/a0": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "test1",
+        "description": "test1",
+        "operationId" : "a0Get",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "clueless",
+              "lazy",
+              "adventurous",
+              "aggressive"
+            ]
+          },
+          {
+            "name": "num",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "format": "int32",
+            "type": "integer",
+            "enum": [
+              1,2,3,4,5
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "/a1": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "headers": {
+              "X-Rate-Limit-Limit": {
+                "description": "The number of allowed requests in the current period",
+                "type": "integer"
+              },
+              "X-Rate-Limit-Remaining": {
+                "description": "The number of remaining requests in the current period",
+                "type": "integer"
+              },
+              "X-Rate-Limit-Reset": {
+                "description": "The number of seconds left in the current period",
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "ID of pet to use",
+          "required": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "collectionFormat": "csv"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "CommonResponse": {
+      "type": "object",
+      "required": [
+        "result"
+      ],
+      "properties": {
+        "result": {
+          "type": "integer",
+          "description": ""
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "age": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0
+        }
+      }
+    },
+    "Pet": {
+      "type": "object",
+      "discriminator": "petType",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "petType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "petType"
+      ]
+    },
+    "Cat": {
+      "description": "A representation of a cat",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Pet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "huntingSkill": {
+              "type": "string",
+              "description": "The measured skill for hunting",
+              "default": "lazy",
+              "enum": [
+                "clueless",
+                "lazy",
+                "adventurous",
+                "aggressive"
+              ]
+            }
+          },
+          "required": [
+            "huntingSkill"
+          ]
+        }
+      ]
+    },
+    "Dog": {
+      "description": "A representation of a dog",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Pet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "packSize": {
+              "type": "integer",
+              "format": "int32",
+              "description": "the size of the pack the dog is from",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          "required": [
+            "packSize"
+          ]
+        }
+      ]
+    }
+  }
+}

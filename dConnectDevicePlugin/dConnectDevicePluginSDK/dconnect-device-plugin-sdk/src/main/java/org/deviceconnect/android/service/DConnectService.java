@@ -6,16 +6,15 @@
  */
 package org.deviceconnect.android.service;
 
-
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.ArrayList;
@@ -69,6 +68,11 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
      * プラグインのコンテキスト.
      */
     private DevicePluginContext mPluginContext;
+
+    /**
+     * プラグインの API 定義.
+     */
+    private DConnectPluginSpec mPluginSpec;
 
     /**
      * ステータス更新通知リスナー.
@@ -222,6 +226,28 @@ public class DConnectService implements DConnectProfileProvider, ServiceDiscover
      */
     public DevicePluginContext getPluginContext() {
         return mPluginContext;
+    }
+
+    /**
+     * プラグインで使用される API の定義を設定します.
+     *
+     * @param pluginSpec プラグインで使用される API の定義
+     */
+    void setPluginSpec(DConnectPluginSpec pluginSpec) {
+        mPluginSpec = pluginSpec;
+    }
+
+    /**
+     * プラグインで使用される API の定義を取得します.
+     *
+     * <p>
+     * ここで取得した API 定義を編集することで Service Information で返却する値を変更することができます。
+     * </p>
+     *
+     * @return プラグインで使用される API の定義
+     */
+    public DConnectPluginSpec getPluginSpec() {
+        return mPluginSpec;
     }
 
     @Override

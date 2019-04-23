@@ -14,8 +14,13 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
-import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
-import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.models.Method;
+import org.deviceconnect.android.profile.spec.models.Operation;
+import org.deviceconnect.android.profile.spec.models.Path;
+import org.deviceconnect.android.profile.spec.models.Paths;
+import org.deviceconnect.android.profile.spec.models.Swagger;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
@@ -107,7 +112,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             profileNames[i] = profileList.get(i).getProfileName();
         }
         setSupports(response, profileNames);
-        setSupportApis(response, profileList);
+        setSupportApis(response, getService());
 
         setResult(response, DConnectMessage.RESULT_OK);
     }
@@ -192,7 +197,6 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
-     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final String[] supports) {
         response.putExtra(PARAM_SUPPORTS, supports);
@@ -212,92 +216,51 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      * サポートしているプロファイルの API リストをレスポンスに格納します.
      *
      * @param response サポートしているプロファイルの API を格納するレスポンス
-     * @param profileList プロファイルリスト
+     * @param service プロファイルリスト
      */
-    public static void setSupportApis(final Intent response, final List<DConnectProfile> profileList) {
+    public static void setSupportApis(final Intent response, final DConnectService service) {
+        List<DConnectProfile> profileList = service.getProfileList();
+        DConnectPluginSpec spec = service.getPluginSpec();
+
         Bundle supportApisBundle = new Bundle();
         for (DConnectProfile profile : profileList) {
-            DConnectProfileSpec profileSpec = profile.getProfileSpec();
-            if (profileSpec != null) {
-                Bundle bundle = createSupportApisBundle(profileSpec, profile);
+            Swagger swagger = spec.findProfileSpec(profile.getProfileName());
+            if (swagger == null) {
+                swagger = new Swagger();
+                swagger.setSwagger("2.0");
+                // TODO 最小限の設定を行うようにすること。
+            }
 
-                // 送信しない情報はここで削除.
-                reduceInformation(bundle);
-
-                supportApisBundle.putBundle(profile.getProfileName(), bundle);
+            if (profile.onStoreSpec(swagger)) {
+                convertSpec(swagger, profile);
+                supportApisBundle.putParcelable(profile.getProfileName(), reduceInformation(swagger.toBundle()));
+            } else {
+                // TODO プロファイルの削除
             }
         }
         response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
     }
 
-    /**
-     * サポートしているプロファイルの API リストを格納した Bundle を作成します.
-     *
-     * プロファイル定義ファイルは、以下のように定義されています。
-     * <pre>
-     * {
-     *     ・・・ 省略 ・・・
-     *
-     *     "paths" : {
-     *         "/" : {
-     *             "get" : {
-     *                 "x-type": "one-shot",
-     *                 "summary": "スマートデバイスのバッテリー情報を取得する。",
-     *
-     *                      ・・・ 省略 ・・・
-     *             }
-     *         },
-     *         "/charging" : {
-     *              ・・・ 省略 ・・・
-     *         }
-     *     }
-     *
-     *     ・・・ 省略 ・・・
-     * }
-     * </pre>
-     *
-     * @param profileSpec プロファイルスペック
-     * @param profile プロファイル
-     * @return サポートしているプロファイルの API リストを格納した Bundle
-     */
-    private static Bundle createSupportApisBundle(final DConnectProfileSpec profileSpec,
-                                                  final DConnectProfile profile) {
-        Bundle tmpBundle = new Bundle(profileSpec.toBundle());
-        Bundle pathsObj = tmpBundle.getBundle(KEY_PATHS);
-        if (pathsObj == null) {
-            // paths が存在しない場合には、そのまま返却
-            return tmpBundle;
-        }
-
-        List<String> pathNames = new ArrayList<>(pathsObj.keySet());
-        for (String pathName : pathNames) {
-            Bundle pathObj = pathsObj.getBundle(pathName);
-            if (pathObj == null) {
-                continue;
-            }
-
-            for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
-                String methodName = method.getName().toLowerCase();
-                Bundle methodObj = pathObj.getBundle(methodName);
-                if (methodObj == null) {
+    private static void convertSpec(Swagger swagger, DConnectProfile profile) {
+        Paths paths = swagger.getPaths();
+        for (String pathName : paths.getKeySet()) {
+            for (Method method : Method.values()) {
+                Path path = paths.getPath(pathName);
+                if (path == null) {
                     continue;
                 }
+
                 if (!profile.hasApi(pathName, method)) {
-                    pathObj.remove(methodName);
+                    path.setOperation(method, null);
                 } else {
                     DConnectApi api = profile.findApi(pathName, method);
-                    if (!api.onStoreSpec(methodObj)) {
-                        pathObj.remove(methodName);
+                    Operation operation = path.getOperation(method);
+                    if (operation != null && !api.onStoreSpec(operation)) {
+                        path.setOperation(method, null);
                     }
                 }
             }
-
-            // パスに格納される Api が空の場合にパス自体を削除
-            if (pathObj.size() == 0) {
-                pathsObj.remove(pathName);
-            }
         }
-        return tmpBundle;
     }
 
     /**
@@ -309,7 +272,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      *
      * @param supportApi サポートしているAPIを格納したBundle
      */
-    private static void reduceInformation(final Bundle supportApi) {
+    private static Bundle reduceInformation(final Bundle supportApi) {
         Bundle infoObj = supportApi.getBundle(KEY_INFO);
         if (infoObj != null) {
             infoObj.remove(KEY_DESCRIPTION);
@@ -323,7 +286,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
                 if (pathObj == null) {
                     continue;
                 }
-                for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
+                for (Method method : Method.values()) {
                     String methodName = method.getName().toLowerCase();
                     Bundle methodObj = pathObj.getBundle(methodName);
                     if (methodObj == null) {
@@ -344,6 +307,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             }
         }
         supportApi.remove(KEY_DEFINITIONS);
+        return supportApi;
     }
 
     /**

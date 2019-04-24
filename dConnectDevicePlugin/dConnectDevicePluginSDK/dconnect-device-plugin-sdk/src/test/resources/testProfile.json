@@ -4,7 +4,7 @@
   "info": {
     "title": "Test Profile",
     "version": "1.0",
-    "description": ""
+    "description": "Test Description"
   },
   "consumes": [
     "application/json"
@@ -56,7 +56,7 @@
         "parameters": [
           {
             "name": "serviceId",
-            "description": "",
+            "description": "serviceId",
             "in": "query",
             "required": true,
             "type": "string",

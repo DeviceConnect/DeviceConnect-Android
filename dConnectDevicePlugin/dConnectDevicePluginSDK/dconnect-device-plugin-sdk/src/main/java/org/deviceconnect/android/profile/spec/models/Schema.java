@@ -1,3 +1,9 @@
+/*
+ Schema.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec.models;
 
 import android.os.Bundle;
@@ -6,33 +12,160 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Schema extends AbstractSpec {
+/**
+ * パラメータ、レスポンスなどに使用されるタイプを定義するスキーマ.
+ *
+ * @author NTT DOCOMO, INC.
+ */
+public class Schema extends AbstractSpec implements Property {
+    /**
+     * 外部文書.
+     */
     private ExternalDocs mExternalDocs;
+
+    /**
+     * 仕様内の他の定義を参照できるようにするためのオブジェクト.
+     */
     private String mReference;
+
+    /**
+     * パラメータのタイプ.
+     *
+     * <p>
+     * Required.
+     * </p>
+     */
     private DataType mType;
+
+    /**
+     * パラメータのタイプの拡張フォーマット.
+     */
     private DataFormat mFormat;
+
+    /**
+     * パラメータのデフォルト値.
+     */
     private Object mDefault;
+
+    /**
+     * タイトル.
+     */
     private String mTitle;
+
+    /**
+     * 詳細.
+     */
     private String mDescription;
+
+    /**
+     * 数値の最小値.
+     */
     private Number mMinimum;
+
+    /**
+     * 数値の最大値.
+     */
     private Number mMaximum;
+
+    /**
+     * 数値の倍数.
+     */
     private Number mMultipleOf;
+
+    /**
+     * 数値の最小値を判定に含まない.
+     */
     private Boolean mExclusiveMinimum;
+
+    /**
+     * 数値の最大値を判定に含まない.
+     */
     private Boolean mExclusiveMaximum;
+
+    /**
+     * 文字列の最小の長さ.
+     */
     private Integer mMinLength;
+
+    /**
+     * 文字列の最大の長さ.
+     */
     private Integer mMaxLength;
+
+    /**
+     * 文字列の正規表現.
+     */
     private String mPattern;
+
+    /**
+     * 配列の最大のサイズ.
+     */
     private Integer mMaxItems;
+
+    /**
+     * 配列の最小のサイズ.
+     */
     private Integer mMinItems;
+
+    /**
+     * 配列の要素ユニーク宣言.
+     */
     private Boolean mUniqueItems;
-    private Integer mMaxProperties;
-    private Integer mMinProperties;
-    private List<String> mRequired;
+
+    /**
+     * 使用できる値を列挙したリスト.
+     */
     private List<Object> mEnum;
 
-    private Schema mItems;
-    private List<Schema> mAllOf;
+    /**
+     * 空の値の許可.
+     * <p>
+     * trueの場合は、空の値を設定することができます。
+     * </p>
+     */
+    private Boolean mAllowEmptyValue;
+
+    /**
+     * 配列のフォーマット.
+     * <p>
+     * {@link #mType} が {@link DataType#ARRAY} の場合に使用される配列のフォーマット.
+     * csv, ssv, tsv, pipes, multi が定義されます。
+     * </p>
+     * <p>
+     * 省略された場合は csv になります。
+     * </p>
+     */
+    private String mCollectionFormat;
+
+    /**
+     * 配列のアイテムのタイプ.
+     * <p>
+     * {@link #mType} が {@link DataType#ARRAY} の場合は Required.
+     * </p>
+     */
+    private Items mItems;
+
+    /**
+     * プロパティのマップ.
+     */
     private Map<String, Schema> mProperties;
+
+    /**
+     * properties の最大個数.
+     */
+    private Integer mMaxProperties;
+
+    /**
+     * properties の最小個数.
+     */
+    private Integer mMinProperties;
+
+    /**
+     * properties の要素で必須になるプロパティのリスト.
+     */
+    private List<String> mRequired;
+
+    private List<Schema> mAllOf;
     private Schema mAdditionalProperties;
 
     public ExternalDocs getExternalDocs() {
@@ -67,92 +200,172 @@ public class Schema extends AbstractSpec {
         mDescription = description;
     }
 
+    @Override
     public Number getMinimum() {
         return mMinimum;
     }
 
+    @Override
     public void setMinimum(Number minimum) {
         mMinimum = minimum;
     }
 
+    @Override
     public Number getMaximum() {
         return mMaximum;
     }
 
+    @Override
     public void setMaximum(Number maximum) {
         mMaximum = maximum;
     }
 
-    public Number getMultipleOf() {
-        return mMultipleOf;
-    }
-
-    public void setMultipleOf(Number multipleOf) {
-        mMultipleOf = multipleOf;
-    }
-
+    @Override
     public Boolean isExclusiveMinimum() {
         return mExclusiveMaximum != null ? mExclusiveMaximum : false;
     }
 
+    @Override
     public void setExclusiveMinimum(Boolean exclusiveMinimum) {
         mExclusiveMinimum = exclusiveMinimum;
     }
 
+    @Override
     public Boolean isExclusiveMaximum() {
         return mExclusiveMinimum != null ? mExclusiveMinimum : false;
     }
 
+    @Override
     public void setExclusiveMaximum(Boolean exclusiveMaximum) {
         mExclusiveMaximum = exclusiveMaximum;
     }
 
+    @Override
     public Integer getMinLength() {
         return mMinLength;
     }
 
+    @Override
     public void setMinLength(Integer minLength) {
         mMinLength = minLength;
     }
 
+    @Override
     public Integer getMaxLength() {
         return mMaxLength;
     }
 
+    @Override
     public void setMaxLength(Integer maxLength) {
         mMaxLength = maxLength;
     }
 
+    @Override
     public String getPattern() {
         return mPattern;
     }
 
+    @Override
     public void setPattern(String pattern) {
         mPattern = pattern;
     }
 
+    @Override
     public Integer getMaxItems() {
         return mMaxItems;
     }
 
+    @Override
     public void setMaxItems(Integer maxItems) {
         mMaxItems = maxItems;
     }
 
+    @Override
     public Integer getMinItems() {
         return mMinItems;
     }
 
+    @Override
     public void setMinItems(Integer minItems) {
         mMinItems = minItems;
     }
 
-    public Boolean getUniqueItems() {
-        return mUniqueItems;
+    @Override
+    public Boolean isUniqueItems() {
+        return mUniqueItems != null ? mUniqueItems : false;
     }
 
+    @Override
     public void setUniqueItems(Boolean uniqueItems) {
         mUniqueItems = uniqueItems;
+    }
+
+    @Override
+    public Number getMultipleOf() {
+        return mMultipleOf;
+    }
+
+    @Override
+    public void setMultipleOf(Number multipleOf) {
+        mMultipleOf = multipleOf;
+    }
+
+    @Override
+    public List<Object> getEnum() {
+        return mEnum;
+    }
+
+    @Override
+    public void setEnum(List<Object> anEnum) {
+        mEnum = anEnum;
+    }
+
+    @Override
+    public DataType getType() {
+        return mType;
+    }
+
+    @Override
+    public void setType(DataType type) {
+        mType = type;
+    }
+
+    @Override
+    public DataFormat getFormat() {
+        return mFormat;
+    }
+
+    @Override
+    public void setFormat(DataFormat format) {
+        mFormat = format;
+    }
+
+    @Override
+    public Object getDefault() {
+        return mDefault;
+    }
+
+    @Override
+    public void setDefault(Object aDefault) {
+        mDefault = aDefault;
+    }
+
+    @Override
+    public Items getItems() {
+        return mItems;
+    }
+
+    @Override
+    public void setItems(Items items) {
+        mItems = items;
+    }
+
+    public List<Schema> getAllOf() {
+        return mAllOf;
+    }
+
+    public void setAllOf(List<Schema> allOf) {
+        mAllOf = allOf;
     }
 
     public Integer getMaxProperties() {
@@ -179,54 +392,6 @@ public class Schema extends AbstractSpec {
         mRequired = required;
     }
 
-    public List<Object> getEnum() {
-        return mEnum;
-    }
-
-    public void setEnum(List<Object> anEnum) {
-        mEnum = anEnum;
-    }
-
-    public DataType getType() {
-        return mType;
-    }
-
-    public void setType(DataType type) {
-        mType = type;
-    }
-
-    public DataFormat getFormat() {
-        return mFormat;
-    }
-
-    public void setFormat(DataFormat format) {
-        mFormat = format;
-    }
-
-    public Object getDefault() {
-        return mDefault;
-    }
-
-    public void setDefault(Object aDefault) {
-        mDefault = aDefault;
-    }
-
-    public Schema getItems() {
-        return mItems;
-    }
-
-    public void setItems(Schema items) {
-        mItems = items;
-    }
-
-    public List<Schema> getAllOf() {
-        return mAllOf;
-    }
-
-    public void setAllOf(List<Schema> allOf) {
-        mAllOf = allOf;
-    }
-
     public Map<String, Schema> getProperties() {
         return mProperties;
     }
@@ -241,6 +406,26 @@ public class Schema extends AbstractSpec {
 
     public void setAdditionalProperties(Schema additionalProperties) {
         mAdditionalProperties = additionalProperties;
+    }
+
+    @Override
+    public Boolean isAllowEmptyValue() {
+        return mAllowEmptyValue != null ? mAllowEmptyValue : false;
+    }
+
+    @Override
+    public void setAllowEmptyValue(Boolean allowEmptyValue) {
+        mAllowEmptyValue = allowEmptyValue;
+    }
+
+    @Override
+    public String getCollectionFormat() {
+        return mCollectionFormat != null ? mCollectionFormat : "csv";
+    }
+
+    @Override
+    public void setCollectionFormat(String collectionFormat) {
+        mCollectionFormat = collectionFormat;
     }
 
     @Override

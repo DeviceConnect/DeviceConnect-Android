@@ -1,28 +1,122 @@
+/*
+ Header.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec.models;
 
 import android.os.Bundle;
 
 import java.util.List;
 
+/**
+ * レスポンスの一部として送信できるヘッダーのリスト.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class Header extends AbstractSpec {
-
+    /**
+     * ヘッダーの詳細.
+     */
     private String mDescription;
+
+    /**
+     * ヘッダーのタイプ.
+     * <p>
+     * Required.
+     * </p>
+     */
     private DataType mType;
+
+    /**
+     * ヘッダーのタイプの拡張フォーマット.
+     */
     private DataFormat mFormat;
-    private Schema mItems;
+
+    /**
+     * 配列の要素の宣言.
+     * <p>
+     * {@link #mType} が {@link DataType#ARRAY} の場合は Required.
+     * </p>
+     */
+    private Items mItems;
+
+    /**
+     * 配列のフォーマット.
+     * <p>
+     * {@link #mType} が {@link DataType#ARRAY} の場合に使用される配列のフォーマット.
+     * csv, ssv, tsv, pipes, multi が定義されます。
+     * </p>
+     * <p>
+     * 省略された場合は csv になります。
+     * </p>
+     */
     private String mCollectionFormat;
+
+    /**
+     * デフォルト値.
+     */
     private Object mDefault;
+
+    /**
+     * 値の最大値.
+     */
     private Number mMaximum;
+
+    /**
+     * 最大値を含む、含まない.
+     */
     private Boolean mExclusiveMaximum;
+
+    /**
+     * 値の最小値.
+     */
     private Number mMinimum;
+
+    /**
+     * 最小値を含む、含まない.
+     */
     private Boolean mExclusiveMinimum;
+
+    /**
+     * 文字列の最大の長さ.
+     */
     private Integer mMaxLength;
+
+    /**
+     * 文字列の最小の長さ.
+     */
     private Integer mMinLength;
+
+    /**
+     * 文字列のパターン.
+     */
     private String mPattern;
+
+    /**
+     * 配列の最大のサイズ.
+     */
     private Integer mMaxItems;
+
+    /**
+     * 配列の最小のサイズ.
+     */
     private Integer mMinItems;
+
+    /**
+     * 配列の要素ユニーク宣言.
+     */
     private Boolean mUniqueItems;
+
+    /**
+     * 使用できる値を列挙したリスト.
+     */
     private List<Object> mEnum;
+
+    /**
+     * 倍数宣言.
+     */
     private Number mMultipleOf;
 
     public String getDescription() {
@@ -57,11 +151,11 @@ public class Header extends AbstractSpec {
         mDefault = aDefault;
     }
 
-    public Schema getItems() {
+    public Items getItems() {
         return mItems;
     }
 
-    public void setItems(Schema items) {
+    public void setItems(Items items) {
         mItems = items;
     }
 

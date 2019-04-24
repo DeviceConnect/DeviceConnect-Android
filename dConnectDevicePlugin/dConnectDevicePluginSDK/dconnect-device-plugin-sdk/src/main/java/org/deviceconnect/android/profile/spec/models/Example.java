@@ -20,6 +20,8 @@ import org.json.JSONObject;
 public class Example implements DConnectSpec {
     /**
      * 応答メッセージの例.
+     *
+     * TODO 応答メッセージの例は、JSONオブジェクトのままで良いか？
      */
     private JSONObject mExample;
 

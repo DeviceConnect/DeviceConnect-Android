@@ -1,3 +1,9 @@
+/*
+ OpenAPIParser.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec.parser;
 
 import android.os.Bundle;
@@ -10,6 +16,7 @@ import org.deviceconnect.android.profile.spec.models.Example;
 import org.deviceconnect.android.profile.spec.models.ExternalDocs;
 import org.deviceconnect.android.profile.spec.models.Header;
 import org.deviceconnect.android.profile.spec.models.Info;
+import org.deviceconnect.android.profile.spec.models.Items;
 import org.deviceconnect.android.profile.spec.models.License;
 import org.deviceconnect.android.profile.spec.models.Operation;
 import org.deviceconnect.android.profile.spec.models.Path;
@@ -189,7 +196,7 @@ public final class OpenAPIParser {
             Object object = jsonObject.get(key);
             if (object != null) {
                 if (!key.startsWith("x-")) {
-                    securityScopes.putScope(key, (String) object);
+                    securityScopes.addScope(key, (String) object);
                 } else {
                     securityScopes.addVendorExtension(key, parseVendorExtension(object));
                 }
@@ -579,7 +586,7 @@ public final class OpenAPIParser {
                 } else if ("allowEmptyValue".equalsIgnoreCase(key)) {
                     parameter.setAllowEmptyValue((Boolean) object);
                 } else if ("items".equalsIgnoreCase(key)) {
-                    parameter.setItems(parseSchema((JSONObject) object));
+                    parameter.setItems(parseItems((JSONObject) object));
                 } else if ("collectionFormat".equalsIgnoreCase(key)) {
                     parameter.setCollectionFormat((String) object);
                 } else if ("default".equalsIgnoreCase(key)) {
@@ -683,18 +690,52 @@ public final class OpenAPIParser {
         return response;
     }
 
+    /**
+     * API 操作によって使用されるデータ型、作成されるデータ型を定義するオブジェクトを解析します.
+     *
+     * @param jsonObject データ定義が格納されたJSONオブジェクト
+     * @return データ定義
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static Definition parseDefinition(JSONObject jsonObject) throws JSONException {
         Definition definition = new Definition();
         parseSchema(jsonObject, definition);
         return definition;
     }
 
+    /**
+     * 配列などの要素のタイプを定義するオブジェクトを解析します.
+     *
+     * @param jsonObject 要素定義が格納されたJSONオブジェクト
+     * @return 要素定義
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
+    private static Items parseItems(JSONObject jsonObject) throws JSONException {
+        Items items = new Items();
+        parseSchema(jsonObject, items);
+        return items;
+    }
+
+    /**
+     * JSON スキーマ定義を解析します.
+     *
+     * @param jsonObject JSON スキーマ定義が格納されたJSONオブジェクト
+     * @return JSON スキーマ定義
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static Schema parseSchema(JSONObject jsonObject) throws JSONException {
         Schema schema = new Schema();
         parseSchema(jsonObject, schema);
         return schema;
     }
 
+    /**
+     * JSON スキーマ定義を解析し、指定されたオブジェクトに格納します.
+     *
+     * @param jsonObject JSON スキーマ定義が格納されたJSONオブジェクト
+     * @param schema 格納先のオブジェクト
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static void parseSchema(JSONObject jsonObject, Schema schema) throws JSONException {
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
             String key = it.next();
@@ -743,7 +784,7 @@ public final class OpenAPIParser {
                 } else if ("enum".equalsIgnoreCase(key)) {
                     schema.setEnum(parseEnum((JSONArray) object));
                 } else if ("items".equalsIgnoreCase(key)) {
-                    schema.setItems(parseSchema((JSONObject) object));
+                    schema.setItems(parseItems((JSONObject) object));
                 } else if ("allOf".equalsIgnoreCase(key)) {
                     schema.setAllOf(parseAllOf((JSONArray) object));
                 } else if ("properties".equalsIgnoreCase(key)) {
@@ -801,6 +842,13 @@ public final class OpenAPIParser {
         return headers;
     }
 
+    /**
+     * レスポンス用のヘッダー定義を解析します.
+     *
+     * @param jsonObject ヘッダー定義が格納されたJSONオブジェクト
+     * @return ヘッダー定義
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static Header parseHeader(JSONObject jsonObject) throws JSONException {
         Header header = new Header();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
@@ -814,7 +862,7 @@ public final class OpenAPIParser {
                 } else if ("format".equalsIgnoreCase(key)) {
                     header.setFormat(DataFormat.fromName((String) object));
                 } else if ("items".equalsIgnoreCase(key)) {
-                    header.setItems(parseSchema((JSONObject) object));
+                    header.setItems(parseItems((JSONObject) object));
                 } else if ("collectionFormat".equalsIgnoreCase(key)) {
                     header.setCollectionFormat((String) object);
                 } else if ("default".equalsIgnoreCase(key)) {
@@ -851,6 +899,13 @@ public final class OpenAPIParser {
         return header;
     }
 
+    /**
+     * レスポンスの例の定義のマップを解析します.
+     *
+     * @param jsonObject レスポンスの例が格納されたJSONオブジェクト
+     * @return レスポンスの例のマップ
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static Map<String, Example> parseExamples(JSONObject jsonObject) throws JSONException {
         Map<String, Example> examples = new HashMap<>();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
@@ -863,6 +918,12 @@ public final class OpenAPIParser {
         return examples;
     }
 
+    /**
+     * レスポンスの例の定義を解析します.
+     *
+     * @param jsonObject レスポンスの例が格納されたJSONオブジェクト
+     * @return レスポンスの例
+     */
     private static Example parseExample(JSONObject jsonObject) {
         Example example = new Example();
         example.setExample(jsonObject);

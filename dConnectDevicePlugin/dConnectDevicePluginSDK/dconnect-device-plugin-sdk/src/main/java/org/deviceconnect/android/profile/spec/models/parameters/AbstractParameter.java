@@ -10,7 +10,8 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.DataType;
-import org.deviceconnect.android.profile.spec.models.Schema;
+import org.deviceconnect.android.profile.spec.models.Items;
+import org.deviceconnect.android.profile.spec.models.Property;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class AbstractParameter extends Parameter {
+public class AbstractParameter extends Parameter implements Property {
     /**
      * パラメータのタイプ.
      *
@@ -44,12 +45,12 @@ public class AbstractParameter extends Parameter {
     private Boolean mAllowEmptyValue;
 
     /**
-     * 配列のアイテムのタイプ.
+     * 配列の要素の宣言.
      * <p>
      * {@link #mType} が {@link DataType#ARRAY} の場合は Required.
      * </p>
      */
-    private Schema mItems;
+    private Items mItems;
 
     /**
      * 配列のフォーマット.
@@ -114,316 +115,190 @@ public class AbstractParameter extends Parameter {
     private Integer mMinItems;
 
     /**
-     * ユニーク.
+     * 配列の要素ユニーク宣言.
      */
     private Boolean mUniqueItems;
 
     /**
-     * 列挙型.
+     * 使用できる値を列挙したリスト.
      */
     private List<Object> mEnum;
 
     /**
+     * 倍数宣言.
      *
+     * <p>
+     * パラメータの値が、この値の倍数になる必要があります。
+     * </p>
      */
     private Number mMultipleOf;
 
-    /**
-     * パラメータのタイプを取得します.
-     *
-     * @return パラメータのタイプ
-     */
+    @Override
     public DataType getType() {
         return mType;
     }
 
-    /**
-     * パラメータのタイプを設定します.
-     *
-     * @param type パラメータのタイプ
-     */
+    @Override
     public void setType(DataType type) {
         mType = type;
     }
 
-    /**
-     * パラメータの拡張フォーマットを取得します.
-     *
-     * @return パラメータの拡張フォーマット
-     */
+    @Override
     public DataFormat getFormat() {
         return mFormat;
     }
 
-    /**
-     * パラメータの拡張フォーマットを設定します.
-     *
-     * @param format パラメータの拡張フォーマット
-     */
+    @Override
     public void setFormat(DataFormat format) {
         mFormat = format;
     }
 
-    /**
-     * 空値許可を確認します.
-     *
-     * @return 空値を許可する場合はtrue、それ以外はfalse
-     */
+    @Override
     public Boolean isAllowEmptyValue() {
         return mAllowEmptyValue != null ? mAllowEmptyValue : false;
     }
 
-    /**
-     * 空値許可を設定します.
-     *
-     * @param allowEmptyValue 空値を許可する場合はtrue、それ以外はfalse
-     */
+    @Override
     public void setAllowEmptyValue(Boolean allowEmptyValue) {
         mAllowEmptyValue = allowEmptyValue;
     }
 
-    /**
-     * 配列のアイテムのタイプを取得します.
-     *
-     * @return 配列のフォーマット
-     */
-    public Schema getItems() {
+    @Override
+    public Items getItems() {
         return mItems;
     }
 
-    /**
-     * 配列のアイテムのタイプを設定します.
-     *
-     * @param items 配列のアイテムのタイプ
-     */
-    public void setItems(Schema items) {
+    @Override
+    public void setItems(Items items) {
         mItems = items;
     }
 
-    /**
-     * 配列のフォーマットを取得します.
-     *
-     * @return 配列のフォーマット
-     */
+    @Override
     public String getCollectionFormat() {
-        return mCollectionFormat;
+        return mCollectionFormat != null ? mCollectionFormat : "csv";
     }
 
-    /**
-     * 配列のフォーマットを設定します.
-     *
-     * @param collectionFormat 配列のフォーマット
-     */
+    @Override
     public void setCollectionFormat(String collectionFormat) {
         mCollectionFormat = collectionFormat;
     }
 
-    /**
-     * パラメータのデフォルト値を取得します.
-     *
-     * @return パラメータのデフォルト値
-     */
+    @Override
     public Object getDefault() {
         return mDefault;
     }
 
-    /**
-     * パラメータのデフォルト値を設定します.
-     *
-     * @param aDefault パラメータのデフォルト値
-     */
+    @Override
     public void setDefault(Object aDefault) {
         mDefault = aDefault;
     }
 
-    /**
-     * パラメータが指定できる最大値を取得します.
-     *
-     * @return パラメータの最大値
-     */
+    @Override
     public Number getMaximum() {
         return mMaximum;
     }
 
-    /**
-     * パラメータが指定できる最大値を設定します.
-     *
-     * @param maximum パラメータの最大値
-     */
+    @Override
     public void setMaximum(Number maximum) {
         mMaximum = maximum;
     }
 
-    /**
-     * 最大値を含めるか確認します.
-     *
-     * @return 最大値を含めない場合はtrue、それ以外はfalse
-     */
+    @Override
     public Boolean isExclusiveMaximum() {
         return mExclusiveMaximum != null ? mExclusiveMaximum : false;
     }
 
-    /**
-     * 最大値を含めるかを設定します.
-     *
-     * @param exclusiveMaximum 最大値を含めない場合はtrue、それ以外はfalse
-     */
+    @Override
     public void setExclusiveMaximum(Boolean exclusiveMaximum) {
         mExclusiveMaximum = exclusiveMaximum;
     }
 
-    /**
-     * パラメータが指定できる最小値を取得します.
-     *
-     * @return パラメータが指定できる最小値
-     */
+    @Override
     public Number getMinimum() {
         return mMinimum;
     }
 
-    /**
-     * パラメータが指定できる最小値を設定します.
-     *
-     * @param minimum パラメータが指定できる最小値
-     */
+    @Override
     public void setMinimum(Number minimum) {
         mMinimum = minimum;
     }
 
-    /**
-     * 最小値を含めるか確認します.
-     *
-     * @return 最小値を含めない場合はtrue、それ以外はfalse
-     */
+    @Override
     public Boolean isExclusiveMinimum() {
         return mExclusiveMinimum != null ? mExclusiveMinimum : false;
     }
 
-    /**
-     * 最小値を含めるかを設定します.
-     *
-     * @param exclusiveMinimum 最小値を含めない場合はtrue、それ以外はfalse
-     */
+    @Override
     public void setExclusiveMinimum(Boolean exclusiveMinimum) {
         mExclusiveMinimum = exclusiveMinimum;
     }
 
-    /**
-     * 文字列の最大サイズを取得します.
-     *
-     * @return 文字列の最大サイズ
-     */
+    @Override
     public Integer getMaxLength() {
         return mMaxLength;
     }
 
-    /**
-     * 文字列の最大サイズを設定します.
-     *
-     * @param maxLength 文字列の最大サイズ
-     */
+    @Override
     public void setMaxLength(Integer maxLength) {
         mMaxLength = maxLength;
     }
 
-    /**
-     * 文字列の最小サイズを設定します.
-     *
-     * @return 文字列の最小サイズ
-     */
+    @Override
     public Integer getMinLength() {
         return mMinLength;
     }
 
-    /**
-     * 文字列の最小サイズを設定します.
-     *
-     * @param minLength 文字列の最小サイズ
-     */
+    @Override
     public void setMinLength(Integer minLength) {
         mMinLength = minLength;
     }
 
-    /**
-     * 文字列のパターンを設定します.
-     *
-     * <p>
-     * 正規表現でパターンを設定することができます。
-     * </p>
-     *
-     * @return 文字列のパターン
-     */
+    @Override
     public String getPattern() {
         return mPattern;
     }
 
-    /**
-     * 文字列のパターンを設定します.
-     *
-     * @param pattern 文字列のパターン
-     */
+    @Override
     public void setPattern(String pattern) {
         mPattern = pattern;
     }
 
-    /**
-     * 配列の最大サイズを取得します.
-     *
-     * @return 配列の最大サイズ
-     */
+    @Override
     public Integer getMaxItems() {
         return mMaxItems;
     }
 
-    /**
-     * 配列の最大サイズを設定します.
-     *
-     * @param maxItems 配列の最大サイズ
-     */
+    @Override
     public void setMaxItems(Integer maxItems) {
         mMaxItems = maxItems;
     }
 
-    /**
-     * 配列の最小サイズを取得します.
-     *
-     * @return 配列の最小サイズ
-     */
+    @Override
     public Integer getMinItems() {
         return mMinItems;
     }
 
-    /**
-     * 配列の最小サイズを設定します.
-     *
-     * @param minItems 配列の最小サイズ
-     */
+    @Override
     public void setMinItems(Integer minItems) {
         mMinItems = minItems;
     }
 
+    @Override
     public Boolean isUniqueItems() {
         return mUniqueItems != null ? mUniqueItems : false;
     }
 
+    @Override
     public void setUniqueItems(Boolean uniqueItems) {
         mUniqueItems = uniqueItems;
     }
 
-    /**
-     * パラメータに指定できる値の列挙型を取得します.
-     *
-     * @return パラメータに指定できる値の列挙型
-     */
+    @Override
     public List<Object> getEnum() {
         return mEnum;
     }
 
-    /**
-     * パラメータに指定できる値の列挙型を設定します.
-     *
-     * @param anEnum パラメータに指定できる値の列挙型
-     */
+    @Override
     public void setEnum(List<Object> anEnum) {
         mEnum = anEnum;
     }
@@ -440,10 +315,12 @@ public class AbstractParameter extends Parameter {
         mEnum.add(anEnum);
     }
 
+    @Override
     public Number getMultipleOf() {
         return mMultipleOf;
     }
 
+    @Override
     public void setMultipleOf(Number multipleOf) {
         mMultipleOf = multipleOf;
     }

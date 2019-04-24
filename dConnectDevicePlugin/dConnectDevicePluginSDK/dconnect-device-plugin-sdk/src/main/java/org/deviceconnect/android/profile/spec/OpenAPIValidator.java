@@ -1,3 +1,9 @@
+/*
+ OpenAPIValidator.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec;
 
 import android.content.Intent;
@@ -8,13 +14,13 @@ import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.android.profile.spec.models.Operation;
 import org.deviceconnect.android.profile.spec.models.Path;
-import org.deviceconnect.android.profile.spec.models.Schema;
+import org.deviceconnect.android.profile.spec.models.Property;
 import org.deviceconnect.android.profile.spec.models.Swagger;
-import org.deviceconnect.android.profile.spec.models.parameters.AbstractParameter;
 import org.deviceconnect.android.profile.spec.models.parameters.BodyParameter;
 import org.deviceconnect.android.profile.spec.models.parameters.Parameter;
 
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -86,7 +92,6 @@ public final class OpenAPIValidator {
                 return swagger.getPaths().getPath(key);
             }
         }
-        // TODO 定義ファイルが見つからない場合
         return null;
     }
 
@@ -112,7 +117,6 @@ public final class OpenAPIValidator {
                 }
             }
         }
-        // TODO 定義ファイルが見つからない場合
         return null;
     }
 
@@ -188,8 +192,8 @@ public final class OpenAPIValidator {
         }
 
         for (Parameter parameter : operation.getParameters()) {
-            Object paramValue = extras.get(parameter.getName());
-            if (!validate(parameter, paramValue)) {
+            Object value = extras.get(parameter.getName());
+            if (!validate(parameter, value)) {
                 return false;
             }
         }
@@ -210,66 +214,80 @@ public final class OpenAPIValidator {
         }
 
         if (parameter instanceof BodyParameter) {
-            return validateSchema(((BodyParameter) parameter).getSchema(), value);
+            return validateProperty(((BodyParameter) parameter).getSchema(), value);
         } else {
-            AbstractParameter ap = (AbstractParameter) parameter;
-            if (ap.getType() == null) {
-                // TODO フォーマットエラー
-                return true;
-            }
+            return validateProperty((Property) parameter, value);
+        }
+    }
 
-            switch (ap.getType()) {
-                case INTEGER:
-                    return validateInteger(ap, value);
-                case NUMBER:
-                    return validateNumber(ap, value);
-                case STRING:
-                    return validateString(ap, value);
-                case ARRAY:
-                    return validateArray(ap, value);
-                case BOOLEAN:
-                    return validateBoolean(ap, value);
-                case FILE:
-                    return validateFile(ap, value);
-                default:
-                    return false;
-            }
+    /**
+     * リクエストされたパラメータが妥当か確認します.
+     *
+     * @param property パラメータの仕様
+     * @param value リクエストされたパラメータの値
+     * @return パラメータが妥当な場合はtrue、それ以外はfalse
+     */
+    private static boolean validateProperty(Property property, Object value) {
+        if (property.getType() == null) {
+            // TODO 定義ファイルのフォーマットエラー
+            return true;
+        }
+
+        switch (property.getType()) {
+            case INTEGER:
+                return validateInteger(property, value);
+            case NUMBER:
+                return validateNumber(property, value);
+            case STRING:
+                return validateString(property, value);
+            case ARRAY:
+                return validateArray(property, value);
+            case BOOLEAN:
+                return validateBoolean(property, value);
+            case FILE:
+                return validateFile(property, value);
+            default:
+                return false;
         }
     }
 
     /**
      * Integer のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateInteger(AbstractParameter parameter, Object value) {
+    private static boolean validateInteger(Property property, Object value) {
         if (value == null) {
             return true;
         }
 
         if (value instanceof String) {
             // 文字列を数値に変換できるか確認
-            value = formatInteger(parameter.getFormat(), (String) value);
+            try {
+                value = formatInteger(property.getFormat(), (String) value);
+            } catch (Exception e) {
+                return false;
+            }
         }
 
-        if (!(value instanceof Number)) {
+        if (!(value instanceof Integer || value instanceof Long)) {
             return false;
         }
 
         // format が省略された場合は、int で処理を行う
-        if (parameter.getFormat() == null) {
-            return validateInt32(parameter, ((Number) value).intValue());
+        if (property.getFormat() == null) {
+            return validateInt32(property, ((Number) value).intValue());
         }
 
-        switch (parameter.getFormat()) {
+        switch (property.getFormat()) {
             case INT32:
-                return validateInt32(parameter, ((Number) value).intValue());
+                return validateInt32(property, ((Number) value).intValue());
             case INT64:
-                return validateInt64(parameter,  ((Number) value).longValue());
+                return validateInt64(property,  ((Number) value).longValue());
             default:
-                // TODO フォーマットエラー
+                // TODO 定義ファイルのフォーマットエラー
                 return true;
         }
     }
@@ -277,83 +295,111 @@ public final class OpenAPIValidator {
     /**
      * int のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateInt32(AbstractParameter parameter, int value) {
-        if (parameter.getEnum() != null) {
-            return validateEnum(parameter.getEnum(), value);
+    private static boolean validateInt32(Property property, int value) {
+        if (property.getEnum() != null) {
+            return validateEnum(property.getEnum(), value);
         }
 
-        boolean isValid = true;
-        if (parameter.getMaximum() != null) {
-            int maximum = parameter.getMaximum().intValue();
-            isValid = parameter.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
+        if (property.getMaximum() != null) {
+            int maximum = property.getMaximum().intValue();
+            if (!(property.isExclusiveMaximum() ? (maximum > value) : (maximum >= value))) {
+                return false;
+            }
         }
-        if (parameter.getMinimum() != null) {
-            int minimum = parameter.getMinimum().intValue();
-            isValid &= parameter.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
+
+        if (property.getMinimum() != null) {
+            int minimum = property.getMinimum().intValue();
+            if (!(property.isExclusiveMinimum() ? (minimum < value) : (minimum <= value))) {
+                return false;
+            }
         }
-        return isValid;
+
+        if (property.getMultipleOf() != null) {
+            int multipleOf = property.getMultipleOf().intValue();
+            if (multipleOf != 0 && value % multipleOf != 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * long のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateInt64(AbstractParameter parameter, long value) {
-        if (parameter.getEnum() != null) {
-            return validateEnum(parameter.getEnum(), value);
+    private static boolean validateInt64(Property property, long value) {
+        if (property.getEnum() != null) {
+            return validateEnum(property.getEnum(), value);
         }
 
-        boolean isValid = true;
-        if (parameter.getMaximum() != null) {
-            long maximum = parameter.getMaximum().longValue();
-            isValid = parameter.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
+        if (property.getMaximum() != null) {
+            long maximum = property.getMaximum().longValue();
+            if (!(property.isExclusiveMaximum() ? (maximum > value) : (maximum >= value))) {
+                return false;
+            }
         }
-        if (parameter.getMinimum() != null) {
-            long minimum = parameter.getMinimum().longValue();
-            isValid &= parameter.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
+
+        if (property.getMinimum() != null) {
+            long minimum = property.getMinimum().longValue();
+            if (!(property.isExclusiveMinimum() ? (minimum < value) : (minimum <= value))) {
+                return false;
+            }
         }
-        return isValid;
+
+        if (property.getMultipleOf() != null) {
+            long multipleOf = property.getMultipleOf().longValue();
+            if (multipleOf != 0 && value % multipleOf != 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * Number のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateNumber(AbstractParameter parameter, Object value) {
+    private static boolean validateNumber(Property property, Object value) {
         if (value == null) {
             return true;
         }
 
         if (value instanceof String) {
             // 文字列を数値に変換できるか確認
-            value = formatNumber(parameter.getFormat(), (String) value);
+            try {
+                value = formatNumber(property.getFormat(), (String) value);
+            } catch (Exception e) {
+                return false;
+            }
         }
 
         if (!(value instanceof Number)) {
             return false;
         }
 
-        if (parameter.getFormat() == null) {
-            return validateFloat(parameter, ((Number) value).floatValue());
+        if (property.getFormat() == null) {
+            return validateFloat(property, ((Number) value).floatValue());
         }
 
-        switch (parameter.getFormat()) {
+        switch (property.getFormat()) {
             case FLOAT:
-                return validateFloat(parameter, ((Number) value).floatValue());
+                return validateFloat(property, ((Number) value).floatValue());
             case DOUBLE:
-                return validateDouble(parameter, ((Number) value).doubleValue());
+                return validateDouble(property, ((Number) value).doubleValue());
             default:
-                // TODO フォーマットエラー
+                // TODO 定義ファイルのフォーマットエラー
                 return true;
         }
     }
@@ -361,59 +407,68 @@ public final class OpenAPIValidator {
     /**
      * float のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateFloat(AbstractParameter parameter, float value) {
-        if (parameter.getEnum() != null) {
-            return validateEnum(parameter.getEnum(), value);
+    private static boolean validateFloat(Property property, float value) {
+        if (property.getEnum() != null) {
+            return validateEnum(property.getEnum(), value);
         }
 
-        boolean isValid = true;
-        if (parameter.getMaximum() != null) {
-            float maximum = parameter.getMaximum().floatValue();
-            isValid = parameter.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
+        if (property.getMaximum() != null) {
+            float maximum = property.getMaximum().floatValue();
+            if (!(property.isExclusiveMaximum() ? (maximum > value) : (maximum >= value))) {
+                return false;
+            }
         }
-        if (parameter.getMinimum() != null) {
-            float minimum = parameter.getMinimum().floatValue();
-            isValid &= parameter.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
+
+        if (property.getMinimum() != null) {
+            float minimum = property.getMinimum().floatValue();
+            if (!(property.isExclusiveMinimum() ? (minimum < value) : (minimum <= value))) {
+                return false;
+            }
         }
-        return isValid;
+
+        return true;
     }
 
     /**
      * double のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateDouble(AbstractParameter parameter, double value) {
-        if (parameter.getEnum() != null) {
-            return validateEnum(parameter.getEnum(), value);
+    private static boolean validateDouble(Property property, double value) {
+        if (property.getEnum() != null) {
+            return validateEnum(property.getEnum(), value);
         }
 
-        boolean isValid = true;
-        if (parameter.getMaximum() != null) {
-            double maximum = parameter.getMaximum().doubleValue();
-            isValid = parameter.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
+        if (property.getMaximum() != null) {
+            double maximum = property.getMaximum().doubleValue();
+            if (!(property.isExclusiveMaximum() ? (maximum > value) : (maximum >= value))) {
+                return false;
+            }
         }
-        if (parameter.getMinimum() != null) {
-            double minimum = parameter.getMinimum().doubleValue();
-            isValid &= parameter.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
+        if (property.getMinimum() != null) {
+            double minimum = property.getMinimum().doubleValue();
+            if (!(property.isExclusiveMinimum() ? (minimum < value) : (minimum <= value))) {
+                return false;
+            }
         }
-        return isValid;
+
+        return true;
     }
 
     /**
      * 文字列のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateString(AbstractParameter parameter, Object value) {
+    private static boolean validateString(Property property, Object value) {
         if (value == null) {
             return true;
         }
@@ -422,22 +477,25 @@ public final class OpenAPIValidator {
             return false;
         }
 
-        if (parameter.getEnum() != null) {
-            return validateEnum(parameter.getEnum(), value);
+        if (property.getEnum() != null) {
+            return validateEnum(property.getEnum(), value);
         }
 
-        if (parameter.getPattern() != null) {
-            // TODO 未実装
-            // 正規表現のマッチングを実装すること
+        if (property.getPattern() != null) {
+            Pattern p = Pattern.compile(property.getPattern());
+            Matcher m = p.matcher((String) value);
+            if (!m.find()) {
+                return false;
+            }
         }
 
-        if (parameter.getFormat() == null) {
-            return validateLength(parameter, (String) value);
+        if (property.getFormat() == null) {
+            return validateLength(property, (String) value);
         }
 
-        switch (parameter.getFormat()) {
+        switch (property.getFormat()) {
             case TEXT:
-                return validateLength(parameter, (String) value);
+                return validateLength(property, (String) value);
             case BYTE:
             case BINARY:
                 return validateBinary((String) value);
@@ -459,13 +517,13 @@ public final class OpenAPIValidator {
      * TODO 最大値、最小値を含むのか、含まないのか仕様がなかったので、ここでは含まないようにしています。
      * </p>
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateLength(AbstractParameter parameter, String value) {
-        Integer maxLength = parameter.getMaxLength();
-        Integer minLength = parameter.getMinLength();
+    private static boolean validateLength(Property property, String value) {
+        Integer maxLength = property.getMaxLength();
+        Integer minLength = property.getMinLength();
         int stringLength = value.length();
         return (maxLength == null || stringLength < maxLength) &&
                 (minLength == null || stringLength > minLength);
@@ -508,22 +566,23 @@ public final class OpenAPIValidator {
     /**
      * 配列の妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateArray(AbstractParameter parameter, Object value) {
+    private static boolean validateArray(Property property, Object value) {
         if (value == null) {
             return true;
         }
 
         String arrayParam = value.toString();
         if (arrayParam.equals("")) {
-            return parameter.isAllowEmptyValue();
+            // 空の配列が許可されているか
+            return property.isAllowEmptyValue();
         }
 
         String[] array;
-        switch (parameter.getCollectionFormat()) {
+        switch (property.getCollectionFormat()) {
             default:
             case "csv":
                 array = arrayParam.split(",");
@@ -542,29 +601,50 @@ public final class OpenAPIValidator {
                 return false;
         }
 
-        for (String v : array) {
-            if (!validateSchema(parameter.getItems(), v)) {
+        if (property.getMaxItems() != null) {
+            if (array.length >= property.getMaxItems()) {
                 return false;
             }
         }
 
+        if (property.getMinItems() != null) {
+            if (array.length < property.getMinItems()) {
+                return false;
+            }
+        }
+
+        if (property.isUniqueItems()) {
+            for (int i = 0; i < array.length; i++) {
+                for (int j = i + 1; j < array.length; j++) {
+                    if (array[i].equals(array[j])) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for (String v : array) {
+            if (!validateProperty(property.getItems(), v)) {
+                return false;
+            }
+        }
         return true;
     }
 
     /**
      * boolean のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateBoolean(AbstractParameter parameter, Object value) {
+    private static boolean validateBoolean(Property property, Object value) {
         if (value == null) {
             return true;
         }
 
-        if (parameter.getEnum() != null) {
-            return validateEnum(parameter.getEnum(), value);
+        if (property.getEnum() != null) {
+            return validateEnum(property.getEnum(), value);
         }
 
         if (value instanceof String) {
@@ -576,17 +656,17 @@ public final class OpenAPIValidator {
     /**
      * File のパラメータの妥当性を確認します.
      *
-     * @param parameter パラメータの仕様
+     * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
      * @return 値が妥当な場合はtrue、それ以外はfalse
      */
-    private static boolean validateFile(AbstractParameter parameter, Object value) {
+    private static boolean validateFile(Property property, Object value) {
         // TODO 未実装
         return true;
     }
 
     /**
-     * Enum の妥当性を確認します.
+     * 指定された値が enum の中に存在するか確認します.
      *
      * @param enums enumに定義されたリスト
      * @param value リクエストされたパラメータの値
@@ -599,36 +679,6 @@ public final class OpenAPIValidator {
             }
         }
         return false;
-    }
-
-    private static boolean validateSchema(Schema schema, Object value) {
-        if (value == null) {
-            return true;
-        }
-
-        if (schema.getType() == null) {
-            // TODO フォーマットエラー
-            return false;
-        }
-
-        switch (schema.getType()) {
-            case INTEGER:
-                return validateInteger(schema, value);
-            case NUMBER:
-                return validateNumber(schema, value);
-            case STRING:
-                return validateString(schema, value);
-            case ARRAY:
-                // TODO 未実装
-//                return validateArray(schema, value);
-                return true;
-            case BOOLEAN:
-                return validateBoolean(schema, value);
-            case FILE:
-                return validateFile(schema, value);
-            default:
-                return false;
-        }
     }
 
     /**
@@ -651,6 +701,9 @@ public final class OpenAPIValidator {
                     return Integer.parseInt(value);
                 case INT64:
                     return Long.parseLong(value);
+                default:
+                    // TODO 定義ファイルのフォーマットエラー
+                    break;
             }
         }
         return value;
@@ -676,240 +729,11 @@ public final class OpenAPIValidator {
                     return Float.parseFloat(value);
                 case DOUBLE:
                     return Double.parseDouble(value);
+                default:
+                    // TODO 定義ファイルのフォーマットエラー
+                    break;
             }
         }
         return value;
-    }
-
-    /**
-     * Integer のパラメータの妥当性を確認します.
-     *
-     * @param schema パラメータの仕様
-     * @param value リクエストされたパラメータの値
-     * @return 値が妥当な場合はtrue、それ以外はfalse
-     */
-    private static boolean validateInteger(Schema schema, Object value) {
-        if (value == null) {
-            return true;
-        }
-
-        if (value instanceof String) {
-            // 文字列を数値に変換できるか確認
-            value = formatInteger(schema.getFormat(), (String) value);
-        }
-
-        if (!(value instanceof Number)) {
-            return false;
-        }
-
-        // format が省略された場合は、int で処理を行う
-        if (schema.getFormat() == null) {
-            return validateInt32(schema, ((Number) value).intValue());
-        }
-
-        switch (schema.getFormat()) {
-            case INT32:
-                return validateInt32(schema, ((Number) value).intValue());
-            case INT64:
-                return validateInt64(schema,  ((Number) value).longValue());
-            default:
-                // TODO フォーマットエラー
-                return true;
-        }
-    }
-
-    /**
-     * int のパラメータの妥当性を確認します.
-     *
-     * @param schema パラメータの仕様
-     * @param value リクエストされたパラメータの値
-     * @return 値が妥当な場合はtrue、それ以外はfalse
-     */
-    private static boolean validateInt32(Schema schema, int value) {
-        if (schema.getEnum() != null) {
-            return validateEnum(schema.getEnum(), value);
-        }
-
-        boolean isValid = true;
-        if (schema.getMaximum() != null) {
-            int maximum = schema.getMaximum().intValue();
-            isValid = schema.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
-        }
-        if (schema.getMinimum() != null) {
-            int minimum = schema.getMinimum().intValue();
-            isValid &= schema.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
-        }
-        return isValid;
-    }
-
-    /**
-     * long のパラメータの妥当性を確認します.
-     *
-     * @param schema パラメータの仕様
-     * @param value リクエストされたパラメータの値
-     * @return 値が妥当な場合はtrue、それ以外はfalse
-     */
-    private static boolean validateInt64(Schema schema, long value) {
-        if (schema.getEnum() != null) {
-            return validateEnum(schema.getEnum(), value);
-        }
-
-        boolean isValid = true;
-        if (schema.getMaximum() != null) {
-            long maximum = schema.getMaximum().longValue();
-            isValid = schema.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
-        }
-        if (schema.getMinimum() != null) {
-            long minimum = schema.getMinimum().longValue();
-            isValid &= schema.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
-        }
-        return isValid;
-    }
-
-    /**
-     * Number のパラメータの妥当性を確認します.
-     *
-     * @param schema パラメータの仕様
-     * @param value リクエストされたパラメータの値
-     * @return 値が妥当な場合はtrue、それ以外はfalse
-     */
-    private static boolean validateNumber(Schema schema, Object value) {
-        if (value == null) {
-            return true;
-        }
-
-        if (value instanceof String) {
-            // 文字列を数値に変換できるか確認
-            value = formatNumber(schema.getFormat(), (String) value);
-        }
-
-        if (!(value instanceof Number)) {
-            return false;
-        }
-
-        if (schema.getFormat() == null) {
-            return validateFloat(schema, ((Number) value).floatValue());
-        }
-
-        switch (schema.getFormat()) {
-            case FLOAT:
-                return validateFloat(schema, ((Number) value).floatValue());
-            case DOUBLE:
-                return validateDouble(schema, ((Number) value).doubleValue());
-            default:
-                // TODO フォーマットエラー
-                return true;
-        }
-    }
-
-    /**
-     * float のパラメータの妥当性を確認します.
-     *
-     * @param schema パラメータの仕様
-     * @param value リクエストされたパラメータの値
-     * @return 値が妥当な場合はtrue、それ以外はfalse
-     */
-    private static boolean validateFloat(Schema schema, float value) {
-        if (schema.getEnum() != null) {
-            return validateEnum(schema.getEnum(), value);
-        }
-
-        boolean isValid = true;
-        if (schema.getMaximum() != null) {
-            float maximum = schema.getMaximum().floatValue();
-            isValid = schema.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
-        }
-        if (schema.getMinimum() != null) {
-            float minimum = schema.getMinimum().floatValue();
-            isValid &= schema.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
-        }
-        return isValid;
-    }
-
-    /**
-     * double のパラメータの妥当性を確認します.
-     *
-     * @param schema パラメータの仕様
-     * @param value リクエストされたパラメータの値
-     * @return 値が妥当な場合はtrue、それ以外はfalse
-     */
-    private static boolean validateDouble(Schema schema, double value) {
-        if (schema.getEnum() != null) {
-            return validateEnum(schema.getEnum(), value);
-        }
-
-        boolean isValid = true;
-        if (schema.getMaximum() != null) {
-            double maximum = schema.getMaximum().doubleValue();
-            isValid = schema.isExclusiveMaximum() ? (maximum > value) : (maximum >= value);
-        }
-        if (schema.getMinimum() != null) {
-            double minimum = schema.getMinimum().doubleValue();
-            isValid &= schema.isExclusiveMinimum() ? (minimum < value) : (minimum <= value);
-        }
-        return isValid;
-    }
-
-    private static boolean validateString(Schema schema, Object value) {
-        if (value == null) {
-            return true;
-        }
-
-        if (!(value instanceof String)) {
-            return false;
-        }
-
-        if (schema.getEnum() != null) {
-            return validateEnum(schema.getEnum(), value);
-        }
-
-        if (schema.getFormat() == null) {
-            return validateLength(schema, (String) value);
-        }
-
-        switch (schema.getFormat()) {
-            case TEXT:
-                return validateLength(schema, (String) value);
-            case BYTE:
-            case BINARY:
-                return validateBinary((String) value);
-            case DATE:
-                return validateDateTime((String) value);
-            case DATE_TIME:
-                return validateDateTime((String) value);
-            case RGB:
-                return validateRGB((String) value);
-            default:
-                // TODO フォーマットエラー
-                throw new IllegalStateException();
-        }
-    }
-
-    private static boolean validateLength(Schema schema, String value) {
-        Integer maxLength = schema.getMaxLength();
-        Integer minLength = schema.getMinLength();
-        int stringLength = value.length();
-        return (maxLength == null || stringLength < maxLength) &&
-                (minLength == null || stringLength > minLength);
-    }
-
-
-    private static boolean validateBoolean(Schema schema, Object value) {
-        if (value == null) {
-            return true;
-        }
-
-        if (schema.getEnum() != null) {
-            return validateEnum(schema.getEnum(), value);
-        }
-
-        if (value instanceof String) {
-            return TRUE.equalsIgnoreCase((String) value) || FALSE.equalsIgnoreCase((String) value);
-        }
-        return (value instanceof Boolean);
-    }
-
-    private static boolean validateFile(Schema parameter, Object value) {
-        return true;
     }
 }

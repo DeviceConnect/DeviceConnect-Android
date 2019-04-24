@@ -8,6 +8,15 @@ import java.io.InputStream;
  * resourcesのファイルを読み込むクラス。
  */
 public final class FileLoader {
+
+    public static String readString(String file) {
+        byte[] data = readFile(file);
+        if (data != null) {
+            return new String(data);
+        }
+        throw new RuntimeException("Not found a " + file);
+    }
+
     public static byte[] readFile(String file) {
         InputStream input = null;
         try {

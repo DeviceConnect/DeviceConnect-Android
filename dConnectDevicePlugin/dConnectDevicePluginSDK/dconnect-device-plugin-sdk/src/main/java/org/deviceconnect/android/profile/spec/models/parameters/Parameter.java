@@ -1,3 +1,9 @@
+/*
+ Parameter.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec.models.parameters;
 
 import android.os.Bundle;
@@ -23,6 +29,11 @@ public abstract class Parameter extends AbstractSpec {
      * <p>
      * Required
      * </p>
+     * <p>
+     * query、header、path、formData、body が設定可能。
+     * </p>
+     *
+     * TODO enum で宣言した方が良いか？
      */
     private String mIn;
 

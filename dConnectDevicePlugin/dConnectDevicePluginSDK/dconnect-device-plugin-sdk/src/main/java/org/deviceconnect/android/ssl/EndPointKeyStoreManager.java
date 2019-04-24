@@ -118,7 +118,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      * @param alias エイリアス
      * @param rootCA 証明書要求の送信先
      */
-    private EndPointKeyStoreManager(final Context context, final String keyStorePath, final String keyStorePassword,
+    public EndPointKeyStoreManager(final Context context, final String keyStorePath, final String keyStorePassword,
                             final String alias, final ComponentName rootCA) {
         super(context, keyStorePath, keyStorePassword);
         mRootCA = rootCA;

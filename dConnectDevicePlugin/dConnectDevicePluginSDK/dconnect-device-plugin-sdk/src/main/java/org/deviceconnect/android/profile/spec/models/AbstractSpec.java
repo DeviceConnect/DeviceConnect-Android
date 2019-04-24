@@ -102,39 +102,37 @@ public abstract class AbstractSpec implements DConnectSpec {
     protected void copyEnum(Bundle bundle, DataType type, DataFormat format, List<Object> objects) {
         switch (type) {
             case INTEGER:
-                switch (format) {
-                    case INT64: {
-                        long[] enums = new long[objects.size()];
-                        for (int i = 0; i < objects.size(); i++) {
-                            enums[i] = (long) objects.get(i);
-                        }
-                        bundle.putLongArray("enum", enums);
-                    }   break;
-                    default: {
-                        int[] enums = new int[objects.size()];
-                        for (int i = 0; i < objects.size(); i++) {
-                            enums[i] = (int) objects.get(i);
-                        }
-                        bundle.putIntArray("enum", enums);
-                    }   break;
+                if (format == null || format == DataFormat.INT32) {
+                    int[] enums = new int[objects.size()];
+                    for (int i = 0; i < objects.size(); i++) {
+                        enums[i] = ((Number) objects.get(i)).intValue();
+                    }
+                    bundle.putIntArray("enum", enums);
+                } else if (format == DataFormat.INT64) {
+                    long[] enums = new long[objects.size()];
+                    for (int i = 0; i < objects.size(); i++) {
+                        enums[i] = ((Number) objects.get(i)).longValue();
+                    }
+                    bundle.putLongArray("enum", enums);
+                } else {
+                    // TODO フォーマットエラー
                 }
                 break;
             case NUMBER:
-                switch (format) {
-                    case DOUBLE: {
-                        double[] enums = new double[objects.size()];
-                        for (int i = 0; i < objects.size(); i++) {
-                            enums[i] = (double) objects.get(i);
-                        }
-                        bundle.putDoubleArray("enum", enums);
-                    }   break;
-                    default: {
-                        float[] enums = new float[objects.size()];
-                        for (int i = 0; i < objects.size(); i++) {
-                            enums[i] = (float) objects.get(i);
-                        }
-                        bundle.putFloatArray("enum", enums);
-                    }   break;
+                if (format == null || format == DataFormat.FLOAT) {
+                    float[] enums = new float[objects.size()];
+                    for (int i = 0; i < objects.size(); i++) {
+                        enums[i] = ((Number) objects.get(i)).floatValue();
+                    }
+                    bundle.putFloatArray("enum", enums);
+                } else if (format == DataFormat.DOUBLE) {
+                    double[] enums = new double[objects.size()];
+                    for (int i = 0; i < objects.size(); i++) {
+                        enums[i] = ((Number) objects.get(i)).doubleValue();
+                    }
+                    bundle.putDoubleArray("enum", enums);
+                } else {
+                    // TODO フォーマットエラー
                 }
                 break;
             case STRING: {

@@ -254,10 +254,15 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     /**
      * リクエストのパラメータの妥当性を確認します.
      *
+     * <p>
+     * プロファイル定義が存在しない場合は、パラメータのチェックが
+     * できないので妥当として true を返却します。
+     * </p>
+     *
      * @param request リクエスト
      * @return 妥当な場合はtrue、それ以外はfalse
      */
-    private boolean validate(final Intent request) {
+    private boolean validateRequest(final Intent request) {
         DConnectService service = getService();
         if (service != null) {
             DConnectPluginSpec spec = service.getPluginSpec();
@@ -286,7 +291,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     public boolean onRequest(final Intent request, final Intent response) {
         DConnectApi api = findApi(request);
         if (api != null) {
-            if (!validate(request)) {
+            if (!validateRequest(request)) {
                 // API 定義ファイルでパラメータエラーとなった
                 MessageUtils.setInvalidRequestParameterError(response);
                 return true;

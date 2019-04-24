@@ -509,7 +509,10 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
      * サービスを検索します.
      */
     private void serviceDiscovery() {
+        showSearchingService();
         mDConnectSDK.serviceDiscovery((response) -> {
+            dismissSearchingService();
+
             if (response.getResult() == DConnectMessage.RESULT_OK) {
                 mServiceDiscoveryFlag = false;
                 List<ServiceContainer> serviceContainers = new ArrayList<>();

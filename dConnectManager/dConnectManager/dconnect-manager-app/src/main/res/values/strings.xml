@@ -207,6 +207,7 @@
     <string name="activity_service_list_error_message_message">An error has occurred.\n\n%1$s</string>
     <string name="activity_service_list_error_message_ok">OK</string>
     <string name="activity_service_list_launch_manager_message">Starting Device Connect Manager</string>
+    <string name="activity_service_list_search_service">Searching for services</string>
 
     <string name="activity_websocket_delete_title">Closing WebSocket</string>
     <string name="activity_websocket_delete_message">May this WebSocket be closed?</string>

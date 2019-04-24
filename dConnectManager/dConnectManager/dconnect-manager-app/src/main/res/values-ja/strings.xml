@@ -199,6 +199,7 @@
     <string name="activity_service_list_error_message_message">エラーが発生しました。\n\n%1$s</string>
     <string name="activity_service_list_error_message_ok">はい</string>
     <string name="activity_service_list_launch_manager_message">Device Connect Manager を起動しています。</string>
+    <string name="activity_service_list_search_service">サービスを検索中</string>
 
     <string name="activity_websocket_delete_title">WebSocket削除確認</string>
     <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>

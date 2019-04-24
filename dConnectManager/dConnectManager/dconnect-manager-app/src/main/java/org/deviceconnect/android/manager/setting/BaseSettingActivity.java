@@ -61,9 +61,9 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
     private final Object mManagerMonitorLock = new Object();
 
     /**
-     * Device Connect Manager 起動中ダイアログ.
+     * プログレスバー用のダイアログ.
      */
-    private StartingManagerDialogFragment mDialog;
+    private ProgressDialogFragment mDialog;
 
     private boolean mActivityVisible;
 
@@ -366,27 +366,55 @@ public abstract class BaseSettingActivity extends AppCompatActivity {
         return mDConnectService;
     }
 
-
     /**
      * Device Connect Manager 起動中ダイアログを表示します.
      */
     public void showStaringManagerDialog() {
-        runOnUiThread(() -> {
-            if (mActivityVisible) {
-                if (mDialog != null) {
-                    mDialog.dismiss();
-                }
-
-                mDialog = new StartingManagerDialogFragment();
-                mDialog.show(getFragmentManager(), "starting-manager");
-            }
-        });
+        showProgressDialog(R.string.activity_service_list_launch_manager_message);
     }
 
     /**
      * Device Connect Manager 起動中ダイアログを閉じます.
      */
     public void dismissStartingManagerDialog() {
+        dismissProgressDialog();
+    }
+
+    /**
+     * サービス検索中のダイアログを表示します.
+     */
+    public void showSearchingService() {
+        showProgressDialog(R.string.activity_service_list_search_service);
+    }
+
+    /**
+     * サービス検索中のダイアログを閉じます.
+     */
+    public void dismissSearchingService() {
+        dismissProgressDialog();
+    }
+
+    /**
+     * プログレスバーダイアログを表示します.
+     *
+     * @param resId プログレスバーに表示する文字列のリソースID
+     */
+    private void showProgressDialog(final int resId) {
+        runOnUiThread(() -> {
+            if (mActivityVisible) {
+                if (mDialog != null) {
+                    mDialog.dismiss();
+                }
+                mDialog = ProgressDialogFragment.create(getString(resId));
+                mDialog.show(getFragmentManager(), "progress-dialog");
+            }
+        });
+    }
+
+    /**
+     * プログレスバーを閉じます.
+     */
+    private void dismissProgressDialog() {
         runOnUiThread(() -> {
             if (mActivityVisible) {
                 try {

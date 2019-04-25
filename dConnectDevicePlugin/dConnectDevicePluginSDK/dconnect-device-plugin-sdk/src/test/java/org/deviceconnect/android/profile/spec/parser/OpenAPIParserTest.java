@@ -62,7 +62,7 @@ public class OpenAPIParserTest {
     @Test(expected = JSONException.class)
     public void testInvalidJson() throws JSONException {
         String jsonString = FileLoader.readString("parser/testInvalidJson.json");
-        Swagger swagger = OpenAPIParser.parse(jsonString);
+        OpenAPIParser.parse(jsonString);
     }
 
     @Test

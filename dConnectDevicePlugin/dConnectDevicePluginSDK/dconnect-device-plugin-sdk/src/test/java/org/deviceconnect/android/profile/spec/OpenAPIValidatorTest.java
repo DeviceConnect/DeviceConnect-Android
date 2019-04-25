@@ -1,6 +1,7 @@
 package org.deviceconnect.android.profile.spec;
 
 import org.deviceconnect.android.PluginSDKTestRunner;
+import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.DataType;
 import org.deviceconnect.android.profile.spec.models.Items;
 import org.deviceconnect.android.profile.spec.models.parameters.AbstractParameter;
@@ -16,6 +17,10 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(Enclosed.class)
 public class OpenAPIValidatorTest {
+
+    /**
+     * 整数値のパラメータテスト.
+     */
     @RunWith(PluginSDKTestRunner.class)
     public static class IntegerTest {
         /**
@@ -28,39 +33,37 @@ public class OpenAPIValidatorTest {
             AbstractParameter p = new AbstractParameter();
             p.setType(DataType.INTEGER);
 
+            result = OpenAPIValidator.validate(p, 0);
+            assertThat(result, is(true));
+
             result = OpenAPIValidator.validate(p, 10);
             assertThat(result, is(true));
 
+            result = OpenAPIValidator.validate(p, -10);
+            assertThat(result, is(true));
+
+            // 文字列でも数値に変換できる場合は、数値として扱う
             result = OpenAPIValidator.validate(p, "11");
             assertThat(result, is(true));
-        }
 
-        /**
-         * 実数を指定された時にエラーになること。
-         */
-        @Test
-        public void testNumber() {
-            boolean result;
+            result = OpenAPIValidator.validate(p, "-11");
+            assertThat(result, is(true));
 
-            AbstractParameter p = new AbstractParameter();
-            p.setType(DataType.INTEGER);
+            // 実数は、整数に入らないので false
+            result = OpenAPIValidator.validate(p, 0.0f);
+            assertThat(result, is(false));
 
             result = OpenAPIValidator.validate(p, 5.5f);
             assertThat(result, is(false));
 
+            result = OpenAPIValidator.validate(p, -5.5f);
+            assertThat(result, is(false));
+
             result = OpenAPIValidator.validate(p, "5.5f");
             assertThat(result, is(false));
-        }
 
-        /**
-         * 文字列を指定された時にエラーになること。
-         */
-        @Test
-        public void testString() {
-            boolean result;
-
-            AbstractParameter p = new AbstractParameter();
-            p.setType(DataType.INTEGER);
+            result = OpenAPIValidator.validate(p, "-5.5f");
+            assertThat(result, is(false));
 
             result = OpenAPIValidator.validate(p, "test");
             assertThat(result, is(false));
@@ -182,6 +185,9 @@ public class OpenAPIValidatorTest {
         }
     }
 
+    /**
+     * 実数値のパラメータテスト.
+     */
     @RunWith(PluginSDKTestRunner.class)
     public static class NumberTest {
         /**
@@ -194,39 +200,36 @@ public class OpenAPIValidatorTest {
             AbstractParameter p = new AbstractParameter();
             p.setType(DataType.NUMBER);
 
+            result = OpenAPIValidator.validate(p, 0.0f);
+            assertThat(result, is(true));
+
             result = OpenAPIValidator.validate(p, 5.5f);
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, -5.5f);
             assertThat(result, is(true));
 
             result = OpenAPIValidator.validate(p, "5.5f");
             assertThat(result, is(true));
-        }
 
-        /**
-         * 整数を指定された時にエラーになること。
-         */
-        @Test
-        public void testNumber() {
-            boolean result;
+            result = OpenAPIValidator.validate(p, "-5.5f");
+            assertThat(result, is(true));
 
-            AbstractParameter p = new AbstractParameter();
-            p.setType(DataType.NUMBER);
+            // 実数なので、整数も含むので true
+            result = OpenAPIValidator.validate(p, 0);
+            assertThat(result, is(true));
 
             result = OpenAPIValidator.validate(p, 10);
             assertThat(result, is(true));
 
+            result = OpenAPIValidator.validate(p, -10);
+            assertThat(result, is(true));
+
             result = OpenAPIValidator.validate(p, "10");
             assertThat(result, is(true));
-        }
 
-        /**
-         * 文字列を指定された時にエラーになること。
-         */
-        @Test
-        public void testString() {
-            boolean result;
-
-            AbstractParameter p = new AbstractParameter();
-            p.setType(DataType.NUMBER);
+            result = OpenAPIValidator.validate(p, "-10");
+            assertThat(result, is(true));
 
             result = OpenAPIValidator.validate(p, "test");
             assertThat(result, is(false));
@@ -348,6 +351,9 @@ public class OpenAPIValidatorTest {
         }
     }
 
+    /**
+     * 文字列のパラメータテスト.
+     */
     @RunWith(PluginSDKTestRunner.class)
     public static class StringTest {
         /**
@@ -365,6 +371,12 @@ public class OpenAPIValidatorTest {
 
             result = OpenAPIValidator.validate(p, "5.5f");
             assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, 1);
+            assertThat(result, is(false));
+
+            result = OpenAPIValidator.validate(p, 1.5f);
+            assertThat(result, is(false));
         }
 
         /**
@@ -443,8 +455,47 @@ public class OpenAPIValidatorTest {
             result = OpenAPIValidator.validate(p, "no-define");
             assertThat(result, is(false));
         }
+
+        /**
+         * enum に定義されている値が指定されること
+         */
+        @Test
+        public void testFormatRGB() {
+            boolean result;
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.STRING);
+            p.setFormat(DataFormat.RGB);
+
+            result = OpenAPIValidator.validate(p, "aabbcc");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "AABBCC");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "0011CC");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "ABC");
+            assertThat(result, is(false));
+
+            result = OpenAPIValidator.validate(p, "GGGGGG");
+            assertThat(result, is(false));
+
+            result = OpenAPIValidator.validate(p, "no-define");
+            assertThat(result, is(false));
+
+            result = OpenAPIValidator.validate(p, 123);
+            assertThat(result, is(false));
+
+            result = OpenAPIValidator.validate(p, "");
+            assertThat(result, is(false));
+        }
     }
 
+    /**
+     * 配列のパラメータテスト.
+     */
     @RunWith(PluginSDKTestRunner.class)
     public static class ArrayTest {
         /**
@@ -466,6 +517,110 @@ public class OpenAPIValidatorTest {
 
             result = OpenAPIValidator.validate(p, "10,123,1");
             assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "text");
+            assertThat(result, is(false));
+        }
+
+        /**
+         * 配列を指定してエラーが発生しないこと。
+         */
+        @Test
+        public void testNumber() {
+            boolean result;
+
+            Items items = new Items();
+            items.setType(DataType.NUMBER);
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.ARRAY);
+            p.setItems(items);
+
+            result = OpenAPIValidator.validate(p, 10.5);
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "10.5,123.1,1.2");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "text");
+            assertThat(result, is(false));
+        }
+
+        /**
+         * 配列を指定してエラーが発生しないこと。
+         */
+        @Test
+        public void testString() {
+            boolean result;
+
+            Items items = new Items();
+            items.setType(DataType.STRING);
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.ARRAY);
+            p.setItems(items);
+
+            result = OpenAPIValidator.validate(p, "text");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "text,abc,1,2,3");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, 10);
+            assertThat(result, is(true));
+        }
+
+        /**
+         * 配列の中でエラーになる最大値を超える値が入っている。
+         */
+        @Test
+        public void testMaximum() {
+            boolean result;
+
+            Items items = new Items();
+            items.setType(DataType.INTEGER);
+            items.setMaximum(10);
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.ARRAY);
+            p.setItems(items);
+
+            result = OpenAPIValidator.validate(p, 10);
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "1,2,3,4,5");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "5,123,1");
+            assertThat(result, is(false));
+
+            result = OpenAPIValidator.validate(p, "text");
+            assertThat(result, is(false));
+        }
+
+        /**
+         * 配列の中でエラーになる最小値を下回る値が入っている。
+         */
+        @Test
+        public void testMinimum() {
+            boolean result;
+
+            Items items = new Items();
+            items.setType(DataType.INTEGER);
+            items.setMinimum(10);
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.ARRAY);
+            p.setItems(items);
+
+            result = OpenAPIValidator.validate(p, 11);
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "11,12,13,14");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "5,123,1");
+            assertThat(result, is(false));
 
             result = OpenAPIValidator.validate(p, "text");
             assertThat(result, is(false));
@@ -510,7 +665,7 @@ public class OpenAPIValidatorTest {
         }
 
         /**
-         * 配列の最大数を設定してエラーが発生しないこと。
+         * 配列の最大個数を設定してエラーが発生しないこと。
          */
         @Test
         public void testMaxItems() {
@@ -532,7 +687,7 @@ public class OpenAPIValidatorTest {
         }
 
         /**
-         * 配列の最小数を設定してエラーが発生しないこと。
+         * 配列の最小個数を設定してエラーが発生しないこと。
          */
         @Test
         public void testMinItems() {
@@ -591,6 +746,28 @@ public class OpenAPIValidatorTest {
 
             result = OpenAPIValidator.validate(p, "1,1,3");
             assertThat(result, is(false));
+        }
+
+        /**
+         * 配列の要素のユニーク設定 uniqueItems を false に設定してエラーが発生しないこと。
+         */
+        @Test
+        public void testUniqueItemsWithFalse() {
+            boolean result;
+
+            Items items = new Items();
+            items.setType(DataType.INTEGER);
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.ARRAY);
+            p.setItems(items);
+            p.setUniqueItems(false);
+
+            result = OpenAPIValidator.validate(p, "1,2,3");
+            assertThat(result, is(true));
+
+            result = OpenAPIValidator.validate(p, "1,1,3");
+            assertThat(result, is(true));
         }
 
         /**
@@ -678,6 +855,24 @@ public class OpenAPIValidatorTest {
             assertThat(result, is(true));
 
             result = OpenAPIValidator.validate(p, "1,2,3");
+            assertThat(result, is(false));
+        }
+
+        /**
+         * collectionFormat に pipes を設定してエラーが発生しないこと。
+         */
+        @Test
+        public void testInvalidFormat() {
+            boolean result;
+
+            Items items = new Items();
+            items.setType(DataType.INTEGER);
+
+            AbstractParameter p = new AbstractParameter();
+            p.setType(DataType.ARRAY);
+            p.setItems(items);
+
+            result = OpenAPIValidator.validate(p, "1,,2,3");
             assertThat(result, is(false));
         }
     }

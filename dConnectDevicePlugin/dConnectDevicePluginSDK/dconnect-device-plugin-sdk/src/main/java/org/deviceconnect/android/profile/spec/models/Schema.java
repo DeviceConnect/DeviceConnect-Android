@@ -165,7 +165,14 @@ public class Schema extends AbstractSpec implements Property {
      */
     private List<String> mRequired;
 
+    /**
+     * allOf のリスト.
+     */
     private List<Schema> mAllOf;
+
+    /**
+     * 追加されたプロパティ.
+     */
     private Schema mAdditionalProperties;
 
     public ExternalDocs getExternalDocs() {
@@ -360,6 +367,26 @@ public class Schema extends AbstractSpec implements Property {
         mItems = items;
     }
 
+    @Override
+    public Boolean isAllowEmptyValue() {
+        return mAllowEmptyValue != null ? mAllowEmptyValue : false;
+    }
+
+    @Override
+    public void setAllowEmptyValue(Boolean allowEmptyValue) {
+        mAllowEmptyValue = allowEmptyValue;
+    }
+
+    @Override
+    public String getCollectionFormat() {
+        return mCollectionFormat != null ? mCollectionFormat : "csv";
+    }
+
+    @Override
+    public void setCollectionFormat(String collectionFormat) {
+        mCollectionFormat = collectionFormat;
+    }
+
     public List<Schema> getAllOf() {
         return mAllOf;
     }
@@ -406,26 +433,6 @@ public class Schema extends AbstractSpec implements Property {
 
     public void setAdditionalProperties(Schema additionalProperties) {
         mAdditionalProperties = additionalProperties;
-    }
-
-    @Override
-    public Boolean isAllowEmptyValue() {
-        return mAllowEmptyValue != null ? mAllowEmptyValue : false;
-    }
-
-    @Override
-    public void setAllowEmptyValue(Boolean allowEmptyValue) {
-        mAllowEmptyValue = allowEmptyValue;
-    }
-
-    @Override
-    public String getCollectionFormat() {
-        return mCollectionFormat != null ? mCollectionFormat : "csv";
-    }
-
-    @Override
-    public void setCollectionFormat(String collectionFormat) {
-        mCollectionFormat = collectionFormat;
     }
 
     @Override

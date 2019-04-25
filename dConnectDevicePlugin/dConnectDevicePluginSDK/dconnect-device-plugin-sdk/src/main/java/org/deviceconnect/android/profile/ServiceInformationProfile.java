@@ -225,23 +225,20 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         Bundle supportApisBundle = new Bundle();
         for (DConnectProfile profile : profileList) {
             Swagger swagger = spec.findProfileSpec(profile.getProfileName());
-            if (swagger == null) {
-                swagger = new Swagger();
-                swagger.setSwagger("2.0");
-                // TODO 最小限の設定を行うようにすること。
-            }
-
-            if (profile.onStoreSpec(swagger)) {
-                convertSpec(swagger, profile);
-                supportApisBundle.putParcelable(profile.getProfileName(), reduceInformation(swagger.toBundle()));
-            } else {
-                // TODO プロファイルの削除
+            if (swagger != null) {
+                if (profile.onStoreSpec(swagger)) {
+                    setSupportApiSpec(swagger, profile);
+                    supportApisBundle.putParcelable(profile.getProfileName(), reduceInformation(swagger.toBundle()));
+                } else {
+                    // プロファイルがサポートされていないので削除
+                    spec.removeProfileSpec(profile.getProfileName());
+                }
             }
         }
         response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
     }
 
-    private static void convertSpec(Swagger swagger, DConnectProfile profile) {
+    private static void setSupportApiSpec(Swagger swagger, DConnectProfile profile) {
         Paths paths = swagger.getPaths();
         for (String pathName : paths.getKeySet()) {
             for (Method method : Method.values()) {
@@ -251,11 +248,13 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
                 }
 
                 if (!profile.hasApi(pathName, method)) {
+                    // API がサポートされていないので削除
                     path.setOperation(method, null);
                 } else {
                     DConnectApi api = profile.findApi(pathName, method);
                     Operation operation = path.getOperation(method);
                     if (operation != null && !api.onStoreSpec(operation)) {
+                        // API がサポートされていないので削除
                         path.setOperation(method, null);
                     }
                 }

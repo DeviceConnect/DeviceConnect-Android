@@ -65,6 +65,12 @@ public abstract class DConnectApi {
      * どのようなパラメータが入っているかは、プロファイル定義ファイルを確認して、実装してください。
      * </p>
      *
+     * <p>
+     * 返り値に false を返却した場合は、API がサポートされていないと判断して、プロファイル定義から削除され
+     * Service Information の情報からも削除されます。
+     * また、次回からは呼び出されなくなります。
+     * </p>
+     *
      * @param spec API 仕様が格納された Operation
      * @return ServiceInformationに情報を加える場合にはtrue、それ以外はServiceInformationから情報を削除
      */

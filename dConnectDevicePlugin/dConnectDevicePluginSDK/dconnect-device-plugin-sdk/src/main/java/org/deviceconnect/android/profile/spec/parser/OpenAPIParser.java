@@ -57,6 +57,8 @@ public final class OpenAPIParser {
     private OpenAPIParser() {
     }
 
+    // TODO 定義ファイルのフォーマットチェックは行なっていないが問題ないか？
+
     /**
      * JSON で定義された OpenAPI Specification を解析して、Swagger オブジェクトに変換します.
      *
@@ -92,7 +94,7 @@ public final class OpenAPIParser {
                 } else if ("parameters".equalsIgnoreCase(key)) {
                     swagger.setParameters(parseParameters((JSONObject) object));
                 } else if ("responses".equalsIgnoreCase(key)) {
-                    swagger.setResponses(parseResponses2((JSONObject) object));
+                    swagger.setResponses(parseResponsesWithRoot((JSONObject) object));
                 } else if ("securityDefinitions".equalsIgnoreCase(key)) {
                     swagger.setSecurityDefinitions(parseSecurityDefinitions((JSONObject) object));
                 } else if ("security".equalsIgnoreCase(key)) {
@@ -290,6 +292,13 @@ public final class OpenAPIParser {
         return license;
     }
 
+    /**
+     * API 操作で使用されるデータ型を解析します.
+     *
+     * @param jsonObject API 操作で使用されるデータ型が格納されているJSONオブジェクト
+     * @return API 操作で使用されるデータ型のマップ
+     * @throws JSONException JSONオブジェクトの読み込みに失敗した場合に発生
+     */
     private static Map<String, Definition> parseDefinitions(JSONObject jsonObject) throws JSONException {
         Map<String, Definition> definitions = new HashMap<>();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
@@ -321,7 +330,14 @@ public final class OpenAPIParser {
         return parameters;
     }
 
-    private static Map<String, Response> parseResponses2(JSONObject jsonObject) throws JSONException {
+    /**
+     * API 全体で使用できるレスポンス定義を解析します.
+     *
+     * @param jsonObject レスポンス定義が格納されているJSONオブジェクト
+     * @return Responseのマップ
+     * @throws JSONException JSONオブジェクトの読み込みに失敗した場合に発生
+     */
+    private static Map<String, Response> parseResponsesWithRoot(JSONObject jsonObject) throws JSONException {
         Map<String, Response> responses = new HashMap<>();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
             String key = it.next();
@@ -388,10 +404,10 @@ public final class OpenAPIParser {
             String key = it.next();
             Object object = jsonObject.get(key);
             if (object != null) {
-                if (key.startsWith("x-")) {
-                    paths.addVendorExtension(key, parseVendorExtension(object));
-                } else if (object instanceof JSONObject) {
+                if (object instanceof JSONObject) {
                     paths.addPath(key, parsePath((JSONObject) object));
+                } else if (key.startsWith("x-")) {
+                    paths.addVendorExtension(key, parseVendorExtension(object));
                 }
             }
         }
@@ -783,6 +799,8 @@ public final class OpenAPIParser {
                     schema.setRequired(parseStringArray((JSONArray) object));
                 } else if ("enum".equalsIgnoreCase(key)) {
                     schema.setEnum(parseEnum((JSONArray) object));
+                } else if ("collectionFormat".equalsIgnoreCase(key)) {
+                    schema.setCollectionFormat((String) object);
                 } else if ("items".equalsIgnoreCase(key)) {
                     schema.setItems(parseItems((JSONObject) object));
                 } else if ("allOf".equalsIgnoreCase(key)) {
@@ -798,10 +816,23 @@ public final class OpenAPIParser {
         }
     }
 
+    /**
+     * デフォルト値の解析を行います.
+     *
+     * @param object デフォルト値
+     * @return デフォルト値
+     */
     private static Object parseDefault(Object object) {
         return object;
     }
 
+    /**
+     * 列挙値の解析を行います.
+     *
+     * @param jsonArray 列挙値を格納しているJSON配列
+     * @return 列挙値
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static List<Object> parseEnum(JSONArray jsonArray) throws JSONException {
         List<Object> enums = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -810,6 +841,13 @@ public final class OpenAPIParser {
         return enums;
     }
 
+    /**
+     * allOf の解析を行います.
+     *
+     * @param jsonArray スキーマを格納しているJSON配列
+     * @return JSONスキーマの配列
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static List<Schema> parseAllOf(JSONArray jsonArray) throws JSONException {
         List<Schema> allOf = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -818,6 +856,13 @@ public final class OpenAPIParser {
         return allOf;
     }
 
+    /**
+     * properties の解析を行います.
+     *
+     * @param jsonObject プロパティが格納されたJSONオブジェクト
+     * @return プロパティのマップ
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static Map<String, Schema> parseProperties(JSONObject jsonObject) throws JSONException {
         Map<String, Schema> properties = new HashMap<>();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
@@ -830,6 +875,13 @@ public final class OpenAPIParser {
         return properties;
     }
 
+    /**
+     * headers の解析を行います.
+     *
+     * @param jsonObject ヘッダーが格納されたJSONオブジェクト
+     * @return ヘッダーのマップ
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
     private static Map<String, Header> parseHeaders(JSONObject jsonObject) throws JSONException {
         Map<String, Header> headers = new HashMap<>();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {

@@ -39,6 +39,7 @@ public class SecurityScheme extends AbstractSpec {
      * <p>
      * query or header
      * </p>
+     * TODO enum で宣言した方が良いか？
      */
     private String mIn;
 
@@ -47,6 +48,7 @@ public class SecurityScheme extends AbstractSpec {
      * <p>
      * implicit, password, application, accessCode
      * </p>
+     * TODO enum で宣言した方が良いか？
      */
     private String mFlow;
 

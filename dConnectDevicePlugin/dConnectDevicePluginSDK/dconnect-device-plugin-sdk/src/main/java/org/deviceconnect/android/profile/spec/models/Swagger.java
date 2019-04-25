@@ -205,6 +205,19 @@ public class Swagger extends AbstractSpec {
     }
 
     /**
+     * 指定されたmime typeを削除します.
+     *
+     * @param consume 削除するmime type
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeConsume(String consume) {
+        if (mConsumes != null) {
+            return mConsumes.remove(consume);
+        }
+        return false;
+    }
+
+    /**
      * API のプロトコルのリストを取得します.
      *
      * @return API のプロトコルのリスト
@@ -235,6 +248,19 @@ public class Swagger extends AbstractSpec {
     }
 
     /**
+     * API のプロトコルをリストから削除します.
+     *
+     * @param scheme API のプロトコル
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeScheme(String scheme) {
+        if (mSchemes != null) {
+            return mSchemes.remove(scheme);
+        }
+        return false;
+    }
+
+    /**
      * API が返却する MIME Type のリストを取得します.
      *
      * @return  API が返却する MIME Type のリスト
@@ -262,6 +288,19 @@ public class Swagger extends AbstractSpec {
             mProduces = new ArrayList<>();
         }
         mProduces.add(produce);
+    }
+
+    /**
+     * API が返却する MIME Type をリストから削除します.
+     *
+     * @param produce 削除するMIME Type
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeProduces(String produce) {
+        if (mProduces != null) {
+            return mProduces.remove(produce);
+        }
+        return false;
     }
 
     /**
@@ -298,6 +337,31 @@ public class Swagger extends AbstractSpec {
      */
     public void setTags(List<Tag> tags) {
         mTags = tags;
+    }
+
+    /**
+     * 仕様で使用されているタグと追加のメタデータをリストに追加します.
+     *
+     * @param tag 仕様で使用されているタグと追加のメタデータ
+     */
+    public void addTag(Tag tag) {
+        if (mTags == null) {
+            mTags = new ArrayList<>();
+        }
+        mTags.add(tag);
+    }
+
+    /**
+     * 仕様で使用されているタグと追加のメタデータをリストから削除します.
+     *
+     * @param tag 削除するメタデータ
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeTag(Tag tag) {
+        if (mTags != null) {
+            return mTags.remove(tag);
+        }
+        return false;
     }
 
     /**
@@ -372,14 +436,30 @@ public class Swagger extends AbstractSpec {
         mExternalDocs = externalDocs;
     }
 
+    /**
+     * API 全体で使用できるセキュリティ方式の定義を取得します.
+     *
+     * @return API 全体で使用できるセキュリティ方式の定義
+     */
     public Map<String, SecurityScheme> getSecurityDefinitions() {
         return mSecurityDefinitions;
     }
 
+    /**
+     * API 全体で使用できるセキュリティ方式の定義を設定します.
+     *
+     * @param securityDefinitions API 全体で使用できるセキュリティ方式の定義
+     */
     public void setSecurityDefinitions(Map<String, SecurityScheme> securityDefinitions) {
         mSecurityDefinitions = securityDefinitions;
     }
 
+    /**
+     * API 全体で使用できるセキュリティ方式の定義をマップに追加します.
+     *
+     * @param key キー
+     * @param securityScheme API 全体で使用できるセキュリティ方式の定義
+     */
     public void addSecurityDefinition(String key, SecurityScheme securityScheme) {
         if (mSecurityDefinitions == null) {
             mSecurityDefinitions = new HashMap<>();
@@ -387,14 +467,30 @@ public class Swagger extends AbstractSpec {
         mSecurityDefinitions.put(key, securityScheme);
     }
 
+    /**
+     * API 全体に適用されるセキュリティスキームを取得します.
+     *
+     * @return API 全体に適用されるセキュリティスキーム
+     */
     public Map<String, String> getSecurityRequirement() {
         return mSecurityRequirement;
     }
 
+    /**
+     * API 全体に適用されるセキュリティスキームを設定します.
+     *
+     * @param securityRequirement API 全体に適用されるセキュリティスキーム
+     */
     public void setSecurityRequirement(Map<String, String> securityRequirement) {
         mSecurityRequirement = securityRequirement;
     }
 
+    /**
+     * API 全体に適用されるセキュリティスキームをマップに追加します.
+     *
+     * @param key キー
+     * @param value API 全体に適用されるセキュリティスキーム.
+     */
     public void addSecurityRequirement(String key, String value) {
         if (mSecurityRequirement == null) {
             mSecurityRequirement = new HashMap<>();

@@ -97,11 +97,28 @@ public class Response extends AbstractSpec {
      * @param key キー
      * @param header ヘッダー
      */
-    public void putHeader(String key, Header header) {
+    public void addHeader(String key, Header header) {
         if (mHeaders == null) {
             mHeaders = new HashMap<>();
         }
         mHeaders.put(key, header);
+    }
+
+    /**
+     * キーに対応するヘッダーを削除します.
+     *
+     * <p>
+     * 指定されたキーに対応するヘッダーが存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param key キー
+     * @return 削除したヘッダー
+     */
+    public Header removeHeader(String key) {
+        if (mHeaders != null) {
+            return mHeaders.remove(key);
+        }
+        return null;
     }
 
     /**
@@ -123,16 +140,32 @@ public class Response extends AbstractSpec {
     }
 
     /**
-     * API 操作の期待する応答例を追加します.
+     * キーに対応する応答例を追加します.
      *
-     * @param key キー
+     * @param key キー (MIME Type)
      * @param example 応答例
      */
-    public void putExample(String key, Example example) {
+    public void addExample(String key, Example example) {
         if (mExamples == null) {
             mExamples = new HashMap<>();
         }
         mExamples.put(key, example);
+    }
+
+    /**
+     * API 操作の期待する応答例を削除します.
+     * <p>
+     * 指定されたキー(MIME Type) に対応する応答例がない場合には null を返却します
+     *
+     * </p>
+     * @param key キー (MIME Type)
+     * @return 削除された応答例
+     */
+    public Example removeExample(String key) {
+        if (mExamples != null) {
+            return mExamples.remove(key);
+        }
+        return null;
     }
 
     @Override

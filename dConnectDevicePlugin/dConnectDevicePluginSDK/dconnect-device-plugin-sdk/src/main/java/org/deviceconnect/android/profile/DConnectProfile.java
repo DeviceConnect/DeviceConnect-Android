@@ -19,8 +19,6 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.profile.spec.OpenAPIValidator;
 import org.deviceconnect.android.profile.spec.models.Method;
-import org.deviceconnect.android.profile.spec.models.Operation;
-import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
@@ -197,12 +195,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     private boolean isKnownPath(final Intent request) {
         DConnectService service = getService();
         if (service != null) {
-            DConnectPluginSpec spec = service.getPluginSpec();
-            Swagger swagger = spec.findProfileSpec(getProfile(request));
-            if (swagger != null) {
-                Path path = OpenAPIValidator.findPathSpec(swagger, request);
-                return path != null;
-            }
+            return service.getPluginSpec().findPathSpec(request) != null;
         }
         return false;
     }
@@ -216,12 +209,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     private boolean isKnownMethod(final Intent request) {
         DConnectService service = getService();
         if (service != null) {
-            DConnectPluginSpec spec = service.getPluginSpec();
-            Swagger swagger = spec.findProfileSpec(getProfile(request));
-            if (swagger != null) {
-                Operation operation = OpenAPIValidator.findOperationSpec(swagger, request);
-                return operation != null;
-            }
+            return service.getPluginSpec().findOperationSpec(request) != null;
         }
         return false;
     }
@@ -241,7 +229,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * </p>
      *
      * <p>
-     * プロファイル定義ファイルが存在しない場合には、空の Swagger が引数に渡されます。
+     * 一度削除したプロファイルは、{@link DConnectPluginSpec} のマップから削除されますので、次回からは呼び出されなくなります。
      * </p>
      *
      * @param spec プロファイルの仕様情報が格納されたクラス

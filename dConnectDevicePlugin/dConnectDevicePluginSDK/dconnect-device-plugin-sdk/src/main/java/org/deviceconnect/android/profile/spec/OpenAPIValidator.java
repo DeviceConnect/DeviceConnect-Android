@@ -9,16 +9,14 @@ package org.deviceconnect.android.profile.spec;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.spec.models.DataFormat;
-import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.android.profile.spec.models.Operation;
-import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Property;
 import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.profile.spec.models.parameters.BodyParameter;
 import org.deviceconnect.android.profile.spec.models.parameters.Parameter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -65,113 +63,16 @@ public final class OpenAPIValidator {
             return true;
         }
 
-        Operation operation = findOperationSpec(swagger, request);
+        Operation operation = DConnectPluginSpec.findOperationSpec(swagger, request);
         if (operation != null) {
-            return validate(operation, request);
+            try {
+                return validate(operation, request);
+            } catch (Exception e) {
+                //ignore.
+            }
         }
         // TODO API 定義が見つからない場合は true で良いか？
         return true;
-    }
-
-    /**
-     * リクエストで指定された API 定義から Path を取得します.
-     *
-     * <p>
-     * リクエストで指定されたパスに一致する Path が存在しない場合には null を返却します。
-     * </p>
-     *
-     * @param swagger API 定義
-     * @param request リクエスト
-     * @return Path
-     */
-    public static Path findPathSpec(Swagger swagger, Intent request) {
-        for (String key : swagger.getPaths().getKeySet()) {
-            String path1 = createPath(swagger, key);
-            String path2 = createPath(request);
-            if (path1.equalsIgnoreCase(path2)) {
-                return swagger.getPaths().getPath(key);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * リクエストで指定された API 定義から Operation を取得します.
-     *
-     * <p>
-     * リクエストで指定されたパスに一致する Operation が存在しない場合には null を返却します。
-     * </p>
-     *
-     * @param swagger API 定義
-     * @param request リクエスト
-     * @return Operation
-     */
-    public static Operation findOperationSpec(Swagger swagger, Intent request) {
-        for (String key : swagger.getPaths().getKeySet()) {
-            String path1 = createPath(swagger, key);
-            String path2 = createPath(request);
-            if (path1.equalsIgnoreCase(path2)) {
-                Method method = Method.fromAction(request.getAction());
-                if (method != null) {
-                    return swagger.getPaths().getPath(key).getOperation(method);
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 定義ファイルからパスを作成します.
-     *
-     * @param swagger 定義ファイル
-     * @param path パス
-     * @return パス
-     */
-    private static String createPath(Swagger swagger, String path) {
-        if (path != null && path.endsWith("/")) {
-            // 最後に / が付いている場合は削除
-            path = path.substring(0, path.length() - 1);
-        }
-
-        String basePath = swagger.getBasePath();
-        if (basePath != null) {
-            return basePath + path;
-        } else {
-            return path;
-        }
-    }
-
-    /**
-     * リクエストからパスを作成します.
-     *
-     * @param request リクエスト
-     * @return パス
-     */
-    private static String createPath(Intent request) {
-        String apiName = DConnectProfile.getApi(request);
-        String profileName = DConnectProfile.getProfile(request);
-        String interfaceName = DConnectProfile.getInterface(request);
-        String attributeName = DConnectProfile.getAttribute(request);
-
-        StringBuilder path = new StringBuilder();
-
-        if (apiName != null) {
-            path.append("/").append(apiName);
-        }
-
-        if (profileName != null) {
-            path.append("/").append(profileName);
-        }
-
-        if (interfaceName != null) {
-            path.append("/").append(interfaceName);
-        }
-
-        if (attributeName != null) {
-            path.append("/").append(attributeName);
-        }
-
-        return path.toString();
     }
 
     /**
@@ -253,6 +154,11 @@ public final class OpenAPIValidator {
 
     /**
      * Integer のパラメータの妥当性を確認します.
+     *
+     * <p>
+     * 整数値の妥当性を確認しますが、リクエストされたパラメータ値が
+     * 整数値の文字列の場合も妥当とみなします。
+     * </p>
      *
      * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
@@ -366,6 +272,11 @@ public final class OpenAPIValidator {
 
     /**
      * Number のパラメータの妥当性を確認します.
+     *
+     * <p>
+     * 実数値の妥当性を確認しますが、リクエストされたパラメータ値が
+     * 実数値の文字列の場合も妥当とみなします。
+     * </p>
      *
      * @param property パラメータの仕様
      * @param value リクエストされたパラメータの値
@@ -506,7 +417,8 @@ public final class OpenAPIValidator {
             case RGB:
                 return validateRGB((String) value);
             default:
-                throw new IllegalStateException();
+                // TODO 定義ファイルのフォーマットエラー
+                return true;
         }
     }
 
@@ -575,8 +487,10 @@ public final class OpenAPIValidator {
             return true;
         }
 
-        String arrayParam = value.toString();
-        if (arrayParam.equals("")) {
+        // TODO 文字列以外の数値も文字列に変換して使用しているが問題ないか？
+
+        String arrayValue = value.toString();
+        if (arrayValue.equals("")) {
             // 空の配列が許可されているか
             return property.isAllowEmptyValue();
         }
@@ -585,20 +499,20 @@ public final class OpenAPIValidator {
         switch (property.getCollectionFormat()) {
             default:
             case "csv":
-                array = arrayParam.split(",");
+                array = splitString(arrayValue,",", 0);
                 break;
             case "ssv":
-                array = arrayParam.split(" ");
+                array = splitString(arrayValue," ", 0);
                 break;
             case "tsv":
-                array = arrayParam.split("\t");
+                array = splitString(arrayValue,"\t", 0);
                 break;
             case "pipes":
-                array = arrayParam.split("|");
+                array = splitString(arrayValue,"|", 0);
                 break;
             case "multi":
-                // TODO 未実装
-                return false;
+                // TODO Device Connect では同じパラメータ名があった場合には後勝ちになるので使用できない。
+                return true;
         }
 
         if (property.getMaxItems() != null) {
@@ -629,6 +543,54 @@ public final class OpenAPIValidator {
             }
         }
         return true;
+    }
+
+    /**
+     * 文字列を分割して配列に変換します.
+     *
+     * <p>
+     * {@link String#split(String)} で分割しようとしたが、pipe が正規表現の
+     * 文字のために使用できなかったので、分割するメソッドを自作しました。
+     * </p>
+     *
+     * @param str 分割する文字列
+     * @param delimiter 区切り文字
+     * @param limit 分割する文字数
+     * @return 分割された文字列
+     */
+    private static String[] splitString(String str, String delimiter, int limit) {
+        List<String> strings = new ArrayList<>();
+        int delimiterLen = delimiter.length();
+        if (limit <= 0) {
+            limit = str.length();
+        }
+
+        if (limit > 0) {
+            int start = 0;
+            int end;
+            for (int i = 1; i < limit; i++) {
+                end = str.indexOf(delimiter, start);
+                if (end < 0) {
+                    break;
+                }
+                strings.add(str.substring(start, end));
+                start = end + delimiterLen;
+            }
+            strings.add(str.substring(start));
+        } else {
+            int start;
+            int end = str.length();
+            for (int i = -1; i > limit; i--) {
+                start = str.lastIndexOf(delimiter, end - 1);
+                if (start < 0) {
+                    break;
+                }
+                strings.add(str.substring(start + delimiterLen, end));
+                end = start;
+            }
+            strings.add(str.substring(0, end));
+        }
+        return strings.toArray(new String[0]);
     }
 
     /**

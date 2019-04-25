@@ -7,11 +7,16 @@
 package org.deviceconnect.android.profile.spec;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
 import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.message.DevicePluginContext;
+import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.spec.models.Method;
+import org.deviceconnect.android.profile.spec.models.Operation;
+import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.profile.spec.parser.OpenAPIParser;
 import org.json.JSONException;
@@ -104,7 +109,9 @@ public class DConnectPluginSpec {
      * @throws JSONException JSONの構造が不正な場合
      */
     private void addProfileSpec(final String profileName, final InputStream in) throws IOException, JSONException {
-        mProfileSpecs.put(profileName.toLowerCase(), OpenAPIParser.parse(loadFile(in)));
+        synchronized (mProfileSpecs) {
+            mProfileSpecs.put(profileName.toLowerCase(), OpenAPIParser.parse(loadFile(in)));
+        }
     }
 
     /**
@@ -118,7 +125,9 @@ public class DConnectPluginSpec {
      * @return 削除されたプロファイル定義
      */
     public Swagger removeProfileSpec(final String profileName) {
-        return mProfileSpecs.remove(profileName.toLowerCase());
+        synchronized (mProfileSpecs) {
+            return mProfileSpecs.remove(profileName.toLowerCase());
+        }
     }
 
     /**
@@ -140,7 +149,92 @@ public class DConnectPluginSpec {
         if (profileName == null) {
             return null;
         }
-        return mProfileSpecs.get(profileName.toLowerCase());
+        synchronized (mProfileSpecs) {
+            return mProfileSpecs.get(profileName.toLowerCase());
+        }
+    }
+
+    /**
+     * リクエストで指定された API 定義から Path を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Path が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param request リクエスト
+     * @return Path
+     */
+    public Path findPathSpec(Intent request) {
+        Swagger swagger = findProfileSpec(DConnectProfile.getProfile(request));
+        if (swagger != null) {
+            return findPathSpec(swagger, request);
+        }
+        return null;
+    }
+
+    /**
+     * リクエストで指定された API 定義から Operation を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param request リクエスト
+     * @return Operation
+     */
+    public Operation findOperationSpec(Intent request) {
+        Swagger swagger = findProfileSpec(DConnectProfile.getProfile(request));
+        if (swagger != null) {
+            return findOperationSpec(swagger, request);
+        }
+        return null;
+    }
+
+    /**
+     * リクエストで指定された API 定義から Path を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Path が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param swagger API 定義
+     * @param request リクエスト
+     * @return Path
+     */
+    static Path findPathSpec(Swagger swagger, Intent request) {
+        for (String key : swagger.getPaths().getKeySet()) {
+            String path1 = createPath(swagger, key);
+            String path2 = createPath(request);
+            if (path1.equalsIgnoreCase(path2)) {
+                return swagger.getPaths().getPath(key);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * リクエストで指定された API 定義から Operation を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param swagger API 定義
+     * @param request リクエスト
+     * @return Operation
+     */
+    static Operation findOperationSpec(Swagger swagger, Intent request) {
+        for (String key : swagger.getPaths().getKeySet()) {
+            String path1 = createPath(swagger, key);
+            String path2 = createPath(request);
+            if (path1.equalsIgnoreCase(path2)) {
+                Method method = Method.fromAction(request.getAction());
+                if (method != null) {
+                    return swagger.getPaths().getPath(key).getOperation(method);
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -153,7 +247,9 @@ public class DConnectPluginSpec {
      * @return {@link Swagger}のマップ. キーはプロファイル名.
      */
     public Map<String, Swagger> getProfileSpecs() {
-        return new HashMap<>(mProfileSpecs);
+        synchronized (mProfileSpecs) {
+            return new HashMap<>(mProfileSpecs);
+        }
     }
 
     /**
@@ -163,6 +259,60 @@ public class DConnectPluginSpec {
      */
     private Context getContext() {
         return mPluginContext.getContext();
+    }
+
+    /**
+     * 定義ファイルからパスを作成します.
+     *
+     * @param swagger 定義ファイル
+     * @param path パス
+     * @return パス
+     */
+    private static String createPath(Swagger swagger, String path) {
+        if (path != null && path.endsWith("/")) {
+            // 最後に / が付いている場合は削除
+            path = path.substring(0, path.length() - 1);
+        }
+
+        String basePath = swagger.getBasePath();
+        if (basePath != null) {
+            return basePath + path;
+        } else {
+            return path;
+        }
+    }
+
+    /**
+     * リクエストからパスを作成します.
+     *
+     * @param request リクエスト
+     * @return パス
+     */
+    private static String createPath(Intent request) {
+        String apiName = DConnectProfile.getApi(request);
+        String profileName = DConnectProfile.getProfile(request);
+        String interfaceName = DConnectProfile.getInterface(request);
+        String attributeName = DConnectProfile.getAttribute(request);
+
+        StringBuilder path = new StringBuilder();
+
+        if (apiName != null) {
+            path.append("/").append(apiName);
+        }
+
+        if (profileName != null) {
+            path.append("/").append(profileName);
+        }
+
+        if (interfaceName != null) {
+            path.append("/").append(interfaceName);
+        }
+
+        if (attributeName != null) {
+            path.append("/").append(attributeName);
+        }
+
+        return path.toString();
     }
 
     /**

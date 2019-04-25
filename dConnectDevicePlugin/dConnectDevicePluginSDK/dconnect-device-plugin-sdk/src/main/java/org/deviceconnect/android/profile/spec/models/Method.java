@@ -14,13 +14,48 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  * @author NTT DOCOMO, INC.
  */
 public enum Method {
-
+    /**
+     * GET メソッド.
+     */
     GET("GET"),
+
+    /**
+     * PUT メソッド.
+     */
     PUT("PUT"),
+
+    /**
+     * POST メソッド.
+     */
     POST("POST"),
+
+    /**
+     * DELETE メソッド.
+     */
     DELETE("DELETE"),
+
+    /**
+     * OPTIONS メソッド.
+     * <p>
+     * Device Connect では使用しないが定義だけしておく。
+     * </p>
+     */
     OPTIONS("OPTIONS"),
+
+    /**
+     * HEAD メソッド.
+     * <p>
+     * Device Connect では使用しないが定義だけしておく。
+     * </p>
+     */
     HEAD("HEAD"),
+
+    /**
+     * PATCH メソッド.
+     * <p>
+     * Device Connect では使用しないが定義だけしておく。
+     * </p>
+     */
     PATCH("PATCH");
 
     private String mName;
@@ -29,10 +64,25 @@ public enum Method {
         mName = name;
     }
 
+    /**
+     * HTTPメソッド名を取得します.
+     *
+     * <p>
+     * HTTPメソッドは、全て大文字で返却されます。
+     * </p>
+     *
+     * @return HTTPメソッド名
+     */
     public String getName() {
         return mName;
     }
 
+    /**
+     * 文字列から HTTP メソッドを取得します.
+     *
+     * @param value HTTPメソッドの文字列
+     * @return HTTPメソッド
+     */
     public static Method parse(final String value) {
         for (Method method : values()) {
             if (method.mName.equalsIgnoreCase(value)) {
@@ -42,6 +92,12 @@ public enum Method {
         return null;
     }
 
+    /**
+     * Device Connect のアクションからHTTPメソッドを取得します.
+     *
+     * @param action Device Connect のアクション
+     * @return HTTPメソッド
+     */
     public static Method fromAction(final String action) {
         if (IntentDConnectMessage.ACTION_GET.equals(action)) {
             return GET;
@@ -53,9 +109,5 @@ public enum Method {
             return DELETE;
         }
         return null;
-    }
-
-    public boolean isValid(final String name) {
-        return parse(name) != null;
     }
 }

@@ -22,6 +22,15 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(PluginSDKTestRunner.class)
 public class ServiceInformationTest {
+
+    /**
+     * ServiceInformation#onRequest(Intent, Intent) を呼び出すテスト。
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * ・resources/testProile.json で定義した仕様が取得されること。
+     * </pre>
+     */
     @Test
     public void testOnRequest() throws Exception {
         final String profileName = "testProfile";

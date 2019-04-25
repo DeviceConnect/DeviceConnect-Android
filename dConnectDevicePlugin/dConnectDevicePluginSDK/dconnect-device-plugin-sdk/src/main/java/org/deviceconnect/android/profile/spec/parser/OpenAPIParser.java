@@ -57,7 +57,7 @@ public final class OpenAPIParser {
     private OpenAPIParser() {
     }
 
-    // TODO 定義ファイルのフォーマットチェックは行なっていないが問題ないか？
+    // TODO 定義ファイルのフォーマットチェックは行なっていないが問題ないかを検討すること。
 
     /**
      * JSON で定義された OpenAPI Specification を解析して、Swagger オブジェクトに変換します.

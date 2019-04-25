@@ -65,11 +65,7 @@ public final class OpenAPIValidator {
 
         Operation operation = DConnectPluginSpec.findOperationSpec(swagger, request);
         if (operation != null) {
-            try {
-                return validate(operation, request);
-            } catch (Exception e) {
-                //ignore.
-            }
+            return validate(operation, request);
         }
         // TODO API 定義が見つからない場合は true で良いか？
         return true;
@@ -129,7 +125,7 @@ public final class OpenAPIValidator {
      * @return パラメータが妥当な場合はtrue、それ以外はfalse
      */
     private static boolean validateProperty(Property property, Object value) {
-        if (property.getType() == null) {
+        if (property == null || property.getType() == null) {
             // TODO 定義ファイルのフォーマットエラー
             return true;
         }
@@ -148,7 +144,8 @@ public final class OpenAPIValidator {
             case FILE:
                 return validateFile(property, value);
             default:
-                return false;
+                // TODO 定義ファイルのフォーマットエラー
+                return true;
         }
     }
 
@@ -487,7 +484,7 @@ public final class OpenAPIValidator {
             return true;
         }
 
-        // TODO 文字列以外の数値も文字列に変換して使用しているが問題ないか？
+        // TODO 文字列以外の数値も文字列に変換して使用しているが問題ないかを確認すること。
 
         String arrayValue = value.toString();
         if (arrayValue.equals("")) {
@@ -511,7 +508,7 @@ public final class OpenAPIValidator {
                 array = splitString(arrayValue,"|", 0);
                 break;
             case "multi":
-                // TODO Device Connect では同じパラメータ名があった場合には後勝ちになるので使用できない。
+                // Device Connect では同じパラメータ名があった場合には後勝ちになるので使用できない。
                 return true;
         }
 

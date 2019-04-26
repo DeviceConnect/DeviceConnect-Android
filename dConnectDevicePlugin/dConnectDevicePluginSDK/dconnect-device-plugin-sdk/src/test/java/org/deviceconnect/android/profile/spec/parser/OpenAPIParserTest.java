@@ -20,6 +20,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
 
 @RunWith(PluginSDKTestRunner.class)
@@ -40,6 +41,8 @@ public class OpenAPIParserTest {
         assertThat(swagger.getSwagger(), is("2.0"));
         assertThat(swagger.getBasePath(), is("/gotapi/testProfile"));
         assertThat(swagger.getPaths(), is(notNullValue()));
+        assertThat(swagger.getProduces(), hasItems("application/json", "text/html"));
+        assertThat(swagger.getConsumes(), hasItems("application/json"));
 
         Info info = swagger.getInfo();
         assertThat(info.getTitle(), is("Test Profile"));
@@ -48,8 +51,8 @@ public class OpenAPIParserTest {
 
         Path a0 = swagger.getPaths().getPath("/a0");
         assertThat(a0, is(notNullValue()));
-        assertThat(a0.getGet().getSummary(), is("test1"));
-        assertThat(a0.getGet().getDescription(), is("test1"));
+        assertThat(a0.getGet().getSummary(), is("test path a0"));
+        assertThat(a0.getGet().getDescription(), is("test path a0"));
         assertThat(a0.getGet().getOperationId(), is("a0Get"));
 
         List<Parameter> parameters = a0.getGet().getParameters();
@@ -57,6 +60,12 @@ public class OpenAPIParserTest {
         assertThat(parameters.get(0).getName(), is("serviceId"));
         assertThat(parameters.get(0).getDescription(), is("serviceId"));
         assertThat(parameters.get(0).getIn(), is("query"));
+
+        Path a1 = swagger.getPaths().getPath("/a1");
+        assertThat(a1, is(notNullValue()));
+        assertThat(a1.getGet().getSummary(), is("test path a1"));
+        assertThat(a1.getGet().getDescription(), is("test path a1"));
+        assertThat(a1.getGet().getOperationId(), is(nullValue()));
     }
 
     @Test(expected = JSONException.class)

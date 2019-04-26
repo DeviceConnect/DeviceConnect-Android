@@ -63,7 +63,7 @@ public final class OpenAPIValidator {
             return true;
         }
 
-        Operation operation = DConnectPluginSpec.findOperationSpec(swagger, request);
+        Operation operation = DConnectServiceSpec.findOperationSpec(swagger, request);
         if (operation != null) {
             return validate(operation, request);
         }
@@ -88,10 +88,12 @@ public final class OpenAPIValidator {
             return true;
         }
 
-        for (Parameter parameter : operation.getParameters()) {
-            Object value = extras.get(parameter.getName());
-            if (!validate(parameter, value)) {
-                return false;
+        if (operation.getParameters() != null) {
+            for (Parameter parameter : operation.getParameters()) {
+                Object value = extras.get(parameter.getName());
+                if (!validate(parameter, value)) {
+                    return false;
+                }
             }
         }
         return true;

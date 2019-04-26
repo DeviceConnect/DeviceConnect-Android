@@ -14,7 +14,7 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.android.profile.spec.models.Operation;
 import org.deviceconnect.android.profile.spec.models.Path;
@@ -220,7 +220,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      */
     public static void setSupportApis(final Intent response, final DConnectService service) {
         List<DConnectProfile> profileList = service.getProfileList();
-        DConnectPluginSpec spec = service.getPluginSpec();
+        DConnectServiceSpec spec = service.getServiceSpec();
 
         Bundle supportApisBundle = new Bundle();
         for (DConnectProfile profile : profileList) {

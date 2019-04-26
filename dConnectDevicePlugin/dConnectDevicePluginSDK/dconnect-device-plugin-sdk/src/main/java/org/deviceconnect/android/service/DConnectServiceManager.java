@@ -10,7 +10,7 @@ import android.content.Context;
 
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -89,21 +89,28 @@ public class DConnectServiceManager implements DConnectServiceProvider, DConnect
         service.setContext(getContext());
         service.setPluginContext(getPluginContext());
 
+        DConnectServiceSpec spec = service.getServiceSpec();
+        if (spec == null) {
+            // プロファイル定義が設定されていない場合は新規に登録しておく
+            spec = new DConnectServiceSpec(getPluginContext());
+            service.setServiceSpec(spec);
+        }
+
         // 既にサービスに登録されているプロファイルにコンテキストなどを設定
-        DConnectPluginSpec spec = new DConnectPluginSpec(getPluginContext());
         for (DConnectProfile profile : service.getProfileList()) {
             profile.setContext(getContext());
             profile.setPluginContext(getPluginContext());
             profile.setResponder(getPluginContext());
 
-            // プロファイルの定義ファイルを読み込み
-            try {
-                spec.addProfileSpec(profile.getProfileName());
-            } catch (Exception e) {
-                // プロファイル定義ファイルが不正の場合は無視
+            // プロファイルの定義ファイルが既に登録されている場合は、そのままにしておく
+            if (spec.findProfileSpec(profile.getProfileName()) == null) {
+                try {
+                    spec.addProfileSpec(profile.getProfileName());
+                } catch (Exception e) {
+                    // プロファイル定義ファイルが不正の場合は無視
+                }
             }
         }
-        service.setPluginSpec(spec);
 
         mDConnectServices.put(service.getId(), service);
 

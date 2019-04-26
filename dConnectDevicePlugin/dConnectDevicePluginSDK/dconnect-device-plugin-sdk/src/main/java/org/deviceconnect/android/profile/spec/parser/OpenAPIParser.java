@@ -15,6 +15,7 @@ import org.deviceconnect.android.profile.spec.models.Definition;
 import org.deviceconnect.android.profile.spec.models.Example;
 import org.deviceconnect.android.profile.spec.models.ExternalDocs;
 import org.deviceconnect.android.profile.spec.models.Header;
+import org.deviceconnect.android.profile.spec.models.In;
 import org.deviceconnect.android.profile.spec.models.Info;
 import org.deviceconnect.android.profile.spec.models.Items;
 import org.deviceconnect.android.profile.spec.models.License;
@@ -526,18 +527,28 @@ public final class OpenAPIParser {
             throw new JSONException("in is required.");
         }
 
-        if ("body".equalsIgnoreCase(in)) {
-            return parseBodyParameter(jsonObject);
-        } else if ("query".equalsIgnoreCase(in)) {
-            parameter = new QueryParameter();
-        } else if ("header".equalsIgnoreCase(in)) {
-            parameter = new HeaderParameter();
-        } else if ("formData".equalsIgnoreCase(in)) {
-            parameter = new FormParameter();
-        } else if ("path".equalsIgnoreCase(in)) {
-            parameter = new PathParameter();
-        } else {
+        In inType = In.parse(in);
+        if (inType == null) {
             throw new JSONException("Unknown in.");
+        }
+
+        switch (inType) {
+            case BODY:
+                return parseBodyParameter(jsonObject);
+            case QUERY:
+                parameter = new QueryParameter();
+                break;
+            case HEADER:
+                parameter = new HeaderParameter();
+                break;
+            case FORM:
+                parameter = new FormParameter();
+                break;
+            case PATH:
+                parameter = new PathParameter();
+                break;
+            default:
+                throw new JSONException("Unknown in.");
         }
 
         return parseOtherParameter(parameter, jsonObject);
@@ -561,7 +572,7 @@ public final class OpenAPIParser {
                 } else if ("description".equalsIgnoreCase(key)) {
                     parameter.setDescription((String) object);
                 } else if ("in".equalsIgnoreCase(key)) {
-                    parameter.setIn((String) object);
+                    parameter.setIn(In.parse((String) object));
                 } else if ("required".equalsIgnoreCase(key)) {
                     parameter.setRequired((Boolean) object);
                 } else if ("schema".equalsIgnoreCase(key)) {
@@ -592,7 +603,7 @@ public final class OpenAPIParser {
                 } else if ("description".equalsIgnoreCase(key)) {
                     parameter.setDescription((String) object);
                 } else if ("in".equalsIgnoreCase(key)) {
-                    parameter.setIn((String) object);
+                    parameter.setIn(In.parse((String) object));
                 } else if ("required".equalsIgnoreCase(key)) {
                     parameter.setRequired((Boolean) object);
                 } else if ("type".equalsIgnoreCase(key)) {

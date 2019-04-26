@@ -13,7 +13,6 @@ import org.deviceconnect.android.profile.spec.models.DataType;
 import org.deviceconnect.android.profile.spec.models.Items;
 import org.deviceconnect.android.profile.spec.models.Property;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,7 +20,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class AbstractParameter extends Parameter implements Property {
+public abstract class AbstractParameter extends Parameter implements Property {
     /**
      * パラメータのタイプ.
      *
@@ -301,18 +300,6 @@ public class AbstractParameter extends Parameter implements Property {
     @Override
     public void setEnum(List<Object> anEnum) {
         mEnum = anEnum;
-    }
-
-    /**
-     * パラメータに指定できる値の列挙型を追加します.
-     *
-     * @param anEnum パラメータに指定できる値の列挙型
-     */
-    public void addEnum(Object anEnum) {
-        if (mEnum == null) {
-            mEnum = new ArrayList<>();
-        }
-        mEnum.add(anEnum);
     }
 
     @Override

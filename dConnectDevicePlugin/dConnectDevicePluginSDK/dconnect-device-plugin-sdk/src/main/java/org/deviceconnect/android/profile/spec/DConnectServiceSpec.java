@@ -1,5 +1,5 @@
 /*
- DConnectPluginSpec.java
+ DConnectServiceSpec.java
  Copyright (c) 2019 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -31,15 +31,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * プラグインのサポートする仕様を保持するクラス.
+ * サービスのサポートする仕様を保持するクラス.
  *
  * <p>
- * プラグインのサポートするプロファイルのリストを持ちます.
+ * このクラスで保持している仕様が Service Information で返却される情報になります。
  * </p>
  *
  * @author NTT DOCOMO, INC.
  */
-public class DConnectPluginSpec {
+public class DConnectServiceSpec {
 
     /**
      * 各プロファイルの定義ファイルを保持するマップ.
@@ -60,7 +60,7 @@ public class DConnectPluginSpec {
      *
      * @param pluginContext プラグインコンテキスト
      */
-    public DConnectPluginSpec(DevicePluginContext pluginContext) {
+    public DConnectServiceSpec(DevicePluginContext pluginContext) {
         if (pluginContext == null) {
             throw new NullPointerException("pluginContext is null");
         }
@@ -68,25 +68,40 @@ public class DConnectPluginSpec {
     }
 
     /**
+     * サービスがサポートするプロファイルの仕様定義の一覧を取得する.
+     *
+     * <p>
+     * このメソッドから返される一覧には、各プロファイル上で定義されているすべてのAPIの定義が含まれる.
+     * </p>
+     *
+     * @return {@link Swagger}のマップ. キーはプロファイル名.
+     */
+    public Map<String, Swagger> getProfileSpecs() {
+        synchronized (mProfileSpecs) {
+            return new HashMap<>(mProfileSpecs);
+        }
+    }
+
+    /**
      * 指定されたプロファイル定義を assets から検索して追加します.
      *
      * <p>
-     * プロファイル定義ファイルが見つからない場合には、例外が発生します。
+     * プロファイル定義ファイルが見つからない場合やプロファイル定義ファイルのフォーマットが不正な場合には、例外が発生します。
      * </p>
      *
      * <p>
      * プロファイル定義ファイルは、以下の順に検索しプロファイル名と同じ定義ファイルを読み込みます。
      * <ul>
-     *     <li>/assets/{パス}/api</li>
+     *     <li>/assets/{spec-path}/api</li>
      *     <li>/assets/api</li>
      * </ul>
      *
-     * /assets/{パス}/api は、AndroidManifest.xml の meta-data に定義されている xml から取得します。
+     * /assets/{パス}/api は、AndroidManifest.xml の meta-data に定義されている xml から取得します。<br>
      *
-     * xml に記載されている deviceplugin-provider タグの spec-path アトリビュートが検索先のパスになります。
+     * この xml に記載されている deviceplugin-provider タグの spec-path アトリビュートが検索先のパスになります。<br>
      *
      * <pre>
-     * &lt;deviceplugin-provider spec-path="{パス}/api"&gt;
+     * &lt;deviceplugin-provider spec-path=<b>"{spec-path}/api"</b>&gt;
      *        ・・・省略・・・
      * &lt;/deviceplugin-provider&gt;
      * </pre>
@@ -94,10 +109,23 @@ public class DConnectPluginSpec {
      *
      * @param profileName プロファイル名
      * @throws IOException 入力ストリームの読み込みに失敗した場合
-     * @throws JSONException JSONの構造が不正な場合
+     * @throws JSONException プロファイル定義のJSON構造が不正な場合
      */
     public void addProfileSpec(final String profileName) throws IOException, JSONException {
         addProfileSpec(profileName, openApiSpec(profileName));
+    }
+
+    /**
+     * JSON の文字列からプロファイル定義を追加します.
+     *
+     * @param profileName プロファイル名
+     * @param jsonString プロファイル定義のJSON
+     * @throws JSONException プロファイル定義のJSON構造が不正な場合
+     */
+    public void addProfileSpec(final String profileName, final String jsonString) throws JSONException {
+        synchronized (mProfileSpecs) {
+            mProfileSpecs.put(profileName.toLowerCase(), OpenAPIParser.parse(jsonString));
+        }
     }
 
     /**
@@ -106,12 +134,10 @@ public class DConnectPluginSpec {
      * @param profileName プロファイル名
      * @param in 入力ストリーム
      * @throws IOException 入力ストリームの読み込みに失敗した場合
-     * @throws JSONException JSONの構造が不正な場合
+     * @throws JSONException プロファイル定義のJSON構造が不正な場合
      */
     private void addProfileSpec(final String profileName, final InputStream in) throws IOException, JSONException {
-        synchronized (mProfileSpecs) {
-            mProfileSpecs.put(profileName.toLowerCase(), OpenAPIParser.parse(loadFile(in)));
-        }
+        addProfileSpec(profileName, loadFile(in));
     }
 
     /**
@@ -134,7 +160,7 @@ public class DConnectPluginSpec {
      * 指定したプロファイルの仕様定義を取得する.
      *
      * <p>
-     * プロファイルの定義は、DConnectService を追加する時に読み込まれます。
+     * 指定されたプロファイル名の定義が見つからない場合には null を返却します。
      * </p>
      *
      * <p>
@@ -143,7 +169,7 @@ public class DConnectPluginSpec {
      * </p>
      *
      * @param profileName プロファイル名
-     * @return {@link Swagger}のインスタンス
+     * @return プロファイルの仕様定義が格納された{@link Swagger}のインスタンス
      */
     public Swagger findProfileSpec(final String profileName) {
         if (profileName == null) {
@@ -161,13 +187,122 @@ public class DConnectPluginSpec {
      * リクエストで指定されたパスに一致する Path が存在しない場合には null を返却します。
      * </p>
      *
+     * @param path パス
+     * @return {@link Path}のインスタンス
+     */
+    public Path findPathSpec(String path) {
+        Swagger swagger = findProfileSpec(findProfileFromPath(path));
+        if (swagger != null) {
+            return findPathSpec(swagger, path);
+        }
+        return null;
+    }
+
+    /**
+     * リクエストで指定された API 定義から Path を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Path が存在しない場合には null を返却します。
+     * </p>
+     *
      * @param request リクエスト
-     * @return Path
+     * @return {@link Path}のインスタンス
      */
     public Path findPathSpec(Intent request) {
         Swagger swagger = findProfileSpec(DConnectProfile.getProfile(request));
         if (swagger != null) {
             return findPathSpec(swagger, request);
+        }
+        return null;
+    }
+
+    /**
+     * 指定されたパスとHTTPメソッドから Operation を取得します.
+     *
+     * <p>
+     * 指定されたパスとHTTPメソッドに一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param method HTTPメソッド
+     * @param path パス
+     * @return {@link Operation}のインスタンス
+     */
+    public Operation findOperationSpec(Method method, String path) {
+        Swagger swagger = findProfileSpec(findProfileFromPath(path));
+        if (swagger != null) {
+            return findOperationSpec(swagger, method, path);
+        }
+        return null;
+    }
+
+    /**
+     * 指定されたプロファイル名、アトリビュート名とHTTPメソッドから Operation を取得します.
+     *
+     * <p>
+     * 指定されたプロファイル名、アトリビュート名とHTTPメソッドに一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param method HTTPメソッド
+     * @param profileName プロファイル名
+     * @param attributeName プロファイル名
+     * @return {@link Operation}のインスタンス
+     */
+    public Operation findOperationSpec(Method method, String profileName, String attributeName) {
+        return findOperationSpec(method, "gotapi", profileName, null, attributeName);
+    }
+
+    /**
+     * 指定された引数から Operation を取得します.
+     *
+     * <p>
+     * 指定された引数に一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param method HTTPメソッド
+     * @param profileName プロファイル名
+     * @param interfaceName プロファイル名
+     * @param attributeName プロファイル名
+     * @return {@link Operation}のインスタンス
+     */
+    public Operation findOperationSpec(Method method, String profileName, String interfaceName, String attributeName) {
+        return findOperationSpec(method, "gotapi", profileName, interfaceName, attributeName);
+    }
+
+    /**
+     * リクエストで指定された API 定義から Operation を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param method HTTPメソッド
+     * @param apiName API名(gotapi)
+     * @param profileName プロファイル名
+     * @param interfaceName プロファイル名
+     * @param attributeName プロファイル名
+     * @return {@link Operation}のインスタンス
+     */
+    public Operation findOperationSpec(Method method, String apiName, String profileName, String interfaceName, String attributeName) {
+        Swagger swagger = findProfileSpec(findProfileFromPath(profileName));
+        if (swagger != null) {
+            return findOperationSpec(swagger, method, createPath(apiName, profileName, interfaceName, attributeName));
+        }
+        return null;
+    }
+
+    /**
+     * パスの中からプロファイル名を取得します.
+     *
+     * @param path パス
+     * @return プロファイル名
+     */
+    private String findProfileFromPath(String path) {
+        if (path == null) {
+            return null;
+        }
+        String[] p = path.split("/");
+        if (p.length > 2) {
+            return p[2];
         }
         return null;
     }
@@ -180,12 +315,33 @@ public class DConnectPluginSpec {
      * </p>
      *
      * @param request リクエスト
-     * @return Operation
+     * @return {@link Operation}のインスタンス
      */
     public Operation findOperationSpec(Intent request) {
         Swagger swagger = findProfileSpec(DConnectProfile.getProfile(request));
         if (swagger != null) {
             return findOperationSpec(swagger, request);
+        }
+        return null;
+    }
+
+    /**
+     * 指定されたパスから Path を取得します.
+     *
+     * <p>
+     * パスに一致する Path が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param swagger API 定義
+     * @param path リクエスト
+     * @return {@link Path}のインスタンス
+     */
+    static Path findPathSpec(Swagger swagger, String path) {
+        for (String key : swagger.getPaths().getKeySet()) {
+            String path1 = createPath(swagger, key);
+            if (path1.equalsIgnoreCase(path)) {
+                return swagger.getPaths().getPath(key);
+            }
         }
         return null;
     }
@@ -199,14 +355,32 @@ public class DConnectPluginSpec {
      *
      * @param swagger API 定義
      * @param request リクエスト
-     * @return Path
+     * @return {@link Path}のインスタンス
      */
     static Path findPathSpec(Swagger swagger, Intent request) {
+        return findPathSpec(swagger, createPath(request));
+    }
+
+    /**
+     * リクエストで指定された API 定義から Operation を取得します.
+     *
+     * <p>
+     * リクエストで指定されたパスに一致する Operation が存在しない場合には null を返却します。
+     * </p>
+     *
+     * @param swagger API 定義
+     * @param method HTTPメソッド
+     * @param path パス
+     * @return Operation
+     */
+    static Operation findOperationSpec(Swagger swagger, Method method, String path) {
         for (String key : swagger.getPaths().getKeySet()) {
             String path1 = createPath(swagger, key);
-            String path2 = createPath(request);
-            if (path1.equalsIgnoreCase(path2)) {
-                return swagger.getPaths().getPath(key);
+            if (path1.equalsIgnoreCase(path)) {
+                Path p = swagger.getPaths().getPath(key);
+                if (p != null) {
+                    return p.getOperation(method);
+                }
             }
         }
         return null;
@@ -224,32 +398,7 @@ public class DConnectPluginSpec {
      * @return Operation
      */
     static Operation findOperationSpec(Swagger swagger, Intent request) {
-        for (String key : swagger.getPaths().getKeySet()) {
-            String path1 = createPath(swagger, key);
-            String path2 = createPath(request);
-            if (path1.equalsIgnoreCase(path2)) {
-                Method method = Method.fromAction(request.getAction());
-                if (method != null) {
-                    return swagger.getPaths().getPath(key).getOperation(method);
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * プラグインのサポートするプロファイルの仕様定義の一覧を取得する.
-     *
-     * <p>
-     * このメソッドから返される一覧には、各プロファイル上で定義されているすべてのAPIの定義が含まれる.
-     * </p>
-     *
-     * @return {@link Swagger}のマップ. キーはプロファイル名.
-     */
-    public Map<String, Swagger> getProfileSpecs() {
-        synchronized (mProfileSpecs) {
-            return new HashMap<>(mProfileSpecs);
-        }
+        return findOperationSpec(swagger, Method.fromAction(request.getAction()), createPath(request));
     }
 
     /**
@@ -293,7 +442,19 @@ public class DConnectPluginSpec {
         String profileName = DConnectProfile.getProfile(request);
         String interfaceName = DConnectProfile.getInterface(request);
         String attributeName = DConnectProfile.getAttribute(request);
+        return createPath(apiName, profileName, interfaceName, attributeName);
+    }
 
+    /**
+     * パスを作成します.
+     *
+     * @param apiName api名
+     * @param profileName プロファイル名
+     * @param interfaceName インターフェース名
+     * @param attributeName アトリビュート名
+     * @return パス
+     */
+    private static String createPath(String apiName, String profileName, String interfaceName , String attributeName) {
         StringBuilder path = new StringBuilder();
 
         if (apiName != null) {

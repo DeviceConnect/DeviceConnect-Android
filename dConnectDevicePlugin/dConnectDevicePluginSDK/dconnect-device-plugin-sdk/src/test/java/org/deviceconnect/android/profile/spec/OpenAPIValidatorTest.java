@@ -4,7 +4,7 @@ import org.deviceconnect.android.PluginSDKTestRunner;
 import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.DataType;
 import org.deviceconnect.android.profile.spec.models.Items;
-import org.deviceconnect.android.profile.spec.models.parameters.AbstractParameter;
+import org.deviceconnect.android.profile.spec.models.parameters.QueryParameter;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -38,7 +38,7 @@ public class OpenAPIValidatorTest {
         public void testNotSetType() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
 
             result = OpenAPIValidator.validate(p, 0);
             assertThat(result, is(true));
@@ -57,7 +57,7 @@ public class OpenAPIValidatorTest {
         public void testRequiredWithTrue() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setRequired(true);
 
@@ -78,7 +78,7 @@ public class OpenAPIValidatorTest {
         public void testRequiredWithFalse() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setRequired(false);
 
@@ -108,7 +108,7 @@ public class OpenAPIValidatorTest {
         public void test() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
 
             result = OpenAPIValidator.validate(p, 0);
@@ -164,7 +164,7 @@ public class OpenAPIValidatorTest {
         public void testMaximum() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setMaximum(10);
 
@@ -194,7 +194,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMaximumWithTrue() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setMaximum(10);
             p.setExclusiveMaximum(true);
@@ -228,7 +228,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMaximumWithFalse() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setMaximum(10);
             p.setExclusiveMaximum(false);
@@ -261,7 +261,7 @@ public class OpenAPIValidatorTest {
         public void testMinimum() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setMinimum(10);
 
@@ -294,7 +294,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMinimumWithTrue() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setMinimum(10);
             p.setExclusiveMinimum(true);
@@ -327,7 +327,7 @@ public class OpenAPIValidatorTest {
         @Test
         public void testExclusiveMinimumWithFalse() {
             boolean result;
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setMinimum(10);
             p.setExclusiveMinimum(false);
@@ -364,7 +364,7 @@ public class OpenAPIValidatorTest {
             enums.add(2);
             enums.add(3);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setEnum(enums);
 
@@ -400,7 +400,7 @@ public class OpenAPIValidatorTest {
         public void testFormatInt32() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setFormat(DataFormat.INT32);
 
@@ -433,7 +433,7 @@ public class OpenAPIValidatorTest {
         public void testFormatInt64() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setFormat(DataFormat.INT64);
 
@@ -467,7 +467,7 @@ public class OpenAPIValidatorTest {
         public void testInvalidFormat() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.INTEGER);
             p.setFormat(DataFormat.DOUBLE);
 
@@ -500,7 +500,7 @@ public class OpenAPIValidatorTest {
         public void test() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
 
             result = OpenAPIValidator.validate(p, 0.0f);
@@ -555,7 +555,7 @@ public class OpenAPIValidatorTest {
         public void testMaximum() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setMaximum(5.5f);
 
@@ -587,7 +587,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMaximumWithTrue() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setMaximum(5.5f);
             p.setExclusiveMaximum(true);
@@ -621,7 +621,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMaximumWithFalse() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setMaximum(5.5f);
             p.setExclusiveMaximum(false);
@@ -654,7 +654,7 @@ public class OpenAPIValidatorTest {
         public void testMinimum() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setMinimum(5.5f);
 
@@ -687,7 +687,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMinimumWithTrue() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setMinimum(5.5f);
             p.setExclusiveMinimum(true);
@@ -721,7 +721,7 @@ public class OpenAPIValidatorTest {
         public void testExclusiveMinimumWithFalse() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setMinimum(5.5f);
             p.setExclusiveMinimum(false);
@@ -758,7 +758,7 @@ public class OpenAPIValidatorTest {
             enums.add(2.5f);
             enums.add(3.5f);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setEnum(enums);
 
@@ -794,7 +794,7 @@ public class OpenAPIValidatorTest {
         public void testFormatFloat() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setFormat(DataFormat.FLOAT);
 
@@ -827,7 +827,7 @@ public class OpenAPIValidatorTest {
         public void testFormatDouble() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setFormat(DataFormat.DOUBLE);
 
@@ -861,7 +861,7 @@ public class OpenAPIValidatorTest {
         public void testInvalidFormat() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.NUMBER);
             p.setFormat(DataFormat.INT32);
 
@@ -898,7 +898,7 @@ public class OpenAPIValidatorTest {
         public void test() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
 
             result = OpenAPIValidator.validate(p, "");
@@ -934,7 +934,7 @@ public class OpenAPIValidatorTest {
         public void testMaxLength() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
             p.setMaxLength(10);
 
@@ -968,7 +968,7 @@ public class OpenAPIValidatorTest {
         public void testMinLength() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
             p.setMinLength(10);
 
@@ -1002,7 +1002,7 @@ public class OpenAPIValidatorTest {
         public void testPattern() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
             p.setPattern("[a-z]+");
 
@@ -1038,7 +1038,7 @@ public class OpenAPIValidatorTest {
             enums.add("b");
             enums.add("c");
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
             p.setEnum(enums);
 
@@ -1078,7 +1078,7 @@ public class OpenAPIValidatorTest {
         public void testFormatRGB() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
             p.setFormat(DataFormat.RGB);
 
@@ -1124,7 +1124,7 @@ public class OpenAPIValidatorTest {
         public void testFormatInt32() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.STRING);
             p.setFormat(DataFormat.INT32);
 
@@ -1162,7 +1162,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1197,7 +1197,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.NUMBER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1232,7 +1232,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.STRING);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1269,7 +1269,7 @@ public class OpenAPIValidatorTest {
             items.setType(DataType.INTEGER);
             items.setMaximum(10);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1309,7 +1309,7 @@ public class OpenAPIValidatorTest {
             items.setType(DataType.INTEGER);
             items.setMinimum(10);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1347,7 +1347,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setAllowEmptyValue(true);
@@ -1377,7 +1377,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setAllowEmptyValue(false);
@@ -1408,7 +1408,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setMaxItems(5);
@@ -1442,7 +1442,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setMinItems(5);
@@ -1476,7 +1476,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1509,7 +1509,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setUniqueItems(true);
@@ -1543,7 +1543,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setUniqueItems(false);
@@ -1577,7 +1577,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setCollectionFormat("csv");
@@ -1611,7 +1611,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setCollectionFormat("ssv");
@@ -1645,7 +1645,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setCollectionFormat("tsv");
@@ -1679,7 +1679,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
             p.setCollectionFormat("pipes");
@@ -1712,7 +1712,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 
@@ -1738,7 +1738,7 @@ public class OpenAPIValidatorTest {
         public void testNotSetItems() {
             boolean result;
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
 
             result = OpenAPIValidator.validate(p, 10);
@@ -1771,7 +1771,7 @@ public class OpenAPIValidatorTest {
             Items items = new Items();
             items.setType(DataType.INTEGER);
 
-            AbstractParameter p = new AbstractParameter();
+            QueryParameter p = new QueryParameter();
             p.setType(DataType.ARRAY);
             p.setItems(items);
 

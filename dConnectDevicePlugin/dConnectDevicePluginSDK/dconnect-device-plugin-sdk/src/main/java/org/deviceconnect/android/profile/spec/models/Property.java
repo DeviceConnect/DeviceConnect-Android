@@ -24,6 +24,10 @@ public interface Property {
     /**
      * パラメータのタイプを設定します.
      *
+     * <p>
+     * 必須パラメータになります。
+     * </p>
+     *
      * @param type パラメータのタイプ
      */
     void setType(DataType type);

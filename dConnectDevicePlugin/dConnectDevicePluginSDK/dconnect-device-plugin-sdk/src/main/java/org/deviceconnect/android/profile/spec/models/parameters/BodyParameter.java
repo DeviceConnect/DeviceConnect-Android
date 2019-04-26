@@ -8,6 +8,7 @@ package org.deviceconnect.android.profile.spec.models.parameters;
 
 import android.os.Bundle;
 
+import org.deviceconnect.android.profile.spec.models.In;
 import org.deviceconnect.android.profile.spec.models.Schema;
 
 /**
@@ -20,6 +21,13 @@ public class BodyParameter extends Parameter {
      * Body に格納される値の仕様.
      */
     private Schema mSchema;
+
+    /**
+     * コンストラクタ.
+     */
+    public BodyParameter() {
+        setIn(In.BODY);
+    }
 
     /**
      * Body に格納される値の仕様を取得します.

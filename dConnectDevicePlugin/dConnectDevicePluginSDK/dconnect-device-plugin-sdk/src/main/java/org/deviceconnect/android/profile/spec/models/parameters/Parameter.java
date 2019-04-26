@@ -9,6 +9,7 @@ package org.deviceconnect.android.profile.spec.models.parameters;
 import android.os.Bundle;
 
 import org.deviceconnect.android.profile.spec.models.AbstractSpec;
+import org.deviceconnect.android.profile.spec.models.In;
 
 /**
  * API 操作で使用されるパラメータ情報.
@@ -32,10 +33,8 @@ public abstract class Parameter extends AbstractSpec {
      * <p>
      * query、header、path、formData、body が設定可能。
      * </p>
-     *
-     * TODO enum で宣言した方が良いか？
      */
-    private String mIn;
+    private In mIn;
 
     /**
      * パラメータの詳細.
@@ -59,6 +58,11 @@ public abstract class Parameter extends AbstractSpec {
     /**
      * パラメータ名を設定します.
      *
+     * <p>
+     * 必須パラメータ.<br>
+     * このパラメータが設定されていない場合には定義ファイルのフォーマットエラーになります。
+     * </p>
+     *
      * @param name パラメータ名
      */
     public void setName(String name) {
@@ -70,16 +74,21 @@ public abstract class Parameter extends AbstractSpec {
      *
      * @return ラメータの入力箇所
      */
-    public String getIn() {
+    public In getIn() {
         return mIn;
     }
 
     /**
      * パラメータの入力箇所を設定します.
      *
+     * <p>
+     * 必須パラメータ.<br>
+     * このパラメータが設定されていない場合には定義ファイルのフォーマットエラーになります。
+     * </p>
+     *
      * @param in パラメータの入力箇所
      */
-    public void setIn(String in) {
+    public void setIn(In in) {
         mIn = in;
     }
 
@@ -119,13 +128,18 @@ public abstract class Parameter extends AbstractSpec {
         mRequired = required;
     }
 
+    /**
+     * Parameter の値を Bundle にコピーします.
+     *
+     * @param bundle コピー先のBundle
+     */
     void copyParameter(Bundle bundle) {
         if (mName != null) {
             bundle.putString("name", mName);
         }
 
         if (mIn != null) {
-            bundle.putString("in", mIn);
+            bundle.putString("in", mIn.getName());
         }
 
         if (mDescription != null) {

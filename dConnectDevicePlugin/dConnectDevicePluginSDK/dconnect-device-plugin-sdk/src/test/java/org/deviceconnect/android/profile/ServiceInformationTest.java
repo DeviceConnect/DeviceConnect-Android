@@ -7,7 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import org.deviceconnect.android.PluginSDKTestRunner;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 import org.deviceconnect.android.profile.spec.parser.OpenAPIParser;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.utils.FileLoader;
@@ -47,7 +47,7 @@ public class ServiceInformationTest {
         Mockito.when(context.getPackageName()).thenReturn("org.deviceconnect.android.test");
         Mockito.when(context.getPackageManager()).thenReturn(packageManager);
 
-        DConnectPluginSpec pluginSpec = Mockito.mock(DConnectPluginSpec.class);
+        DConnectServiceSpec pluginSpec = Mockito.mock(DConnectServiceSpec.class);
         Mockito.when(pluginSpec.findProfileSpec(Mockito.anyString()))
                 .thenReturn(OpenAPIParser.parse(FileLoader.readString(specName)));
 
@@ -58,7 +58,7 @@ public class ServiceInformationTest {
                 return profileName;
             }
         });
-        Mockito.when(service.getPluginSpec()).thenReturn(pluginSpec);
+        Mockito.when(service.getServiceSpec()).thenReturn(pluginSpec);
 
         // リクエストとレスポンスの初期化
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);

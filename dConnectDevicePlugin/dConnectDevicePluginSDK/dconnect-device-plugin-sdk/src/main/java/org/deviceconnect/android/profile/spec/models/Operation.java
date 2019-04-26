@@ -201,6 +201,19 @@ public class Operation extends AbstractSpec {
     }
 
     /**
+     * API が使用できる MIME Type を削除します.
+     *
+     * @param consume 削除する MIME Type
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeConsume(String consume) {
+        if (mConsumes != null) {
+            return mConsumes.remove(consume);
+        }
+        return false;
+    }
+
+    /**
      * API が返却する MIME Type のリストを取得します.
      *
      * @return API が返却する MIME Type のリスト
@@ -231,6 +244,19 @@ public class Operation extends AbstractSpec {
     }
 
     /**
+     * API が返却する MIME Type を削除します.
+     *
+     * @param produce 削除する MIME Type
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeProduce(String produce) {
+        if (mProduces != null) {
+            return mProduces.remove(produce);
+        }
+        return false;
+    }
+
+    /**
      * API のプロトコルのリストを取得します.
      *
      * @return API のプロトコルのリスト
@@ -258,6 +284,19 @@ public class Operation extends AbstractSpec {
             mSchemes = new ArrayList<>();
         }
         mSchemes.add(scheme);
+    }
+
+    /**
+     * API のプロトコルを削除します.
+     *
+     * @param scheme APIのプロトコル
+     * @return 削除に成功した場合はtrue、それ以外はfalse
+     */
+    public boolean removeScheme(String scheme) {
+        if (mSchemes != null) {
+            return mSchemes.remove(scheme);
+        }
+        return false;
     }
 
     /**
@@ -308,6 +347,19 @@ public class Operation extends AbstractSpec {
             mParameters = new ArrayList<>();
         }
         mParameters.add(parameter);
+    }
+
+    /**
+     * API で使用されるパラメータを削除します.
+     *
+     * @param parameter 削除するパラメータ
+     * @return 削除に成功した場合は true、それ以外はfalse
+     */
+    public boolean removeParameter(Parameter parameter) {
+        if (mParameters != null) {
+            return mParameters.remove(parameter);
+        }
+        return false;
     }
 
     /**

@@ -49,8 +49,8 @@
     "/a0": {
       "get": {
         "x-type": "one-shot",
-        "summary": "test1",
-        "description": "test1",
+        "summary": "test path a0",
+        "description": "test path a0",
         "operationId" : "a0Get",
         "deprecated": false,
         "parameters": [
@@ -97,8 +97,8 @@
     "/a1": {
       "get": {
         "x-type": "one-shot",
-        "summary": "",
-        "description": "",
+        "summary": "test path a1",
+        "description": "test path a1",
         "parameters": [
           {
             "name": "serviceId",

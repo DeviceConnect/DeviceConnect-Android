@@ -16,7 +16,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
+import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 import org.deviceconnect.android.profile.spec.OpenAPIValidator;
 import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.android.profile.spec.models.Swagger;
@@ -195,7 +195,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     private boolean isKnownPath(final Intent request) {
         DConnectService service = getService();
         if (service != null) {
-            return service.getPluginSpec().findPathSpec(request) != null;
+            return service.getServiceSpec().findPathSpec(request) != null;
         }
         return false;
     }
@@ -209,7 +209,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     private boolean isKnownMethod(final Intent request) {
         DConnectService service = getService();
         if (service != null) {
-            return service.getPluginSpec().findOperationSpec(request) != null;
+            return service.getServiceSpec().findOperationSpec(request) != null;
         }
         return false;
     }
@@ -229,7 +229,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * </p>
      *
      * <p>
-     * 一度削除したプロファイルは、{@link DConnectPluginSpec} のマップから削除されますので、次回からは呼び出されなくなります。
+     * 一度削除したプロファイルは、{@link DConnectServiceSpec} のマップから削除されますので、次回からは呼び出されなくなります。
      * </p>
      *
      * @param spec プロファイルの仕様情報が格納されたクラス
@@ -253,7 +253,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     private boolean validateRequest(final Intent request) {
         DConnectService service = getService();
         if (service != null) {
-            DConnectPluginSpec spec = service.getPluginSpec();
+            DConnectServiceSpec spec = service.getServiceSpec();
             if (spec != null) {
                 Swagger swagger = spec.findProfileSpec(getProfile(request));
                 if (swagger != null) {

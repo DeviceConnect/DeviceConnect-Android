@@ -175,34 +175,74 @@ public class Schema extends AbstractSpec implements Property {
      */
     private Schema mAdditionalProperties;
 
+    /**
+     * 外部文書を取得します.
+     *
+     * @return 外部文書
+     */
     public ExternalDocs getExternalDocs() {
         return mExternalDocs;
     }
 
+    /**
+     * 外部文書を設定します.
+     *
+     * @param externalDocs 外部文書
+     */
     public void setExternalDocs(ExternalDocs externalDocs) {
         mExternalDocs = externalDocs;
     }
 
+    /**
+     * リファレンスを取得します.
+     *
+     * @return リファレンス
+     */
     public String getReference() {
         return mReference;
     }
 
+    /**
+     * リファレンスを設定します.
+     *
+     * @param reference リファレンス
+     */
     public void setReference(String reference) {
         mReference = reference;
     }
 
+    /**
+     * タイトルを取得します.
+     *
+     * @return タイトル
+     */
     public String getTitle() {
         return mTitle;
     }
 
+    /**
+     * タイトルを設定します.
+     *
+     * @param title タイトル
+     */
     public void setTitle(String title) {
         mTitle = title;
     }
 
+    /**
+     * 詳細を取得します.
+     *
+     * @return 詳細
+     */
     public String getDescription() {
         return mDescription;
     }
 
+    /**
+     * 詳細を設定します.
+     *
+     * @param description 詳細
+     */
     public void setDescription(String description) {
         mDescription = description;
     }
@@ -387,50 +427,110 @@ public class Schema extends AbstractSpec implements Property {
         mCollectionFormat = collectionFormat;
     }
 
+    /**
+     * allOf のリストを取得します.
+     *
+     * @return allOf のリスト
+     */
     public List<Schema> getAllOf() {
         return mAllOf;
     }
 
+    /**
+     * allOf のリストを設定します.
+     *
+     * @param allOf allOf のリスト
+     */
     public void setAllOf(List<Schema> allOf) {
         mAllOf = allOf;
     }
 
+    /**
+     * プロパティの最大個数を取得します.
+     *
+     * @return プロパティの最大個数
+     */
     public Integer getMaxProperties() {
         return mMaxProperties;
     }
 
+    /**
+     * プロパティの最大個数を設定します.
+     *
+     * @param maxProperties プロパティの最大個数
+     */
     public void setMaxProperties(Integer maxProperties) {
         mMaxProperties = maxProperties;
     }
 
+    /**
+     * プロパティの最小個数を取得します.
+     *
+     * @return プロパティの最小個数
+     */
     public Integer getMinProperties() {
         return mMinProperties;
     }
 
+    /**
+     * プロパティの最小個数を設定します.
+     *
+     * @param minProperties プロパティの最小個数を
+     */
     public void setMinProperties(Integer minProperties) {
         mMinProperties = minProperties;
     }
 
+    /**
+     * 必須プロパティのリストを取得します.
+     *
+     * @return 必須プロパティのリスト
+     */
     public List<String> getRequired() {
         return mRequired;
     }
 
+    /**
+     * 必須プロパティのリストを設定します.
+     *
+     * @param required 必須プロパティのリスト
+     */
     public void setRequired(List<String> required) {
         mRequired = required;
     }
 
+    /**
+     * プロパティのマップを取得します.
+     *
+     * @return プロパティのマップ
+     */
     public Map<String, Schema> getProperties() {
         return mProperties;
     }
 
+    /**
+     * プロパティのマップを設定します.
+     *
+     * @param properties プロパティのマップ
+     */
     public void setProperties(Map<String, Schema> properties) {
         mProperties = properties;
     }
 
+    /**
+     * 追加のプロパティを取得します.
+     *
+     * @return 追加のプロパティ
+     */
     public Schema getAdditionalProperties() {
         return mAdditionalProperties;
     }
 
+    /**
+     * 追加のプロパティを設定します.
+     *
+     * @param additionalProperties 追加のプロパティ
+     */
     public void setAdditionalProperties(Schema additionalProperties) {
         mAdditionalProperties = additionalProperties;
     }

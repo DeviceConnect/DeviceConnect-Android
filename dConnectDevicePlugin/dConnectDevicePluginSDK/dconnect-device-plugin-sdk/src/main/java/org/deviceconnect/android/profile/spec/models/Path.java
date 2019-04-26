@@ -297,7 +297,7 @@ public class Path extends AbstractSpec {
      *
      * @param parameter 追加するパラメータ
      */
-    public void addParameters(Parameter parameter) {
+    public void addParameter(Parameter parameter) {
         if (mParameters == null) {
             mParameters = new ArrayList<>();
         }

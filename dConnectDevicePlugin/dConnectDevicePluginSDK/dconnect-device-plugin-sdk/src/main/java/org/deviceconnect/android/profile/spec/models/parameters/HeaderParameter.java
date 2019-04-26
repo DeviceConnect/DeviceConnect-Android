@@ -6,10 +6,18 @@
  */
 package org.deviceconnect.android.profile.spec.models.parameters;
 
+import org.deviceconnect.android.profile.spec.models.In;
+
 /**
  * API 操作で使用されるパラメータ情報.
  *
  * @author NTT DOCOMO, INC.
  */
 public class HeaderParameter extends AbstractParameter {
+    /**
+     * コンストラクタ.
+     */
+    public HeaderParameter() {
+        setIn(In.HEADER);
+    }
 }

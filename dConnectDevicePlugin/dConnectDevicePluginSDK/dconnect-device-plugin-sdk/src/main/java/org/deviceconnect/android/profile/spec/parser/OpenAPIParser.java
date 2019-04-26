@@ -29,6 +29,8 @@ import org.deviceconnect.android.profile.spec.models.SecurityScheme;
 import org.deviceconnect.android.profile.spec.models.SecurityScopes;
 import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.profile.spec.models.Tag;
+import org.deviceconnect.android.profile.spec.models.XEvent;
+import org.deviceconnect.android.profile.spec.models.XType;
 import org.deviceconnect.android.profile.spec.models.parameters.AbstractParameter;
 import org.deviceconnect.android.profile.spec.models.parameters.BodyParameter;
 import org.deviceconnect.android.profile.spec.models.parameters.FormParameter;
@@ -489,12 +491,36 @@ public final class OpenAPIParser {
                     operation.setDeprecated((Boolean) object);
                 } else if ("security".equalsIgnoreCase(key)) {
                     operation.setSecurityRequirement(parseSecurity((JSONObject) object));
+                } else if ("x-event".equalsIgnoreCase(key)) {
+                    operation.setXEvent(parseXEvent((JSONObject) object));
+                } else if ("x-type".equalsIgnoreCase(key)) {
+                    operation.setXType(XType.parse((String) object));
                 } else if (key.startsWith("x-")) {
                     operation.addVendorExtension(key, parseVendorExtension(object));
                 }
             }
         }
         return operation;
+    }
+
+    private static XEvent parseXEvent(JSONObject jsonObject) throws JSONException {
+        XEvent event = new XEvent();
+        for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
+            String key = it.next();
+            Object object = jsonObject.get(key);
+            if (object != null) {
+                if ("description".equalsIgnoreCase(key)) {
+                    event.setDescription((String) object);
+                } else if ("schema".equalsIgnoreCase(key)) {
+                    event.setSchema(parseSchema((JSONObject) object));
+                } else if ("examples".equalsIgnoreCase(key)) {
+                    event.setExamples(parseExamples((JSONObject) object));
+                } else if (key.startsWith("x-")) {
+                    event.addVendorExtension(key, parseVendorExtension(object));
+                }
+            }
+        }
+        return event;
     }
 
     /**

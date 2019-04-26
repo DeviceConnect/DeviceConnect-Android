@@ -81,6 +81,16 @@ public class Operation extends AbstractSpec {
     private Map<String, String> mSecurityRequirement;
 
     /**
+     * Device Connect 拡張のイベント定義.
+     */
+    private XEvent mXEvent;
+
+    /**
+     * Device Connect 拡張の API タイプ.
+     */
+    private XType mXType;
+
+    /**
      * API 管理用のタグのリストを取得します.
      *
      * @return API 管理用のタグのリスト
@@ -398,6 +408,50 @@ public class Operation extends AbstractSpec {
         mSecurityRequirement = securityRequirement;
     }
 
+    /**
+     * イベント定義を取得します.
+     *
+     * @return イベント定義
+     */
+    public XEvent getXEvent() {
+        return mXEvent;
+    }
+
+    /**
+     * イベント定義を設定します.
+     *
+     * <p>
+     * Device Connect 拡張のイベント定義。
+     * </p>
+     *
+     * @param XEvent イベント定義
+     */
+    public void setXEvent(XEvent XEvent) {
+        mXEvent = XEvent;
+    }
+
+    /**
+     * API タイプを取得します.
+     *
+     * @return API タイプ
+     */
+    public XType getXType() {
+        return mXType;
+    }
+
+    /**
+     * API タイプを設定します.
+     *
+     * <p>
+     * Device Connect 拡張の API タイプ。
+     * </p>
+     *
+     * @param type APIタイプ
+     */
+    public void setXType(XType type) {
+        mXType = type;
+    }
+
     @Override
     public Bundle toBundle() {
         Bundle bundle = new Bundle();
@@ -430,7 +484,7 @@ public class Operation extends AbstractSpec {
             bundle.putStringArray("produces", mProduces.toArray(new String[0]));
         }
 
-        if (mParameters != null) {
+        if (mParameters != null && !mParameters.isEmpty()) {
             List<Bundle> bundles = new ArrayList<>();
             for (Parameter parameter : mParameters) {
                 bundles.add(parameter.toBundle());
@@ -450,12 +504,20 @@ public class Operation extends AbstractSpec {
             bundle.putBoolean("deprecated", mDeprecated);
         }
 
-        if (mSecurityRequirement != null) {
+        if (mSecurityRequirement != null && !mSecurityRequirement.isEmpty()) {
             Bundle security = new Bundle();
             for (Map.Entry<String, String> entry : mSecurityRequirement.entrySet()) {
                 security.putString(entry.getKey(), entry.getValue());
             }
             bundle.putParcelable("security", security);
+        }
+
+        if (mXEvent != null) {
+            bundle.putParcelable("x-event", mXEvent.toBundle());
+        }
+
+        if (mXType != null) {
+            bundle.putString("x-type", mXType.getName());
         }
 
         copyVendorExtensions(bundle);

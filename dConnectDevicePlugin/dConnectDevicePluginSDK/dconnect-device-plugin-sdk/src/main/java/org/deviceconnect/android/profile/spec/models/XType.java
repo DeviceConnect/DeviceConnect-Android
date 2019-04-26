@@ -7,10 +7,14 @@
 package org.deviceconnect.android.profile.spec.models;
 
 /**
- * Device Connect の API の種類.
+ * Operation の API タイプ.
+ *
  * <p>
- * 拡張: x-type
+ * Device Connect で拡張した定義。<br>
+ * x-type
  * </p>
+ *
+ * @author NTT DOCOMO, INC.
  */
 public enum XType {
     /**
@@ -34,10 +38,25 @@ public enum XType {
         mName = name;
     }
 
+    /**
+     * API のタイプ名を取得します.
+     *
+     * @return API のタイプ名
+     */
     public String getName() {
         return mName;
     }
 
+    /**
+     * 文字列から API タイプを取得します.
+     *
+     * <p>
+     * 文字列に対応する API タイプが存在しない場合は null を返却します。
+     * </p>
+     *
+     * @param value 文字列
+     * @return API タイプ
+     */
     public static XType parse(final String value) {
         for (XType type : values()) {
             if (type.mName.equalsIgnoreCase(value)) {

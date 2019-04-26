@@ -1,0 +1,144 @@
+{
+  "swagger": "2.0",
+  "basePath": "/gotapi/testProfile",
+  "info": {
+    "title": "Test Profile",
+    "version": "1.0",
+    "description": "Test Description"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json",
+    "text/html"
+  ],
+  "paths": {
+    "/a0": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "test path a0",
+        "description": "test path a0",
+        "operationId" : "a0Get",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "serviceId",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "clueless",
+              "lazy",
+              "adventurous",
+              "aggressive"
+            ]
+          },
+          {
+            "name": "num",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "format": "int32",
+            "type": "integer",
+            "enum": [
+              1,2,3,4,5
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0
+              }
+            }
+          }
+        },
+        "x-event": {
+          "schema": {
+            "$ref": "#/definitions/CommonResponse"
+          },
+          "examples": {
+            "application/json": {
+              "serviceId": "Test.dummyId.localhost.deviceconnect.org",
+              "profile": "testProfile",
+              "attribute": "a0",
+              "a0": {
+                "near": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/a1": {
+      "get": {
+        "x-type": "one-shot",
+        "summary": "test path a1",
+        "description": "test path a1",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "headers": {
+              "X-Rate-Limit-Limit": {
+                "description": "The number of allowed requests in the current period",
+                "type": "integer"
+              },
+              "X-Rate-Limit-Remaining": {
+                "description": "The number of remaining requests in the current period",
+                "type": "integer"
+              },
+              "X-Rate-Limit-Reset": {
+                "description": "The number of seconds left in the current period",
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CommonResponse": {
+      "type": "object",
+      "required": [
+        "result"
+      ],
+      "properties": {
+        "result": {
+          "type": "integer",
+          "description": ""
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "age": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

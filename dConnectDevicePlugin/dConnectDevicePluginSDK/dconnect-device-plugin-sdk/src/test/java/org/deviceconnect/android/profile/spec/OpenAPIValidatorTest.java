@@ -1,15 +1,23 @@
 package org.deviceconnect.android.profile.spec;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.PluginSDKTestRunner;
 import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.DataType;
 import org.deviceconnect.android.profile.spec.models.Items;
+import org.deviceconnect.android.profile.spec.models.Operation;
+import org.deviceconnect.android.profile.spec.models.Path;
+import org.deviceconnect.android.profile.spec.models.Paths;
+import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.profile.spec.models.parameters.QueryParameter;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -84,6 +92,221 @@ public class OpenAPIValidatorTest {
 
             result = OpenAPIValidator.validate(p, null);
             assertThat(result, is(true));
+        }
+
+        /**
+         * Swagger#addParameter(String, Parameter) に Parameter を指定して呼び出す。
+         * <pre>
+         * 【期待する動作】
+         * ・Swagger#addParameter(String, Parameter) の設定で反映されること。
+         * </pre>
+         */
+        @Test
+        public void testParametersWithRoot() {
+            boolean result;
+
+            QueryParameter p1 = new QueryParameter();
+            p1.setName("serviceId");
+            p1.setType(DataType.STRING);
+            p1.setRequired(true);
+            p1.setMaxLength(10);
+
+            Paths paths = new Paths();
+            paths.setPaths(new HashMap<>());
+
+            Swagger swagger = new Swagger();
+            swagger.addParameter("serviceId", p1);
+            swagger.setPaths(paths);
+
+            Intent request = new Intent();
+            request.setAction(IntentDConnectMessage.ACTION_GET);
+            request.putExtra("profile", "a0");
+            request.putExtra("serviceId", "012345678");
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(true));
+
+            request.putExtra("serviceId", "01234567890");
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(false));
+
+            request.putExtra("serviceId", 1);
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(false));
+        }
+
+        /**
+         * Path#addParameter(String, Parameter) に Parameter を指定して呼び出す。
+         * <pre>
+         * 【期待する動作】
+         * ・Path#addParameter(String, Parameter) の設定で反映されること。
+         * </pre>
+         */
+        @Test
+        public void testParametersWithPath() {
+            boolean result;
+
+            QueryParameter p1 = new QueryParameter();
+            p1.setName("serviceId");
+            p1.setType(DataType.STRING);
+            p1.setRequired(true);
+
+            Path path = new Path();
+            path.addParameter(p1);
+
+            Paths paths = new Paths();
+            paths.addPath("/a0", path);
+
+            Swagger swagger = new Swagger();
+            swagger.setPaths(paths);
+
+            Intent request = new Intent();
+            request.setAction(IntentDConnectMessage.ACTION_GET);
+            request.putExtra("profile", "a0");
+            request.putExtra("serviceId", "aa");
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(true));
+
+            request.putExtra("serviceId", "01234567890");
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(false));
+
+            request.putExtra("serviceId", 1);
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(false));
+        }
+
+        /**
+         * Operation#addParameter(String, Parameter) に Parameter を指定して呼び出す。
+         * <pre>
+         * 【期待する動作】
+         * ・Operation#addParameter(String, Parameter) の設定で反映されること。
+         * </pre>
+         */
+        @Test
+        public void testParametersWithOperation() {
+            boolean result;
+
+            QueryParameter p1 = new QueryParameter();
+            p1.setName("serviceId");
+            p1.setType(DataType.STRING);
+            p1.setRequired(true);
+
+            Operation operation = new Operation();
+            operation.addParameter(p1);
+
+            Path path = new Path();
+            path.setGet(operation);
+
+            Paths paths = new Paths();
+            paths.addPath("/a0", path);
+
+            Swagger swagger = new Swagger();
+            swagger.setPaths(paths);
+
+            Intent request = new Intent();
+            request.setAction(IntentDConnectMessage.ACTION_GET);
+            request.putExtra("profile", "a0");
+            request.putExtra("serviceId", "aa");
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(true));
+
+            request.putExtra("serviceId", 1);
+
+            result = OpenAPIValidator.validate(swagger, request);
+            assertThat(result, is(false));
+        }
+
+
+        /**
+         * Swagger#addParameter(String, Parameter)、Path#addParameter(String, Parameter)、
+         * Operation#addParameter(String, Parameter) に Parameter を指定して呼び出す。
+         * <pre>
+         * 【期待する動作】
+         * ・Parameter の優先順位が Operation > Path > Swagger になっていること。
+         * </pre>
+         */
+        @Test
+        public void testParametersWithOverWrite() {
+            boolean result1;
+            boolean result2;
+            boolean result3;
+
+            QueryParameter operationParameter = new QueryParameter();
+            operationParameter.setName("serviceId");
+            operationParameter.setType(DataType.STRING);
+            operationParameter.setMaxLength(15);
+            operationParameter.setRequired(true);
+
+            QueryParameter pathParameter = new QueryParameter();
+            pathParameter.setName("serviceId");
+            pathParameter.setType(DataType.STRING);
+            pathParameter.setMaxLength(10);
+            pathParameter.setRequired(true);
+
+            QueryParameter rootParameter = new QueryParameter();
+            rootParameter.setName("serviceId");
+            rootParameter.setType(DataType.STRING);
+            rootParameter.setMaxLength(5);
+            rootParameter.setRequired(true);
+
+            Operation operation = new Operation();
+
+            Path path = new Path();
+            path.setGet(operation);
+
+            Paths paths = new Paths();
+            paths.addPath("/a0", path);
+
+            Swagger swagger = new Swagger();
+            swagger.setPaths(paths);
+            swagger.addParameter("serviceId", rootParameter);
+
+            Intent request1 = new Intent();
+            request1.setAction(IntentDConnectMessage.ACTION_GET);
+            request1.putExtra("profile", "a0");
+            request1.putExtra("serviceId", "01234567890123");
+
+            Intent request2 = new Intent();
+            request2.setAction(IntentDConnectMessage.ACTION_GET);
+            request2.putExtra("profile", "a0");
+            request2.putExtra("serviceId", "012345678");
+
+            Intent request3 = new Intent();
+            request3.setAction(IntentDConnectMessage.ACTION_GET);
+            request3.putExtra("profile", "a0");
+            request3.putExtra("serviceId", "0123");
+
+            result1 = OpenAPIValidator.validate(swagger, request1);
+            result2 = OpenAPIValidator.validate(swagger, request2);
+            result3 = OpenAPIValidator.validate(swagger, request3);
+            assertThat(result1, is(false));
+            assertThat(result2, is(false));
+            assertThat(result3, is(true));
+
+            path.addParameter(pathParameter);
+
+            result1 = OpenAPIValidator.validate(swagger, request1);
+            result2 = OpenAPIValidator.validate(swagger, request2);
+            result3 = OpenAPIValidator.validate(swagger, request3);
+            assertThat(result1, is(false));
+            assertThat(result2, is(true));
+            assertThat(result3, is(true));
+
+            operation.addParameter(operationParameter);
+
+            result1 = OpenAPIValidator.validate(swagger, request1);
+            result2 = OpenAPIValidator.validate(swagger, request2);
+            result3 = OpenAPIValidator.validate(swagger, request3);
+            assertThat(result1, is(true));
+            assertThat(result2, is(true));
+            assertThat(result3, is(true));
         }
     }
 

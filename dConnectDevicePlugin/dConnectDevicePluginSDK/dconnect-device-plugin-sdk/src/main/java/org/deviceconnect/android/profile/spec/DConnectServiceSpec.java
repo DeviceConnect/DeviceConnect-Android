@@ -19,6 +19,8 @@ import org.deviceconnect.android.profile.spec.models.Operation;
 import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.profile.spec.parser.OpenAPIParser;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.json.JSONException;
 
 import java.io.ByteArrayOutputStream;
@@ -34,13 +36,49 @@ import java.util.Map;
  * サービスのサポートする仕様を保持するクラス.
  *
  * <p>
- * このクラスで保持している仕様が Service Information で返却される情報になります。
+ * このクラスで保持している仕様定義が Service Information で返却される情報になります。
  * </p>
+ *
+ * <p>
+ * {@link DConnectServiceProvider#addService(DConnectService)} した時に、{@link DConnectService}
+ * に {@link DConnectServiceSpec} が設定されていない場合には、登録されているプロファイルの仕様定義を assets
+ * から読み込み設定を行います。
+ * </p>
+ *
+ * <p>
+ * {@link DConnectServiceSpec} のインスタンスを作成して、仕様定義を追加することもできます。
+ * </p>
+ *
+ * <p>以下のサンプルでは、GET /gotapi/echo のパラメータにexampleを追加しています。</p>
+ * <pre>{@code
+ * DConnectServiceSpec spec = new DConnectServiceSpec(getPluginContext());
+ * try {
+ *     spec.addProfileSpec("echo");
+ * } catch (Exception e) {
+ *     // 読み込み失敗
+ * }
+ *
+ * Operation operation = spec.findOperationSpec(Method.GET, "/gotapi/echo");
+ * if (operation != null) {
+ *     QueryParameter parameter = new QueryParameter();
+ *     parameter.setName("example");
+ *     parameter.setType(DataType.STRING);
+ *     parameter.setRequired(false);
+ *     operation.addParameter(parameter);
+ * }
+ *
+ * DConnectService service = new DConnectService("my_service_id");
+ * service.setName("MyPlugin Service");
+ * service.setOnline(true);
+ * service.setNetworkType(NetworkType.UNKNOWN);
+ * service.addProfile(new MyEchoProfile());
+ * service.setServiceSpec(spec);
+ * getServiceProvider().addService(service);
+ * }{/pre}
  *
  * @author NTT DOCOMO, INC.
  */
 public class DConnectServiceSpec {
-
     /**
      * 各プロファイルの定義ファイルを保持するマップ.
      *
@@ -101,9 +139,9 @@ public class DConnectServiceSpec {
      * この xml に記載されている deviceplugin-provider タグの spec-path アトリビュートが検索先のパスになります。<br>
      *
      * <pre>
-     * &lt;deviceplugin-provider spec-path=<b>"{spec-path}/api"</b>&gt;
+     * {@literal <deviceplugin-provider spec-path="{spec-path}/api">}
      *        ・・・省略・・・
-     * &lt;/deviceplugin-provider&gt;
+     * {@literal </deviceplugin-provider>}
      * </pre>
      * </p>
      *

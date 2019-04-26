@@ -11,6 +11,7 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.Operation;
+import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Property;
 import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.profile.spec.models.parameters.BodyParameter;
@@ -63,40 +64,54 @@ public final class OpenAPIValidator {
             return true;
         }
 
-        Operation operation = DConnectServiceSpec.findOperationSpec(swagger, request);
-        if (operation != null) {
-            return validate(operation, request);
+        List<Parameter> parameters = findParameters(swagger, request);
+        for (Parameter parameter : parameters) {
+            Object value = extras.get(parameter.getName());
+            if (!validate(parameter, value)) {
+                return false;
+            }
         }
-        // TODO API 定義が見つからない場合は true で良いか？
         return true;
     }
 
     /**
-     * リクエストを妥当性を確認します.
+     * 仕様定義されているパラメータの仕様のリストを取得します.
      *
      * <p>
-     * 送られてきたリクエストのパラメータに仕様にないパラメータが存在した場合には特にチェックは行わずに妥当とします。
+     * Operation > Path > Root の順に parameters のリストに追加します。<br>
+     * 同じ名前のパラメータが存在する場合はリストには追加しません。
      * </p>
      *
-     * @param operation 操作API
+     * @param swagger 仕様定義
      * @param request リクエスト
-     * @return 妥当なリクエストの場合はtrue、それ以外はfalse
+     * @return パラメータの仕様リスト
      */
-    public static boolean validate(Operation operation, Intent request) {
-        Bundle extras = request.getExtras();
-        if (extras == null) {
-            return true;
+    private static List<Parameter> findParameters(Swagger swagger, Intent request) {
+        List<Parameter> parameters = new ArrayList<>();
+
+        Operation operation = DConnectServiceSpec.findOperationSpec(swagger, request);
+        if (operation != null && operation.getParameters() != null) {
+            parameters.addAll(operation.getParameters());
         }
 
-        if (operation.getParameters() != null) {
-            for (Parameter parameter : operation.getParameters()) {
-                Object value = extras.get(parameter.getName());
-                if (!validate(parameter, value)) {
-                    return false;
+        Path path = DConnectServiceSpec.findPathSpec(swagger, request);
+        if (path != null && path.getParameters() != null) {
+            for (Parameter parameter : path.getParameters()) {
+                if (!parameters.contains(parameter)) {
+                    parameters.add(parameter);
                 }
             }
         }
-        return true;
+
+        if (swagger.getParameters() != null) {
+            for (Parameter parameter : swagger.getParameters().values()) {
+                if (!parameters.contains(parameter)) {
+                    parameters.add(parameter);
+                }
+            }
+        }
+
+        return parameters;
     }
 
     /**

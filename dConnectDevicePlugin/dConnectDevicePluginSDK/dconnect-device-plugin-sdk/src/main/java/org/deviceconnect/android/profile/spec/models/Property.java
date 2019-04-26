@@ -17,6 +17,10 @@ public interface Property {
     /**
      * パラメータのタイプを取得します.
      *
+     * <p>
+     * 必須パラメータになります。
+     * </p>
+     *
      * @return パラメータのタイプ
      */
     DataType getType();

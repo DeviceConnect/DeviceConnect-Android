@@ -150,4 +150,19 @@ public abstract class Parameter extends AbstractSpec {
             bundle.putBoolean("required", mRequired);
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Parameter parameter = (Parameter) o;
+
+        return mName != null ? mName.equals(parameter.mName) : parameter.mName == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return mName != null ? mName.hashCode() : 0;
+    }
 }

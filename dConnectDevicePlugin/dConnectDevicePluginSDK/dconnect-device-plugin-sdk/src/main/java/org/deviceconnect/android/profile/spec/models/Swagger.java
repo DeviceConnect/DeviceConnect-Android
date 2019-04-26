@@ -383,7 +383,7 @@ public class Swagger extends AbstractSpec {
     }
 
     /**
-     * API 全体で使用できるパラメータを保持するオブジェクトを取得します.
+     * API 全体で使用できるパラメータ仕様を保持するオブジェクトを取得します.
      *
      * @return API 全体で使用できるパラメータを保持するオブジェクト
      */
@@ -392,12 +392,25 @@ public class Swagger extends AbstractSpec {
     }
 
     /**
-     * API 全体で使用できるパラメータを保持するオブジェクトを設定します.
+     * API 全体で使用できるパラメータ仕様を保持するオブジェクトを設定します.
      *
      * @param parameters API 全体で使用できるパラメータを保持するオブジェクト
      */
     public void setParameters(Map<String, Parameter> parameters) {
         mParameters = parameters;
+    }
+
+    /**
+     * API 全体で使用できるパラメータ仕様を追加します.
+     *
+     * @param key キー
+     * @param parameter パラメータ仕様
+     */
+    public void addParameter(String key, Parameter parameter) {
+        if (mParameters == null) {
+            mParameters = new HashMap<>();
+        }
+        mParameters.put(key, parameter);
     }
 
     /**

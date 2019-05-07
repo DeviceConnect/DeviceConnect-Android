@@ -179,7 +179,7 @@ public class OpenAPIValidatorTest {
             request.putExtra("serviceId", "01234567890");
 
             result = OpenAPIValidator.validate(swagger, request);
-            assertThat(result, is(false));
+            assertThat(result, is(true));
 
             request.putExtra("serviceId", 1);
 

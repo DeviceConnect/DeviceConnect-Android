@@ -247,6 +247,9 @@ public class DConnectServiceSpec {
      * @return {@link Path}のインスタンス
      */
     public Path findPathSpec(Intent request) {
+        if (request == null) {
+            return null;
+        }
         Swagger swagger = findProfileSpec(DConnectProfile.getProfile(request));
         if (swagger != null) {
             return findPathSpec(swagger, request);
@@ -356,6 +359,9 @@ public class DConnectServiceSpec {
      * @return {@link Operation}のインスタンス
      */
     public Operation findOperationSpec(Intent request) {
+        if (request == null) {
+            return null;
+        }
         Swagger swagger = findProfileSpec(DConnectProfile.getProfile(request));
         if (swagger != null) {
             return findOperationSpec(swagger, request);
@@ -412,6 +418,15 @@ public class DConnectServiceSpec {
      * @return Operation
      */
     static Operation findOperationSpec(Swagger swagger, Method method, String path) {
+        if (swagger == null || method == null || path == null) {
+            return null;
+        }
+
+        if (path.endsWith("/")) {
+            // 最後に / が付いている場合は削除
+            path = path.substring(0, path.length() - 1);
+        }
+
         for (String key : swagger.getPaths().getKeySet()) {
             String path1 = createPath(swagger, key);
             if (path1.equalsIgnoreCase(path)) {

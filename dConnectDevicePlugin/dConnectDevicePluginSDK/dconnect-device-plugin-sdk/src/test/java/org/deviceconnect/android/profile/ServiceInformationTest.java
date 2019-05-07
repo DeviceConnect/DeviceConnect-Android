@@ -98,7 +98,7 @@ public class ServiceInformationTest {
 
         Bundle paths = swagger.getBundle("paths");
         assertThat(paths, is(notNullValue()));
-        assertThat(paths.size(), is(2));
+        assertThat(paths.size(), is(3));
 
         assertThat(swagger.containsKey("definitions"), is(false));
     }

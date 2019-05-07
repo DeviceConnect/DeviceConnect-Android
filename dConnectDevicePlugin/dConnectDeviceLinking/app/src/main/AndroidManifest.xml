@@ -3,11 +3,7 @@
     package="org.deviceconnect.android.deviceplugin.linking"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application
-        android:name=".LinkingApplication"
-        android:allowBackup="true"
-        android:icon="@mipmap/dconnect_icon"
-        android:label="@string/linking_app_name">
+    <application>
 
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.setting_activity"

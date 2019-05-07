@@ -19,16 +19,28 @@ package org.deviceconnect.android.profile.spec.models;
 public enum XType {
     /**
      * ワンショット.
+     *
+     * <p>
+     * リクエストに対するレスポンスを返却するワンショット機能を提供する API タイプ。
+     * </p>
      */
     ONESHOT("one-shot"),
 
     /**
      * イベント.
+     *
+     * <p>
+     * Device Connect に接続した WebSocket に対してイベントの送信の開始・停止を提供する API タイプ。
+     * </p>
      */
     EVENT("event"),
 
     /**
      * ストリーミング.
+     *
+     * <p>
+     * レスポンスに映像などのストリーミングデータへの URL を返却する API タイプ。
+     * </p>
      */
     STREAMING("streaming");
 

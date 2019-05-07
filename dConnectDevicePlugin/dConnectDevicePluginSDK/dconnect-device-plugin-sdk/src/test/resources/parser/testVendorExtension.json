@@ -27,13 +27,47 @@
             "description": "serviceId",
             "in": "query",
             "required": true,
-            "type": "string",
+            "type": "string"
+          },
+          {
+            "name": "num",
+            "description": "",
+            "in": "query",
+            "required": true,
+            "format": "int32",
+            "type": "integer",
             "enum": [
-              "clueless",
-              "lazy",
-              "adventurous",
-              "aggressive"
+              1,2,3,4,5
             ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "x-type": "event",
+        "summary": "test path a0",
+        "description": "test path a0",
+        "operationId" : "a0Put",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "serviceId",
+            "in": "query",
+            "required": true,
+            "type": "string"
           },
           {
             "name": "num",
@@ -62,7 +96,7 @@
         },
         "x-event": {
           "schema": {
-            "$ref": "#/definitions/CommonResponse"
+            "$ref": "#/definitions/CommonEvent"
           },
           "examples": {
             "application/json": {
@@ -71,6 +105,35 @@
               "attribute": "a0",
               "a0": {
                 "near": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "x-type": "event",
+        "summary": "test path a0",
+        "description": "test path a0",
+        "operationId" : "a0Delete",
+        "deprecated": false,
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "serviceId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/CommonResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0
               }
             }
           }
@@ -96,20 +159,6 @@
             "description": "",
             "schema": {
               "$ref": "#/definitions/CommonResponse"
-            },
-            "headers": {
-              "X-Rate-Limit-Limit": {
-                "description": "The number of allowed requests in the current period",
-                "type": "integer"
-              },
-              "X-Rate-Limit-Remaining": {
-                "description": "The number of remaining requests in the current period",
-                "type": "integer"
-              },
-              "X-Rate-Limit-Reset": {
-                "description": "The number of seconds left in the current period",
-                "type": "integer"
-              }
             }
           }
         }
@@ -137,6 +186,35 @@
           "type": "integer",
           "format": "int32",
           "minimum": 0
+        }
+      }
+    },
+    "CommonEvent": {
+      "type": "object",
+      "required": [
+        "serviceId",
+        "profile"
+      ],
+      "properties": {
+        "serviceId": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "attribute": {
+          "type": "string"
+        },
+        "a0": {
+          "type": "object",
+          "required": [
+            "near"
+          ],
+          "properties": {
+            "near": {
+              "type": "boolean"
+            }
+          }
         }
       }
     }

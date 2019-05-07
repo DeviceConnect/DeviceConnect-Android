@@ -1,11 +1,20 @@
+/*
+ OpenAPIParserTest.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile.spec.parser;
 
 import org.deviceconnect.android.PluginSDKTestRunner;
 import org.deviceconnect.android.profile.spec.models.DataFormat;
 import org.deviceconnect.android.profile.spec.models.DataType;
+import org.deviceconnect.android.profile.spec.models.Example;
 import org.deviceconnect.android.profile.spec.models.Info;
 import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Swagger;
+import org.deviceconnect.android.profile.spec.models.XEvent;
+import org.deviceconnect.android.profile.spec.models.XType;
 import org.deviceconnect.android.profile.spec.models.parameters.AbstractParameter;
 import org.deviceconnect.android.profile.spec.models.parameters.Parameter;
 import org.deviceconnect.android.utils.FileLoader;
@@ -26,16 +35,27 @@ import static org.junit.Assert.assertThat;
 @RunWith(PluginSDKTestRunner.class)
 public class OpenAPIParserTest {
 
+    private void printSwagger(Swagger swagger) throws JSONException {
+        JSONObject o = JSONUtils.convertBundleToJSON(swagger.toBundle());
+        System.out.println();
+        System.out.println(" " + o.toString(2));
+        System.out.println();
+    }
+
+    /**
+     * OpenAPIParser#parse(String) に testProfile.json を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・Swagger オブジェクトが取得できること。
+     * ・Swagger オブジェクトに /a0 と /a1 が存在すること。
+     * </pre>
+     */
     @Test
     public void test() throws JSONException {
         String jsonString = FileLoader.readString("testProfile.json");
 
         Swagger swagger = OpenAPIParser.parse(jsonString);
-
-        JSONObject o = JSONUtils.convertBundleToJSON(swagger.toBundle());
-        System.out.println();
-        System.out.println(" " + o.toString(2));
-        System.out.println();
+        printSwagger(swagger);
 
         assertThat(swagger, is(notNullValue()));
         assertThat(swagger.getSwagger(), is("2.0"));
@@ -68,16 +88,20 @@ public class OpenAPIParserTest {
         assertThat(a1.getGet().getOperationId(), is(nullValue()));
     }
 
+    /**
+     * OpenAPIParser#parse(String) に testVendorExtension.json を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・Swagger オブジェクトが取得できること。
+     * ・Vendor Extension のデータが取得できること。
+     * </pre>
+     */
     @Test
     public void testVendorExtension() throws JSONException {
         String jsonString = FileLoader.readString("parser/testVendorExtension.json");
 
         Swagger swagger = OpenAPIParser.parse(jsonString);
-
-        JSONObject o = JSONUtils.convertBundleToJSON(swagger.toBundle());
-        System.out.println();
-        System.out.println(" " + o.toString(2));
-        System.out.println();
+        printSwagger(swagger);
 
         assertThat(swagger, is(notNullValue()));
         assertThat(swagger.getSwagger(), is("2.0"));
@@ -103,8 +127,23 @@ public class OpenAPIParserTest {
         assertThat(parameters.get(0).getDescription(), is("serviceId"));
         assertThat(parameters.get(0).getIn().getName(), is("query"));
 
-        Object xEvent = a0.getGet().getXEvent();
+        XType xType = a0.getPut().getXType();
+        assertThat(xType, is(notNullValue()));
+        assertThat(xType, is(XType.EVENT));
+
+        XEvent xEvent = a0.getPut().getXEvent();
         assertThat(xEvent, is(notNullValue()));
+        assertThat(xEvent.getSchema(), is(notNullValue()));
+        assertThat(xEvent.getSchema().getReference(), is(notNullValue()));
+        assertThat(xEvent.getSchema().getReference(), is("#/definitions/CommonEvent"));
+        assertThat(xEvent.getExamples(), is(notNullValue()));
+
+        Example example = xEvent.getExamples().get("application/json");
+        assertThat(example, is(notNullValue()));
+        assertThat(example.getExample(), is(notNullValue()));
+        assertThat(example.getExample().getString("serviceId"), is("Test.dummyId.localhost.deviceconnect.org"));
+        assertThat(example.getExample().getString("profile"), is("testProfile"));
+        assertThat(example.getExample().getString("attribute"), is("a0"));
 
         Path a1 = swagger.getPaths().getPath("/a1");
         assertThat(a1, is(notNullValue()));
@@ -113,22 +152,70 @@ public class OpenAPIParserTest {
         assertThat(a1.getGet().getOperationId(), is(nullValue()));
     }
 
+    /**
+     * OpenAPIParser#parse(String) に testInvalidJson.json を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・JSONException が発生すること。
+     * </pre>
+     */
     @Test(expected = JSONException.class)
     public void testInvalidJson() throws JSONException {
         String jsonString = FileLoader.readString("parser/testInvalidJson.json");
         OpenAPIParser.parse(jsonString);
     }
 
+    /**
+     * OpenAPIParser#parse(String) に文字列を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・JSONException が発生すること。
+     * </pre>
+     */
+    @Test(expected = JSONException.class)
+    public void testString() throws JSONException {
+        String jsonString = "test";
+        OpenAPIParser.parse(jsonString);
+    }
+
+    /**
+     * OpenAPIParser#parse(String) に null を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・NullPointerException が発生すること。
+     * </pre>
+     */
+    @Test(expected = NullPointerException.class)
+    public void testNull() throws JSONException {
+        OpenAPIParser.parse(null);
+    }
+
+    /**
+     * OpenAPIParser#parse(String) に null を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・IllegalArgumentException が発生すること。
+     * </pre>
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testEmpty() throws JSONException {
+        String jsonString = "{}";
+        OpenAPIParser.parse(jsonString);
+    }
+
+    /**
+     * OpenAPIParser#parse(String) に testMinimumJson.json を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・Swagger オブジェクトが取得できること。
+     * </pre>
+     */
     @Test
     public void testMinimumJson() throws JSONException {
         String jsonString = FileLoader.readString("parser/testMinimumJson.json");
 
         Swagger swagger = OpenAPIParser.parse(jsonString);
-
-        JSONObject o = JSONUtils.convertBundleToJSON(swagger.toBundle());
-        System.out.println();
-        System.out.println(" " + o.toString(2));
-        System.out.println();
+        printSwagger(swagger);
 
         assertThat(swagger, is(notNullValue()));
         assertThat(swagger.getSwagger(), is("2.0"));
@@ -144,16 +231,20 @@ public class OpenAPIParserTest {
         assertThat(swagger.getPaths().getPaths(), is(nullValue()));
     }
 
+    /**
+     * OpenAPIParser#parse(String) に testParameterSpec.json を渡して解析を行う。
+     * <pre>
+     * 【期待する動作】
+     * ・Swagger オブジェクトが取得できること。
+     * ・parameters の値が取得できること。
+     * </pre>
+     */
     @Test
     public void testParameterSpec() throws JSONException {
         String jsonString = FileLoader.readString("parser/testParameterSpec.json");
 
         Swagger swagger = OpenAPIParser.parse(jsonString);
-
-        JSONObject o = JSONUtils.convertBundleToJSON(swagger.toBundle());
-        System.out.println();
-        System.out.println(" " + o.toString(2));
-        System.out.println();
+        printSwagger(swagger);
 
         assertThat(swagger, is(notNullValue()));
         assertThat(swagger.getSwagger(), is("2.0"));

@@ -88,6 +88,10 @@ public interface Property {
     /**
      * 最大値を含めるかを設定します.
      *
+     * <p>
+     * null が指定された場合には、false として扱います。
+     * </p>
+     *
      * @param exclusiveMaximum 最大値を含めない場合はtrue、それ以外はfalse
      */
     void setExclusiveMaximum(Boolean exclusiveMaximum);
@@ -115,6 +119,10 @@ public interface Property {
 
     /**
      * 最小値を含めるかを設定します.
+     *
+     * <p>
+     * null が指定された場合には、false として扱います。
+     * </p>
      *
      * @param exclusiveMinimum 最小値を含めない場合はtrue、それ以外はfalse
      */
@@ -176,6 +184,10 @@ public interface Property {
 
     /**
      * 空値許可を設定します.
+     *
+     * <p>
+     * null が指定された場合には、false として扱います。
+     * </p>
      *
      * @param allowEmptyValue 空値を許可する場合はtrue、それ以外はfalse
      */

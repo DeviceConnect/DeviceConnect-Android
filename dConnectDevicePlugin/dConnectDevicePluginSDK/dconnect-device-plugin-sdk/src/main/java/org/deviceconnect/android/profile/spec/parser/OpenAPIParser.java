@@ -60,7 +60,8 @@ public final class OpenAPIParser {
     private OpenAPIParser() {
     }
 
-    // TODO 定義ファイルのフォーマットチェックは行なっていないが問題ないかを検討すること。
+    // TODO ツールを使用してプラグインを作成することを前提としているので、定義ファイルのフォーマットチェックは行なっていない。
+    // 必要に応じて、フォーマットチェックを行うこと。
 
     /**
      * JSON で定義された OpenAPI Specification を解析して、Swagger オブジェクトに変換します.
@@ -111,6 +112,23 @@ public final class OpenAPIParser {
                 }
             }
         }
+
+        if (swagger.getSwagger() == null) {
+            throw new IllegalArgumentException("swagger does not exist.");
+        }
+
+        if (!swagger.getSwagger().equalsIgnoreCase("2.0")) {
+            throw new IllegalArgumentException("swagger is invalid.");
+        }
+
+        if (swagger.getInfo() == null) {
+            throw new IllegalArgumentException("info does not exist.");
+        }
+
+        if (swagger.getPaths() == null) {
+            throw new IllegalArgumentException("paths does not exist.");
+        }
+
         return swagger;
     }
 
@@ -407,7 +425,7 @@ public final class OpenAPIParser {
             String key = it.next();
             Object object = jsonObject.get(key);
             if (object != null) {
-                if (object instanceof JSONObject) {
+                if (key.startsWith("/") && object instanceof JSONObject) {
                     paths.addPath(key, parsePath((JSONObject) object));
                 } else if (key.startsWith("x-")) {
                     paths.addVendorExtension(key, parseVendorExtension(object));
@@ -503,6 +521,13 @@ public final class OpenAPIParser {
         return operation;
     }
 
+    /**
+     * Device Connect 拡張 x-event の解析を行います.
+     *
+     * @param jsonObject x-event が格納されたJSONオブジェクト
+     * @return XEvent のインスタンス
+     * @throws JSONException JSONオブジェクトの読み込みに失敗した場合に発生
+     */
     private static XEvent parseXEvent(JSONObject jsonObject) throws JSONException {
         XEvent event = new XEvent();
         for (Iterator<String> it = jsonObject.keys(); it.hasNext();) {
@@ -550,12 +575,12 @@ public final class OpenAPIParser {
 
         String in = jsonObject.getString("in");
         if (in == null) {
-            throw new JSONException("in is required.");
+            throw new IllegalArgumentException("in does not exist in parameter.");
         }
 
         In inType = In.parse(in);
         if (inType == null) {
-            throw new JSONException("Unknown in.");
+            throw new IllegalArgumentException("in does not exist. in parameter");
         }
 
         switch (inType) {
@@ -574,7 +599,7 @@ public final class OpenAPIParser {
                 parameter = new PathParameter();
                 break;
             default:
-                throw new JSONException("Unknown in.");
+                throw new IllegalArgumentException("in is an unknown type. in=" + in);
         }
 
         return parseOtherParameter(parameter, jsonObject);

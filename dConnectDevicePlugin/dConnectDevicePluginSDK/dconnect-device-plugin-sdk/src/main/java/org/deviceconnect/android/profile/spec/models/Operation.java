@@ -421,7 +421,8 @@ public class Operation extends AbstractSpec {
      * イベント定義を設定します.
      *
      * <p>
-     * Device Connect 拡張のイベント定義。
+     * Device Connect 拡張のイベント定義。<br>
+     * x-event
      * </p>
      *
      * @param XEvent イベント定義
@@ -443,7 +444,8 @@ public class Operation extends AbstractSpec {
      * API タイプを設定します.
      *
      * <p>
-     * Device Connect 拡張の API タイプ。
+     * Device Connect 拡張の API タイプ。<br>
+     * x-type
      * </p>
      *
      * @param type APIタイプ

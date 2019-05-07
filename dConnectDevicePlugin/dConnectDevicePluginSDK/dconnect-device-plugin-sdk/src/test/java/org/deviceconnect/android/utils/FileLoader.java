@@ -1,3 +1,9 @@
+/*
+ FileLoader.java
+ Copyright (c) 2019 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.utils;
 
 import java.io.ByteArrayOutputStream;
@@ -9,6 +15,13 @@ import java.io.InputStream;
  */
 public final class FileLoader {
 
+    /**
+     * 指定されたファイルの文字列を読み込みます.
+     *
+     * @param file ファイルへのパス
+     * @return 文字列
+     * @throws RuntimeException ファイルの読み込みに失敗した場合
+     */
     public static String readString(String file) {
         byte[] data = readFile(file);
         if (data != null) {
@@ -17,6 +30,12 @@ public final class FileLoader {
         throw new RuntimeException("Not found a " + file);
     }
 
+    /**
+     * 指定されたファイルを読み込みます.
+     *
+     * @param file ファイルへのパス
+     * @return ファイルのデータ
+     */
     public static byte[] readFile(String file) {
         InputStream input = null;
         try {

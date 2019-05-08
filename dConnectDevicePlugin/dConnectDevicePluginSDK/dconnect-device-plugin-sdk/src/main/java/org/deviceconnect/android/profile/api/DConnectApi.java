@@ -9,7 +9,6 @@ package org.deviceconnect.android.profile.api;
 import android.content.Intent;
 
 import org.deviceconnect.android.profile.spec.models.Method;
-import org.deviceconnect.android.profile.spec.models.Operation;
 
 /**
  * Device Connect APIクラス.
@@ -52,29 +51,4 @@ public abstract class DConnectApi {
      * @return レスポンスパラメータを送信するか否か
      */
     public abstract boolean onRequest(final Intent request, final Intent response);
-
-    /**
-     * Service Information で API 仕様情報を返却する場合に呼び出されます.
-     *
-     * <p>
-     * デバイス毎に API 仕様の更新を行う場合には、ここで更新を行います。
-     * </p>
-     *
-     * <p>
-     * API 仕様の情報は、Swagger 2.0 の形式で Operation に格納されています。
-     * どのようなパラメータが入っているかは、プロファイル定義ファイルを確認して、実装してください。
-     * </p>
-     *
-     * <p>
-     * 返り値に false を返却した場合は、API がサポートされていないと判断して、プロファイル定義から削除され
-     * Service Information の情報からも削除されます。
-     * また、次回からは呼び出されなくなります。
-     * </p>
-     *
-     * @param spec API 仕様が格納された Operation
-     * @return ServiceInformationに情報を加える場合にはtrue、それ以外はServiceInformationから情報を削除
-     */
-    public boolean onStoreSpec(final Operation spec) {
-        return true;
-    }
 }

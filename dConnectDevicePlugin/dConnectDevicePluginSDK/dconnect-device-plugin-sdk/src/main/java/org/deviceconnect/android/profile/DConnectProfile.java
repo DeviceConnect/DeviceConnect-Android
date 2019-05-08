@@ -222,24 +222,6 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     public abstract String getProfileName();
 
     /**
-     * Service Information で API 仕様情報を返却する場合に呼び出されます.
-     *
-     * <p>
-     * 指定された Swagger の情報を変更することで、Service Information に返却する値を変更することができます。
-     * </p>
-     *
-     * <p>
-     * 一度削除したプロファイルは、{@link DConnectServiceSpec} のマップから削除されますので、次回からは呼び出されなくなります。
-     * </p>
-     *
-     * @param spec プロファイルの仕様情報が格納されたクラス
-     * @return ServiceInformationに情報を加える場合にはtrue、それ以外はServiceInformationから情報を削除
-     */
-    public boolean onStoreSpec(Swagger spec) {
-        return true;
-    }
-
-    /**
      * リクエストのパラメータの妥当性を確認します.
      *
      * <p>

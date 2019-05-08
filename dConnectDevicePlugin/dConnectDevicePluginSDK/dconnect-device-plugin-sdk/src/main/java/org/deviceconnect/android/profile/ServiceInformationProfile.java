@@ -16,7 +16,6 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 import org.deviceconnect.android.profile.spec.models.Method;
-import org.deviceconnect.android.profile.spec.models.Operation;
 import org.deviceconnect.android.profile.spec.models.Path;
 import org.deviceconnect.android.profile.spec.models.Paths;
 import org.deviceconnect.android.profile.spec.models.Swagger;
@@ -226,13 +225,8 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         for (DConnectProfile profile : profileList) {
             Swagger swagger = spec.findProfileSpec(profile.getProfileName());
             if (swagger != null) {
-                if (profile.onStoreSpec(swagger)) {
-                    setSupportApiSpec(swagger, profile);
-                    supportApisBundle.putParcelable(profile.getProfileName(), reduceInformation(swagger.toBundle()));
-                } else {
-                    // プロファイルがサポートされていないので削除
-                    spec.removeProfileSpec(profile.getProfileName());
-                }
+                setSupportApiSpec(swagger, profile);
+                supportApisBundle.putParcelable(profile.getProfileName(), reduceInformation(swagger.toBundle()));
             }
         }
         response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
@@ -250,13 +244,6 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
                 if (!profile.hasApi(pathName, method)) {
                     // API がサポートされていないので削除
                     path.setOperation(method, null);
-                } else {
-                    DConnectApi api = profile.findApi(pathName, method);
-                    Operation operation = path.getOperation(method);
-                    if (operation != null && !api.onStoreSpec(operation)) {
-                        // API がサポートされていないので削除
-                        path.setOperation(method, null);
-                    }
                 }
             }
         }

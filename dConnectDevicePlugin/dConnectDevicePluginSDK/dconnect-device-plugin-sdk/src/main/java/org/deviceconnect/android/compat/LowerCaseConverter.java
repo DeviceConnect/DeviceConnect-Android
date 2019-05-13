@@ -1,11 +1,15 @@
 package org.deviceconnect.android.compat;
 
-
 import android.content.Intent;
 
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 
+/**
+ * リクエストのプロファイル、インターフェース、アトリビュートを小文字に変換するクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class LowerCaseConverter implements MessageConverter {
 
     @Override
@@ -32,9 +36,15 @@ public class LowerCaseConverter implements MessageConverter {
         }
     }
 
+    /**
+     * アクセストークン作成要求か確認します.
+     *
+     * @param profileName プロファイル名
+     * @param attributeName アトリビュート名
+     * @return アクセストークン作成要求の場合はtrue、それ以外はfalse
+     */
     private boolean isAccessTokenRequest(final String profileName, final String attributeName) {
         return AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
                && AuthorizationProfile.ATTRIBUTE_ACCESS_TOKEN.equalsIgnoreCase(attributeName);
     }
-
 }

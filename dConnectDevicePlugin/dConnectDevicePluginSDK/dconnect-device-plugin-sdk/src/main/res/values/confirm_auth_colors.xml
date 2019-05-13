@@ -3,6 +3,16 @@
     <color name="background">#fff0f0f0</color>
     <color name="half_transparent">#c0000000</color>
     <color name="text_color">#ff434343</color>
-    <color name="guidance_background">#ffaccb39</color>
-    
+
+    <color name="manager_guidance_background">#2BAFEB</color>
+    <color name="manager_auth_button_focus_solid">#005FEB</color>
+    <color name="manager_auth_button_focus_stroke">#0B7FEB</color>
+    <color name="manager_auth_button">#2BAFEB</color>
+    <color name="manager_auth_button_press">#0B7FEB</color>
+
+    <color name="plugin_guidance_background">#ACCB39</color>
+    <color name="plugin_auth_button_focus_solid">#12AC93</color>
+    <color name="plugin_auth_button_focus_stroke">#73C08F</color>
+    <color name="plugin_auth_button">#B2CC39</color>
+    <color name="plugin_auth_button_press">#73C08F</color>
 </resources>

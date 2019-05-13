@@ -6,15 +6,23 @@
  */
 package org.deviceconnect.android.profile.api;
 
+
 import android.content.Intent;
 
-import org.deviceconnect.android.profile.spec.models.Method;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 
 /**
  * Device Connect APIクラス.
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectApi {
+public abstract class DConnectApi implements DConnectSpecConstants {
+
+    /**
+     * {@link DConnectApi}の子クラスで実装されるAPI仕様.
+     */
+    private DConnectApiSpec mApiSpec;
+
     /**
      * インターフェース名を取得する.
      * @return インターフェース名
@@ -38,17 +46,31 @@ public abstract class DConnectApi {
     public abstract Method getMethod();
 
     /**
-     * RESPONSEメソッドハンドラー.
-     *
-     * <p>
+     * API仕様を取得する.
+     * @return API仕様
+     */
+    public DConnectApiSpec getApiSpec() {
+        return mApiSpec;
+    }
+
+    /**
+     * API仕様を設定する.
+     * @param apiSpec API仕様
+     */
+    public void setApiSpec(final DConnectApiSpec apiSpec) {
+        mApiSpec = apiSpec;
+    }
+
+    /**
+     * RESPONSEメソッドハンドラー.<br>
      * リクエストパラメータに応じてデバイスのサービスを提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * </p>
      *
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @return レスポンスパラメータを送信するか否か
      */
     public abstract boolean onRequest(final Intent request, final Intent response);
+
 }

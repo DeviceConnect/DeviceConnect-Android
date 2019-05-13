@@ -57,14 +57,14 @@ import javax.security.auth.x500.X500Principal;
 class CertificateAuthority {
 
     /**
-     * ロガー.
-     */
-    private final Logger mLogger = Logger.getLogger("LocalCA");
-
-    /**
      * ルート証明書のキーストア.
      */
     private final RootKeyStoreManager mRootKeyStoreMgr;
+
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("LocalCA");
 
     /**
      * ルート証明書の発行者名.
@@ -77,13 +77,11 @@ class CertificateAuthority {
      * @param context コンテキスト
      * @param issuerName ルート証明書の発行者名
      * @param keyStoreFileName キーストアのファイル名
-     * @param keyStorePassword キーストアのパスワード
      */
     CertificateAuthority(final Context context,
                          final String issuerName,
-                         final String keyStoreFileName,
-                         final String keyStorePassword) {
-        mRootKeyStoreMgr = new RootKeyStoreManager(context, issuerName, keyStoreFileName, keyStorePassword);
+                         final String keyStoreFileName) {
+        mRootKeyStoreMgr = new RootKeyStoreManager(context, issuerName, keyStoreFileName);
         mIssuerName = issuerName;
     }
 
@@ -251,7 +249,7 @@ class CertificateAuthority {
             }
         }
         if (generalNames.size() > 0) {
-            return new GeneralNames(new DERSequence(generalNames.toArray(new ASN1Encodable[0])));
+            return new GeneralNames(new DERSequence(generalNames.toArray(new ASN1Encodable[generalNames.size()])));
         }
         return null;
     }

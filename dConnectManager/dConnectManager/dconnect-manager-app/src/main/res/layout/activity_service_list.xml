@@ -26,6 +26,7 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="8dp"/>
 
+
     <FrameLayout
         android:id="@+id/activity_service_no_service"
         android:layout_width="match_parent"
@@ -39,13 +40,13 @@
             android:gravity="center"
             android:text="@string/activity_service_list_no_service"
             android:textColor="#444"/>
-
     </FrameLayout>
 
     <include
-        android:id="@+id/activity_service_guide"
-        layout="@layout/service_guide"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+            android:id="@+id/activity_service_guide"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            layout="@layout/service_guide"
+        />
 
 </RelativeLayout>

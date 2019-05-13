@@ -23,7 +23,6 @@ import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.restlet.ext.oauth.PackageInfoOAuth;

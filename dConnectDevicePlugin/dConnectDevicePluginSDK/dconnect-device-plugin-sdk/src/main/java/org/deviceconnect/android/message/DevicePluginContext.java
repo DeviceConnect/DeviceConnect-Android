@@ -32,6 +32,7 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -101,6 +102,11 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     private DConnectServiceManager mServiceProvider;
 
     /**
+     * プラグインが持つプロファイルスペック.
+     */
+    private DConnectPluginSpec mPluginSpec;
+
+    /**
      * 認可クラス(Local OAuth).
      */
     private LocalOAuth2Main mLocalOAuth2Main;
@@ -153,9 +159,17 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         // LocalOAuthの初期化
         mLocalOAuth2Main = new LocalOAuth2Main(context);
 
+        try {
+            // プロファイルSPECを読み込み
+            mPluginSpec = DConnectProfileHelper.loadPluginSpec(context, createSupportedProfiles());
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                mLogger.warning("Failed to load a profile spec.");
+            }
+        }
+
         // キーストア管理クラスの初期化
-        mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(),
-                getKeyStorePassword(), getCertificateAlias());
+        mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(), getCertificateAlias());
         if (usesAutoCertificateRequest()) {
             requestAndNotifyKeyStore();
             registerChangeIpAddress();
@@ -165,6 +179,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         mServiceProvider = new DConnectServiceManager();
         mServiceProvider.setContext(context);
         mServiceProvider.setPluginContext(this);
+        mServiceProvider.setPluginSpec(mPluginSpec);
 
         // プロファイルを追加
         addProfile(new AuthorizationProfile(this, mLocalOAuth2Main));
@@ -208,6 +223,15 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     }
 
     /**
+     * プラグインが持っているプロファイルの仕様を取得します.
+     *
+     * @return プロファイルのサービス仕様
+     */
+    public DConnectPluginSpec getPluginSpec() {
+        return mPluginSpec;
+    }
+
+    /**
      * Device Connect Manager に返答するためのコールバックを設定します.
      *
      * @param callback コールバック
@@ -239,7 +263,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      *
      * @return サポートするプロファイル
      */
-    public int getPluginXmlResId() {
+    protected int getPluginXmlResId() {
         return DevicePluginXmlUtil.getPluginXmlResourceId(getContext(), getContext().getPackageName());
     }
 
@@ -580,15 +604,15 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
                 }
                 return false;
             }
-            mContext.sendBroadcast(intent);
-            return true;
-        }
-
-        try {
-            mIDConnectCallback.sendMessage(intent);
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                mLogger.severe("sendMessage: exception occurred.");
+        } else {
+            try {
+                mIDConnectCallback.sendMessage(intent);
+                return true;
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    mLogger.severe("mIDConnectCallback.sendMessage: exception occurred.");
+                }
+                return false;
             }
         }
     }
@@ -783,23 +807,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     }
 
     /**
-     * 証明書で使用するキーストアのパスワードを取得します.
-     * <p>
-     * デフォルトでは、0000 を使用します。
-     * </p>
-     * <p>
-     * キーストアのパスワードを変更したい場合には、このメソッドをオーバーライドします。
-     * </p>
-     * <p>
-     * TODO ユーザによって設定できるようにした方が良いかもしれない。
-     * </p>
-     * @return キーストアのパスワード
-     */
-    protected String getKeyStorePassword() {
-        return "0000";
-    }
-
-    /**
      * 証明書で使用するエイリアス名を取得します.
      * <p>
      * デフォルトでは、パッケージ名を返却します。
@@ -908,7 +915,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      * @return SSLContextのインスタンス
      * @throws GeneralSecurityException SSLContextの作成に失敗した場合に発生
      */
-    public SSLContext createSSLContext(final KeyStore keyStore, final String password) throws GeneralSecurityException {
+    protected SSLContext createSSLContext(final KeyStore keyStore, final String password) throws GeneralSecurityException {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, password.toCharArray());

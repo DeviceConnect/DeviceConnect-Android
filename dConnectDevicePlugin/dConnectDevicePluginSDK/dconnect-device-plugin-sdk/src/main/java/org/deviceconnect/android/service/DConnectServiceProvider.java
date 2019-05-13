@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.service;
 
-import org.deviceconnect.android.message.DevicePluginContext;
-import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
-
 import java.util.List;
 
 /**
@@ -43,17 +40,9 @@ public interface DConnectServiceProvider {
 
     /**
      * サービスを追加する.
-     *
      * <p>
-     * 同一のサービス ID が追加された場合は上書きする.
+     * 同一のサービスIDが追加された場合は上書きする.
      * </p>
-     *
-     * <p>
-     * サービスを追加する時に、{@link DevicePluginContext}や{@link DConnectServiceSpec}などの
-     * 設定を DConnectService に対して行います。<br>
-     * 既に設定されている場合には、既存の設定を優先します。
-     * </p>
-     *
      * @param service 追加するDConnectServiceのインスタンス
      */
     void addService(DConnectService service);

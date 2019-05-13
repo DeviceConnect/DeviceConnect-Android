@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_margin="8dp"
-            android:background="@drawable/confirm_auth_approval_button"
+            android:background="@drawable/confirm_auth_plugin_button"
             android:text="@string/activity_linking_ok"
             android:textColor="@android:color/white" />
 

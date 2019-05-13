@@ -16,7 +16,6 @@ import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,13 +43,13 @@ public class DConnectServiceManager implements DConnectServiceProvider, DConnect
      * デバイスプラグインが持っているサービスリスト.
      */
     private final Map<String, DConnectService> mDConnectServices
-            = Collections.synchronizedMap(new HashMap<String, DConnectService>());
+            = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * サービス通知リスナーリスト.
      */
     private final List<DConnectServiceListener> mServiceListeners
-            = Collections.synchronizedList(new ArrayList<DConnectServiceListener>());
+            = Collections.synchronizedList(new ArrayList<>());
 
     /**
      * プラグインコンテキストを取得します.
@@ -161,6 +160,10 @@ public class DConnectServiceManager implements DConnectServiceProvider, DConnect
 
     @Override
     public void addServiceListener(final DConnectServiceListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+
         synchronized (mServiceListeners) {
             if (!mServiceListeners.contains(listener)) {
                 mServiceListeners.add(listener);
@@ -170,13 +173,12 @@ public class DConnectServiceManager implements DConnectServiceProvider, DConnect
 
     @Override
     public void removeServiceListener(final DConnectServiceListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+
         synchronized (mServiceListeners) {
-            for (Iterator<DConnectServiceListener> it = mServiceListeners.iterator(); ; it.hasNext()) {
-                if (it.next() == listener) {
-                    it.remove();
-                    break;
-                }
-            }
+            mServiceListeners.remove(listener);
         }
     }
 

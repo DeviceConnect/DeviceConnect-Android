@@ -17,18 +17,14 @@ import android.security.KeyChain;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-//import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
-import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.manager.core.DConnectManager;
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.WebSocketInfoManager;
 import org.deviceconnect.android.manager.core.event.KeepAlive;
-import org.deviceconnect.android.manager.core.plugin.ConnectionType;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
-import org.deviceconnect.android.manager.core.util.VersionName;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.NotificationUtil;
@@ -145,7 +141,7 @@ public class DConnectService extends Service {
                 return SettingActivity.class;
             }
         };
-        mManager.initDConnect();
+
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {
             startInternal();
@@ -187,7 +183,6 @@ public class DConnectService extends Service {
     @Override
     public void onDestroy() {
         stopInternal();
-        mManager.finalizeDConnect();
         mManager = null;
         super.onDestroy();
     }
@@ -208,7 +203,9 @@ public class DConnectService extends Service {
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
-//                addDevicePlugin();
+                if (DEBUG) {
+                    Log.i(TAG, "Finish search plugin.");
+                }
             }
 
             @Override
@@ -235,9 +232,10 @@ public class DConnectService extends Service {
                 if (DEBUG) {
                     Log.e(TAG, "An error occurred in DConnectManager.", e);
                 }
-
-                // DConnectManagerでエラーが発生したので終了処理をしておく
+                // DConnectManager でエラーが発生したので、開始フラグをOFFにして停止する
+                mSettings.setManagerStartFlag(false);
                 stopManager();
+                stopSelf();
             }
         });
 
@@ -246,7 +244,10 @@ public class DConnectService extends Service {
         try {
             mManager.startDConnect();
         } catch (Exception e) {
+            // DConnectManager でエラーが発生したので、開始フラグをOFFにして停止する
+            mSettings.setManagerStartFlag(false);
             stopManager();
+            stopSelf();
 
             if (DEBUG) {
                 mLogger.warning("Failed to start a DConnectManager." + e.getMessage());
@@ -260,7 +261,6 @@ public class DConnectService extends Service {
     private void stopManager() {
         try {
             NotificationUtil.hideNotification(this);
-
             mManager.stopDConnect();
         } catch (Exception e) {
             // ignore.
@@ -287,44 +287,6 @@ public class DConnectService extends Service {
      */
     private String createIPAddress() {
         return DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort();
-    }
-
-    /**
-     * Hostプラグインを追加します.
-     */
-    private void addDevicePlugin() {
-        String packageName = getPackageName();
-        String className = HostDevicePlugin.class.getName();
-
-        DevicePlugin plugin = new DevicePlugin.Builder(this)
-                .setClassName(className)
-                .setPackageName(packageName)
-                .setConnectionType(ConnectionType.DIRECT)
-                .setDeviceName(getString(R.string.app_name_host))
-                .setPluginIconId(R.drawable.dconnect_icon)
-                .setVersionName(org.deviceconnect.android.deviceplugin.host.BuildConfig.VERSION_NAME)
-                .setPluginId(createMD5(packageName, className))
-                .setPluginSdkVersionName(VersionName.parse("2.0.0"))
-                .build();
-
-        mManager.getPluginManager().addDevicePlugin(plugin);
-
-        plugin.enable();
-    }
-
-    /**
-     * プラグインのIDを作成します.
-     *
-     * @param packageName パッケージ名
-     * @param className   クラス名
-     * @return プラグインID
-     */
-    private String createMD5(final String packageName, final String className) {
-        try {
-            return DConnectUtil.toMD5(packageName + className);
-        } catch (Exception e) {
-            return "host_plugin_id";
-        }
     }
 
     /**
@@ -427,22 +389,6 @@ public class DConnectService extends Service {
     }
 
     /**
-     * キーストアをSDカード上のファイルとして出力する.
-     *
-     * @param dirPath 出力先のディレクトリへのパス
-     * @throws IOException 出力に失敗した場合
-     */
-    public void exportKeyStore(final String dirPath) throws IOException {
-        File dir = new File(dirPath);
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
-            }
-        }
-        mManager.getKeyStoreManager().exportKeyStore(new File(dir, "keystore.p12"));
-    }
-
-    /**
      * DConnectManagerを起動する.
      */
     public synchronized void startInternal() {
@@ -474,7 +420,7 @@ public class DConnectService extends Service {
      */
     public void installRootCertificate() {
         String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
-        mManager.getKeyStoreManager().requestKeyStore(ipAddress, new KeyStoreCallback() {
+        mManager.requestKeyStore(ipAddress, new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
                 try {
@@ -493,6 +439,22 @@ public class DConnectService extends Service {
                 mLogger.severe("Failed to encode server certificate: " + error.name());
             }
         });
+    }
+
+    /**
+     * キーストアをSDカード上のファイルとして出力する.
+     *
+     * @param dirPath 出力先のディレクトリへのパス
+     * @throws IOException 出力に失敗した場合
+     */
+    public void exportKeyStore(final String dirPath) throws IOException {
+        File dir = new File(dirPath);
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
+            }
+        }
+        mManager.exportKeyStore(new File(dir, "keystore.p12"));
     }
 
     /**

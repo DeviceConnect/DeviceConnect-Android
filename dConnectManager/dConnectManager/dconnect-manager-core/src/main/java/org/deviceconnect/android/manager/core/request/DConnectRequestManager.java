@@ -77,8 +77,10 @@ public class DConnectRequestManager {
      * リクエスト管理を終了する.
      */
     public synchronized void stop() {
-        mExecutor.shutdown();
-        mExecutor = null;
+        if (mExecutor != null) {
+            mExecutor.shutdown();
+            mExecutor = null;
+        }
 
         synchronized (mRequestList) {
             mRequestList.clear();

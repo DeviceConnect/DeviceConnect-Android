@@ -106,7 +106,6 @@
     <string name="activity_settings_web_server_warning_negative">いいえ</string>
     <string name="activity_settings_event_keep_alive_settings">イベント Keep Alive</string>
     <string name="activity_settings_web_server_error_message">パーミッションの許可が取得できなかったためにWebサーバの起動できませんでした。</string>
-    <string name="activity_settings_web_server_error">Webサーバの起動に失敗しました。\n\n%1$s</string>
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Originホワイトリスト</string>
@@ -195,11 +194,6 @@
     <string name="activity_service_list_plugin_setting_message">プラグインの設定画面を開きますか？</string>
     <string name="activity_service_list_plugin_setting_positive">はい</string>
     <string name="activity_service_list_plugin_setting_negative">いいえ</string>
-    <string name="activity_service_list_error_message_title">エラー</string>
-    <string name="activity_service_list_error_message_message">エラーが発生しました。\n\n%1$s</string>
-    <string name="activity_service_list_error_message_ok">はい</string>
-    <string name="activity_service_list_launch_manager_message">Device Connect Manager を起動しています。</string>
-    <string name="activity_service_list_search_service">サービスを検索中</string>
 
     <string name="activity_websocket_delete_title">WebSocket削除確認</string>
     <string name="activity_websocket_delete_message">WebSocketを閉じて良いでしょうか？</string>

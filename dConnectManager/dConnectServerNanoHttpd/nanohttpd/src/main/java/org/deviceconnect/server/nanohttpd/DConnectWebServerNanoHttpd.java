@@ -165,11 +165,6 @@ public class DConnectWebServerNanoHttpd {
             mRootDirs = new ArrayList<>(config.mDocRootList);
             mVersion = config.mVersion;
 
-            // SSLが有効になっている場合には、SSL用の設定を行う
-            if (mConfig.mSSL) {
-                mWebServer.makeSecure(mConfig.mServerSocketFactory, null);
-            }
-
             try {
                 mimeTypes();
             } catch (Exception e){
@@ -810,6 +805,11 @@ public class DConnectWebServerNanoHttpd {
         private int mPort;
 
         /**
+         * SSL.
+         */
+        private boolean mSSL;
+
+        /**
          * CORS で許可するオリジン.
          */
         private String mCors;
@@ -828,17 +828,10 @@ public class DConnectWebServerNanoHttpd {
          * コンテキスト.
          */
         private Context mContext;
-
-        /**
-         * SSL.
-         */
-        private boolean mSSL;
-
         /**
          * SSLサーバーソケットファクトリ.
          */
         private SSLServerSocketFactory mServerSocketFactory;
-
     }
 
     /**
@@ -882,7 +875,6 @@ public class DConnectWebServerNanoHttpd {
             mConfig.mPort = port;
             return this;
         }
-
         /**
          * SSL 有効化を設定します.
          *
@@ -893,7 +885,6 @@ public class DConnectWebServerNanoHttpd {
             mConfig.mSSL = ssl;
             return this;
         }
-
         /**
          * CORS の許可するオリジンを設定します.
          *
@@ -940,7 +931,6 @@ public class DConnectWebServerNanoHttpd {
             mConfig.mServerSocketFactory = factory;
             return this;
         }
-
         /**
          * {@link DConnectWebServerNanoHttpd} のインスタンスを作成します.
          *

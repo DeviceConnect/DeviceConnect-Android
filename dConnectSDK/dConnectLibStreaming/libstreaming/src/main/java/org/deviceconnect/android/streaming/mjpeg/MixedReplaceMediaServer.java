@@ -7,7 +7,6 @@
 package org.deviceconnect.android.streaming.mjpeg;
 
 import android.net.Uri;
-import android.os.Build;
 
 import net.majorkernelpanic.streaming.BuildConfig;
 
@@ -19,7 +18,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -34,11 +32,6 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
 
 /**
  * Mixed Replace Media Server.
@@ -101,11 +94,6 @@ public class MixedReplaceMediaServer {
      * Server Socket.
      */
     private ServerSocket mServerSocket;
-
-    /**
-     * SSL Context.
-     */
-    private SSLContext mSSLContext;
 
     /**
      * Interval.
@@ -316,19 +304,6 @@ public class MixedReplaceMediaServer {
     }
 
     /**
-     * SSLContext を設定します.
-     *
-     * <p>
-     * SSLContext を設定してから{@link #start()} で、SSLで通信を行うことができます。
-     * </p>
-     *
-     * @param sslContext SSLContext
-     */
-    public void setSSLContext(final SSLContext sslContext) {
-        mSSLContext = sslContext;
-    }
-
-    /**
      * Start a mixed replace media server.
      * <p>
      * If a port is not set, looking for a port that is not used between 9000 to 10000, set to server.
@@ -338,11 +313,7 @@ public class MixedReplaceMediaServer {
      */
     public synchronized String start() {
         try {
-            if (mSSLContext != null) {
-                mServerSocket = openSSLServerSocket(mSSLContext);
-            } else {
-                mServerSocket = openServerSocket();
-            }
+            mServerSocket = openServerSocket();
             mLogger.fine("Open a server socket.");
         } catch (IOException e) {
             // Failed to open server socket
@@ -382,38 +353,6 @@ public class MixedReplaceMediaServer {
     }
 
     /**
-     * SSL を用いて ServerSocket を作成します.
-     *
-     * @param sslContext SSL
-     * @return ServerSocket
-     * @throws IOException Socketを開くのに失敗した場合に発生
-     */
-    private ServerSocket openSSLServerSocket(final SSLContext sslContext) throws IOException {
-        SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
-        SSLServerSocket serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-        if (Build.VERSION_CODES.N <= Build.VERSION.SDK_INT) {
-            SSLParameters parameters = serverSocket.getSSLParameters();
-            // TODO 必要に応じてプロトコルバージョンや暗号スイートの設定を行うこと。
-            serverSocket.setSSLParameters(parameters);
-        }
-
-        if (mPort != -1) {
-            serverSocket.bind(new InetSocketAddress(mPort));
-            return serverSocket;
-        } else {
-            for (int i = 9000; i < 10000; i++) {
-                try {
-                    serverSocket.bind(new InetSocketAddress(i));
-                    return serverSocket;
-                } catch (IOException e) {
-                    // ignore.
-                }
-            }
-            throw new IOException("Cannot open server socket.");
-        }
-    }
-
-    /**
      * Open a server socket that looking for a port that can be used.
      *
      * @return ServerSocket
@@ -427,7 +366,7 @@ public class MixedReplaceMediaServer {
                 try {
                     return new ServerSocket(i);
                 } catch (IOException e) {
-                    // ignore.
+                    continue;
                 }
             }
             throw new IOException("Cannot open server socket.");

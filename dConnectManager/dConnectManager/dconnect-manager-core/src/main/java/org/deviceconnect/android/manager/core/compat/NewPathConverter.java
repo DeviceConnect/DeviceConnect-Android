@@ -14,7 +14,6 @@ import org.deviceconnect.android.compat.MessageConverter;
 
 /**
  * リクエストパスを新仕様に統一するクラス.
- *
  * @author NTT DOCOMO, INC.
  */
 class NewPathConverter implements MessageConverter {

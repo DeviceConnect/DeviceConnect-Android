@@ -1,11 +1,6 @@
 {
   "swagger": "2.0",
-  "basePath": "/parameter/test",
-  "info": {
-    "title": "Parameter Test Profile",
-    "version": "1.0",
-    "description": "Parameter Test Description"
-  },
+  "basePath": "/myApi/test",
   "paths": {
     "/": {
       "get": {
@@ -167,24 +162,6 @@
             "required": true,
             "type": "string",
             "format": "rgb"
-          },
-          {
-            "name": "arrayParam",
-            "in": "query",
-            "required": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/definitions/pet"
-            }
-          },
-          {
-            "name": "arrayParamWithInteger",
-            "in": "query",
-            "required": true,
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
           }
         ]
       }

@@ -13,7 +13,6 @@ import org.deviceconnect.android.compat.MessageConverter;
 
 /**
  * リクエストパスを旧仕様に統一するクラス.
- *
  * @author NTT DOCOMO, INC.
  */
 class OldPathConverter implements MessageConverter {

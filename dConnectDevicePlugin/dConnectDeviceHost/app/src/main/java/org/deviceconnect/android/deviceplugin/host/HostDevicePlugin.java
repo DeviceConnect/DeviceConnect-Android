@@ -283,7 +283,7 @@ public class HostDevicePlugin extends DevicePluginContext {
     }
 
     @Override
-    protected int getPluginXmlResId() {
+    public int getPluginXmlResId() {
         return R.xml.org_deviceconnect_android_deviceplugin_host;
     }
     /**

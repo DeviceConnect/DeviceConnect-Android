@@ -27,6 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import javax.net.ssl.SSLServerSocketFactory;
+
 import fi.iki.elonen.NanoHTTPD;
 
 /**
@@ -803,6 +805,11 @@ public class DConnectWebServerNanoHttpd {
         private int mPort;
 
         /**
+         * SSL.
+         */
+        private boolean mSSL;
+
+        /**
          * CORS で許可するオリジン.
          */
         private String mCors;
@@ -821,6 +828,10 @@ public class DConnectWebServerNanoHttpd {
          * コンテキスト.
          */
         private Context mContext;
+        /**
+         * SSLサーバーソケットファクトリ.
+         */
+        private SSLServerSocketFactory mServerSocketFactory;
     }
 
     /**
@@ -864,7 +875,16 @@ public class DConnectWebServerNanoHttpd {
             mConfig.mPort = port;
             return this;
         }
-
+        /**
+         * SSL 有効化を設定します.
+         *
+         * @param ssl SSLを有効にする場合はtrue、それ以外はfalse
+         * @return Builder
+         */
+        public Builder ssl(final boolean ssl) {
+            mConfig.mSSL = ssl;
+            return this;
+        }
         /**
          * CORS の許可するオリジンを設定します.
          *
@@ -901,6 +921,16 @@ public class DConnectWebServerNanoHttpd {
             return this;
         }
 
+        /**
+         * SSL用の ServerSocket を作成するファクトリークラスを設定します.
+         *
+         * @param factory SSL用の ServerSocket を作成するファクトリークラス
+         * @return Builder
+         */
+        public Builder serverSocketFactory(SSLServerSocketFactory factory) {
+            mConfig.mServerSocketFactory = factory;
+            return this;
+        }
         /**
          * {@link DConnectWebServerNanoHttpd} のインスタンスを作成します.
          *

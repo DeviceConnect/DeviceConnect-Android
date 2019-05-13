@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.profile.api;
 
+import org.deviceconnect.android.profile.spec.models.Method;
+
 /**
  * Device Connect APIクラス (PUTメソッド).
  * @author NTT DOCOMO, INC.

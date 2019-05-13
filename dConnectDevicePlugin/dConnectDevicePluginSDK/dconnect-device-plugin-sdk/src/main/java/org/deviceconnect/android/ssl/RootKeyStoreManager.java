@@ -61,11 +61,13 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
      * @param context コンテキスト
      * @param subjectName 証明書のサブジェクト名
      * @param keyStoreFileName キーストアのファイル名
+     * @param keyStorePassword キーストアのパスワード
      */
     RootKeyStoreManager(final Context context,
                         final String subjectName,
-                        final String keyStoreFileName) {
-        super(context, keyStoreFileName);
+                        final String keyStoreFileName,
+                        final String keyStorePassword) {
+        super(context, keyStoreFileName, keyStorePassword);
         mSubjectName = subjectName;
 
         // Java Cryptography Architectureの乱数種に関するセキュリティ問題への対処.
@@ -74,40 +76,37 @@ class RootKeyStoreManager extends AbstractKeyStoreManager implements KeyStoreMan
 
     @Override
     public void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                Certificate cert = null;
-                try {
-                    cert = mKeyStore.getCertificate(ipAddress);
-                    if (cert != null) {
-                        callback.onSuccess(mKeyStore, cert, cert);
-                        return;
-                    }
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info("Generating self-signed server certificate...");
-                    }
-                    cert = generateSelfSignedCertificate();
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info("Generated self-signed server certificate...");
-                    }
-                } catch (KeyStoreException e) {
-                    mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
-                    callback.onError(KeyStoreError.BROKEN_KEYSTORE);
-                    return;
-                } catch (GeneralSecurityException e) {
-                    mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
-                    callback.onError(KeyStoreError.UNSUPPORTED_KEYSTORE_FORMAT);
-                    return;
-                }
-
-                try {
-                    saveKeyStore();
+        mExecutor.execute(() -> {
+            Certificate cert;
+            try {
+                cert = mKeyStore.getCertificate(ipAddress);
+                if (cert != null) {
                     callback.onSuccess(mKeyStore, cert, cert);
-                } catch (Exception e) {
-                    mLogger.log(Level.SEVERE, "Failed to save self-signed server certificate.", e);
-                    callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
+                    return;
                 }
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Generating self-signed server certificate...");
+                }
+                cert = generateSelfSignedCertificate();
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Generated self-signed server certificate...");
+                }
+            } catch (KeyStoreException e) {
+                mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
+                callback.onError(KeyStoreError.BROKEN_KEYSTORE);
+                return;
+            } catch (GeneralSecurityException e) {
+                mLogger.log(Level.SEVERE, "Failed to generate self-signed server certificate.", e);
+                callback.onError(KeyStoreError.UNSUPPORTED_KEYSTORE_FORMAT);
+                return;
+            }
+
+            try {
+                saveKeyStore();
+                callback.onSuccess(mKeyStore, cert, cert);
+            } catch (Exception e) {
+                mLogger.log(Level.SEVERE, "Failed to save self-signed server certificate.", e);
+                callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
             }
         });
     }

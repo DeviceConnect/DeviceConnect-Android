@@ -57,9 +57,9 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     private static final String KEYSTORE_TYPE = "PKCS12";
 
     /**
-     * キーストアのパスワード.
+     * ロガー.
      */
-    private static final char[] KEYSTORE_PASSWORD = "0000".toCharArray();
+    private final Logger mLogger = Logger.getLogger("LocalCA");
 
     /**
      * コンテキスト.
@@ -77,23 +77,25 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     private final String mKeyStoreFilePath;
 
     /**
-     * ロガー.
+     * キーストアのパスワード.
      */
-    private final Logger mLogger = Logger.getLogger("LocalCA");
+    private final String mKeyStorePassword;
 
     /**
      * コンストラクタ.
      *
      * @param context コンテキスト
      * @param keyStorePath キーストアの保存先となるファイルパス
+     * @param keyStorePassword パスワード
      */
-    AbstractKeyStoreManager(final Context context, final String keyStorePath) {
+    AbstractKeyStoreManager(final Context context, final String keyStorePath, final String keyStorePassword) {
         mContext = context;
         mKeyStoreFilePath = keyStorePath;
+        mKeyStorePassword = keyStorePassword;
         try {
             mKeyStore = createKeyStore();
         } catch (GeneralSecurityException e) {
-            // NOTE: PKCS12 は　API Level 1 からサポートされている. よって、ここには入らない.
+            // NOTE: PKCS12 は API Level 1 からサポートされている. よって、ここには入らない.
             throw new IllegalStateException(KEYSTORE_TYPE + " is not supported.", e);
         }
         boolean isSavedKeyStore = isSavedKeyStore();
@@ -142,7 +144,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     private KeyStore createKeyStore() throws GeneralSecurityException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         try {
-            keyStore.load(null, KEYSTORE_PASSWORD);
+            keyStore.load(null, mKeyStorePassword.toCharArray());
         } catch (IOException e) {
             throw new GeneralSecurityException("Unable to create empty keyStore", e);
         }
@@ -151,7 +153,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
 
     PrivateKey getPrivateKey(final String alias) {
         try {
-            KeyStore.Entry entry = mKeyStore.getEntry(alias, new KeyStore.PasswordProtection(KEYSTORE_PASSWORD));
+            KeyStore.Entry entry = mKeyStore.getEntry(alias, new KeyStore.PasswordProtection(mKeyStorePassword.toCharArray()));
             if (entry instanceof KeyStore.PrivateKeyEntry) {
                 KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) entry;
                 return privateKeyEntry.getPrivateKey();
@@ -168,7 +170,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     }
 
     private void loadKeyStore() throws IOException, NoSuchAlgorithmException, CertificateException {
-        mKeyStore.load(mContext.openFileInput(mKeyStoreFilePath), KEYSTORE_PASSWORD);
+        mKeyStore.load(mContext.openFileInput(mKeyStoreFilePath), mKeyStorePassword.toCharArray());
     }
 
     void saveKeyStore() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
@@ -176,7 +178,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     }
 
     private void saveKeyStore(final OutputStream out) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-        mKeyStore.store(out, KEYSTORE_PASSWORD);
+        mKeyStore.store(out, mKeyStorePassword.toCharArray());
     }
 
     private X509Certificate generateX509V3Certificate(final KeyPair keyPair,

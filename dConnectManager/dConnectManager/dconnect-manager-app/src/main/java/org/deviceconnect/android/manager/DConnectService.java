@@ -145,7 +145,6 @@ public class DConnectService extends Service {
                 return SettingActivity.class;
             }
         };
-        mManager.initDConnect();
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {
             startInternal();
@@ -187,7 +186,6 @@ public class DConnectService extends Service {
     @Override
     public void onDestroy() {
         stopInternal();
-        mManager.finalizeDConnect();
         mManager = null;
         super.onDestroy();
     }
@@ -439,7 +437,7 @@ public class DConnectService extends Service {
                 throw new IOException("Failed to create dir for keystore export: path = " + dirPath);
             }
         }
-        mManager.getKeyStoreManager().exportKeyStore(new File(dir, "keystore.p12"));
+        mManager.exportKeyStore(new File(dir, "keystore.p12"));
     }
 
     /**
@@ -474,7 +472,7 @@ public class DConnectService extends Service {
      */
     public void installRootCertificate() {
         String ipAddress = DConnectUtil.getIPAddress(getApplicationContext());
-        mManager.getKeyStoreManager().requestKeyStore(ipAddress, new KeyStoreCallback() {
+        mManager.requestKeyStore(ipAddress, new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
                 try {

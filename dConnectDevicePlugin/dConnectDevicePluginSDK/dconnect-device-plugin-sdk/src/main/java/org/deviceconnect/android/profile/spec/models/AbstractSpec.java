@@ -105,13 +105,21 @@ public abstract class AbstractSpec implements DConnectSpec {
                 if (format == null || format == DataFormat.INT32) {
                     int[] enums = new int[objects.size()];
                     for (int i = 0; i < objects.size(); i++) {
-                        enums[i] = ((Number) objects.get(i)).intValue();
+                        if (objects.get(i) instanceof Number) {
+                            enums[i] = ((Number) objects.get(i)).intValue();
+                        } else if (objects.get(i) instanceof String) {
+                            enums[i] = Integer.valueOf((String) objects.get(i));
+                        }
                     }
                     bundle.putIntArray("enum", enums);
                 } else if (format == DataFormat.INT64) {
                     long[] enums = new long[objects.size()];
                     for (int i = 0; i < objects.size(); i++) {
-                        enums[i] = ((Number) objects.get(i)).longValue();
+                        if (objects.get(i) instanceof Number) {
+                            enums[i] = ((Number) objects.get(i)).longValue();
+                        } else if (objects.get(i) instanceof String) {
+                            enums[i] = Long.valueOf((String) objects.get(i));
+                        }
                     }
                     bundle.putLongArray("enum", enums);
                 } else {
@@ -122,13 +130,21 @@ public abstract class AbstractSpec implements DConnectSpec {
                 if (format == null || format == DataFormat.FLOAT) {
                     float[] enums = new float[objects.size()];
                     for (int i = 0; i < objects.size(); i++) {
-                        enums[i] = ((Number) objects.get(i)).floatValue();
+                        if (objects.get(i) instanceof Number) {
+                            enums[i] = ((Number) objects.get(i)).floatValue();
+                        } else if (objects.get(i) instanceof String) {
+                            enums[i] = Float.valueOf((String) objects.get(i));
+                        }
                     }
                     bundle.putFloatArray("enum", enums);
                 } else if (format == DataFormat.DOUBLE) {
                     double[] enums = new double[objects.size()];
                     for (int i = 0; i < objects.size(); i++) {
-                        enums[i] = ((Number) objects.get(i)).doubleValue();
+                        if (objects.get(i) instanceof Number) {
+                            enums[i] = ((Number) objects.get(i)).doubleValue();
+                        } else if (objects.get(i) instanceof String) {
+                            enums[i] = Double.valueOf((String) objects.get(i));
+                        }
                     }
                     bundle.putDoubleArray("enum", enums);
                 } else {
@@ -138,14 +154,18 @@ public abstract class AbstractSpec implements DConnectSpec {
             case STRING: {
                 String[] enums = new String[objects.size()];
                 for (int i = 0; i < objects.size(); i++) {
-                    enums[i] = (String) objects.get(i);
+                    enums[i] = String.valueOf(objects.get(i));
                 }
                 bundle.putStringArray("enum", enums);
             }   break;
             case BOOLEAN: {
                 boolean[] enums = new boolean[objects.size()];
                 for (int i = 0; i < objects.size(); i++) {
-                    enums[i] = (boolean) objects.get(i);
+                    if (objects.get(i) instanceof String) {
+                        enums[i] = Boolean.valueOf((String) objects.get(i));
+                    } else if (objects.get(i) instanceof Boolean) {
+                        enums[i] = (boolean) objects.get(i);
+                    }
                 }
                 bundle.putBooleanArray("enum", enums);
             }   break;

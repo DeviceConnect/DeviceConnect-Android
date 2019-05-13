@@ -1,0 +1,10 @@
+{
+  "swagger": "2.0",
+  "basePath": "/invalidJson/test",
+  "info": {
+    "title": "Invalid JSON Test Profile",
+    "version": "1.0"
+    "description": "Invalid JSON Test Description"
+  },
+  "paths": {}
+}

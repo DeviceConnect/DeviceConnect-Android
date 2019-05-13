@@ -20,6 +20,7 @@ import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.request.DConnectRequest;
 import org.deviceconnect.android.manager.core.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -134,7 +135,9 @@ public class DConnectSystemProfile extends SystemProfile {
                 @Override
                 public void run() {
                     if (mInterface == null || mInterface.getKeywordActivityClass() == null) {
-                        throw new RuntimeException("DConnectInterface is not set.");
+                        MessageUtils.setNotSupportAttributeError(response, "mInterface is not set.");
+                        sendResponse(response);
+                        return;
                     }
 
                     // リクエストコードを作成する

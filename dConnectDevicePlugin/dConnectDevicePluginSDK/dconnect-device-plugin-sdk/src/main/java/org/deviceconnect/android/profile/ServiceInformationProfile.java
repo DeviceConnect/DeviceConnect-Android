@@ -14,8 +14,12 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
-import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
-import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
+import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
+import org.deviceconnect.android.profile.spec.models.Method;
+import org.deviceconnect.android.profile.spec.models.Path;
+import org.deviceconnect.android.profile.spec.models.Paths;
+import org.deviceconnect.android.profile.spec.models.Swagger;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
@@ -103,12 +107,11 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
         // supports, supportApis
         List<DConnectProfile> profileList = getService().getProfileList();
         String[] profileNames = new String[profileList.size()];
-        int i = 0;
-        for (DConnectProfile profile : profileList) {
-            profileNames[i++] = profile.getProfileName();
+        for (int i = 0; i < profileList.size(); i++) {
+            profileNames[i] = profileList.get(i).getProfileName();
         }
         setSupports(response, profileNames);
-        setSupportApis(response, profileList);
+        setSupportApis(response, getService());
 
         setResult(response, DConnectMessage.RESULT_OK);
     }
@@ -193,7 +196,6 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
-     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final String[] supports) {
         response.putExtra(PARAM_SUPPORTS, supports);
@@ -206,60 +208,62 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
      * @param supports サポートしているI/F一覧
      */
     public static void setSupports(final Intent response, final List<String> supports) {
-        setSupports(response, supports.toArray(new String[supports.size()]));
+        setSupports(response, supports.toArray(new String[0]));
     }
 
-    public static void setSupportApis(final Intent response, final List<DConnectProfile> profileList) {
+    /**
+     * サポートしているプロファイルの API リストをレスポンスに格納します.
+     *
+     * @param response サポートしているプロファイルの API を格納するレスポンス
+     * @param service プロファイルリスト
+     */
+    public static void setSupportApis(final Intent response, final DConnectService service) {
+        List<DConnectProfile> profileList = service.getProfileList();
+        DConnectServiceSpec spec = service.getServiceSpec();
+
         Bundle supportApisBundle = new Bundle();
-        for (final DConnectProfile profile : profileList) {
-            DConnectProfileSpec profileSpec = profile.getProfileSpec();
-            if (profileSpec != null) {
-                Bundle bundle = createSupportApisBundle(profileSpec, profile);
-
-                // 送信しない情報はここで削除.
-                reduceInformation(bundle);
-
-                supportApisBundle.putBundle(profile.getProfileName(), bundle);
+        for (DConnectProfile profile : profileList) {
+            Swagger swagger = spec.findProfileSpec(profile.getProfileName());
+            if (swagger != null) {
+                setSupportApiSpec(swagger, profile);
+                supportApisBundle.putParcelable(profile.getProfileName(), reduceInformation(swagger.toBundle()));
             }
         }
         response.putExtra(PARAM_SUPPORT_APIS, supportApisBundle);
     }
 
-    private static Bundle createSupportApisBundle(final DConnectProfileSpec profileSpec,
-                                                  final DConnectProfile profile) {
-        Bundle tmpBundle = new Bundle(profileSpec.toBundle());
-        Bundle pathsObj = tmpBundle.getBundle(KEY_PATHS);
-        if (pathsObj == null) {
-            return tmpBundle;
-        }
-        List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
-        for (String pathName : pathNames) {
-            Bundle pathObj = pathsObj.getBundle(pathName);
-            if (pathObj == null) {
-                continue;
-            }
-            for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
-                String methodName = method.getName().toLowerCase();
-                Bundle methodObj = pathObj.getBundle(methodName);
-                if (methodObj == null) {
+    private static void setSupportApiSpec(Swagger swagger, DConnectProfile profile) {
+        Paths paths = swagger.getPaths();
+        for (String pathName : paths.getKeySet()) {
+            for (Method method : Method.values()) {
+                Path path = paths.getPath(pathName);
+                if (path == null) {
                     continue;
                 }
+
                 if (!profile.hasApi(pathName, method)) {
-                    pathObj.remove(methodName);
+                    // API がサポートされていないので削除
+                    path.setOperation(method, null);
                 }
             }
-            if (pathObj.size() == 0) {
-                pathsObj.remove(pathName);
-            }
         }
-        return tmpBundle;
     }
 
-    private static void reduceInformation(final Bundle supportApi) {
+    /**
+     * プロファイル定義ファイルから不要な情報を削除します.
+     *
+     * <p>
+     * Intent に格納して送信できるサイズに上限があるために、不要な情報は削除しています。
+     * </p>
+     *
+     * @param supportApi サポートしているAPIを格納したBundle
+     */
+    private static Bundle reduceInformation(final Bundle supportApi) {
         Bundle infoObj = supportApi.getBundle(KEY_INFO);
         if (infoObj != null) {
             infoObj.remove(KEY_DESCRIPTION);
         }
+
         Bundle pathsObj = supportApi.getBundle(KEY_PATHS);
         if (pathsObj != null) {
             List<String> pathNames = new ArrayList<String>(pathsObj.keySet());
@@ -268,7 +272,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
                 if (pathObj == null) {
                     continue;
                 }
-                for (DConnectSpecConstants.Method method : DConnectSpecConstants.Method.values()) {
+                for (Method method : Method.values()) {
                     String methodName = method.getName().toLowerCase();
                     Bundle methodObj = pathObj.getBundle(methodName);
                     if (methodObj == null) {
@@ -289,6 +293,7 @@ public class ServiceInformationProfile extends DConnectProfile implements Servic
             }
         }
         supportApi.remove(KEY_DEFINITIONS);
+        return supportApi;
     }
 
     /**

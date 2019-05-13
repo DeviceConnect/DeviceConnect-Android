@@ -264,7 +264,13 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
             if (checkRequestAction(action)) {
                 // Device Connect リクエストの互換性を持たせるためにコンバートします
                 MessageConverterHelper.convert(message);
-                onRequest(message, MessageUtils.createResponseIntent(message));
+                Intent response = MessageUtils.createResponseIntent(message);
+                try {
+                    onRequest(message, response);
+                } catch (Throwable t) {
+                    MessageUtils.setUnknownError(response, t.getMessage());
+                    sendResponse(response);
+                }
             } else if (checkManagerUninstall(message)) {
                 onManagerUninstalled();
             } else if (checkManagerLaunched(action)) {
@@ -580,16 +586,16 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
                 }
                 return false;
             }
-            mContext.sendBroadcast(intent);
-            return true;
         }
 
         try {
             mIDConnectCallback.sendMessage(intent);
+            return true;
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 mLogger.severe("sendMessage: exception occurred.");
             }
+            return false;
         }
     }
 

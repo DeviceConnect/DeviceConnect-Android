@@ -15,7 +15,6 @@ import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -159,6 +158,10 @@ public class DConnectServiceManager implements DConnectServiceProvider, DConnect
 
     @Override
     public void addServiceListener(final DConnectServiceListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+
         synchronized (mServiceListeners) {
             if (!mServiceListeners.contains(listener)) {
                 mServiceListeners.add(listener);
@@ -168,13 +171,12 @@ public class DConnectServiceManager implements DConnectServiceProvider, DConnect
 
     @Override
     public void removeServiceListener(final DConnectServiceListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener is null.");
+        }
+
         synchronized (mServiceListeners) {
-            for (Iterator<DConnectServiceListener> it = mServiceListeners.iterator(); ; it.hasNext()) {
-                if (it.next() == listener) {
-                    it.remove();
-                    break;
-                }
-            }
+            mServiceListeners.remove(listener);
         }
     }
 

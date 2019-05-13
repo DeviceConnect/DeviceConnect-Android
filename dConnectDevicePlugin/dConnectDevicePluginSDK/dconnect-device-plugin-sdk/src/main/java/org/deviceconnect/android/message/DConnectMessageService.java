@@ -122,6 +122,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             // プラグインコンテキストが作成できなかったので終了
             mLogger.severe("Failed to create a plugin context.");
             stopSelf();
+            return;
         }
 
         registerReceiver();
@@ -513,12 +514,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private void handleMessage(final Intent message) {
         if (isCurrentMainThread()) {
-            mExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (mPluginContext != null) {
-                        mPluginContext.handleMessage(message);
-                    }
+            mExecutorService.execute(() -> {
+                if (mPluginContext != null) {
+                    mPluginContext.handleMessage(message);
                 }
             });
         } else {
@@ -661,7 +659,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     /**
      * Service をバインドするためのクラス.
      * <p>
-     * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity}で、
+     * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity} で、
      * サービス一覧をを取得するためにバインドされる。
      * </p>
      */

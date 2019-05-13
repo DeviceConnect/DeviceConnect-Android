@@ -136,6 +136,7 @@ public abstract class DConnectManager implements DConnectInterface {
         if (settings == null) {
             throw new IllegalArgumentException("settings is null.");
         }
+
         setupLogger("dconnect.manager");
         setupLogger("dconnect.server");
         setupLogger("mixed-replace-media");
@@ -161,6 +162,21 @@ public abstract class DConnectManager implements DConnectInterface {
                 }
             }
         });
+    }
+
+    private void setupLogger(final String name) {
+        Logger logger = Logger.getLogger(name);
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
+        } else {
+            logger.setLevel(Level.OFF);
+            logger.setFilter((record) -> false);
+        }
     }
 
     /**
@@ -568,7 +584,8 @@ public abstract class DConnectManager implements DConnectInterface {
             // KeyStoreが存在する場合には、SSLServerSocketFactoryを作成する
             SSLServerSocketFactory factory = null;
             if (keyStore != null) {
-                factory = createSSLServerSocketFactory(keyStore);
+                // TODO SSLのパスワードの管理をどうするべきか？
+                factory = createSSLServerSocketFactory(keyStore, mSettings.getSSLPassword());
             }
 
             mRESTServer = new DConnectServerNanoHttpd(builder.build(), getContext(), factory);
@@ -805,10 +822,10 @@ public abstract class DConnectManager implements DConnectInterface {
      * @return SSLServerSocketFactoryのインスタンス
      * @throws GeneralSecurityException SSLServerSocketFactoryの作成に失敗した場合に発生
      */
-    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore) throws GeneralSecurityException {
+    private SSLServerSocketFactory createSSLServerSocketFactory(final KeyStore keyStore, final String password) throws GeneralSecurityException {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        keyManagerFactory.init(keyStore, password.toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
         sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());

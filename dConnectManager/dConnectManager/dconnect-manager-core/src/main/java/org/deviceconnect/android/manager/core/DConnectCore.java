@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.core;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.deviceconnect.android.IDConnectCallback;
@@ -24,7 +23,6 @@ import org.deviceconnect.android.manager.core.plugin.ConnectionState;
 import org.deviceconnect.android.manager.core.plugin.DefaultConnectionFactory;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
-import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.plugin.PluginDetectionException;
 import org.deviceconnect.android.manager.core.policy.OriginValidator;
 import org.deviceconnect.android.manager.core.profile.AuthorizationProfile;
@@ -44,7 +42,6 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -241,6 +238,7 @@ public class DConnectCore extends DevicePluginContext {
     public String[] getIgnoredProfiles() {
         return DConnectLocalOAuth.IGNORE_PROFILES;
     }
+
     /**
      * DConnectSettings のインスタンスを取得します.
      *
@@ -267,6 +265,7 @@ public class DConnectCore extends DevicePluginContext {
     public DevicePluginManager getPluginManager() {
         return mPluginManager;
     }
+
     /**
      * リクエスト管理クラスを取得します.
      *
@@ -275,6 +274,7 @@ public class DConnectCore extends DevicePluginContext {
     public DConnectRequestManager getRequestManager() {
         return mRequestManager;
     }
+
     /**
      * イベント配送クラスを取得します.
      *
@@ -307,6 +307,11 @@ public class DConnectCore extends DevicePluginContext {
         }
     }
 
+    /**
+     * {@link DConnectInterface} の実装クラスを設定します.
+     *
+     * @param i インターフェース
+     */
     public void setDConnectInterface(final DConnectInterface i) {
         DConnectSystemProfile systemProfile = (DConnectSystemProfile) getProfile(SystemProfileConstants.PROFILE_NAME);
         if (systemProfile != null) {
@@ -314,7 +319,6 @@ public class DConnectCore extends DevicePluginContext {
         }
         mKeepAliveManager.setDConnectInterface(i);
         mRequestManager.setDConnectInterface(i);
-
     }
 
     /**
@@ -405,81 +409,35 @@ public class DConnectCore extends DevicePluginContext {
     }
 
     /**
-     * 全デバイスプラグインに対して、Device Connect Managerのライフサイクルについての通知を行う.
+     * 全デバイスプラグインに対して、Device Connect Manager の起動通知を行う.
      */
-    private void sendManagerEvent(final String action, final Bundle extras) {
+    private void sendLaunchedEvent() {
         List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
-        List<DevicePlugin> skipped = new ArrayList<>();
         for (DevicePlugin plugin : plugins) {
-            if (!plugin.isEnabled()) {
-                skipped.add(plugin);
-                continue;
-            }
-            if (plugin.getPluginId() != null) {
-                Intent request = new Intent(action);
-                request.setComponent(plugin.getComponentName());
-                if (extras != null) {
-                    request.putExtras(extras);
-                }
-                request.putExtra("pluginId", plugin.getPluginId());
-                sendMessage(plugin, request);
-            }
-        }
-        if (BuildConfig.DEBUG) {
-            String message = "Skipped sending " + action + ": " + skipped.size() + " plugin(s)";
-            if (skipped.size() > 0) {
-                message += " below\n" + skipped;
-            }
-            mLogger.info(message);
+            plugin.sendLaunchedEvent();
         }
     }
 
     /**
-     * Device Connect Manager のライフサイクルイベントを全てのプラグインに送信します.
-     *
-     * @param action アクション
+     * 全デバイスプラグインに対して、Device Connect Manager の終了通知を行う.
      */
-    private void sendManagerEvent(final String action) {
-        sendManagerEvent(action, null);
-    }
-
-    /**
-     * プラグインに対してメッセージを送信します.
-     *
-     * @param plugin  プラグイン
-     * @param message メッセージ
-     */
-    private void sendMessage(final DevicePlugin plugin, final Intent message) {
-        try {
-            plugin.send(message);
-        } catch (MessagingException e) {
-            mLogger.warning("Failed to send event: action = " + message.getAction() + ", destination = " + plugin.getComponentName());
+    private void sendTerminatedEvent() {
+        List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            plugin.sendTerminatedEvent();
         }
     }
 
     /**
-     * WebSocket の切断イベントを送信します.
+     * 全デバイスプラグインに対して、WebSocket の切断イベントを送信します.
      *
      * @param origin 切断されたWebSocketのオリジン
      */
-    public void sendTransmitDisconnectEvent(final String origin) {
-        Bundle extras = new Bundle();
-        extras.putString(IntentDConnectMessage.EXTRA_ORIGIN, origin);
-        sendManagerEvent(IntentDConnectMessage.ACTION_EVENT_TRANSMIT_DISCONNECT, extras);
-    }
-
-    /**
-     * 全デバイスプラグインに対して、Device Connect Manager起動通知を行う.
-     */
-    private void sendLaunchedEvent() {
-        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_LAUNCHED);
-    }
-
-    /**
-     * 全デバイスプラグインに対して、Device Connect Manager終了通知を行う.
-     */
-    private void sendTerminatedEvent() {
-        sendManagerEvent(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+    void sendTransmitDisconnectEvent(final String origin) {
+        List<DevicePlugin> plugins = mPluginManager.getDevicePlugins();
+        for (DevicePlugin plugin : plugins) {
+            plugin.sendTransmitDisconnectEvent(origin);
+        }
     }
 
     @Override
@@ -630,7 +588,6 @@ public class DConnectCore extends DevicePluginContext {
         mConverterHelper.convertResponseMessage(intent);
         return intent;
     }
-
 
     /**
      * 指定されたアクセストークンのOriginを取得する.

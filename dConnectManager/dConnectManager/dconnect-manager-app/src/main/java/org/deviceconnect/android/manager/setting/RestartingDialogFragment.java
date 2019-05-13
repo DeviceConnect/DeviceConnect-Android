@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.setting;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -21,11 +20,8 @@ import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.plugin.PluginDetectionException;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
-
-import static org.deviceconnect.android.manager.core.plugin.PluginDetectionException.Reason.TOO_MANY_PACKAGES;
 
 /**
  * デバイスプラグインの再起動要求中ダイアログ.
@@ -87,15 +83,7 @@ public class RestartingDialogFragment extends DialogFragment {
                 for (DevicePlugin plugin : plugins) {
                     if (plugin.isEnabled() && plugin.getPluginId() != null) {
                         if (packageName == null || packageName.equals(plugin.getPackageName())) {
-                            Intent request = new Intent();
-                            request.setComponent(plugin.getComponentName());
-                            request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-                            request.putExtra("pluginId", plugin.getPluginId());
-                            try {
-                                plugin.send(request);
-                            } catch (MessagingException e) {
-                                showMessagingErrorDialog(activity, e);
-                            }
+                            plugin.sendResetDevicePlugin();
                         }
                     }
                 }

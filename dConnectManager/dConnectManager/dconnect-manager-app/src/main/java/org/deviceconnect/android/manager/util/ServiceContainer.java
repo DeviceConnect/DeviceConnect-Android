@@ -4,38 +4,13 @@ import android.graphics.drawable.Drawable;
 
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-/**
- * サービスの情報を格納するコンテナ.
- */
 public class ServiceContainer {
-    /**
-     * サービスID.
-     */
     private String mId;
-
-    /**
-     * サービス名.
-     */
     private String mName;
-
-    /**
-     * ネットワークタイプ.
-     */
     private ServiceDiscoveryProfileConstants.NetworkType mNetworkType;
-
-    /**
-     * オンライン状態.
-     */
     private boolean online;
-
-    /**
-     * サポートプロファイル.
-     */
     private String[] supports;
 
-    /**
-     * アイコン.
-     */
     private Drawable mDrawable;
 
     public String getId() {

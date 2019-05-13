@@ -27,8 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.net.ssl.SSLServerSocketFactory;
-
 import fi.iki.elonen.NanoHTTPD;
 
 /**
@@ -164,11 +162,6 @@ public class DConnectWebServerNanoHttpd {
             mCors = config.mCors;
             mRootDirs = new ArrayList<>(config.mDocRootList);
             mVersion = config.mVersion;
-
-            // SSLが有効になっている場合には、SSL用の設定を行う
-            if (mConfig.mSSL) {
-                mWebServer.makeSecure(mConfig.mServerSocketFactory, null);
-            }
 
             try {
                 mimeTypes();
@@ -828,17 +821,6 @@ public class DConnectWebServerNanoHttpd {
          * コンテキスト.
          */
         private Context mContext;
-
-        /**
-         * SSL.
-         */
-        private boolean mSSL;
-
-        /**
-         * SSLサーバーソケットファクトリ.
-         */
-        private SSLServerSocketFactory mServerSocketFactory;
-
     }
 
     /**
@@ -884,17 +866,6 @@ public class DConnectWebServerNanoHttpd {
         }
 
         /**
-         * SSL 有効化を設定します.
-         *
-         * @param ssl SSLを有効にする場合はtrue、それ以外はfalse
-         * @return Builder
-         */
-        public Builder ssl(final boolean ssl) {
-            mConfig.mSSL = ssl;
-            return this;
-        }
-
-        /**
          * CORS の許可するオリジンを設定します.
          *
          * @param cors 許可するオリジン
@@ -927,17 +898,6 @@ public class DConnectWebServerNanoHttpd {
          */
         public Builder addDocumentRoot(final String path) {
             mConfig.mDocRootList.add(path);
-            return this;
-        }
-
-        /**
-         * SSL用の ServerSocket を作成するファクトリークラスを設定します.
-         *
-         * @param factory SSL用の ServerSocket を作成するファクトリークラス
-         * @return Builder
-         */
-        public Builder serverSocketFactory(SSLServerSocketFactory factory) {
-            mConfig.mServerSocketFactory = factory;
             return this;
         }
 

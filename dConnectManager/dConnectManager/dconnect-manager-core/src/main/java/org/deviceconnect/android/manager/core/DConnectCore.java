@@ -12,8 +12,11 @@ import android.content.Intent;
 import android.text.TextUtils;
 
 import org.deviceconnect.android.IDConnectCallback;
+import org.deviceconnect.android.compat.MessageConverter;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
-import org.deviceconnect.android.manager.core.compat.MessageConverterHelper;
+import org.deviceconnect.android.manager.core.compat.CompatibleRequestConverter;
+import org.deviceconnect.android.manager.core.compat.ServiceDiscoveryConverter;
+import org.deviceconnect.android.manager.core.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.core.event.AbstractEventSessionFactory;
 import org.deviceconnect.android.manager.core.event.EventBroker;
 import org.deviceconnect.android.manager.core.event.EventSessionTable;
@@ -122,9 +125,14 @@ public class DConnectCore extends DevicePluginContext {
     private DConnectProfile mDeliveryProfile;
 
     /**
-     * 互換性のために Device Connect メッセージを変換するクラス.
+     * リクエストのパスを変換するクラス群.
      */
-    private MessageConverterHelper mConverterHelper;
+    private MessageConverter[] mRequestConverters;
+
+    /**
+     * レスポンスのパスを変換するクラス群.
+     */
+    private MessageConverter[] mResponseConverters;
 
     /**
      * プラグインからの返答を受け取るコールバック.
@@ -221,7 +229,13 @@ public class DConnectCore extends DevicePluginContext {
         mDeliveryProfile.setPluginContext(this);
         mDeliveryProfile.setResponder(this);
 
-        mConverterHelper = new MessageConverterHelper(mPluginManager);
+        mRequestConverters = new MessageConverter[]{
+                new CompatibleRequestConverter(getPluginManager())
+        };
+        mResponseConverters = new MessageConverter[]{
+                new ServiceDiscoveryConverter(),
+                new ServiceInformationConverter()
+        };
     }
 
     @Override
@@ -484,7 +498,7 @@ public class DConnectCore extends DevicePluginContext {
             case NOT_ALLOWED:
                 // NOTE: Local OAuth関連のAPIに対する特別措置
                 DConnectProfile profile = getProfile(profileName);
-                if (profile instanceof AuthorizationProfile) {
+                if (profile != null && profile instanceof AuthorizationProfile) {
                     ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
                 }
                 MessageUtils.setInvalidOriginError(response, "The specified origin is not allowed.");
@@ -509,12 +523,12 @@ public class DConnectCore extends DevicePluginContext {
 
         DConnectProfile profile = getProfile(request);
         if (profile != null && !isDeliveryRequest(request)) {
-            // Device Connect Manager へのリクエスト処理
             return profile.onRequest(request, response);
         } else {
-            // 各プラグインへのリクエスト処理
-            // XXXX パスの互換性を担保
-            mConverterHelper.convertRequestMessage(request);
+            //XXXX パスの互換性を担保
+            for (MessageConverter converter : mRequestConverters) {
+                converter.convert(request);
+            }
             return mDeliveryProfile.onRequest(request, response);
         }
     }
@@ -584,8 +598,10 @@ public class DConnectCore extends DevicePluginContext {
 
         intent.setComponent(cn);
 
-        // XXXX パスの互換性の担保
-        mConverterHelper.convertResponseMessage(intent);
+        //XXXX パスの互換性の担保
+        for (MessageConverter converter : mResponseConverters) {
+            converter.convert(intent);
+        }
         return intent;
     }
 

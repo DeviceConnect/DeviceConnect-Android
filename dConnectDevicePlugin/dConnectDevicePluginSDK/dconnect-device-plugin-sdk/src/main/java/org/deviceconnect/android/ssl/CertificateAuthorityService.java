@@ -22,15 +22,12 @@ import android.support.annotation.Nullable;
  */
 public abstract class CertificateAuthorityService extends Service {
 
-    /**
-     * ローカル認証局.
-     */
     private CertificateAuthority mLocalCA;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mLocalCA = new CertificateAuthority(getApplicationContext(), getIssuerName(), getKeyStoreFileName(), getKeyStorePassword());
+        mLocalCA = new CertificateAuthority(getApplicationContext(), getIssuerName(), getKeyStoreFileName());
     }
 
     @Nullable
@@ -50,31 +47,11 @@ public abstract class CertificateAuthorityService extends Service {
         };
     }
 
-    /**
-     * 証明書発行者の識別名を取得します.
-     *
-     * @return 証明書発行者の識別名
-     */
     protected String getIssuerName() {
         return "Device Connect Root CA";
     }
 
-    /**
-     * キーストアのファイル名を取得します.
-     *
-     * @return キーストアのファイル名
-     */
     protected String getKeyStoreFileName() {
         return "keystore.p12";
     }
-
-    /**
-     * キーストアのパスワードを取得します.
-     *
-     * @return キーストアのパスワード
-     */
-    protected String getKeyStorePassword() {
-        return "0000";
-    }
-
 }

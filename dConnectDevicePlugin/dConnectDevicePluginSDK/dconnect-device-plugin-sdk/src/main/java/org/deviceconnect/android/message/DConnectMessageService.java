@@ -27,6 +27,7 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
@@ -280,6 +281,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     public final DConnectServiceProvider getServiceProvider() {
         return mPluginContext.getServiceProvider();
+    }
+
+    /**
+     * プラグインが持っているプロファイルの仕様を取得します.
+     *
+     * @return プロファイルのサービス仕様
+     */
+    public final DConnectPluginSpec getPluginSpec() {
+        return mPluginContext.getPluginSpec();
     }
 
     /**

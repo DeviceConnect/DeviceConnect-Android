@@ -16,10 +16,9 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
-import org.deviceconnect.android.profile.spec.OpenAPIValidator;
-import org.deviceconnect.android.profile.spec.models.Method;
-import org.deviceconnect.android.profile.spec.models.Swagger;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectSpecConstants;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -41,7 +40,7 @@ import java.util.logging.Logger;
  *
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectProfile implements DConnectProfileConstants {
+public abstract class DConnectProfile implements DConnectProfileConstants, DConnectSpecConstants {
     /**
      * バッファサイズを定義.
      */
@@ -66,6 +65,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * DeviceConnectサービス.
      */
     private DConnectService mService;
+
+    /**
+     * Device Connect API 仕様定義リスト.
+     */
+    private DConnectProfileSpec mProfileSpec;
 
     /**
      * レスポンスを返却するためのインターフェース.
@@ -102,6 +106,12 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         Method method = Method.fromAction(action);
         if (method == null) {
             return null;
+        }
+        if (mProfileSpec != null && mProfileSpec.getApiName() != null) {
+            // XXXX パスの大文字小文字を無視
+            if (!mProfileSpec.getApiName().equalsIgnoreCase(getApi(request))) {
+                return null;
+            }
         }
         String path = getApiPath(request);
         return findApi(path, method);
@@ -193,11 +203,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * @return プロファイル仕様がある場合はtrue、それ以外はfalse
      */
     private boolean isKnownPath(final Intent request) {
-        DConnectService service = getService();
-        if (service != null) {
-            return service.getServiceSpec().findPathSpec(request) != null;
-        }
-        return false;
+        String path = getApiPath(request);
+        return mProfileSpec != null && mProfileSpec.findApiSpecs(path) != null;
     }
 
     /**
@@ -207,11 +214,13 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * @return プロファイル仕様がある場合はtrue、それ以外はfalse
      */
     private boolean isKnownMethod(final Intent request) {
-        DConnectService service = getService();
-        if (service != null) {
-            return service.getServiceSpec().findOperationSpec(request) != null;
+        String action = request.getAction();
+        Method method = Method.fromAction(action);
+        if (method == null) {
+            return false;
         }
-        return false;
+        String path = getApiPath(request);
+        return mProfileSpec != null && mProfileSpec.findApiSpec(path, method) != null;
     }
 
     /**
@@ -222,37 +231,10 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     public abstract String getProfileName();
 
     /**
-     * リクエストのパラメータの妥当性を確認します.
-     *
-     * <p>
-     * プロファイル定義が存在しない場合は、パラメータのチェックが
-     * できないので妥当として true を返却します。
-     * </p>
-     *
-     * @param request リクエスト
-     * @return 妥当な場合はtrue、それ以外はfalse
-     */
-    private boolean validateRequest(final Intent request) {
-        DConnectService service = getService();
-        if (service != null) {
-            DConnectServiceSpec spec = service.getServiceSpec();
-            if (spec != null) {
-                Swagger swagger = spec.findProfileSpec(getProfile(request));
-                if (swagger != null) {
-                    return OpenAPIValidator.validate(swagger, request);
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * RESPONSEメソッドハンドラー.
-     *
-     * <p>
+     * RESPONSEメソッドハンドラー.<br>
+     * リクエストされたAPIが実装されていて、かつ、パラメータが正常な場合は
      * {@link DConnectApi#onRequest(Intent, Intent)}を実行する.
      * そうでない場合は、即座にエラーレスポンスを送信する.
-     * </p>
      *
      * @param request  リクエストパラメータ
      * @param response レスポンスパラメータ
@@ -261,10 +243,12 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     public boolean onRequest(final Intent request, final Intent response) {
         DConnectApi api = findApi(request);
         if (api != null) {
-            if (!validateRequest(request)) {
-                // API 定義ファイルでパラメータエラーとなった
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
+            DConnectApiSpec spec = api.getApiSpec();
+            if (spec != null) {
+                if (!spec.validate(request)) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
             }
             return api.onRequest(request, response);
         } else {
@@ -281,34 +265,11 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         }
     }
 
-    /**
-     * Local OAuth の有効・無効の状態を取得します.
-     * <p>
-     * プラグインに設定されていない場合には、false を返却します。
-     * </p>
-     * @return 有効になっている場合はtrue、それ以外はfalse
-     */
     protected boolean isUseLocalOAuth() {
-        if (mPluginContext == null) {
-            // TODO 例外の方が良いか検討
-            return false;
-        }
         return mPluginContext.isUseLocalOAuth();
     }
 
-    /**
-     * 指定されたプロファイルが Local OAuth の判定に入るか確認します.
-     * <p>
-     * プラグインに設定されていない場合には、false を返却します。
-     * </p>
-     * @param profileName プロファイル名
-     * @return Local OAuth の範囲に入る場合はtrue、それ以外はfalse
-     */
     protected boolean isIgnoredProfile(final String profileName) {
-        if (mPluginContext == null) {
-            // TODO 例外の方が良いか検討
-            return false;
-        }
         return mPluginContext.isIgnoredProfile(profileName);
     }
 
@@ -376,6 +337,22 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     }
 
     /**
+     * Device Connect API 仕様定義リストを設定する.
+     *
+     * @param profileSpec API 仕様定義リスト
+     */
+    public void setProfileSpec(final DConnectProfileSpec profileSpec) {
+        mProfileSpec = profileSpec;
+        for (DConnectApi api : getApiList()) {
+            String path = createPath(api);
+            DConnectApiSpec spec = profileSpec.findApiSpec(path, api.getMethod());
+            if (spec != null) {
+                api.setApiSpec(spec);
+            }
+        }
+    }
+
+    /**
      * DConnectApi からパスを作成します.
      *
      * @param api api
@@ -394,6 +371,15 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
             path.append(attributeName);
         }
         return path.toString();
+    }
+
+    /**
+     * Device Connect API 仕様定義リストを取得する.
+     *
+     * @return API 仕様定義リスト
+     */
+    public DConnectProfileSpec getProfileSpec() {
+        return mProfileSpec;
     }
 
     /**
@@ -1049,14 +1035,14 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         /**
          * Device Connect Method.
          */
-        private final Method mMethod;
+        private final DConnectApiSpec.Method mMethod;
 
         /**
          * パス.
          */
         private final String mPath;
 
-        ApiIdentifier(final String path, final Method method) {
+        ApiIdentifier(final String path, final DConnectApiSpec.Method method) {
             if (path == null) {
                 throw new IllegalArgumentException("path is null.");
             }

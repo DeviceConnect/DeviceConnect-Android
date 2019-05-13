@@ -1,0 +1,170 @@
+{
+  "swagger": "2.0",
+  "basePath": "/myApi/test",
+  "paths": {
+    "/": {
+      "get": {
+        "x-type": "one-shot",
+        "parameters": [
+          {
+            "name": "booleanParam",
+            "in": "query",
+            "required": true,
+            "type": "boolean"
+          },
+          {
+            "name": "booleanParamWithEnum",
+            "in": "query",
+            "required": true,
+            "type": "boolean",
+            "enum": [true, false]
+          },
+          {
+            "name": "integerParam",
+            "in": "query",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "integerParamWithEnum",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "enum": [0, 1]
+          },
+          {
+            "name": "integerParamWithRange",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "maximum": 1,
+            "minimum": 0,
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true
+          },
+          {
+            "name": "integerParamFormatInt32",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "integerParamFormatInt64",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "numberParam",
+            "in": "query",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "numberParamWithEnum",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "enum": [0.5, 1.5]
+          },
+          {
+            "name": "numberParamWithRange",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "maximum": 1.5,
+            "minimum": 0.5,
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true
+          },
+          {
+            "name": "numberParamFormatFloat",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "format": "float"
+          },
+          {
+            "name": "numberParamFormatDouble",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "stringParam",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "stringParamWithEnum",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "enum": ["a", "b", "c"]
+          },
+          {
+            "name": "stringParamWithRange",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "maxLength": 1,
+            "minLength": 0
+          },
+          {
+            "name": "stringParamFormatText",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "text"
+          },
+          {
+            "name": "stringParamFormatByte",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "stringParamFormatBinary",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "binary"
+          },
+          {
+            "name": "stringParamFormatDate",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "stringParamFormatDateTime",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "stringParamFormatPassword",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "password"
+          },
+          {
+            "name": "stringParamFormatRGB",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "rgb"
+          }
+        ]
+      }
+    }
+  }
+}

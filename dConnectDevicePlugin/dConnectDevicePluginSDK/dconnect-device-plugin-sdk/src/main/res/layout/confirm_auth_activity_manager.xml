@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/linearLayoutFrame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/guidance_background"
+        android:background="@color/manager_guidance_background"
         android:orientation="vertical"
-        android:padding="4dp" >
+        android:padding="8dp">
 
         <TextView
             android:id="@+id/textViewExpirePeriod"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"/>
+
     </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/background" >
+        android:background="@color/background">
 
         <LinearLayout
             android:id="@+id/topApplicationInfo"
@@ -31,89 +33,98 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:orientation="horizontal"
-            android:padding="8dp" >
+            android:padding="8dp">
 
             <ImageView
                 android:id="@+id/imageViewApplicationIcon"
                 android:layout_width="@dimen/confirm_auth_application_marksize"
                 android:layout_height="@dimen/confirm_auth_application_marksize"
+                android:layout_gravity="center_vertical"
                 android:layout_marginRight="@dimen/confirm_auth_application_item_margin"
                 android:contentDescription="@string/image_description"
-                android:src="@android:drawable/ic_menu_share" />
+                android:src="@android:drawable/ic_menu_share"/>
 
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:columnCount="3">
+
                 <TextView
-                    android:layout_row="0"
-                    android:layout_column="0"
-                    android:layout_columnSpan="3"
                     android:id="@+id/textViewAccessToken"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_row="0"
+                    android:layout_column="0"
+                    android:layout_columnSpan="3"
                     android:layout_gravity="top"
-                    android:padding="2sp"
                     android:ellipsize="middle"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="@color/text_color"/>
+
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_row="1"
                     android:layout_column="0"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="2sp"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@color/text_color"
-                    android:textSize="12sp"
-                    android:text="@string/column_destination_package_name"/>
-                <TextView
-                    android:layout_row="1"
-                    android:layout_column="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="2sp"
-                    android:textColor="@color/text_color"
-                    android:textSize="12sp"
-                    android:text="@string/column_border" />
-                <TextView
-                    android:id="@+id/textPackageName"
-                    android:layout_row="1"
-                    android:layout_column="2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="2sp"
-                    android:ellipsize="middle"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
+                    android:text="@string/column_destination_package_name"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="@color/text_color"
                     android:textSize="12sp"/>
+
                 <TextView
-                    android:layout_row="2"
-                    android:layout_column="0"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="2sp"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@color/text_color"
-                    android:textSize="12sp"
-                    android:text="@string/column_keyword"/>
-                <TextView
-                    android:layout_row="2"
+                    android:layout_row="1"
                     android:layout_column="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="2sp"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
+                    android:text="@string/column_border"
                     android:textColor="@color/text_color"
-                    android:textSize="12sp"
-                    android:text="@string/column_border" />
+                    android:textSize="12sp"/>
+
                 <TextView
-                    android:id="@+id/textKeyword"
-                    android:layout_row="2"
-                    android:layout_column="2"
+                    android:id="@+id/textPackageName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="2sp"
+                    android:layout_row="1"
+                    android:layout_column="2"
                     android:ellipsize="middle"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="@color/text_color"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_row="2"
+                    android:layout_column="0"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
+                    android:text="@string/column_keyword"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="@color/text_color"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_row="2"
+                    android:layout_column="1"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
+                    android:text="@string/column_border"
+                    android:textColor="@color/text_color"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/textKeyword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_row="2"
+                    android:layout_column="2"
+                    android:ellipsize="middle"
+                    android:padding="@dimen/confirm_auth_application_text_padding"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="@color/text_color"
                     android:textSize="12sp"/>
@@ -128,7 +139,7 @@
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:text="@string/guidance_comfirm"
-            android:textColor="@android:color/darker_gray" />
+            android:textColor="@android:color/darker_gray"/>
 
         <LinearLayout
             android:id="@+id/bottomButton"
@@ -136,7 +147,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:padding="8dp"
-            android:splitMotionEvents="false" >
+            android:splitMotionEvents="false">
 
             <Button
                 android:id="@+id/buttonReject"
@@ -145,12 +156,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/confirm_auth_approval_button"
+                android:background="@drawable/confirm_auth_manager_button"
                 android:text="@string/notapproval"
                 android:textColor="@android:color/white">
-                <requestFocus />
-            </Button>
 
+                <requestFocus/>
+            </Button>
 
             <Button
                 android:id="@+id/buttonApproval"
@@ -159,9 +170,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/confirm_auth_approval_button"
+                android:background="@drawable/confirm_auth_manager_button"
                 android:text="@string/approval"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"/>
         </LinearLayout>
 
         <ListView
@@ -171,7 +182,7 @@
             android:layout_above="@id/bottomButton"
             android:layout_below="@id/textViewGuidance"
             android:layout_margin="@dimen/confirm_auth_inner_margin"
-            android:divider="@null" >
+            android:divider="@null">
         </ListView>
     </RelativeLayout>
 

@@ -123,6 +123,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             // プラグインコンテキストが作成できなかったので終了
             mLogger.severe("Failed to create a plugin context.");
             stopSelf();
+            return;
         }
 
         registerReceiver();
@@ -253,11 +254,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * プラグイン内で Web サーバを立ち上げて、Managerと同じ証明書を使いたい場合にはこのSSLContext を使用します。
      * </p>
      * @param keyStore キーストア
+     * @param password パスワード
      * @return SSLContextのインスタンス
      * @throws GeneralSecurityException SSLContextの作成に失敗した場合に発生
      */
-    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
-        return mPluginContext.createSSLContext(keyStore);
+    protected SSLContext createSSLContext(final KeyStore keyStore, final String password) throws GeneralSecurityException {
+        return mPluginContext.createSSLContext(keyStore, password);
     }
 
     /**
@@ -522,12 +524,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private void handleMessage(final Intent message) {
         if (isCurrentMainThread()) {
-            mExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (mPluginContext != null) {
-                        mPluginContext.handleMessage(message);
-                    }
+            mExecutorService.execute(() -> {
+                if (mPluginContext != null) {
+                    mPluginContext.handleMessage(message);
                 }
             });
         } else {
@@ -592,8 +591,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         @Override
-        public SSLContext createSSLContext(KeyStore keyStore) throws GeneralSecurityException {
-            return DConnectMessageService.this.createSSLContext(keyStore);
+        public SSLContext createSSLContext(KeyStore keyStore, String password) throws GeneralSecurityException {
+            return DConnectMessageService.this.createSSLContext(keyStore, password);
         }
 
         @Override
@@ -670,7 +669,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     /**
      * Service をバインドするためのクラス.
      * <p>
-     * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity}で、
+     * {@link org.deviceconnect.android.ui.activity.DConnectServiceListActivity} で、
      * サービス一覧をを取得するためにバインドされる。
      * </p>
      */

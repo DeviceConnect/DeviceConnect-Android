@@ -38,7 +38,6 @@ import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 import java.util.Locale;
@@ -402,14 +401,8 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
      * @param plugin device plugin to be started
      */
     private void restartDevicePlugin(final DevicePlugin plugin) {
-        Intent request = new Intent();
-        request.setComponent(plugin.getComponentName());
-        request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        request.putExtra("pluginId", plugin.getPluginId());
-        try {
-            plugin.send(request);
-        } catch (MessagingException e) {
-            showMessagingErrorDialog(e);
+        if (plugin != null) {
+            plugin.sendResetDevicePlugin();
         }
     }
 

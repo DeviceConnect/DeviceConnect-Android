@@ -146,7 +146,7 @@ public abstract class DConnectManager implements DConnectInterface {
 
         mContext = context;
         mSettings = settings;
-        mKeyStoreMgr = new EndPointKeyStoreManager(context, DConnectConst.KEYSTORE_FILE_NAME);
+        mKeyStoreMgr = new EndPointKeyStoreManager(context, DConnectConst.KEYSTORE_FILE_NAME, "0000");
 
         mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);
         mCore.setDConnectInterface(this);
@@ -162,21 +162,6 @@ public abstract class DConnectManager implements DConnectInterface {
                 }
             }
         });
-    }
-
-    private void setupLogger(final String name) {
-        Logger logger = Logger.getLogger(name);
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler(logger.getName());
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            logger.addHandler(handler);
-            logger.setLevel(Level.ALL);
-            logger.setUseParentHandlers(false);
-        } else {
-            logger.setLevel(Level.OFF);
-            logger.setFilter((record) -> false);
-        }
     }
 
     /**

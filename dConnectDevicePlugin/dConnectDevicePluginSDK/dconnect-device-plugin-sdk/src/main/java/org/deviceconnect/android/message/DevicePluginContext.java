@@ -580,16 +580,16 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
                 }
                 return false;
             }
-            mContext.sendBroadcast(intent);
-            return true;
         }
 
         try {
             mIDConnectCallback.sendMessage(intent);
+            return true;
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 mLogger.severe("sendMessage: exception occurred.");
             }
+            return false;
         }
     }
 

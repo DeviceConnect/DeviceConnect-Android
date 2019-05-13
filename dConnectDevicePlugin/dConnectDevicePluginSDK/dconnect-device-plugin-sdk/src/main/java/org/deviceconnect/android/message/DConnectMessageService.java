@@ -25,6 +25,7 @@ import org.deviceconnect.android.event.cache.EventCacheController;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectServiceProvider;

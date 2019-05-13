@@ -90,7 +90,7 @@ public class DConnectWebService extends Service {
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
 
-        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), DConnectConst.KEYSTORE_FILE_NAME);
+        mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), DConnectConst.KEYSTORE_FILE_NAME, "0000");
 
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isWebServerStartFlag()) {

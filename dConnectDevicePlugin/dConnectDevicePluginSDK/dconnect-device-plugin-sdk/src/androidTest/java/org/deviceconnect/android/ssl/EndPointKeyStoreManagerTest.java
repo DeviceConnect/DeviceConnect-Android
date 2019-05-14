@@ -16,6 +16,7 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -43,13 +44,14 @@ public class EndPointKeyStoreManagerTest {
                 "org.deviceconnect.android.ssl.TestCertificateAuthorityService");
 
         final CountDownLatch latch = new CountDownLatch(1);
-        final KeyStore[] result = new KeyStore[1];
+        final AtomicReference<KeyStore> result = new AtomicReference<>();
+        final String keyStorePassword = "0000";
 
-        KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, context.getPackageName(), authorityName);
+        KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, keyStorePassword, context.getPackageName(), authorityName);
         mgr.requestKeyStore("0.0.0.0", new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
-                result[0] = keyStore;
+                result.set(keyStore);
                 latch.countDown();
             }
 
@@ -62,10 +64,9 @@ public class EndPointKeyStoreManagerTest {
             if (latch.getCount() > 0) {
                 latch.await(20, TimeUnit.SECONDS);
             }
-            Assert.assertNotNull(result[0]);
+            Assert.assertNotNull(result.get());
         } catch (InterruptedException e) {
             Assert.assertTrue(false);
         }
     }
-
 }

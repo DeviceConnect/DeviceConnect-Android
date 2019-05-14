@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 /**
- * Utility methods for converting between OAuth Scopes and Restlet Roles
+ * Utility methods for converting between OAuth SecurityScopes and Restlet Roles
  * 
  * @author Martin Svensson
  */

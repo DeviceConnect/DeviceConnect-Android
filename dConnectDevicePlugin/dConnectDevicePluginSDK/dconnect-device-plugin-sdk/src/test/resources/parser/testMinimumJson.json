@@ -1,0 +1,10 @@
+{
+  "swagger": "2.0",
+  "basePath": "/minimumJson/test",
+  "info": {
+    "title": "Minimum JSON Test Profile",
+    "version": "1.0",
+    "description": "Minimum JSON Test Description"
+  },
+  "paths": {}
+}

@@ -163,20 +163,7 @@ public abstract class DConnectManager implements DConnectInterface {
             }
         });
     }
-    private void setupLogger(final String name) {
-        Logger logger = Logger.getLogger(name);
-        if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler(logger.getName());
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            logger.addHandler(handler);
-            logger.setLevel(Level.ALL);
-            logger.setUseParentHandlers(false);
-        } else {
-            logger.setLevel(Level.OFF);
-            logger.setFilter((record) -> false);
-        }
-    }
+
     /**
      * コンテキストを取得します.
      *
@@ -263,7 +250,20 @@ public abstract class DConnectManager implements DConnectInterface {
         });
     }
 
-
+    private void setupLogger(final String name) {
+        Logger logger = Logger.getLogger(name);
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
+        } else {
+            logger.setLevel(Level.OFF);
+            logger.setFilter((record) -> false);
+        }
+    }
 
     /**
      * Device Connect サーバを開始します.

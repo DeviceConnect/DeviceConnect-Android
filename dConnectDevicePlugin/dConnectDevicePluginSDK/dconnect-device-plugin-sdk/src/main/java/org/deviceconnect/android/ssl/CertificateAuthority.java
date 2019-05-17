@@ -154,7 +154,7 @@ class CertificateAuthority {
             // 証明書要求を解析
             PKCS10CertificationRequest request = new PKCS10CertificationRequest(pkcs10);
             PrivateKey signingKey = mRootKeyStoreMgr.getPrivateKey(mIssuerName);
-            KeyPair keyPair = new KeyPair(request.getPublicKey(), signingKey);
+            KeyPair keyPair = new KeyPair(request.getPublicKey(SecurityUtil.getSecurityProvider()), signingKey);
             X500Principal subject = new X500Principal("CN=localhost");
             X500Principal issuer = new X500Principal("CN=" + mIssuerName);
             GeneralNames generalNames = parseSANs(request);

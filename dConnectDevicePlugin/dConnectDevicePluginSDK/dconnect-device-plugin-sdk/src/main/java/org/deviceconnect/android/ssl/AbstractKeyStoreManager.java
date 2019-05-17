@@ -15,7 +15,6 @@ import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.deviceconnect.android.BuildConfig;
 
@@ -30,7 +29,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -189,7 +187,6 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
                                                       final BigInteger serialNumber,
                                                       final GeneralNames generalNames,
                                                       final boolean isCA) throws GeneralSecurityException {
-        Security.addProvider(new BouncyCastleProvider());
         X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
         generator.setSerialNumber(serialNumber);
         generator.setIssuerDN(issuer);
@@ -204,7 +201,7 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         if (generalNames != null) {
             generator.addExtension(X509Extensions.SubjectAlternativeName, false, generalNames);
         }
-        return generator.generateX509Certificate(keyPair.getPrivate(), "BC");
+        return generator.generateX509Certificate(keyPair.getPrivate(), SecurityUtil.getSecurityProvider());
     }
 
     @Override

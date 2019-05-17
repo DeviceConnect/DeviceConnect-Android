@@ -213,6 +213,9 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     protected void onResume() {
         super.onResume();
 
+        // SSL設定を反映
+        mDConnectSDK.setSSL(mSettings.isSSL());
+
         if (isBonded()) {
             new Thread(() -> {
                 try {

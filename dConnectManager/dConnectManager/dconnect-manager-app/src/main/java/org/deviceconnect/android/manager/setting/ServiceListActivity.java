@@ -213,6 +213,9 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
     protected void onResume() {
         super.onResume();
 
+        // SSL設定を反映
+        mDConnectSDK.setSSL(mSettings.isSSL());
+
         if (isBonded()) {
             new Thread(() -> {
                 try {
@@ -226,9 +229,6 @@ public class ServiceListActivity extends BaseSettingActivity implements AlertDia
 
     @Override
     protected void onManagerBonded(final DConnectService dConnectService) {
-        // SSL設定を反映
-        mDConnectSDK.setSSL(mSettings.isSSL());
-
         // 起動時に Device Connect Manager が起動フラグが ON の場合にはダイアログを表示
         if (mSettings.isManagerStartFlag()) {
             showStaringManagerDialog();

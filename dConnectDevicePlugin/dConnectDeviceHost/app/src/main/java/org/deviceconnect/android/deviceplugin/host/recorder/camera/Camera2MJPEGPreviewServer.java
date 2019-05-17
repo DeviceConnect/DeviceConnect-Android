@@ -248,7 +248,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mOutput = new ByteArrayOutputStream();
 
             mSourceTexture = new SurfaceTexture(mTexId);
-            mSourceTexture.setDefaultBufferSize(w, h);	// これを入れないと映像が取れない
+            mSourceTexture.setDefaultBufferSize(h, w);	// これを入れないと映像が取れない
             mSourceSurface = new Surface(mSourceTexture);
             mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mPreviewHandler);
             mEncoderSurface = getEgl().createOffscreen(w, h);
@@ -413,25 +413,22 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         }
 
         private void onDisplayRotationChange(final int rotation) {
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mDrawSync) {
-                        if (mBitmap != null && !mBitmap.isRecycled()) {
-                            mBitmap.recycle();
-                        }
-                        if (mEncoderSurface != null) {
-                            mEncoderSurface.release();
-                        }
-
-                        // プレビューサイズ更新
-                        detectDisplayRotation(rotation);
-                        int w = mPreviewSize.getWidth();
-                        int h = mPreviewSize.getHeight();
-                        mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-                        mSourceTexture.setDefaultBufferSize(w, h);
-                        mEncoderSurface = getEgl().createOffscreen(w, h);
+            queueEvent(() -> {
+                synchronized (mDrawSync) {
+                    if (mBitmap != null && !mBitmap.isRecycled()) {
+                        mBitmap.recycle();
                     }
+                    if (mEncoderSurface != null) {
+                        mEncoderSurface.release();
+                    }
+
+                    // プレビューサイズ更新
+                    detectDisplayRotation(rotation);
+                    int w = mPreviewSize.getWidth();
+                    int h = mPreviewSize.getHeight();
+                    mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                    mSourceTexture.setDefaultBufferSize(h, w);
+                    mEncoderSurface = getEgl().createOffscreen(w, h);
                 }
             });
         }

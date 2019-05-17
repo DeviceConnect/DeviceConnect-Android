@@ -328,7 +328,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                 principal,
                 keyPair.getPublic(),
                 attributes,
-                keyPair.getPrivate());
+                keyPair.getPrivate(),
+                SecurityUtil.getSecurityProvider());
     }
 
     /**

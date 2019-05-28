@@ -347,11 +347,7 @@ public class CameraWrapper {
     private List<Surface> createSurfaceListForStillImage() {
         List<Surface> surfaceList = new LinkedList<>();
         surfaceList.add(mStillImageSurface);
-        if (mIsPreview) {
-            surfaceList.add(mPreviewSurface);
-        } else {
-            surfaceList.add(mDummyPreviewReader.getSurface());
-        }
+        surfaceList.add(mDummyPreviewReader.getSurface());
         return surfaceList;
     }
 
@@ -465,6 +461,9 @@ public class CameraWrapper {
         }
         mIsRecording = true;
         mRecordingSurface = recordingSurface;
+        if (mCameraDevice != null) {
+            close();
+        }
         try {
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
@@ -485,7 +484,7 @@ public class CameraWrapper {
                         notifyCameraEvent(CameraEvent.STARTED_VIDEO_RECORDING);
                     }
                 }
-            }, null);
+            }, mBackgroundHandler);
             mCaptureSession = captureSession;
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
@@ -502,6 +501,8 @@ public class CameraWrapper {
             mCaptureSession.close();
             mCaptureSession = null;
         }
+
+        close();
         if (mIsPreview) {
             startPreview(mPreviewSurface, true);
         } else {

@@ -3,7 +3,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.wear"
         minSdkVersion 20

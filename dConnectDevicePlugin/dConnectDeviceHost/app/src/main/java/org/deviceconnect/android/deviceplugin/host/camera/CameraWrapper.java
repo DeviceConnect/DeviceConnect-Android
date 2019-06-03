@@ -739,7 +739,11 @@ public class CameraWrapper {
             CameraDevice cameraDevice = openCamera();
             mCaptureSession = createCaptureSession(cameraDevice);
             final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            requestBuilder.addTarget(mDummyPreviewReader.getSurface());
+            if (mIsPreview) {
+                requestBuilder.addTarget(mPreviewSurface);
+            } else {
+                requestBuilder.addTarget(mDummyPreviewReader.getSurface());
+            }
             requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
             mCaptureSession.capture(requestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -754,6 +758,12 @@ public class CameraWrapper {
                         mIsTouchOn = true;
                         notifyTorchOnEvent(listener, handler);
                     }
+                }
+                public void onCaptureFailed(@NonNull CameraCaptureSession session,
+                                            @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
+                    // Captureに失敗した場合でも、ライトは消せるようにする。
+                    mIsTouchOn = true;
+                    notifyTorchOnEvent(listener, handler);
                 }
             }, mBackgroundHandler);
             mUseTouch = true;

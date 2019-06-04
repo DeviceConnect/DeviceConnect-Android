@@ -7,25 +7,33 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.wear;
 
 import android.app.Application;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.wearable.CapabilityClient;
+import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.Wearable;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * このアプリで共有するGoogleApiClientを保持するアプリケーションクラス.
  */
 public class WearApplication extends Application {
 
-    /** Google API Client. */
-    private GoogleApiClient mGoogleApiClient;
-
+    /**
+     * WearのID.
+     */
+    private String mSelfId;
     /**
      * スレッド管理用クラス.
      */
@@ -34,7 +42,6 @@ public class WearApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        init();
     }
 
     @Override
@@ -44,62 +51,58 @@ public class WearApplication extends Application {
     }
 
     /**
-     * GoogleApiClientを初期化する.
+     * WearのIDを設定する.
+     * @param self WearのID
      */
-    public synchronized void init() {
-        // Define google play service
-        mGoogleApiClient = new GoogleApiClient.Builder(this).addApi(Wearable.API).build();
-        // Connect google play service
-        mGoogleApiClient.connect();
+    public synchronized void setSelfId(final String self) {
+        mSelfId = self;
     }
 
     /**
-     * GoogleApiClientの後始末を行う.
+     * WearのIDを返す.
+     * @return WearのID
+     */
+    public synchronized String getSelfId() {
+        return mSelfId;
+    }
+
+    /**
+     * 後始末を行う.
      */
     public synchronized void destroy() {
         mExecutorService.shutdown();
-
-        if (mGoogleApiClient != null) {
-            // Disconnect google play service.
-            mGoogleApiClient.disconnect();
-            mGoogleApiClient = null;
-        }
     }
 
     /**
-     * GoogleApiClientを取得する.
-     * @return GoogleApiClient
+     * Phone側にメッセージを送る.
+     * @param destinationId phone側のID
+     * @param path メッセージのパス
+     * @param data メッセージのデータ
      */
-    public synchronized GoogleApiClient getGoogleApiClient() {
-        if (mGoogleApiClient == null) {
-            init();
-        }
-        return mGoogleApiClient;
-    }
-
-
     public void sendMessage(final String destinationId, final String path, final String data) {
         mExecutorService.execute(new Runnable() {
             @Override
             public void run() {
-                GoogleApiClient client = mGoogleApiClient;
-                if (!client.isConnected()) {
-                    ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-                    if (!connectionResult.isSuccess()) {
+                Task<Integer> sendMessageTask =
+                        Wearable.getMessageClient(getApplicationContext())
+                                .sendMessage(destinationId, path, data.getBytes());
+                sendMessageTask.addOnSuccessListener(new OnSuccessListener<Integer>() {
+                    @Override
+                    public void onSuccess(Integer integer) {
                         if (BuildConfig.DEBUG) {
-                            Log.e("WEAR", "Failed to connect google play service.");
+                            Log.d("WEAR", "Sent result:" + integer);
                         }
-                        return;
                     }
-                }
+                });
 
-                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(client, destinationId,
-                        path, data.getBytes()).await();
-                if (!result.getStatus().isSuccess()) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e("WEAR", "Failed to send a sensor event.");
+                sendMessageTask.addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        if (BuildConfig.DEBUG) {
+                            Log.e("WEAR", "Sent result:" + e.getLocalizedMessage());
+                        }
                     }
-                }
+                });
             }
         });
     }

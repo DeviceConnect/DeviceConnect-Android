@@ -75,9 +75,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    // ライト点灯中なら消灯処理を実施.
-                    checkCameraLightState();
-
                     List<Bundle> recorders = new LinkedList<>();
                     for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
                         Bundle info = new Bundle();
@@ -141,9 +138,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    // ライト点灯中なら消灯処理を実施.
-                    checkCameraLightState();
-
                     setResult(response, DConnectMessage.RESULT_OK);
                     setMIMEType(response, recorder.getSupportedMimeTypes());
                     if (recorder instanceof HostDevicePhotoRecorder) {
@@ -241,9 +235,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    // ライト点灯中なら消灯処理を実施.
-                    checkCameraLightState();
-
                     setOptions(request, response);
                     sendResponse(response);
                 }
@@ -344,9 +335,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             final String target = getTarget(request);
             final String serviceId = getServiceID(request);
 
-            // ライト点灯中なら消灯処理を実施.
-            checkCameraLightState();
-
             final HostDevicePhotoRecorder recorder = mRecorderMgr.getCameraRecorder(target);
             if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
@@ -420,9 +408,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 @Override
                 public void onAllowed() {
                     mRecorderMgr.initialize();
-
-                    // ライト点灯中なら消灯処理を実施.
-                    checkCameraLightState();
 
                     final List<PreviewServer> servers = serverProvider.getServers();
                     final String[] defaultUri = new String[1];
@@ -522,9 +507,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
-
-            // ライト点灯中なら消灯処理を実施.
-            checkCameraLightState();
 
             if (mRecorderMgr.getRecorder(target) == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");

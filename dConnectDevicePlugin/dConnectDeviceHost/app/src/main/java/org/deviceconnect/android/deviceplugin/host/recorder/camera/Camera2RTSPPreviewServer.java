@@ -182,13 +182,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
         VideoQuality videoQuality = new VideoQuality();
 
-        //縦横切り替わった時に、初期化する必要のないように長い方に合わせる
-        int resolution = previewSize.getWidth();
-        if (resolution < previewSize.getHeight()) {
-            resolution = previewSize.getHeight();
-        }
-        videoQuality.resX = resolution;
-        videoQuality.resY = resolution;
+        videoQuality.resX = previewSize.getHeight();
+        videoQuality.resY = previewSize.getWidth();
         videoQuality.bitrate = mServerProvider.getPreviewBitRate();
         videoQuality.framerate = (int) mServerProvider.getMaxFrameRate();
 
@@ -262,7 +257,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             detectDisplayRotation(getCurrentRotation());
 
             mSourceTexture = new SurfaceTexture(mTexId);
-            mSourceTexture.setDefaultBufferSize(mQuality.resX, mQuality.resY);	// これを入れないと映像が取れない
+            // スマートフォンの傾きによって縦横のサイズを変える
+            setDefaultBufferSize(getCurrentRotation(), mQuality.resX, mQuality.resY);
             mSourceSurface = new Surface(mSourceTexture);
             mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mHandler);
             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
@@ -396,7 +392,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
                             int w = mPreviewSize.getWidth();
                             int h = mPreviewSize.getHeight();
-                            mSourceTexture.setDefaultBufferSize(w, h);
+                            setDefaultBufferSize(rotation, w, h);
                             mVideoStream.changeResolution(w, h);
                             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
                         } catch (Throwable e) {
@@ -408,7 +404,19 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                 }
             });
         }
-
+        private void setDefaultBufferSize(final int rotation, final int w, final int h) {
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    mSourceTexture.setDefaultBufferSize(h, w);
+                    break;
+                case Surface.ROTATION_90:
+                case Surface.ROTATION_270:
+                default:
+                    mSourceTexture.setDefaultBufferSize(w, h);
+                    break;
+            }
+        }
         private void detectDisplayRotation(final int rotation) {
             switch (rotation) {
                 case Surface.ROTATION_0:

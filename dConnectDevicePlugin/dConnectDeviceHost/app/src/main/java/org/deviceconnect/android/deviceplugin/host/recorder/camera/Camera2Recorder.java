@@ -223,24 +223,21 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 int h = stillImageReader.getHeight();
                 Log.d(TAG, "takePhoto: surface: " + w + "x" + h);
             }
-            stillImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(final ImageReader reader) {
-                    Image photo = reader.acquireNextImage();
-                    if (photo == null) {
-                        listener.onFailedTakePhoto("Failed to acquire image.");
-                        return;
-                    }
-                    if (DEBUG) {
-                        int w = photo.getWidth();
-                        int h = photo.getHeight();
-                        Rect rect = photo.getCropRect();
-                        Log.d(TAG, "takePhoto: onImageAvailable: image=" + w + "x" + h + " rect=" + rect.width() + "x" + rect.height());
-                    }
-
-                    storePhoto(photo, listener);
-                    photo.close();
+            stillImageReader.setOnImageAvailableListener((reader) -> {
+                Image photo = reader.acquireNextImage();
+                if (photo == null) {
+                    listener.onFailedTakePhoto("Failed to acquire image.");
+                    return;
                 }
+                if (DEBUG) {
+                    int w = photo.getWidth();
+                    int h = photo.getHeight();
+                    Rect rect = photo.getCropRect();
+                    Log.d(TAG, "takePhoto: onImageAvailable: image=" + w + "x" + h + " rect=" + rect.width() + "x" + rect.height());
+                }
+
+                storePhoto(photo, listener);
+                photo.close();
             }, new Handler(mPhotoThread.getLooper()));
 
             camera.takeStillImage(stillImageReader.getSurface());

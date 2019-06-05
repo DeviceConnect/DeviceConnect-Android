@@ -130,7 +130,6 @@ public class CameraWrapper {
         mOptions = initOptions();
         mAutoFocusMode = choiceAutoFocusMode(context, mCameraManager, cameraId);
         mAutoExposureMode = choiceAutoExposureMode(mCameraManager, cameraId);
-
         mDummyPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.YUV_420_888);
         mDummyPreviewReader.setOnImageAvailableListener(reader -> {
             Image image = reader.acquireNextImage();
@@ -347,11 +346,7 @@ public class CameraWrapper {
     private List<Surface> createSurfaceListForStillImage() {
         List<Surface> surfaceList = new LinkedList<>();
         surfaceList.add(mStillImageSurface);
-        if (mIsPreview) {
-            surfaceList.add(mPreviewSurface);
-        } else {
-            surfaceList.add(mDummyPreviewReader.getSurface());
-        }
+        surfaceList.add(mDummyPreviewReader.getSurface());
         return surfaceList;
     }
 
@@ -363,6 +358,7 @@ public class CameraWrapper {
         try {
             if (mCaptureSession != null) {
                 mCaptureSession.close();
+                mCaptureSession = null;
             }
             final CountDownLatch lock = new CountDownLatch(1);
             final AtomicReference<CameraCaptureSession> sessionRef = new AtomicReference<>();
@@ -412,6 +408,12 @@ public class CameraWrapper {
             }
         }
         setWhiteBalance(request);
+        // LightがONの場合は、CONTROL_AE_MODEをCONTROL_AE_MODE_ONにする。
+        if (mIsTouchOn) {
+            mUseTouch = true;
+            request.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
+            request.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+        }
     }
 
     public synchronized void startPreview(final Surface previewSurface, final boolean isResume) throws CameraWrapperException {
@@ -453,6 +455,9 @@ public class CameraWrapper {
         }
         if (mIsRecording) {
             startRecording(mRecordingSurface, true);
+        } else if (mIsTouchOn) {
+            mIsTouchOn = false;
+            turnOnTorch();
         } else {
             close();
         }
@@ -465,6 +470,9 @@ public class CameraWrapper {
         }
         mIsRecording = true;
         mRecordingSurface = recordingSurface;
+        if (mCameraDevice != null) {
+            close();
+        }
         try {
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
@@ -485,7 +493,7 @@ public class CameraWrapper {
                         notifyCameraEvent(CameraEvent.STARTED_VIDEO_RECORDING);
                     }
                 }
-            }, null);
+            }, mBackgroundHandler);
             mCaptureSession = captureSession;
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
@@ -502,6 +510,8 @@ public class CameraWrapper {
             mCaptureSession.close();
             mCaptureSession = null;
         }
+
+        close();
         if (mIsPreview) {
             startPreview(mPreviewSurface, true);
         } else {
@@ -722,7 +732,6 @@ public class CameraWrapper {
      *
      * @param listener 実際にライトがONになったタイミングで実行されるリスナー
      * @param handler リスナーを実行するハンドラー. リスナーを指定する場合は必須
-     * @throws IllegalArgumentException リスナーを指定しているのにハンドラーを指定していない場合
      * @throws CameraWrapperException カメラに何らかの致命的なエラーが発生した場合
      */
     public synchronized void turnOnTorch(final @Nullable TorchOnListener listener,
@@ -738,24 +747,16 @@ public class CameraWrapper {
             CameraDevice cameraDevice = openCamera();
             mCaptureSession = createCaptureSession(cameraDevice);
             final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            requestBuilder.addTarget(mDummyPreviewReader.getSurface());
+            if (mIsPreview) {
+                requestBuilder.addTarget(mPreviewSurface);
+            } else {
+                requestBuilder.addTarget(mDummyPreviewReader.getSurface());
+            }
             requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
-            mCaptureSession.capture(requestBuilder.build(), new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-                    Integer flashMode = result.get(CaptureResult.FLASH_MODE);
-                    boolean isTorchOn = flashMode == null
-                            || flashMode == CaptureResult.FLASH_MODE_TORCH;
-                    if (DEBUG) {
-                        Log.d(TAG, "FLASH_MODE: " + isTorchOn);
-                    }
-                    if (isTorchOn) {
-                        mIsTouchOn = true;
-                        notifyTorchOnEvent(listener, handler);
-                    }
-                }
-            }, mBackgroundHandler);
+            mCaptureSession.setRepeatingRequest(requestBuilder.build(), null, mBackgroundHandler);
             mUseTouch = true;
+            mIsTouchOn = true;
+            notifyTorchOnEvent(listener, handler);
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
         }
@@ -773,7 +774,6 @@ public class CameraWrapper {
      *
      * @param listener 実際にライトがOFFになったタイミングで実行されるリスナー
      * @param handler リスナーを実行するハンドラー. リスナーを指定する場合は必須
-     * @throws IllegalArgumentException リスナーを指定しているのにハンドラーを指定していない場合
      */
     public synchronized void turnOffTorch(final @Nullable TorchOffListener listener,
                                           final @Nullable Handler handler) {
@@ -781,9 +781,24 @@ public class CameraWrapper {
             throw new IllegalArgumentException("handler is mandatory if listener is specified.");
         }
         if (mUseTouch && mIsTouchOn) {
-            mIsTouchOn = false;
-            mUseTouch = false;
-            close();
+            try {
+                CameraDevice cameraDevice = openCamera();
+                mCaptureSession = createCaptureSession(cameraDevice);
+                final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                if (mIsPreview) {
+                    requestBuilder.addTarget(mPreviewSurface);
+                } else {
+                    requestBuilder.addTarget(mDummyPreviewReader.getSurface());
+                }
+                requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                mCaptureSession.setRepeatingRequest(requestBuilder.build(),null, mBackgroundHandler);
+                mIsTouchOn = false;
+                mUseTouch = false;
+            } catch (CameraAccessException e) {
+                throw new IllegalArgumentException(e);
+            } catch (CameraWrapperException e) {
+                throw new IllegalArgumentException(e);
+            }
             notifyTorchOffEvent(listener, handler);
         }
     }

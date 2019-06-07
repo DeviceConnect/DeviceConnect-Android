@@ -12,19 +12,12 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.Wearable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class WearAppService extends Service implements SensorEventListener {
     /** radian. */
@@ -156,24 +149,8 @@ public class WearAppService extends Service implements SensorEventListener {
      * @param id 送信先のID
      */
     private void sendSensorEvent(final String data, final String id) {
-        GoogleApiClient client = getClient();
-        if (!client.isConnected()) {
-            ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-            if (!connectionResult.isSuccess()) {
-                if (BuildConfig.DEBUG) {
-                    Log.e("WEAR", "Failed to connect google play service.");
-                }
-                return;
-            }
-        }
-
-        MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(client, id,
-                WearConst.WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA, data.getBytes()).await();
-        if (!result.getStatus().isSuccess()) {
-            if (BuildConfig.DEBUG) {
-                Log.e("WEAR", "Failed to send a sensor event.");
-            }
-        }
+        WearApplication application = getWearApplication();
+        application.sendMessage(id, WearConst.WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA, data);
     }
 
     /**
@@ -186,19 +163,6 @@ public class WearAppService extends Service implements SensorEventListener {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                GoogleApiClient client = getClient();
-                if (client == null || !client.isConnected()) {
-                    client = new GoogleApiClient.Builder(WearAppService.this).addApi(Wearable.API).build();
-                    client.connect();
-                    ConnectionResult connectionResult = client.blockingConnect(30, TimeUnit.SECONDS);
-                    if (!connectionResult.isSuccess()) {
-                        if (BuildConfig.DEBUG) {
-                            Log.e("WEAR", "Failed to connect google play service.");
-                        }
-                        return;
-                    }
-                }
-
                 mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
                 List<Sensor> accelSensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
                 if (accelSensors.size() > 0) {
@@ -234,7 +198,7 @@ public class WearAppService extends Service implements SensorEventListener {
      * GoogleApiClientを取得する.
      * @return GoogleApiClient
      */
-    private GoogleApiClient getClient() {
-        return ((WearApplication) getApplication()).getGoogleApiClient();
+    private WearApplication getWearApplication() {
+        return ((WearApplication) getApplication());
     }
 }

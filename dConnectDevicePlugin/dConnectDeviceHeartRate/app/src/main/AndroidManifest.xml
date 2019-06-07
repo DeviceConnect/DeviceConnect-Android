@@ -9,10 +9,6 @@
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
 
-    <uses-sdk
-        android:minSdkVersion="18"
-        android:targetSdkVersion="21" />
-
     <application
         android:allowBackup="true"
         android:icon="@drawable/dconnect_icon"

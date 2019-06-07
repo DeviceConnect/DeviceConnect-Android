@@ -56,6 +56,9 @@ public final class WearConst {
     /** Remove Key Event (onkeychange). */
     public static final String DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER
             = "org.deviceconnect.wear.keyevent.onkeychange.unregist";
+    /** Set wear id.. */
+    public static final String DEVICE_TO_WEAR_SET_ID
+            = "org.deviceconnect.wear.id.set";
 
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_KEYEVENT_DATA = "org.deviceconnect.wear.keyevent.data";

@@ -213,6 +213,9 @@ public final class WearConst {
             = "org.deviceconnect.wear.touch.ontouchchange.unregist";
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_TOUCH_DATA = "org.deviceconnect.wear.touch.data";
+    /** Set wear id.. */
+    public static final String DEVICE_TO_WEAR_SET_ID
+            = "org.deviceconnect.wear.id.set";
 
     /** Touch (touch). */
     public static final String PARAM_TOUCH_TOUCH = "touch";

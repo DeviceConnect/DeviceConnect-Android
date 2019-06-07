@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
 
 import android.content.Intent;
 
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
@@ -45,12 +44,8 @@ public class WearVibrationProfile extends VibrationProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_VIBRATION_RUN,
                 convertPatternToString(parsePattern(pattern)), new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
-                        }
+                    public void onResult() {
+                        setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
                     }
                     @Override
@@ -75,12 +70,8 @@ public class WearVibrationProfile extends VibrationProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_VIBRATION_DEL,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
-                        }
+                    public void onResult() {
+                        setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
                     }
                     @Override

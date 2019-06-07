@@ -1,30 +1,33 @@
 package org.deviceconnect.android.deviceplugin.wear;
 
 import android.content.Context;
-import android.os.Bundle;
+import android.net.Uri;
+import android.support.annotation.NonNull;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.CapabilityClient;
+import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
+
 import org.deviceconnect.android.logger.AndroidHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -36,14 +39,10 @@ import java.util.logging.SimpleFormatter;
  *
  * @author NTT DOCOMO, INC.
  */
-public class WearManager implements ConnectionCallbacks, OnConnectionFailedListener {
+public class WearManager {
 
     private final Logger mLogger = Logger.getLogger("dconnect.wear");
 
-    /**
-     * Google Play Service.
-     */
-    private GoogleApiClient mGoogleApiClient;
 
     /**
      * コンテキスト.
@@ -89,28 +88,23 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         }
     }
 
-    @Override
-    public void onConnectionFailed(final ConnectionResult result) {
-    }
 
-
-    @Override
-    public void onConnected(final Bundle bundle) {
-        setNodeListener();
+    /**
+     * このクラスを初期化する.
+     */
+    public void init() {
+        setCapabilityListener();
         setMessageListener();
         getNodes(new OnNodeResultListener() {
             @Override
-            public void onResult(final NodeApi.GetConnectedNodesResult result) {
-                List<Node> nodes = result.getNodes();
-                if (nodes != null) {
-                    synchronized (mNodeCache) {
-                        for (Node node : nodes) {
-                            if (!mNodeCache.containsKey(node.getId())) {
-                                mNodeCache.put(node.getId(), node);
-                                mLogger.info("getNodes: name = " + node.getDisplayName()
+            public void onResult(final List<Node> results) {
+                synchronized (mNodeCache) {
+                    for (Node node : results) {
+                        if (!mNodeCache.containsKey(node.getId())) {
+                            mNodeCache.put(node.getId(), node);
+                            mLogger.info("getNodes: name = " + node.getDisplayName()
                                     + ", id = " + node.getId());
-                                notifyOnNodeConnected(node);
-                            }
+                            notifyOnNodeConnected(node);
                         }
                     }
                 }
@@ -118,49 +112,45 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         });
     }
 
-    @Override
-    public void onConnectionSuspended(final int state) {
-    }
-
     /**
-     * このクラスを初期化する.
+     * 接続しているAndroidWearにIDを送る.
      */
-    public void init() {
-        if (mGoogleApiClient != null) {
-            return;
-        }
+    public void sendWearData() {
+        new Thread(new Runnable() {
+            public void run() {
+                getNodes(new OnNodeResultListener() {
+                    @Override
+                    public void onResult(final List<Node> results) {
+                        synchronized (mNodeCache) {
+                            for (Node node : results) {
+                                if (!mNodeCache.containsKey(node.getId())) {
+                                    mNodeCache.put(node.getId(), node);
+                                    mLogger.info("getNode: name = " + node.getDisplayName()
+                                            + ", id = " + node.getId());
+                                    notifyOnNodeConnected(node);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(mContext)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        mGoogleApiClient.connect();
+                                }
+                            }
+                        }
+                    }
+                });
+                for (String key : mNodeCache.keySet()) {
+                    Node node = mNodeCache.get(key);
+                    sendMessageToWear(node.getId(), WearConst.DEVICE_TO_WEAR_SET_ID, node.getId(), null);
+                    mLogger.info("sendMessage: name = " + node.getDisplayName()
+                            + ", id = " + node.getId());
+                }
+            }
+        }).start();
     }
-
     /**
      * 後始末処理を行う.
      */
     public void destroy() {
         mExecutorService.shutdown();
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
         mNodeEventListeners.clear();
         mOnMessageEventListeners.clear();
         mNodeCache.clear();
-    }
-
-    /**
-     * Android Wearとの接続状態を取得する.
-     *
-     * @return true接続中、それ以外はfalse
-     */
-    public boolean isConnected() {
-        if (mGoogleApiClient != null) {
-            return mGoogleApiClient.isConnected();
-        }
-        return false;
     }
 
     /**
@@ -182,24 +172,28 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         }
     }
 
-    private void setNodeListener() {
-        Wearable.NodeApi.addListener(mGoogleApiClient, new NodeApi.NodeListener() {
+    /**
+     * Wearとの接続状況を検知するリスナー.
+     */
+    private void setCapabilityListener() {
+        Wearable.getCapabilityClient(mContext).addListener(new CapabilityClient.OnCapabilityChangedListener() {
             @Override
-            public void onPeerConnected(final Node node) {
-                mLogger.info("onPeerConnected: name = " + node.getDisplayName()
-                    + ", id = " + node.getId());
-                mNodeCache.put(node.getId(), node);
-                notifyOnNodeConnected(node);
+            public void onCapabilityChanged(@NonNull CapabilityInfo capabilityInfo) {
+                for (Node node : capabilityInfo.getNodes()) {
+                    if (node.isNearby()) {
+                        mLogger.info("isNearby=true: name = " + node.getDisplayName()
+                                + ", id = " + node.getId());
+                        mNodeCache.put(node.getId(), node);
+                        notifyOnNodeConnected(node);
+                    } else {
+                        mLogger.info("onPeerDisconnected: name = " + node.getDisplayName()
+                                + ", id = " + node.getId());
+                        mNodeCache.remove(node.getId());
+                        notifyOnNodeDisconnected(node);
+                    }
+                }
             }
-
-            @Override
-            public void onPeerDisconnected(final Node node) {
-                mLogger.info("onPeerDisconnected: name = " + node.getDisplayName()
-                    + ", id = " + node.getId());
-                mNodeCache.remove(node.getId());
-                notifyOnNodeDisconnected(node);
-            }
-        });
+        }, Uri.parse("wear://"), CapabilityClient.FILTER_REACHABLE);
     }
 
     private void notifyOnNodeConnected(final Node node) {
@@ -222,13 +216,12 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
      * Android Wearのリスナーを設定する.
      */
     private void setMessageListener() {
-        Wearable.MessageApi.addListener(mGoogleApiClient, new MessageApi.MessageListener() {
+        Wearable.getMessageClient(mContext).addListener(new MessageClient.OnMessageReceivedListener() {
             @Override
-            public void onMessageReceived(final MessageEvent messageEvent) {
+            public void onMessageReceived(@NonNull MessageEvent messageEvent) {
                 final String data = new String(messageEvent.getData());
                 final String path = messageEvent.getPath();
                 final String nodeId = messageEvent.getSourceNodeId();
-                mLogger.info("onMessageReceived: path = " + path + ":node:" + nodeId);
                 OnMessageEventListener listener = mOnMessageEventListeners.get(path);
                 if (listener != null) {
                     listener.onEvent(nodeId, data);
@@ -245,10 +238,17 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     public void getNodes(final OnNodeResultListener listener) {
         sendMessageToWear(new Runnable() {
             public void run() {
-                NodeApi.GetConnectedNodesResult result = Wearable.NodeApi
-                        .getConnectedNodes(mGoogleApiClient).await();
+                Task<List<Node>> nodeListTask = Wearable.getNodeClient(mContext).getConnectedNodes();
+                List<Node> nodes = null;
+                try {
+                     nodes = Tasks.await(nodeListTask);
+                } catch (ExecutionException exception) {
+                    mLogger.warning("Task failed: " + exception);
+                } catch (InterruptedException exception) {
+                    mLogger.warning("Interrupt occurred: " + exception);
+                }
                 if (listener != null) {
-                    listener.onResult(result);
+                    listener.onResult(nodes);
                 }
             }
         });
@@ -264,24 +264,30 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
      */
     public void sendMessageToWear(final String dest, final String action, final String message,
                                   final OnMessageResultListener listener) {
-        sendMessageToWear(new Runnable() {
+        getNodes(new OnNodeResultListener() {
             @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-                MessageApi.SendMessageResult result = null;
-                for (Node node : nodes.getNodes()) {
-                    if (node.getId().indexOf(dest) != -1) {
-                        result = Wearable.MessageApi.sendMessage(
-                                mGoogleApiClient, node.getId(), action, message.getBytes()).await();
-                    }
-                }
-                if (result != null) {
-                    if (listener != null) {
-                        listener.onResult(result);
-                    }
-                } else {
-                    if (listener != null) {
-                        listener.onError();
+            public void onResult(List<Node> results) {
+                for (Node node : results) {
+                    if (node.getId().contains(dest)) {
+                        Task<Integer> sendMessageTask =
+                                Wearable.getMessageClient(mContext).sendMessage(node.getId(), action, message.getBytes());
+                        sendMessageTask.addOnSuccessListener(new OnSuccessListener<Integer>() {
+                            @Override
+                            public void onSuccess(Integer integer) {
+                                if (listener != null) {
+                                    listener.onResult();
+                                }
+                            }
+                        });
+
+                        sendMessageTask.addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                if (listener != null) {
+                                    listener.onError();
+                                }
+                            }
+                        });
                     }
                 }
             }
@@ -302,9 +308,6 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     private PutDataRequest createPutDataRequest(final String nodeId, final String requestId, final byte[] data,
                                                 final int x, final int y, final int mode) {
         Asset asset = Asset.createFromBytes(data);
-        if (asset == null) {
-            return null;
-        }
         PutDataMapRequest dataMap = PutDataMapRequest.create(WearConst.PATH_CANVAS + "/" + nodeId + "/" + requestId);
         dataMap.getDataMap().putAsset(WearConst.PARAM_BITMAP, asset);
         dataMap.getDataMap().putInt(WearConst.PARAM_X, x);
@@ -312,8 +315,7 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         dataMap.getDataMap().putInt(WearConst.PARAM_MODE, mode);
         dataMap.getDataMap().putLong(WearConst.TIMESTAMP,
                 System.currentTimeMillis());
-        PutDataRequest request = dataMap.asPutDataRequest();
-        return request;
+        return dataMap.asPutDataRequest();
     }
 
     /**
@@ -340,18 +342,24 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
                         listener.onError();
                     }
                 } else {
-                    PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-                        .putDataItem(mGoogleApiClient, request);
-                    DataApi.DataItemResult result = pendingResult.await();
-                    if (result != null) {
-                        if (listener != null) {
-                            listener.onResult(result);
+                    request.setUrgent();
+                    Task<DataItem> dataItemTask = Wearable.getDataClient(mContext).putDataItem(request);
+                    dataItemTask.addOnSuccessListener(new OnSuccessListener<DataItem>() {
+                        @Override
+                        public void onSuccess(DataItem dataItem) {
+                            if (listener != null) {
+                                listener.onResult(dataItem);
+                            }
                         }
-                    } else {
-                        if (listener != null) {
-                            listener.onError();
+                    });
+                    dataItemTask.addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            if (listener != null) {
+                                listener.onError();
+                            }
                         }
-                    }
+                    });
                 }
             }
         });
@@ -366,22 +374,22 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         mExecutorService.execute(run);
     }
 
-    public void getLocalNodeId(final OnLocalNodeListener listener) {
-        sendMessageToWear(new Runnable() {
-            @Override
-            public void run() {
-                PendingResult<NodeApi.GetLocalNodeResult> pendingResult = Wearable.NodeApi.getLocalNode(mGoogleApiClient);
-                NodeApi.GetLocalNodeResult result = pendingResult.await();
-                if (result.getStatus().isSuccess()) {
-                    if (listener != null) {
-                        listener.onResult(result);
-                    }
-                } else {
-                    if (listener != null) {
-                        listener.onError();
-                    }
-                }
-            }
+    public void getLocalNodeId(final String serviceId, final OnLocalNodeListener listener) {
+        getNodes(new OnNodeResultListener() {
+             @Override
+             public void onResult(List<Node> results) {
+                 for (Node node : results) {
+                     if (node.getId().equals(serviceId)) {
+                         if (listener != null) {
+                             listener.onResult(node);
+                         }
+                         return;
+                     }
+                 }
+                 if (listener != null) {
+                     listener.onError();
+                 }
+             }
         });
     }
 
@@ -411,15 +419,15 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         /**
          * 結果を通知する.
          *
-         * @param result 検索結果
+         * @param results 検索結果
          */
-        void onResult(NodeApi.GetConnectedNodesResult result);
+        void onResult(List<Node> results);
 
     }
 
     public interface OnLocalNodeListener {
 
-        void onResult(NodeApi.GetLocalNodeResult localNode);
+        void onResult(Node localNode);
 
         void onError();
     }
@@ -431,9 +439,8 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         /**
          * メッセージ送信結果を通知する.
          *
-         * @param result 結果
          */
-        void onResult(MessageApi.SendMessageResult result);
+        void onResult();
 
         /**
          * エラーが発生したことを通知する.
@@ -450,7 +457,7 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
          *
          * @param result 結果
          */
-        void onResult(DataApi.DataItemResult result);
+        void onResult(DataItem result);
 
         /**
          * エラーが発生したことを通知する.

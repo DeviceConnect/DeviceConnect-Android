@@ -12,6 +12,7 @@ import com.google.android.gms.wearable.Node;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearUtils;
 import org.deviceconnect.android.deviceplugin.wear.service.WearService;
@@ -38,10 +39,11 @@ public class WearDeviceService extends DConnectMessageService implements WearMan
     @Override
     public void onCreate() {
         super.onCreate();
-
         mWearManager = new WearManager(this);
         mWearManager.addNodeListener(this);
         mWearManager.init();
+
+        addProfile(new WearServiceDiscoveryProfile(mWearManager, getServiceProvider()));
     }
 
     @Override
@@ -94,8 +96,9 @@ public class WearDeviceService extends DConnectMessageService implements WearMan
     @Override
     public void onNodeConnected(final Node node) {
         DConnectService service = WearService.getInstance(node, mWearManager);
-        service.setOnline(true);
+        service.setOnline(node.isNearby());
         getServiceProvider().addService(service);
+        getManager().sendWearData();
     }
 
     @Override
@@ -105,7 +108,9 @@ public class WearDeviceService extends DConnectMessageService implements WearMan
         if (service != null) {
             service.setOnline(false);
         } else {
-            getServiceProvider().addService(WearService.getInstance(node, mWearManager));
+            DConnectService addService = WearService.getInstance(node, mWearManager);
+            addService.setOnline(node.isNearby());
+            getServiceProvider().addService(addService);
         }
     }
 

@@ -2,7 +2,7 @@
           package="org.deviceconnect.android.deviceplugin.fabo">
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"

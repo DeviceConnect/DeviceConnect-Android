@@ -15,7 +15,7 @@
     <application
         android:name="org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication"
         android:largeHeap="true"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >

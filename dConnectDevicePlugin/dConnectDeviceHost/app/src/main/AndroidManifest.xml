@@ -33,7 +33,7 @@
     <uses-feature android:name="android.hardware.camera.flash"/>
 
     <application
-        android:allowBackup="true">
+        android:allowBackup="false">
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
             android:label="@string/app_name_host"

@@ -136,11 +136,9 @@ If the following response is returned, you can check that Device Connect Manager
 ## Device Plugin
 | Project Name|Content  |
 |:-----------|:---------|
-|[dConnectDeviceAllJoyn](dConnectDevicePlugin/dConnectDeviceAllJoyn)|Device Plug-in for AllJoyn.|
 |[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|Device Plug-in for AndroidWear.|
 |[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Device Plug-in for ChromeCast.|
 |[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|Device Plug-in for FaBo.|
-|[dConnectDeviceFPLUG](dConnectDevicePlugin/dConnectDeviceFPLUG)|Device Plug-in for F-PLUG.|
 |[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Device Plug-in for HeartRate such as Mio Alpha.|
 |[dConnectDeviceHitoe](dConnectDevicePlugin/dConnectDeviceHitoe)|Device Plug-in for Hitoe.|
 |[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|Device Plug-in for HOGP.|
@@ -150,11 +148,7 @@ If the following response is returned, you can check that Device Connect Manager
 |[dConnectDeviceHVCC2W](dConnectDevicePlugin/dConnectDeviceHVCC2W)|Device Plug-in for HVC-C2W.|
 |[dConnectDeviceHVCP](dConnectDevicePlugin/dConnectDeviceHVCP)|Device Plug-in for HVC-P.|
 |[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|Device Plug-in for IRKit.|
-|[dConnectDeviceKadecot](dConnectDevicePlugin/dConnectDeviceKadecot)|Device Plug-in for Kadecot.|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Device Plug-in for Linking.|
-|[dConnectDevicePebble](dConnectDevicePlugin/dConnectDevicePebble)|Device Plug-in for Pebble.|
-|[dConnectDeviceSonyCamera](dConnectDevicePlugin/dConnectDeviceSonyCamera)|Device Plug-in for SonyCamera such as QX10.|
-|[dConnectDeviceSonySW](dConnectDevicePlugin/dConnectDeviceSonySW)|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
 |[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Device Plug-in for Sphero.|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|Device Plug-in for THETA.|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|Device Plug-in for UVC Camera.|
@@ -171,7 +165,6 @@ If the following response is returned, you can check that Device Connect Manager
 ## Device Connect SDK
 | Project Name | Content |
 |:-----------|:---------|
-|dConnectApp|DeviceConnect operation check for app.|
 |[dConnectSDKForAndroid](dConnectSDK/dConnectSDKForAndroid)|SDK of DeviceConnect. DevicePlugin development and SDK to be used for application development.|
 
 # Development of DeviceConnect app
@@ -223,9 +216,7 @@ $ ./gradlew generateJavadocForPlugin
 People who want to develop the DeviceConnectManager and device Plug-ins, please build in accordance with this build instructions.
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)
-* [AllJoyn](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
-* [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/F-PLUG-Build)
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
@@ -236,11 +227,7 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [HVC-C2W](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCC2WDevice-Build)
 * [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
-* [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
 * [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
-* [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
-* [SonyCamera](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonyCamera-Build)
-* [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
 * [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)

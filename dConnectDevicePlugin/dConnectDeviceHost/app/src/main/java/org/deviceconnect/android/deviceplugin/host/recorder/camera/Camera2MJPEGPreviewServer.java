@@ -215,6 +215,16 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         }
     }
 
+    @Override
+    public void mute() {
+        // NOP
+    }
+
+    @Override
+    public void unMute() {
+        // NOP
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private final class DrawTask extends EglTask {
 
@@ -471,5 +481,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mPreviewSize = mRecorder.getRotatedPreviewSize();
         }
 
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
     }
 }

@@ -17,14 +17,18 @@ import android.security.KeyChain;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.localoauth.DevicePluginXmlUtil;
 import org.deviceconnect.android.manager.core.DConnectManager;
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.WebSocketInfoManager;
 import org.deviceconnect.android.manager.core.event.KeepAlive;
+import org.deviceconnect.android.manager.core.plugin.ConnectionType;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
+import org.deviceconnect.android.manager.core.util.VersionName;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.NotificationUtil;
@@ -35,7 +39,9 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -206,6 +212,11 @@ public class DConnectService extends Service {
                 if (DEBUG) {
                     Log.i(TAG, "Finish search plugin.");
                 }
+                try {
+                    addDevicePlugin();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -254,7 +265,35 @@ public class DConnectService extends Service {
             }
         }
     }
+    /**
+     * Hostプラグインを追加します.
+     */
+    private void addDevicePlugin() {
+        String packageName = getPackageName();
+        String className = HostDevicePlugin.class.getName();
 
+        DevicePlugin plugin;
+        try {
+            plugin = new DevicePlugin.Builder(this)
+                    .setClassName(className)
+                    .setPackageName(packageName)
+                    .setConnectionType(ConnectionType.DIRECT)
+                    .setDeviceName(getString(R.string.app_name_host))
+                    .setPluginIconId(R.drawable.dconnect_icon)
+                    .setVersionName(org.deviceconnect.android.deviceplugin.host.BuildConfig.VERSION_NAME)
+                    .setPluginXml(DevicePluginXmlUtil.getXml(getApplicationContext(),
+                            R.xml.org_deviceconnect_android_deviceplugin_host))
+                    .setPluginId(DConnectUtil.toMD5(packageName + className))
+                    .setPluginSdkVersionName(VersionName.parse("2.0.0"))
+                    .build();
+            mManager.getPluginManager().addDevicePlugin(plugin);
+            plugin.enable();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * DConnectManagerを停止します.
      */

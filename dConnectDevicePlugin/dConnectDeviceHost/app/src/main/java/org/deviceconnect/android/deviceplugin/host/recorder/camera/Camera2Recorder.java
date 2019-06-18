@@ -42,6 +42,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -175,7 +176,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mFileManager = fileManager;
 
         Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(this);
-        mjpegServer.setQuality(readPreviewQuality(mjpegServer));
+        mjpegServer.setQuality(RecorderSettingData.getInstance(getContext())
+                .readPreviewQuality(camera.getId()));
         Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
         mPreviewServers.add(mjpegServer);
         mPreviewServers.add(rtspServer);
@@ -890,11 +892,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             }
         }
         return null;
-    }
-
-    @Override
-    protected int getDefaultPreviewQuality(final String mimeType) {
-        return 40;
     }
 
     @Override

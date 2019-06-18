@@ -134,11 +134,8 @@ public class DevicePluginListFragment extends BaseSettingFragment {
         View rootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
         ListView listView = rootView.findViewById(R.id.listview_pluginlist);
         listView.setAdapter(mPluginAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                openDevicePluginInformation(mPluginAdapter.getItem(position));
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            openDevicePluginInformation(mPluginAdapter.getItem(position));
         });
         return rootView;
     }

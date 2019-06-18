@@ -22,6 +22,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -109,7 +110,8 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mScreenCastMgr = new ScreenCastManager(context);
         mScreenCastRTSPServer = new ScreenCastRTSPPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer = new ScreenCastMJPEGPreviewServer(context, this, mScreenCastMgr);
-        mScreenCastMJPEGServer.setQuality(readPreviewQuality(mScreenCastMJPEGServer));
+        mScreenCastMJPEGServer.setQuality(RecorderSettingData.getInstance(getContext())
+                .readPreviewQuality(mScreenCastMJPEGServer.mServerProvider.getId()));
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -143,11 +145,6 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
             }
         }
         return null;
-    }
-
-    @Override
-    protected int getDefaultPreviewQuality(final String mimeType) {
-        return 40;
     }
 
     @Override
@@ -351,7 +348,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
                         Bitmap bitmap = screenshot[0];
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, mScreenCastMJPEGServer.getQuality(), baos);
                         byte[] media = baos.toByteArray();
                         if (media == null) {
                             mState = RecorderState.INACTTIVE;

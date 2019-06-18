@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
@@ -27,13 +26,14 @@ import org.deviceconnect.message.DConnectMessage;
  */
 public class HostCameraProfile extends DConnectProfile {
 
+    private HostDeviceRecorderManager mRecorderManager;
     @Override
     public String getProfileName() {
         return "camera";
     }
 
-    public HostCameraProfile() {
-
+    public HostCameraProfile(final HostDeviceRecorderManager recorderManager) {
+        mRecorderManager = recorderManager;
         addApi(new GetApi() {
             @Override
             public String getAttribute() {
@@ -82,12 +82,10 @@ public class HostCameraProfile extends DConnectProfile {
     }
 
     private Camera2Recorder getCameraRecorder(final String target) {
-        HostDeviceService plugin = (HostDeviceService) getContext();
-        HostDeviceRecorderManager recorderManager = plugin.getRecorderManager();
-        if (recorderManager == null) {
+        if (mRecorderManager == null) {
             return null;
         }
-        HostDeviceRecorder recorder = recorderManager.getRecorder(target);
+        HostDeviceRecorder recorder = mRecorderManager.getRecorder(target);
         if (recorder instanceof Camera2Recorder) {
             return (Camera2Recorder) recorder;
         }

@@ -14,15 +14,19 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
+import org.deviceconnect.android.deviceplugin.host.demo.HostDemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostCameraProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostConnectionProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientationProfile;
@@ -39,10 +43,13 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
@@ -52,8 +59,13 @@ import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData.PREVIEW_JPEG_MIME_TYPE;
 
 /**
  * Host Device Plugin Context.
@@ -88,11 +100,24 @@ public class HostDevicePlugin extends DevicePluginContext {
 
     /** レコーダ管理クラス. */
     private HostDeviceRecorderManager mRecorderMgr;
+    /**
+     * MediaStreamRecordingProfile の実装.
+     */
+    private HostMediaStreamingRecordingProfile mHostMediaStreamRecordingProfile;
 
     /**
      * Phone プロファイルの実装.
      */
     private HostPhoneProfile mPhoneProfile;
+    /**
+     * デモページインストーラ.
+     */
+    private DemoInstaller mDemoInstaller;
+
+    /**
+     * デモページアップデート通知.
+     */
+    private DemoInstaller.Notification mDemoNotification;
 
     /**
      * ブロードキャストレシーバー.
@@ -117,7 +142,20 @@ public class HostDevicePlugin extends DevicePluginContext {
             }
         }
     };
-
+    /**
+     * デモページ関連の通知を受信するレシーバー.
+     */
+    private final BroadcastReceiver mDemoNotificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            mLogger.info("Demo Notification: " + action);
+            mDemoNotification.cancel(context);
+            if (DemoInstaller.Notification.ACTON_UPDATE_DEMO.equals(action)) {
+                updateDemoPage(context);
+            }
+        }
+    };
     /**
      * コンストラクタ.
      *
@@ -131,12 +169,21 @@ public class HostDevicePlugin extends DevicePluginContext {
 
         mFileMgr = new FileManager(context, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
-
+        mDemoInstaller = new HostDemoInstaller(getContext());
+        mDemoNotification = new DemoInstaller.Notification(
+                1,
+                getContext().getString(R.string.app_name_host),
+                R.drawable.dconnect_icon,
+                "org.deviceconnect.android.deviceconnect.host.channel.demo",
+                "Host Plugin Demo Page",
+                "Host Plugin Demo Page"
+        );
         mHostBatteryManager = new HostBatteryManager(this);
         mHostBatteryManager.getBatteryInfo();
         mRecorderMgr = new HostDeviceRecorderManager(this);
         initRecorders(mRecorderMgr);
         mRecorderMgr.start();
+        initRecorderSetting(mRecorderMgr);
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
         DConnectService hostService = new DConnectService(SERVICE_ID);
@@ -164,7 +211,9 @@ public class HostDevicePlugin extends DevicePluginContext {
         }
 
         if (mRecorderMgr.getRecorders().length > 0) {
-            hostService.addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr));
+            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
+            hostService.addProfile(mHostMediaStreamRecordingProfile);
+            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
         }
         if (checkCameraHardware()) {
             HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
@@ -189,8 +238,25 @@ public class HostDevicePlugin extends DevicePluginContext {
         filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
         getContext().registerReceiver(mHostConnectionReceiver, filter);
 
+        registerDemoNotification();
+        updateDemoPageIfNeeded();
     }
 
+    private void registerDemoNotification() {
+        IntentFilter filter  = new IntentFilter();
+        filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
+        filter.addAction(DemoInstaller.Notification.ACTON_UPDATE_DEMO);
+        getContext().registerReceiver(mDemoNotificationReceiver, filter);
+    }
+    private void updateDemoPageIfNeeded() {
+        final Context context = getContext();
+        if (DemoInstaller.isUpdateNeeded(context)) {
+            mLogger.info("Demo page must be updated.");
+            updateDemoPage(context);
+        } else {
+            mLogger.info("Demo page update is not needed.");
+        }
+    }
     private void initRecorders(final HostDeviceRecorderManager recorderMgr) {
         if (checkCameraHardware()) {
             mCameraWrapperManager = new CameraWrapperManager(getContext());
@@ -203,32 +269,64 @@ public class HostDevicePlugin extends DevicePluginContext {
             recorderMgr.createScreenCastRecorder(mFileMgr);
         }
     }
+    private void initRecorderSetting(final HostDeviceRecorderManager recorderMgr) {
+        final RecorderSettingData setting = RecorderSettingData.getInstance(getContext().getApplicationContext());
+        List<String> targets = new ArrayList<>();
+
+        for (HostDeviceRecorder recorder : recorderMgr.getRecorders()) {
+            if (recorder instanceof AbstractPreviewServerProvider) {
+                PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
+                if (server != null) {
+                    targets.add(recorder.getId());
+                    setting.storePreviewQuality(recorder.getId(), server.getQuality());
+                    setting.storePreviewName(recorder.getId(), recorder.getName());
+                }
+            }
+        }
+        setting.saveTargets(targets.toArray(new String[targets.size()]));
+    }
+    private void updateDemoPage(final Context context) {
+        mDemoInstaller.update(new DemoInstaller.UpdateCallback() {
+            @Override
+            public void onBeforeUpdate(final File demoDir) {
+                mLogger.info("Updating demo page: " + demoDir.getAbsolutePath());
+            }
+
+            @Override
+            public void onAfterUpdate(final File demoDir) {
+                mLogger.info("Updated demo page: " + demoDir.getAbsolutePath());
+                mDemoNotification.showUpdateSuccess(context);
+            }
+
+            @Override
+            public void onFileError(final IOException e) {
+                mLogger.severe("Failed to update demo page for file error: " + e.getMessage());
+                mDemoNotification.showUpdateError(context);
+            }
+
+            @Override
+            public void onUnexpectedError(final Throwable e) {
+                mLogger.severe("Failed to update demo page for unexpected error: " + e.getMessage());
+                mDemoNotification.showUpdateError(context);
+            }
+        }, new Handler(Looper.getMainLooper()));
+    }
 
     @Override
     public void release() {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
+        mRecorderMgr.destroy();
         mFileDataManager.stopTimer();
-        getContext().unregisterReceiver(mHostConnectionReceiver);
         if (mCameraWrapperManager != null) {
             mCameraWrapperManager.destroy();
         }
+        if (mHostMediaStreamRecordingProfile != null) {
+            mHostMediaStreamRecordingProfile.destroy();
+        }
+        getContext().unregisterReceiver(mHostConnectionReceiver);
+        getContext().unregisterReceiver(mDemoNotificationReceiver);
         super.release();
-//         unregisterReceiver(mHostConnectionReceiver);
-//         super.onDestroy();
-//     }
-//
-//     @Override
-//     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-//         if (intent == null) {
-//             return START_STICKY;
-//         }
-//
-//         String action = intent.getAction();
-//         if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
-//             return stopWebServer(intent);
-//         }
-//         return super.onStartCommand(intent, flags, startId);
     }
 
     // Managerアンインストール検知時の処理。
@@ -286,43 +384,10 @@ public class HostDevicePlugin extends DevicePluginContext {
     public int getPluginXmlResId() {
         return R.xml.org_deviceconnect_android_deviceplugin_host;
     }
-    /**
-     * Get a instance of FileManager.
-     *
-     * @return FileManager
-     */
-    public FileManager getFileManager() {
-        return mFileMgr;
-    }
-
-    /**
-     * カメラ管理クラスを取得する.
-     *
-     * @return カメラ管理クラス. 端末がカメラを持たない場合は<code>null</code>
-     */
-    public CameraWrapperManager getCameraManager() {
-        return mCameraWrapperManager;
-    }
-
-    /**
-     * レコーダー管理クラスを取得する.
-     *
-     * @return レコーダー管理クラス
-     */
-    public HostDeviceRecorderManager getRecorderManager() {
-        return mRecorderMgr;
-    }
 
     private void stopWebServer(final Intent intent) {
         mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
     }
-
-//    @Override
-//    public void onConfigurationChanged(final Configuration newConfig) {
-//        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-//        int rotation = windowManager.getDefaultDisplay().getRotation();
-//        mLogger.info("onConfigurationChanged: rotation=" + rotation);
-//    }
 
     private void onChangedBluetoothStatus() {
         List<Event> events = EventManager.INSTANCE.getEventList(SERVICE_ID, HostConnectionProfile.PROFILE_NAME, null,

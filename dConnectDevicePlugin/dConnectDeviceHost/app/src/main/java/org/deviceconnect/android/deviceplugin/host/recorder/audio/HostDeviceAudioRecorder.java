@@ -165,6 +165,21 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
+    public void mute() {
+
+    }
+
+    @Override
+    public void unMute() {
+
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
+    }
+
+    @Override
     public List<String> getSupportedMimeTypes() {
         return mMimeTypes;
     }

@@ -514,8 +514,6 @@ public class CameraWrapper {
         close();
         if (mIsPreview) {
             startPreview(mPreviewSurface, true);
-        } else {
-            close();
         }
         notifyCameraEvent(CameraEvent.STOPPED_VIDEO_RECORDING);
     }

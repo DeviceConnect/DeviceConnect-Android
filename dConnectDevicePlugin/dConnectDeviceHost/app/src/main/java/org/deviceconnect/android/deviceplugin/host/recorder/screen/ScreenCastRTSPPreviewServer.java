@@ -22,6 +22,7 @@ import com.serenegiant.glutils.GLDrawer2D;
 
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.audio.AACStream;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
 import net.majorkernelpanic.streaming.video.SurfaceH264Stream;
@@ -69,6 +70,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
     private volatile boolean mIsRecording;
     private boolean requestDraw;
     private DrawTask mScreenCaptureTask;
+    private AACStream mAac;
 
     ScreenCastRTSPPreviewServer(final Context context,
                                 final AbstractPreviewServerProvider serverProvider,
@@ -79,7 +81,25 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         thread.start();
         mHandler = new Handler(thread.getLooper());
     }
+    /**
+     * Recorderをmute状態にする.
+     */
+    public void mute() {
+        super.mute();
+        if (mAac != null) {
+            mAac.mute();
+        }
+    }
 
+    /**
+     * Recorderのmute状態を解除する.
+     */
+    public void unMute() {
+        super.unMute();
+        if (mAac != null) {
+            mAac.unMute();
+        }
+    }
     @Override
     public String getMimeType() {
         return MIME_TYPE;
@@ -181,6 +201,14 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         SessionBuilder builder = new SessionBuilder();
         builder.setContext(mContext);
         builder.setVideoStream(mVideoStream);
+        mAac = new AACStream();
+        if (isMuted()) {
+            mAac.mute();
+        } else {
+            mAac.unMute();
+        }
+        builder.setAudioStream(mAac);
+
         builder.setVideoQuality(videoQuality);
 
         Session session = builder.build();
@@ -327,4 +355,5 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         };
 
     }
+
 }

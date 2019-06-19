@@ -173,4 +173,18 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         return getId() + "-" + server.getMimeType() + "-preview-quality";
     }
 
+    @Override
+    public void mute() {
+
+    }
+
+    @Override
+    public void unMute() {
+
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
+    }
 }

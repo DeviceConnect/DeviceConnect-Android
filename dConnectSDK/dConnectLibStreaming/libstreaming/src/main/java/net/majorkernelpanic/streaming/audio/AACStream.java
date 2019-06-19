@@ -84,13 +84,13 @@ public class AACStream extends AudioStream {
 		-1,   // 14
 		-1,   // 15
 	};
-
+	private static final byte[] pcmBufferMuted = new byte[4096];
 	private String mSessionDescription = null;
 	private int mProfile, mSamplingRateIndex, mChannel, mConfig;
 	private SharedPreferences mSettings = null;
 	private AudioRecord mAudioRecord = null;
 	private Thread mThread = null;
-
+	private boolean muted = true; //default true
 	public AACStream() {
 		super();
 
@@ -121,6 +121,15 @@ public class AACStream extends AudioStream {
 		mSettings = prefs;
 	}
 
+	public void mute() {
+		muted = true;
+	}
+	public void unMute() {
+		muted = false;
+	}
+	public boolean isMuted() {
+		return muted;
+	}
 	@Override
 	public synchronized void start() throws IllegalStateException, IOException {
 		if (!mStreaming) {
@@ -224,12 +233,14 @@ public class AACStream extends AudioStream {
 						if (bufferIndex>=0) {
 							inputBuffers[bufferIndex].clear();
 							len = mAudioRecord.read(inputBuffers[bufferIndex], bufferSize);
-							if (len ==  AudioRecord.ERROR_INVALID_OPERATION || len == AudioRecord.ERROR_BAD_VALUE) {
-								Log.e(TAG,"An error occured with the AudioRecord API !");
-							} else {
-								//Log.v(TAG,"Pushing raw audio to the decoder: len="+len+" bs: "+inputBuffers[bufferIndex].capacity());
-								mMediaCodec.queueInputBuffer(bufferIndex, 0, len, System.nanoTime()/1000, 0);
+							if (len == AudioRecord.ERROR_INVALID_OPERATION || len == AudioRecord.ERROR_BAD_VALUE) {
+								Log.e(TAG, "An error occured with the AudioRecord API !");
 							}
+							if (isMuted()) {
+								inputBuffers[bufferIndex].put(pcmBufferMuted, 0, pcmBufferMuted.length);
+							}
+							//Log.v(TAG,"Pushing raw audio to the decoder: len="+len+" bs: "+inputBuffers[bufferIndex].capacity());
+							mMediaCodec.queueInputBuffer(bufferIndex, 0, len, System.nanoTime() / 1000, 0);
 						}
 					}
 				} catch (RuntimeException e) {

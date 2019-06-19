@@ -497,6 +497,83 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
     };
 
+    private final DConnectApi mPutPreviewMuteApi = new PutApi() {
+
+        @Override
+        public String getInterface() { return ATTRIBUTE_PREVIEW; }
+        @Override
+        public String getAttribute() {
+            return "mute";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return setMute(true, request, response);
+        }
+    };
+
+    private final DConnectApi mDeletePreviewMuteApi = new DeleteApi() {
+
+        @Override
+        public String getInterface() { return ATTRIBUTE_PREVIEW; }
+        @Override
+        public String getAttribute() {
+            return "mute";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            return setMute(false, request, response);
+        }
+    };
+
+    /**
+     * RecorderのMute状態を切り返す.
+     * RTSPをサポートしているRecorderのみ対応する.
+     * @param muted true: mute状態にする。  false: mute解除状態にする。
+     * @param request リクエスト
+     * @param response レスポンス
+     * @return true: 同期 false: 非同期
+     */
+    private boolean setMute(final boolean muted, final Intent request, final Intent response) {
+        String target = getTarget(request);
+
+        final PreviewServerProvider serverProvider = mRecorderMgr.getPreviewServerProvider(target);
+
+        if (serverProvider == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        serverProvider.requestPermission(new PreviewServerProvider.PermissionCallback() {
+            @Override
+            public void onAllowed() {
+                PreviewServer server = serverProvider.getServerForMimeType("video/x-rtp");
+                if (server != null) {
+                    if (muted) {
+                        server.mute();
+                    } else {
+                        server.unMute();
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    sendResponse(response);
+                } else {
+                    // RecorderがRTSPをサポートしていない場合はエラーを返す。
+                    MessageUtils.setIllegalDeviceStateError(response, "Unsupported RTSP.");
+                    sendResponse(response);
+                }
+            }
+
+            @Override
+            public void onDisallowed() {
+                MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+
     private final DConnectApi mPostRecordApi = new PostApi() {
 
         @Override
@@ -742,6 +819,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         addApi(mPutResumeApi);
         addApi(mPutOnRecordingChangeApi);
         addApi(mDeleteOnRecordingChangeApi);
+        addApi(mPutPreviewMuteApi);
+        addApi(mDeletePreviewMuteApi);
     }
 
     public void destroy() {

@@ -72,6 +72,11 @@ public interface HostDeviceRecorder {
 
     boolean isSupportedPreviewSize(int width, int height);
 
+    void mute();
+
+    void unMute();
+
+    boolean isMuted();
     /**
      * 端末の画面が回転したタイミングで実行されるメソッド.
      * @param degree 角度を示す定数

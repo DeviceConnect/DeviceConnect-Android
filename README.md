@@ -129,11 +129,9 @@ curl  -X GET \
 ## デバイスプラグイン
 | プロジェクト名|内容  |
 |:-----------|:---------|
-|[dConnectDeviceAllJoyn](dConnectDevicePlugin/dConnectDeviceAllJoyn)|AllJoynのデバイスプラグイン。|
 |[dConnectDeviceAndroidWear](dConnectDevicePlugin/dConnectDeviceAndroidWear)|AndroidWearのデバイスプラグイン。|
 |[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Chromecastのデバイスプラグイン。 |
 |[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|FaBoのデバイスプラグイン。|
-|[dConnectDeviceFPLUG](dConnectDevicePlugin/dConnectDeviceFPLUG)|F-PLUGのデバイスプラグイン。|
 |[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Mio AlphaなどのHeartRateのデバイスプラグイン。|
 |[dConnectDeviceHitoe](dConnectDevicePlugin/dConnectDeviceHitoe)|Hitoeのデバイスプラグイン。|
 |[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
@@ -143,11 +141,7 @@ curl  -X GET \
 |[dConnectDeviceHVCC2W](dConnectDevicePlugin/dConnectDeviceHVCC2W)|HVC-C2Wのデバイスプラグイン。|
 |[dConnectDeviceHVCP](dConnectDevicePlugin/dConnectDeviceHVCP)|HVC-Pのデバイスプラグイン。|
 |[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|IRKitのデバイスプラグイン。|
-|[dConnectDeviceKadecot](dConnectDevicePlugin/dConnectDeviceKadecot)|Kadecotのデバイスプラグイン。|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Linkingのデバイスプラグイン。|
-|[dConnectDevicePebble](dConnectDevicePlugin/dConnectDevicePebble)|Pebbleのデバイスプラグイン。|
-|[dConnectDeviceSonyCamera](dConnectDevicePlugin/dConnectDeviceSonyCamera)|QX10などのSonyCameraのデバイスプラグイン。|
-|[dConnectDeviceSonySW](dConnectDevicePlugin/dConnectDeviceSonySW)|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
 |[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Spheroのデバイスプラグイン。|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
@@ -164,7 +158,6 @@ curl  -X GET \
 ## Device Connect SDK
 | プロジェクト名|内容  |
 |:-----------|:---------|
-|dConnectApp| DeviceConnectの動作確認用アプリ。|
 |[dConnectSDKForAndroid](dConnectSDK/dConnectSDKForAndroid)| DeviceConnectのSDK。DevicePlugin開発とアプリ開発用に使用するSDK。|
 
 
@@ -220,9 +213,7 @@ gradleを実行したディレクトリに`DevicePluginSDK-Javadoc`が作成さ�
 Device Connect Managerや各デバイスプラグインを開発したい人は、こちらのビルド手順書に従ってビルドしてください。
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)
-* [AllJoyn](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
-* [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/F-PLUG-Build)
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
@@ -233,11 +224,7 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [HVC-C2W](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCC2WDevice-Build)
 * [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
-* [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
 * [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
-* [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
-* [SonyCamera](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonyCamera-Build)
-* [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
 * [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)

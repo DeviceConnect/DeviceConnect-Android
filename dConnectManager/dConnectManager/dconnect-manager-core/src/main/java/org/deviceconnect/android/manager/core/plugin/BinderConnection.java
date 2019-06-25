@@ -96,7 +96,11 @@ public class BinderConnection extends AbstractConnection {
     public void disconnect() {
         synchronized (this) {
             if (ConnectionState.CONNECTED == getState()) {
-                mContext.unbindService(mServiceConnection);
+                try {
+                    mContext.unbindService(mServiceConnection);
+                } catch (Exception e) {
+                    // ignore.
+                }
                 mServiceConnection = null;
                 mPlugin = null;
             }

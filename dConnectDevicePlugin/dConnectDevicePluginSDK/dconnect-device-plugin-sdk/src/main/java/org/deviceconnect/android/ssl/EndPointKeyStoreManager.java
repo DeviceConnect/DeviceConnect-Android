@@ -106,7 +106,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      */
     public EndPointKeyStoreManager(final Context context, final String keyStorePath,
                                    final String keyStorePassword, final String alias) {
-        this(context, keyStorePath, alias, keyStorePassword, DEFAULT_ROOT_CA);
+        this(context, keyStorePath, keyStorePassword, alias, DEFAULT_ROOT_CA);
     }
 
     /**

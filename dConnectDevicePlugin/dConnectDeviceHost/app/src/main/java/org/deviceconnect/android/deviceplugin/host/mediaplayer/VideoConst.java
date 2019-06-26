@@ -56,6 +56,8 @@ public final class VideoConst {
     public static final String EXTRA_RECORDER_ID = "recorderId";
     /** ServiceのID. */
     public static final String EXTRA_SERVICE_ID = "serviceId";
+    /** uri. */
+    public static final String EXTRA_URI = "uri";
 
     /** Camera ID. */
     public static final String EXTRA_CAMERA_ID = "cameraId";

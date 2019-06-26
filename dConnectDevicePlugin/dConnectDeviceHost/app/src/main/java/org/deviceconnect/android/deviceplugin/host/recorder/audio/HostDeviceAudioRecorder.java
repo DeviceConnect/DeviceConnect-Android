@@ -57,6 +57,7 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     private RecorderState mState;
     public HostDeviceAudioRecorder(final Context context) {
         mContext = context;
+        mState = RecorderState.INACTTIVE;
     }
 
     @Override
@@ -206,8 +207,10 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 if (resultCode == Activity.RESULT_OK) {
+                    mState = RecorderState.RECORDING;
                     listener.onRecorded(HostDeviceAudioRecorder.this, mNowRecordingFileName);
                 } else {
+                    mState = RecorderState.ERROR;
                     String msg =
                         resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
                     listener.onFailed(HostDeviceAudioRecorder.this, msg);

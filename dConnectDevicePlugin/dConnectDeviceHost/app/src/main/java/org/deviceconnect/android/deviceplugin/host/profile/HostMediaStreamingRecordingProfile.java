@@ -7,13 +7,20 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
@@ -35,11 +42,14 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import static org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst.SEND_VIDEO_TO_HOSTDP;
 
 /**
  * MediaStream Recording Profile.
@@ -63,7 +73,24 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * ライト操作結果のリスナーを実行するハンドラー.
      */
     private final Handler mLightHandler;
+    /**
+     * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
+     */
+    private BroadcastReceiver mAudioEventBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent.getAction().equals(SEND_VIDEO_TO_HOSTDP)) {
 
+                String serviceId = intent.getStringExtra(VideoConst.EXTRA_SERVICE_ID);
+                HostDeviceRecorder.RecorderState state =
+                        (HostDeviceRecorder.RecorderState) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
+                Uri uri = intent.getParcelableExtra(VideoConst.EXTRA_URI);
+                String path = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
+                String u = uri != null ? uri.toString() : null;
+                mRecorderMgr.sendEventForRecordingChange(serviceId, state, u, path, "audio/3gp", "");
+            }
+        }
+    };
     private final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -297,6 +324,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
+                Log.d("ABC", "send:" + getServiceID(request));
+                IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(mAudioEventBR, filter);
+
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
@@ -316,6 +347,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mAudioEventBR);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);

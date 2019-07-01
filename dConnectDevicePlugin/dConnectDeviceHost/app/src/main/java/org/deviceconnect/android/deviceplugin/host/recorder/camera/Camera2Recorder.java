@@ -744,6 +744,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
+    protected int getDefaultPreviewQuality(String mimeType) {
+        return PHOTO_JPEG_QUALITY;
+    }
+
+    @Override
     public String getId() {
         return ID_BASE + "_" + mCameraId;
     }

@@ -164,6 +164,11 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
+    protected int getDefaultPreviewQuality(String mimeType) {
+        return 100;
+    }
+
+    @Override
     public String getId() {
         return ID;
     }

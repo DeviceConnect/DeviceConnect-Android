@@ -76,6 +76,16 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
+    public void mute() {
+        // NOP
+    }
+
+    @Override
+    public void unMute() {
+        // NOP
+    }
+
+    @Override
     public String getMimeType() {
         return MIME_TYPE;
     }
@@ -202,4 +212,5 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
             start();
         }
     }
+
 }

@@ -39,7 +39,21 @@ public interface PreviewServer {
      * @param degree 0, 90, 180, 270 のいずれか.
      */
     void onDisplayRotation(int degree);
+    /**
+     * Recorderをmute状態にする.
+     */
+    void mute();
 
+    /**
+     * Recorderのmute状態を解除する.
+     */
+    void unMute();
+
+    /**
+     * Recorderのmute状態を返す.
+     * @return mute状態
+     */
+    boolean isMuted();
     /**
      * Callback interface used to receive the result of starting a web server.
      */

@@ -44,9 +44,9 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
-     * タイムアウト時間を定義. (8秒)
+     * タイムアウト時間を定義. (3秒)
      */
-    public static final int TIMEOUT = 8000;
+    public static final int TIMEOUT = 3000;
 
     /**
      * プラグイン側のService Discoveryのプロファイル名: {@value}.
@@ -122,11 +122,9 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             }
         }
 
-        // レスポンスの無かったプラグインのログを出力
-        if (BuildConfig.DEBUG) {
-            synchronized (mRequestCodeArray) {
-                outputNotRespondedPlugins(mRequestCodeArray);
-            }
+        // レスポンスの無かったプラグインをOFFにする
+        synchronized (mRequestCodeArray) {
+            outputNotRespondedPlugins(mRequestCodeArray);
         }
 
         // パラメータを設定する
@@ -150,10 +148,13 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             for (int index = 0; index < notRespondedPlugins.size(); index++) {
                 DevicePlugin plugin = notRespondedPlugins.get(notRespondedPlugins.keyAt(index));
                 if (plugin != null) {
+                    plugin.disable();
                     notRespondedLog.append(" - ").append(plugin.getDeviceName()).append("\n");
                 }
             }
-            mLogger.warning(notRespondedLog.toString());
+            if (BuildConfig.DEBUG) {
+                mLogger.warning(notRespondedLog.toString());
+            }
         } else {
             if (BuildConfig.DEBUG) {
                 mLogger.info("All plug-in(s) responded for service discovery.");
@@ -206,18 +207,18 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
             }
 
             // レスポンス個数を追加
-            mCountDownLatch.countDown();
             synchronized (mRequestCodeArray) {
                 mRequestCodeArray.remove(mRequestCode);
             }
+            mCountDownLatch.countDown();
         }
 
         @Override
         protected void onMessagingError(final MessagingException e) {
-            mCountDownLatch.countDown();
             synchronized (mRequestCodeArray) {
                 mRequestCodeArray.remove(mRequestCode);
             }
+            mCountDownLatch.countDown();
         }
     }
 }

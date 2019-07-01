@@ -44,9 +44,9 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
     private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
-     * タイムアウト時間を定義. (3秒)
+     * タイムアウト時間を定義. (8秒)
      */
-    public static final int TIMEOUT = 3000;
+    public static final int TIMEOUT = 8000;
 
     /**
      * プラグイン側のService Discoveryのプロファイル名: {@value}.

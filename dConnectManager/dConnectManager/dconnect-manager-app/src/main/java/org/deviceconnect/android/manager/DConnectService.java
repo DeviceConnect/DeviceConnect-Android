@@ -290,9 +290,13 @@ public class DConnectService extends Service {
                     .build();
             mManager.getPluginManager().addDevicePlugin(plugin);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            if (DEBUG) {
+                Log.e(TAG, "add plugin error.", e);
+            }
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            if (DEBUG) {
+                Log.e(TAG, "add plugin error.", e);
+            }
         }
     }
     /**

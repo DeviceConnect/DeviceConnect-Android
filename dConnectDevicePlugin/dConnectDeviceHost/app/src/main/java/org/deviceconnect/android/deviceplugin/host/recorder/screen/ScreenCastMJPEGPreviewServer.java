@@ -1,10 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
@@ -13,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 
 import java.io.ByteArrayOutputStream;
 import java.net.Socket;
@@ -33,8 +31,6 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
     private final ScreenCaster mPreview;
 
     private MixedReplaceMediaServer mServer;
-
-    private int mJpegQuality;
 
     private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
 
@@ -70,12 +66,13 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     @Override
     public int getQuality() {
-        return mJpegQuality;
+        return RecorderSettingData.getInstance(mContext).readPreviewQuality(mServerProvider.getId());
     }
 
     @Override
     public void setQuality(int quality) {
-        mJpegQuality = quality;
+        RecorderSettingData.getInstance(mContext).storePreviewQuality(mServerProvider.getId(),
+                quality);
     }
 
     @Override
@@ -156,42 +153,39 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
                 mScreenCast = mScreenCastMgr.createScreenCast(mImageReader, size);
                 mScreenCast.startCast();
 
-                mStreamingThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mServer != null) {
-                            if (BuildConfig.DEBUG) {
-                                mLogger.info("Server URL: " + mServer.getUrl());
+                mStreamingThread = new Thread(() -> {
+                    if (mServer != null) {
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("Server URL: " + mServer.getUrl());
+                        }
+                    }
+                    try {
+                        while (mIsStarted) {
+                            long start = System.currentTimeMillis();
+
+                            Bitmap bitmap = mScreenCast.getScreenshot();
+                            if (bitmap == null) {
+                                continue;
+                            }
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, getQuality(), baos);
+                            byte[] media = baos.toByteArray();
+                            mServer.offerMedia(media);
+
+                            long end = System.currentTimeMillis();
+                            double fps = mServerProvider.getMaxFrameRate();
+                            long frameInterval = 1000L / (long) fps;
+                            long interval = frameInterval - (end - start);
+                            if (interval > 0) {
+                                Thread.sleep(interval);
                             }
                         }
-                        try {
-                            while (mIsStarted) {
-                                long start = System.currentTimeMillis();
-
-                                Bitmap bitmap = mScreenCast.getScreenshot();
-                                if (bitmap == null) {
-                                    continue;
-                                }
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, mJpegQuality, baos);
-                                byte[] media = baos.toByteArray();
-                                mServer.offerMedia(media);
-
-                                long end = System.currentTimeMillis();
-                                double fps = mServerProvider.getMaxFrameRate();
-                                long frameInterval = 1000L / (long) fps;
-                                long interval = frameInterval - (end - start);
-                                if (interval > 0) {
-                                    Thread.sleep(interval);
-                                }
-                            }
-                        } catch (InterruptedException e) {
-                            // NOP.
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                            mLogger.warning("MediaProjection is broken." + e.getMessage());
-                            stopWebServer();
-                        }
+                    } catch (InterruptedException e) {
+                        // NOP.
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                        mLogger.warning("MediaProjection is broken." + e.getMessage());
+                        stopWebServer();
                     }
                 });
                 mStreamingThread.start();

@@ -30,6 +30,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 
 import java.io.ByteArrayOutputStream;
 import java.net.Socket;
@@ -112,12 +113,13 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     @Override
     public int getQuality() {
-        return mRecorder.getCameraWrapper().getPreviewJpegQuality();
+        return RecorderSettingData.getInstance(mRecorder.getContext()).readPreviewQuality(mRecorder.getId());
     }
 
     @Override
     public void setQuality(int quality) {
-        mRecorder.getCameraWrapper().setPreviewJpegQuality(quality);
+        RecorderSettingData.getInstance(mRecorder.getContext()).storePreviewQuality(mRecorder.getId(),
+                quality);
     }
 
     @Override

@@ -155,6 +155,9 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
             case INTERNAL:
                 resId = R.string.activity_deviceplugin_info_connection_type_included_with_manager;
                 break;
+            case DIRECT:
+                resId = R.string.activity_deviceplugin_info_connection_type_direct;
+                break;
             default:
                 resId = R.string.activity_deviceplugin_info_connection_type_unknown;
                 break;

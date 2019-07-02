@@ -44,7 +44,6 @@ public class DirectConnection extends AbstractConnection {
         super(context, pluginId);
         mPluginName = target;
         mCallback = callback;
-        setSuspendedState(null);
     }
 
     @Override

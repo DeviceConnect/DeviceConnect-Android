@@ -11,6 +11,8 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -52,11 +54,6 @@ public abstract class AbstractCamera2Recorder extends AbstractPreviewServerProvi
     protected final String mCameraId;
 
     /**
-     * セッション作成用ハンドラー.
-     */
-    protected final Handler mHandler;
-
-    /**
      * カメラの位置.
      */
     protected final Camera2Recorder.CameraFacing mFacing;
@@ -72,7 +69,6 @@ public abstract class AbstractCamera2Recorder extends AbstractPreviewServerProvi
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mFacing = detectFacing();
-        mHandler = new Handler();
     }
 
     /**

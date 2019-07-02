@@ -215,7 +215,9 @@ public class DConnectService extends Service {
                 try {
                     addDevicePlugin();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    if (DEBUG) {
+                        Log.e(TAG, "search plugin error.", e);
+                    }
                 }
             }
 
@@ -287,7 +289,6 @@ public class DConnectService extends Service {
                     .setPluginSdkVersionName(VersionName.parse("2.0.0"))
                     .build();
             mManager.getPluginManager().addDevicePlugin(plugin);
-            plugin.enable();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {

@@ -84,7 +84,6 @@ public class DevicePlugin extends DConnectService {
      */
     synchronized void dispose() {
         mConnection.disconnect();
-        mSetting.clear();
         mHistory.clear();
     }
 

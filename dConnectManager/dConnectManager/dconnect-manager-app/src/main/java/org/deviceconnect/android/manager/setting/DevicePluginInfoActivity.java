@@ -72,27 +72,24 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
                     if (state == null) {
                         return;
                     }
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // 接続処理中表示
-                            switch (state) {
-                                case CONNECTING:
-                                    mProgressCircle.setVisibility(View.VISIBLE);
-                                    break;
-                                case CONNECTED:
-                                case SUSPENDED:
-                                    mProgressCircle.setVisibility(View.INVISIBLE);
-                                    break;
-                                default:
-                                    break;
-                            }
+                    runOnUiThread(() -> {
+                        // 接続処理中表示
+                        switch (state) {
+                            case CONNECTING:
+                                mProgressCircle.setVisibility(View.VISIBLE);
+                                break;
+                            case CONNECTED:
+                            case SUSPENDED:
+                                mProgressCircle.setVisibility(View.INVISIBLE);
+                                break;
+                            default:
+                                break;
+                        }
 
-                            // 接続エラー表示
-                            DevicePluginInfoFragment infoFragment = getInfoFragment();
-                            if (infoFragment != null) {
-                                infoFragment.updateErrorState(error);
-                            }
+                        // 接続エラー表示
+                        DevicePluginInfoFragment infoFragment = getInfoFragment();
+                        if (infoFragment != null) {
+                            infoFragment.updateErrorState(error);
                         }
                     });
                 }
@@ -127,19 +124,16 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             actionBar.setCustomView(R.layout.action_bar_plugin_enable_status);
 
             mStatusSwitch = (SwitchCompat) actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
-            mStatusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(final CompoundButton button, final boolean isOn) {
-                    // 再起動ボタンの有効状態を変更
-                    FragmentManager fm = getSupportFragmentManager();
-                    Fragment f = fm.findFragmentByTag(TAG);
-                    if (f != null && f.isResumed() && f instanceof DevicePluginInfoFragment) {
-                        ((DevicePluginInfoFragment) f).onEnabled(isOn);
-                    }
-
-                    // プラグインの有効状態を変更
-                    requestPluginStateChange(isOn);
+            mStatusSwitch.setOnCheckedChangeListener((button, isOn) -> {
+                // 再起動ボタンの有効状態を変更
+                FragmentManager fm = getSupportFragmentManager();
+                Fragment f = fm.findFragmentByTag(TAG);
+                if (f != null && f.isResumed() && f instanceof DevicePluginInfoFragment) {
+                    ((DevicePluginInfoFragment) f).onEnabled(isOn);
                 }
+
+                // プラグインの有効状態を変更
+                requestPluginStateChange(isOn);
             });
             mStatusSwitch.setChecked(plugin.isEnabled());
 

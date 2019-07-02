@@ -149,7 +149,6 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     public Context getContext() {
         return mContext;
     }
-
     public void setPreviewQuality(final PreviewServer server, final int quality) {
         server.setQuality(quality);
         storePreviewQuality(server, quality);

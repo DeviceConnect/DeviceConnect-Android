@@ -130,21 +130,6 @@
             android:exported="true" >
             
         </provider>
-        <service
-            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/org_deviceconnect_android_deviceplugin_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.name"
-                android:value="@string/app_name_host"/>
-
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin.icon"
-                android:resource="@drawable/dconnect_icon"/>
-        </service>
     </application>
 
 </manifest>

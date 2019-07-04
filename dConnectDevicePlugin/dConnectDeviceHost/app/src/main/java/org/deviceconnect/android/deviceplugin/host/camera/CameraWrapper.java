@@ -23,6 +23,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -124,7 +125,7 @@ public class CameraWrapper {
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        mBackgroundHandler = new Handler(Looper.getMainLooper());//mBackgroundThread.getLooper());
         mSessionConfigurationThread.start();
         mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
         mOptions = initOptions();

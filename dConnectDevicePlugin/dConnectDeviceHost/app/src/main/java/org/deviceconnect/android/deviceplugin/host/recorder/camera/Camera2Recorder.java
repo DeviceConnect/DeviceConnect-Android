@@ -617,6 +617,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
             }
             return -1;
+        } catch (NullPointerException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
+            }
+            return -1;
         } finally {
             thumbnail.recycle();
         }

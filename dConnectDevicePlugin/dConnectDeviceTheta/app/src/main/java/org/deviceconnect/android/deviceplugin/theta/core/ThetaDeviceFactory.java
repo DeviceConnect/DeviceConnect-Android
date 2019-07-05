@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.theta.core;
 
 import android.content.Context;
 import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 
 class ThetaDeviceFactory {
 
@@ -11,7 +12,16 @@ class ThetaDeviceFactory {
     public static ThetaDevice createDevice(final Context context, final WifiInfo wifiInfo) {
         String ssId = parseSSID(wifiInfo);
         if (ssId == null) {
-            return null;
+            WifiManager wm = (WifiManager) context.getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE);
+            if (wm == null) {
+                return null;
+            }
+            WifiInfo info = wm.getConnectionInfo();
+            if (info == null) {
+                return null;
+            }
+            ssId = info.getSSID().replace("\"", "");
         }
         ThetaDeviceModel model = parseModel(ssId);
         switch (model) {

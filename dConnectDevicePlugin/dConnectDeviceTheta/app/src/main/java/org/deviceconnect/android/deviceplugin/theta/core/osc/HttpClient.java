@@ -1,25 +1,33 @@
 package org.deviceconnect.android.deviceplugin.theta.core.osc;
 
 
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
+import com.burgstaller.okhttp.digest.Credentials;
+import com.burgstaller.okhttp.digest.DigestAuthenticator;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 class HttpClient {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private final OkHttpClient mOkHttpClient = new OkHttpClient();
+    private final OkHttpClient mOkHttpClient;
 
-    public HttpClient() {
-        mOkHttpClient.setConnectTimeout(60, TimeUnit.SECONDS);
-        mOkHttpClient.setWriteTimeout(60, TimeUnit.SECONDS);
-        mOkHttpClient.setReadTimeout(60, TimeUnit.SECONDS);
+    public HttpClient(final Credentials credentials) {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS);
+        if (credentials != null) {
+            builder.authenticator(new DigestAuthenticator(credentials));
+        }
+        mOkHttpClient = builder.build();
     }
 
     public HttpResponse execute(final HttpRequest request) throws IOException {

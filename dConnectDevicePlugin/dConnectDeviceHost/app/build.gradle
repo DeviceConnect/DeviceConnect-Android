@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 def DEMO_ZIP_NAME = "demo.zip"
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     buildToolsVersion '28.0.3'
 
     def getVersionName = { ->
@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionName getVersionName()
 
         buildConfigField "String", "PACKAGE_NAME", "\"org.deviceconnect.android.deviceplugin.host\""
@@ -77,7 +77,7 @@ dependencies {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.7.2'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.7.3'
     implementation project(':dconnect-demo-lib')
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {

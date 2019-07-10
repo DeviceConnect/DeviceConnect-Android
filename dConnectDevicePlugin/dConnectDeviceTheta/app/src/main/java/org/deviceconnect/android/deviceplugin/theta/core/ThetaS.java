@@ -53,10 +53,11 @@ class ThetaS extends AbstractThetaDevice {
 
     private static final SimpleDateFormat AFTER_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-    private OscClient mOscClient = new OscClient();
+    private OscClient mOscClient;
 
-    ThetaS(final String ssId) {
+    ThetaS(final String ssId, final String host) {
         super(ssId);
+        mOscClient = new OscClient(host, null);
     }
 
     @Override

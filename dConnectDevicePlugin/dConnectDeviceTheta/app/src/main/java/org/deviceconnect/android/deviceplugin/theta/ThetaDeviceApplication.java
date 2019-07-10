@@ -8,9 +8,12 @@ package org.deviceconnect.android.deviceplugin.theta;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
 import android.support.v4.util.LruCache;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceDetectionFromAccessPoint;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceDetectionFromLAN;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.AbstractHeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.DefaultHeadTracker;
@@ -78,6 +81,11 @@ public class ThetaDeviceApplication extends Application {
 
         Context context = getApplicationContext();
         mDeviceMgr = new ThetaDeviceManager(context);
+        mDeviceMgr.addDeviceDetection(new ThetaDeviceDetectionFromAccessPoint());
+        // 16以上でNsdManagerが使用できるので追加する
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mDeviceMgr.addDeviceDetection(new ThetaDeviceDetectionFromLAN());
+        }
         mHeadTracker = new HeadTrackerWrapper(new DefaultHeadTracker(context));
         mSphericalViewApi = new SphericalViewApi(context);
     }

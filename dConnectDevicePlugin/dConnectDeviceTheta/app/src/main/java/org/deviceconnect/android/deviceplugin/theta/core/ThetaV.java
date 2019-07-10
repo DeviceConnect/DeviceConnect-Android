@@ -1,12 +1,11 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
-import android.util.Log;
+import com.burgstaller.okhttp.digest.Credentials;
 
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscClient;
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscCommand;
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscEntry;
-import org.deviceconnect.android.deviceplugin.theta.core.osc.OscSession;
 import org.deviceconnect.android.deviceplugin.theta.core.osc.OscState;
 import org.deviceconnect.utils.RFC3339DateUtils;
 import org.json.JSONArray;
@@ -58,10 +57,11 @@ class ThetaV extends AbstractThetaDevice {
 
     private static final SimpleDateFormat AFTER_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-    private OscClient mOscClient = new OscClient();
+    private OscClient mOscClient;
 
-    ThetaV(final String ssId) {
+    ThetaV(final String ssId, final String host, final Credentials credentials) {
         super(ssId);
+        mOscClient = new OscClient(host, credentials);
     }
 
     @Override
@@ -365,7 +365,10 @@ class ThetaV extends AbstractThetaDevice {
 
         public ThetaObjectV(final String fileUri, final String fileName, final String dateTime,
                             final int width, final int height) {
-            mFileUri = fileUri;
+            String uri = fileUri;
+            //ローカルホスト上のURLが指定された場合は、外部IPに置き換える
+            mFileUri = uri.replace("127.0.0.1", mOscClient.getHost());
+
             mFileName = fileName;
             mWidth = width;
             mHeight = height;

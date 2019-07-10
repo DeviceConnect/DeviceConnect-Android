@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -49,6 +48,8 @@ public class SphericalViewApi implements HeadTrackingListener {
     private LivePreviewTask mLivePreviewTask;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService mUpdateExecutor;
+    private boolean mUpdateFlag;
 
     public SphericalViewApi(final Context context) {
         mHeadTracker = new DefaultHeadTracker(context);
@@ -80,16 +81,37 @@ public class SphericalViewApi implements HeadTrackingListener {
         mRenderer = renderer;
         mRenderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());
 
-        mLivePreviewTask = new LivePreviewTask(camera) {
+        mUpdateExecutor = Executors.newSingleThreadExecutor();
+        mUpdateFlag = false;
 
+        mLivePreviewTask = new LivePreviewTask(camera) {
             @Override
             protected void onFrame(final byte[] frame) {
-                Bitmap texture = BitmapFactory.decodeByteArray(frame, 0, frame.length);
-                // Fix texture size to power of two.
-                texture = BitmapUtils.resize(texture, 512, 256);
-                mRenderer.setTexture(texture);
-            }
+                if (mUpdateFlag || mUpdateExecutor == null) {
+                    return;
+                }
+                mUpdateFlag = true;
 
+                mUpdateExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Bitmap texture = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                            if (!isPowerOfTwo(texture.getWidth()) || !isPowerOfTwo(texture.getHeight())) {
+                                // Fix texture size to power of two.
+                                int w = nextHighestPowerOfTwo(texture.getWidth());
+                                int h = nextHighestPowerOfTwo(texture.getHeight());
+                                texture = BitmapUtils.resize(texture, w, h);
+                            }
+                            mRenderer.setTexture(texture);
+                        } catch (OutOfMemoryError e) {
+                            // ignore.
+                        } finally {
+                            mUpdateFlag = false;
+                        }
+                    }
+                });
+            }
         };
         mExecutor.execute(mLivePreviewTask);
 
@@ -184,7 +206,10 @@ public class SphericalViewApi implements HeadTrackingListener {
             mLivePreviewTask.stop();
             mLivePreviewTask = null;
         }
-
+        if (mUpdateExecutor != null) {
+            mUpdateExecutor.shutdown();
+            mUpdateExecutor = null;
+        }
         mHeadTracker.stop();
         mHeadTracker.unregisterTrackingListener(this);
 
@@ -215,6 +240,18 @@ public class SphericalViewApi implements HeadTrackingListener {
 
     private boolean isState(State state) {
         return mState == state;
+    }
+
+    private boolean isPowerOfTwo(final int x) {
+        return ((x != 0) && (x & (x - 1)) == 0);
+    }
+
+    private int nextHighestPowerOfTwo(int x) {
+        --x;
+        for (int i = 1; i < 32; i <<= 1) {
+            x = x | x >> i;
+        }
+        return x + 1;
     }
 
     private enum State {

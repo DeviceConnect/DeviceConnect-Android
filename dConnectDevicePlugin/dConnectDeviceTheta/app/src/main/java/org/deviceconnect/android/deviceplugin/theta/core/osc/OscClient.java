@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.theta.core.osc;
 
 
+import com.burgstaller.okhttp.digest.Credentials;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,7 +13,6 @@ import java.util.List;
 
 public class OscClient {
 
-    private static final String HOST = "192.168.1.1:80";
     private static final HttpRequest.Method GET = HttpRequest.Method.GET;
     private static final HttpRequest.Method POST = HttpRequest.Method.POST;
 
@@ -27,13 +28,19 @@ public class OscClient {
     private static final String RES_PARAM_ENTRIES = "entries";
 
     private final HttpClient mHttpClient;
+    private final String mHost;
 
-    public OscClient() {
-        mHttpClient = new HttpClient();
+    public OscClient(final String host, final Credentials credentials) {
+        mHttpClient = new HttpClient(credentials);
+        mHost = host;
+    }
+
+    public String getHost() {
+        return mHost;
     }
 
     public OscState state() throws IOException, JSONException {
-        HttpRequest request = new HttpRequest(POST, HOST, PATH_STATE);
+        HttpRequest request = new HttpRequest(POST, getHost(), PATH_STATE);
         HttpResponse response = mHttpClient.execute(request);
 
         JSONObject json = response.getJSON();
@@ -224,7 +231,7 @@ public class OscClient {
             if (params != null) {
                 body.put("parameters", params);
             }
-            HttpRequest request = new HttpRequest(POST, HOST, PATH_COMMANDS_EXECUTE);
+            HttpRequest request = new HttpRequest(POST, getHost(), PATH_COMMANDS_EXECUTE);
             request.setBody(body.toString());
             return mHttpClient.execute(request);
         } catch (JSONException e) {
@@ -242,7 +249,7 @@ public class OscClient {
             JSONObject body = new JSONObject();
             body.put(REQ_PARAM_ID, commandId);
 
-            HttpRequest request = new HttpRequest(POST, HOST, PATH_COMMANDS_STATUS);
+            HttpRequest request = new HttpRequest(POST, getHost(), PATH_COMMANDS_STATUS);
             request.setBody(body.toString());
             HttpResponse response = mHttpClient.execute(request);
             return OscCommand.Result.parse(response);

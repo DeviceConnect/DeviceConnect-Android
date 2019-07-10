@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -25,6 +26,7 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -50,6 +52,12 @@ public class HostKeyEventProfile extends KeyEventProfile {
     /** Finish key event profile activity action. */
     public static final String ACTION_KEYEVENT =
             "org.deviceconnect.android.deviceplugin.host.keyevent.action.KEY_EVENT";
+
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3529;
+
+    /** Notification Content */
+    private final String NOTIFICATION_CONTENT = "Host Key Event Profileからの起動要求";
 
     /**
      * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
@@ -294,7 +302,12 @@ public class HostKeyEventProfile extends KeyEventProfile {
             mIntent.setClass(getContext(), KeyEventProfileActivity.class);
             mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mIntent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-            this.getContext().startActivity(mIntent);
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                this.getContext().startActivity(mIntent);
+            } else {
+                NotificationUtils.createNotificationChannel(getContext());
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent, NOTIFICATION_CONTENT);
+            }
         }
         return true;
     }

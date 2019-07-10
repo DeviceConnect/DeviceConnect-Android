@@ -20,6 +20,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.webkit.MimeTypeMap;
 
@@ -30,6 +31,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.File;
@@ -157,12 +159,22 @@ public class HostMediaPlayerManager {
      */
     private final DevicePluginContext mHostDevicePluginContext;
 
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3539;
+
+    /** Notification Content */
+    private final String NOTIFICATION_CONTENT = "Host Media Player Profileからの起動要求";
+
+    /** Intent Action */
+    public static final String INTENT_ACTION_ACTIVITY_START = "org.deviceconnect.android.deviceplugin.host.mediaplayer.ACTIVTY_START";
+
     public HostMediaPlayerManager(final DevicePluginContext pluginContext) {
         mHostDevicePluginContext = pluginContext;
 
         // MediaPlayer (Video) IntentFilter.
         mIfMediaPlayerVideo = new IntentFilter();
         mIfMediaPlayerVideo.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
+        mIfMediaPlayerVideo.addAction(INTENT_ACTION_ACTIVITY_START);
     }
 
     private Context getContext() {
@@ -472,8 +484,13 @@ public class HostMediaPlayerManager {
                 mIntent.setDataAndType(data, mMyCurrentFileMIMEType);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mHostDevicePluginContext.getContext().startActivity(mIntent);
-                sendOnStatusChangeEvent("play");
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    mHostDevicePluginContext.getContext().startActivity(mIntent);
+                    sendOnStatusChangeEvent("play");
+                } else {
+                    NotificationUtils.createNotificationChannel(getContext());
+                    NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent, NOTIFICATION_CONTENT);
+                }
             }
 
             if (response != null) {
@@ -609,6 +626,8 @@ public class HostMediaPlayerManager {
                         getContext().unregisterReceiver(mMediaPlayerVideoBR);
                         break;
                 }
+            } else if (intent.getAction().equals(INTENT_ACTION_ACTIVITY_START)) {
+                sendOnStatusChangeEvent("play");
             }
         }
     };

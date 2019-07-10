@@ -10,10 +10,12 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.message.MessageUtils;
@@ -21,6 +23,7 @@ import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.PostApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.File;
@@ -46,6 +49,12 @@ public class HostCanvasProfile extends CanvasProfile {
 
     /** Edit Image Thread. */
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
+
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3517;
+
+    /** Notification Content */
+    private final String NOTIFICATION_CONTENT = "Host Canvas Profileからの起動要求";
 
     private final DConnectApi mDrawImageApi = new PostApi() {
 
@@ -167,7 +176,12 @@ public class HostCanvasProfile extends CanvasProfile {
             intent.setClass(getContext(), CanvasProfileActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             drawObj.setValueToIntent(intent);
-            getContext().startActivity(intent);
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                getContext().startActivity(intent);
+            } else {
+                NotificationUtils.createNotificationChannel(getContext());
+                NotificationUtils.notify(getContext(),  NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
+            }
         }
 
         setResult(response, DConnectMessage.RESULT_OK);

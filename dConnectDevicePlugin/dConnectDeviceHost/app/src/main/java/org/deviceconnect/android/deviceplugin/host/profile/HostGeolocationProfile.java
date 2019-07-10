@@ -14,6 +14,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,6 +33,7 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.RFC3339DateUtils;
 
@@ -55,6 +57,12 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
 
     /** 前回の位置情報を保持する. */
     private Bundle mLocationCache;
+
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3533;
+
+    /** Notification Content */
+    private final String NOTIFICATION_CONTENT = "Host Geolocation Profileからの起動要求";
 
     /**
      * Constructor.
@@ -199,7 +207,12 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             Bundle bundle = new Bundle();
             bundle.putParcelable("response", response);
             intent.putExtra("Intent", bundle);
-            getContext().startActivity(intent);
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                getContext().startActivity(intent);
+            } else {
+                NotificationUtils.createNotificationChannel(getContext());
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
+            }
         }
         return mLocationManager;
     }

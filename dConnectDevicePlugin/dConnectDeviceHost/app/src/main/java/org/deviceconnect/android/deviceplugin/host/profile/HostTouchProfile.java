@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -25,6 +26,7 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -59,6 +61,12 @@ public class HostTouchProfile extends TouchProfile {
     /** Finish touch event profile activity action. */
     public static final String ACTION_TOUCH =
             "org.deviceconnect.android.deviceplugin.host.touch.action.KEY_EVENT";
+
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3527;
+
+    /** Notification Content */
+    private final String NOTIFICATION_CONTENT = "Host Touch Profileからの起動要求";
 
     /**
      * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
@@ -581,7 +589,12 @@ public class HostTouchProfile extends TouchProfile {
             mIntent.setClass(getContext(), TouchProfileActivity.class);
             mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mIntent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
-            this.getContext().startActivity(mIntent);
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                this.getContext().startActivity(mIntent);
+            } else {
+                NotificationUtils.createNotificationChannel(getContext());
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent, NOTIFICATION_CONTENT);
+            }
         }
         return true;
     }

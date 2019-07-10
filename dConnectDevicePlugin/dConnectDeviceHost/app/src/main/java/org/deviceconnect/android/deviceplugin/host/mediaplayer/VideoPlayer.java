@@ -16,6 +16,7 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -24,6 +25,7 @@ import android.widget.MediaController;
 import android.widget.VideoView;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 
 /**
  * Video Player.
@@ -62,6 +64,11 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
         // 再生するVideoのURI
         Intent mIntent = this.getIntent();
         mUri = mIntent.getData();
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Intent intent = new Intent(HostMediaPlayerManager.INTENT_ACTION_ACTIVITY_START);
+            sendBroadcast(intent);
+        }
     }
 
     @Override

@@ -7,10 +7,13 @@
 package org.deviceconnect.android.localoauth.activity;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
 
 import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.util.NotificationUtils;
 
 /**
  * 認証確認画面.
@@ -65,5 +68,9 @@ public class ConfirmAuthActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_confirm_auth);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            NotificationUtils.cancel(this, LocalOAuth2Main.NOTIFICATION_ID);
+        }
     }
 }

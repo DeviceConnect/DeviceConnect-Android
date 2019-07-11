@@ -73,13 +73,6 @@
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.recorder.audio.AudioRecorderActivity"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:taskAffinity=".audio"
-            android:exported="false"/>
-
-        <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:exported="false"
             android:configChanges="orientation|keyboardHidden|screenSize"

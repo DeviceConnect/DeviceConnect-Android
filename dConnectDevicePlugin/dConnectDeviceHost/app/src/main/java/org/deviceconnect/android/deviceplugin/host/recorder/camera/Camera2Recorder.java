@@ -55,6 +55,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+
 public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevicePhotoRecorder, HostDeviceStreamRecorder {
 
     /**
@@ -532,18 +533,15 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
             values.put(MediaStore.Video.Media.DATA, videoFile.toString());
-            long thumbnailId = registerVideoThumbnail(videoFile);
-            if (thumbnailId > -1) {
-                values.put(MediaStore.Video.Media.MINI_THUMB_MAGIC, thumbnailId);
-            }
             Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
 
             // 動画IDをサムネイルDBに挿入.
             try {
-                if (uri != null && thumbnailId > -1) {
+                if (uri != null) {
                     String id = uri.getLastPathSegment();
                     if (id != null) {
                         long videoId = Long.parseLong(id);
+                        long thumbnailId = registerVideoThumbnail(videoFile, videoId);
                         boolean updated = updateThumbnailInfo(thumbnailId, videoId);
                         if (updated) {
                             if (DEBUG) {
@@ -569,7 +567,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         }
     }
 
-    private long registerVideoThumbnail(final File videoFile) {
+    private long registerVideoThumbnail(final File videoFile, final long videoId) {
         String videoFilePath = videoFile.getAbsolutePath();
         final int kind = MediaStore.Images.Thumbnails.MINI_KIND;
         Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFilePath, kind);
@@ -588,6 +586,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             values.put(MediaStore.Video.Thumbnails.WIDTH, thumbnail.getWidth());
             values.put(MediaStore.Video.Thumbnails.HEIGHT, thumbnail.getHeight());
             values.put(MediaStore.Video.Thumbnails.KIND, kind);
+            values.put(MediaStore.Video.Thumbnails.VIDEO_ID, videoId);
             ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
             Uri uri = resolver.insert(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, values);
             if (uri == null) {
@@ -613,11 +612,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
             }
             return -1;
         } catch (NumberFormatException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
-            }
-            return -1;
-        } catch (NullPointerException e) {
             if (DEBUG) {
                 Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
             }

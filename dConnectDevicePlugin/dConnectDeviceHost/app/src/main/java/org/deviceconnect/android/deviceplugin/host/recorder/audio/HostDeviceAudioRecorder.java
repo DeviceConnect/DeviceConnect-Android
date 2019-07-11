@@ -7,20 +7,26 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
 
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Service;
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
+import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ResultReceiver;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 
-import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.provider.FileManager;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,6 +49,10 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     private final Context mContext;
+    /** MediaRecoder. */
+    private MediaRecorder mMediaRecorder;
+    /** フォルダURI. */
+    private File mFile;
 
     /**
      * マイムタイプ一覧を定義.
@@ -52,8 +62,6 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
             add("audio/3gp");
         }
     };
-    /** 現在録音中のファイル名. */
-    private String mNowRecordingFileName;
     private RecorderState mState;
     public HostDeviceAudioRecorder(final Context context) {
         mContext = context;
@@ -87,12 +95,7 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
 
     @Override
     public RecorderState getState() {
-        String className = getClassnameOfTopActivity();
-        if (AudioRecorderActivity.class.getName().equals(className)) {
-            return RecorderState.RECORDING;
-        } else {
-            return RecorderState.INACTTIVE;
-        }
+        return mState;
     }
 
     @Override
@@ -195,45 +198,26 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }
-
-        mNowRecordingFileName = generateAudioFileName();
-        Intent intent = new Intent();
-        intent.setClass(mContext, AudioRecorderActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(VideoConst.EXTRA_RECORDER_ID, getId());
-        intent.putExtra(VideoConst.EXTRA_SERVICE_ID, serviceId);
-        intent.putExtra(AudioConst.EXTRA_FILE_NAME, mNowRecordingFileName);
-        intent.putExtra(AudioConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
-            @Override
-            protected void onReceiveResult(int resultCode, Bundle resultData) {
-                if (resultCode == Activity.RESULT_OK) {
-                    mState = RecorderState.RECORDING;
-                    listener.onRecorded(HostDeviceAudioRecorder.this, mNowRecordingFileName);
-                } else {
-                    mState = RecorderState.ERROR;
-                    String msg =
-                        resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
-                    listener.onFailed(HostDeviceAudioRecorder.this, msg);
-                }
-            }
-        });
-        mContext.startActivity(intent);
+        requestPermissions(generateAudioFileName(), listener);
     }
 
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
-        Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-        intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
-        mContext.sendBroadcast(intent);
+        if (getState() == RecorderState.INACTTIVE) {
+            throw new IllegalStateException();
+        }
         mState = RecorderState.INACTTIVE;
         if (listener != null) {
-            if (mNowRecordingFileName != null) {
-                listener.onStopped(this, mNowRecordingFileName);
+            if (mMediaRecorder != null) {
+                releaseMediaRecorder();
+                listener.onStopped(this, mFile.getName());
             } else {
                 listener.onFailed(this, "Failed to Stop recording.");
             }
         }
-        mNowRecordingFileName = null;
+        if (mFile != null) {
+            mFile = null;
+        }
     }
 
     @Override
@@ -254,16 +238,94 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     public void onDisplayRotation(final int degree) {
     }
 
-    private String getClassnameOfTopActivity() {
-        ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasks = activityMgr.getRunningTasks(1);
-        if (tasks != null && tasks.size() > 0) {
-            return tasks.get(0).topActivity.getClassName();
-        }
-        return null;
-    }
-
     private String generateAudioFileName() {
         return "audio" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
     }
+
+    private void requestPermissions(final String fileName, final RecordingListener listener) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PermissionUtility.requestPermissions(mContext, new Handler(Looper.getMainLooper()),
+                    new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            startRecordingInternal(fileName, listener);
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            mState = RecorderState.ERROR;
+                            listener.onFailed(HostDeviceAudioRecorder.this,
+                                    "Permission " + deniedPermission + " not granted.");
+                        }
+                    });
+        } else {
+            startRecordingInternal(fileName, listener);
+        }
+    }
+
+    private void startRecordingInternal(final String fileName, final RecordingListener listener) {
+        try {
+            initAudioContext(fileName, listener);
+        } catch (Exception e) {
+            releaseMediaRecorder();
+            mState = RecorderState.ERROR;
+            listener.onFailed(HostDeviceAudioRecorder.this,
+                    e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
+            return;
+        }
+        mState = RecorderState.RECORDING;
+        listener.onRecorded(HostDeviceAudioRecorder.this, fileName);
+    }
+
+    private void initAudioContext(final String fileName, final RecordingListener listener) throws IOException {
+        FileManager fileMgr = new FileManager(mContext, HostFileProvider.class.getName());
+
+        mMediaRecorder = new MediaRecorder();
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+
+        if (fileName != null) {
+            mFile = new File(fileMgr.getBasePath(), fileName);
+            mMediaRecorder.setOutputFile(mFile.toString());
+            mMediaRecorder.prepare();
+            mMediaRecorder.start();
+        } else {
+            mState = RecorderState.ERROR;
+            listener.onFailed(HostDeviceAudioRecorder.this, "File name must be specified.");
+        }
+    }
+    /**
+     * Check the existence of file.
+     *
+     * @return true is exist
+     */
+    private boolean checkAudioFile() {
+        return mFile != null && mFile.exists() && mFile.length() > 0;
+    }
+
+    /**
+     * MediaRecorderを解放.
+     */
+    private void releaseMediaRecorder() {
+        if (checkAudioFile()) {
+            // Contents Providerに登録.
+            ContentResolver resolver = mContext.getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Video.Media.TITLE, mFile.getName());
+            values.put(MediaStore.Video.Media.DISPLAY_NAME, mFile.getName());
+            values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
+            values.put(MediaStore.Video.Media.MIME_TYPE, AudioConst.FORMAT_TYPE);
+            values.put(MediaStore.Video.Media.DATA, mFile.toString());
+            resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        }
+
+        if (mMediaRecorder != null) {
+            mMediaRecorder.reset();
+            mMediaRecorder.release();
+            mMediaRecorder = null;
+        }
+    }
+
 }

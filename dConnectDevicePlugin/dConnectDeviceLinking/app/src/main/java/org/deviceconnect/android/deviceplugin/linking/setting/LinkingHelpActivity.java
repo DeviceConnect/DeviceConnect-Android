@@ -18,7 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingHelpFragment;
 

@@ -7,12 +7,7 @@
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <application
-<<<<<<< HEAD
-        android:allowBackup="true"
-=======
         android:allowBackup="false"
-        android:icon="@mipmap/dconnect_icon"
->>>>>>> master
         android:name=".HitoeApplication"
         android:icon="${appIcon}"
         android:label="${appName}"

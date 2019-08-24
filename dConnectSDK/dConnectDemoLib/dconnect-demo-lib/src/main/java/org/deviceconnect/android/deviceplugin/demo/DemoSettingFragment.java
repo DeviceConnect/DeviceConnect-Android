@@ -486,12 +486,6 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
         Context context = activity.getApplicationContext();
         Intent shortcut = createDemoPageIntent();
 
-<<<<<<< HEAD:dConnectDevicePlugin/dConnectDeviceHost/app/src/main/java/org/deviceconnect/android/deviceplugin/host/setting/HostDemoPageSettingFragment.java
-        ShortcutInfoCompat info = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
-                .setIcon(IconCompat.createWithResource(context, R.drawable.ic_launcher))
-                .setShortLabel(context.getString(R.string.demo_page_shortcut_label))
-                .setIntent(shortcut).build();
-=======
         ShortcutInfoCompat.Builder builder = new ShortcutInfoCompat.Builder(context, CAMERA_DEMO_SHORTCUT_ID)
                 .setIcon(IconCompat.createWithResource(context, getShortcutIconResource(mDemoInstaller)))
                 .setShortLabel(getShortcutShortLabel(mDemoInstaller))
@@ -502,7 +496,6 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
             builder.setActivity(mainActivity);
         }
         ShortcutInfoCompat info = builder.build();
->>>>>>> master:dConnectSDK/dConnectDemoLib/dconnect-demo-lib/src/main/java/org/deviceconnect/android/deviceplugin/demo/DemoSettingFragment.java
         boolean result = ShortcutManagerCompat.requestPinShortcut(context, info, null);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             // OS 8以下の場合はOSが結果を表示しないので、自前で出す

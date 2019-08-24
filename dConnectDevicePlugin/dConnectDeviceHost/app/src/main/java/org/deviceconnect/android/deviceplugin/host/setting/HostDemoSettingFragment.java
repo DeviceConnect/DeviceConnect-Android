@@ -52,7 +52,7 @@ public class HostDemoSettingFragment extends DemoSettingFragment implements View
 
     @Override
     protected int getShortcutIconResource(final DemoInstaller installer) {
-        return R.drawable.dconnect_icon;
+        return R.drawable.ic_launcher;
     }
 
     @Override

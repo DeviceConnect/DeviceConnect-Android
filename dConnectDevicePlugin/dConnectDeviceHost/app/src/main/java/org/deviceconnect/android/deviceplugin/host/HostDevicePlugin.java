@@ -173,7 +173,7 @@ public class HostDevicePlugin extends DevicePluginContext {
         mDemoNotification = new DemoInstaller.Notification(
                 1,
                 getContext().getString(R.string.app_name_host),
-                R.drawable.dconnect_icon,
+                R.drawable.ic_launcher,
                 "org.deviceconnect.android.deviceconnect.host.channel.demo",
                 "Host Plugin Demo Page",
                 "Host Plugin Demo Page"

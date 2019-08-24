@@ -1,28 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-<<<<<<< HEAD
-          package="org.deviceconnect.android.deviceplugin.fabo"
-          xmlns:tools="http://schemas.android.com/tools">
-=======
     xmlns:tools="http://schemas.android.com/tools"
     package="org.deviceconnect.android.deviceplugin.fabo">
->>>>>>> master
-
     <uses-feature android:name="android.hardware.usb.host"/>
 
     <application
-<<<<<<< HEAD
-        android:allowBackup="true"
-        tools:replace="icon, label"
         android:icon="${appIcon}"
         android:label="${appName}"
-=======
         android:allowBackup="false"
-        android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
->>>>>>> master
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:replace="android:allowBackup">
+        tools:replace="android:allowBackup,label">
 
         <!-- Device Connect Example Device Plugin Provider. -->
         <receiver android:name="org.deviceconnect.android.deviceplugin.fabo.FaBoArduinoDeviceProvider">

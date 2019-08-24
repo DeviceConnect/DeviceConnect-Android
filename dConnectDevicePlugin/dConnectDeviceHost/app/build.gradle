@@ -21,16 +21,12 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionName getVersionName()
-<<<<<<< HEAD
         manifestPlaceholders = [
                 appIcon: "@drawable/dconnect_icon",
                 appName: "@string/app_name"
         ]
-=======
-
         buildConfigField "String", "PACKAGE_NAME", "\"org.deviceconnect.android.deviceplugin.host\""
         buildConfigField "String", "DEMO_DIR", "\"demo\""
->>>>>>> master
         buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
     }
 
@@ -88,14 +84,9 @@ dependencies {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-<<<<<<< HEAD
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
-    implementation project(':dconnect-device-plugin-sdk')
     implementation project(':dconnect-device-plugin-linking')
-=======
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.7.3'
     implementation project(':dconnect-demo-lib')
->>>>>>> master
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {
         exclude module: 'support-v4'

@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="org.deviceconnect.android.deviceplugin.hvc"
-<<<<<<< HEAD
           xmlns:android="http://schemas.android.com/apk/res/android">
-=======
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:versionCode="1"
-          android:versionName="1.0.0">
->>>>>>> master
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -19,15 +13,9 @@
 
     <application
         android:name="org.deviceconnect.android.deviceplugin.hvc.HvcDeviceApplication"
-<<<<<<< HEAD
-        android:allowBackup="true"
         android:icon="${appIcon}"
         android:label="${appName}"
-=======
         android:allowBackup="false"
-        android:icon="@drawable/dconnect_icon"
-        android:label="@string/app_name"
->>>>>>> master
         android:theme="@style/AppTheme">
 
         <activity

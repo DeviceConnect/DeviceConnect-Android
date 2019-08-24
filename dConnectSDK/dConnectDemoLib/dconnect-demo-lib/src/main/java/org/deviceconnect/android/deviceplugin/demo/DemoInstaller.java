@@ -307,21 +307,12 @@ public class DemoInstaller {
                  notifyIntent);
         }
 
-<<<<<<< HEAD:dConnectDevicePlugin/dConnectDeviceHost/app/src/main/java/org/deviceconnect/android/deviceplugin/host/demo/DemoPageInstaller.java
-        private static void show(final Context context,
-                                 final String title,
-                                 final String body,
-                                 final Intent notifyIntent) {
-            int notifyId = NOTIFY_ID;
-            int iconType = R.drawable.ic_launcher;
-=======
         private void show(final Context context,
                           final String body,
                           final Intent notifyIntent) {
             String title = mPluginName;
             int iconType = mPluginIcon;
             int notifyId = mNotifyId;
->>>>>>> master:dConnectSDK/dConnectDemoLib/dconnect-demo-lib/src/main/java/org/deviceconnect/android/deviceplugin/demo/DemoInstaller.java
 
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
                     notifyId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);

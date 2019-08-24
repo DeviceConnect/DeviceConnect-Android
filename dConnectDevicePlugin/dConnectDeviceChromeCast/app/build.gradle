@@ -43,6 +43,7 @@ android {
         }
     }
 
+    flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
             versionCode 3

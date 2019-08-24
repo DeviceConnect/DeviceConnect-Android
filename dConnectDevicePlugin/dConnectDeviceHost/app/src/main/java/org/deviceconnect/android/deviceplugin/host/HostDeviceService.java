@@ -20,9 +20,9 @@ import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
 
+import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
-import org.deviceconnect.android.deviceplugin.host.demo.DemoPageInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.HostMediaPlayerManager;
@@ -100,7 +100,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * デモページインストーラ.
      */
-    private DemoPageInstaller mDemoInstaller = new DemoPageInstaller("demo");
+    private DemoInstaller mDemoInstaller = new DemoInstaller("demo");
 
     /**
      * ブロードキャストレシーバー.

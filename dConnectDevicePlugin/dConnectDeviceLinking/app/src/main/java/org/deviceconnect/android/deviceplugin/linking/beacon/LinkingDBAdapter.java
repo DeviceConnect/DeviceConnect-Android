@@ -16,8 +16,8 @@ import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.AtmosphericPressureData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;

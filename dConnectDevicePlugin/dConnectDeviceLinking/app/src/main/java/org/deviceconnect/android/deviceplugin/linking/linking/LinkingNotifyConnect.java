@@ -13,7 +13,7 @@ import android.util.Log;
 import com.nttdocomo.android.sdaiflib.Define;
 import com.nttdocomo.android.sdaiflib.NotifyConnect;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.List;

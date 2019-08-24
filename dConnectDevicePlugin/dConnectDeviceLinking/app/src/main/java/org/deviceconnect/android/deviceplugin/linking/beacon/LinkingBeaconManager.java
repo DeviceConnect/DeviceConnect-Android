@@ -10,8 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.AtmosphericPressureData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.BatteryData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.ButtonData;

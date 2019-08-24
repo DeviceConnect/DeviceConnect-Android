@@ -13,7 +13,7 @@ import android.util.Log;
 import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import com.nttdocomo.android.sdaiflib.ReceiveSensorData;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 
 public class NotifySensorData {
 

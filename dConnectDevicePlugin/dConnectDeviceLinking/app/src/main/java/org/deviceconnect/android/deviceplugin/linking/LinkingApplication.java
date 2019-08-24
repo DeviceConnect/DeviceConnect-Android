@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.linking.ConfirmActivity;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.event.EventManager;

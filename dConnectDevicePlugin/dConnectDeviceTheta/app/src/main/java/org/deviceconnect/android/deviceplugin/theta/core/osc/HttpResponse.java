@@ -1,13 +1,13 @@
 package org.deviceconnect.android.deviceplugin.theta.core.osc;
 
 
-import com.squareup.okhttp.Response;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import okhttp3.Response;
 
 class HttpResponse {
 

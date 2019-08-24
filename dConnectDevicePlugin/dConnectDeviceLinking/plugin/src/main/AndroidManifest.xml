@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.deviceconnect.android.deviceplugin.linking" >
+    <application
+        android:name=".LinkingApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/dconnect_icon"
+        android:label="@string/linking_app_name">
+    </application>
+</manifest>

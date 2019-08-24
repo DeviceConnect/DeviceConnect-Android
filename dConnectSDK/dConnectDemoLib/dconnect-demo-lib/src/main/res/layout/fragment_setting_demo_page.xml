@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#ffffff">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10pt"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/demo_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#777777"
+            android:textSize="16sp"
+            android:layout_marginBottom="10pt"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/button_delete_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_blue"
+                android:text="@string/demo_page_settings_button_delete"
+                android:textColor="#FFFFFF"
+                android:enabled="false"
+                android:layout_margin="5pt"/>
+            <Button
+                android:id="@+id/button_install_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_blue"
+                android:text="@string/demo_page_settings_button_install"
+                android:textColor="#FFFFFF"
+                android:layout_margin="5pt"/>
+            <Button
+                android:id="@+id/button_overwrite_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_blue"
+                android:text="@string/demo_page_settings_button_overwrite"
+                android:textColor="#FFFFFF"
+                android:layout_margin="5pt"/>
+            <Button
+                android:id="@+id/button_open_demo_page"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_blue"
+                android:text="@string/demo_page_settings_button_open"
+                android:textColor="#FFFFFF"
+                android:visibility="gone"
+                android:layout_margin="5pt"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button_create_demo_page_shortcut"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_blue"
+            android:text="@string/demo_page_settings_button_create_shortcut"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
+            android:layout_margin="5pt"/>
+    </LinearLayout>
+
+</ScrollView>

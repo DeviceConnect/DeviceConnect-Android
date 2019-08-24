@@ -30,9 +30,32 @@
     <uses-feature android:name="android.hardware.camera.autofocus"/>
     <uses-feature android:name="android.hardware.camera.flash"/>
 
+<<<<<<< HEAD
     <application>
+=======
+    <application
+        android:allowBackup="false">
+>>>>>>> master
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingActivity"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSettingActivity"
+            android:label="@string/app_name_host"
+            android:theme="@style/AppCompatTheme"
+            android:launchMode="singleTask">
+        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingActivity"
             android:label="@string/app_name_host"
             android:theme="@style/AppCompatTheme"
             android:launchMode="singleTask">
@@ -50,13 +73,6 @@
             android:launchMode="singleInstance"
             android:taskAffinity=".player"
             android:screenOrientation="landscape"/>
-
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.recorder.audio.AudioRecorderActivity"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:taskAffinity=".audio"
-            android:exported="false"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
@@ -109,6 +125,7 @@
             android:exported="true" >
 
         </provider>
+<<<<<<< HEAD
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
             android:exported="true">
@@ -124,6 +141,8 @@
                 android:name="org.deviceconnect.android.deviceplugin.icon"
                 android:resource="@drawable/ic_launcher"/>
         </service>
+=======
+>>>>>>> master
     </application>
 
 </manifest>

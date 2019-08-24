@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.view.View;
 
+import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
 
 /**
@@ -44,9 +45,25 @@ public class SettingActivity extends BaseSettingActivity implements AlertDialogF
         f.onNegativeButton(tag);
     }
 
+<<<<<<< HEAD
     public void onButtonClick(View v) {
         Intent qr = new Intent(this, QRCodeActivity.class);
         startActivity(qr);
     }
 
+=======
+    @Override
+    protected void onManagerBonded(final DConnectService dConnectService) {
+        SettingsFragment f = (SettingsFragment) getFragmentManager()
+                .findFragmentById(R.id.activity_settings_category_fragment);
+        f.onManagerBonded(dConnectService);
+    }
+
+    @Override
+    protected void onManagerDetected(final DConnectService dConnectService, final boolean isRunning) {
+        SettingsFragment f = (SettingsFragment) getFragmentManager()
+                .findFragmentById(R.id.activity_settings_category_fragment);
+        f.onManagerDetected(dConnectService, isRunning);
+    }
+>>>>>>> master
 }

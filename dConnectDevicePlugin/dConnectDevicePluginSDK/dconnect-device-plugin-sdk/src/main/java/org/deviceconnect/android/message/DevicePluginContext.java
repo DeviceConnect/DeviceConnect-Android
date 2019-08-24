@@ -32,7 +32,6 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.android.service.DConnectServiceProvider;
@@ -43,7 +42,6 @@ import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -103,11 +101,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     private DConnectServiceManager mServiceProvider;
 
     /**
-     * プラグインが持つプロファイルスペック.
-     */
-    private DConnectPluginSpec mPluginSpec;
-
-    /**
      * 認可クラス(Local OAuth).
      */
     private LocalOAuth2Main mLocalOAuth2Main;
@@ -160,29 +153,18 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
         // LocalOAuthの初期化
         mLocalOAuth2Main = new LocalOAuth2Main(context);
 
-        try {
-            // プロファイルSPECを読み込み
-            mPluginSpec = DConnectProfileHelper.loadPluginSpec(context, createSupportedProfiles());
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                mLogger.warning("Failed to load a profile spec.");
-            }
-        }
-
         // キーストア管理クラスの初期化
-        mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(), getCertificateAlias());
+        mKeyStoreMgr = new EndPointKeyStoreManager(context, getKeyStoreFileName(),
+                getKeyStorePassword(), getCertificateAlias());
         if (usesAutoCertificateRequest()) {
             requestAndNotifyKeyStore();
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-            context.registerReceiver(mWiFiBroadcastReceiver, filter);
+            registerChangeIpAddress();
         }
 
         // サービス管理クラス
         mServiceProvider = new DConnectServiceManager();
         mServiceProvider.setContext(context);
         mServiceProvider.setPluginContext(this);
-        mServiceProvider.setPluginSpec(mPluginSpec);
 
         // プロファイルを追加
         addProfile(new AuthorizationProfile(this, mLocalOAuth2Main));
@@ -205,10 +187,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
             mLocalOAuth2Main.destroy();
             mLocalOAuth2Main = null;
         }
-        if (usesAutoCertificateRequest()) {
-            mContext.unregisterReceiver(mWiFiBroadcastReceiver);
-        }
-
+        unregisterChangeIpAddress();
     }
 
     /**
@@ -229,15 +208,6 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     }
 
     /**
-     * プラグインが持っているプロファイルの仕様を取得します.
-     *
-     * @return プロファイルのサービス仕様
-     */
-    public DConnectPluginSpec getPluginSpec() {
-        return mPluginSpec;
-    }
-
-    /**
      * Device Connect Manager に返答するためのコールバックを設定します.
      *
      * @param callback コールバック
@@ -248,6 +218,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
 
     /**
      * LocalOAuthのインスタンスを取得します.
+     *
      * @return LocalOAuth
      */
     public LocalOAuth2Main getLocalOAuth2Main() {
@@ -268,7 +239,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      *
      * @return サポートするプロファイル
      */
-    protected int getPluginXmlResId() {
+    public int getPluginXmlResId() {
         return DevicePluginXmlUtil.getPluginXmlResourceId(getContext(), getContext().getPackageName());
     }
 
@@ -293,7 +264,13 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
             if (checkRequestAction(action)) {
                 // Device Connect リクエストの互換性を持たせるためにコンバートします
                 MessageConverterHelper.convert(message);
-                onRequest(message, MessageUtils.createResponseIntent(message));
+                Intent response = MessageUtils.createResponseIntent(message);
+                try {
+                    onRequest(message, response);
+                } catch (Throwable t) {
+                    MessageUtils.setUnknownError(response, t.getMessage());
+                    sendResponse(response);
+                }
             } else if (checkManagerUninstall(message)) {
                 onManagerUninstalled();
             } else if (checkManagerLaunched(action)) {
@@ -390,6 +367,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
     public String[] getIgnoredProfiles() {
         return IGNORE_PROFILES;
     }
+
     /**
      * 指定されたプロファイルはLocal OAuth認証を無視して良いかを確認する.
      *
@@ -598,21 +576,27 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      */
     private boolean sendMessage(final Intent intent) {
         if (mIDConnectCallback == null) {
-            if (BuildConfig.DEBUG) {
-                mLogger.severe("sendMessage: IDConnectCallback is not set.");
+            // AIDL が設定されていない場合には、Broadcast で Manager にメッセージを送信します。
+            try {
+                mContext.sendBroadcast(intent);
+                return true;
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    mLogger.severe("mContext.sendBroadcast: exception occurred.");
+                }
+                return false;
             }
-            return false;
         }
 
         try {
             mIDConnectCallback.sendMessage(intent);
+            return true;
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 mLogger.severe("sendMessage: exception occurred.");
             }
             return false;
         }
-        return true;
     }
 
     /**
@@ -786,6 +770,7 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      * @return 自動要求を行う場合はtrue、それ以外はfalse
      */
     protected boolean usesAutoCertificateRequest() {
+        // TODO 実装時に SSL を使用するか決定してしまう。途中で変更することはできなくて良いか？
         return false;
     }
 
@@ -801,6 +786,23 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
      */
     protected String getKeyStoreFileName() {
         return "keystore.p12";
+    }
+
+    /**
+     * 証明書で使用するキーストアのパスワードを取得します.
+     * <p>
+     * デフォルトでは、0000 を使用します。
+     * </p>
+     * <p>
+     * キーストアのパスワードを変更したい場合には、このメソッドをオーバーライドします。
+     * </p>
+     * <p>
+     * TODO ユーザによって設定できるようにした方が良いかもしれない。
+     * </p>
+     * @return キーストアのパスワード
+     */
+    protected String getKeyStorePassword() {
+        return "0000";
     }
 
     /**
@@ -902,35 +904,41 @@ public abstract class DevicePluginContext implements DConnectProfileProvider, DC
 
     /**
      * SSLContext のインスタンスを作成します.
+     *
      * <p>
-     * プラグイン内で Web サーバを立ち上げて、Managerと同じ証明書を使いたい場合にはこのSSLContext を使用します。
+     * プラグイン内で Web サーバを立ち上げて、Manager と同じ証明書を使いたい場合には、この SSLContext を使用します。
      * </p>
+     *
      * @param keyStore キーストア
+     * @param password パスワード
      * @return SSLContextのインスタンス
      * @throws GeneralSecurityException SSLContextの作成に失敗した場合に発生
      */
-    protected SSLContext createSSLContext(final KeyStore keyStore) throws GeneralSecurityException {
+    public SSLContext createSSLContext(final KeyStore keyStore, final String password) throws GeneralSecurityException {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, "0000".toCharArray());
+        keyManagerFactory.init(keyStore, password.toCharArray());
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
-        sslContext.init(
-                keyManagerFactory.getKeyManagers(),
-                trustManagerFactory.getTrustManagers(),
-                new SecureRandom()
-        );
+        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
         return sslContext;
     }
 
-    public void regsiterChangeIpAddress() {
+    /**
+     * IPアドレス変更Broadcastを受け取るためのReceiverを登録します.
+     */
+    private void registerChangeIpAddress() {
         if (usesAutoCertificateRequest()) {
             IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
             mContext.registerReceiver(mWiFiBroadcastReceiver, filter);
         }
     }
 
-    public void unregsiterChangeIpAddress() {
+    /**
+     * IPアドレス変更Broadcastを受け取るためのReceiverを解除します.
+     */
+    private void unregisterChangeIpAddress() {
         if (usesAutoCertificateRequest()) {
             try {
                 mContext.unregisterReceiver(mWiFiBroadcastReceiver);

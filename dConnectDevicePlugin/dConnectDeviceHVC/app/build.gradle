@@ -1,8 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -23,7 +22,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hvc"
         minSdkVersion 18
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [

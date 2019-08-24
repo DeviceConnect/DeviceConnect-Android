@@ -8,9 +8,6 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
 import org.deviceconnect.android.deviceplugin.wear.BuildConfig;
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
@@ -210,16 +207,12 @@ public class WearKeyEventProfile extends KeyEventProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_REGISTER, "",
                 new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -246,16 +239,12 @@ public class WearKeyEventProfile extends KeyEventProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER, "",
                 new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -281,16 +270,12 @@ public class WearKeyEventProfile extends KeyEventProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_REGISTER, "",
                     new OnMessageResultListener() {
                         @Override
-                        public void onResult(final SendMessageResult result) {
-                            if (result.getStatus().isSuccess()) {
-                                EventError error = EventManager.INSTANCE.addEvent(request);
-                                if (error == EventError.NONE) {
-                                    setResult(response, DConnectMessage.RESULT_OK);
-                                } else {
-                                    setResult(response, DConnectMessage.RESULT_ERROR);
-                                }
+                        public void onResult() {
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
                             } else {
-                                MessageUtils.setIllegalDeviceStateError(response);
+                                setResult(response, DConnectMessage.RESULT_ERROR);
                             }
                             sendResponse(response);
                         }
@@ -316,7 +301,7 @@ public class WearKeyEventProfile extends KeyEventProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER, "",
                 new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
 
                     @Override
@@ -347,7 +332,7 @@ public class WearKeyEventProfile extends KeyEventProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER, "",
                 new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
 
                     @Override
@@ -377,7 +362,7 @@ public class WearKeyEventProfile extends KeyEventProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_KEYEVENT_ONKEYCHANGE_UNREGISTER, "",
                     new OnMessageResultListener() {
                         @Override
-                        public void onResult(final SendMessageResult result) {
+                        public void onResult() {
                         }
 
                         @Override
@@ -402,10 +387,6 @@ public class WearKeyEventProfile extends KeyEventProfile {
      * @param data Received Strings.
      */
     private void sendMessageToEvent(final String nodeId, final String data) {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "@@@@@@SUCCESS");
-        }
-
         String[] mDataArray = data.split(",", 0);
         String attr = null;
         String state = null;

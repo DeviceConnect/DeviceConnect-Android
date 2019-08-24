@@ -10,9 +10,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.Node;
 
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
@@ -50,7 +49,7 @@ public class WearCanvasProfile extends CanvasProfile {
 
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
-    private final Map<String, DrawImageRequest> mRequestMap = new HashMap<>();
+    private static final Map<String, DrawImageRequest> mRequestMap = new HashMap<>();
 
     private final WearManager mWearManager;
 
@@ -60,7 +59,6 @@ public class WearCanvasProfile extends CanvasProfile {
             new WearManager.OnMessageEventListener() {
             @Override
             public void onEvent(final String nodeId, final String message) {
-                mLogger.info("onEvent: message = " + message);
                 onCanvasResponse(nodeId, message);
             }
         });
@@ -112,12 +110,11 @@ public class WearCanvasProfile extends CanvasProfile {
 
     private void drawImage(final Intent response, final String nodeId,
                               final byte[] data, final double x, final double y, final String mode) {
-        mWearManager.getLocalNodeId(new WearManager.OnLocalNodeListener() {
+        mWearManager.getLocalNodeId(nodeId, new WearManager.OnLocalNodeListener() {
 
             @Override
-            public void onResult(final NodeApi.GetLocalNodeResult localNode) {
-                final String localNodeId = localNode.getNode().getId();
-
+            public void onResult(final Node localNode) {
+                final String localNodeId = localNode.getId();
                 if (data.length > LIMIT_DATA_SIZE) {
                     MessageUtils.setInvalidRequestParameterError(response, "data size more than 1MB");
                     sendResponse(response);
@@ -148,31 +145,37 @@ public class WearCanvasProfile extends CanvasProfile {
 
                 //Adjust image format and compress
                 ByteArrayOutputStream o = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, o);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 50, o);
                 final byte[] bitmapData = o.toByteArray();
 
                 final String requestId = UUID.randomUUID().toString();
-                final DrawImageRequest wearRequest = createCanvasRequest(nodeId, requestId);
+                final DrawImageRequest wearRequest = createCanvasRequest(localNodeId, requestId);
                 getManager().sendImageData(localNodeId, requestId, bitmapData, (int) x, (int) y, mm, new WearManager.OnDataItemResultListener() {
                     @Override
-                    public void onResult(final DataApi.DataItemResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            try {
-                                DrawImageResponse wearResponse = wearRequest.await();
-                                if (wearResponse.isSuccess()) {
-                                    setResult(response, DConnectMessage.RESULT_OK);
+                    public void onResult(final DataItem result) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (result != null) {
+                                    try {
+                                        DrawImageResponse wearResponse = wearRequest.await();
+                                        if (wearResponse.isSuccess()) {
+                                            setResult(response, DConnectMessage.RESULT_OK);
+                                        } else {
+                                            int errorCode = wearResponse.getErrorCode();
+                                            String errorMessage = wearResponse.getErrorMessage();
+                                            MessageUtils.setError(response, errorCode, errorMessage);
+                                        }
+                                    } catch (Exception e) {
+                                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                                    }
                                 } else {
-                                    int errorCode = wearResponse.getErrorCode();
-                                    String errorMessage = wearResponse.getErrorMessage();
-                                    MessageUtils.setError(response, errorCode, errorMessage);
+                                    MessageUtils.setIllegalDeviceStateError(response);
                                 }
-                            } catch (Exception e) {
-                                MessageUtils.setUnknownError(response);
+                                sendResponse(response);
+
                             }
-                        } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
-                        }
-                        sendResponse(response);
+                        }).start();
                     }
 
                     @Override
@@ -202,12 +205,8 @@ public class WearCanvasProfile extends CanvasProfile {
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE,
                 "", new WearManager.OnMessageResultListener() {
                     @Override
-                    public void onResult(final MessageApi.SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
-                        }
+                    public void onResult() {
+                        setResult(response, DConnectMessage.RESULT_OK);
                         sendResponse(response);
                     }
 

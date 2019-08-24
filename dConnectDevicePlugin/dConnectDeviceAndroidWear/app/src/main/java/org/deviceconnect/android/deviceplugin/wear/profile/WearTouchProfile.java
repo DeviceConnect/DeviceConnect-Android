@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
 import org.deviceconnect.android.deviceplugin.wear.BuildConfig;
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
@@ -362,17 +361,13 @@ public class WearTouchProfile extends TouchProfile {
                     WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_REGISTER,
                     "", new OnMessageResultListener() {
                         @Override
-                        public void onResult(final SendMessageResult result) {
-                            if (result.getStatus().isSuccess()) {
-                                // Event registration.
-                                EventError error = EventManager.INSTANCE.addEvent(request);
-                                if (error == EventError.NONE) {
-                                    setResult(response, DConnectMessage.RESULT_OK);
-                                } else {
-                                    setResult(response, DConnectMessage.RESULT_ERROR);
-                                }
+                        public void onResult() {
+                            // Event registration.
+                            EventError error = EventManager.INSTANCE.addEvent(request);
+                            if (error == EventError.NONE) {
+                                setResult(response, DConnectMessage.RESULT_OK);
                             } else {
-                                MessageUtils.setIllegalDeviceStateError(response);
+                                setResult(response, DConnectMessage.RESULT_ERROR);
                             }
                             sendResponse(response);
                         }
@@ -399,17 +394,13 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            // Event registration.
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        // Event registration.
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -436,17 +427,13 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            // Event registration.
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        // Event registration.
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -473,17 +460,13 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            // Event registration.
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        // Event registration.
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -510,17 +493,13 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            // Event registration.
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        // Event registration.
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -547,17 +526,13 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            // Event registration.
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        // Event registration.
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -584,17 +559,13 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
-                        if (result.getStatus().isSuccess()) {
-                            // Event registration.
-                            EventError error = EventManager.INSTANCE.addEvent(request);
-                            if (error == EventError.NONE) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                setResult(response, DConnectMessage.RESULT_ERROR);
-                            }
+                    public void onResult() {
+                        // Event registration.
+                        EventError error = EventManager.INSTANCE.addEvent(request);
+                        if (error == EventError.NONE) {
+                            setResult(response, DConnectMessage.RESULT_OK);
                         } else {
-                            MessageUtils.setIllegalDeviceStateError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
                         }
                         sendResponse(response);
                     }
@@ -620,7 +591,7 @@ public class WearTouchProfile extends TouchProfile {
                     WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCHANGE_UNREGISTER,
                     "", new OnMessageResultListener() {
                         @Override
-                        public void onResult(final SendMessageResult result) {
+                        public void onResult() {
                         }
                         @Override
                         public void onError() {
@@ -650,7 +621,7 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {
@@ -681,7 +652,7 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {
@@ -712,7 +683,7 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_UNREGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {
@@ -743,7 +714,7 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_UNREGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {
@@ -774,7 +745,7 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {
@@ -805,7 +776,7 @@ public class WearTouchProfile extends TouchProfile {
                 WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER,
                 "", new OnMessageResultListener() {
                     @Override
-                    public void onResult(final SendMessageResult result) {
+                    public void onResult() {
                     }
                     @Override
                     public void onError() {

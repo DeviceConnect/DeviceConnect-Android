@@ -56,15 +56,15 @@ public class EventProtocol {
      * @return 追加に成功した場合はtrue、それ以外はfalse
      */
     boolean addSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
-        String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        if (accessToken == null) {
-            DConnectProfile.setAccessToken(request, plugin.getPluginId());
-        }
-
         String serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
         String receiverId = createReceiverId(request, mSettings.requireOrigin());
         if (receiverId == null) {
             return false;
+        }
+
+        String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+        if (accessToken == null) {
+            DConnectProfile.setAccessToken(request, receiverId);
         }
 
         EventSession session = mEventSessionFactory.createSession(request, serviceId, receiverId, plugin.getPluginId());
@@ -89,6 +89,11 @@ public class EventProtocol {
         String receiverId = createReceiverId(request, mSettings.requireOrigin());
         if (receiverId == null) {
             return false;
+        }
+
+        String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+        if (accessToken == null) {
+            DConnectProfile.setAccessToken(request, receiverId);
         }
 
         EventSession query = mEventSessionFactory.createSession(request, serviceId, receiverId, plugin.getPluginId());

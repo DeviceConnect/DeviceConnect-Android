@@ -18,11 +18,13 @@ public abstract class AbstractRTSPPreviewServer implements PreviewServer {
     protected final Context mContext;
     protected final AbstractPreviewServerProvider mServerProvider;
     private BroadcastReceiver mConfigChangeReceiver;
+    private boolean mMute;
 
     AbstractRTSPPreviewServer(final Context context,
                               final AbstractPreviewServerProvider serverProvider) {
         mContext = context;
         mServerProvider = serverProvider;
+        mMute = true;
     }
 
     private int getRotation() {
@@ -70,5 +72,26 @@ public abstract class AbstractRTSPPreviewServer implements PreviewServer {
 
     protected void onConfigChange() {
         // NOP.
+    }
+    /**
+     * Recorderをmute状態にする.
+     */
+    public void mute() {
+        mMute = true;
+    }
+
+    /**
+     * Recorderのmute状態を解除する.
+     */
+    public void unMute() {
+        mMute = false;
+    }
+
+    /**
+     * Recorderのmute状態を返す.
+     * @return mute状態
+     */
+    public boolean isMuted() {
+        return mMute;
     }
 }

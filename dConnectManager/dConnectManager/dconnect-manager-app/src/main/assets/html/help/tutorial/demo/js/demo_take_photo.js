@@ -5,6 +5,8 @@ var demoTakePhoto = (function(parent, global) {
     var mImageSizes;
     var mPreviewSizes;
     var mPreviewTarget;
+    var mImageMimeType;
+    var mPreviewMimeType;
 
     function init() {
         util.init(function(service) {
@@ -57,12 +59,16 @@ var demoTakePhoto = (function(parent, global) {
         var target = document.recorder.target;
         for (var i = 0; i < mMediaRecorders.length; i++) {
             if (mMediaRecorders[i].mimeType.indexOf('image/') == 0) {
+                mImageMimeType = mMediaRecorders[i].mimeType;
                 var option = document.createElement('option');
                 option.setAttribute('value', mMediaRecorders[i].id);
                 option.innerHTML = mMediaRecorders[i].name;
                 target.appendChild(option);
             }
         }
+        // このアプリではmjpegのみ対応する
+        mPreviewMimeType = "video/x-mjpeg";
+
         getCameraOption(mMediaRecorders[0].id);
     }
 
@@ -236,16 +242,22 @@ var demoTakePhoto = (function(parent, global) {
             builder.addParameter('target', target);
             builder.addParameter('imageWidth', imageWidth);
             builder.addParameter('imageHeight', imageHeight);
-            builder.addParameter('previewWidth', previewWidth);
-            builder.addParameter('previewHeight', previewHeight);
-            builder.addParameter('mimeType', 'image/png');
+            builder.addParameter('mimeType', mImageMimeType);
             var uri = builder.build();
             dConnect.put(uri, null, null, function(json) {
-                if (mPreviewTarget) {
-                    startPreview();
-                }
+                builder.addParameter('previewWidth', previewWidth);
+                builder.addParameter('previewHeight', previewHeight);
+                builder.addParameter('mimeType', mPreviewMimeType);
+                var uri = builder.build();
+                dConnect.put(uri, null, null, function(json) {
+                    if (mPreviewTarget) {
+                        startPreview();
+                    }
+                }, function(errorCode, errorMessage) {
+                    util.showAlert('Preview設定に失敗しました。', errorCode, errorMessage);
+                });
             }, function(errorCode, errorMessage) {
-                util.showAlert('設定に失敗しました。', errorCode, errorMessage);
+                util.showAlert('TakePhotoの設定に失敗しました。', errorCode, errorMessage);
             });
         });
     }

@@ -295,7 +295,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     @Override
     public void onPause() {
         mPauseHandler.pause();
-        getActivity().unbindService(mServiceConnection);
         getActivity().unbindService(mWebServiceConnection);
         super.onPause();
     }
@@ -312,7 +311,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         getPreferenceScreen().setEnabled(false);
 
         // サービスとの接続
-        bindDConnectService();
         bindDConnectWebService();
 
         // Dozeモード
@@ -450,7 +448,36 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
-     * AlertDialogFragmentでPositiveボタンが押下された時の処理を行う.
+     * DConnectService とバインドできたことの通知を受け取ります.
+     *
+     * @param dConnectService DConnectServiceのインスタンス
+     */
+    protected void onManagerBonded(final DConnectService dConnectService) {
+        mDConnectService = dConnectService;
+    }
+
+    /**
+     * Device Connect Manager の動作状況を検出したことの通知を受け取ります.
+     *
+     * @param dConnectService DConnectServiceのインスタンス
+     * @param isRunning 動作状況
+     */
+    protected void onManagerDetected(final DConnectService dConnectService, final boolean isRunning) {
+        mDConnectService = dConnectService;
+        getActivity().runOnUiThread(() -> {
+            setUIEnabled(!isRunning);
+
+            SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                    .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+            serverPreferences.setChecked(isRunning);
+
+            checkServiceConnections();
+        });
+    }
+
+    /**
+     * AlertDialogFragment で Positive ボタンが押下された時の処理を行う.
+     *
      * @param tag タグ
      */
     public void onPositiveButton(final String tag) {
@@ -467,7 +494,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
-     * AlertDialogFragmentでNegativeボタンが押下された時の処理を行う.
+     * AlertDialogFragment で Negative ボタンが押下された時の処理を行う.
+     *
      * @param tag タグ
      */
     public void onNegativeButton(final String tag) {
@@ -495,14 +523,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
-     * DConnectServiceにバインドを行う.
-     */
-    private void bindDConnectService() {
-        Intent intent = new Intent(getActivity(), DConnectService.class);
-        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    /**
      * DConnectWebServiceにバインドを行う.
      */
     private void bindDConnectWebService() {
@@ -515,29 +535,21 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * @param checked trueの場合は有効、falseの場合は無効
      */
     private void switchDConnectServer(final boolean checked) {
+        SettingActivity activity = ((SettingActivity) getActivity());
         setUIEnabled(!checked);
         if (checked) {
-
-            Intent intent = new Intent();
-            intent.setClass(getActivity(), DConnectService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                getActivity().startForegroundService(intent);
-            } else {
-                getActivity().startService(intent);
-            }
-
-            mDConnectService.startInternal();
+            activity.showStaringManagerDialog();
+            activity.startManager((running) -> activity.dismissStartingManagerDialog());
         } else {
-            mDConnectService.stopInternal();
-
-            Intent intent = new Intent();
-            intent.setClass(getActivity(), DConnectService.class);
-            getActivity().stopService(intent);
+            activity.stopManager();
         }
     }
 
     /**
      * Webサーバの有効・無効を設定する.
+     * <p>
+     * 最初に SD カードにアクセスするが良いかの許可ダイアログを表示します。
+     * </p>
      * @param checked trueの場合は有効、falseの場合は無効
      */
     private void switchWebServer(final boolean checked) {
@@ -550,33 +562,17 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                     title, message, positive, negative);
             dialog.show(getFragmentManager(), TAG_WEB_SERVER);
         } else {
-            mWebService.stopWebServer();
+            stopWebServerInternal();
             setWebUIEnabled(true);
-
-            Intent intent = new Intent();
-            intent.setClass(getActivity(), DConnectWebService.class);
-            getActivity().stopService(intent);
         }
-    }
-
-    private void startWebServerInternal() {
-        Intent intent = new Intent();
-        intent.setClass(getActivity(), DConnectWebService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getActivity().startForegroundService(intent);
-        } else {
-            getActivity().startService(intent);
-        }
-        mWebService.startWebServer();
     }
 
     /**
-     * Webサーバを起動します.
+     * パーミッションの確認を行い、無い場合には許可を求めるダイアログを表示します。
      */
     private void startWebServer() {
         if (DConnectUtil.isPermission(getActivity().getApplicationContext())) {
             startWebServerInternal();
-            setWebUIEnabled(false);
         } else {
             DConnectUtil.requestPermission(getActivity().getApplicationContext(),
                     mPauseHandler,
@@ -584,7 +580,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                         @Override
                         public void onSuccess() {
                             startWebServerInternal();
-                            setWebUIEnabled(false);
                         }
                         @Override
                         public void onFail(@NonNull final String deniedPermission) {
@@ -596,11 +591,57 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * Webサーバの起動を行います.
+     */
+    private void startWebServerInternal() {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), DConnectWebService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getActivity().startForegroundService(intent);
+        } else {
+            getActivity().startService(intent);
+        }
+
+        try {
+            mWebService.startWebServer();
+            setWebUIEnabled(false);
+        } catch (Exception e) {
+            setWebUIEnabled(true);
+            setWebServerSwitchUI(false);
+            showErrorWebServer(e.getMessage());
+        }
+    }
+
+    /**
+     * Webサーバの停止を行います.
+     */
+    private void stopWebServerInternal() {
+        mWebService.stopWebServer();
+
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), DConnectWebService.class);
+        getActivity().stopService(intent);
+    }
+
+    /**
      * Webサーバの起動に失敗したことを通知するダイアログを表示します.
      */
     private void showErrorWebServer() {
         String title = getString(R.string.activity_settings_web_server_warning_title);
         String message = getString(R.string.activity_settings_web_server_error_message);
+        String positive = getString(R.string.activity_settings_web_server_warning_positive);
+        AlertDialogFragment dialog = AlertDialogFragment.create(TAG_ERROR_WEB_SERVER,
+                title, message, positive);
+        dialog.show(getFragmentManager(), TAG_ERROR_WEB_SERVER);
+    }
+
+    /**
+     * Webサーバの起動に失敗したことを通知するダイアログを表示します.
+     * @param errorMessage エラーメッセージ
+     */
+    private void showErrorWebServer(String errorMessage) {
+        String title = getString(R.string.activity_settings_web_server_warning_title);
+        String message = getString(R.string.activity_settings_web_server_error, errorMessage);
         String positive = getString(R.string.activity_settings_web_server_warning_positive);
         AlertDialogFragment dialog = AlertDialogFragment.create(TAG_ERROR_WEB_SERVER,
                 title, message, positive);
@@ -839,32 +880,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private DConnectService mDConnectService;
 
     /**
-     * DConnectServiceと接続するためのクラス.
-     */
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mDConnectService = ((DConnectService.LocalBinder) service).getDConnectService();
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    boolean running = mDConnectService.isRunning();
-                    setUIEnabled(!running);
-
-                    SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
-                            .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-                    serverPreferences.setChecked(running);
-
-                    checkServiceConnections();
-                });
-            }
-        }
-        @Override
-        public void onServiceDisconnected(final ComponentName name) {
-            mDConnectService = null;
-        }
-    };
-
-    /**
      * DConnectWebServiceを操作するためのクラス.
      */
     private DConnectWebService mWebService;
@@ -877,14 +892,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             mWebService = ((DConnectWebService.LocalBinder) service).getDConnectWebService();
             if (getActivity() != null) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean running = mWebService.isRunning();
-                        setWebUIEnabled(!running);
-                        setWebServerSwitchUI(running);
-                        checkServiceConnections();
-                    }
+                getActivity().runOnUiThread(() -> {
+                    boolean running = mWebService.isRunning();
+                    setWebUIEnabled(!running);
+                    setWebServerSwitchUI(running);
+                    checkServiceConnections();
                 });
             }
         }
@@ -902,6 +914,25 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             enablePreference();
         }
     }
+
+
+    /**
+     * マネージャの起動設定がONの場合は、サーバー起動完了するまで、スレッドをブロックする、それ以外の場合は、即座に処理を返す.
+     * <p>
+     * UI スレッドからは呼び出さないようにしてください。
+     * </p>
+     * @return 起動完了を確認した場合は<code>true</code>、それ以外の場合は<code>false</code>
+     * @throws InterruptedException キャンセルされた場合
+     */
+    private boolean waitForWebServerStartup() throws InterruptedException {
+        DConnectApplication application = (DConnectApplication) getActivity().getApplication();
+        DConnectSettings settings = application.getSettings();
+        while (!mWebService.isRunning() && settings.isWebServerStartFlag()) {
+            Thread.sleep(100);
+        }
+        return mWebService.isRunning();
+    }
+
 
     /**
      * Preferenceの設定を有効にします.

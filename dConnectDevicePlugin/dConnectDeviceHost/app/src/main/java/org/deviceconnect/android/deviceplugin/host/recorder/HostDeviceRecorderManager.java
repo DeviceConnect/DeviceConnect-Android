@@ -119,6 +119,12 @@ public class HostDeviceRecorderManager {
         }
     }
 
+    public void destroy() {
+        for (HostDeviceRecorder recorder : getRecorders()) {
+            recorder.destroy();
+        }
+    }
+
     public synchronized HostDeviceRecorder[] getRecorders() {
         return mRecorders.toArray(new HostDeviceRecorder[mRecorders.size()]);
     }

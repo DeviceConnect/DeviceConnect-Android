@@ -15,7 +15,11 @@ android {
     }
 
     defaultConfig {
+<<<<<<< HEAD
         minSdkVersion 14
+=======
+        minSdkVersion 21
+>>>>>>> master
         targetSdkVersion 28
         versionCode 1
         versionName getVersionName()
@@ -64,12 +68,16 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
+<<<<<<< HEAD
     implementation('com.android.support:appcompat-v7:28.0.0') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
     implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.0'
     implementation project(':dconnect-device-plugin-sdk')
+=======
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.6.1'
+>>>>>>> master
     implementation 'com.android.support:design:28.0.0'
     androidTestImplementation 'com.android.support.test:testing-support-lib:0.1'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'

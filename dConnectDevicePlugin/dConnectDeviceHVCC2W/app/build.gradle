@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion '27.0.3'
 
     def getVersionName = { ->
         def version
@@ -18,6 +17,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hvcc2w"
         minSdkVersion 15
+        // HVC-C2Wのライブラリの都合上、targetSDKをあげるとエラー実行時にエラーが出る
         targetSdkVersion 22
         versionCode 1
         versionName getVersionName()

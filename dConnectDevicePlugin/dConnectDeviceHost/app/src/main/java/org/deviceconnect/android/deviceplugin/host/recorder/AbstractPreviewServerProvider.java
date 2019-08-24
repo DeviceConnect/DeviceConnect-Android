@@ -49,6 +49,11 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     @Override
+    public void destroy() {
+        // Nothing to do.
+    }
+
+    @Override
     public void stopWebServers() {
         for (PreviewServer server : getServers()) {
             server.stopWebServer();
@@ -144,7 +149,6 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     public Context getContext() {
         return mContext;
     }
-
     public void setPreviewQuality(final PreviewServer server, final int quality) {
         server.setQuality(quality);
         storePreviewQuality(server, quality);
@@ -168,4 +172,18 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         return getId() + "-" + server.getMimeType() + "-preview-quality";
     }
 
+    @Override
+    public void mute() {
+
+    }
+
+    @Override
+    public void unMute() {
+
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
+    }
 }

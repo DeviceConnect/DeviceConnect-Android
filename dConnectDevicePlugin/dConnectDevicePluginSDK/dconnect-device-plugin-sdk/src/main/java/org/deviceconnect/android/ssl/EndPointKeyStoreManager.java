@@ -31,7 +31,6 @@ import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,6 +62,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
             "org.deviceconnect.android.manager.ssl.DConnectCertificateAuthorityService");
 
     /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("LocalCA");
+
+    /**
      * 証明書のエイリアス.
      */
     private final String mAlias;
@@ -78,11 +82,6 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * ロガー.
-     */
-    private final Logger mLogger = Logger.getLogger("LocalCA");
-
-    /**
      * 証明書にSANsとして記載した名前リスト.
      */
     private final List<SAN> mSANs = new ArrayList<>();
@@ -92,10 +91,10 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      *
      * @param context コンテキスト
      * @param keyStorePath キーストアの保存先
+     * @param keyStorePassword キーストアのパスワード
      */
-    public EndPointKeyStoreManager(final Context context,
-                                   final String keyStorePath) {
-        this(context, keyStorePath, context.getPackageName());
+    public EndPointKeyStoreManager(final Context context, final String keyStorePath, final String keyStorePassword) {
+        this(context, keyStorePath, keyStorePassword, context.getPackageName());
     }
 
     /**
@@ -103,11 +102,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      *
      * @param context コンテキスト
      * @param keyStorePath キーストアの保存先
+     * @param alias エイリアス
      */
-    public EndPointKeyStoreManager(final Context context,
-                                   final String keyStorePath,
-                                   final String alias) {
-        this(context, keyStorePath, alias, DEFAULT_ROOT_CA);
+    public EndPointKeyStoreManager(final Context context, final String keyStorePath,
+                                   final String keyStorePassword, final String alias) {
+        this(context, keyStorePath, keyStorePassword, alias, DEFAULT_ROOT_CA);
     }
 
     /**
@@ -115,13 +114,13 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      *
      * @param context コンテキスト
      * @param keyStorePath キーストアの保存先
+     * @param keyStorePassword キーストアのパスワード
+     * @param alias エイリアス
      * @param rootCA 証明書要求の送信先
      */
-    EndPointKeyStoreManager(final Context context,
-                            final String keyStorePath,
-                            final String alias,
-                            final ComponentName rootCA) {
-        super(context, keyStorePath);
+    public EndPointKeyStoreManager(final Context context, final String keyStorePath, final String keyStorePassword,
+                            final String alias, final ComponentName rootCA) {
+        super(context, keyStorePath, keyStorePassword);
         mRootCA = rootCA;
         mAlias = alias;
         restoreIPAddress(alias);
@@ -154,8 +153,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                     if (BuildConfig.DEBUG) {
                         mLogger.log(Level.INFO, "SANs: size = " + names.size());
                     }
-                    for (Iterator<List<?>> it = names.iterator(); it.hasNext(); ) {
-                        List<?> list = it.next();
+                    for (List<?> list : names) {
                         if (list.size() == 2) {
                             Object tagNo = list.get(0);
                             Object value = list.get(1);
@@ -201,84 +199,82 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
 
     @Override
     public void requestKeyStore(final String ipAddress, final KeyStoreCallback callback) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (BuildConfig.DEBUG) {
-                    mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
-                }
-                try {
-                    String alias = getAlias();
-                    if (hasIPAddress(ipAddress)) {
-                        if (BuildConfig.DEBUG) {
-                            mLogger.info("Certificate is cached for alias: " + alias);
-                        }
-                        Certificate[] chain = mKeyStore.getCertificateChain(getAlias());
-                        callback.onSuccess(mKeyStore, chain[0], chain[1]);
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            mLogger.info("Generating key pair...");
-                        }
-                        final KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
-                        final KeyPair keyPair = keyGenerator.generateKeyPair();
+        mExecutor.execute(() -> {
+            if (BuildConfig.DEBUG) {
+                mLogger.info("Requested keystore: alias = " + getAlias() + ", IP Address = " + ipAddress);
+            }
 
-                        if (BuildConfig.DEBUG) {
-                            mLogger.info("Generated key pair.");
-                            mLogger.info("Executing certificate request...");
-                        }
-
-                        final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
-
-                        final List<ASN1Encodable> names = new ArrayList<>();
-                        names.add(new GeneralName(GeneralName.iPAddress, ipAddress));
-                        for (SAN cache : mSANs) {
-                            if (!cache.mName.equals(ipAddress)) {
-                                names.add(new GeneralName(cache.mTagNo, cache.mName));
-                            }
-                        }
-                        names.add(new GeneralName(GeneralName.iPAddress, "0.0.0.0"));
-                        names.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
-                        names.add(new GeneralName(GeneralName.dNSName, "localhost"));
-                        GeneralNames generalNames = new GeneralNames(new DERSequence(names.toArray(new ASN1Encodable[names.size()])));
-
-                        localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
-                            @Override
-                            public void onCreate(final Certificate cert, final Certificate rootCert) {
-                                if (BuildConfig.DEBUG) {
-                                    mLogger.info("Generated server certificate");
-                                }
-
-                                try {
-                                    Certificate[] chain = {cert, rootCert};
-                                    setCertificate(chain, keyPair.getPrivate());
-                                    saveKeyStore();
-                                    if (BuildConfig.DEBUG) {
-                                        mLogger.info("Saved server certificate");
-                                    }
-                                    mSANs.add(new SAN(GeneralName.iPAddress, ipAddress));
-                                    callback.onSuccess(mKeyStore, cert, rootCert);
-                                } catch (Exception e) {
-                                    mLogger.log(Level.SEVERE, "Failed to save server certificate", e);
-                                    callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
-                                } finally {
-                                    localCA.dispose();
-                                }
-                            }
-
-                            @Override
-                            public void onError() {
-                                mLogger.severe("Failed to generate server certificate");
-
-                                localCA.dispose();
-                                callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
-                            }
-                        });
+            try {
+                String alias = getAlias();
+                if (hasIPAddress(ipAddress)) {
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Certificate is cached for alias: " + alias);
                     }
-                } catch (KeyStoreException e) {
-                    callback.onError(KeyStoreError.BROKEN_KEYSTORE);
-                } catch (GeneralSecurityException e) {
-                    callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
+                    Certificate[] chain = mKeyStore.getCertificateChain(getAlias());
+                    callback.onSuccess(mKeyStore, chain[0], chain[1]);
+                } else {
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Generating key pair...");
+                    }
+                    final KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");
+                    final KeyPair keyPair = keyGenerator.generateKeyPair();
+
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info("Generated key pair.");
+                        mLogger.info("Executing certificate request...");
+                    }
+
+                    final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
+
+                    final List<ASN1Encodable> names = new ArrayList<>();
+                    names.add(new GeneralName(GeneralName.iPAddress, ipAddress));
+                    for (SAN cache : mSANs) {
+                        if (!cache.mName.equals(ipAddress)) {
+                            names.add(new GeneralName(cache.mTagNo, cache.mName));
+                        }
+                    }
+                    names.add(new GeneralName(GeneralName.iPAddress, "0.0.0.0"));
+                    names.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
+                    names.add(new GeneralName(GeneralName.dNSName, "localhost"));
+                    GeneralNames generalNames = new GeneralNames(new DERSequence(names.toArray(new ASN1Encodable[0])));
+
+                    localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
+                        @Override
+                        public void onCreate(final Certificate cert, final Certificate rootCert) {
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("Generated server certificate");
+                            }
+
+                            try {
+                                Certificate[] chain = {cert, rootCert};
+                                setCertificate(chain, keyPair.getPrivate());
+                                saveKeyStore();
+                                if (BuildConfig.DEBUG) {
+                                    mLogger.info("Saved server certificate");
+                                }
+                                mSANs.add(new SAN(GeneralName.iPAddress, ipAddress));
+                                callback.onSuccess(mKeyStore, cert, rootCert);
+                            } catch (Exception e) {
+                                mLogger.log(Level.SEVERE, "Failed to save server certificate", e);
+                                callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
+                            } finally {
+                                localCA.dispose();
+                            }
+                        }
+
+                        @Override
+                        public void onError() {
+                            mLogger.severe("Failed to generate server certificate");
+
+                            localCA.dispose();
+                            callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
+                        }
+                    });
                 }
+            } catch (KeyStoreException e) {
+                callback.onError(KeyStoreError.BROKEN_KEYSTORE);
+            } catch (GeneralSecurityException e) {
+                callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
             }
         });
     }
@@ -332,11 +328,22 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                 principal,
                 keyPair.getPublic(),
                 attributes,
-                keyPair.getPrivate());
+                keyPair.getPrivate(),
+                SecurityUtil.getSecurityProvider());
     }
 
+    /**
+     * Subject Alternative Name.
+     */
     private static class SAN {
+        /**
+         * タグ番号.
+         */
         final int mTagNo;
+
+        /**
+         * サブジェクト名.
+         */
         final String mName;
 
         SAN(final int tagNo, final String name) {

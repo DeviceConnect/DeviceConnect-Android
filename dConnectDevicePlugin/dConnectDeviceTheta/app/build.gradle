@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.theta"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 26
         versionCode 7
         versionName getVersionName()
@@ -37,7 +37,16 @@ android {
             keyPassword = project.properties.keyPassword
         }
     }
-
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -80,4 +89,5 @@ dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
     implementation 'com.squareup.okhttp:okhttp:2.5.0'
+    implementation 'com.burgstaller:okhttp-digest:1.16'
 }

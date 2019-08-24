@@ -10,10 +10,10 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
@@ -22,7 +22,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.utils.FlashingExecuto
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -51,20 +50,17 @@ public class HostLightProfile extends LightProfile {
     /** 点滅制御用Map. */
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<>();
 
-    /** Camera クラスインスタンス.  */
-    private Camera mCamera = null;
-
-    /** ライト点灯/消灯状態. */
-    private boolean isOn = false;
-
     /** Contextインスタンス. */
-    private Context mContext = null;
-
-    /** HostDeviceRecorderManagerインスタンス. */
-    private HostDeviceRecorderManager mMgr = null;
+    private Context mContext;
 
     /** HostDevicePhotoRecorderインスタンス. */
-    private HostDevicePhotoRecorder mPhotoRec = null;
+    private HostDevicePhotoRecorder mPhotoRec;
+
+    /** レスポンスを返すハンドラー. */
+    private final Handler mResponseHandler;
+
+    /** 点滅を制御するハンドラー. */
+    private final Handler mFlashingHandler;
 
     /**
      * Get Light API.
@@ -78,7 +74,7 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            if (!(initCameraInstance())) {
+                            if (!(isCameraAvailable())) {
                                 MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
                                 sendResponse(response);
                                 return;
@@ -88,9 +84,7 @@ public class HostLightProfile extends LightProfile {
                             setName(lightParam, HOST_DEFAULT_LIGHT_NAME);
                             setConfig(lightParam, "");
                             setLightId(lightParam, HOST_LIGHT_ID);
-
-                            isOn = mPhotoRec.isFlashLightState();
-                            setOn(lightParam, isOn);
+                            setOn(lightParam, mPhotoRec.isFlashLightState());
 
                             List<Bundle> lightParams = new ArrayList<>();
                             lightParams.add(lightParam);
@@ -135,7 +129,7 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            if (!(initCameraInstance())) {
+                            if (!(isCameraAvailable())) {
                                 MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
                                 sendResponse(response);
                                 return;
@@ -144,12 +138,28 @@ public class HostLightProfile extends LightProfile {
                             if (flashing != null) {
                                 flashing(HOST_LIGHT_ID, flashing);
                                 setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
                             } else {
-                                isOn = true;
-                                mPhotoRec.turnOnFlashLight();
-                                setResult(response, DConnectMessage.RESULT_OK);
+                                mPhotoRec.turnOnFlashLight(new HostDevicePhotoRecorder.TurnOnFlashLightListener() {
+                                    @Override
+                                    public void onRequested() {
+                                        setResult(response, DConnectMessage.RESULT_OK);
+                                        sendResponse(response);
+                                    }
+
+                                    @Override
+                                    public void onTurnOn() {
+                                        // NOTE: カメラに正常にリクエストできた時点でレスポンスを返すので、
+                                        // ここでは何もしない
+                                    }
+
+                                    @Override
+                                    public void onError(final HostDevicePhotoRecorder.Error error) {
+                                        setPhotoRecorderError(response, error);
+                                        sendResponse(response);
+                                    }
+                                }, mResponseHandler);
                             }
-                            sendResponse(response);
                         }
 
                         @Override
@@ -188,16 +198,31 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            if (!(initCameraInstance())) {
+                            if (!(isCameraAvailable())) {
                                 MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
                                 sendResponse(response);
                                 return;
                             }
 
-                            isOn = false;
-                            mPhotoRec.turnOffFlashLight();
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
+                            mPhotoRec.turnOffFlashLight(new HostDevicePhotoRecorder.TurnOffFlashLightListener() {
+                                @Override
+                                public void onRequested() {
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                    sendResponse(response);
+                                }
+
+                                @Override
+                                public void onTurnOff() {
+                                    // NOTE: カメラに正常にリクエストできた時点でレスポンスを返すので、
+                                    // ここでは何もしない
+                                }
+
+                                @Override
+                                public void onError(final HostDevicePhotoRecorder.Error error) {
+                                    setPhotoRecorderError(response, error);
+                                    sendResponse(response);
+                                }
+                            }, mResponseHandler);
                         }
 
                         @Override
@@ -212,6 +237,23 @@ public class HostLightProfile extends LightProfile {
         }
     };
 
+    private static void setPhotoRecorderError(final Intent response,
+                                              final HostDevicePhotoRecorder.Error error) {
+        switch (error) {
+            case UNSUPPORTED:
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "this camera has no flash light.");
+                break;
+            case FATAL_ERROR:
+                MessageUtils.setIllegalDeviceStateError(response,
+                        "this camera is not available.");
+                break;
+            default:
+                MessageUtils.setUnknownError(response);
+                break;
+        }
+    }
+
     /**
      * Constructor.
      * @param context context.
@@ -219,7 +261,12 @@ public class HostLightProfile extends LightProfile {
      */
     public HostLightProfile(final Context context, final HostDeviceRecorderManager manager) {
         mContext = context;
-        mMgr = manager;
+        manager.initialize();
+        mPhotoRec = manager.getCameraRecorder(null);
+
+        mResponseHandler = createHandler("light");
+        mFlashingHandler = createHandler("light-flashing");
+
         addApi(mGetLightApi);
         addApi(mPostLightApi);
         addApi(mDeleteLightApi);
@@ -229,33 +276,28 @@ public class HostLightProfile extends LightProfile {
                 new PermissionUtility.PermissionRequestCallback() {
                     @Override
                     public void onSuccess() {
-                        initCameraInstance();
                     }
 
                     @Override
                     public void onFail(@NonNull String deniedPermission) {
-
                     }
                 });
+    }
 
+    private Handler createHandler(final String name) {
+        HandlerThread thread = new HandlerThread(name);
+        thread.start();
+        return new Handler(thread.getLooper());
     }
 
     /**
-     * Cameraインスタンス生成.
-     * @return 正常終了時はtrue, カメラデバイス使用時はfalse.
+     * カメラが使用可能どうかをチェックする.
+     *
+     * @return 使用可能の場合は true, そうでない場合は false.
      */
-    private boolean initCameraInstance() {
-        mMgr.initialize();
-        mPhotoRec = mMgr.getCameraRecorder(null);
+    private boolean isCameraAvailable() {
         if (((HostDeviceRecorder) mPhotoRec).getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
             return false;
-        }
-
-        final HostDeviceStreamRecorder recorder = mMgr.getStreamRecorder(null);
-        if (recorder != null) {
-            if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
-                return false;
-            }
         }
         return true;
     }
@@ -265,25 +307,58 @@ public class HostLightProfile extends LightProfile {
      * @param id ライトID.
      * @param flashing 点滅パターン.
      */
-    private void flashing(String id, long[] flashing) {
+    private void flashing(final String id, final long[] flashing) {
         FlashingExecutor exe = mFlashingMap.get(id);
         if (exe == null) {
             exe = new FlashingExecutor();
             mFlashingMap.put(id, exe);
         }
-        exe.setLightControllable(new FlashingExecutor.LightControllable() {
-            @Override
-            public void changeLight(boolean isState, FlashingExecutor.CompleteListener listener) {
-                if (isState) {
-                    isOn = true;
-                    mPhotoRec.turnOnFlashLight();
-                } else {
-                    isOn = false;
-                    mPhotoRec.turnOffFlashLight();
-                }
-                listener.onComplete();
+        exe.setLightControllable((isOn, listener) -> {
+            final long startTime = currentTime();
+            if (isOn) {
+                mPhotoRec.turnOnFlashLight(new HostDevicePhotoRecorder.TurnOnFlashLightListener() {
+                    @Override
+                    public void onRequested() {
+                        // NOP.
+                    }
+
+                    @Override
+                    public void onTurnOn() {
+                        listener.onComplete(delayTime(startTime));
+                    }
+
+                    @Override
+                    public void onError(final HostDevicePhotoRecorder.Error error) {
+                        listener.onFatalError(); // エラーが発生した場合、点滅を中断
+                    }
+                }, mFlashingHandler);
+            } else {
+                mPhotoRec.turnOffFlashLight(new HostDevicePhotoRecorder.TurnOffFlashLightListener() {
+                    @Override
+                    public void onRequested() {
+                        // NOP.
+                    }
+
+                    @Override
+                    public void onTurnOff() {
+                        listener.onComplete(delayTime(startTime));
+                    }
+
+                    @Override
+                    public void onError(final HostDevicePhotoRecorder.Error error) {
+                        listener.onFatalError(); // エラーが発生した場合、点滅を中断
+                    }
+                }, mFlashingHandler);
             }
         });
         exe.start(flashing);
+    }
+
+    private long delayTime(final long startTime) {
+        return currentTime() - startTime;
+    }
+
+    private long currentTime() {
+        return System.currentTimeMillis();
     }
 }

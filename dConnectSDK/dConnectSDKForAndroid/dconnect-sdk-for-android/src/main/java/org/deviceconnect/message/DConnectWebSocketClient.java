@@ -24,9 +24,10 @@ import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
@@ -51,9 +52,14 @@ class DConnectWebSocketClient {
     private static final String TAG = "DConnectSDK";
 
     /**
+     * サービスIDとパスを接続する文字列.
+     */
+    private static final String JOIN_SERVICE_ID = "_";
+
+    /**
      * Device Connect Managerのイベントを配送するリスナーを格納するマップ.
      */
-    private Map<String, HttpDConnectSDK.OnEventListener> mListenerMap = new HashMap<>();
+    private final Map<String, List<HttpDConnectSDK.OnEventListener>> mListenerMap = new HashMap<>();
 
     /**
      * WebSocketの接続状態を通知するリスナー.
@@ -131,9 +137,14 @@ class DConnectWebSocketClient {
                             }
                         }
                     } else {
-                        DConnectSDK.OnEventListener l = mListenerMap.get(createPath(json));
-                        if (l != null) {
-                            l.onMessage(new DConnectEventMessage(message));
+                        String key = createPath(json);
+                        synchronized (mListenerMap) {
+                            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
+                            if (listeners != null) {
+                                for (DConnectSDK.OnEventListener l : listeners) {
+                                    l.onMessage(new DConnectEventMessage(message));
+                                }
+                            }
                         }
                     }
                 } catch (JSONException e) {
@@ -154,6 +165,8 @@ class DConnectWebSocketClient {
 
             @Override
             public void onClose(final int code, final String reason, final boolean remote) {
+                isEstablishedWebSocket = false;
+
                 DConnectWebSocketClient.this.close();
                 if (mOnWebSocketListener != null) {
                     mOnWebSocketListener.onClose();
@@ -172,6 +185,8 @@ class DConnectWebSocketClient {
 
             @Override
             public void onError(final Exception ex) {
+                isEstablishedWebSocket = false;
+
                 if (mOnWebSocketListener != null) {
                     mOnWebSocketListener.onError(ex);
                 }
@@ -219,7 +234,12 @@ class DConnectWebSocketClient {
             uri += "/";
             uri += json.optString(DConnectMessage.EXTRA_ATTRIBUTE);
         }
-        return uri.toLowerCase();
+        uri = uri.toLowerCase();
+        if (json.has(DConnectMessage.EXTRA_SERVICE_ID)) {
+            uri += JOIN_SERVICE_ID;
+            uri += json.optString(DConnectMessage.EXTRA_SERVICE_ID);
+        }
+        return uri;
     }
 
     /**
@@ -228,7 +248,7 @@ class DConnectWebSocketClient {
      * @return パス
      */
     private String convertUriToPath(final Uri uri) {
-        return uri.getPath().toLowerCase();
+        return uri.getPath().toLowerCase() + JOIN_SERVICE_ID + uri.getQueryParameter(DConnectMessage.EXTRA_SERVICE_ID);
     }
 
     /**
@@ -243,20 +263,61 @@ class DConnectWebSocketClient {
     }
 
     /**
+     * 指定されたイベントのリスナーを持っているか確認します.
+     *
+     * @param uri イベントのURI
+     * @return リスナーが存在する場合はtrue、それ以外はfalse
+     */
+    boolean hasEventListener(final Uri uri) {
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
+            return listeners != null && !listeners.isEmpty();
+        }
+    }
+
+    /**
      * イベント通知リスナーを登録する.
      * @param uri 登録イベントのURI
      * @param listener 通知リスナー
      */
     void addEventListener(final Uri uri, final HttpDConnectSDK.OnEventListener listener) {
-        mListenerMap.put(convertUriToPath(uri), listener);
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
+            if (listeners == null) {
+                listeners = new ArrayList<>();
+                mListenerMap.put(key, listeners);
+            }
+            listeners.add(listener);
+        }
+    }
+
+    /**
+     * イベント通知リスナーのリストを削除する.
+     * @param uri 解除するイベントのURI
+     */
+    void removeEventListener(final Uri uri) {
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            mListenerMap.remove(key);
+        }
     }
 
     /**
      * イベント通知リスナーを削除する.
+     *
      * @param uri 解除するイベントのURI
+     * @param listener 削除するリスナー
      */
-    void removeEventListener(final Uri uri) {
-        mListenerMap.remove(convertUriToPath(uri));
+    void removeEventListener(final Uri uri, final HttpDConnectSDK.OnEventListener listener) {
+        String key = convertUriToPath(uri);
+        synchronized (mListenerMap) {
+            List<DConnectSDK.OnEventListener> listeners = mListenerMap.get(key);
+            if (listeners != null) {
+                listeners.remove(listener);
+            }
+        }
     }
 
     /**
@@ -267,15 +328,22 @@ class DConnectWebSocketClient {
         mWebSocketClient.send("{\"" + DConnectMessage.EXTRA_ACCESS_TOKEN + "\":\"" + accessToken + "\"}");
     }
 
+    /**
+     * SSL接続用のソケットを作成するファクトリークラスを作成します.
+     *
+     * @return SSLSocketFactory
+     * @throws NoSuchAlgorithmException SSLに使用するアルゴリズムが存在しない場合に発生
+     * @throws KeyManagementException
+     */
     private SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
         TrustManager[] transManagers = {
                 new X509TrustManager() {
                     @Override
-                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    public void checkClientTrusted(final X509Certificate[] chain, final String authType) {
                     }
 
                     @Override
-                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                    public void checkServerTrusted(final X509Certificate[] chain, final String authType) {
                     }
 
                     @Override

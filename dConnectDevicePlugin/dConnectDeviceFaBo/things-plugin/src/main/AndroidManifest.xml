@@ -1,12 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
           package="org.deviceconnect.android.deviceplugin.fabo">
 
     <application
+<<<<<<< HEAD
         android:allowBackup="true"
         android:icon="@mipmap/dconnect_icon"
+=======
+        android:allowBackup="false"
+        android:icon="@drawable/dconnect_icon"
+>>>>>>> master
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:allowBackup">
 
         <uses-library android:name="com.google.android.things"/>
 

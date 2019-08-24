@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="demo_lib_ok">OK</string>
+    <string name="demo_lib_confirm">確認</string>
+
+    <string name="demo_page_settings_title">デモページ</string>
+    <string name="demo_page_settings_title_error">エラー</string>
+    <string name="demo_page_settings_title_delete">削除</string>
+    <string name="demo_page_settings_title_install">インストール</string>
+    <string name="demo_page_settings_title_overwrite">上書き</string>
+    <string name="demo_page_settings_message_delete">デモページを外部ストレージから削除します。よろしいですか？</string>
+    <string name="demo_page_settings_message_delete_completed">正常にデモページが削除されました。</string>
+    <string name="demo_page_settings_message_delete_error">デモページの削除に失敗しました。</string>
+    <string name="demo_page_settings_message_install">デモページを外部ストレージにインストールします。よろしいですか？</string>
+    <string name="demo_page_settings_message_install_completed">正常にインストールされました。</string>
+    <string name="demo_page_settings_message_install_error">デモページのインストールに失敗しました。</string>
+    <string name="demo_page_settings_message_overwrite">デモページのインストール先にすでにフォルダが存在します。フォルダの内容を全削除後、上書きしてよろしいですか？\n\nインストール先:\n{{demoDirPath}}</string>
+    <string name="demo_page_settings_message_overwrite_completed">正常に上書きされました。</string>
+    <string name="demo_page_settings_message_overwrite_error">デモページの上書きに失敗しました。</string>
+    <string name="demo_page_settings_checkbox_shortcut">ホーム画面にショートカットを作成</string>
+    <string name="demo_page_settings_button_cancel">キャンセル</string>
+    <string name="demo_page_settings_button_delete">削除</string>
+    <string name="demo_page_settings_button_install">インストール</string>
+    <string name="demo_page_settings_button_overwrite">上書き</string>
+    <string name="demo_page_settings_button_open">開く</string>
+    <string name="demo_page_settings_button_create_shortcut">ショートカットを作成</string>
+    <string name="demo_page_settings_button_create_shortcut_success">ホーム画面にショートカットを作成しました。</string>
+    <string name="demo_page_settings_button_create_shortcut_error">ホーム画面でのショートカット作成に失敗しました。</string>
+    <string name="demo_page_settings_message_update_completed">正常にデモページが更新されました。</string>
+    <string name="demo_page_settings_message_update_error">デモページの更新に失敗しました。</string>
+</resources>

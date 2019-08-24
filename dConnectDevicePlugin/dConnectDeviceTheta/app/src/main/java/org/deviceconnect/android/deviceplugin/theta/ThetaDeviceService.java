@@ -87,6 +87,7 @@ public class ThetaDeviceService extends DConnectMessageService
         mDeviceMgr = app.getDeviceManager();
         mDeviceMgr.registerDeviceEventListener(this);
         mDeviceMgr.checkConnectedDevice();
+        mDeviceMgr.startDeviceDetection();
         mClient = new ThetaDeviceClient(mDeviceMgr);
         mFileMgr = new FileManager(this);
 
@@ -103,6 +104,7 @@ public class ThetaDeviceService extends DConnectMessageService
     @Override
     public void onDestroy() {
         unregisterReceiver(mWifiReceiver);
+        mDeviceMgr.dispose();
         mDeviceMgr.unregisterDeviceEventListener(this);
         try {
             PtpipInitiator.close();

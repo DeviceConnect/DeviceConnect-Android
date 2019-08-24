@@ -24,7 +24,19 @@ public interface HostDeviceRecorder {
 
     void initialize();
 
+    /**
+     * プロセス起動時の状態に戻す.
+     *
+     * プラグイン再起動時に呼び出すこと.
+     */
     void clean();
+
+    /**
+     * オブジェクトを破棄する.
+     *
+     * プロセス終了時に呼び出すこと.
+     */
+    void destroy();
 
     String getId();
 
@@ -60,6 +72,11 @@ public interface HostDeviceRecorder {
 
     boolean isSupportedPreviewSize(int width, int height);
 
+    void mute();
+
+    void unMute();
+
+    boolean isMuted();
     /**
      * 端末の画面が回転したタイミングで実行されるメソッド.
      * @param degree 角度を示す定数

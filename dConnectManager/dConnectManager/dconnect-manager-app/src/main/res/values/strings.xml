@@ -110,6 +110,7 @@
     <string name="activity_settings_web_server_warning_negative">Cancel</string>
     <string name="activity_settings_event_keep_alive_settings">Event Keep Alive</string>
     <string name="activity_settings_web_server_error_message">Failed to start the web server, because cannot get a permission.</string>
+    <string name="activity_settings_web_server_error">Failed to start the web server.\n\n%1$s</string>
 
     <!-- ================= SharedPreferences ================= -->
     <string name="key_settings_demo_link">settings_demo_link</string>
@@ -155,6 +156,7 @@
     <string name="activity_deviceplugin_info_profile">Profile</string>
     <string name="activity_deviceplugin_info_profile_name"> ・ %1$s</string>
     <string name="activity_deviceplugin_info_connection_type_title">Connection Type</string>
+    <string name="activity_deviceplugin_info_connection_type_direct">Direct</string>
     <string name="activity_deviceplugin_info_connection_type_binder">Binder</string>
     <string name="activity_deviceplugin_info_connection_type_broadcast">Broadcast</string>
     <string name="activity_deviceplugin_info_connection_type_included_with_manager">Included</string>
@@ -210,6 +212,11 @@
     <string name="activity_service_list_plugin_setting_message">Do you want to open the plugin setting?</string>
     <string name="activity_service_list_plugin_setting_positive">Yes</string>
     <string name="activity_service_list_plugin_setting_negative">Cancel</string>
+    <string name="activity_service_list_error_message_title">Error</string>
+    <string name="activity_service_list_error_message_message">An error has occurred.\n\n%1$s</string>
+    <string name="activity_service_list_error_message_ok">OK</string>
+    <string name="activity_service_list_launch_manager_message">Starting Device Connect Manager</string>
+    <string name="activity_service_list_search_service">Searching for services</string>
 
     <string name="activity_websocket_delete_title">Closing WebSocket</string>
     <string name="activity_websocket_delete_message">May this WebSocket be closed?</string>

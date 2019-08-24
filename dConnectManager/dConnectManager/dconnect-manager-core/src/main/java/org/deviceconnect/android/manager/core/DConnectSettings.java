@@ -488,6 +488,17 @@ public final class DConnectSettings {
     }
 
     /**
+     * Webサーバの起動フラグを設定する.
+     *
+     * @param flag Webサーバを起動している場合はtrue、それ以外はfalse
+     */
+    public void setWebServerStartFlag(boolean flag) {
+        mPreferences.edit()
+                .putBoolean(mContext.getString(R.string.key_settings_web_server_on_off), flag)
+                .apply();
+    }
+
+    /**
      * 監視するインターバルを取得する.
      *
      * @return インターバル
@@ -527,6 +538,26 @@ public final class DConnectSettings {
     public void setKeyword(final String keyword) {
         SharedPreferences.Editor editor = mPreferences.edit();
         editor.putString(mContext.getString(R.string.key_settings_dconn_keyword), keyword);
+        editor.apply();
+    }
+
+    /**
+     * SSLに使用するパスワードを取得します.
+     *
+     * @return パスワード
+     */
+    public String getSSLPassword() {
+        return mPreferences.getString(mContext.getString(R.string.key_settings_dconn_ssl_password), "0000");
+    }
+
+    /**
+     * SSLに使用するパスワードを取得します.
+     *
+     * @param  password パスワード
+     */
+    public void setSSLPassword(final String password) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(mContext.getString(R.string.key_settings_dconn_ssl_password), password);
         editor.apply();
     }
 

@@ -36,19 +36,19 @@ import java.util.logging.Logger;
  *     }
  * </code>
  */
-public class ThetaDeviceManager implements WifiStateEventListener {
+public class ThetaDeviceManager implements ThetaDeviceDetection.DetectionListener,
+                                                            WifiStateEventListener{
 
     private final Logger mLogger = Logger.getLogger("theta.dplugin");
-
-    /**
-     * An THETA device which is currently connected.
-     */
-    private ThetaDevice mConnectedDevice;
 
     /**
      * An instance of {@link Context}.
      */
     private final Context mContext;
+    /**
+     * An THETA device which is currently connected.
+     */
+    private ThetaDevice mConnectedDevice;
 
     /**
      * A list of {@link ThetaDeviceEventListener}.
@@ -61,6 +61,11 @@ public class ThetaDeviceManager implements WifiStateEventListener {
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     /**
+     * THETA検知ロジックのリスト.
+     */
+    private final List<ThetaDeviceDetection> mDeviceDetections = new ArrayList<>();
+
+    /**
      * Constructor.
      *
      * @param context An instance of {@link Context}
@@ -70,50 +75,103 @@ public class ThetaDeviceManager implements WifiStateEventListener {
     }
 
     /**
+     * THETA検知ロジックを追加する.
+     *
+     * @param detection THETA検知ロジック
+     */
+    public void addDeviceDetection(final ThetaDeviceDetection detection) {
+        synchronized (mDeviceDetections) {
+            for (ThetaDeviceDetection cache : mDeviceDetections) {
+                if (cache == detection) {
+                    return;
+                }
+            }
+            mDeviceDetections.add(detection);
+        }
+    }
+
+    /**
      * Gets the specified THETA device.
      *
      * @param id the identifier of THETA device
      * @return the specified THETA device
      */
     public ThetaDevice getConnectedDeviceById(final String id) {
-        ThetaDevice device = mConnectedDevice;
-        if (device == null) {
-            return null;
+        for (ThetaDevice device : getDetectedDevices()) {
+            if (device.getId().equals(id)) {
+                return device;
+            }
         }
-        if (device.getId().equals(id)) {
-            return device;
-        } else {
-            return null;
+        return null;
+    }
+
+    private List<ThetaDevice> getDetectedDevices() {
+        List<ThetaDevice> devices = new ArrayList<>();
+        for (ThetaDeviceDetection detection : mDeviceDetections) {
+            devices.addAll(detection.getDetectedDevices());
         }
+        return devices;
     }
 
     /**
-     * Get a THETA device which is connected currently to the host device via WiFi.
+     * 検知されているデバイスのうち、任意のデバイスを1つ返却する.
+     * 1つも検知されていない場合は <code>null</code> を返却する.
      *
-     * @return an instance of {@link ThetaDevice}
+     * @return {@link ThetaDevice} クラスのオブジェクト
      */
     public ThetaDevice getConnectedDevice() {
-        return mConnectedDevice;
+        List<ThetaDevice> devices = getDetectedDevices();
+        if (devices.size() > 0) {
+            return devices.get(0);
+        }
+        return null;
+    }
+    /*
+     * Check a THETA device which is connected currently.
+     */
+     public void checkConnectedDevice() {
+         mExecutor.execute(() -> {
+              WifiManager wifiMgr = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+              WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+              if (wifiInfo != null) {
+                  ThetaDevice device = ThetaDeviceFactory.createDeviceFromAccessPoint(mContext, wifiInfo);
+                  if (device != null) {
+                      mConnectedDevice = device;
+                      notifyOnConnected(device);
+                  }
+              }
+         });
+      }
+
+    /**
+     * THETAデバイスの検知を開始する.
+     */
+    public void startDeviceDetection() {
+        mExecutor.execute(() -> {
+            for (ThetaDeviceDetection detection : mDeviceDetections) {
+                detection.registerListener(ThetaDeviceManager.this);
+                detection.start(mContext);
+            }
+        });
     }
 
     /**
-     * Check a THETA device which is connected currently.
+     * THETAデバイスの検知を停止する.
      */
-    public void checkConnectedDevice() {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                WifiManager wifiMgr = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-                WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-                if (wifiInfo != null) {
-                    ThetaDevice device = ThetaDeviceFactory.createDevice(mContext, wifiInfo);
-                    if (device != null) {
-                        mConnectedDevice = device;
-                        notifyOnConnected(device);
-                    }
-                }
+    public void stopDeviceDetection() {
+        mExecutor.execute(() -> {
+            for (ThetaDeviceDetection detection : mDeviceDetections) {
+                detection.stop(mContext);
+                detection.unregisterListener(ThetaDeviceManager.this);
             }
         });
+    }
+
+    /**
+     * 後始末を実行する.
+     */
+    public void dispose() {
+        stopDeviceDetection();
     }
 
     /**
@@ -165,37 +223,42 @@ public class ThetaDeviceManager implements WifiStateEventListener {
     }
 
     @Override
-    public void onNetworkChanged(final WifiInfo wifiInfo) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (this) {
-                    ThetaDevice oldDevice = mConnectedDevice;
-                    ThetaDevice newDevice = ThetaDeviceFactory.createDevice(mContext, wifiInfo);
-                    mConnectedDevice = newDevice;
-                    mLogger.info("onNetworkChanged: " + mConnectedDevice);
+    public void onThetaDetected(final ThetaDevice device) {
+        notifyOnConnected(device);
+    }
 
-                    if (oldDevice != null) {
-                        notifyOnDisconnected(oldDevice);
-                        oldDevice.destroy();
-                    }
-                    if (newDevice != null) {
-                        notifyOnConnected(newDevice);
-                    }
+    @Override
+    public void onThetaLost(final ThetaDevice device) {
+        notifyOnDisconnected(device);
+    }
+
+    @Override
+    public void onNetworkChanged(WifiInfo wifiInfo) {
+        mExecutor.execute(() -> {
+            synchronized (this) {
+                ThetaDevice oldDevice = mConnectedDevice;
+                ThetaDevice newDevice = ThetaDeviceFactory.createDeviceFromAccessPoint(mContext, wifiInfo);
+                mConnectedDevice = newDevice;
+
+                if (oldDevice != null) {
+                    notifyOnDisconnected(oldDevice);
+                    oldDevice.destroy();
+                }
+                if (newDevice != null) {
+                    notifyOnConnected(newDevice);
                 }
             }
         });
+
     }
 
     @Override
     public void onWiFiEnabled() {
-        // Nothing to do.
-        mLogger.info("onWiFiEnabled");
+
     }
 
     @Override
     public void onWiFiDisabled() {
-        mLogger.info("onWiFiDisabled");
         synchronized (this) {
             ThetaDevice oldDevice = mConnectedDevice;
             mConnectedDevice = null;
@@ -204,5 +267,6 @@ public class ThetaDeviceManager implements WifiStateEventListener {
                 oldDevice.destroy();
             }
         }
+
     }
 }

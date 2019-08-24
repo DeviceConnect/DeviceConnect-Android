@@ -1,0 +1,42 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.linking"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+repositories {
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    maven { url "https://raw.githubusercontent.com/FaBoPlatform/FaBo-Serial-Kit/master/repository/" }
+    maven { url 'https://raw.githubusercontent.com/FaBoPlatform/STK500-Android/master/stk500/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
+    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    testImplementation 'junit:junit:4.12'
+    implementation project(':app')
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}

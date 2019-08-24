@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -29,6 +30,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 
 import java.io.ByteArrayOutputStream;
 import java.net.Socket;
@@ -111,12 +113,13 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     @Override
     public int getQuality() {
-        return mRecorder.getCameraWrapper().getPreviewJpegQuality();
+        return RecorderSettingData.getInstance(mRecorder.getContext()).readPreviewQuality(mRecorder.getId());
     }
 
     @Override
     public void setQuality(int quality) {
-        mRecorder.getCameraWrapper().setPreviewJpegQuality(quality);
+        RecorderSettingData.getInstance(mRecorder.getContext()).storePreviewQuality(mRecorder.getId(),
+                quality);
     }
 
     @Override
@@ -214,6 +217,16 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         }
     }
 
+    @Override
+    public void mute() {
+        // NOP
+    }
+
+    @Override
+    public void unMute() {
+        // NOP
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private final class DrawTask extends EglTask {
 
@@ -246,9 +259,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             mByteBuffer = ByteBuffer.allocateDirect(w * h * 4);
             mOutput = new ByteArrayOutputStream();
-
             mSourceTexture = new SurfaceTexture(mTexId);
-            mSourceTexture.setDefaultBufferSize(w, h);	// これを入れないと映像が取れない
+            setDefaultBufferSize(getCurrentRotation(), w, h);
             mSourceSurface = new Surface(mSourceTexture);
             mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mPreviewHandler);
             mEncoderSurface = getEgl().createOffscreen(w, h);
@@ -413,29 +425,38 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         }
 
         private void onDisplayRotationChange(final int rotation) {
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mDrawSync) {
-                        if (mBitmap != null && !mBitmap.isRecycled()) {
-                            mBitmap.recycle();
-                        }
-                        if (mEncoderSurface != null) {
-                            mEncoderSurface.release();
-                        }
-
-                        // プレビューサイズ更新
-                        detectDisplayRotation(rotation);
-                        int w = mPreviewSize.getWidth();
-                        int h = mPreviewSize.getHeight();
-                        mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-                        mSourceTexture.setDefaultBufferSize(w, h);
-                        mEncoderSurface = getEgl().createOffscreen(w, h);
+            queueEvent(() -> {
+                synchronized (mDrawSync) {
+                    if (mBitmap != null && !mBitmap.isRecycled()) {
+                        mBitmap.recycle();
                     }
+                    if (mEncoderSurface != null) {
+                        mEncoderSurface.release();
+                    }
+
+                    // プレビューサイズ更新
+                    detectDisplayRotation(rotation);
+                    int w = mPreviewSize.getWidth();
+                    int h = mPreviewSize.getHeight();
+                    mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                    setDefaultBufferSize(rotation, w, h);
+                    mEncoderSurface = getEgl().createOffscreen(w, h);
                 }
             });
         }
-
+        private void setDefaultBufferSize(final int rotation, final int w, final int h) {
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    mSourceTexture.setDefaultBufferSize(h, w);
+                    break;
+                case Surface.ROTATION_90:
+                case Surface.ROTATION_270:
+                default:
+                    mSourceTexture.setDefaultBufferSize(w, h);
+                    break;
+            }
+        }
         private void detectDisplayRotation(final int rotation) {
             switch (rotation) {
                 case Surface.ROTATION_0:
@@ -462,5 +483,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             mPreviewSize = mRecorder.getRotatedPreviewSize();
         }
 
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
     }
 }

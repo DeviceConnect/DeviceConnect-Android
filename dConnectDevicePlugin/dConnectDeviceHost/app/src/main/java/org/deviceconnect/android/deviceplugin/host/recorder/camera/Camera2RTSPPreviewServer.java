@@ -20,6 +20,7 @@ import com.serenegiant.glutils.GLDrawer2D;
 
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.audio.AACStream;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
 import net.majorkernelpanic.streaming.video.SurfaceH264Stream;
@@ -64,6 +65,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
     private volatile boolean mIsRecording;
     private boolean requestDraw;
     private DrawTask mScreenCaptureTask;
+    private AACStream mAac;
 
     Camera2RTSPPreviewServer(final Context context,
                              final AbstractPreviewServerProvider serverProvider,
@@ -76,7 +78,25 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
     public String getMimeType() {
         return MIME_TYPE;
     }
+    /**
+     * Recorderをmute状態にする.
+     */
+    public void mute() {
+        super.mute();
+        if (mAac != null) {
+            mAac.mute();
+        }
+    }
 
+    /**
+     * Recorderのmute状態を解除する.
+     */
+    public void unMute() {
+        super.unMute();
+        if (mAac != null) {
+            mAac.unMute();
+        }
+    }
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         synchronized (mLockObj) {
@@ -98,6 +118,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             callback.onStart(uri);
         }
     }
+
 
     @Override
     public void stopWebServer() {
@@ -182,13 +203,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
         VideoQuality videoQuality = new VideoQuality();
 
-        //縦横切り替わった時に、初期化する必要のないように長い方に合わせる
-        int resolution = previewSize.getWidth();
-        if (resolution < previewSize.getHeight()) {
-            resolution = previewSize.getHeight();
-        }
-        videoQuality.resX = resolution;
-        videoQuality.resY = resolution;
+        videoQuality.resX = previewSize.getHeight();
+        videoQuality.resY = previewSize.getWidth();
         videoQuality.bitrate = mServerProvider.getPreviewBitRate();
         videoQuality.framerate = (int) mServerProvider.getMaxFrameRate();
 
@@ -203,6 +219,13 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         SessionBuilder builder = new SessionBuilder();
         builder.setContext(mContext);
         builder.setVideoStream(mVideoStream);
+        mAac = new AACStream();
+        if (isMuted()) {
+            mAac.mute();
+        } else {
+            mAac.unMute();
+        }
+        builder.setAudioStream(mAac);
         builder.setVideoQuality(videoQuality);
 
         Session session = builder.build();
@@ -262,7 +285,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             detectDisplayRotation(getCurrentRotation());
 
             mSourceTexture = new SurfaceTexture(mTexId);
-            mSourceTexture.setDefaultBufferSize(mQuality.resX, mQuality.resY);	// これを入れないと映像が取れない
+            // スマートフォンの傾きによって縦横のサイズを変える
+            setDefaultBufferSize(getCurrentRotation(), mQuality.resX, mQuality.resY);
             mSourceSurface = new Surface(mSourceTexture);
             mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mHandler);
             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
@@ -396,7 +420,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
                             int w = mPreviewSize.getWidth();
                             int h = mPreviewSize.getHeight();
-                            mSourceTexture.setDefaultBufferSize(w, h);
+                            setDefaultBufferSize(rotation, w, h);
                             mVideoStream.changeResolution(w, h);
                             mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
                         } catch (Throwable e) {
@@ -408,7 +432,19 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                 }
             });
         }
-
+        private void setDefaultBufferSize(final int rotation, final int w, final int h) {
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    mSourceTexture.setDefaultBufferSize(h, w);
+                    break;
+                case Surface.ROTATION_90:
+                case Surface.ROTATION_270:
+                default:
+                    mSourceTexture.setDefaultBufferSize(w, h);
+                    break;
+            }
+        }
         private void detectDisplayRotation(final int rotation) {
             switch (rotation) {
                 case Surface.ROTATION_0:

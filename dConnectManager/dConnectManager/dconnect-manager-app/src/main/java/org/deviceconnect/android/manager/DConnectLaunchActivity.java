@@ -301,7 +301,7 @@ public class DConnectLaunchActivity extends AppCompatActivity {
 
     private boolean existsConnectedWebSocket(final DConnectService managerService) {
         WebSocketInfoManager mgr = managerService.getWebSocketInfoManager();
-        return mgr.getWebSocketInfos().size() > 0;
+        return mgr != null && mgr.getWebSocketInfos().size() > 0;
     }
 
     /**

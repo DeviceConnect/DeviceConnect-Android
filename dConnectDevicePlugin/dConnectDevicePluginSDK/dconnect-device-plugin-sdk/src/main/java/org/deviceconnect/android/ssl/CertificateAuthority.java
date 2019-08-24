@@ -57,14 +57,14 @@ import javax.security.auth.x500.X500Principal;
 class CertificateAuthority {
 
     /**
-     * ルート証明書のキーストア.
-     */
-    private final RootKeyStoreManager mRootKeyStoreMgr;
-
-    /**
      * ロガー.
      */
     private final Logger mLogger = Logger.getLogger("LocalCA");
+
+    /**
+     * ルート証明書のキーストア.
+     */
+    private final RootKeyStoreManager mRootKeyStoreMgr;
 
     /**
      * ルート証明書の発行者名.
@@ -77,11 +77,13 @@ class CertificateAuthority {
      * @param context コンテキスト
      * @param issuerName ルート証明書の発行者名
      * @param keyStoreFileName キーストアのファイル名
+     * @param keyStorePassword キーストアのパスワード
      */
     CertificateAuthority(final Context context,
                          final String issuerName,
-                         final String keyStoreFileName) {
-        mRootKeyStoreMgr = new RootKeyStoreManager(context, issuerName, keyStoreFileName);
+                         final String keyStoreFileName,
+                         final String keyStorePassword) {
+        mRootKeyStoreMgr = new RootKeyStoreManager(context, issuerName, keyStoreFileName, keyStorePassword);
         mIssuerName = issuerName;
     }
 
@@ -152,7 +154,7 @@ class CertificateAuthority {
             // 証明書要求を解析
             PKCS10CertificationRequest request = new PKCS10CertificationRequest(pkcs10);
             PrivateKey signingKey = mRootKeyStoreMgr.getPrivateKey(mIssuerName);
-            KeyPair keyPair = new KeyPair(request.getPublicKey(), signingKey);
+            KeyPair keyPair = new KeyPair(request.getPublicKey(SecurityUtil.getSecurityProvider()), signingKey);
             X500Principal subject = new X500Principal("CN=localhost");
             X500Principal issuer = new X500Principal("CN=" + mIssuerName);
             GeneralNames generalNames = parseSANs(request);
@@ -249,7 +251,7 @@ class CertificateAuthority {
             }
         }
         if (generalNames.size() > 0) {
-            return new GeneralNames(new DERSequence(generalNames.toArray(new ASN1Encodable[generalNames.size()])));
+            return new GeneralNames(new DERSequence(generalNames.toArray(new ASN1Encodable[0])));
         }
         return null;
     }

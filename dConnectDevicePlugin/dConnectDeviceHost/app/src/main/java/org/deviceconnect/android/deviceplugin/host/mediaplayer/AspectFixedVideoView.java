@@ -32,18 +32,22 @@ public class AspectFixedVideoView extends VideoView {
     public void setVideoURI(Uri uri) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(this.getContext(), uri);
-        int w = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-        int h = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-        mVideoRotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
-        if (mVideoRotation == 90 || mVideoRotation == 270) {
-            mVideoWidth = h;
-            mVideoHeight = w;
-        } else {
-            mVideoWidth = w;
-            mVideoHeight = h;
-        }
-        if (BuildConfig.DEBUG) {
-            Log.d("AspectFixedVideoView", "setVideoURI: " + mVideoWidth + "x" + mVideoHeight + " " + mVideoRotation);
+        // 音声ファイルの場合はビデオサイズを取得しない
+        if (retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH) != null
+            && retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) != null) {
+            int w = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+            int h = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+            mVideoRotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
+            if (mVideoRotation == 90 || mVideoRotation == 270) {
+                mVideoWidth = h;
+                mVideoHeight = w;
+            } else {
+                mVideoWidth = w;
+                mVideoHeight = h;
+            }
+            if (BuildConfig.DEBUG) {
+                Log.d("AspectFixedVideoView", "setVideoURI: " + mVideoWidth + "x" + mVideoHeight + " " + mVideoRotation);
+            }
         }
         super.setVideoURI(uri);
     }

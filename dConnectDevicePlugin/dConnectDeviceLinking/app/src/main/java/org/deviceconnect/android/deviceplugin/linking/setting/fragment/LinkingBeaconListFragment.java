@@ -23,7 +23,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;

@@ -16,9 +16,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 

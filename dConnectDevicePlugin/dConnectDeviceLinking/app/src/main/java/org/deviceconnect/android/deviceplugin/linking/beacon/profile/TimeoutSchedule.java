@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.beacon.profile;
 
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;

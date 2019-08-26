@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
-    package="org.deviceconnect.android.deviceplugin.linking"
+    package="org.deviceconnect.android.deviceplugin.linking.lib"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
@@ -22,7 +22,7 @@
             android:value="true"/>
 
         <receiver
-            android:name=".LinkingDeviceProvider"
+            android:name="org.deviceconnect.android.deviceplugin.linking.LinkingDeviceProvider"
             android:enabled="true"
             android:exported="true">
             <meta-data
@@ -45,7 +45,7 @@
         </receiver>
 
         <service
-            android:name=".LinkingDevicePluginService"
+            android:name="org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService"
             android:enabled="true"
             android:exported="true">
             <meta-data
@@ -63,7 +63,7 @@
         </service>
 
         <activity
-            android:name=".setting.SettingActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.setting.SettingActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
             android:launchMode="singleInstance"
@@ -74,7 +74,7 @@
         </activity>
 
         <activity
-            android:name=".setting.LinkingDeviceActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.setting.LinkingDeviceActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
             android:launchMode="singleInstance"
@@ -82,7 +82,7 @@
         </activity>
 
         <activity
-            android:name=".setting.LinkingBeaconActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.setting.LinkingBeaconActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
             android:launchMode="singleInstance"
@@ -90,7 +90,7 @@
         </activity>
 
         <activity
-            android:name=".setting.LinkingInductionActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
             android:launchMode="singleInstance"
@@ -98,7 +98,7 @@
         </activity>
 
         <activity
-            android:name=".setting.LinkingHelpActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.setting.LinkingHelpActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
             android:launchMode="singleInstance"
@@ -106,7 +106,7 @@
         </activity>
 
         <activity
-            android:name=".setting.AppInformationActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.setting.AppInformationActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/linking_app_name"
             android:launchMode="singleInstance"
@@ -114,7 +114,7 @@
         </activity>
 
         <activity
-            android:name=".linking.ConfirmActivity"
+            android:name="org.deviceconnect.android.deviceplugin.linking.linking.ConfirmActivity"
             android:configChanges="orientation|screenSize"
             android:excludeFromRecents="true"
             android:finishOnCloseSystemDialogs="true"

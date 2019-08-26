@@ -20,9 +20,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;

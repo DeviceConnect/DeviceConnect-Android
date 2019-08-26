@@ -8,8 +8,8 @@ import com.nttdocomo.android.sdaiflib.ErrorCode;
 import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.SendNotification;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
-import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.R;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
 import java.util.ArrayList;

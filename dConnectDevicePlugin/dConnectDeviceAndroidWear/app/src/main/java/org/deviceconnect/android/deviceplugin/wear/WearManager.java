@@ -98,6 +98,9 @@ public class WearManager {
         getNodes(new OnNodeResultListener() {
             @Override
             public void onResult(final List<Node> results) {
+                if (results == null) {
+                    return;
+                }
                 synchronized (mNodeCache) {
                     for (Node node : results) {
                         if (!mNodeCache.containsKey(node.getId())) {
@@ -121,6 +124,9 @@ public class WearManager {
                 getNodes(new OnNodeResultListener() {
                     @Override
                     public void onResult(final List<Node> results) {
+                        if (results == null) {
+                            return;
+                        }
                         synchronized (mNodeCache) {
                             for (Node node : results) {
                                 if (!mNodeCache.containsKey(node.getId())) {

@@ -77,6 +77,7 @@ public class ThetaDeviceActivity extends FragmentActivity {
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         registerReceiver(mWifiReceiver, filter);
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

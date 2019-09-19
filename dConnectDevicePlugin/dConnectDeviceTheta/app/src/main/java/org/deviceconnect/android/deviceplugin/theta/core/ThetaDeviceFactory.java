@@ -9,7 +9,9 @@ import com.burgstaller.okhttp.digest.Credentials;
 
 import java.net.InetAddress;
 
-class ThetaDeviceFactory {
+import javax.net.SocketFactory;
+
+public class ThetaDeviceFactory {
 
     private static final String DEFAULT_HOST = "192.168.1.1";
 
@@ -17,6 +19,10 @@ class ThetaDeviceFactory {
     }
 
     public static ThetaDevice createDeviceFromAccessPoint(final Context context, final WifiInfo wifiInfo) {
+        return createDeviceFromAccessPoint(context, wifiInfo, null);
+    }
+
+    public static ThetaDevice createDeviceFromAccessPoint(final Context context, final WifiInfo wifiInfo, final SocketFactory socketFactory) {
         String ssId = parseSSID(wifiInfo);
         if (ssId == null) {
             WifiManager wm = (WifiManager) context.getApplicationContext()
@@ -40,9 +46,9 @@ class ThetaDeviceFactory {
                     return null;
                 }
             case THETA_S:
-                return new ThetaS(ssId, DEFAULT_HOST);
+                return new ThetaS(ssId, DEFAULT_HOST, socketFactory);
             case THETA_V:
-                return new ThetaV(ssId, DEFAULT_HOST, null);
+                return new ThetaV(ssId, DEFAULT_HOST, null, socketFactory);
             default:
                 return null;
         }
@@ -63,7 +69,7 @@ class ThetaDeviceFactory {
             case THETA_V:
                 String password = parsePasswordForDigestAuthentication(serviceName);
                 Credentials credentials = new Credentials(serviceName, password);
-                return new ThetaV(serviceName, host.getHostAddress(), credentials);
+                return new ThetaV(serviceName, host.getHostAddress(), credentials, null);
             default:
                 return null;
         }

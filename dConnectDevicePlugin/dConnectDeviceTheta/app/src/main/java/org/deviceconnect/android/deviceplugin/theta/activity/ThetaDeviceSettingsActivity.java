@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.activity;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -15,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ConfirmationFragment;
+import org.deviceconnect.android.deviceplugin.theta.fragment.ConfirmationFragmentForApi29;
 import org.deviceconnect.android.deviceplugin.theta.fragment.MovieModeFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.PhotoModeFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.SettingsFragment;
@@ -40,7 +42,7 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
         mSummary,
         mPhotoMode,
         mMovieMode,
-        new ConfirmationFragment()
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ? new ConfirmationFragment() : new ConfirmationFragmentForApi29()
     };
 
     private ThetaDeviceModel mSelectedModel = ThetaDeviceModel.THETA_S;

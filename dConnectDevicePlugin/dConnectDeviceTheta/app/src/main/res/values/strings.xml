@@ -48,6 +48,9 @@
     <string name="communication_error">Communication error</string>
     <string name="theta_app">Application</string>
     <string name="theta_data_import">Imported the data of THETA.</string>
+    <string name="open_wifi_setting">Open</string>
+    <string name="wifi_setting_prompt">Wi-Fi feature is turned off.\Open Wi-Fi setting, and turn Wi-Fi on.</string>
+    <string name="wifi_setting">Wi-Fi Setting</string>
 
     <string-array name="theta_gallery_command">
         <item>Import</item>

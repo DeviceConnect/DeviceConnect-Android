@@ -9,7 +9,7 @@ package org.deviceconnect.android.deviceplugin.linking.beacon.profile;
 import android.content.Intent;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;

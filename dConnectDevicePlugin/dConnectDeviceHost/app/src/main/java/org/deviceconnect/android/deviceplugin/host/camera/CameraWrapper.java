@@ -115,7 +115,7 @@ public class CameraWrapper {
 
     private boolean mUseTouch;
 
-    private byte mPreviewJpegQuality;
+    private byte mPreviewJpegQuality = 100;
 
     private CameraEventListenerHolder mCameraEventListenerHolder;
 

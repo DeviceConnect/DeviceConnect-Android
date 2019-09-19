@@ -119,6 +119,11 @@ class RTSPPreviewServer implements PreviewServer,
     }
 
     @Override
+    public void eraseSession(Session session) {
+
+    }
+
+    @Override
     public void onFrame(final UVCDevice device, final byte[] frame, final int frameFormat, final int width, final int height) {
         if (frameFormat != UVCCamera.FRAME_FORMAT_MJPEG) {
             mLogger.warning("onFrame: unsupported frame format: " + frameFormat);

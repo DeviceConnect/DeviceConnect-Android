@@ -17,6 +17,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.beacon.profile.BeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.service.LinkingBeaconService;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.service.LinkingDeviceService;

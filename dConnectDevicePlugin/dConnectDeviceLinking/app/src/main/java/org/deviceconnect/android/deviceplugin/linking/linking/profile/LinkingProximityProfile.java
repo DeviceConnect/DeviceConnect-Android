@@ -10,7 +10,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDestroy;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;

@@ -13,7 +13,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.linking.data.IlluminationData;
 import org.deviceconnect.android.deviceplugin.linking.linking.data.Setting;
 import org.deviceconnect.android.deviceplugin.linking.linking.data.VibrationData;

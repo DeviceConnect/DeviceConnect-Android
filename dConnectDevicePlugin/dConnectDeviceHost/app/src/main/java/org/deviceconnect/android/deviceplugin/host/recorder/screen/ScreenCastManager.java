@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +16,7 @@ import android.os.ResultReceiver;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.util.NotificationUtils;
 
 @TargetApi(21)
 class ScreenCastManager {
@@ -30,6 +32,13 @@ class ScreenCastManager {
     private MediaProjection mMediaProjection;
 
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
+
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3539;
+
+    /** Notification Content */
+    private final String NOTIFICATION_CONTENT = "Host Media Streaming Recording Profileからの起動要求";
+
 
     ScreenCastManager(final Context context) {
         mContext = context;
@@ -76,7 +85,12 @@ class ScreenCastManager {
                 }
             }
         });
-        mContext.startActivity(intent);
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            mContext.startActivity(intent);
+        } else {
+            NotificationUtils.createNotificationChannel(mContext);
+            NotificationUtils.notify(mContext, NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
+        }
     }
 
     public SurfaceScreenCast createScreenCast(final Surface outputSurface, final HostDeviceRecorder.PictureSize size) {

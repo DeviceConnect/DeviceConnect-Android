@@ -452,8 +452,10 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             if (mUpdateItem != null) {
                 mUpdateItem.setVisible(true);
             }
-            String ssId = mDevice.getName();
-            getActivity().getActionBar().setTitle(ssId);
+            if (mDevice != null) {
+                String ssId = mDevice.getName();
+                getActivity().getActionBar().setTitle(ssId);
+            }
             if ((mRecconectLayout.isEnabled()
                     && !mIsGalleryMode && mUpdateThetaList.size() == 0)) {
                 if (mDownloadTask != null) {

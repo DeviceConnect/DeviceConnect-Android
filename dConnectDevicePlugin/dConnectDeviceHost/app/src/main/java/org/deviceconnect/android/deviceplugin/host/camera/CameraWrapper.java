@@ -688,7 +688,8 @@ public class CameraWrapper {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         mIsAeReady = aeState == null
                                 || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
-                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_PRECAPTURE;
                     }
                     mIsCaptureReady |= isCompleted;
                     if (DEBUG) {

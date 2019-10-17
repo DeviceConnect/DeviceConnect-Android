@@ -10,6 +10,7 @@ import android.net.NetworkRequest;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
@@ -70,6 +71,8 @@ public class ThetaDeviceManager implements ThetaDeviceDetection.DetectionListene
      */
     private final List<ThetaDeviceDetection> mDeviceDetections = new ArrayList<>();
 
+    private final HandlerThread mHandlerThread = new HandlerThread(getClass().getName());
+
     /**
      * Constructor.
      *
@@ -77,6 +80,7 @@ public class ThetaDeviceManager implements ThetaDeviceDetection.DetectionListene
      */
     public ThetaDeviceManager(final Context context) {
         mContext = context;
+        mHandlerThread.start();
     }
 
     /**
@@ -171,6 +175,7 @@ public class ThetaDeviceManager implements ThetaDeviceDetection.DetectionListene
      */
     public void dispose() {
         stopDeviceDetection();
+        mHandlerThread.quit();
     }
 
     /**
@@ -272,7 +277,7 @@ public class ThetaDeviceManager implements ThetaDeviceDetection.DetectionListene
                 startDeviceDetection();
             }
         };
-        connectivityManager.requestNetwork(request, callback, new Handler(Looper.getMainLooper()));
+        connectivityManager.requestNetwork(request, callback, new Handler(mHandlerThread.getLooper()));
         return true;
     }
 

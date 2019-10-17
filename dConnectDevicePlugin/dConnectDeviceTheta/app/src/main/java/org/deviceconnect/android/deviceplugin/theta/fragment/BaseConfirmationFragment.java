@@ -87,6 +87,13 @@ public abstract class BaseConfirmationFragment extends SettingsFragment implemen
             }
         });
 
+        Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
+            ThetaDeviceManager deviceManager = app.getDeviceManager();
+            deviceManager.registerDeviceEventListener(this);
+        }
+
         return rootView;
     }
 
@@ -120,24 +127,13 @@ public abstract class BaseConfirmationFragment extends SettingsFragment implemen
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         Activity activity = getActivity();
         if (activity != null) {
             ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
             ThetaDeviceManager deviceManager = app.getDeviceManager();
             deviceManager.unregisterDeviceEventListener(this);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Activity activity = getActivity();
-        if (activity != null) {
-            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
-            ThetaDeviceManager deviceManager = app.getDeviceManager();
-            deviceManager.registerDeviceEventListener(this);
         }
     }
 
@@ -315,6 +311,8 @@ public abstract class BaseConfirmationFragment extends SettingsFragment implemen
 
     @Override
     public void onConnected(final ThetaDevice device) {
+        mLogger.info("onConnected: device = " + device.getName());
+
         if (mDialog != null) {
             mDialog.dismiss();
             mDialog = null;

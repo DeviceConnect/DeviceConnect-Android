@@ -19,12 +19,12 @@ public class ThetaDeviceFactory {
     }
 
     public static ThetaDevice createDeviceFromAccessPoint(final Context context, final WifiInfo wifiInfo) {
-        return createDeviceFromAccessPoint(context, wifiInfo, null);
+        return createDeviceFromAccessPoint(context, parseSSID(wifiInfo), null);
     }
 
-    public static ThetaDevice createDeviceFromAccessPoint(final Context context, final WifiInfo wifiInfo, final SocketFactory socketFactory) {
-        String ssId = parseSSID(wifiInfo);
-        if (ssId == null) {
+    public static ThetaDevice createDeviceFromAccessPoint(final Context context, final String ssId, final SocketFactory socketFactory) {
+        String name = ssId;
+        if (name == null) {
             WifiManager wm = (WifiManager) context.getApplicationContext()
                     .getSystemService(Context.WIFI_SERVICE);
             if (wm == null) {
@@ -34,21 +34,21 @@ public class ThetaDeviceFactory {
             if (info == null) {
                 return null;
             }
-            ssId = info.getSSID().replace("\"", "");
+            name = info.getSSID().replace("\"", "");
         }
-        ThetaDeviceModel model = parseModel(ssId);
+        ThetaDeviceModel model = parseModel(name);
         switch (model) {
             case THETA_M15:
-                ThetaM15 m15 = new ThetaM15(context, ssId);
+                ThetaM15 m15 = new ThetaM15(context, name);
                 if (m15.initialize()) {
                     return m15;
                 } else {
                     return null;
                 }
             case THETA_S:
-                return new ThetaS(ssId, DEFAULT_HOST, socketFactory);
+                return new ThetaS(name, DEFAULT_HOST, socketFactory);
             case THETA_V:
-                return new ThetaV(ssId, DEFAULT_HOST, null, socketFactory);
+                return new ThetaV(name, DEFAULT_HOST, null, socketFactory);
             default:
                 return null;
         }

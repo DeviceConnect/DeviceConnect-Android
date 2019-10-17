@@ -74,7 +74,6 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
     @Override
     protected void onResume() {
         super.onResume();
-        getDeviceManager().checkConnectedDevice();
         getDeviceManager().startDeviceDetection();
     }
 

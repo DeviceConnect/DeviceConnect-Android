@@ -7,25 +7,9 @@
 package org.deviceconnect.android.deviceplugin.theta;
 
 import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.net.NetworkRequest;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiNetworkSpecifier;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
@@ -33,11 +17,7 @@ import com.theta360.lib.ThetaException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
-import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
-import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceFactory;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
-import org.deviceconnect.android.deviceplugin.theta.core.ThetaV;
-import org.deviceconnect.android.deviceplugin.theta.core.wifi.WifiStateEventListener;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
@@ -51,21 +31,16 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import javax.net.SocketFactory;
 
 /**
  * Theta Device Service.
  *
  * @author NTT DOCOMO, INC.
  */
-public class ThetaDeviceService extends DConnectMessageService
-    implements ThetaDeviceEventListener {
+public class ThetaDeviceService extends DConnectMessageService implements ThetaDeviceEventListener {
 
     public static final String ACTION_CONNECT_WIFI = "action.CONNECT_WIFI";
 
@@ -78,29 +53,6 @@ public class ThetaDeviceService extends DConnectMessageService
     private ThetaDeviceClient mClient;
     private FileManager mFileMgr;
     private ThetaMediaStreamRecordingProfile mThetaMediaStreamRecording;
-    private WifiStateEventListener mListener;
-    private BroadcastReceiver mWifiReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-                mListener.onNetworkChanged(wifiInfo);
-            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
-                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
-                switch (state) {
-                    case WifiManager.WIFI_STATE_DISABLED:
-                        mListener.onWiFiDisabled();
-                        break;
-                    case WifiManager.WIFI_STATE_ENABLED:
-                        mListener.onWiFiEnabled();
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    };
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
@@ -115,11 +67,10 @@ public class ThetaDeviceService extends DConnectMessageService
     @Override
     public void onCreate() {
         super.onCreate();
-        mListener = ((ThetaDeviceApplication) getApplication()).getDeviceManager();
+
         ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
         mDeviceMgr = app.getDeviceManager();
         mDeviceMgr.registerDeviceEventListener(this);
-        mDeviceMgr.checkConnectedDevice();
         mDeviceMgr.startDeviceDetection();
         mClient = new ThetaDeviceClient(mDeviceMgr);
         mFileMgr = new FileManager(this);
@@ -127,16 +78,10 @@ public class ThetaDeviceService extends DConnectMessageService
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
         getServiceProvider().addService(new ThetaImageService(app.getHeadTracker()));
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        registerReceiver(mWifiReceiver, filter);
     }
 
     @Override
     public void onDestroy() {
-        unregisterReceiver(mWifiReceiver);
         mDeviceMgr.dispose();
         mDeviceMgr.unregisterDeviceEventListener(this);
         try {
@@ -236,41 +181,7 @@ public class ThetaDeviceService extends DConnectMessageService
 
     @TargetApi(Build.VERSION_CODES.Q)
     private void connectWifi(final ScanResult result) {
-        WifiNetworkSpecifier specifier = new WifiNetworkSpecifier.Builder()
-                .setSsid(result.SSID)
-                .setWpa2Passphrase(parsePassword(result.SSID))
-                .build();
-        NetworkRequest request = new NetworkRequest.Builder()
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .removeCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .setNetworkSpecifier(specifier)
-                .build();
-        requestNetwork(request);
-    }
-
-    @TargetApi(Build.VERSION_CODES.Q)
-    private boolean requestNetwork(final NetworkRequest request) {
-        ConnectivityManager connectivityManager = getConnectivityManager();
-        if (connectivityManager == null) {
-            return false;
-        }
-        final ConnectivityManager.NetworkCallback callback = new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(final @NonNull Network network) {
-                super.onAvailable(network);
-
-                Toast.makeText(getApplicationContext(), "onAvailable", Toast.LENGTH_LONG).show();
-            }
-        };
-        connectivityManager.requestNetwork(request, callback, new Handler(Looper.getMainLooper()));
-        return true;
-    }
-
-    private String parsePassword(final String ssid) {
-        return ssid.substring(7, 7 + 8);
-    }
-
-    private ConnectivityManager getConnectivityManager() {
-        return (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        ThetaDeviceManager deviceManager = ((ThetaDeviceApplication) getApplication()).getDeviceManager();
+        deviceManager.requestNetwork(result.SSID);
     }
 }

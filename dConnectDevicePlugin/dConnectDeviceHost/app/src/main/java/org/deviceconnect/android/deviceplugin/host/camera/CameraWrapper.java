@@ -593,8 +593,6 @@ public class CameraWrapper {
                 startRecording(mRecordingSurface, true);
             } else if (mIsPreview) {
                 startPreview(mPreviewSurface, true);
-            } else {
-                close();
             }
         } catch (CameraWrapperException e) {
             if (DEBUG) {

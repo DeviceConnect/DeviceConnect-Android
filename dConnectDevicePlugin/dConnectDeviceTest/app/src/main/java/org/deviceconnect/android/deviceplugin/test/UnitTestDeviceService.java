@@ -41,6 +41,7 @@ public class UnitTestDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        setUseLocalOAuth(false);
 
         mFileManager = new FileManager(this);
 

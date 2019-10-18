@@ -7,6 +7,8 @@ import com.burgstaller.okhttp.digest.DigestAuthenticator;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.SocketFactory;
+
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -20,12 +22,19 @@ class HttpClient {
     private final OkHttpClient mOkHttpClient;
 
     public HttpClient(final Credentials credentials) {
+        this(credentials, null);
+    }
+
+    public HttpClient(final Credentials credentials, final SocketFactory socketFactory) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .connectTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS);
         if (credentials != null) {
             builder.authenticator(new DigestAuthenticator(credentials));
+        }
+        if (socketFactory != null) {
+            builder.socketFactory(socketFactory);
         }
         mOkHttpClient = builder.build();
     }

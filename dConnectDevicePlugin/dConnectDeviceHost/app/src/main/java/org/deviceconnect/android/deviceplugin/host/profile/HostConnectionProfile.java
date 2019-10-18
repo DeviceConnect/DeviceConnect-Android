@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.nfc.NfcAdapter;
+import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -295,16 +296,19 @@ public class HostConnectionProfile extends ConnectionProfile {
         addApi(mGetBluetoothApi);
         addApi(mGetBleApi);
         addApi(mGetNfcApi);
-        addApi(mPutWifiApi);
         addApi(mPutBluetoothApi);
         addApi(mPutBleApi);
-        addApi(mDeleteWifiApi);
         addApi(mDeleteBluetoothApi);
         addApi(mDeleteBleApi);
         addApi(mPutOnWifiChangeApi);
         addApi(mPutOnBluetoothChangeApi);
         addApi(mDeleteOnWifiChange);
         addApi(mDeleteOnBluetoothChange);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            addApi(mPutWifiApi);
+            addApi(mDeleteWifiApi);
+        }
     }
 
     /**

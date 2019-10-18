@@ -52,7 +52,6 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
-import com.google.polo.ssl.SslUtil;
 
 /**
  * キーストア・マネージャー. クライアントとサーバの証明書を管理する.

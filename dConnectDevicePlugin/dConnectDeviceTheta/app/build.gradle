@@ -1,8 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 29
 
     def getVersionName = { ->
         def version
@@ -18,7 +17,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.theta"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 29
         versionCode 7
         versionName getVersionName()
     }
@@ -71,6 +70,7 @@ repositories {
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
-    implementation 'com.squareup.okhttp:okhttp:2.5.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.android.support:support-v4:26.1.0'
     implementation 'com.burgstaller:okhttp-digest:1.16'
 }

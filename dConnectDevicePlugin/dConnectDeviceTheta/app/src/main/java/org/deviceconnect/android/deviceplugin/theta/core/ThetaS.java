@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.net.SocketFactory;
+
 class ThetaS extends AbstractThetaDevice {
 
     private static final String ID_PREFIX = "theta-s-";
@@ -55,9 +57,9 @@ class ThetaS extends AbstractThetaDevice {
 
     private OscClient mOscClient;
 
-    ThetaS(final String ssId, final String host) {
+    ThetaS(final String ssId, final String host, final SocketFactory socketFactory) {
         super(ssId);
-        mOscClient = new OscClient(host, null);
+        mOscClient = new OscClient(host, null, socketFactory);
     }
 
     @Override

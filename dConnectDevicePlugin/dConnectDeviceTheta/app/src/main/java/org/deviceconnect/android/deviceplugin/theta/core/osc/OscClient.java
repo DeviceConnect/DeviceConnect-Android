@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.net.SocketFactory;
+
 public class OscClient {
 
     private static final HttpRequest.Method GET = HttpRequest.Method.GET;
@@ -30,8 +32,8 @@ public class OscClient {
     private final HttpClient mHttpClient;
     private final String mHost;
 
-    public OscClient(final String host, final Credentials credentials) {
-        mHttpClient = new HttpClient(credentials);
+    public OscClient(final String host, final Credentials credentials, final SocketFactory socketFactory) {
+        mHttpClient = new HttpClient(credentials, socketFactory);
         mHost = host;
     }
 

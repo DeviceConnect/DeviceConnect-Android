@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="@string/activity_settings_security" >
+    <PreferenceCategory
+        android:title="@string/activity_settings_security"
+        android:key="setting_category_security" >
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/key_settings_dconn_availability_visible_name"

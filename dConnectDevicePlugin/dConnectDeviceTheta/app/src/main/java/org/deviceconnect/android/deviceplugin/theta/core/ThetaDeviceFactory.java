@@ -9,7 +9,9 @@ import com.burgstaller.okhttp.digest.Credentials;
 
 import java.net.InetAddress;
 
-class ThetaDeviceFactory {
+import javax.net.SocketFactory;
+
+public class ThetaDeviceFactory {
 
     private static final String DEFAULT_HOST = "192.168.1.1";
 
@@ -17,8 +19,12 @@ class ThetaDeviceFactory {
     }
 
     public static ThetaDevice createDeviceFromAccessPoint(final Context context, final WifiInfo wifiInfo) {
-        String ssId = parseSSID(wifiInfo);
-        if (ssId == null) {
+        return createDeviceFromAccessPoint(context, parseSSID(wifiInfo), null);
+    }
+
+    public static ThetaDevice createDeviceFromAccessPoint(final Context context, final String ssId, final SocketFactory socketFactory) {
+        String name = ssId;
+        if (name == null) {
             WifiManager wm = (WifiManager) context.getApplicationContext()
                     .getSystemService(Context.WIFI_SERVICE);
             if (wm == null) {
@@ -28,21 +34,21 @@ class ThetaDeviceFactory {
             if (info == null) {
                 return null;
             }
-            ssId = info.getSSID().replace("\"", "");
+            name = info.getSSID().replace("\"", "");
         }
-        ThetaDeviceModel model = parseModel(ssId);
+        ThetaDeviceModel model = parseModel(name);
         switch (model) {
             case THETA_M15:
-                ThetaM15 m15 = new ThetaM15(context, ssId);
+                ThetaM15 m15 = new ThetaM15(context, name);
                 if (m15.initialize()) {
                     return m15;
                 } else {
                     return null;
                 }
             case THETA_S:
-                return new ThetaS(ssId, DEFAULT_HOST);
+                return new ThetaS(name, DEFAULT_HOST, socketFactory);
             case THETA_V:
-                return new ThetaV(ssId, DEFAULT_HOST, null);
+                return new ThetaV(name, DEFAULT_HOST, null, socketFactory);
             default:
                 return null;
         }
@@ -63,7 +69,7 @@ class ThetaDeviceFactory {
             case THETA_V:
                 String password = parsePasswordForDigestAuthentication(serviceName);
                 Credentials credentials = new Credentials(serviceName, password);
-                return new ThetaV(serviceName, host.getHostAddress(), credentials);
+                return new ThetaV(serviceName, host.getHostAddress(), credentials, null);
             default:
                 return null;
         }

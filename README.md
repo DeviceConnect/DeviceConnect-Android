@@ -31,10 +31,10 @@ DeviceConnect-Androidのソースコードをダウンロードしてくださ�
 $ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
-ビルド前にANDROID_HOMEの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
+ビルド前にANDROID_SDK_ROOTの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
 
 ```
-$ echo 'export ANDROID_HOME=<path>' >> ~/.bash_profile
+$ echo 'export ANDROID_SDK_ROOT=<path>' >> ~/.bash_profile
 ```
 
 &lt;path&gt;には、AndroidSDKへのパスを指定してください。
@@ -49,7 +49,7 @@ $ ./gradlew assembleDebug
 Device Connect Managerを端末にインストールします。
 
 ```
-$ adb install app/build/outputs/apk/app-debug.apk
+$ adb install dconnect-manager-app/build/outputs/apk/debug/dconnect-manager-app-debug.apk
 ```
 
 ### Windows

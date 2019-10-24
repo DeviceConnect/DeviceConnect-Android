@@ -400,9 +400,6 @@ public class CameraWrapper {
         }
         if (hasAutoExposure()) {
             request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-            if (trigger) {
-                request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            }
         }
         setWhiteBalance(request);
         // LightがONの場合は、CONTROL_AE_MODEをCONTROL_AE_MODE_ONにする。
@@ -684,10 +681,12 @@ public class CameraWrapper {
                     }
                     if (!mIsAeReady) {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                        if (DEBUG) {
+                            Log.d(TAG, "prepareCapture: onCaptureCompleted: aeState=" + aeState);
+                        }
                         mIsAeReady = aeState == null
                                 || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
-                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
-                                || aeState == CaptureRequest.CONTROL_AE_STATE_PRECAPTURE;
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
                     }
                     mIsCaptureReady |= isCompleted;
                     if (DEBUG) {

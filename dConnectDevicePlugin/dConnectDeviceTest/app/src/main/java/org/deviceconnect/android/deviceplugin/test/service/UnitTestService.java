@@ -17,15 +17,7 @@ import org.deviceconnect.android.deviceplugin.test.profile.unique.TestDataProfil
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestJSONConversionProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.unique.TestUniqueProfile;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
-import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.profile.api.DConnectApi;
-import org.deviceconnect.android.profile.spec.DConnectApiSpec;
-import org.deviceconnect.android.profile.spec.DConnectPluginSpec;
-import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -45,67 +37,10 @@ public class UnitTestService extends DConnectService {
 
     private Map<String, EventSender> mEventSenders = new HashMap<String, EventSender>();
 
-    public UnitTestService(final String id, final String name, final DConnectPluginSpec pluginSpec) {
+    public UnitTestService(final String id, final String name) {
         super(id);
         setName(name);
         setOnline(true);
-
-        Map<String, DConnectProfileSpec> profileSpecs = pluginSpec.getProfileSpecs();
-        for (Map.Entry<String, DConnectProfileSpec> entry : profileSpecs.entrySet()) {
-            final String profileName = entry.getKey();
-            if (AuthorizationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
-                || ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
-                || ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)
-                || SystemProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
-                continue;
-            }
-
-            final DConnectProfileSpec profileSpec = entry.getValue();
-            final DConnectProfile profile = new DConnectProfile() {
-                @Override
-                public String getProfileName() {
-                    return profileName;
-                }
-            };
-            for (final DConnectApiSpec apiSpec : profileSpec.getApiSpecList()) {
-                DConnectApi api = new DConnectApi() {
-                    @Override
-                    public Method getMethod() {
-                        return apiSpec.getMethod();
-                    }
-
-                    @Override
-                    public String getInterface() {
-                        return apiSpec.getInterfaceName();
-                    }
-
-                    @Override
-                    public String getAttribute() {
-                        return apiSpec.getAttributeName();
-                    }
-
-                    @Override
-                    public boolean onRequest(final Intent request, final Intent response) {
-                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                        if (apiSpec.getType() == Type.EVENT) {
-                            switch (apiSpec.getMethod()) {
-                                case PUT:
-                                    startEventBroadcast(request);
-                                    break;
-                                case DELETE:
-                                    stopEventSender(request);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        return true;
-                    }
-                };
-                profile.addApi(api);
-            }
-            addProfile(profile);
-        }
 
         addProfile(new TestSystemProfile());
         addProfile(new TestUniqueProfile());

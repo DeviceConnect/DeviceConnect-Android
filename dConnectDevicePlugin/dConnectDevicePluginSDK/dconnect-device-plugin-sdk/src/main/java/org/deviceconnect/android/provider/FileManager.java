@@ -180,7 +180,7 @@ public class FileManager {
             mLocation = FileLocationParser.parse(getContext(), mFileProviderClassName);
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
-            return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());
+            return new File(getContext().getExternalFilesDir(null), mLocation.getPath());
         } else {
             return new File(getContext().getFilesDir(), mLocation.getPath());
         }

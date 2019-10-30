@@ -316,7 +316,7 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
             values.put(MediaStore.Video.Media.TITLE, mFile.getName());
             values.put(MediaStore.Video.Media.DISPLAY_NAME, mFile.getName());
             values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
-            values.put(MediaStore.Video.Media.MIME_TYPE, AudioConst.FORMAT_TYPE);
+            values.put(MediaStore.Video.Media.MIME_TYPE, "audio/3gp");
             values.put(MediaStore.Video.Media.DATA, mFile.toString());
             resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
         }

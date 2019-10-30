@@ -589,7 +589,7 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
      */
     private void initDetector() {
         if (mDetector == null) {
-            mDetector = new BleDeviceDetector(getContext());
+            mDetector = new BleDeviceDetector(this);
             mDetector.setListener(new BleDeviceDiscoveryListener() {
 
                 @Override

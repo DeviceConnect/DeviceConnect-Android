@@ -41,16 +41,15 @@ public class UnitTestDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-
         mFileManager = new FileManager(this);
 
         // テスト用データ作成
         createTestData();
 
         getServiceProvider().addService(new UnitTestService(SERVICE_ID,
-            DEVICE_NAME, getPluginSpec()));
+            DEVICE_NAME));
         getServiceProvider().addService(new UnitTestService(SERVICE_ID_SPECIAL_CHARACTERS,
-            DEVICE_NAME_SPECIAL_CHARACTERS, getPluginSpec()));
+            DEVICE_NAME_SPECIAL_CHARACTERS));
     }
 
     @Override
@@ -67,15 +66,6 @@ public class UnitTestDeviceService extends DConnectMessageService {
             mLogger.info("onStartCommand: extras=" + toString(intent.getExtras()));
         }
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public void onRequest(final Intent request, final Intent response) {
-        boolean timeout = request.hasExtra("_timeout");
-        if (timeout) {
-            return;
-        }
-        super.onRequest(request, response);
     }
 
     @Override

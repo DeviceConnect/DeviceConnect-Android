@@ -5,6 +5,7 @@
 *.apk
 *.ap_
 .externalNativeBuild
+.cxx/
 
 # Files for the Dalvik VM
 *.dex
@@ -108,7 +109,7 @@ local.properties
 # PDT-specific
 .buildpath
 
-# sbteclipse plugin 
+# sbteclipse plugin
 .target
 
 # TeXlipse plugin

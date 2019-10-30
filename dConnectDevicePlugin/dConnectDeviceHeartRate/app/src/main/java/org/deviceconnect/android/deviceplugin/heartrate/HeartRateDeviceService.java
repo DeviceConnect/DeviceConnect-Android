@@ -121,7 +121,7 @@ public class HeartRateDeviceService extends DConnectMessageService
 
         mLogger.fine("HeartRateDeviceService start.");
 
-        if (!BleUtils.isBLESupported(getContext())) {
+        if (!BleUtils.isBLESupported(this)) {
             mLogger.warning("BLE is not support.");
             return;
         }

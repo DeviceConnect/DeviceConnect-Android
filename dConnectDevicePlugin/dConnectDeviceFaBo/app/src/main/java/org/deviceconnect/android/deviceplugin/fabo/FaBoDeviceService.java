@@ -27,7 +27,8 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.profile.spec.DConnectProfileSpec;
+import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
+import org.deviceconnect.android.profile.spec.models.Swagger;
 import org.deviceconnect.android.service.DConnectService;
 
 import java.util.ArrayList;
@@ -269,12 +270,6 @@ public abstract class FaBoDeviceService extends DConnectMessageService {
                     DConnectProfile profile = VirtualServiceFactory.createProfile(p);
                     if (profile != null) {
                         service.addProfile(profile);
-
-                        DConnectProfileSpec profileSpec =
-                                getPluginSpec().findProfileSpec(profile.getProfileName().toLowerCase());
-                        if (profileSpec != null) {
-                            profile.setProfileSpec(profileSpec);
-                        }
                         profile.setContext(this);
                     }
                 }

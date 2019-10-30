@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     def getVersionName = { ->
         def version
@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hitoe"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
@@ -53,8 +53,8 @@ android {
     productFlavors {
         DeviceConnect {
             dimension 'DeviceConnect'
-            versionCode 9
-            versionName "1.2.0"
+            versionCode 10
+            versionName "1.3.0"
             manifestPlaceholders = [
                     appIcon: "@mipmap/dconnect_icon",
                     appName: "@string/app_name"
@@ -63,8 +63,8 @@ android {
 
         DeviceWebApi {
             dimension 'DeviceWebApi'
-            versionCode 9
-            versionName "1.2.0"
+            versionCode 10
+            versionName "1.3.0"
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher",
                     appName: "@string/app_name_for_device_web_api"
@@ -75,6 +75,11 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 
 repositories {
@@ -85,7 +90,7 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
     testImplementation 'junit:junit:4.12'
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
 }

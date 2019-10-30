@@ -29,6 +29,7 @@ import android.os.ResultReceiver;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
@@ -137,6 +138,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private PauseHandlerImpl mPauseHandler;
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -185,7 +187,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ドキュメントルート
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
-            File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
+            File file = new File(getActivity().getExternalFilesDir(null), getActivity().getPackageName());
             docRootPath = file.getPath();
         }
 
@@ -260,6 +262,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ポート監視設定のON/OFF
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            PreferenceCategory category = (PreferenceCategory) findPreference("setting_category_security");
+            category.removePreference(mObserverPreferences);
+        }
 
         // Manager名の表示オンオフのチェックボックス.
         mCheckBoxManagerNameVisiblePreferences = (CheckBoxPreference) getPreferenceScreen()

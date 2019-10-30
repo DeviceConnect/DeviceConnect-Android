@@ -1,8 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 29
 
     useLibrary 'org.apache.http.legacy'
 
@@ -20,7 +19,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.theta"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 29
         versionCode 7
         versionName getVersionName()
         manifestPlaceholders = [
@@ -64,8 +63,8 @@ android {
     flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
-            versionCode 19
-            versionName "2.2.1"
+            versionCode 20
+            versionName "2.3.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/dconnect_icon",
                     appName: "@string/app_name_for_device_web_api"
@@ -87,7 +86,8 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
-    implementation 'com.squareup.okhttp:okhttp:2.5.0'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.android.support:support-v4:28.0.0'
     implementation 'com.burgstaller:okhttp-digest:1.16'
 }

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     def getVersionName = { ->
         def version
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -53,6 +53,11 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
@@ -64,7 +69,7 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.6.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
     implementation 'com.android.support:design:28.0.0'
     androidTestImplementation 'com.android.support.test:testing-support-lib:0.1'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'

@@ -49,6 +49,9 @@
     <string name="communication_error">通信エラー</string>
     <string name="theta_app">アプリ</string>
     <string name="theta_data_import">THETAのデータを取り込みました。</string>
+    <string name="open_wifi_setting">設定を開く</string>
+    <string name="wifi_setting_prompt">Wi-Fi が OFF になっています。\nWi-Fi 設定画面で ON にしてください。</string>
+    <string name="wifi_setting">Wi-Fi 設定</string>
 
     <string-array name="theta_gallery_command">
         <item>取り込み</item>

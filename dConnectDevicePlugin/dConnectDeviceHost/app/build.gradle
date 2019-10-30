@@ -4,7 +4,6 @@ def DEMO_ZIP_NAME = "demo.zip"
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
 
     def getVersionName = { ->
         def version
@@ -85,7 +84,7 @@ dependencies {
         exclude module: 'support-media-compat'
     }
     implementation project(':dconnect-device-plugin-linking')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.7.3'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
     implementation project(':dconnect-demo-lib')
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {

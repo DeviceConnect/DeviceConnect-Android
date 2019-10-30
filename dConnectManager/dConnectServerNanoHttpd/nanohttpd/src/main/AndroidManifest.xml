@@ -5,4 +5,9 @@
     android:versionName="1.0" >
 
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:networkSecurityConfig="@xml/network_security_config">
+
+    </application>
 </manifest>

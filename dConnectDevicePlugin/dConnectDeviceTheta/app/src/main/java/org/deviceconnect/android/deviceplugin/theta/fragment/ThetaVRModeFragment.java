@@ -18,7 +18,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.LruCache;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -379,7 +378,7 @@ public class ThetaVRModeFragment extends Fragment {
                     });
                     return;
                 }
-                String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
+                String root = getContext().getExternalFilesDir(null).getPath() + "/Camera/";
                 File dir = new File(root);
                 if (!dir.exists()) {
                     dir.mkdir();

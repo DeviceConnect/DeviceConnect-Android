@@ -170,7 +170,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
                         setUpMediaRecorder(mOutputFile);
                         mMediaRecorder.start();
                         listener.onRecordingStart();
-                    } catch (IOException e) {
+                    } catch (IllegalStateException | IOException e) {
                         listener.onRecordingStartError(e);
                     }
                 }

@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     def getVersionName = { ->
@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hvc"
         minSdkVersion 18
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
         manifestPlaceholders = [
@@ -57,8 +57,8 @@ android {
     flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
-            versionCode 12
-            versionName "2.2.0"
+            versionCode 13
+            versionName "2.3.0"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",
                     appName: "@string/app_name_for_device_web_api"
@@ -80,5 +80,5 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
 }

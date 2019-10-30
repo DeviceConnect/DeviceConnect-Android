@@ -214,7 +214,7 @@ public final class DConnectSettings {
      * @return ドキュメントルートパス
      */
     public String getDocumentRootPath() {
-        File file = new File(Environment.getExternalStorageDirectory(), mContext.getPackageName());
+        File file = new File(mContext.getExternalFilesDir(null), mContext.getPackageName());
         if (!file.exists()) {
             if (!file.mkdirs()) {
                 throw new RuntimeException("Cannot make a folder. path=" + file.getPath());

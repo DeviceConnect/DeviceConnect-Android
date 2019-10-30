@@ -23,6 +23,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -79,8 +80,6 @@ public class CameraWrapper {
 
     private final CameraManager mCameraManager;
 
-    private final HandlerThread mBackgroundThread = new HandlerThread("background");
-
     private final HandlerThread mSessionConfigurationThread = new HandlerThread("session-config");
 
     private final Handler mBackgroundHandler;
@@ -115,7 +114,7 @@ public class CameraWrapper {
 
     private boolean mUseTouch;
 
-    private byte mPreviewJpegQuality;
+    private byte mPreviewJpegQuality = 100;
 
     private CameraEventListenerHolder mCameraEventListenerHolder;
 
@@ -123,8 +122,7 @@ public class CameraWrapper {
                   final @NonNull String cameraId) throws CameraAccessException {
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-        mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        mBackgroundHandler = new Handler(Looper.getMainLooper());
         mSessionConfigurationThread.start();
         mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
         mOptions = initOptions();
@@ -189,7 +187,6 @@ public class CameraWrapper {
 
     public synchronized void destroy() {
         close();
-        mBackgroundThread.quit();
         mSessionConfigurationThread.quit();
     }
 
@@ -596,8 +593,6 @@ public class CameraWrapper {
                 startRecording(mRecordingSurface, true);
             } else if (mIsPreview) {
                 startPreview(mPreviewSurface, true);
-            } else {
-                close();
             }
         } catch (CameraWrapperException e) {
             if (DEBUG) {
@@ -691,7 +686,8 @@ public class CameraWrapper {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         mIsAeReady = aeState == null
                                 || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
-                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_PRECAPTURE;
                     }
                     mIsCaptureReady |= isCompleted;
                     if (DEBUG) {

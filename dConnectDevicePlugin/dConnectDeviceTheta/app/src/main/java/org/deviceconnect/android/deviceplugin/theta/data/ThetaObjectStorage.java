@@ -310,7 +310,7 @@ public class ThetaObjectStorage {
     private  String saveThetaImage(final String cacheFoldar,
                                   final String originalFileName,
                                   final byte[] thetaImage) {
-        String root = Environment.getExternalStorageDirectory().getPath() + "/"
+        String root = mContext.getExternalFilesDir(null) + "/"
                         + mContext.getPackageName() + "/" + cacheFoldar + "/";
         File dir = new File(root);
         if (!dir.exists()) {

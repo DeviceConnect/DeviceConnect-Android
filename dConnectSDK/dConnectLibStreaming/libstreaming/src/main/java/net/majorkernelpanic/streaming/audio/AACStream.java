@@ -32,6 +32,7 @@ import net.majorkernelpanic.streaming.rtp.AACADTSPacketizer;
 import net.majorkernelpanic.streaming.rtp.AACLATMPacketizer;
 import net.majorkernelpanic.streaming.rtp.MediaCodecInputStream;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioFormat;
@@ -91,9 +92,10 @@ public class AACStream extends AudioStream {
 	private AudioRecord mAudioRecord = null;
 	private Thread mThread = null;
 	private boolean muted = true; //default true
-	public AACStream() {
+	private Context mContext;
+	public AACStream(final Context context) {
 		super();
-
+		mContext = context;
 		if (!AACStreamingSupported()) {
 			Log.e(TAG,"AAC not supported on this phone");
 			throw new RuntimeException("AAC not supported by this phone !");
@@ -313,7 +315,7 @@ public class AACStream extends AudioStream {
 			}
 		}
 
-		final String TESTFILE = Environment.getExternalStorageDirectory().getPath()+"/spydroid-test.adts";
+		final String TESTFILE = mContext.getExternalFilesDir(null).getPath()+"/spydroid-test.adts";
 
 		if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 			throw new IllegalStateException("No external storage or external storage not ready !");

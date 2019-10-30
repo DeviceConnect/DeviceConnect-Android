@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
-import android.support.v4.BuildConfig;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 

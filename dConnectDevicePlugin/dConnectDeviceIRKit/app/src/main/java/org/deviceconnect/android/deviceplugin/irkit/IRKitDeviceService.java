@@ -133,7 +133,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        mDBHelper = new IRKitDBHelper(getContext());
+        mDBHelper = new IRKitDBHelper(this);
         for (VirtualDeviceData device : mDBHelper.getVirtualDevices(null)) {
             VirtualService vDevice = new VirtualService(device, mDBHelper,
                     getServiceProvider());

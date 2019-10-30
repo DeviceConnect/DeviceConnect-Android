@@ -194,12 +194,12 @@ public class DemoInstaller {
     }
 
     private File getDemoRootDir() {
-        File documentDir = getDocumentDir();
+        File documentDir = getDocumentDir(mContext);
         return new File(documentDir, mPluginPackageName);
     }
 
-    private static File getDocumentDir() {
-        File rootDir = Environment.getExternalStorageDirectory();
+    private static File getDocumentDir(final Context context) {
+        File rootDir = context.getExternalFilesDir(null);
         return new File(rootDir, DOCUMENT_DIR_NAME);
     }
 

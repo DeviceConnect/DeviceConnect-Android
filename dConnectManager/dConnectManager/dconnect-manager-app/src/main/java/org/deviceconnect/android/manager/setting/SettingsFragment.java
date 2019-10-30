@@ -174,7 +174,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ドキュメントルート
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
-            File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
+            File file = new File(getActivity().getExternalFilesDir(null), getActivity().getPackageName());
             docRootPath = file.getPath();
         }
 

@@ -7,7 +7,7 @@ import android.util.Log;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.GpioCallback;
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
 import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.device.FaBoDeviceControl;
@@ -113,7 +113,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
     /**
      * GPIO,I2cなどのデバイスを管理するクラス.
      */
-    private PeripheralManagerService mManagerService;
+    private PeripheralManager mManagerService;
 
     /**
      * GPIOの処理を行うハンドラ.
@@ -132,7 +132,7 @@ public class FaBoThingsDeviceControl implements FaBoDeviceControl {
             Log.i(TAG, "FaBoThingsDeviceControl::initialize");
         }
 
-        mManagerService = new PeripheralManagerService();
+        mManagerService = PeripheralManager.getInstance();
 
         initGpio();
     }

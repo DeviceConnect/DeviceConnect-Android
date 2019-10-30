@@ -195,7 +195,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getContext(), "Disconnect to " + service.getName(),
+                        Toast.makeText(getApplicationContext(), "Disconnect to " + service.getName(),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -229,7 +229,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(getContext(), "Connect to " + info.getDevice().getRobot().getName(),
+                                Toast.makeText(getApplicationContext(), "Connect to " + info.getDevice().getRobot().getName(),
                                         Toast.LENGTH_SHORT).show();
                             }
                         });

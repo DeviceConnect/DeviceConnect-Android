@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 28
 
     def getVersionName = { ->
         def version
@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.hue"
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName getVersionName()
     }
@@ -58,6 +58,11 @@ android {
             dimension "common"
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 
 repositories {
@@ -69,6 +74,6 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
-    compileOnly 'com.google.android.things:androidthings:+'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
+    compileOnly 'com.google.android.things:androidthings:1.0'
 }

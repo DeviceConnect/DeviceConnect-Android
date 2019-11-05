@@ -219,7 +219,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         SessionBuilder builder = new SessionBuilder();
         builder.setContext(mContext);
         builder.setVideoStream(mVideoStream);
-        mAac = new AACStream();
+        mAac = new AACStream(mContext);
         if (isMuted()) {
             mAac.mute();
         } else {

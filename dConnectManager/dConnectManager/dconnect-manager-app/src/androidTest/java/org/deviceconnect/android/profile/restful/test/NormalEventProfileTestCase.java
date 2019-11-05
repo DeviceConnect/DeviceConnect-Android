@@ -47,7 +47,7 @@ public class NormalEventProfileTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testEvent() throws Exception {
-        String uri = "http://localhost:4035/gotapi/deviceOrientation/onDeviceOrientation";
+        String uri = "http://localhost:4035/gotapi/unique/event";
         uri += "?serviceId=" + URLEncoder.encode(getServiceId(), "UTF-8");
         uri += "&accessToken=" + URLEncoder.encode(getAccessToken(), "UTF-8");
 
@@ -100,8 +100,8 @@ public class NormalEventProfileTestCase extends RESTfulDConnectTestCase {
             DConnectEventMessage e = event.get();
             assertThat(e, is(notNullValue()));
             assertThat(e.getString("serviceId"), is(getServiceId()));
-            assertThat(e.getString("profile"), is(equalToIgnoringCase("deviceOrientation")));
-            assertThat(e.getString("attribute"), is(equalToIgnoringCase("onDeviceOrientation")));
+            assertThat(e.getString("profile"), is(equalToIgnoringCase("unique")));
+            assertThat(e.getString("attribute"), is(equalToIgnoringCase("event")));
         } finally {
             mDConnectSDK.removeEventListener(uri);
             mDConnectSDK.disconnectWebSocket();

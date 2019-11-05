@@ -201,7 +201,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         SessionBuilder builder = new SessionBuilder();
         builder.setContext(mContext);
         builder.setVideoStream(mVideoStream);
-        mAac = new AACStream();
+        mAac = new AACStream(mContext);
         if (isMuted()) {
             mAac.mute();
         } else {

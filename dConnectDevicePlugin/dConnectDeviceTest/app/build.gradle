@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     def getVersionName = { ->
         def version
@@ -16,8 +16,8 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.test"
-        minSdkVersion 14
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
     }
@@ -49,6 +49,10 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 repositories {
     maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
@@ -59,6 +63,5 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
 }

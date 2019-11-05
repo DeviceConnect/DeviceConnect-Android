@@ -75,6 +75,9 @@ public class Paths extends AbstractSpec {
      * @return エンドポイントへの相対パスのリスト
      */
     public Set<String> getKeySet() {
+        if (mPaths == null) {
+            mPaths = new HashMap<>();
+        }
         return mPaths.keySet();
     }
 

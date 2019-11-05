@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     def getVersionName = { ->
         def version
@@ -16,7 +16,7 @@ android {
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.sphero"
         minSdkVersion 18
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
     }
@@ -55,6 +55,11 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 
 repositories {
@@ -66,5 +71,5 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.5.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
 }

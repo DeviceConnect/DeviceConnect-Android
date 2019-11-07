@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 
 public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevicePhotoRecorder, HostDeviceStreamRecorder {
@@ -582,10 +583,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 Log.d(TAG, "Stored thumbnail file: path=" + thumbnailFilePath);
             }
             ContentValues values = new ContentValues();
-            values.put(MediaStore.Video.Thumbnails.DATA, thumbnailFilePath);
+            values.put(MediaStore.Video.Thumbnails.DATA, videoFilePath);
             values.put(MediaStore.Video.Thumbnails.WIDTH, thumbnail.getWidth());
             values.put(MediaStore.Video.Thumbnails.HEIGHT, thumbnail.getHeight());
             values.put(MediaStore.Video.Thumbnails.KIND, kind);
+            values.put(MediaStore.Video.Media.MIME_TYPE, "image/jpeg");
+
             values.put(MediaStore.Video.Thumbnails.VIDEO_ID, videoId);
             ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
             Uri uri = resolver.insert(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, values);
@@ -606,12 +609,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 return -1;
             }
             return Long.parseLong(id);
-        } catch (IOException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to store video thumbnail by FileManager: videoFilePath=" + videoFilePath, e);
-            }
-            return -1;
-        } catch (NumberFormatException e) {
+        } catch (IOException | NumberFormatException e) {
             if (DEBUG) {
                 Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
             }

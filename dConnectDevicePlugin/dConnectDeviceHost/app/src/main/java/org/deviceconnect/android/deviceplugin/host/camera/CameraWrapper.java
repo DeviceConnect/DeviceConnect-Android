@@ -456,7 +456,6 @@ public class CameraWrapper {
             close();
         }
     }
-
     public synchronized void startRecording(final Surface recordingSurface,
                                             final boolean isResume) throws CameraWrapperException {
         if (mIsRecording && !isResume) {
@@ -464,10 +463,9 @@ public class CameraWrapper {
         }
         mIsRecording = true;
         mRecordingSurface = recordingSurface;
-        if (mCameraDevice != null) {
-            close();
-        }
+
         try {
+
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
@@ -538,6 +536,7 @@ public class CameraWrapper {
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);
             request.addTarget(stillImageSurface);
             setDefaultCaptureRequest(request);
+            request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {

@@ -6,8 +6,8 @@
  */
 package org.deviceconnect.message;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +37,7 @@ public class URIBuilderTest {
      */
     @Test
     public void uriBuilder() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         assertThat(builder, is(notNullValue()));
         assertThat(builder.getHost(), is(sdk.getHost()));
@@ -55,7 +55,7 @@ public class URIBuilderTest {
     @Test
     public void uriBuilder_host() {
         final String host = "test.com";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setHost(host);
         assertThat(builder.getHost(), is(host));
@@ -70,7 +70,7 @@ public class URIBuilderTest {
      */
     @Test(expected = NullPointerException.class)
     public void uriBuilder_host_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setHost(null);
     }
@@ -84,7 +84,7 @@ public class URIBuilderTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void uriBuilder_host_empty() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setHost("");
     }
@@ -99,7 +99,7 @@ public class URIBuilderTest {
     @Test
     public void uriBuilder_port() {
         final int port = 9999;
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setPort(port);
         assertThat(builder.getPort(), is(port));
@@ -114,7 +114,7 @@ public class URIBuilderTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void uriBuilder_port_negative() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setPort(-1);
     }
@@ -128,7 +128,7 @@ public class URIBuilderTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void uriBuilder_port_65536() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setPort(65536);
     }
@@ -143,7 +143,7 @@ public class URIBuilderTest {
     @Test
     public void uriBuilder_accessToken() {
         final String accessToken = "abc";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -160,7 +160,7 @@ public class URIBuilderTest {
      */
     @Test(expected = NullPointerException.class)
     public void uriBuilder_accessToken_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -177,7 +177,7 @@ public class URIBuilderTest {
     @Test
     public void uriBuilder_serviceId() {
         final String serviceId = "test-serviceId";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -194,7 +194,7 @@ public class URIBuilderTest {
      */
     @Test(expected = NullPointerException.class)
     public void uriBuilder_serviceId_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -212,7 +212,7 @@ public class URIBuilderTest {
     public void uriBuilder_addParameter() {
         final String key = "key";
         final String value = "value";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -230,7 +230,7 @@ public class URIBuilderTest {
     @Test(expected = NullPointerException.class)
     public void uriBuilder_addParameter_key_null() {
         final String value = "value";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -247,7 +247,7 @@ public class URIBuilderTest {
     @Test(expected = NullPointerException.class)
     public void uriBuilder_addParameter_value_null() {
         final String key = "key";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -266,7 +266,7 @@ public class URIBuilderTest {
         final String key = "key";
         final String value1 = "value1";
         final String value2 = "value2";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -287,7 +287,7 @@ public class URIBuilderTest {
     public void uriBuilder_removeParameter() {
         final String key = "key";
         final String value = "value";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -308,7 +308,7 @@ public class URIBuilderTest {
     public void uriBuilder_profile() {
         final String profile = "profile";
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -328,7 +328,7 @@ public class URIBuilderTest {
     public void uriBuilder_interface() {
         final String inter = "inter";
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -348,7 +348,7 @@ public class URIBuilderTest {
     public void uriBuilder_attribute() {
         final String attribute = "attribute";
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken("test-accessToken");
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
@@ -374,7 +374,7 @@ public class URIBuilderTest {
 
         final String uri = "http://" + host + ":" + port + "/gotapi/" + profile + "/" + attribute + "?accessToken=" + accessToken;
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
 
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();

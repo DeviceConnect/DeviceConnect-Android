@@ -79,6 +79,8 @@ android.testVariants.all { variant ->
         source = android.sourceSets.androidTest.java.sourceFiles
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
         classpath += configurations.implementation
+        destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-JUnit-Javadoc/")
+        failOnError = false
         options {
             links("http://docs.oracle.com/javase/jp/8/docs/api/");
             linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")

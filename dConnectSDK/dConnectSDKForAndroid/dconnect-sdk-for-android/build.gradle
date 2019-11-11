@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-
 repositories {
     mavenCentral()
     google()
@@ -51,8 +50,9 @@ project.androidVariants.all { variant ->
         title = "Device Connect SDK for Android"
         description = "Generates Javadoc for $variant.name."
         source = android.sourceSets.main.java.sourceFiles
+        configurations.implementation.setCanBeResolved(true)
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-        classpath += configurations.compile
+        classpath += configurations.implementation
         destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-Javadoc/")
 
         options {
@@ -68,18 +68,17 @@ project.androidVariants.all { variant ->
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
-}
 
+}
 
 android.testVariants.all { variant ->
     task("generateJavadocForSDKJUnit", type: Javadoc, overwrite: true) {
         title = "Android Device Connect SDK Unit Test"
         description = "Generates Javadoc for JUnit"
+        configurations.implementation.setCanBeResolved(true)
         source = android.sourceSets.androidTest.java.sourceFiles
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-        classpath += configurations.compile
-        destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-JUnit-Javadoc/")
-
+        classpath += configurations.implementation
         options {
             links("http://docs.oracle.com/javase/jp/8/docs/api/");
             linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
@@ -88,7 +87,7 @@ android.testVariants.all { variant ->
             encoding = 'UTF-8'
             charSet = 'UTF-8'
         }
-        include '**/org/deviceconnect/message/server/**'
+        exclude '**/org/deviceconnect/message/server/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
@@ -102,7 +101,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '2.4.0'
+            pom.version = '2.3.2'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-sdk-for-android'
         }

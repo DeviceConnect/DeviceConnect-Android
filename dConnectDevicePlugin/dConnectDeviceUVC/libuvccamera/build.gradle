@@ -91,7 +91,7 @@ task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
 }
 dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
-    implementation "com.android.support:support-annotations:${supportLibVersion}"
+    implementation "androidx.legacy:legacy-support-v4:${supportLibVersion}"
     implementation("com.serenegiant:common:${commonLibVersion}") {
         exclude module: 'support-v4'
     }

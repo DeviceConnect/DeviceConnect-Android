@@ -16,9 +16,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.util.LruCache;
+
+import androidx.collection.LruCache;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -124,11 +126,11 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     /**
      * Theta's data.
      */
-    private List<ThetaObject> mUpdateThetaList = new ArrayList<ThetaObject>();
+    private List<ThetaObject> mUpdateThetaList = new ArrayList<>();
     /**
      * Theta's data in App's External Storage.
      */
-    private List<ThetaObject> mUpdateAppList = new ArrayList<ThetaObject>();
+    private List<ThetaObject> mUpdateAppList = new ArrayList<>();
 
     /**
      * Update Menu item.

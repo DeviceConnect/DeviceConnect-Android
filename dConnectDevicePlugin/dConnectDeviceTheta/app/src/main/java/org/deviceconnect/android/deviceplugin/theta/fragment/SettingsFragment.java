@@ -1,6 +1,6 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 

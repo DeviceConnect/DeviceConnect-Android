@@ -31,25 +31,19 @@ public class UVCDeviceManager {
 
     private final USBMonitor mUSBMonitor;
 
-    private final List<UVCDevice> mAttachedDevices = new ArrayList<UVCDevice>();
+    private final List<UVCDevice> mAttachedDevices = new ArrayList<>();
 
-    private final List<DeviceListener> mDeviceListeners = new ArrayList<DeviceListener>();
+    private final List<DeviceListener> mDeviceListeners = new ArrayList<>();
 
-    private final List<ConnectionListener> mConnectionListeners = new ArrayList<ConnectionListener>();
+    private final List<ConnectionListener> mConnectionListeners = new ArrayList<>();
 
-    private final List<DiscoveryListener> mDiscoveryListeners = new ArrayList<DiscoveryListener>();
+    private final List<DiscoveryListener> mDiscoveryListeners = new ArrayList<>();
 
-    private final List<PreviewListener> mPreviewListeners = new ArrayList<PreviewListener>();
+    private final List<PreviewListener> mPreviewListeners = new ArrayList<>();
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
-    private final UVCDevice.PreviewListener mPreviewListener = new UVCDevice.PreviewListener() {
-        @Override
-        public void onFrame(final UVCDevice device, final byte[] frame, final int frameFormat,
-                            final int width, final int height) {
-            notifyPreviewFrame(device, frame, frameFormat, width, height);
-        }
-    };
+    private final UVCDevice.PreviewListener mPreviewListener = this::notifyPreviewFrame;
 
     private boolean mIsStarted;
 
@@ -102,12 +96,9 @@ public class UVCDeviceManager {
                                      final USBMonitor.UsbControlBlock ctrlBlock) {
                 mLogger.info("onDisconnect: " + usbDevice.getDeviceName());
                 final UVCDevice device = getDevice(usbDevice);
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (device != null && device.disconnect()) {
-                            notifyEventOnDisconnect(device);
-                        }
+                mExecutor.execute(() -> {
+                    if (device != null && device.disconnect()) {
+                        notifyEventOnDisconnect(device);
                     }
                 });
             }
@@ -222,11 +213,8 @@ public class UVCDeviceManager {
         synchronized (mDeviceListeners) {
             for (Iterator<DeviceListener> it = mDeviceListeners.iterator(); it.hasNext(); ) {
                 final DeviceListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onFound(device);
-                    }
+                mExecutor.execute(() -> {
+                    l.onFound(device);
                 });
             }
         }
@@ -254,11 +242,8 @@ public class UVCDeviceManager {
         synchronized (mConnectionListeners) {
             for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); it.hasNext(); ) {
                 final ConnectionListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onConnect(device);
-                    }
+                mExecutor.execute(() -> {
+                    l.onConnect(device);
                 });
             }
         }
@@ -268,11 +253,8 @@ public class UVCDeviceManager {
         synchronized (mConnectionListeners) {
             for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); it.hasNext(); ) {
                 final ConnectionListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onConnectionFailed(device);
-                    }
+                mExecutor.execute(() -> {
+                    l.onConnectionFailed(device);
                 });
             }
         }
@@ -282,11 +264,8 @@ public class UVCDeviceManager {
         synchronized (mConnectionListeners) {
             for (Iterator<ConnectionListener> it = mConnectionListeners.iterator(); it.hasNext(); ) {
                 final ConnectionListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onDisconnect(device);
-                    }
+                mExecutor.execute(() -> {
+                    l.onDisconnect(device);
                 });
             }
         }
@@ -314,11 +293,8 @@ public class UVCDeviceManager {
         synchronized (mDiscoveryListeners) {
             for (Iterator<DiscoveryListener> it = mDiscoveryListeners.iterator(); it.hasNext(); ) {
                 final DiscoveryListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onDiscovery(devices);
-                    }
+                mExecutor.execute(() -> {
+                    l.onDiscovery(devices);
                 });
             }
         }
@@ -358,11 +334,8 @@ public class UVCDeviceManager {
         synchronized (mPreviewListeners) {
             for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
                 final PreviewListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onFrame(device, frame, frameFormat, width, height);
-                    }
+                mExecutor.execute(() -> {
+                    l.onFrame(device, frame, frameFormat, width, height);
                 });
             }
         }
@@ -384,22 +357,19 @@ public class UVCDeviceManager {
 
     public synchronized void startScan() {
         if (mScanThread == null) {
-            mScanThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    mLogger.info("Started UVC device monitoring: ");
+            mScanThread = new Thread(() -> {
+                mLogger.info("Started UVC device monitoring: ");
 
-                    // Find UVC devices connected to Host device already.
-                    try {
-                        do {
-                            doScanOnce();
-                            Thread.sleep(INTERVAL_MONITORING);
-                        } while (mIsStarted);
-                    } catch (InterruptedException e) {
-                        // Nothing to do.
-                    }
-                    mLogger.info("Stopped UVC device monitoring.");
+                // Find UVC devices connected to Host device already.
+                try {
+                    do {
+                        doScanOnce();
+                        Thread.sleep(INTERVAL_MONITORING);
+                    } while (mIsStarted);
+                } catch (InterruptedException e) {
+                    // Nothing to do.
                 }
+                mLogger.info("Stopped UVC device monitoring.");
             });
             mScanThread.start();
         }

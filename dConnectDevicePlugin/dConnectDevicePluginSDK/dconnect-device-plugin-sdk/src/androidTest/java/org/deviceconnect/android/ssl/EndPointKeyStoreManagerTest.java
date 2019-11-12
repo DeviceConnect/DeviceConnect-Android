@@ -2,8 +2,8 @@ package org.deviceconnect.android.ssl;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.Assert;
 
@@ -38,7 +38,7 @@ public class EndPointKeyStoreManagerTest {
 
     @Test
     public void testRequestKeyStore() {
-        Context context = InstrumentationRegistry.getContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         String keyStoreFile = "keystore.p12";
         ComponentName authorityName = new ComponentName("org.deviceconnect.android.test",
                 "org.deviceconnect.android.ssl.TestCertificateAuthorityService");

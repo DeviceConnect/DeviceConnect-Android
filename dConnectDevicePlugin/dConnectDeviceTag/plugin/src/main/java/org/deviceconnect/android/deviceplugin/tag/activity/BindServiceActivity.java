@@ -11,7 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.deviceconnect.android.deviceplugin.tag.TagMessageService;
 import org.deviceconnect.android.deviceplugin.tag.services.TagConstants;

@@ -9,7 +9,8 @@ package org.deviceconnect.android.deviceplugin.tag.camera2;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 /**
  * カメラのパーミッション許可を受け取るためActivity.

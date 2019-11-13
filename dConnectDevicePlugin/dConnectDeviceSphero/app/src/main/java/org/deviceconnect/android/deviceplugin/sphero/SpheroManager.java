@@ -194,7 +194,7 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
         mDiscoveryListenerImpl = new DiscoveryListenerImpl();
         discoveryAgent.addRobotStateListener(mDiscoveryListenerImpl);
         mConnectingTimeoutCount = 0;
-        mConnectingFlags = new ConcurrentHashMap<String, Boolean>();
+        mConnectingFlags = new ConcurrentHashMap<>();
     }
 
     /**
@@ -389,16 +389,12 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
     public void startSensor(final DeviceInfo device, final DeviceInfo.DeviceSensorListener listener) {
         synchronized (device) {
             if (!device.isSensorStarted()) {
-                device.startSensor(new DeviceInfo.DeviceSensorListener() {
-                    @Override
-                    public void sensorUpdated(final DeviceInfo info,
-                                              final DeviceSensorAsyncMessage data, final long interval) {
-                        if (listener != null) {
-                            listener.sensorUpdated(info, data, interval);
-                        }
-                        if (!hasSensorListener(device.getDevice().getRobot().getIdentifier())) {
-                            stopSensor(device);
-                        }
+                device.startSensor((info, data, interval) -> {
+                    if (listener != null) {
+                        listener.sensorUpdated(info, data, interval);
+                    }
+                    if (!hasSensorListener(device.getDevice().getRobot().getIdentifier())) {
+                        stopSensor(device);
                     }
                 });
             } else {
@@ -458,15 +454,12 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
     public void startCollision(final DeviceInfo device, final DeviceInfo.DeviceCollisionListener listener) {
         synchronized (device) {
             if (!device.isCollisionStarted()) {
-                device.startCollistion(new DeviceInfo.DeviceCollisionListener() {
-                    @Override
-                    public void collisionDetected(final DeviceInfo info, final CollisionDetectedAsyncData data) {
-                        if (listener != null) {
-                            listener.collisionDetected(info, data);
-                        }
-                        if (!hasCollisionListener(device.getDevice().getRobot().getIdentifier())) {
-                            stopCollision(device);
-                        }
+                device.startCollistion((info, data) -> {
+                    if (listener != null) {
+                        listener.collisionDetected(info, data);
+                    }
+                    if (!hasCollisionListener(device.getDevice().getRobot().getIdentifier())) {
+                        stopCollision(device);
                     }
                 });
             }
@@ -840,28 +833,25 @@ public final class SpheroManager implements DeviceInfo.DeviceSensorListener, Dev
                 return;
             }
             mScanning = true;
-            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    for (String serviceId : mCounting.keySet()) {
-                        Integer count = mCounting.get(serviceId);
-                        count++;
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "retryConnecting:" + count);
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(() -> {
+                for (String serviceId : mCounting.keySet()) {
+                    Integer count = mCounting.get(serviceId);
+                    count++;
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "retryConnecting:" + count);
+                    }
+                    mCounting.put(serviceId, count);
+                    if (count >= SEARCH_RETRY_NUM) {
+                        Robot info = getNotConnectedDevice(serviceId);
+                        if (mDiscoveryListener != null
+                                && info != null
+                                && !info.isOnline()) {
+                            mDiscoveryListener.onDeviceFound(new ConvenienceRobot(info));
                         }
-                        mCounting.put(serviceId, count);
-                        if (count >= SEARCH_RETRY_NUM) {
-                            Robot info = getNotConnectedDevice(serviceId);
-                            if (mDiscoveryListener != null
-                                    && info != null
-                                    && !info.isOnline()) {
-                                mDiscoveryListener.onDeviceFound(new ConvenienceRobot(info));
-                            }
-                            mCounting.put(serviceId, 0);
-                            if (mCounting.size() == 0) {
-                                mScanning = false;
-                                cancelScanTimer();
-                            }
+                        mCounting.put(serviceId, 0);
+                        if (mCounting.size() == 0) {
+                            mScanning = false;
+                            cancelScanTimer();
                         }
                     }
                 }

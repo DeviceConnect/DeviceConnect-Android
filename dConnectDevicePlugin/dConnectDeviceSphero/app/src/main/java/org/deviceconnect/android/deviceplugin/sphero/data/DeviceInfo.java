@@ -173,11 +173,6 @@ public class DeviceInfo implements ResponseListener {
                 | SensorFlag.LOCATOR.longValue()
                 | SensorFlag.VELOCITY.longValue(), SensorControl.StreamingRate.STREAMING_RATE10);
         mDevice.addResponseListener(this);
-//        sc.setRate(SENSOR_RATE);
-//        sc.enableStreaming(true);
-//        sc.addSensorListener(this, SensorFlag.ACCELEROMETER_NORMALIZED,
-//                SensorFlag.GYRO_NORMALIZED, SensorFlag.ATTITUDE,
-//                SensorFlag.QUATERNION, SensorFlag.LOCATOR, SensorFlag.VELOCITY);
         mDevice.sendCommand(new ConfigureLocatorCommand(ConfigureLocatorCommand.ROTATE_WITH_CALIBRATE_FLAG_OFF, 0, 0, 0));
         mPreSensorTimestamp = System.currentTimeMillis();
     }
@@ -214,8 +209,6 @@ public class DeviceInfo implements ResponseListener {
         mIsCollisionStarted = true;
         mCollisionListener = listener;
 
-//        mDevice.getCollisionControl().addCollisionListener(this);
-//        mDevice.getCollisionControl().startDetection(90, 90, 130, 130, 100);
         mDevice.addResponseListener(this);
         mDevice.enableCollisions(true);
     }
@@ -230,8 +223,6 @@ public class DeviceInfo implements ResponseListener {
 
         mIsCollisionStarted = false;
         mCollisionListener = null;
-//        mDevice.getCollisionControl().removeCollisionListener(this);
-//        mDevice.getCollisionControl().stopDetection();
         mDevice.enableCollisions(false);
         mDevice.getSensorControl().disableSensors();
         if (BuildConfig.DEBUG) {
@@ -239,21 +230,6 @@ public class DeviceInfo implements ResponseListener {
         }
     }
 
-//    @Override
-//    public void sensorUpdated(final DeviceSensorsData data) {
-//
-//        long timestamp = data.getTimeStamp();
-//        mSensorListener.sensorUpdated(this, data, timestamp - mPreSensorTimestamp);
-//        mPreSensorTimestamp = timestamp;
-//    }
-//
-//    @Override
-//    public void collisionDetected(final CollisionDetectedAsyncData data) {
-//        if (BuildConfig.DEBUG) {
-//            Log.d("", "collisionDetected");
-//        }
-//        mCollisionListener.collisionDetected(this, data);
-//    }
 
     @Override
     public void handleResponse(final DeviceResponse deviceResponse, final Robot robot) {

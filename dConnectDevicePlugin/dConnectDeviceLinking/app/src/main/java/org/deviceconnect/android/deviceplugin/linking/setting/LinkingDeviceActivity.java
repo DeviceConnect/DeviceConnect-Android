@@ -9,10 +9,10 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -191,7 +191,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
     }
     private void setupLightOffSetting() {
-        Button btn = (Button) findViewById(R.id.select_light_off);
+        Button btn = findViewById(R.id.select_light_off);
         if (btn == null || mDevice == null) {
             return;
         }
@@ -224,7 +224,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setupDefaultOnSettingOfLight(final LinkingDevice device) {
-        Button patternBtn = (Button) findViewById(R.id.select_light_on_pattern);
+        Button patternBtn = findViewById(R.id.select_light_on_pattern);
         if (patternBtn != null) {
             Setting setting = LinkingUtil.getDefaultPatternSettingOfLight(device);
             if (setting != null) {
@@ -234,7 +234,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
                 patternBtn.setText(getString(R.string.activity_device_not_selected));
             }
         }
-        Button colorBtn = (Button) findViewById(R.id.select_light_on_color);
+        Button colorBtn = findViewById(R.id.select_light_on_color);
         if (colorBtn != null) {
             Setting setting = LinkingUtil.getDefaultColorSettingOfLight(device);
             if (setting != null) {
@@ -248,7 +248,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setupDefaultOffSettingOfLight(final LinkingDevice device) {
-        Button btn = (Button) findViewById(R.id.select_light_off);
+        Button btn = findViewById(R.id.select_light_off);
         if (btn != null) {
             Setting setting = LinkingUtil.getDefaultOffSettingOfLight(device);
             if (setting != null) {
@@ -261,7 +261,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setupVibrationOnSetting() {
-        Button btn = (Button) findViewById(R.id.select_vibration_on);
+        Button btn = findViewById(R.id.select_vibration_on);
         if (btn == null || mDevice == null) {
             return;
         }
@@ -293,7 +293,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
     }
     private void setupVibrationOffSetting() {
-        Button btn = (Button) findViewById(R.id.select_vibration_off);
+        Button btn = findViewById(R.id.select_vibration_off);
         if (btn == null || mDevice == null) {
             return;
         }
@@ -326,7 +326,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setupDefaultOnSettingOfVibration(final LinkingDevice device) {
-        Button btn = (Button) findViewById(R.id.select_vibration_on);
+        Button btn = findViewById(R.id.select_vibration_on);
         if (btn != null) {
             Setting setting = LinkingUtil.getDefaultOnSettingOfVibration(device);
             if (setting != null) {
@@ -339,7 +339,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setupDefaultOffSettingOfVibration(final LinkingDevice device) {
-        Button btn = (Button) findViewById(R.id.select_vibration_off);
+        Button btn = findViewById(R.id.select_vibration_off);
         if (btn != null) {
             Setting setting = LinkingUtil.getDefaultOffSettingOfVibration(device);
             if (setting != null) {
@@ -354,82 +354,58 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void setLightButton() {
         View offView = findViewById(R.id.select_light_off);
         if (offView != null) {
-            offView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    showLEDPattern(new OnSelectedListener() {
-                        @Override
-                        public void onSelected(final String name, final Integer id) {
-                            Button btn = ((Button) findViewById(R.id.select_light_off));
-                            if (btn != null) {
-                                btn.setText(name);
-                            }
-                            updateLightOffSetting(id);
-                        }
-                    });
-                }
+            offView.setOnClickListener((v) -> {
+                showLEDPattern((name, id) -> {
+                    Button btn = (findViewById(R.id.select_light_off));
+                    if (btn != null) {
+                        btn.setText(name);
+                    }
+                    updateLightOffSetting(id);
+                });
             });
             offView.setEnabled(mDevice.isSupportLED());
         }
 
         View colorView = findViewById(R.id.select_light_on_color);
         if (colorView != null) {
-            colorView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showLEDColor(new OnSelectedListener() {
-                        @Override
-                        public void onSelected(final String name, final Integer id) {
-                            Button btn = ((Button) findViewById(R.id.select_light_on_color));
-                            if (btn != null) {
-                                btn.setText(name);
-                            }
-                            updateLightColorSetting(id);
-                        }
-                    });
-                }
+            colorView.setOnClickListener((v) -> {
+                showLEDColor((name, id) -> {
+                    Button btn = ( findViewById(R.id.select_light_on_color));
+                    if (btn != null) {
+                        btn.setText(name);
+                    }
+                    updateLightColorSetting(id);
+                });
             });
             colorView.setEnabled(mDevice.isSupportLED());
         }
 
         View patternView = findViewById(R.id.select_light_on_pattern);
         if (patternView != null) {
-            patternView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    showLEDPattern(new OnSelectedListener() {
-                        @Override
-                        public void onSelected(final String name, final Integer id) {
-                            Button btn = ((Button) findViewById(R.id.select_light_on_pattern));
-                            if (btn != null) {
-                                btn.setText(name);
-                            }
-                            updateLightOffSetting(id);
-                        }
-                    });
-                }
+            patternView.setOnClickListener((v) -> {
+                showLEDPattern((name, id) -> {
+                    Button btn = (findViewById(R.id.select_light_on_pattern));
+                    if (btn != null) {
+                        btn.setText(name);
+                    }
+                    updateLightOffSetting(id);
+                });
             });
             patternView.setEnabled(mDevice.isSupportLED());
         }
 
-        Button onBtn = (Button) findViewById(R.id.on);
+        Button onBtn = findViewById(R.id.on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    onClickLED(true);
-                }
+            onBtn.setOnClickListener((v) -> {
+                onClickLED(true);
             });
             onBtn.setEnabled(mDevice.isSupportLED());
         }
 
         Button offBtn = (Button) findViewById(R.id.off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    onClickLED(false);
-                }
+            offBtn.setOnClickListener((v) -> {
+                onClickLED(false);
             });
             offBtn.setEnabled(mDevice.isSupportLED());
         }
@@ -460,16 +436,11 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             for (int i = 0; i < data.getPattern().getChildren().length; i++) {
                 items[i] = data.getPattern().getChild(i).getName(0).getName();
             }
-            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                    Setting selectedPattern = data.getPattern().getChild(which);
+            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, (dialog, which) -> {
+                Setting selectedPattern = data.getPattern().getChild(which);
 
-                    if (listener != null) {
-                        listener.onSelected(selectedPattern.getName(0).getName(), selectedPattern.getId() & 0xFF);
-                    }
-
-
+                if (listener != null) {
+                    listener.onSelected(selectedPattern.getName(0).getName(), selectedPattern.getId() & 0xFF);
                 }
             });
             builder.create().show();
@@ -493,13 +464,10 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             for (int i = 0; i < data.getColor().getChildren().length; i++) {
                 items[i] = data.getColor().getChild(i).getName(0).getName();
             }
-            builder.setTitle(getString(R.string.activity_device_color_list)).setItems(items, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                    Setting selectedColor = data.getColor().getChild(which);
-                    if (listener != null) {
-                        listener.onSelected(selectedColor.getName(0).getName(), selectedColor.getId() & 0xFF);
-                    }
+            builder.setTitle(getString(R.string.activity_device_color_list)).setItems(items, (dialog, which) -> {
+                Setting selectedColor = data.getColor().getChild(which);
+                if (listener != null) {
+                    listener.onSelected(selectedColor.getName(0).getName(), selectedColor.getId() & 0xFF);
                 }
             });
             builder.create().show();
@@ -511,62 +479,44 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void setVibrationButton() {
         View view = findViewById(R.id.select_vibration_off);
         if (view != null) {
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    showVibrationPattern(new OnSelectedListener() {
-                        @Override
-                        public void onSelected(final String name, final Integer id) {
-                            Button btn = (Button) findViewById(R.id.select_vibration_off);
-                            if (btn != null) {
-                                btn.setText(name);
-                            }
-                            updateVibrationOffSetting(id);
-                        }
-                    });
-                }
+            view.setOnClickListener((v) -> {
+                showVibrationPattern((name, id) -> {
+                    Button btn = findViewById(R.id.select_vibration_off);
+                    if (btn != null) {
+                        btn.setText(name);
+                    }
+                    updateVibrationOffSetting(id);
+                });
             });
             view.setEnabled(mDevice.isSupportVibration());
         }
 
         View onView = findViewById(R.id.select_vibration_on);
         if (onView != null) {
-            onView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showVibrationPattern(new OnSelectedListener() {
-                        @Override
-                        public void onSelected(final String name, final Integer id) {
-                            Button btn = (Button) findViewById(R.id.select_vibration_on);
-                            if (btn != null) {
-                                btn.setText(name);
-                            }
-                            updateVibrationOnSetting(id);
-                        }
-                    });
-                }
+            onView.setOnClickListener((v) -> {
+                showVibrationPattern((name, id) -> {
+                    Button btn = (Button) findViewById(R.id.select_vibration_on);
+                    if (btn != null) {
+                        btn.setText(name);
+                    }
+                    updateVibrationOnSetting(id);
+                });
             });
             onView.setEnabled(mDevice.isSupportVibration());
         }
 
-        Button onBtn = (Button) findViewById(R.id.vibration_on);
+        Button onBtn = findViewById(R.id.vibration_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    onClickVibration(true);
-                }
+            onBtn.setOnClickListener((v) -> {
+                onClickVibration(true);
             });
             onBtn.setEnabled(mDevice.isSupportVibration());
         }
 
-        Button offBtn = (Button) findViewById(R.id.vibration_off);
+        Button offBtn =  findViewById(R.id.vibration_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    onClickVibration(false);
-                }
+            offBtn.setOnClickListener((v) -> {
+                onClickVibration(false);
             });
             offBtn.setEnabled(mDevice.isSupportVibration());
         }
@@ -587,13 +537,10 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             for (int i = 0; i < data.getPattern().getChildren().length; i++) {
                 items[i] = data.getPattern().getChild(i).getName(0).getName();
             }
-            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Setting selectedPattern = data.getPattern().getChild(which);
-                    if (listener != null) {
-                        listener.onSelected(selectedPattern.getName(0).getName(), selectedPattern.getId() & 0xFF);
-                    }
+            builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, (dialog, which) -> {
+                Setting selectedPattern = data.getPattern().getChild(which);
+                if (listener != null) {
+                    listener.onSelected(selectedPattern.getName(0).getName(), selectedPattern.getId() & 0xFF);
                 }
             });
             builder.create().show();
@@ -603,23 +550,17 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setSensorButton() {
-        Button onBtn = (Button) findViewById(R.id.sensor_on);
+        Button onBtn = findViewById(R.id.sensor_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onClickSensor(true);
-                }
+            onBtn.setOnClickListener((view) -> {
+                onClickSensor(true);
             });
             onBtn.setEnabled(mDevice.isSupportSensor());
         }
-        Button offBtn = (Button) findViewById(R.id.sensor_off);
+        Button offBtn = findViewById(R.id.sensor_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onClickSensor(false);
-                }
+            offBtn.setOnClickListener((view) -> {
+                onClickSensor(false);
             });
             offBtn.setEnabled(mDevice.isSupportSensor());
         }
@@ -630,113 +571,83 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void setButtonIdButton() {
-        Button onBtn = (Button) findViewById(R.id.button_id_on);
+        Button onBtn = findViewById(R.id.button_id_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onClickButtonId(true);
-                }
+            onBtn.setOnClickListener((view) -> {
+                onClickButtonId(true);
             });
             onBtn.setEnabled(mDevice.isSupportButton());
         }
-        Button offBtn = (Button) findViewById(R.id.button_id_off);
+        Button offBtn = findViewById(R.id.button_id_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onClickButtonId(false);
-                }
+            offBtn.setOnClickListener((view) -> {
+                onClickButtonId(false);
             });
             offBtn.setEnabled(mDevice.isSupportButton());
         }
     }
 
     private void setProximityButton() {
-        Button onBtn = (Button) findViewById(R.id.proximity_on);
+        Button onBtn = findViewById(R.id.proximity_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onClickProximity(true);
-                }
+            onBtn.setOnClickListener((view) -> {
+                onClickProximity(true);
             });
         }
-        Button offBtn = (Button) findViewById(R.id.proximity_off);
+        Button offBtn = findViewById(R.id.proximity_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onClickProximity(false);
-                }
+            offBtn.setOnClickListener((view) -> {
+                onClickProximity(false);
             });
         }
     }
 
     private void setBatteryButton() {
-        Button onBtn = (Button) findViewById(R.id.battery_sensor_on);
+        Button onBtn =  findViewById(R.id.battery_sensor_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickBatterySensor(true);
-                }
+            onBtn.setOnClickListener((v) -> {
+                onClickBatterySensor(true);
             });
             onBtn.setEnabled(mDevice.isSupportBattery());
         }
-        Button offBtn = (Button) findViewById(R.id.battery_sensor_off);
+        Button offBtn =  findViewById(R.id.battery_sensor_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickBatterySensor(false);
-                }
+            offBtn.setOnClickListener((v) -> {
+                onClickBatterySensor(false);
             });
             offBtn.setEnabled(mDevice.isSupportBattery());
         }
     }
 
     private void setTemperatureButton() {
-        Button onBtn = (Button) findViewById(R.id.battery_temperature_on);
+        Button onBtn = findViewById(R.id.battery_temperature_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickTemperatureSensor(true);
-                }
+            onBtn.setOnClickListener((v) -> {
+                onClickTemperatureSensor(true);
             });
             onBtn.setEnabled(mDevice.isSupportTemperature());
         }
-        Button offBtn = (Button) findViewById(R.id.battery_temperature_off);
+        Button offBtn = findViewById(R.id.battery_temperature_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickTemperatureSensor(false);
-                }
+            offBtn.setOnClickListener((v) -> {
+                onClickTemperatureSensor(false);
             });
             offBtn.setEnabled(mDevice.isSupportTemperature());
         }
     }
 
     private void setHumidityButton() {
-        Button onBtn = (Button) findViewById(R.id.battery_humidity_on);
+        Button onBtn =  findViewById(R.id.battery_humidity_on);
         if (onBtn != null) {
-            onBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickHumiditySensor(true);
-                }
+            onBtn.setOnClickListener((v) -> {
+                onClickHumiditySensor(true);
             });
             onBtn.setEnabled(mDevice.isSupportHumidity());
         }
-        Button offBtn = (Button) findViewById(R.id.battery_humidity_off);
+        Button offBtn = findViewById(R.id.battery_humidity_off);
         if (offBtn != null) {
-            offBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onClickHumiditySensor(false);
-                }
+            offBtn.setOnClickListener((v) -> {
+                onClickHumiditySensor(false);
             });
             offBtn.setEnabled(mDevice.isSupportHumidity());
         }
@@ -765,19 +676,19 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     private void updateDataText(final LinkingSensorData.SensorType type, final float x, final float y, final float z, final long time) {
         switch (type) {
             case GYRO: {
-                TextView view = (TextView) findViewById(R.id.gyro_text);
+                TextView view = findViewById(R.id.gyro_text);
                 if (view != null) {
                     view.setText(makeParamText(x, y, z, time));
                 }
             }   break;
             case ACCELERATION: {
-                TextView view = (TextView) findViewById(R.id.acceleration_text);
+                TextView view = findViewById(R.id.acceleration_text);
                 if (view != null) {
                     view.setText(makeParamText(x, y, z, time));
                 }
             }   break;
             case COMPASS: {
-                TextView view = (TextView) findViewById(R.id.orientation_text);
+                TextView view = findViewById(R.id.orientation_text);
                 if (view != null) {
                     view.setText(makeParamText(x, y, z, time));
                 }
@@ -792,7 +703,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
             return;
         }
 
-        TextView tv = (TextView) findViewById(R.id.linking_button_id);
+        TextView tv = findViewById(R.id.linking_button_id);
         if (tv != null) {
             String text = tv.getText().toString();
             text = mDevice.getBdAddress() + ": ButtonId[" + keyCode + "]\r\n" + text;
@@ -801,7 +712,7 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void updateRange(final LinkingDeviceManager.Range range) {
-        TextView tv = (TextView) findViewById(R.id.activity_device_proximity_text);
+        TextView tv = findViewById(R.id.activity_device_proximity_text);
         if (tv != null) {
             switch (range) {
                 case IMMEDIATE:
@@ -821,21 +732,21 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
     }
 
     private void updateBattery(final boolean lowBatteryFlag, final float batteryLevel) {
-        TextView tv = (TextView) findViewById(R.id.battery_text);
+        TextView tv = findViewById(R.id.battery_text);
         if (tv != null) {
             tv.setText(getString(R.string.activity_device_unit_percent, batteryLevel));
         }
     }
 
     private void updateTemperature(final float temperature) {
-        TextView tv = (TextView) findViewById(R.id.temperature_text);
+        TextView tv = findViewById(R.id.temperature_text);
         if (tv != null) {
             tv.setText(getString(R.string.activity_device_unit_c, temperature));
         }
     }
 
     private void updateHumidity(final float humidity) {
-        TextView tv = (TextView) findViewById(R.id.humidity_text);
+        TextView tv = findViewById(R.id.humidity_text);
         if (tv != null) {
             tv.setText(getString(R.string.activity_device_unit_percent, humidity));
         }
@@ -945,46 +856,28 @@ public class LinkingDeviceActivity extends AppCompatActivity implements Confirma
         }
     }
 
-    private LinkingDeviceManager.OnSensorListener mOnSensorListener = new LinkingDeviceManager.OnSensorListener() {
-        @Override
-        public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
-            updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
-        }
+    private LinkingDeviceManager.OnSensorListener mOnSensorListener = (device, sensor) -> {
+        updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
     };
 
-    private LinkingDeviceManager.OnButtonEventListener mOnButtonEventListener = new LinkingDeviceManager.OnButtonEventListener() {
-        @Override
-        public void onButtonEvent(final LinkingDevice device, final int keyCode) {
-            updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
-        }
+    private LinkingDeviceManager.OnButtonEventListener mOnButtonEventListener = (device, keyCode) -> {
+        updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
     };
 
-    private LinkingDeviceManager.OnRangeListener mOnRangeListener = new LinkingDeviceManager.OnRangeListener() {
-        @Override
-        public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
-            updateRange(range);
-        }
+    private LinkingDeviceManager.OnRangeListener mOnRangeListener = (device, range) -> {
+        updateRange(range);
     };
 
-    private LinkingDeviceManager.OnBatteryListener mOnBatteryListener = new LinkingDeviceManager.OnBatteryListener() {
-        @Override
-        public void onBattery(final LinkingDevice device, final boolean lowBatteryFlag, final float batteryLevel) {
-            updateBattery(lowBatteryFlag, batteryLevel);
-        }
+    private LinkingDeviceManager.OnBatteryListener mOnBatteryListener = (device, lowBatteryFlag, batteryLevel) -> {
+        updateBattery(lowBatteryFlag, batteryLevel);
     };
 
-    private LinkingDeviceManager.OnTemperatureListener mOnTemperatureListener = new LinkingDeviceManager.OnTemperatureListener() {
-        @Override
-        public void onTemperature(final LinkingDevice device, final float temperature) {
-            updateTemperature(temperature);
-        }
+    private LinkingDeviceManager.OnTemperatureListener mOnTemperatureListener = (device, temperature) -> {
+        updateTemperature(temperature);
     };
 
-    private LinkingDeviceManager.OnHumidityListener mOnHumidityListener = new LinkingDeviceManager.OnHumidityListener() {
-        @Override
-        public void onHumidity(final LinkingDevice device, final float humidity) {
-            updateHumidity(humidity);
-        }
+    private LinkingDeviceManager.OnHumidityListener mOnHumidityListener = (device, humidity) -> {
+        updateHumidity(humidity);
     };
 
     private interface OnSelectedListener {

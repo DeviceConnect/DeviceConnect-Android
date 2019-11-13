@@ -2,9 +2,8 @@ package org.deviceconnect.android.deviceplugin.linking.beacon;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.test.RenamingDelegatingContext;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingDevicePluginService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.AtmosphericPressureData;
@@ -50,8 +49,7 @@ public class LinkingBeaconManagerTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        mContext = new RenamingDelegatingContext(
-                InstrumentationRegistry.getInstrumentation().getTargetContext(), "test_");
+        mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
     }
 
     @Test

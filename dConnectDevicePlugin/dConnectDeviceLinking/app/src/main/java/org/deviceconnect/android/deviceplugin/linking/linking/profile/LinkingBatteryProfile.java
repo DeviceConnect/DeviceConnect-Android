@@ -41,11 +41,8 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         addApi(mDeleteOnBatteryChange);
     }
 
-    private final LinkingDeviceManager.OnBatteryListener mListener = new LinkingDeviceManager.OnBatteryListener() {
-        @Override
-        public void onBattery(final LinkingDevice device, final boolean lowBatteryFlag, final float batteryLevel) {
-            notifyBattery(device, batteryLevel);
-        }
+    private final LinkingDeviceManager.OnBatteryListener mListener = (device, lowBatteryFlag, batteryLevel) -> {
+        notifyBattery(device, batteryLevel);
     };
 
     private final DConnectApi mGetAll = new GetApi() {

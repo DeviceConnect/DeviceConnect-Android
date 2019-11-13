@@ -67,16 +67,13 @@ public class IntervalEventDispatcher extends EventDispatcher {
         }
     }
 
-    private Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            synchronized (mLockObject) {
-                if (mEvent != null && mMessage != null) {
-                    sendEventInternal(mEvent, mMessage);
-                }
-                mEvent = null;
-                mMessage = null;
+    private Runnable mRunnable = () -> {
+        synchronized (mLockObject) {
+            if (mEvent != null && mMessage != null) {
+                sendEventInternal(mEvent, mMessage);
             }
+            mEvent = null;
+            mMessage = null;
         }
     };
 }

@@ -8,8 +8,8 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -68,11 +68,8 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
 
         Button clearBtn = (Button) findViewById(R.id.activity_beacon_clear_btn);
         if (clearBtn != null) {
-            clearBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    clearTextView();
-                }
+            clearBtn.setOnClickListener((v) -> {
+                clearTextView();
             });
         }
 
@@ -112,22 +109,16 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
 
     @Override
     public void onNotify(final LinkingBeacon beacon) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setBeaconData();
-            }
+        runOnUiThread(() -> {
+            setBeaconData();
         });
     }
 
     @Override
     public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
         if (beacon.equals(mLinkingBeacon)) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    addButton("buttonId:[" + keyCode + "]");
-                }
+            runOnUiThread(() -> {
+                addButton("buttonId:[" + keyCode + "]");
             });
         }
     }
@@ -186,91 +177,91 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     }
 
     private void clearTextView() {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_button_event);
+        TextView view = findViewById(R.id.activity_beacon_button_event);
         if (view != null) {
             view.setText("");
         }
     }
 
     private void setVendorId(final String vendorId) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_vendor_id);
+        TextView view = findViewById(R.id.activity_beacon_vendor_id);
         if (view != null) {
             view.setText(vendorId);
         }
     }
 
     private void setExtraId(final String extraId) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_extra_id);
+        TextView view = findViewById(R.id.activity_beacon_extra_id);
         if (view != null) {
             view.setText(extraId);
         }
     }
 
     private void setVersion(final String version) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_version);
+        TextView view = findViewById(R.id.activity_beacon_version);
         if (view != null) {
             view.setText(version);
         }
     }
 
     private void setStatus(final String status) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_status);
+        TextView view = findViewById(R.id.activity_beacon_status);
         if (view != null) {
             view.setText(status);
         }
     }
 
     private void setTimeStamp(final long timeStamp) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_time_stamp);
+        TextView view = findViewById(R.id.activity_beacon_time_stamp);
         if (view != null) {
             view.setText(mDateFormat.format(timeStamp));
         }
     }
 
     private void setLowBattery(final String lowBattery) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_battery_low);
+        TextView view = findViewById(R.id.activity_beacon_battery_low);
         if (view != null) {
             view.setText(lowBattery);
         }
     }
 
     private void setBatteryLevel(final String level) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_battery_level);
+        TextView view = findViewById(R.id.activity_beacon_battery_level);
         if (view != null) {
             view.setText(level);
         }
     }
 
     private void setAtmosphericPressure(final String atmosphericPressure) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_atmospheric_pressure);
+        TextView view = findViewById(R.id.activity_beacon_atmospheric_pressure);
         if (view != null) {
             view.setText(atmosphericPressure);
         }
     }
 
     private void setTemperature(final String temperature) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_temperature);
+        TextView view = findViewById(R.id.activity_beacon_temperature);
         if (view != null) {
             view.setText(temperature);
         }
     }
 
     private void setHumidity(final String humidity) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_humidity);
+        TextView view = findViewById(R.id.activity_beacon_humidity);
         if (view != null) {
             view.setText(humidity);
         }
     }
 
     private void setDistance(final String distance) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_distance);
+        TextView view = findViewById(R.id.activity_beacon_distance);
         if (view != null) {
             view.setText(distance);
         }
     }
 
     private void setRawData(final String rawData) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_raw_data);
+        TextView view = findViewById(R.id.activity_beacon_raw_data);
         if (view != null) {
             view.setText(rawData);
         }
@@ -290,7 +281,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     }
 
     private void addButton(final String value) {
-        TextView view = (TextView) findViewById(R.id.activity_beacon_button_event);
+        TextView view = findViewById(R.id.activity_beacon_button_event);
         if (view != null) {
             String text = (String) view.getText();
             text = value + "\n" + text;

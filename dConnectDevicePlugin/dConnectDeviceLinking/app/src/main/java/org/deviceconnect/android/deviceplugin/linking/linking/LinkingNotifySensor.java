@@ -391,13 +391,10 @@ class LinkingNotifySensor {
             }
             return;
         }
-        mNotifySensor = new NotifySensorData(mContext, new ControlSensorData.SensorRequestInterface() {
-            @Override
-            public void onStartSensorResult(final String bd, final int type, int resultCode) {
-                if (BuildConfig.DEBUG) {
-                    LinkingUtil.Result result = LinkingUtil.Result.valueOf(resultCode);
-                    Log.e(TAG, "onStartSensorResult: " + bd + " " + type + " " + result);
-                }
+        mNotifySensor = new NotifySensorData(mContext, (bd, type, resultCode) -> {
+            if (BuildConfig.DEBUG) {
+                LinkingUtil.Result result = LinkingUtil.Result.valueOf(resultCode);
+                Log.e(TAG, "onStartSensorResult: " + bd + " " + type + " " + result);
             }
         }, new ControlSensorData.SensorDataInterface() {
             private final LinkingSensorData mSensorData = new LinkingSensorData();

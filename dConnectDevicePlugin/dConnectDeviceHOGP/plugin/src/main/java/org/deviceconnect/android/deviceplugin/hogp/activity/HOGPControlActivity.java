@@ -212,34 +212,25 @@ public class HOGPControlActivity extends HOGPBaseActivity {
             final boolean useShift = (map[1] == 0);
             final byte modifier = (byte) (map[2] & 0xFF);
             final byte keyCode = (byte) (map[3] & 0xFF);
-            findViewById(map[0]).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mHOGPServer != null) {
-                        if (useShift) {
-                            mHOGPServer.sendKeyDown(caps(), keyCode);
-                        } else {
-                            mHOGPServer.sendKeyDown(modifier, keyCode);
-                        }
-                        mHOGPServer.sendKeyUp();
+            findViewById(map[0]).setOnClickListener((v) -> {
+                if (mHOGPServer != null) {
+                    if (useShift) {
+                        mHOGPServer.sendKeyDown(caps(), keyCode);
+                    } else {
+                        mHOGPServer.sendKeyDown(modifier, keyCode);
                     }
+                    mHOGPServer.sendKeyUp();
                 }
             });
         }
 
-        findViewById(R.id.activity_control_key_num).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                changeKeyboard();
-            }
+        findViewById(R.id.activity_control_key_num).setOnClickListener((v) -> {
+            changeKeyboard();
         });
 
-        ToggleButton toggle = (ToggleButton) findViewById(R.id.activity_control_key_caps);
-        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                changeUppercase(isChecked);
-            }
+        ToggleButton toggle = findViewById(R.id.activity_control_key_caps);
+        toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            changeUppercase(isChecked);
         });
     }
 
@@ -381,7 +372,7 @@ public class HOGPControlActivity extends HOGPBaseActivity {
      * @return Capsロック
      */
     private byte caps() {
-        ToggleButton toggle = (ToggleButton) findViewById(R.id.activity_control_key_caps);
+        ToggleButton toggle = findViewById(R.id.activity_control_key_caps);
         return toggle.isChecked() ? (byte) KeyboardCode.MODIFIER_KEY_SHIFT : 0;
     }
 

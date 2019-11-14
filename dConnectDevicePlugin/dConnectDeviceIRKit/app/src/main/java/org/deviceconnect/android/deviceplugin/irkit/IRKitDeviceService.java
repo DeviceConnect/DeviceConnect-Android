@@ -11,9 +11,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
-import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
 
+
+import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
@@ -25,7 +26,6 @@ import org.deviceconnect.android.deviceplugin.irkit.service.IRKitService;
 import org.deviceconnect.android.deviceplugin.irkit.service.VirtualService;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
@@ -296,12 +296,9 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     }
 
     private void restartDetection() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                stopDetection();
-                startDetection();
-            }
+        new Thread(() -> {
+            stopDetection();
+            startDetection();
         }).start();
     }
 }

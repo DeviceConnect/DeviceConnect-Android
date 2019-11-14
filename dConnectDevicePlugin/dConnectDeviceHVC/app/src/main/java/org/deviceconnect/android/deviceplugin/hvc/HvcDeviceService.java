@@ -590,20 +590,16 @@ public class HvcDeviceService extends DConnectMessageService implements HvcCommM
     private void initDetector() {
         if (mDetector == null) {
             mDetector = new BleDeviceDetector(this);
-            mDetector.setListener(new BleDeviceDiscoveryListener() {
+            mDetector.setListener((currentDevices) -> {
+                // remove duplicate data or non HVC data.
+                removeDuplicateOrNonHvcData(currentDevices);
 
-                @Override
-                public void onDiscovery(final List<BluetoothDevice> currentDevices) {
-                    // remove duplicate data or non HVC data.
-                    removeDuplicateOrNonHvcData(currentDevices);
-
-                    synchronized (mCacheDeviceList) {
-                        mCacheDeviceList.clear();
-                        mCacheDeviceList.addAll(currentDevices);
-                    }
-
-                    turnOn(currentDevices);
+                synchronized (mCacheDeviceList) {
+                    mCacheDeviceList.clear();
+                    mCacheDeviceList.addAll(currentDevices);
                 }
+
+                turnOn(currentDevices);
             });
         }
     }

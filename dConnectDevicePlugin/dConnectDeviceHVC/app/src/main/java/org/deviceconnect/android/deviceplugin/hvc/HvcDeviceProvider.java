@@ -21,7 +21,7 @@ public class HvcDeviceProvider<T extends Service> extends DConnectMessageService
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) HvcDeviceService.class;
+        Class<? extends Service> clazz = HvcDeviceService.class;
 
         return (Class<Service>) clazz;
     }

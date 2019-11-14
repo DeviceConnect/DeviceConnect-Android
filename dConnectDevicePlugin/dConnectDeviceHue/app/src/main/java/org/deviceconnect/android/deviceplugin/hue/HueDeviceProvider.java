@@ -27,7 +27,7 @@ public class HueDeviceProvider<T extends Service> extends DConnectMessageService
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) HueDeviceService.class;
+        Class<? extends Service> clazz = HueDeviceService.class;
         return (Class<Service>) clazz;
     }
 

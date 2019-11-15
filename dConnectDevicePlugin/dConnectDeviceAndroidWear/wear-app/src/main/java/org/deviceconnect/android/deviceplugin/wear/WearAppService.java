@@ -11,7 +11,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,13 +121,10 @@ public class WearAppService extends Service implements SensorEventListener {
             float accelZ = sensorEvent.values[2];
             final String data = accelX + "," + accelY + "," + accelZ
                     + "," + mGyroX + "," + mGyroY + "," + mGyroZ + "," + interval;
-            mExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mIds) {
-                        for (String id : mIds) {
-                            sendSensorEvent(data, id);
-                        }
+            mExecutorService.execute(() -> {
+                synchronized (mIds) {
+                    for (String id : mIds) {
+                        sendSensorEvent(data, id);
                     }
                 }
             });
@@ -160,25 +157,21 @@ public class WearAppService extends Service implements SensorEventListener {
         if (mSensorManager != null) {
             return;
         }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-                List<Sensor> accelSensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-                if (accelSensors.size() > 0) {
-                    mAccelerometer = accelSensors.get(0);
-                    mSensorManager.registerListener(WearAppService.this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-                }
-
-                List<Sensor> gyroSensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
-                if (gyroSensors.size() > 0) {
-                    mGyroSensor = gyroSensors.get(0);
-                    mSensorManager.registerListener(WearAppService.this, mGyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
-                }
-
-                mStartTime = System.currentTimeMillis();
-
+        new Thread(() -> {
+            mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            List<Sensor> accelSensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+            if (accelSensors.size() > 0) {
+                mAccelerometer = accelSensors.get(0);
+                mSensorManager.registerListener(WearAppService.this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
             }
+
+            List<Sensor> gyroSensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
+            if (gyroSensors.size() > 0) {
+                mGyroSensor = gyroSensors.get(0);
+                mSensorManager.registerListener(WearAppService.this, mGyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }
+
+            mStartTime = System.currentTimeMillis();
         }).start();
     }
 

@@ -56,12 +56,7 @@ public class WearCanvasProfile extends CanvasProfile {
     public WearCanvasProfile(final WearManager mgr) {
         mWearManager = mgr;
         mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_CANVAS_RESULT,
-            new WearManager.OnMessageEventListener() {
-            @Override
-            public void onEvent(final String nodeId, final String message) {
-                onCanvasResponse(nodeId, message);
-            }
-        });
+            this::onCanvasResponse);
         addApi(mPostDrawImage);
         addApi(mDeleteDrawImage);
     }
@@ -87,18 +82,15 @@ public class WearCanvasProfile extends CanvasProfile {
             }
 
             if (data == null) {
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        String uri = getURI(request);
-                        byte[] result = getData(uri);
-                        if (result == null) {
-                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                            sendResponse(response);
-                            return;
-                        }
-                        drawImage(response, nodeId, result, x, y, mode);
+                mImageService.execute(() -> {
+                    String uri = getURI(request);
+                    byte[] result = getData(uri);
+                    if (result == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                        sendResponse(response);
+                        return;
                     }
+                    drawImage(response, nodeId, result, x, y, mode);
                 });
                 return false;
             } else {
@@ -153,28 +145,24 @@ public class WearCanvasProfile extends CanvasProfile {
                 getManager().sendImageData(localNodeId, requestId, bitmapData, (int) x, (int) y, mm, new WearManager.OnDataItemResultListener() {
                     @Override
                     public void onResult(final DataItem result) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (result != null) {
-                                    try {
-                                        DrawImageResponse wearResponse = wearRequest.await();
-                                        if (wearResponse.isSuccess()) {
-                                            setResult(response, DConnectMessage.RESULT_OK);
-                                        } else {
-                                            int errorCode = wearResponse.getErrorCode();
-                                            String errorMessage = wearResponse.getErrorMessage();
-                                            MessageUtils.setError(response, errorCode, errorMessage);
-                                        }
-                                    } catch (Exception e) {
-                                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                        new Thread(() -> {
+                            if (result != null) {
+                                try {
+                                    DrawImageResponse wearResponse = wearRequest.await();
+                                    if (wearResponse.isSuccess()) {
+                                        setResult(response, DConnectMessage.RESULT_OK);
+                                    } else {
+                                        int errorCode = wearResponse.getErrorCode();
+                                        String errorMessage = wearResponse.getErrorMessage();
+                                        MessageUtils.setError(response, errorCode, errorMessage);
                                     }
-                                } else {
-                                    MessageUtils.setIllegalDeviceStateError(response);
+                                } catch (Exception e) {
+                                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
                                 }
-                                sendResponse(response);
-
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response);
                             }
+                            sendResponse(response);
                         }).start();
                     }
 

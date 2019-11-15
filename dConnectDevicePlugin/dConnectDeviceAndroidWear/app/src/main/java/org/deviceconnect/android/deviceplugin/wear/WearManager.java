@@ -2,7 +2,7 @@ package org.deviceconnect.android.deviceplugin.wear;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -58,12 +58,12 @@ public class WearManager {
      * メッセージイベントリスナー一覧.
      */
     private final Map<String, OnMessageEventListener> mOnMessageEventListeners
-            = new HashMap<String, OnMessageEventListener>();
+            = new HashMap<>();
 
     /**
      * ノード検知リスナー一覧.
      */
-    private final List<NodeEventListener> mNodeEventListeners = new ArrayList<NodeEventListener>();
+    private final List<NodeEventListener> mNodeEventListeners = new ArrayList<>();
 
     /**
      * ノード情報のキャッシュ.
@@ -95,20 +95,17 @@ public class WearManager {
     public void init() {
         setCapabilityListener();
         setMessageListener();
-        getNodes(new OnNodeResultListener() {
-            @Override
-            public void onResult(final List<Node> results) {
-                if (results == null) {
-                    return;
-                }
-                synchronized (mNodeCache) {
-                    for (Node node : results) {
-                        if (!mNodeCache.containsKey(node.getId())) {
-                            mNodeCache.put(node.getId(), node);
-                            mLogger.info("getNodes: name = " + node.getDisplayName()
-                                    + ", id = " + node.getId());
-                            notifyOnNodeConnected(node);
-                        }
+        getNodes((results) -> {
+            if (results == null) {
+                return;
+            }
+            synchronized (mNodeCache) {
+                for (Node node : results) {
+                    if (!mNodeCache.containsKey(node.getId())) {
+                        mNodeCache.put(node.getId(), node);
+                        mLogger.info("getNodes: name = " + node.getDisplayName()
+                                + ", id = " + node.getId());
+                        notifyOnNodeConnected(node);
                     }
                 }
             }
@@ -119,35 +116,30 @@ public class WearManager {
      * 接続しているAndroidWearにIDを送る.
      */
     public void sendWearData() {
-        new Thread(new Runnable() {
-            public void run() {
-                getNodes(new OnNodeResultListener() {
-                    @Override
-                    public void onResult(final List<Node> results) {
-                        if (results == null) {
-                            return;
-                        }
-                        synchronized (mNodeCache) {
-                            for (Node node : results) {
-                                if (!mNodeCache.containsKey(node.getId())) {
-                                    mNodeCache.put(node.getId(), node);
-                                    mLogger.info("getNode: name = " + node.getDisplayName()
-                                            + ", id = " + node.getId());
-                                    notifyOnNodeConnected(node);
+        new Thread(() -> {
+            getNodes((results) -> {
+                if (results == null) {
+                    return;
+                }
+                synchronized (mNodeCache) {
+                    for (Node node : results) {
+                        if (!mNodeCache.containsKey(node.getId())) {
+                            mNodeCache.put(node.getId(), node);
+                            mLogger.info("getNode: name = " + node.getDisplayName()
+                                    + ", id = " + node.getId());
+                            notifyOnNodeConnected(node);
 
-                                }
-                            }
                         }
                     }
-                });
-                for (String key : mNodeCache.keySet()) {
-                    Node node = mNodeCache.get(key);
-                    sendMessageToWear(node.getId(), WearConst.DEVICE_TO_WEAR_SET_ID, node.getId(), null);
-                    mLogger.info("sendMessage: name = " + node.getDisplayName()
-                            + ", id = " + node.getId());
                 }
+            });
+            for (String key : mNodeCache.keySet()) {
+                Node node = mNodeCache.get(key);
+                sendMessageToWear(node.getId(), WearConst.DEVICE_TO_WEAR_SET_ID, node.getId(), null);
+                mLogger.info("sendMessage: name = " + node.getDisplayName()
+                        + ", id = " + node.getId());
             }
-        }).start();
+    }).start();
     }
     /**
      * 後始末処理を行う.
@@ -182,21 +174,18 @@ public class WearManager {
      * Wearとの接続状況を検知するリスナー.
      */
     private void setCapabilityListener() {
-        Wearable.getCapabilityClient(mContext).addListener(new CapabilityClient.OnCapabilityChangedListener() {
-            @Override
-            public void onCapabilityChanged(@NonNull CapabilityInfo capabilityInfo) {
-                for (Node node : capabilityInfo.getNodes()) {
-                    if (node.isNearby()) {
-                        mLogger.info("isNearby=true: name = " + node.getDisplayName()
-                                + ", id = " + node.getId());
-                        mNodeCache.put(node.getId(), node);
-                        notifyOnNodeConnected(node);
-                    } else {
-                        mLogger.info("onPeerDisconnected: name = " + node.getDisplayName()
-                                + ", id = " + node.getId());
-                        mNodeCache.remove(node.getId());
-                        notifyOnNodeDisconnected(node);
-                    }
+        Wearable.getCapabilityClient(mContext).addListener((capabilityInfo) -> {
+            for (Node node : capabilityInfo.getNodes()) {
+                if (node.isNearby()) {
+                    mLogger.info("isNearby=true: name = " + node.getDisplayName()
+                            + ", id = " + node.getId());
+                    mNodeCache.put(node.getId(), node);
+                    notifyOnNodeConnected(node);
+                } else {
+                    mLogger.info("onPeerDisconnected: name = " + node.getDisplayName()
+                            + ", id = " + node.getId());
+                    mNodeCache.remove(node.getId());
+                    notifyOnNodeDisconnected(node);
                 }
             }
         }, Uri.parse("wear://"), CapabilityClient.FILTER_REACHABLE);
@@ -222,16 +211,13 @@ public class WearManager {
      * Android Wearのリスナーを設定する.
      */
     private void setMessageListener() {
-        Wearable.getMessageClient(mContext).addListener(new MessageClient.OnMessageReceivedListener() {
-            @Override
-            public void onMessageReceived(@NonNull MessageEvent messageEvent) {
-                final String data = new String(messageEvent.getData());
-                final String path = messageEvent.getPath();
-                final String nodeId = messageEvent.getSourceNodeId();
-                OnMessageEventListener listener = mOnMessageEventListeners.get(path);
-                if (listener != null) {
-                    listener.onEvent(nodeId, data);
-                }
+        Wearable.getMessageClient(mContext).addListener((messageEvent) -> {
+            final String data = new String(messageEvent.getData());
+            final String path = messageEvent.getPath();
+            final String nodeId = messageEvent.getSourceNodeId();
+            OnMessageEventListener listener = mOnMessageEventListeners.get(path);
+            if (listener != null) {
+                listener.onEvent(nodeId, data);
             }
         });
     }
@@ -242,20 +228,18 @@ public class WearManager {
      * @param listener Wear node取得を通知するリスナー
      */
     public void getNodes(final OnNodeResultListener listener) {
-        sendMessageToWear(new Runnable() {
-            public void run() {
-                Task<List<Node>> nodeListTask = Wearable.getNodeClient(mContext).getConnectedNodes();
-                List<Node> nodes = null;
-                try {
-                     nodes = Tasks.await(nodeListTask);
-                } catch (ExecutionException exception) {
-                    mLogger.warning("Task failed: " + exception);
-                } catch (InterruptedException exception) {
-                    mLogger.warning("Interrupt occurred: " + exception);
-                }
-                if (listener != null) {
-                    listener.onResult(nodes);
-                }
+        sendMessageToWear(() -> {
+            Task<List<Node>> nodeListTask = Wearable.getNodeClient(mContext).getConnectedNodes();
+            List<Node> nodes = null;
+            try {
+                 nodes = Tasks.await(nodeListTask);
+            } catch (ExecutionException exception) {
+                mLogger.warning("Task failed: " + exception);
+            } catch (InterruptedException exception) {
+                mLogger.warning("Interrupt occurred: " + exception);
+            }
+            if (listener != null) {
+                listener.onResult(nodes);
             }
         });
     }
@@ -270,31 +254,22 @@ public class WearManager {
      */
     public void sendMessageToWear(final String dest, final String action, final String message,
                                   final OnMessageResultListener listener) {
-        getNodes(new OnNodeResultListener() {
-            @Override
-            public void onResult(List<Node> results) {
-                for (Node node : results) {
-                    if (node.getId().contains(dest)) {
-                        Task<Integer> sendMessageTask =
-                                Wearable.getMessageClient(mContext).sendMessage(node.getId(), action, message.getBytes());
-                        sendMessageTask.addOnSuccessListener(new OnSuccessListener<Integer>() {
-                            @Override
-                            public void onSuccess(Integer integer) {
-                                if (listener != null) {
-                                    listener.onResult();
-                                }
-                            }
-                        });
+        getNodes((results) -> {
+            for (Node node : results) {
+                if (node.getId().contains(dest)) {
+                    Task<Integer> sendMessageTask =
+                            Wearable.getMessageClient(mContext).sendMessage(node.getId(), action, message.getBytes());
+                    sendMessageTask.addOnSuccessListener((integer) -> {
+                        if (listener != null) {
+                            listener.onResult();
+                        }
+                    });
 
-                        sendMessageTask.addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                if (listener != null) {
-                                    listener.onError();
-                                }
-                            }
-                        });
-                    }
+                    sendMessageTask.addOnFailureListener((e) -> {
+                        if (listener != null) {
+                            listener.onError();
+                        }
+                    });
                 }
             }
         });
@@ -339,34 +314,25 @@ public class WearManager {
                               final byte[] data, final int x, final int y,
                               final int mode, final OnDataItemResultListener listener) {
         // リクエストIDとともに画像送信
-        sendMessageToWear(new Runnable() {
-            @Override
-            public void run() {
-                final PutDataRequest request = createPutDataRequest(nodeId, requestId, data, x, y, mode);
-                if (request == null) {
+        sendMessageToWear(() -> {
+            final PutDataRequest request = createPutDataRequest(nodeId, requestId, data, x, y, mode);
+            if (request == null) {
+                if (listener != null) {
+                    listener.onError();
+                }
+            } else {
+                request.setUrgent();
+                Task<DataItem> dataItemTask = Wearable.getDataClient(mContext).putDataItem(request);
+                dataItemTask.addOnSuccessListener((dataItem) -> {
+                    if (listener != null) {
+                        listener.onResult(dataItem);
+                    }
+                });
+                dataItemTask.addOnFailureListener((e) -> {
                     if (listener != null) {
                         listener.onError();
                     }
-                } else {
-                    request.setUrgent();
-                    Task<DataItem> dataItemTask = Wearable.getDataClient(mContext).putDataItem(request);
-                    dataItemTask.addOnSuccessListener(new OnSuccessListener<DataItem>() {
-                        @Override
-                        public void onSuccess(DataItem dataItem) {
-                            if (listener != null) {
-                                listener.onResult(dataItem);
-                            }
-                        }
-                    });
-                    dataItemTask.addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            if (listener != null) {
-                                listener.onError();
-                            }
-                        }
-                    });
-                }
+                });
             }
         });
     }
@@ -381,20 +347,17 @@ public class WearManager {
     }
 
     public void getLocalNodeId(final String serviceId, final OnLocalNodeListener listener) {
-        getNodes(new OnNodeResultListener() {
-             @Override
-             public void onResult(List<Node> results) {
-                 for (Node node : results) {
-                     if (node.getId().equals(serviceId)) {
-                         if (listener != null) {
-                             listener.onResult(node);
-                         }
-                         return;
+        getNodes((results) -> {
+             for (Node node : results) {
+                 if (node.getId().equals(serviceId)) {
+                     if (listener != null) {
+                         listener.onResult(node);
                      }
+                     return;
                  }
-                 if (listener != null) {
-                     listener.onError();
-                 }
+             }
+             if (listener != null) {
+                 listener.onError();
              }
         });
     }

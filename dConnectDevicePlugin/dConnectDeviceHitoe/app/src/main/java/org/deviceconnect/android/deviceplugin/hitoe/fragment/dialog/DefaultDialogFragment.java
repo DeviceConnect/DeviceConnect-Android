@@ -109,12 +109,9 @@ public class DefaultDialogFragment extends DialogFragment {
         new AlertDialog.Builder(activity)
                 .setView(layout)
                 .setTitle(activity.getString(R.string.dialog_title_lunch_hitoe))
-                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialogInterface, final int i) {
-                        CheckBox nextState = (CheckBox) layout.findViewById(R.id.chceck_next);
-                        userSettings.setNextState(nextState.isChecked());
-                    }
+                .setNeutralButton(R.string.ok, (dialogInterface, i) -> {
+                    CheckBox nextState = (CheckBox) layout.findViewById(R.id.chceck_next);
+                    userSettings.setNextState(nextState.isChecked());
                 })
                 .show();
     }
@@ -133,11 +130,7 @@ public class DefaultDialogFragment extends DialogFragment {
         new AlertDialog.Builder(activity)
                 .setView(layout)
                 .setTitle(activity.getString(R.string.dialog_title_equip_hitoe))
-                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialogInterface,final int i) {
-
-                    }
+                .setNeutralButton(R.string.ok, (dialogInterface,i) -> {
                 })
                 .show();
     }
@@ -165,12 +158,9 @@ public class DefaultDialogFragment extends DialogFragment {
         new AlertDialog.Builder(activity)
                 .setView(layout)
                 .setTitle(activity.getString(R.string.warning_title))
-                .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialogInterface, final int i) {
-                        CheckBox nextState = (CheckBox) layout.findViewById(R.id.chceck_next);
-                        userSettings.setWarningMessage(nextState.isChecked());
-                    }
+                .setNeutralButton(R.string.ok, (dialogInterface, i) -> {
+                    CheckBox nextState = layout.findViewById(R.id.chceck_next);
+                    userSettings.setWarningMessage(nextState.isChecked());
                 })
                 .show();
     }

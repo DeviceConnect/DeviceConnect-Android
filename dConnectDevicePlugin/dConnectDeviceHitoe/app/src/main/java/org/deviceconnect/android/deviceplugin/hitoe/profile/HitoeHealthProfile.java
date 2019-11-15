@@ -41,12 +41,7 @@ public class HitoeHealthProfile extends HealthProfile {
      * Implementation of {@link HitoeManager.OnHitoeHeartRateEventListener}.
      */
     private final HitoeManager.OnHitoeHeartRateEventListener mHeartRateEventListener =
-            new HitoeManager.OnHitoeHeartRateEventListener() {
-                @Override
-                public void onReceivedData(final HitoeDevice device, final HeartRateData data) {
-                    notifyHeartRateData(device, data);
-                }
-            };
+            this::notifyHeartRateData;
 
     /**
      * Event Dispatcher object.

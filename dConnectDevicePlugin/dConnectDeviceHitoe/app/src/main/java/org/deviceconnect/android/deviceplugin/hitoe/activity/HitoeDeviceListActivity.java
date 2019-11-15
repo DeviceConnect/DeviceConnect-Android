@@ -87,14 +87,10 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         title.setText(R.string.device_list_view);
         Button btn = (Button) findViewById(R.id.btn_add_open);
         btn.setText(R.string.add_device_button);
-        btn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                Intent intent = new Intent();
-                intent.setClass(HitoeDeviceListActivity.this, HitoeAddDeviceActivity.class);
-                startActivity(intent);
-            }
+        btn.setOnClickListener((view) -> {
+            Intent intent = new Intent();
+            intent.setClass(HitoeDeviceListActivity.this, HitoeAddDeviceActivity.class);
+            startActivity(intent);
         });
     }
 
@@ -121,21 +117,14 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         }
         mConnectingDevice = hitoe;
         DefaultDialogFragment.showConfirmAlert(this, hitoe.getName(), getString(R.string.confirm_delete_device),
-                getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialogInterface, final int i) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                disconnectDevice(hitoe);
-                                getManager().deleteHitoeDevice(hitoe);
-                                mDeviceAdapter.remove(hitoe);
-                                mDeviceAdapter.notifyDataSetChanged();
-                                addFooterView();
-
-                            }
-                        });
-                    }
+                getString(R.string.ok), (dialogInterface, ii) -> {
+                    runOnUiThread(() -> {
+                            disconnectDevice(hitoe);
+                            getManager().deleteHitoeDevice(hitoe);
+                            mDeviceAdapter.remove(hitoe);
+                            mDeviceAdapter.notifyDataSetChanged();
+                            addFooterView();
+                    });
                 });
         return true;
     }
@@ -143,46 +132,40 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
     @Override
     public void onConnected(final HitoeDevice device) {
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (!mCheckDialog) {
-                    return;
-                }
-                HitoeDevice container = findDeviceContainerByAddress(device.getId());
-                if (container != null) {
-                    container.setRegisterFlag(true);
-                    container.setSessionId(device.getSessionId());
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
-
-                dismissProgressDialog();
+        runOnUiThread(() -> {
+            if (!mCheckDialog) {
+                return;
             }
+            HitoeDevice container = findDeviceContainerByAddress(device.getId());
+            if (container != null) {
+                container.setRegisterFlag(true);
+                container.setSessionId(device.getSessionId());
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+
+            dismissProgressDialog();
         });
     }
 
     @Override
     public void onConnectFailed(final HitoeDevice device) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (!mCheckDialog) {
-                    return;
-                }
-                if (device == null && mConnectingDevice != null) {
-                    HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
-                    if (container != null) {
-                        container.setPinCode(null);
-                        mDeviceAdapter.notifyDataSetChanged();
-                    }
-                    Resources res = getResources();
-                    showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
-
-                } else if (device != null) {
-                    showErrorDialogNotConnect(device.getName());
-                }
-                dismissProgressDialog();
+        runOnUiThread(() -> {
+            if (!mCheckDialog) {
+                return;
             }
+            if (device == null && mConnectingDevice != null) {
+                HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
+                if (container != null) {
+                    container.setPinCode(null);
+                    mDeviceAdapter.notifyDataSetChanged();
+                }
+                Resources res = getResources();
+                showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
+
+            } else if (device != null) {
+                showErrorDialogNotConnect(device.getName());
+            }
+            dismissProgressDialog();
         });
     }
 
@@ -191,17 +174,14 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
         if (mDeviceAdapter == null) {
             return;
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (HitoeDevice device : devices) {
-                    if (!containAddressForAdapter(device.getId())
-                            && !device.isRegisterFlag()) {
-                        mDeviceAdapter.add(device);
-                    }
+        runOnUiThread(() -> {
+            for (HitoeDevice device : devices) {
+                if (!containAddressForAdapter(device.getId())
+                        && !device.isRegisterFlag()) {
+                    mDeviceAdapter.add(device);
                 }
-                mDeviceAdapter.notifyDataSetChanged();
             }
+            mDeviceAdapter.notifyDataSetChanged();
         });
     }
 
@@ -212,11 +192,8 @@ public class HitoeDeviceListActivity extends HitoeListActivity implements
             if (res != 0) {
                 container.setRegisterFlag(true);
             }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
+            runOnUiThread(() -> {
+                mDeviceAdapter.notifyDataSetChanged();
             });
         }
 

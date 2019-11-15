@@ -11,7 +11,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
@@ -45,11 +46,8 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 return true;
             }
 
-            final Runnable perform = new Runnable() {
-                @Override
-                public void run() {
-                    appendServiceList(response);
-                }
+            final Runnable perform = () -> {
+                appendServiceList(response);
             };
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {

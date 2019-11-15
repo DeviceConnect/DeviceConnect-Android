@@ -69,9 +69,9 @@ public class HeartRateManager {
 
     // TODO: consider synchronized
     private final List<HeartRateDevice> mConnectedDevices = Collections.synchronizedList(
-            new ArrayList<HeartRateDevice>());
+            new ArrayList<>());
     private final List<HeartRateDevice> mRegisterDevices = Collections.synchronizedList(
-            new ArrayList<HeartRateDevice>());
+            new ArrayList<>());
     private final Map<HeartRateDevice, HeartRateData> mHRData = new ConcurrentHashMap<>();
 
     private Handler mHandler = new Handler();
@@ -377,15 +377,12 @@ public class HeartRateManager {
     /**
      * Implementation of BleDeviceDiscoveryListener.
      */
-    private final BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
-        @Override
-        public void onDiscovery(final List<BluetoothDevice> devices) {
-            mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
+    private final BleDeviceDiscoveryListener mDiscoveryListener = (devices) -> {
+        mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
 
-            if (mHRDiscoveryListener != null) {
-                for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
-                    l.onDiscovery(devices);
-                }
+        if (mHRDiscoveryListener != null) {
+            for (OnHeartRateDiscoveryListener l : mHRDiscoveryListener) {
+                l.onDiscovery(devices);
             }
         }
     };
@@ -414,19 +411,16 @@ public class HeartRateManager {
             }
 
             // DEBUG
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String name = device.getName();
-                        if (name == null) {
-                            name = device.getAddress();
-                        }
-                        Toast.makeText(mContext, "Connect to " + name,
-                                Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        mLogger.warning("Exception occurred.");
+            mHandler.post(() -> {
+                try {
+                    String name = device.getName();
+                    if (name == null) {
+                        name = device.getAddress();
                     }
+                    Toast.makeText(mContext, "Connect to " + name,
+                            Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    mLogger.warning("Exception occurred.");
                 }
             });
         }
@@ -454,19 +448,16 @@ public class HeartRateManager {
                 }
 
                 // DEBUG
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            String name = device.getName();
-                            if (name == null) {
-                                name = device.getAddress();
-                            }
-                            Toast.makeText(mContext, "Disconnect to " + name,
-                                    Toast.LENGTH_SHORT).show();
-                        } catch (Exception e) {
-                            mLogger.warning("Exception occurred.");
+                mHandler.post(() -> {
+                    try {
+                        String name = device.getName();
+                        if (name == null) {
+                            name = device.getAddress();
                         }
+                        Toast.makeText(mContext, "Disconnect to " + name,
+                                Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        mLogger.warning("Exception occurred.");
                     }
                 });
             }

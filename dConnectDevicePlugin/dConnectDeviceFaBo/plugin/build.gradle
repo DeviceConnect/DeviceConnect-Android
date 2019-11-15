@@ -62,10 +62,6 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':app')
-    implementation('io.fabo:serialkit:0.9.6', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.android.support', module: 'support-v4'
-        exclude group: 'com.android.support', module: 'support-compat'
-    })
+    implementation 'io.fabo:serialkit:0.9.6'
     implementation 'io.fabo.android.stk500:stk500-aar:1.0.4'
 }

@@ -24,7 +24,7 @@ public class ChromeCastProvider<T extends Service> extends DConnectMessageServic
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) ChromeCastService.class;
+        Class<? extends Service> clazz = ChromeCastService.class;
         return (Class<Service>) clazz;
     }
 

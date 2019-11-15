@@ -255,27 +255,24 @@ public class ChromeCastController implements
     private void launchApplication() {
         if (mApiClient != null && mApiClient.isConnected()) {
             Cast.CastApi.launchApplication(mApiClient, mAppId)
-                .setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
-                    @Override
-                    public void onResult(final ApplicationConnectionResult result) {
-                        Status status = result.getStatus();
-                        if (status.isSuccess()) {
-                            if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "launchApplication$onResult: Success");
-                            }
-                            for (int i = 0; i < mCallbacks.size(); i++) {
-                                mCallbacks.get(i).onAttach();
-                            }
+                .setResultCallback((result) -> {
+                    Status status = result.getStatus();
+                    if (status.isSuccess()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "launchApplication$onResult: Success");
+                        }
+                        for (int i = 0; i < mCallbacks.size(); i++) {
+                            mCallbacks.get(i).onAttach();
+                        }
 
-                        } else {
-                            if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "launchApplication$onResult: Fail");
-                            }
-                            teardown();
+                    } else {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "launchApplication$onResult: Fail");
                         }
-                        if (mResult != null) {
-                            mResult.onChromeCastConnected();
-                        }
+                        teardown();
+                    }
+                    if (mResult != null) {
+                        mResult.onChromeCastConnected();
                     }
                 });
         }
@@ -289,28 +286,25 @@ public class ChromeCastController implements
      */
     private void stopApplication(final boolean isReconect) {
         if (mApiClient != null && mApiClient.isConnected()) {
-            Cast.CastApi.stopApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(final Status result) {
-                    if (result.getStatus().isSuccess()) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "stopApplication$onResult: Success");
-                        }
+            Cast.CastApi.stopApplication(mApiClient).setResultCallback((result) -> {
+                if (result.getStatus().isSuccess()) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "stopApplication$onResult: Success");
+                    }
 
-                        for (int i = 0; i < mCallbacks.size(); i++) {
-                            mCallbacks.get(i).onDetach();
-                        }
+                    for (int i = 0; i < mCallbacks.size(); i++) {
+                        mCallbacks.get(i).onDetach();
+                    }
 
-                        mApiClient.disconnect();
-                        mApiClient = null;
-                        mSelectedDevice = null;
-                        if (isReconect) {
-                            launchApplication();
-                        }
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "stopApplication$onResult: Fail");
-                        }
+                    mApiClient.disconnect();
+                    mApiClient = null;
+                    mSelectedDevice = null;
+                    if (isReconect) {
+                        launchApplication();
+                    }
+                } else {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "stopApplication$onResult: Fail");
                     }
                 }
             });

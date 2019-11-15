@@ -198,7 +198,7 @@ public class ChromeCastService extends DConnectMessageService implements
      * リソースリセット処理.
      */
     private void resetPluginResource() {
-        /** 全イベント削除. */
+        /* 全イベント削除. */
         EventManager.INSTANCE.removeAll();
         onCastDeviceUnselected(null);
     }

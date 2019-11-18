@@ -12,8 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
-import android.util.Log;
+
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;

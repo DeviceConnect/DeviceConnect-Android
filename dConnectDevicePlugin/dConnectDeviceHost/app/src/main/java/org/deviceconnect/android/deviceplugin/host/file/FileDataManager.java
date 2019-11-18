@@ -5,7 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.provider.FileManager;
@@ -343,25 +343,22 @@ public class FileDataManager {
             @Override
             public void onSuccess() {
                 mLastModifiedDate = System.currentTimeMillis();
-                mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-                    @Override
-                    public void run() {
-                        getUpdatedFiles(new CheckUpdatedFilesCallback() {
-                            @Override
-                            public void onSuccess(@NonNull List<File> files) {
-                                if (files.size() > 0) {
-                                    if (mModifiedListener != null) {
-                                        mModifiedListener.onWatchFile(files);
-                                    }
+                mFuture = mExecutor.scheduleAtFixedRate(() -> {
+                    getUpdatedFiles(new CheckUpdatedFilesCallback() {
+                        @Override
+                        public void onSuccess(@NonNull List<File> files) {
+                            if (files.size() > 0) {
+                                if (mModifiedListener != null) {
+                                    mModifiedListener.onWatchFile(files);
                                 }
                             }
+                        }
 
-                            @Override
-                            public void onFail() {
+                        @Override
+                        public void onFail() {
 
-                            }
-                        });
-                    }
+                        }
+                    });
                 }, PERIOD, PERIOD, TimeUnit.SECONDS);
             }
 

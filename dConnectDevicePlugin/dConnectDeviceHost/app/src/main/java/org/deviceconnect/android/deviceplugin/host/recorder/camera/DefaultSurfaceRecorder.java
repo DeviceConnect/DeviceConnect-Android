@@ -191,20 +191,14 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
         Runnable r;
         if (mIsRecording) {
             mIsRecording = false;
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    mMediaRecorder.stop();
-                    mMediaRecorder.reset();
-                    listener.onRecordingStop();
-                }
+            r = () -> {
+                mMediaRecorder.stop();
+                mMediaRecorder.reset();
+                listener.onRecordingStop();
             };
         } else {
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    listener.onRecordingStop();
-                }
+            r = () -> {
+                listener.onRecordingStop();
             };
         }
         mRecorderThread.post(r);

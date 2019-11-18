@@ -7,11 +7,10 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -189,17 +188,17 @@ public class WebSocketListActivity extends BaseSettingActivity implements AlertD
 
             WebSocketInfo info = (WebSocketInfo) getItem(position);
 
-            TextView uriView = (TextView) view.findViewById(R.id.item_websocket_uri);
+            TextView uriView =  view.findViewById(R.id.item_websocket_uri);
             if (uriView != null) {
                 uriView.setText(info.getUri());
             }
 
-            TextView sessionKeyView = (TextView) view.findViewById(R.id.item_websocket_session_key);
+            TextView sessionKeyView = view.findViewById(R.id.item_websocket_session_key);
             if (sessionKeyView != null) {
                 sessionKeyView.setText(info.getRawId());
             }
 
-            TextView timeView = (TextView) view.findViewById(R.id.item_websocket_connect_time);
+            TextView timeView = view.findViewById(R.id.item_websocket_connect_time);
             if (timeView != null) {
                 timeView.setText(mDateFormat.format(new Date(info.getConnectTime())));
             }

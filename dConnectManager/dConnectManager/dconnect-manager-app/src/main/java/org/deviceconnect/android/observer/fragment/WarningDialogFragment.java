@@ -20,12 +20,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.observer.DConnectObservationService;
@@ -68,14 +69,10 @@ public class WarningDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         Dialog dialog = builder.setTitle(getString(R.string.activity_warning))
                 .setMessage(getString(R.string.activity_warning_mess)).setView(view)
-                .setPositiveButton(R.string.activity_warning_ok, new OnClickListener() {
-
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        CheckBox box = (CheckBox) view.findViewById(R.id.disable_observer);
-                        mDisableFlg = box.isChecked();
-                        dismiss();
-                    }
+                .setPositiveButton(R.string.activity_warning_ok, (dialogs, which) -> {
+                    CheckBox box = view.findViewById(R.id.disable_observer);
+                    mDisableFlg = box.isChecked();
+                    dismiss();
                 }).create();
 
         dialog.setCanceledOnTouchOutside(false);

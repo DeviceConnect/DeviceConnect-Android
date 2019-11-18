@@ -43,32 +43,16 @@ class FileTask implements Runnable {
     @Override
     public void run() {
         try {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    onBeforeTask();
-                }
-            });
+            post(this::onBeforeTask);
             execute();
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    onAfterTask();
-                }
-            });
+            post(this::onAfterTask);
         } catch (final IOException e) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    onFileError(e);
-                }
+            post(() -> {
+                onFileError(e);
             });
         } catch (final Throwable e) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    onUnexpectedError(e);
-                }
+            post(() -> {
+                onUnexpectedError(e);
             });
         }
     }

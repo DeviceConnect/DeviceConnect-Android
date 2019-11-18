@@ -11,14 +11,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.SwitchCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import android.view.View;
-import android.widget.CompoundButton;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
@@ -123,7 +123,7 @@ public class DevicePluginInfoActivity extends BaseSettingActivity {
             actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);
             actionBar.setCustomView(R.layout.action_bar_plugin_enable_status);
 
-            mStatusSwitch = (SwitchCompat) actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
+            mStatusSwitch =  actionBar.getCustomView().findViewById(R.id.switch_plugin_enable_status);
             mStatusSwitch.setOnCheckedChangeListener((button, isOn) -> {
                 // 再起動ボタンの有効状態を変更
                 FragmentManager fm = getSupportFragmentManager();

@@ -65,31 +65,29 @@ public class HostVibrationProfile extends VibrationProfile {
 
                 // 振動パターンを開始させたら、すぐに処理を続けたいので、
                 // 振動パターン再生部分は別スレッドで実行。
-                Executors.newSingleThreadExecutor().execute(new Thread() {
-                    public void run() {
-                        boolean vibrateMode = true;
-                        for (Long dur : pattern) {
-                            if (mIsCancelled) {
-                                break;
-                            }
-
-                            if (vibrateMode) {
-                                vibrator.vibrate(dur);
-                            }
-
-                            // 振動モード: vibrate()は直にリターンされるので、振動時間分だけ待ち時間を入れる。
-                            // 無振動モード: 無振動時間分だけ待ち時間を入れる。
-                            try {
-                                Thread.sleep(dur);
-                            } catch (InterruptedException e) {
-                                if (BuildConfig.DEBUG) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                            vibrateMode = !vibrateMode;
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    boolean vibrateMode = true;
+                    for (Long dur : pattern) {
+                        if (mIsCancelled) {
+                            break;
                         }
-                    };
+
+                        if (vibrateMode) {
+                            vibrator.vibrate(dur);
+                        }
+
+                        // 振動モード: vibrate()は直にリターンされるので、振動時間分だけ待ち時間を入れる。
+                        // 無振動モード: 無振動時間分だけ待ち時間を入れる。
+                        try {
+                            Thread.sleep(dur);
+                        } catch (InterruptedException e) {
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        vibrateMode = !vibrateMode;
+                    }
                 });
 
                 // 振動パターン再生セッションを終えたので、キャンセルフラグを初期化。

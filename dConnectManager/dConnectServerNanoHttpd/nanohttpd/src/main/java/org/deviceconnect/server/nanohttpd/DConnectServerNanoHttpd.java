@@ -272,20 +272,17 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             mServer.makeSecure(factory, null);
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mServer.start();
-                    if (mListener != null) {
-                        mListener.onServerLaunched();
-                    }
-                } catch (IOException e) {
-                    if (mListener != null) {
-                        mListener.onError(DConnectServerError.LAUNCH_FAILED);
-                    }
-                    mLogger.warning("Exception in the DConnectServerNanoHttpd#start() method. " + e.toString());
+        new Thread(() -> {
+            try {
+                mServer.start();
+                if (mListener != null) {
+                    mListener.onServerLaunched();
                 }
+            } catch (IOException e) {
+                if (mListener != null) {
+                    mListener.onError(DConnectServerError.LAUNCH_FAILED);
+                }
+                mLogger.warning("Exception in the DConnectServerNanoHttpd#start() method. " + e.toString());
             }
         }).start();
     }

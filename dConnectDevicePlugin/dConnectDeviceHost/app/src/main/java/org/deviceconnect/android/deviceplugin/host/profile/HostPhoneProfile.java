@@ -18,7 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 
@@ -276,27 +276,24 @@ public class HostPhoneProfile extends PhoneProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            return doPrivileged(new Runnable() {
-                @Override
-                public void run() {
-                    EventError error = EventManager.INSTANCE.addEvent(request);
-                    if (error == EventError.NONE) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } else {
-                        switch (error) {
-                            case FAILED:
-                                MessageUtils.setUnknownError(response, "Do not unregister event.");
-                                break;
-                            case INVALID_PARAMETER:
-                                MessageUtils.setInvalidRequestParameterError(response);
-                                break;
-                            case NOT_FOUND:
-                                MessageUtils.setUnknownError(response, "Event not found.");
-                                break;
-                            default:
-                                MessageUtils.setUnknownError(response);
-                                break;
-                        }
+            return doPrivileged(() -> {
+                EventError error = EventManager.INSTANCE.addEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    switch (error) {
+                        case FAILED:
+                            MessageUtils.setUnknownError(response, "Do not unregister event.");
+                            break;
+                        case INVALID_PARAMETER:
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            break;
+                        case NOT_FOUND:
+                            MessageUtils.setUnknownError(response, "Event not found.");
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response);
+                            break;
                     }
                 }
             }, response);
@@ -346,13 +343,10 @@ public class HostPhoneProfile extends PhoneProfile {
         @TargetApi(26)
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            return doPrivileged(new Runnable() {
-                @Override
-                public void run() {
-                    TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
-                    telecomMgr.acceptRingingCall();
-                    setResult(response, IntentDConnectMessage.RESULT_OK);
-                }
+            return doPrivileged(() -> {
+                TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+                telecomMgr.acceptRingingCall();
+                setResult(response, IntentDConnectMessage.RESULT_OK);
             }, response);
         }
     };
@@ -381,13 +375,10 @@ public class HostPhoneProfile extends PhoneProfile {
         @TargetApi(28)
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            return doPrivileged(new Runnable() {
-                @Override
-                public void run() {
-                    TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
-                    telecomMgr.endCall();
-                    setResult(response, IntentDConnectMessage.RESULT_OK);
-                }
+            return doPrivileged(() -> {
+                TelecomManager telecomMgr = (TelecomManager) getContext().getSystemService(Context.TELECOM_SERVICE);
+                telecomMgr.endCall();
+                setResult(response, IntentDConnectMessage.RESULT_OK);
             }, response);
         }
     };

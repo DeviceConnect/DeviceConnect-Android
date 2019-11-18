@@ -88,12 +88,9 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
         mVideoView.setVideoURI(mUri);
         mVideoView.requestFocus();
         mVideoView.setOnCompletionListener(this);
-        mVideoView.setOnPreparedListener(new OnPreparedListener() {
-            @Override
-            public void onPrepared(final MediaPlayer mp) {
-                mVideoView.start();
-                mIsReady = true;
-            }
+        mVideoView.setOnPreparedListener((mp) -> {
+            mVideoView.start();
+            mIsReady = true;
         });
     }
 

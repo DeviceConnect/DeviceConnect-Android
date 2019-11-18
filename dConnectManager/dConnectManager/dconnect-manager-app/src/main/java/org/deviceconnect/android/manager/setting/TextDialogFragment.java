@@ -36,7 +36,7 @@ public class TextDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         View view = View.inflate(getActivity(), R.layout.fragment_privacypolicy, null);
-        TextView text = (TextView) view.findViewById(android.R.id.text1);
+        TextView text = view.findViewById(android.R.id.text1);
 
         InputStream is = null;
         try {
@@ -66,11 +66,8 @@ public class TextDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(view);
         builder.setTitle(getArguments().getInt(Intent.EXTRA_TITLE));
-        builder.setPositiveButton(R.string.activity_settings_close, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                dialog.dismiss();
-            }
+        builder.setPositiveButton(R.string.activity_settings_close, (dialog, which) -> {
+            dialog.dismiss();
         });
         return builder.create();
     }

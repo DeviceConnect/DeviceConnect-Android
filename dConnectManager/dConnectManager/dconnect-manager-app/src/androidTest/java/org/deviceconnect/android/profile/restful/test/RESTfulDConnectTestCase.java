@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectSDKFactory;

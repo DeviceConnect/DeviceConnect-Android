@@ -63,17 +63,14 @@ public class OpenSourceLicenseFragment extends DialogFragment {
             adapter.addAll(getArguments().getParcelableArrayList(EXTRA_OSS));
         }
 
-        ListView listView = (ListView) lframe.findViewById(android.R.id.list);
+        ListView listView = lframe.findViewById(android.R.id.list);
         listView.setAdapter(adapter);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.activity_settings_open_source_licenses);
         builder.setView(lframe);
-        builder.setPositiveButton(R.string.activity_settings_close, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                dialog.dismiss();
-            }
+        builder.setPositiveButton(R.string.activity_settings_close, (dialog, which) -> {
+            dialog.dismiss();
         });
 
         return builder.create();

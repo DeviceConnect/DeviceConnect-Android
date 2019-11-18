@@ -23,7 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,6 +30,8 @@ import android.view.View.OnTouchListener;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_DOWN;
 import static org.deviceconnect.android.deviceplugin.host.HostDeviceApplication.STATE_UP;
@@ -168,7 +169,7 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
 
     @Override
     public void onCheckedChanged(final RadioGroup group, final int checkedId) {
-        RadioButton radioButton = (RadioButton) findViewById(checkedId);
+        RadioButton radioButton = findViewById(checkedId);
 
         // Change key mode.
         int i = radioButton.getId();

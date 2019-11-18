@@ -11,8 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.Window;
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -140,11 +140,8 @@ public class DConnectHostResolver extends AppCompatActivity implements AlertDial
     }
 
     private void requestConfirmDialog() {
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                showConfirmDialog();
-            }
+        Runnable task = () -> {
+            showConfirmDialog();
         };
         if (isResumed()) {
             task.run();

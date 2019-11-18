@@ -252,20 +252,14 @@ public class HostMediaPlayerManager {
                 mMyCurrentFileMIMEType = mMineType;
                 mMediaStatus = MEDIA_PLAYER_SET;
                 mMediaPlayer.setDataSource(filePath);
-                mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(final MediaPlayer arg0) {
-                        mMediaStatus = MEDIA_PLAYER_COMPLETE;
-                        sendOnStatusChangeEvent("complete");
-                    }
+                mMediaPlayer.setOnCompletionListener((mp) -> {
+                    mMediaStatus = MEDIA_PLAYER_COMPLETE;
+                    sendOnStatusChangeEvent("complete");
                 });
                 mMediaPlayer.prepareAsync();
                 mMyCurrentMediaPosition = 0;
-                mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(final MediaPlayer mp) {
-                        mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
-                    }
+                mMediaPlayer.setOnPreparedListener((mp) -> {
+                    mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
                 });
 
                 if (response != null) {

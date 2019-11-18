@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.manager.test;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
 import org.deviceconnect.android.test.http.HttpUtil;

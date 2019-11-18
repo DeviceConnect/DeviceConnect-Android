@@ -10,7 +10,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.provider.FileManager;

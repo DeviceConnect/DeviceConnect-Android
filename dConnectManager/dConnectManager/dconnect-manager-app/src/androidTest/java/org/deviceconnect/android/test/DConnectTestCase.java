@@ -7,7 +7,7 @@
 package org.deviceconnect.android.test;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -18,7 +18,6 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 
 import java.util.ArrayList;

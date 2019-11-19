@@ -22,9 +22,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -461,7 +463,7 @@ public class HostMediaPlayerManager {
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mHostDevicePluginContext.getContext().registerReceiver(mMediaPlayerVideoBR, mIfMediaPlayerVideo);
-            String className = getClassnameOfTopActivity();
+            String className = getApp().getClassnameOfTopActivity();
 
             if (VideoPlayer.class.getName().equals(className)) {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
@@ -469,7 +471,6 @@ public class HostMediaPlayerManager {
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
                 getContext().sendBroadcast(mIntent);
                 sendOnStatusChangeEvent("play");
-
             } else {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
@@ -568,7 +569,7 @@ public class HostMediaPlayerManager {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             return mMediaPlayer.getCurrentPosition() / UNIT_SEC;
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
-            String className = getClassnameOfTopActivity();
+            String className = getApp().getClassnameOfTopActivity();
             if (VideoPlayer.class.getName().equals(className)) {
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_GET_POS);
@@ -719,7 +720,7 @@ public class HostMediaPlayerManager {
      * @param response レスポンス
      */
     public void getPlayStatus(final Intent response) {
-        String mClassName = getClassnameOfTopActivity();
+        String mClassName = getApp().getClassnameOfTopActivity();
 
         // VideoRecorderの場合は、画面から消えている場合
         if (mSetMediaType == MEDIA_TYPE_VIDEO) {
@@ -793,14 +794,8 @@ public class HostMediaPlayerManager {
         mExt = mExt.toLowerCase(Locale.getDefault());
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(mExt);
     }
-
-    /**
-     * 画面の一番上にでているActivityのクラス名を取得.
-     *
-     * @return クラス名
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        return mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+    private HostDeviceApplication getApp() {
+        return (HostDeviceApplication) getContext().getApplicationContext();
     }
+
 }

@@ -6,9 +6,14 @@
  */
 package org.deviceconnect.android.deviceplugin.host;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.profile.BatteryProfile;
@@ -31,7 +36,7 @@ import static org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfi
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceApplication extends Application {
+public class HostDeviceApplication extends Application implements Application.ActivityLifecycleCallbacks{
 
     /** Cache retention time (mSec). */
     static final long CACHE_RETENTION_TIME = 10000;
@@ -192,6 +197,9 @@ public class HostDeviceApplication extends Application {
     public static final String STATE_UP = "up";
     /** KeyEvent State cancel. */
     public static final String STATE_DOWN = "down";
+
+    /** 現在表示されているActivity名. */
+    private String mNowTopActivityClassName = "";
     /**
      * Get KeyEvent cache data.
      * 
@@ -221,6 +229,14 @@ public class HostDeviceApplication extends Application {
         } else {
             return null;
         }
+    }
+
+    /**
+     * HostプラグインがサポートしているActivity(Manager含む)の名前を返す.
+     * @return 現在表示されているActivity名
+     */
+    public String getClassnameOfTopActivity() {
+        return mNowTopActivityClassName;
     }
 
     /**
@@ -256,12 +272,45 @@ public class HostDeviceApplication extends Application {
             logger.setLevel(Level.ALL);
         } else {
             logger.setLevel(Level.OFF);
-            logger.setFilter(new Filter() {
-                @Override
-                public boolean isLoggable(final LogRecord record) {
-                    return false;
-                }
-            });
+            logger.setFilter((record) -> false);
         }
+        registerActivityLifecycleCallbacks(this);
+    }
+
+    @Override
+    public void onTerminate() {
+        unregisterActivityLifecycleCallbacks(this);
+        super.onTerminate();
+    }
+    @Override
+    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle bundle) {
+    }
+
+    @Override
+    public void onActivityStarted(@NonNull Activity activity) {
+        mNowTopActivityClassName = activity.getLocalClassName();
+    }
+
+    @Override
+    public void onActivityResumed(@NonNull Activity activity) {
+        mNowTopActivityClassName = activity.getLocalClassName();
+    }
+
+    @Override
+    public void onActivityPaused(@NonNull Activity activity) {
+    }
+
+    @Override
+    public void onActivityStopped(@NonNull Activity activity) {
+        mNowTopActivityClassName = "";
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle bundle) {
+    }
+
+    @Override
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        mNowTopActivityClassName = "";
     }
 }

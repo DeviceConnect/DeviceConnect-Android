@@ -582,8 +582,7 @@ public class HostTouchProfile extends TouchProfile {
      * @return Always true.
      */
     private boolean execTouchProfileActivity(final String serviceId) {
-        ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+        String mClassName = getApp().getClassnameOfTopActivity();
 
         if (!(TouchProfileActivity.class.getName().equals(mClassName))) {
             Intent mIntent = new Intent();
@@ -606,7 +605,7 @@ public class HostTouchProfile extends TouchProfile {
      * @return Always true.
      */
     private boolean finishTouchProfileActivity() {
-        String className = getClassnameOfTopActivity();
+        String className = getApp().getClassnameOfTopActivity();
         if (TouchProfileActivity.class.getName().equals(className)) {
             Intent intent = new Intent(HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY);
             LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
@@ -633,16 +632,6 @@ public class HostTouchProfile extends TouchProfile {
         if (sFlagTouchEventManage == 0) {
             finishTouchProfileActivity();
         }
-    }
-
-    /**
-     * Get the class name of the Activity being displayed at the top of the screen.
-     * 
-     * @return class name.
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
     }
 
     /**

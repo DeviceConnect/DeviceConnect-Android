@@ -84,7 +84,7 @@ public abstract class DConnectTestCase {
 
     @Before
     public void setUp() throws Exception {
-        setContext(InstrumentationRegistry.getContext());
+        setContext(InstrumentationRegistry.getInstrumentation().getTargetContext());
         mDConnectSDK.setOrigin(getOrigin());
         waitForManager();
         if (isLocalOAuth()) {
@@ -203,7 +203,7 @@ public abstract class DConnectTestCase {
      * @return Origin
      */
     protected String getOrigin() {
-        return InstrumentationRegistry.getContext().getPackageName();
+        return InstrumentationRegistry.getInstrumentation().getTargetContext().getPackageName();
     }
 
     /**

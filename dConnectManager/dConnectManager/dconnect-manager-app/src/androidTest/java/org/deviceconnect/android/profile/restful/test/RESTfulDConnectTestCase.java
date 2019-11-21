@@ -18,7 +18,7 @@ import org.deviceconnect.message.DConnectSDKFactory;
 public class RESTfulDConnectTestCase extends DConnectTestCase {
     @Override
     public void setUp() throws Exception {
-        mDConnectSDK = DConnectSDKFactory.create(InstrumentationRegistry.getContext(), DConnectSDKFactory.Type.HTTP);
+        mDConnectSDK = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getTargetContext(), DConnectSDKFactory.Type.HTTP);
         mDConnectSDK.setOrigin(getOrigin());
         super.setUp();
     }

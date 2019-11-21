@@ -124,7 +124,7 @@ public class StressTest extends RESTfulDConnectTestCase {
     }
 
     private File writeBigFile(final String prefix, final String suffix, final long size) throws IOException {
-        File file = InstrumentationRegistry.getTargetContext().getCacheDir();
+        File file = InstrumentationRegistry.getInstrumentation().getTargetContext().getCacheDir();
         FileOutputStream out = null;
         File dstFile = File.createTempFile(prefix, suffix, file);
         try {

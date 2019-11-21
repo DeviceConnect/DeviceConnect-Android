@@ -101,6 +101,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mMediaRecorder.setOutputFile(outputFile.getAbsolutePath());
+
         mMediaRecorder.setVideoEncodingBitRate(10000000);
         mMediaRecorder.setVideoFrameRate(30);
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
@@ -163,25 +164,17 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
         Runnable r;
         if (!mIsRecording) {
             mIsRecording = true;
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        setUpMediaRecorder(mOutputFile);
-                        mMediaRecorder.start();
-                        listener.onRecordingStart();
-                    } catch (IllegalStateException | IOException e) {
-                        listener.onRecordingStartError(e);
-                    }
+            r = () -> {
+                try {
+                    setUpMediaRecorder(mOutputFile);
+                    mMediaRecorder.start();
+                    listener.onRecordingStart();
+                } catch (IllegalStateException | IOException e) {
+                    listener.onRecordingStartError(e);
                 }
             };
         } else {
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    listener.onRecordingStart();
-                }
-            };
+            r = listener::onRecordingStart;
         }
         mRecorderThread.post(r);
     }
@@ -197,9 +190,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
                 listener.onRecordingStop();
             };
         } else {
-            r = () -> {
-                listener.onRecordingStop();
-            };
+            r = listener::onRecordingStop;
         }
         mRecorderThread.post(r);
     }

@@ -87,7 +87,7 @@ public class DConnectServerNanoHttpdTest {
     private static final int PORT = 9999;
     
     private Context getContext() {
-        return InstrumentationRegistry.getTargetContext();
+        return InstrumentationRegistry.getInstrumentation().getTargetContext();
     }
 
     /**

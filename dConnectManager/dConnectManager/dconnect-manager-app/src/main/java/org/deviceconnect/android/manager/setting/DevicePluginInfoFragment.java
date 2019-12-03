@@ -16,7 +16,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +24,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfile;
 import org.deviceconnect.android.localoauth.DevicePluginXmlProfileLocale;
@@ -271,9 +272,9 @@ public class DevicePluginInfoFragment extends BaseSettingFragment {
         runOnUiThread(() -> {
             View view = getView();
             if (view != null) {
-                Button settingBtn = (Button) view.findViewById(R.id.plugin_settings_btn);
+                Button settingBtn =  view.findViewById(R.id.plugin_settings_btn);
                 settingBtn.setEnabled(isEnabled);
-                Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
+                Button restartBtn = view.findViewById(R.id.plugin_restart_btn);
                 restartBtn.setEnabled(isEnabled);
             }
         });

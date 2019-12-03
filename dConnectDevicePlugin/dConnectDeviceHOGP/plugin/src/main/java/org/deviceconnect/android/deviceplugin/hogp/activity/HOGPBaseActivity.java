@@ -12,8 +12,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import org.deviceconnect.android.deviceplugin.hogp.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hogp.HOGPMessageService;

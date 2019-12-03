@@ -113,17 +113,14 @@ public class RestartingDialogFragment extends DialogFragment {
                 final String title = activity.getString(R.string.dconnect_error_plugin_not_detected_title);
 
                 // エラーダイアログ表示
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mDialog.isResumed()) {
-                            Bundle args = new Bundle();
-                            args.putString(ErrorDialogFragment.EXTRA_TITLE, title);
-                            args.putString(ErrorDialogFragment.EXTRA_MESSAGE, message);
-                            ErrorDialogFragment f = new ErrorDialogFragment();
-                            f.setArguments(args);
-                            f.show(activity.getSupportFragmentManager(), "error");
-                        }
+                activity.runOnUiThread(() -> {
+                    if (mDialog.isResumed()) {
+                        Bundle args = new Bundle();
+                        args.putString(ErrorDialogFragment.EXTRA_TITLE, title);
+                        args.putString(ErrorDialogFragment.EXTRA_MESSAGE, message);
+                        ErrorDialogFragment f = new ErrorDialogFragment();
+                        f.setArguments(args);
+                        f.show(activity.getSupportFragmentManager(), "error");
                     }
                 });
             }

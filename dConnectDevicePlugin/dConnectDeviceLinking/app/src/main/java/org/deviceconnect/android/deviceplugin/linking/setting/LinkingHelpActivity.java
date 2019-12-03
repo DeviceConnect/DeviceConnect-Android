@@ -8,12 +8,12 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -65,7 +65,7 @@ public class LinkingHelpActivity extends AppCompatActivity {
         }
 
         FragmentManager manager = getSupportFragmentManager();
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
+        final ViewPager viewPager =  findViewById(R.id.viewPager);
         if (viewPager != null) {
             viewPager.setAdapter(new MyFragmentPagerAdapter(manager));
             viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -83,44 +83,35 @@ public class LinkingHelpActivity extends AppCompatActivity {
             });
         }
 
-        Button linkingAppBtn = (Button) findViewById(R.id.fragment_linking_app);
+        Button linkingAppBtn = findViewById(R.id.fragment_linking_app);
         if (linkingAppBtn != null) {
-            linkingAppBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    LinkingUtil.startLinkingApp(getApplicationContext());
-                }
+            linkingAppBtn.setOnClickListener((v) -> {
+                LinkingUtil.startLinkingApp(getApplicationContext());
             });
         }
 
         Button nextBtn = (Button) findViewById(R.id.fragment_linking_help_next);
         if (nextBtn != null) {
-            nextBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (viewPager != null) {
-                        int pos = viewPager.getCurrentItem() + 1;
-                        if (pos > HELP_RES_ID[mScreenId].length - 1) {
-                            pos = HELP_RES_ID[mScreenId].length - 1;
-                        }
-                        viewPager.setCurrentItem(pos);
+            nextBtn.setOnClickListener((v) -> {
+                if (viewPager != null) {
+                    int pos = viewPager.getCurrentItem() + 1;
+                    if (pos > HELP_RES_ID[mScreenId].length - 1) {
+                        pos = HELP_RES_ID[mScreenId].length - 1;
                     }
+                    viewPager.setCurrentItem(pos);
                 }
             });
         }
 
-        Button preBtn = (Button) findViewById(R.id.fragment_linking_help_pre);
+        Button preBtn = findViewById(R.id.fragment_linking_help_pre);
         if (preBtn != null) {
-            preBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (viewPager != null) {
-                        int pos = viewPager.getCurrentItem() - 1;
-                        if (pos < 0) {
-                            pos = 0;
-                        }
-                        viewPager.setCurrentItem(pos);
+            preBtn.setOnClickListener((v) -> {
+                if (viewPager != null) {
+                    int pos = viewPager.getCurrentItem() - 1;
+                    if (pos < 0) {
+                        pos = 0;
                     }
+                    viewPager.setCurrentItem(pos);
                 }
             });
         }
@@ -138,9 +129,9 @@ public class LinkingHelpActivity extends AppCompatActivity {
     }
 
     private void set() {
-        Button nextBtn = (Button) findViewById(R.id.fragment_linking_help_next);
-        Button preBtn = (Button) findViewById(R.id.fragment_linking_help_pre);
-        ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
+        Button nextBtn = findViewById(R.id.fragment_linking_help_next);
+        Button preBtn = findViewById(R.id.fragment_linking_help_pre);
+        ViewPager viewPager =  findViewById(R.id.viewPager);
         if (viewPager != null && nextBtn != null && preBtn != null) {
             int position = viewPager.getCurrentItem();
             if (position == 0) {

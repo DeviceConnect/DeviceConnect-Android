@@ -199,12 +199,12 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                     .getNetworkInterfaces();
             LinkedList<InetAddress> localAddresses = new LinkedList<InetAddress>();
             while (networkInterfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = (NetworkInterface) networkInterfaces
+                NetworkInterface networkInterface = networkInterfaces
                         .nextElement();
                 Enumeration<InetAddress> ipAddrs = networkInterface
                         .getInetAddresses();
                 while (ipAddrs.hasMoreElements()) {
-                    InetAddress ip = (InetAddress) ipAddrs.nextElement();
+                    InetAddress ip = ipAddrs.nextElement();
                     String ipStr = ip.getHostAddress();
 
                     mLogger.info("Searching IP Address: Address=" + ipStr

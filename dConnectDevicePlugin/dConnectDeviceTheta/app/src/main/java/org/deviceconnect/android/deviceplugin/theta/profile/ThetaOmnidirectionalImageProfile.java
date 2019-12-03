@@ -153,81 +153,78 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private void requestView(final Intent request, final Intent response, final String serviceId,
                              final String source, final boolean isGet) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    final String serverUri = startMediaServer();
-                    final String id = generateId();
-                    final String resourceUri = serverUri + "/" + id;
-                    final String[] outputs = parseOutputs(getOutput(request));
+        mExecutor.execute(() -> {
+            try {
+                final String serverUri = startMediaServer();
+                final String id = generateId();
+                final String resourceUri = serverUri + "/" + id;
+                final String[] outputs = parseOutputs(getOutput(request));
 
-                    Projector projector;
-                    if (isRequiredOverlay(outputs)) {
-                        if (!checkOverlayPermission()) {
-                            MessageUtils.setIllegalDeviceStateError(response, "Overlay is not allowed.");
-                            ((ThetaDeviceService) getContext()).sendResponse(response);
-                            return;
-                        }
-
-                        projector = new OverlayProjector(getContext());
-                    } else if (isRequiredMJPEG(outputs)) {
-                        projector = new DefaultProjector();
-                    } else {
-                        MessageUtils.setInvalidRequestParameterError(response);
+                Projector projector;
+                if (isRequiredOverlay(outputs)) {
+                    if (!checkOverlayPermission()) {
+                        MessageUtils.setIllegalDeviceStateError(response, "Overlay is not allowed.");
                         ((ThetaDeviceService) getContext()).sendResponse(response);
                         return;
                     }
 
-                    SphericalViewRenderer renderer = new SphericalViewRenderer();
-                    renderer.setFlipVertical(true);
-                    renderer.setStereoImageType(SphericalViewRenderer.StereoImageType.DOUBLE);
-                    renderer.setScreenSizeMutable(true);
-                    renderer.setScreenSettings(600, 400, false);
-                    projector.setRenderer(renderer);
-                    if (isRequiredMJPEG(outputs)) {
-                        projector.setScreen(new ProjectionScreen() {
-                            @Override
-                            public void onStart(final Projector projector) {
-                            }
-
-                            @Override
-                            public void onProjected(final Projector projector, final byte[] frame) {
-                                mServer.offerMedia(id, frame);
-                            }
-
-                            @Override
-                            public void onStop(final Projector projector) {
-                            }
-                        });
-                    }
-
-                    ImageViewer viewer = new ImageViewer(getContext());
-                    viewer.setId(id);
-                    viewer.setHeadTracker(mHeadTracker);
-                    viewer.setImage(source);
-                    viewer.setProjector(projector);
-                    viewer.start();
-                    mViewers.put(resourceUri, viewer);
-
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    if (isGet) {
-                        setURI(response, resourceUri + "?snapshot");
-                    } else {
-                        setURI(response, resourceUri);
-                    }
-                } catch (MalformedURLException e) {
-                    MessageUtils.setInvalidRequestParameterError(response, "uri is malformed: " + source);
-                } catch (FileNotFoundException e) {
-                    MessageUtils.setInvalidRequestParameterError(response, "Image is not found: " + source);
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    MessageUtils.setUnknownError(response, e.getMessage());
+                    projector = new OverlayProjector(getContext());
+                } else if (isRequiredMJPEG(outputs)) {
+                    projector = new DefaultProjector();
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    ((ThetaDeviceService) getContext()).sendResponse(response);
+                    return;
                 }
-                ((ThetaDeviceService) getContext()).sendResponse(response);
+
+                SphericalViewRenderer renderer = new SphericalViewRenderer();
+                renderer.setFlipVertical(true);
+                renderer.setStereoImageType(SphericalViewRenderer.StereoImageType.DOUBLE);
+                renderer.setScreenSizeMutable(true);
+                renderer.setScreenSettings(600, 400, false);
+                projector.setRenderer(renderer);
+                if (isRequiredMJPEG(outputs)) {
+                    projector.setScreen(new ProjectionScreen() {
+                        @Override
+                        public void onStart(final Projector projector) {
+                        }
+
+                        @Override
+                        public void onProjected(final Projector projector, final byte[] frame) {
+                            mServer.offerMedia(id, frame);
+                        }
+
+                        @Override
+                        public void onStop(final Projector projector) {
+                        }
+                    });
+                }
+
+                ImageViewer viewer = new ImageViewer(getContext());
+                viewer.setId(id);
+                viewer.setHeadTracker(mHeadTracker);
+                viewer.setImage(source);
+                viewer.setProjector(projector);
+                viewer.start();
+                mViewers.put(resourceUri, viewer);
+
+                setResult(response, DConnectMessage.RESULT_OK);
+                if (isGet) {
+                    setURI(response, resourceUri + "?snapshot");
+                } else {
+                    setURI(response, resourceUri);
+                }
+            } catch (MalformedURLException e) {
+                MessageUtils.setInvalidRequestParameterError(response, "uri is malformed: " + source);
+            } catch (FileNotFoundException e) {
+                MessageUtils.setInvalidRequestParameterError(response, "Image is not found: " + source);
+            } catch (IOException e) {
+                MessageUtils.setUnknownError(response, e.getMessage());
+            } catch (Throwable e) {
+                e.printStackTrace();
+                MessageUtils.setUnknownError(response, e.getMessage());
             }
+            ((ThetaDeviceService) getContext()).sendResponse(response);
         });
     }
 
@@ -384,16 +381,13 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     public void forceStopPreview() {
         /** プレビュー停止処理 */
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                for (Map.Entry<String, Viewer> entry : mViewers.entrySet()) {
-                    Viewer viewer = entry.getValue();
-                    if (viewer != null) {
-                        viewer.stop();
-                        mServer.stopMedia(viewer.getId());
-                        mViewers.remove(viewer.getId());
-                    }
+        mExecutor.execute(() -> {
+            for (Map.Entry<String, Viewer> entry : mViewers.entrySet()) {
+                Viewer viewer = entry.getValue();
+                if (viewer != null) {
+                    viewer.stop();
+                    mServer.stopMedia(viewer.getId());
+                    mViewers.remove(viewer.getId());
                 }
             }
         });

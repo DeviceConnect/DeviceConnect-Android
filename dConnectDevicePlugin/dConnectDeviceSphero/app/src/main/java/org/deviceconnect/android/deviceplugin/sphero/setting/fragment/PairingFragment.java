@@ -13,14 +13,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.sphero.R;
@@ -39,15 +40,12 @@ public class PairingFragment extends Fragment {
                 final Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.setting_pairing, null);
         
-        final ImageView image = (ImageView) root.findViewById(R.id.animView);
+        final ImageView image = root.findViewById(R.id.animView);
         image.setBackgroundResource(R.drawable.sphero_light);
         
-        Button button = (Button) root.findViewById(R.id.btnSetting);
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));
-            }
+        Button button = root.findViewById(R.id.btnSetting);
+        button.setOnClickListener((v) -> {
+            startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));
         });
         View permission = root.findViewById(R.id.ble_permission);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -56,15 +54,12 @@ public class PairingFragment extends Fragment {
             permission.setVisibility(View.VISIBLE);
         }
 
-        mBlePermissionBtn = (Button) root.findViewById(R.id.button_permission);
-        mBlePermissionBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (BleUtils.isBLEPermission(getActivity())) {
-                    openAndroidSettings();
-                } else {
-                    requestPermissions();
-                }
+        mBlePermissionBtn = root.findViewById(R.id.button_permission);
+        mBlePermissionBtn.setOnClickListener((v) -> {
+            if (BleUtils.isBLEPermission(getActivity())) {
+                openAndroidSettings();
+            } else {
+                requestPermissions();
             }
         });
         return root;
@@ -75,7 +70,7 @@ public class PairingFragment extends Fragment {
         super.onResume();
         View root = getView();
         if (root != null) {
-            ImageView image = (ImageView) root.findViewById(R.id.animView);
+            ImageView image = root.findViewById(R.id.animView);
             AnimationDrawable anim = (AnimationDrawable) image.getBackground();
             anim.start();
         }
@@ -95,7 +90,7 @@ public class PairingFragment extends Fragment {
         super.onPause();
         View root = getView();
         if (root != null) {
-            ImageView image = (ImageView) root.findViewById(R.id.animView);
+            ImageView image = root.findViewById(R.id.animView);
             AnimationDrawable anim = (AnimationDrawable) image.getBackground();
             anim.stop();
         }

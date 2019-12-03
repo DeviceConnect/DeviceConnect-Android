@@ -9,7 +9,7 @@ package org.deviceconnect.android.ui.activity;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
+import androidx.viewpager.widget.ViewPager;
 import android.view.MenuItem;
 import android.view.View;
 

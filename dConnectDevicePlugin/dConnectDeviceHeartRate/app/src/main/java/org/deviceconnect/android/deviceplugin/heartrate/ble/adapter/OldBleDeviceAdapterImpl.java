@@ -60,12 +60,9 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
         return BluetoothAdapter.checkBluetoothAddress(address);
     }
 
-    private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
-            if (mCallback != null) {
-                mCallback.onLeScan(device, rssi);
-            }
+    private final BluetoothAdapter.LeScanCallback mLeScanCallback = (device, rssi, scanRecord) -> {
+        if (mCallback != null) {
+            mCallback.onLeScan(device, rssi);
         }
     };
 }

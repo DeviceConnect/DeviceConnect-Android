@@ -8,11 +8,12 @@ package org.deviceconnect.android.deviceplugin.sphero.setting.fragment;
 
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.sphero.R;
 
@@ -26,7 +27,7 @@ public class WakeupFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, 
             final ViewGroup container, final Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.setting_wakeup, null);
-        final ImageView image = (ImageView) root.findViewById(R.id.animView001);
+        final ImageView image = root.findViewById(R.id.animView001);
         image.setBackgroundResource(R.drawable.sphero_light);
         
         return root;
@@ -37,7 +38,7 @@ public class WakeupFragment extends Fragment {
         super.onResume();
         View root = getView();
         if (root != null) {
-            ImageView image = (ImageView) root.findViewById(R.id.animView001);
+            ImageView image = root.findViewById(R.id.animView001);
             AnimationDrawable anim = (AnimationDrawable) image.getBackground();
             anim.start();
         }
@@ -48,7 +49,7 @@ public class WakeupFragment extends Fragment {
         super.onPause();
         View root = getView();
         if (root != null) {
-            ImageView image = (ImageView) root.findViewById(R.id.animView001);
+            ImageView image = root.findViewById(R.id.animView001);
             AnimationDrawable anim = (AnimationDrawable) image.getBackground();
             anim.stop();
         }

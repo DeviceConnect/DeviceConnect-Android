@@ -7,7 +7,7 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;

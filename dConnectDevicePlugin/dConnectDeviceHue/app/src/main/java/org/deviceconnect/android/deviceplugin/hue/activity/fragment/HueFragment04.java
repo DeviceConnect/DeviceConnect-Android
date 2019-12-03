@@ -12,9 +12,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Spanned;
@@ -31,6 +28,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHAccessPoint;
@@ -93,23 +94,17 @@ public class HueFragment04 extends Fragment {
             mListAdapter = new ListAdapter(getActivity(), new ArrayList<PHLight>());
         }
 
-        ListView listView = (ListView) view.findViewById(R.id.light_list_view);
+        ListView listView = view.findViewById(R.id.light_list_view);
         listView.setAdapter(mListAdapter);
 
-        Button autoBtn = (Button) view.findViewById(R.id.btn_auto_add);
-        autoBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                searchLightAutomatic();
-            }
+        Button autoBtn =  view.findViewById(R.id.btn_auto_add);
+        autoBtn.setOnClickListener((v) -> {
+            searchLightAutomatic();
         });
 
-        Button manualBtn = (Button) view.findViewById(R.id.btn_manual_add);
-        manualBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                editSerial();
-            }
+        Button manualBtn = view.findViewById(R.id.btn_manual_add);
+        manualBtn.setOnClickListener((v) -> {
+            editSerial();
         });
 
         return view;
@@ -128,47 +123,36 @@ public class HueFragment04 extends Fragment {
      */
     private void editSerial() {
         final EditText editText = new EditText(getActivity());
-        editText.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN
-                        && keyCode == KeyEvent.KEYCODE_ENTER) {
-                    InputMethodManager inputMethodManager = (InputMethodManager)
-                            getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    return true;
-                }
-                return false;
+        editText.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN
+                    && keyCode == KeyEvent.KEYCODE_ENTER) {
+                InputMethodManager inputMethodManager = (InputMethodManager)
+                        getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                return true;
             }
+            return false;
         });
         AlertDialog dialog = new AlertDialog.Builder(getActivity())
                 .setTitle(R.string.frag04_serial_number_title)
                 .setMessage(R.string.frag04_serial_number_message)
                 .setView(editText)
-                .setPositiveButton(R.string.frag04_serial_ok, new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, final int whichButton) {
-                        String serial = editText.getText().toString();
-                        searchLightManually(serial);
-                    }
+                .setPositiveButton(R.string.frag04_serial_ok, (dialogs, whichButton) -> {
+                    String serial = editText.getText().toString();
+                    searchLightManually(serial);
                 })
-                .setNegativeButton(R.string.frag04_serial_cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, final int whichButton) {
-                    }
+                .setNegativeButton(R.string.frag04_serial_cancel, (dialogs, whichButton) -> {
                 })
                 .show();
         final Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         positiveButton.setEnabled(false);
 
         // Input limit of the serial number
-        InputFilter inputFilter = new InputFilter() {
-            @Override
-            public CharSequence filter(final CharSequence source, final int start, final int end,
-                                       final Spanned dest, final int dstart, final int dend) {
-                if (source.toString().matches("[0-9a-fA-F]+")) {
-                    return source;
-                } else {
-                    return "";
-                }
+        InputFilter inputFilter = (source, start, end, dest, dstart, dend) -> {
+            if (source.toString().matches("[0-9a-fA-F]+")) {
+                return source;
+            } else {
+                return "";
             }
         };
         InputFilter[] filters = new InputFilter[] {
@@ -264,13 +248,10 @@ public class HueFragment04 extends Fragment {
      * Close progress bar. 
      */
     private void closeProgressBar() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mProgressBar != null) {
-                    mProgressBar.dismiss();
-                    mProgressBar = null;
-                }
+        runOnUiThread(() -> {
+            if (mProgressBar != null) {
+                mProgressBar.dismiss();
+                mProgressBar = null;
             }
         });
     }
@@ -281,13 +262,10 @@ public class HueFragment04 extends Fragment {
      * @param message Show message.
      */
     private void showToast(final String message) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Activity activity = getActivity();
-                if (activity != null) {
-                    Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
-                }
+        runOnUiThread(() -> {
+            Activity activity = getActivity();
+            if (activity != null) {
+                Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -299,26 +277,20 @@ public class HueFragment04 extends Fragment {
      * </p>
      */
     private void showAuthenticationFailed() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Activity activity = getActivity();
-                if (activity == null) {
-                    return;
-                }
-
-                new AlertDialog.Builder(activity)
-                        .setTitle(R.string.frag02_failed)
-                        .setMessage(R.string.frag04_unauthorized_bridge)
-                        .setPositiveButton(R.string.hue_dialog_ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                                moveFirstFragment();
-                            }
-                        })
-                        .setCancelable(false)
-                        .show();
+        runOnUiThread(() -> {
+            Activity activity = getActivity();
+            if (activity == null) {
+                return;
             }
+
+            new AlertDialog.Builder(activity)
+                    .setTitle(R.string.frag02_failed)
+                    .setMessage(R.string.frag04_unauthorized_bridge)
+                    .setPositiveButton(R.string.hue_dialog_ok, (dialog, which) -> {
+                        moveFirstFragment();
+                    })
+                    .setCancelable(false)
+                    .show();
         });
     }
 
@@ -380,7 +352,7 @@ public class HueFragment04 extends Fragment {
 
             PHLight light = mLights.get(position);
 
-            TextView titleView = (TextView) view.findViewById(R.id.title);
+            TextView titleView = view.findViewById(R.id.title);
             titleView.setText(light.getName());
 
             return view;
@@ -447,11 +419,8 @@ public class HueFragment04 extends Fragment {
 
             View view = getView();
             if (view != null) {
-                view.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateListView();
-                    }
+                view.postDelayed(() -> {
+                    updateListView();
                 }, 400);
             }
         }

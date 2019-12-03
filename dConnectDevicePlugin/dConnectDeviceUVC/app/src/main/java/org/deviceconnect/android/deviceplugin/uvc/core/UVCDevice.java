@@ -11,16 +11,12 @@ import android.hardware.usb.UsbDevice;
 import android.view.Surface;
 import android.view.TextureView;
 
-import com.serenegiant.usb.IFrameCallback;
-import com.serenegiant.usb.IPreviewFrameCallback;
 import com.serenegiant.usb.Size;
 import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.usb.UVCCamera;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -197,16 +193,11 @@ public class UVCDevice {
             mCurrentOption = null;
             return false;
         }
-        mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
-            @Override
-            public void onFrame(final byte[] frame) {
-                if (checkFrameInterval()) {
-                    return;
-                }
-                notifyPreviewFrame(frame, frameFormat, width, height);
+        mCamera.setPreviewFrameCallback((frame) -> {
+            if (checkFrameInterval()) {
+                return;
             }
-
-
+            notifyPreviewFrame(frame, frameFormat, width, height);
         }, pixelFormat);
 
         return true;
@@ -245,11 +236,8 @@ public class UVCDevice {
         if (list.size() == 0) {
             return null;
         }
-        Collections.sort(list, new Comparator<Size>() {
-            @Override
-            public int compare(final Size s1, final Size s2) {
-                return -1 * (s2.width * s2.height - s1.width * s1.height); //最小
-            }
+        Collections.sort(list, (s1, s2) -> {
+            return -1 * (s2.width * s2.height - s1.width * s1.height); //最小
         });
         return list.get(0);
     }
@@ -271,11 +259,8 @@ public class UVCDevice {
         synchronized (mPreviewListeners) {
             for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
                 final PreviewListener l = it.next();
-                mExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        l.onFrame(UVCDevice.this, frame, frameFormat, width, height);
-                    }
+                mExecutor.execute(() -> {
+                    l.onFrame(UVCDevice.this, frame, frameFormat, width, height);
                 });
             }
         }
@@ -347,18 +332,15 @@ public class UVCDevice {
         List<PreviewOption> options = getPreviewOptions();
         final float ratio = requestedWidth / requestedHeight;
         final int area = requestedWidth * requestedHeight;
-        Collections.sort(options, new Comparator<PreviewOption>() {
-            @Override
-            public int compare(final PreviewOption op1, final PreviewOption op2) {
-                if (op1.getRatio() == op2.getRatio()) {
-                    int d1 = Math.abs(area - op1.getWidth() * op2.getHeight());
-                    int d2 = Math.abs(area - op2.getWidth() * op2.getHeight());
-                    return d1 - d2;
-                } else {
-                    float d1 = Math.abs(ratio - op1.getRatio());
-                    float d2 = Math.abs(ratio - op2.getRatio());
-                    return d1 > d2 ? 1 : d1 == d2 ? 0 : -1;
-                }
+        Collections.sort(options, (op1, op2) -> {
+            if (op1.getRatio() == op2.getRatio()) {
+                int d1 = Math.abs(area - op1.getWidth() * op2.getHeight());
+                int d2 = Math.abs(area - op2.getWidth() * op2.getHeight());
+                return d1 - d2;
+            } else {
+                float d1 = Math.abs(ratio - op1.getRatio());
+                float d2 = Math.abs(ratio - op2.getRatio());
+                return d1 > d2 ? 1 : d1 == d2 ? 0 : -1;
             }
         });
         return options.get(0);
@@ -423,7 +405,7 @@ public class UVCDevice {
         if (!mIsOpen) {
             return null;
         }
-        List<PreviewOption> options = new ArrayList<PreviewOption>();
+        List<PreviewOption> options = new ArrayList<>();
         List<Size> supportedSizes = mCamera.getSupportedSizeList();
         for (Size size : supportedSizes) {
             if (!supportsFormat(size)) {

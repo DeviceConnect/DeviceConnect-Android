@@ -9,7 +9,7 @@ public class FaBoThingsDeviceProvider<T extends Service> extends DConnectMessage
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) FaBoThingsDeviceService.class;
+        Class<? extends Service> clazz = FaBoThingsDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

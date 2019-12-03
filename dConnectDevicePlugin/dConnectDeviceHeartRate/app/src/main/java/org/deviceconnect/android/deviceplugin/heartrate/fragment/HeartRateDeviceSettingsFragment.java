@@ -20,8 +20,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +27,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
@@ -112,7 +113,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
 
         View rootView = inflater.inflate(R.layout.fragment_heart_rate_device_settings, null);
-        mListView = (ListView) rootView.findViewById(R.id.device_list_view);
+        mListView = rootView.findViewById(R.id.device_list_view);
         mListView.setAdapter(mDeviceAdapter);
         mListView.setItemsCanFocus(true);
         return rootView;
@@ -194,33 +195,30 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      * Added the view at ListView.
      */
     private void addFooterView() {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                LayoutInflater inflater = getActivity().getLayoutInflater();
+        getActivity().runOnUiThread(() -> {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
 
-                if (mFooterView != null) {
-                    mListView.removeFooterView(mFooterView);
-                }
-
-                if (!BleUtils.isBLEPermission(getActivity())) {
-                    mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
-                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
-                    textView.setText(getString(R.string.heart_rate_setting_dialog_error_permission));
-                } else if (getManager().isEnabledBle()) {
-                    mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
-                } else {
-                    mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
-                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
-                    textView.setText(getString(R.string.heart_rate_setting_dialog_disable_bluetooth));
-
-                    mDeviceAdapter.clear();
-                    mDeviceAdapter.addAll(createDeviceContainers());
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
-
-                mListView.addFooterView(mFooterView);
+            if (mFooterView != null) {
+                mListView.removeFooterView(mFooterView);
             }
+
+            if (!BleUtils.isBLEPermission(getActivity())) {
+                mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
+                TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                textView.setText(getString(R.string.heart_rate_setting_dialog_error_permission));
+            } else if (getManager().isEnabledBle()) {
+                mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+            } else {
+                mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
+                TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                textView.setText(getString(R.string.heart_rate_setting_dialog_disable_bluetooth));
+
+                mDeviceAdapter.clear();
+                mDeviceAdapter.addAll(createDeviceContainers());
+                mDeviceAdapter.notifyDataSetChanged();
+            }
+
+            mListView.addFooterView(mFooterView);
         });
     }
 
@@ -259,14 +257,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      */
     private void disconnectDevice(final DeviceContainer device) {
         getManager().disconnectBleDevice(device.getAddress());
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                DeviceContainer container = findDeviceContainerByAddress(device.getAddress());
-                if (container != null) {
-                    container.setRegisterFlag(false);
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
+        getActivity().runOnUiThread(() -> {
+            DeviceContainer container = findDeviceContainerByAddress(device.getAddress());
+            if (container != null) {
+                container.setRegisterFlag(false);
+                mDeviceAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -370,27 +365,21 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     private OnHeartRateDiscoveryListener mEvtListener = new OnHeartRateDiscoveryListener() {
         @Override
         public void onConnected(final HeartRateDevice device) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    DeviceContainer container = findDeviceContainerByAddress(device.getAddress());
-                    if (container != null) {
-                        container.setRegisterFlag(true);
-                        mDeviceAdapter.notifyDataSetChanged();
-                    }
-                    dismissProgressDialog();
+            runOnUiThread(() -> {
+                DeviceContainer container = findDeviceContainerByAddress(device.getAddress());
+                if (container != null) {
+                    container.setRegisterFlag(true);
+                    mDeviceAdapter.notifyDataSetChanged();
                 }
+                dismissProgressDialog();
             });
         }
 
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    dismissProgressDialog();
-                    showErrorDialogNotConnect(device.getName());
-                }
+            runOnUiThread(() -> {
+                dismissProgressDialog();
+                showErrorDialogNotConnect(device.getName());
             });
         }
 
@@ -408,20 +397,17 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         if (mDeviceAdapter == null) {
             return;
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDeviceAdapter.clear();
-                mDeviceAdapter.addAll(createDeviceContainers());
-                if (devices != null) {
-                    for (BluetoothDevice device : devices) {
-                        if (!containAddressForAdapter(device.getAddress())) {
-                            mDeviceAdapter.add(createContainer(device));
-                        }
+        runOnUiThread(() -> {
+            mDeviceAdapter.clear();
+            mDeviceAdapter.addAll(createDeviceContainers());
+            if (devices != null) {
+                for (BluetoothDevice device : devices) {
+                    if (!containAddressForAdapter(device.getAddress())) {
+                        mDeviceAdapter.add(createContainer(device));
                     }
                 }
-                mDeviceAdapter.notifyDataSetChanged();
             }
+            mDeviceAdapter.notifyDataSetChanged();
         });
     }
 
@@ -592,13 +578,13 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                 }
             }
 
-            TextView nameView = (TextView) convertView.findViewById(R.id.device_name);
+            TextView nameView = convertView.findViewById(R.id.device_name);
             nameView.setText(name);
 
-            TextView addressView = (TextView) convertView.findViewById(R.id.device_address);
+            TextView addressView = convertView.findViewById(R.id.device_address);
             addressView.setText(device.getAddress());
 
-            Button btn = (Button) convertView.findViewById(R.id.btn_connect_device);
+            Button btn = convertView.findViewById(R.id.btn_connect_device);
             if (device.isRegisterFlag()) {
                 btn.setBackgroundResource(R.drawable.button_red);
                 btn.setText(R.string.heart_rate_setting_disconnect);
@@ -606,14 +592,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                 btn.setBackgroundResource(R.drawable.button_blue);
                 btn.setText(R.string.heart_rate_setting_connect);
             }
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    if (device.isRegisterFlag()) {
-                        disconnectDevice(device);
-                    } else {
-                        connectDevice(device);
-                    }
+            btn.setOnClickListener((v) -> {
+                if (device.isRegisterFlag()) {
+                    disconnectDevice(device);
+                } else {
+                    connectDevice(device);
                 }
             });
 

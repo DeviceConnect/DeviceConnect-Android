@@ -919,45 +919,40 @@ public enum IRKitManager {
      */
     public void connectIRKitToWiFi(final String ssid, final String password, final WiFiSecurityType type,
             final String deviceKey, final IRKitConnectionCallback callback) {
-        new Thread(new Runnable() {
+        new Thread(() -> {
+            String ssidHex = toHex(ssid, MAX_SSID_LENGTH + 1);
+            String tmpPassword = password;
+            if (type == WiFiSecurityType.WEP && (password.length() == 5 || password.length() == 13)) {
+                tmpPassword = toHex(password, MAX_PASSWORD_LENGTH);
+            }
+            String passHex = toHex(tmpPassword, MAX_PASSWORD_LENGTH);
+            String crcHex = toCRC(type, ssid, tmpPassword, deviceKey);
+            String regdomain = getRegDomain();
+            String postData = String.format(Locale.ENGLISH, "%d/%s/%s/%s/%s//////%s", type.mCode, ssidHex, passHex,
+                    deviceKey, regdomain, crcHex).toUpperCase(Locale.ENGLISH);
 
-            @Override
-            public void run() {
-
-                String ssidHex = toHex(ssid, MAX_SSID_LENGTH + 1);
-                String tmpPassword = password;
-                if (type == WiFiSecurityType.WEP && (password.length() == 5 || password.length() == 13)) {
-                    tmpPassword = toHex(password, MAX_PASSWORD_LENGTH);
+            HttpURLConnection req = null;
+            boolean result = false;
+            try {
+                req = createPostRequest(DEVICE_HOST, "/wifi");
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "body : " + postData);
                 }
-                String passHex = toHex(tmpPassword, MAX_PASSWORD_LENGTH);
-                String crcHex = toCRC(type, ssid, tmpPassword, deviceKey);
-                String regdomain = getRegDomain();
-                String postData = String.format(Locale.ENGLISH, "%d/%s/%s/%s/%s//////%s", type.mCode, ssidHex, passHex,
-                        deviceKey, regdomain, crcHex).toUpperCase(Locale.ENGLISH);
-
-                HttpURLConnection req = null;
-                boolean result = false;
-                try {
-                    req = createPostRequest(DEVICE_HOST, "/wifi");
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "body : " + postData);
-                    }
-                    req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    executeRequest(req, postData);
-                    int status = req.getResponseCode();
-                    if (status == STATUS_CODE_OK) {
-                        result = true;
-                    }
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "disconnect:" + result, e);
-                    }
-                } finally {
-                    if (req != null) {
-                        req.disconnect();
-                    }
-                    callback.onConnectedToWiFi(result);
+                req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                executeRequest(req, postData);
+                int status = req.getResponseCode();
+                if (status == STATUS_CODE_OK) {
+                    result = true;
                 }
+            } catch (IOException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "disconnect:" + result, e);
+                }
+            } finally {
+                if (req != null) {
+                    req.disconnect();
+                }
+                callback.onConnectedToWiFi(result);
             }
         }).start();
     }
@@ -969,46 +964,41 @@ public enum IRKitManager {
      * @param callback コールバック
      */
     public void checkIfTargetIsIRKit(final String ip, final CheckingIRKitCallback callback) {
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                boolean isIRKit = false;
-                HttpURLConnection req = null;
-                try {
-                    req = createGetRequest(ip, "/messages");
-                    executeRequest(req);
-                    Map<String, List<String>> headers = req.getHeaderFields();
-                    for (String h : headers.keySet()) {
-                        if (h == null) {
-                            continue;
-                        }
-                        if (h.equals("Server")) {
-                            for (String v : headers.get(h)) {
-                                if (v.contains(TAG)) {
-                                    isIRKit = true;
-                                    break;
-                                }
-                            }
-                            if (isIRKit) {
+        new Thread(() -> {
+            boolean isIRKit = false;
+            HttpURLConnection req = null;
+            try {
+                req = createGetRequest(ip, "/messages");
+                executeRequest(req);
+                Map<String, List<String>> headers = req.getHeaderFields();
+                for (String h : headers.keySet()) {
+                    if (h == null) {
+                        continue;
+                    }
+                    if (h.equals("Server")) {
+                        for (String v : headers.get(h)) {
+                            if (v.contains(TAG)) {
+                                isIRKit = true;
                                 break;
                             }
                         }
-                    }
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "disconnect:" + isIRKit, e);
-
-                    }
-                } finally {
-                    if (req != null) {
-                        req.disconnect();
+                        if (isIRKit) {
+                            break;
+                        }
                     }
                 }
+            } catch (IOException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "disconnect:" + isIRKit, e);
 
-                callback.onChecked(isIRKit);
+                }
+            } finally {
+                if (req != null) {
+                    req.disconnect();
+                }
             }
+
+            callback.onChecked(isIRKit);
         }).start();
     }
     
@@ -1021,35 +1011,31 @@ public enum IRKitManager {
      */
     public void checkIfIRKitIsConnectedToInternet(final String clientKey, final String serviceId, 
             final IRKitConnectionCheckingCallback callback) {
-        new Thread(new Runnable() {
+        new Thread(() -> {
+            String hostName = null;
+            try {
+                Map<String, String> params = new HashMap<>();
+                params.put("clientkey", clientKey);
+                params.put("deviceid", serviceId);
+                HttpURLConnection req = createPostRequest(INTERNET_HOST, "/1/door");
+                req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            @Override
-            public void run() {
-                String hostName = null;
-                try {
-                    Map<String, String> params = new HashMap<>();
-                    params.put("clientkey", clientKey);
-                    params.put("deviceid", serviceId);
-                    HttpURLConnection req = createPostRequest(INTERNET_HOST, "/1/door");
-                    req.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                String body = executeRequest(req, params);
+                JSONObject json = new JSONObject(body);
+                hostName = json.getString("hostname");
 
-                    String body = executeRequest(req, params);
-                    JSONObject json = new JSONObject(body);
-                    hostName = json.getString("hostname");
-
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "disconnect:" + (hostName != null), e);
-                    }
-                    hostName = null;
-                } catch (JSONException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "disconnect:" + (hostName != null), e);
-                    }
-                    hostName = null;
+            } catch (IOException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "disconnect:" + (hostName != null), e);
                 }
-                callback.onConnectedToInternet(hostName != null);
+                hostName = null;
+            } catch (JSONException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "disconnect:" + (hostName != null), e);
+                }
+                hostName = null;
             }
+            callback.onConnectedToInternet(hostName != null);
         }).start();
     }
 

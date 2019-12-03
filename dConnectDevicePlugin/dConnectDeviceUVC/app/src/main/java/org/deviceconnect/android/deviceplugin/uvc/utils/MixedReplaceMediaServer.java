@@ -105,7 +105,7 @@ public class MixedReplaceMediaServer {
      * List a Server Runnable.
      */
     private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
-            new ArrayList<ServerRunnable>());
+            new ArrayList<>());
 
     /**
      * Sever event listener.
@@ -272,24 +272,21 @@ public class MixedReplaceMediaServer {
         mPath = UUID.randomUUID().toString();
 
         mStopFlag = false;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (mListener != null) {
-                        mListener.onStart();
-                    }
-                    while (!mStopFlag) {
-                        ServerRunnable run = new ServerRunnable(mServerSocket.accept());
-                        synchronized (MixedReplaceMediaServer.this) {
-                            mExecutor.execute(run);
-                        }
-                    }
-                } catch (IOException e) {
-                    mLogger.warning("Error server socket[" + mServerName + "]");
-                } finally {
-                    stop();
+        new Thread(() -> {
+            try {
+                if (mListener != null) {
+                    mListener.onStart();
                 }
+                while (!mStopFlag) {
+                    ServerRunnable run = new ServerRunnable(mServerSocket.accept());
+                    synchronized (MixedReplaceMediaServer.this) {
+                        mExecutor.execute(run);
+                    }
+                }
+            } catch (IOException e) {
+                mLogger.warning("Error server socket[" + mServerName + "]");
+            } finally {
+                stop();
             }
         }).start();
         return getUrl();

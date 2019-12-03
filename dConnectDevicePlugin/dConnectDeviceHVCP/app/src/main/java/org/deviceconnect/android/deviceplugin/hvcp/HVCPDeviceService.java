@@ -125,7 +125,7 @@ public class HVCPDeviceService extends DConnectMessageService
         if (sessionKey != null) {
             if (EventManager.INSTANCE.removeEvents(sessionKey)) {
                 String[] param = sessionKey.split(".", -1);
-                if (param[1] != null) { /** param[1] : pluginID (serviceId) */
+                if (param[1] != null) { /* param[1] : pluginID (serviceId) */
                     HVCManager.INSTANCE.removeBodyDetectEventListener(param[1]);
                     HVCManager.INSTANCE.removeHandDetectEventListener(param[1]);
                     HVCManager.INSTANCE.removeFaceDetectEventListener(param[1]);
@@ -151,7 +151,7 @@ public class HVCPDeviceService extends DConnectMessageService
      * リソースリセット処理.
      */
     private void resetPluginResource() {
-        /** 全イベント削除. */
+        /* 全イベント削除. */
         EventManager.INSTANCE.removeAll();
         HVCManager.INSTANCE.removeAllEventListener();
     }
@@ -201,49 +201,31 @@ public class HVCPDeviceService extends DConnectMessageService
             if (error == EventError.NONE) {
                 switch (kind) {
                     case BODY:
-                        HVCManager.INSTANCE.setThreshold(threshold, null, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                            @Override
-                            public void onResponse(int resultCode) {
-                                HVCManager.INSTANCE.setMinMaxSize(min, max, null, null, null, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                                    @Override
-                                    public void onResponse(int resultCode) {
-                                        HVCManager.INSTANCE.addBodyDetectEventListener(serviceId, HVCPDeviceService.this, inter[0]);
-                                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                        sendResponse(response);
-                                    }
-                                });
-                            }
+                        HVCManager.INSTANCE.setThreshold(threshold, null, null, serviceId, (resultCode) -> {
+                            HVCManager.INSTANCE.setMinMaxSize(min, max, null, null, null, null, serviceId, (resultCodes) -> {
+                                HVCManager.INSTANCE.addBodyDetectEventListener(serviceId, HVCPDeviceService.this, inter[0]);
+                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
+                            });
                         });
                         break;
                     case HAND:
-                        HVCManager.INSTANCE.setThreshold(null, threshold, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                            @Override
-                            public void onResponse(int resultCode) {
-                                HVCManager.INSTANCE.setMinMaxSize(null, null, min, max, null, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                                    @Override
-                                    public void onResponse(int resultCode) {
-                                        HVCManager.INSTANCE.addHandDetectEventListener(serviceId, HVCPDeviceService.this, inter[0]);
-                                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                        HVCManager.INSTANCE.setThreshold(null, threshold, null, serviceId, (resultCode) -> {
+                            HVCManager.INSTANCE.setMinMaxSize(null, null, min, max, null, null, serviceId, (resultCodes) -> {
+                                HVCManager.INSTANCE.addHandDetectEventListener(serviceId, HVCPDeviceService.this, inter[0]);
+                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
 
-                                        sendResponse(response);
-                                    }
-                                });
-                            }
+                                sendResponse(response);
+                            });
                         });
                         break;
                     case FACE:
-                        HVCManager.INSTANCE.setThreshold(null, null, threshold, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                            @Override
-                            public void onResponse(int resultCode) {
-                                HVCManager.INSTANCE.setMinMaxSize(null, null, null, null, min, max, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                                    @Override
-                                    public void onResponse(int resultCode) {
-                                        HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCPDeviceService.this, options, inter[0]);
-                                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                        sendResponse(response);
-                                    }
-                                });
-                            }
+                        HVCManager.INSTANCE.setThreshold(null, null, threshold, serviceId, (resultCode) -> {
+                            HVCManager.INSTANCE.setMinMaxSize(null, null, null, null, min, max, serviceId, (resultCodes) -> {
+                                HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCPDeviceService.this, options, inter[0]);
+                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
+                            });
                         });
                         break;
                     case HUMAN:
@@ -340,76 +322,43 @@ public class HVCPDeviceService extends DConnectMessageService
 
             switch (kind) {
                 case BODY:
-                    HVCManager.INSTANCE.setThreshold(threshold, null, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                        @Override
-                        public void onResponse(int resultCode) {
-                            HVCManager.INSTANCE.setMinMaxSize(min, max, null, null, null, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                                @Override
-                                public void onResponse(int resultCode) {
-                                    HVCManager.INSTANCE.execute(serviceId, kind, new HVCCameraInfo.OneShotOkaoResultResoponseListener() {
-                                        @Override
-                                        public void onResponse(String serviceId, OkaoResult result) {
-                                            makeBodyDetectResultResponse(response, result);
-                                            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                            sendResponse(response);
-                                        }
-                                    });
-
-                                }
+                    HVCManager.INSTANCE.setThreshold(threshold, null, null, serviceId, (resultCode) -> {
+                        HVCManager.INSTANCE.setMinMaxSize(min, max, null, null, null, null, serviceId, (resultCodes) -> {
+                            HVCManager.INSTANCE.execute(serviceId, kind, (forServiceId, result) -> {
+                                makeBodyDetectResultResponse(response, result);
+                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
                             });
-                        }
+                        });
                     });
                     break;
                 case HAND:
-                    HVCManager.INSTANCE.setThreshold(null, threshold, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                        @Override
-                        public void onResponse(int resultCode) {
-                            HVCManager.INSTANCE.setMinMaxSize(null, null, min, max, null, null, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                                @Override
-                                public void onResponse(int resultCode) {
-                                    HVCManager.INSTANCE.execute(serviceId, kind, new HVCCameraInfo.OneShotOkaoResultResoponseListener() {
-                                        @Override
-                                        public void onResponse(String serviceId, OkaoResult result) {
-                                            makeHandDetectResultResponse(response, result);
-                                            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                            sendResponse(response);
-                                        }
-                                    });
-
-                                }
+                    HVCManager.INSTANCE.setThreshold(null, threshold, null, serviceId, (resultCode) -> {
+                        HVCManager.INSTANCE.setMinMaxSize(null, null, min, max, null, null, serviceId, (resultCodes) -> {
+                            HVCManager.INSTANCE.execute(serviceId, kind, (forServiceId, result) -> {
+                                makeHandDetectResultResponse(response, result);
+                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
                             });
-                        }
+                        });
                     });
                     break;
                 case FACE:
-                    HVCManager.INSTANCE.setThreshold(null, null, threshold, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                        @Override
-                        public void onResponse(int resultCode) {
-                            HVCManager.INSTANCE.setMinMaxSize(null, null, null, null, min, max, serviceId, new HVCCameraInfo.OneShotSetParameterResoponseListener() {
-                                @Override
-                                public void onResponse(int resultCode) {
-                                    HVCManager.INSTANCE.execute(serviceId, kind, new HVCCameraInfo.OneShotOkaoResultResoponseListener() {
-                                        @Override
-                                        public void onResponse(String serviceId, OkaoResult result) {
-                                            makeFaceDetectResultResponse(response, result, options, camera.getThresholds());
-                                            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                                            sendResponse(response);
-                                        }
-                                    });
-
-                                }
+                    HVCManager.INSTANCE.setThreshold(null, null, threshold, serviceId, (resultCode) -> {
+                        HVCManager.INSTANCE.setMinMaxSize(null, null, null, null, min, max, serviceId, (resultCodes) -> {
+                            HVCManager.INSTANCE.execute(serviceId, kind, (forServiceId, result) -> {
+                                makeFaceDetectResultResponse(response, result, options, camera.getThresholds());
+                                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                                sendResponse(response);
                             });
-                        }
+                        });
                     });
                     break;
                 case HUMAN:
-                    HVCManager.INSTANCE.execute(serviceId, kind, new HVCCameraInfo.OneShotOkaoResultResoponseListener() {
-                        @Override
-                        public void onResponse(String serviceId, OkaoResult result) {
-                            makeHumanDetectResultResponse(response, result);
-                            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
-                        }
+                    HVCManager.INSTANCE.execute(serviceId, kind, (forServiceId, result) -> {
+                        makeHumanDetectResultResponse(response, result);
+                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                        sendResponse(response);
                     });
                     break;
                 default:
@@ -441,7 +390,7 @@ public class HVCPDeviceService extends DConnectMessageService
             makeBodyDetectResultResponse(intent, result);
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_BODY_DETECTION);
+                mLogger.info("<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_BODY_DETECTION);
             }
         }
         onNotifyForDetectResult(serviceId, result);
@@ -458,7 +407,7 @@ public class HVCPDeviceService extends DConnectMessageService
             makeFaceDetectResultResponse(intent, result, camera.getOptions(), camera.getThresholds());
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_FACE_DETECTION);
+                mLogger.info("<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_FACE_DETECTION);
             }
         }
         onNotifyForDetectResult(serviceId, result);
@@ -476,7 +425,7 @@ public class HVCPDeviceService extends DConnectMessageService
             makeHandDetectResultResponse(intent, result);
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_HAND_DETECTION);
+                mLogger.info("<EVENT> send event. attribute:" + HumanDetectionProfile.ATTRIBUTE_ON_HAND_DETECTION);
             }
         }
         onNotifyForDetectResult(serviceId, result);
@@ -494,7 +443,7 @@ public class HVCPDeviceService extends DConnectMessageService
             makeHumanDetectResultResponse(intent, result);
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:onDetection");
+                mLogger.info("<EVENT> send event. attribute:onDetection");
             }
         }
     }

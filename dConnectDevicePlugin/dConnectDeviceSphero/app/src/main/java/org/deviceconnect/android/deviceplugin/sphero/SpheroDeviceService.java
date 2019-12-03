@@ -13,23 +13,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.orbotix.ConvenienceRobot;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
 import org.deviceconnect.android.deviceplugin.sphero.service.SpheroLightService;
 import org.deviceconnect.android.deviceplugin.sphero.service.SpheroService;
-import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.deviceplugin.sphero.util.BleUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -192,12 +190,9 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         final DConnectService service = getServiceProvider().getService(id);
         if (service != null) {
             if (service.isOnline()) {
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), "Disconnect to " + service.getName(),
-                                Toast.LENGTH_SHORT).show();
-                    }
+                mHandler.post(() -> {
+                    Toast.makeText(getApplicationContext(), "Disconnect to " + service.getName(),
+                            Toast.LENGTH_SHORT).show();
                 });
             }
             updateSpheroConnection(id, false);
@@ -226,12 +221,9 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                             Log.d(TAG, "************ connected **********");
                         }
                         updateSpheroConnection(info, true);
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), "Connect to " + info.getDevice().getRobot().getName(),
-                                        Toast.LENGTH_SHORT).show();
-                            }
+                        mHandler.post(() -> {
+                            Toast.makeText(getApplicationContext(), "Connect to " + info.getDevice().getRobot().getName(),
+                                    Toast.LENGTH_SHORT).show();
                         });
 
                         SpheroManager.INSTANCE.stopDiscovery();

@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-
 repositories {
     mavenCentral()
     google()
@@ -7,19 +6,19 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    androidTestImplementation 'com.android.support.test:testing-support-lib:0.1'
-    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     androidTestImplementation 'org.nanohttpd:nanohttpd-websocket:2.3.0'
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 26
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        targetSdkVersion 29
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
@@ -50,9 +49,10 @@ project.androidVariants.all { variant ->
     task("generateJavadocForSDK", type: Javadoc, overwrite: true) {
         title = "Device Connect SDK for Android"
         description = "Generates Javadoc for $variant.name."
-        source = variant.javaCompiler.source
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompiler.classpath) + files(ext.androidJar)
+        source = android.sourceSets.main.java.sourceFiles
+        configurations.implementation.setCanBeResolved(true)
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += configurations.implementation
         destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-Javadoc/")
 
         options {
@@ -68,18 +68,19 @@ project.androidVariants.all { variant ->
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
-}
 
+}
 
 android.testVariants.all { variant ->
     task("generateJavadocForSDKJUnit", type: Javadoc, overwrite: true) {
         title = "Android Device Connect SDK Unit Test"
         description = "Generates Javadoc for JUnit"
-        source = variant.javaCompiler.source
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompiler.classpath) + files(ext.androidJar)
+        configurations.implementation.setCanBeResolved(true)
+        source = android.sourceSets.androidTest.java.sourceFiles
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        classpath += configurations.implementation
         destinationDir = new File("${project.getRootDir()}/DeviceConnectSDK-JUnit-Javadoc/")
-
+        failOnError = false
         options {
             links("http://docs.oracle.com/javase/jp/8/docs/api/");
             linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
@@ -88,7 +89,6 @@ android.testVariants.all { variant ->
             encoding = 'UTF-8'
             charSet = 'UTF-8'
         }
-
         exclude '**/org/deviceconnect/message/server/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
@@ -103,7 +103,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '2.3.1'
+            pom.version = '2.3.2'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-sdk-for-android'
         }

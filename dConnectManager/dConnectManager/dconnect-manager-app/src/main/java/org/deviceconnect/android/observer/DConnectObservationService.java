@@ -25,7 +25,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -118,37 +118,34 @@ public class DConnectObservationService extends Service {
         if (ACTION_CHECK.equals(action)
             && intent.hasExtra(PARAM_PORT)) {
             final int port = intent.getIntExtra(PARAM_PORT, -1);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
-                            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-                        stopObservation();
-                        String appName = getResources().getString(R.string.app_name);
-                        String title = getResources().getString(R.string.service_observation_warning);
-                        new AlertDialog.Builder(DConnectObservationService.this).setTitle(appName + ": " + title)
-                                .setMessage(R.string.service_observation_msg_no_permission)
-                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        }).show();
-                        stopSelf();
-                        return;
-                    }
+            new Thread(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
+                        Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+                    stopObservation();
+                    String appName = getResources().getString(R.string.app_name);
+                    String title = getResources().getString(R.string.service_observation_warning);
+                    new AlertDialog.Builder(DConnectObservationService.this).setTitle(appName + ": " + title)
+                            .setMessage(R.string.service_observation_msg_no_permission)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    }).show();
+                    stopSelf();
+                    return;
+                }
 
-                    String appPackage = getHoldingAppSocketInfo(port);
-                    if (appPackage != null) {
-                        stopObservation();
-                        Intent i = new Intent();
-                        i.setClass(getApplicationContext(), WarningDialogActivity.class);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION
-                                | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                        i.putExtra(PARAM_PACKAGE_NAME, appPackage);
-                        i.putExtra(PARAM_PORT, port);
-                        getApplication().startActivity(i);
-                        stopSelf();
-                    }
+                String appPackage = getHoldingAppSocketInfo(port);
+                if (appPackage != null) {
+                    stopObservation();
+                    Intent i = new Intent();
+                    i.setClass(getApplicationContext(), WarningDialogActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION
+                            | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                    i.putExtra(PARAM_PACKAGE_NAME, appPackage);
+                    i.putExtra(PARAM_PORT, port);
+                    getApplication().startActivity(i);
+                    stopSelf();
                 }
             }).start();
         } else if (ACTION_START.equals(action)

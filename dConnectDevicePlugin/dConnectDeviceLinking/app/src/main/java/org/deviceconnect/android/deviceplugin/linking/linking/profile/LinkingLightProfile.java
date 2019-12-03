@@ -123,12 +123,9 @@ public class LinkingLightProfile extends LightProfile {
         if (mFlashingExecutor == null) {
             mFlashingExecutor = new FlashingExecutor();
         }
-        mFlashingExecutor.setLightControllable(new FlashingExecutor.LightControllable() {
-            @Override
-            public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
-                manager.sendLEDCommand(device, isOn);
-                listener.onComplete();
-            }
+        mFlashingExecutor.setLightControllable((isOn, listener) -> {
+            manager.sendLEDCommand(device, isOn);
+            listener.onComplete();
         });
         mFlashingExecutor.start(flashing);
     }

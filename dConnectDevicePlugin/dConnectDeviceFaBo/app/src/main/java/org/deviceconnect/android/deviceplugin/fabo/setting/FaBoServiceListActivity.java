@@ -182,16 +182,13 @@ public class FaBoServiceListActivity extends Activity {
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mMessageService = ((DConnectMessageService.LocalBinder) service).getMessageService();
-                    mProvider = mMessageService.getServiceProvider();
-                    mProvider.addServiceListener(mDConnectServiceListener);
-                    mIsBound = true;
+            runOnUiThread(() -> {
+                mMessageService = ((DConnectMessageService.LocalBinder) service).getMessageService();
+                mProvider = mMessageService.getServiceProvider();
+                mProvider.addServiceListener(mDConnectServiceListener);
+                mIsBound = true;
 
-                    showViewerFragment();
-                }
+                showViewerFragment();
             });
         }
 
@@ -227,14 +224,11 @@ public class FaBoServiceListActivity extends Activity {
      * DConnectServiceのリスト更新を行います.
      */
     private void updateServiceList() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                FragmentManager mgr = getFragmentManager();
-                Fragment f = mgr.findFragmentById(R.id.fragment_container);
-                if (f != null && f instanceof BaseFragment) {
-                    ((BaseFragment) f).notifyServiceStatusChange();
-                }
+        runOnUiThread(() -> {
+            FragmentManager mgr = getFragmentManager();
+            Fragment f = mgr.findFragmentById(R.id.fragment_container);
+            if (f != null && f instanceof BaseFragment) {
+                ((BaseFragment) f).notifyServiceStatusChange();
             }
         });
     }
@@ -281,26 +275,20 @@ public class FaBoServiceListActivity extends Activity {
 
             mListAdapter = new ServiceListAdapter(getActivity(), getProvider(), false);
 
-            ListView listView = (ListView) root.findViewById(R.id.activity_fabo_service_list_view);
+            ListView listView = root.findViewById(R.id.activity_fabo_service_list_view);
             listView.setAdapter(mListAdapter);
             listView.setItemsCanFocus(true);
             listView.setClickable(true);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                    Object service = mListAdapter.getItem(position);
-                    if (service instanceof VirtualService) {
-                        openVirtualServiceActivity((VirtualService) service);
-                    }
+            listView.setOnItemClickListener((parent, view, position, id) -> {
+                Object service = mListAdapter.getItem(position);
+                if (service instanceof VirtualService) {
+                    openVirtualServiceActivity((VirtualService) service);
                 }
             });
 
-            Button newServiceButton = (Button) root.findViewById(R.id.activity_fabo_service_add_btn);
-            newServiceButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    openVirtualServiceActivity(null);
-                }
+            Button newServiceButton = root.findViewById(R.id.activity_fabo_service_add_btn);
+            newServiceButton.setOnClickListener((v) -> {
+                openVirtualServiceActivity(null);
             });
 
             return root;
@@ -353,45 +341,36 @@ public class FaBoServiceListActivity extends Activity {
             mListAdapter = new ServiceListAdapter(getActivity(), getProvider(), true);
             mListAdapter.setOnStatusChangeListener(this);
 
-            ListView listView = (ListView) root.findViewById(R.id.activity_fabo_service_list_view);
+            ListView listView = root.findViewById(R.id.activity_fabo_service_list_view);
             listView.setAdapter(mListAdapter);
             listView.setItemsCanFocus(true);
             listView.setClickable(true);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                    Object service = mListAdapter.getItem(position);
-                    if (service instanceof VirtualService) {
-                        VirtualService vs = (VirtualService) service;
-                        if (vs.isOnline()) {
-                            showOnlineDialog();
-                        } else {
-                            mListAdapter.toggleCheckBox((DConnectService) service);
-                            CheckBox checkBox = (CheckBox) view.findViewById(R.id.activity_fabo_service_removal_checkbox);
-                            if (checkBox != null) {
-                                checkBox.toggle();
-                            }
-                        }
+            listView.setOnItemClickListener((parent, view, position, id) -> {
+                Object service = mListAdapter.getItem(position);
+                if (service instanceof VirtualService) {
+                    VirtualService vs = (VirtualService) service;
+                    if (vs.isOnline()) {
+                        showOnlineDialog();
                     } else {
-                        showImmortalDialog();
+                        mListAdapter.toggleCheckBox((DConnectService) service);
+                        CheckBox checkBox = view.findViewById(R.id.activity_fabo_service_removal_checkbox);
+                        if (checkBox != null) {
+                            checkBox.toggle();
+                        }
                     }
+                } else {
+                    showImmortalDialog();
                 }
             });
 
-            Button cancelButton = (Button) root.findViewById(R.id.activity_fabo_service_cancel_btn);
-            cancelButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    showViewerFragment();
-                }
+            Button cancelButton = root.findViewById(R.id.activity_fabo_service_cancel_btn);
+            cancelButton.setOnClickListener((v) -> {
+                showViewerFragment();
             });
 
             mRemoveBtn = (Button) root.findViewById(R.id.activity_fabo_service_remove_btn);
-            mRemoveBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    showRemovalConfirmation();
-                }
+            mRemoveBtn.setOnClickListener((v) -> {
+                showRemovalConfirmation();
             });
             mRemoveBtn.setEnabled(false);
 
@@ -407,11 +386,8 @@ public class FaBoServiceListActivity extends Activity {
                     .setMessage(R.string.activity_fabo_service_dialog_message_service_removal_confirmation)
                     .setCancelable(false)
                     .setPositiveButton(R.string.activity_fabo_service_dialog_button_service_removal_ok,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(final DialogInterface dialog, final int which) {
-                                    removeService();
-                                }
+                            (dialog, which) -> {
+                                removeService();
                             })
                     .setNegativeButton(R.string.activity_fabo_service_dialog_button_service_removal_cancel, null)
                     .create().show();
@@ -546,15 +522,15 @@ public class FaBoServiceListActivity extends Activity {
                     R.color.service_list_item_background_online :
                     R.color.service_list_item_background_offline);
 
-            TextView statusView = (TextView) convertView.findViewById(R.id.service_online_status);
+            TextView statusView = convertView.findViewById(R.id.service_online_status);
             statusView.setText(service.isOnline() ?
                     R.string.activity_fabo_service_online :
                     R.string.activity_fabo_service_offline);
 
-            TextView nameView = (TextView) convertView.findViewById(R.id.service_name);
+            TextView nameView = convertView.findViewById(R.id.service_name);
             nameView.setText(service.getName());
 
-            CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.activity_fabo_service_removal_checkbox);
+            CheckBox checkBox = convertView.findViewById(R.id.activity_fabo_service_removal_checkbox);
             checkBox.setVisibility(hasCheckbox(service) ? View.VISIBLE : View.GONE);
             checkBox.setChecked(mRemoveServices.contains(service));
 

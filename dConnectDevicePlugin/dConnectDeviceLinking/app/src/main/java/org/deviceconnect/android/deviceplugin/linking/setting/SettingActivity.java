@@ -8,17 +8,19 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.google.android.material.tabs.TabLayout;
 
 import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
@@ -58,8 +60,8 @@ public class SettingActivity extends AppCompatActivity implements ConfirmationDi
         mFragments[0] = LinkingDeviceListFragment.newInstance();
         mFragments[1] = LinkingBeaconListFragment.newInstance();
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.activity_setting_tabs);
-        ViewPager viewPager = (ViewPager) findViewById(R.id.activity_setting_view_pager);
+        TabLayout tabLayout = findViewById(R.id.activity_setting_tabs);
+        ViewPager viewPager = findViewById(R.id.activity_setting_view_pager);
 
         if (viewPager != null) {
             viewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager()));

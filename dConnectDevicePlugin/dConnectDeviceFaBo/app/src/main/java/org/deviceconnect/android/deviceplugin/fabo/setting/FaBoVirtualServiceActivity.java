@@ -94,40 +94,31 @@ public class FaBoVirtualServiceActivity extends Activity {
             mServiceData.setName("New Service");
         }
 
-        TextView serviceIdTV = (TextView) findViewById(R.id.activity_fabo_service_id);
+        TextView serviceIdTV =  findViewById(R.id.activity_fabo_service_id);
         serviceIdTV.setText(mServiceData.getServiceId());
 
-        EditText serviceNameET = (EditText) findViewById(R.id.activity_fabo_service_name);
+        EditText serviceNameET = findViewById(R.id.activity_fabo_service_name);
         serviceNameET.setText(mServiceData.getName());
-        serviceNameET.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(final View view, final int keyCode, final KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    return true;
-                }
-                return false;
+        serviceNameET.setOnKeyListener((view, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                return true;
             }
+            return false;
         });
 
-        Button saveBtn = (Button) findViewById(R.id.activity_fabo_service_save_btn);
-        saveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                saveVirtualService();
-            }
+        Button saveBtn = findViewById(R.id.activity_fabo_service_save_btn);
+        saveBtn.setOnClickListener((view) -> {
+            saveVirtualService();
         });
 
-        Button addBtn = (Button) findViewById(R.id.activity_fabo_profile_add_btn);
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openProfileActivity();
-            }
+        Button addBtn =  findViewById(R.id.activity_fabo_profile_add_btn);
+        addBtn.setOnClickListener((view) -> {
+            openProfileActivity();
         });
 
-        LinearLayout profileLayout = (LinearLayout) findViewById(R.id.activity_fabo_profile_list);
+        LinearLayout profileLayout = findViewById(R.id.activity_fabo_profile_list);
         for (ProfileData profileData : mServiceData.getProfileDataList()) {
             View view = createProfileView(profileData);
             profileLayout.addView(view);
@@ -165,7 +156,7 @@ public class FaBoVirtualServiceActivity extends Activity {
                     mServiceData.addProfileData(profileData);
 
                     View view = createProfileView(profileData);
-                    LinearLayout profileLayout = (LinearLayout) findViewById(R.id.activity_fabo_profile_list);
+                    LinearLayout profileLayout = findViewById(R.id.activity_fabo_profile_list);
                     profileLayout.addView(view);
                 }
                 break;
@@ -209,7 +200,7 @@ public class FaBoVirtualServiceActivity extends Activity {
      * プロファイルのリストをを再設定します.
      */
     private void resetProfileLayout() {
-        LinearLayout profileLayout = (LinearLayout) findViewById(R.id.activity_fabo_profile_list);
+        LinearLayout profileLayout = findViewById(R.id.activity_fabo_profile_list);
         profileLayout.removeAllViews();
 
         for (ProfileData profileData : mServiceData.getProfileDataList()) {
@@ -243,24 +234,18 @@ public class FaBoVirtualServiceActivity extends Activity {
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.item_fabo_profile_a, null);
         if (profileData.getType().getValue() < 100) {
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    openPinActivity(profileData);
-                }
+            view.setOnClickListener((v) -> {
+                openPinActivity(profileData);
             });
         }
-        TextView nameTV = (TextView) view.findViewById(R.id.item_fabo_profile_name);
+        TextView nameTV = view.findViewById(R.id.item_fabo_profile_name);
         nameTV.setText(ProfileDataUtil.getProfileName(this, profileData.getType()));
 
-        TextView pinsTV = (TextView) view. findViewById(R.id.item_fabo_profile_pins);
+        TextView pinsTV =  view. findViewById(R.id.item_fabo_profile_pins);
         pinsTV.setText(createPinInfo(profileData));
 
-        view.findViewById(R.id.item_fabo_remove_profile_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                showConfirmRemoveProfile(profileData);
-            }
+        view.findViewById(R.id.item_fabo_remove_profile_btn).setOnClickListener((v) -> {
+            showConfirmRemoveProfile(profileData);
         });
 
         return view;
@@ -358,11 +343,8 @@ public class FaBoVirtualServiceActivity extends Activity {
                 .setTitle(R.string.activity_fabo_virtual_service_dialog_title)
                 .setMessage(R.string.activity_fabo_virtual_service_save_message)
                 .setPositiveButton(R.string.activity_fabo_virtual_service_error_ok,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                finish();
-                            }
+                        (dialogInterface, i) -> {
+                            finish();
                         })
                 .show();
     }
@@ -377,12 +359,9 @@ public class FaBoVirtualServiceActivity extends Activity {
                 .setTitle(R.string.activity_fabo_virtual_service_remove_profile_title)
                 .setMessage(getString(R.string.activity_fabo_virtual_service_remove_profile_message, name))
                 .setPositiveButton(R.string.activity_fabo_virtual_service_error_ok,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialogInterface, final int i) {
-                                mServiceData.removeProfileData(profileData);
-                                resetProfileLayout();
-                            }
+                        (dialogInterface, i) -> {
+                            mServiceData.removeProfileData(profileData);
+                            resetProfileLayout();
                         })
                 .setNegativeButton(R.string.activity_fabo_virtual_service_error_no, null)
                 .show();

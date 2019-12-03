@@ -10,7 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.view.MotionEvent;
 import android.view.View;
@@ -86,7 +86,7 @@ public class WearKeyEventProfileActivity extends Activity {
         super.onCreate(savedInstanceState);
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock((PowerManager.PARTIAL_WAKE_LOCK
-                | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TouchWakelockTag");
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP), "DeviceConnect:KeyEvent");
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (!mWakeLock.isHeld()) {
@@ -126,37 +126,31 @@ public class WearKeyEventProfileActivity extends Activity {
         });
 
         mBtnCancel = findViewById(R.id.button_cancel);
-        mBtnCancel.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(final View view, final MotionEvent event) {
-                int action = event.getAction();
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_UP:
-                        sendMessageData(action, KEYCODE_CANCEL);
-                        break;
-                    default:
-                        break;
-                }
-                return false;
+        mBtnCancel.setOnTouchListener((view, event) -> {
+            int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_UP:
+                    sendMessageData(action, KEYCODE_CANCEL);
+                    break;
+                default:
+                    break;
             }
+            return false;
         });
 
         mBtnOk = findViewById(R.id.button_ok);
-        mBtnOk.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(final View view, final MotionEvent event) {
-                int action = event.getAction();
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_UP:
-                        sendMessageData(action, KEYCODE_OK);
-                        break;
-                    default:
-                        break;
-                }
-                return false;
+        mBtnOk.setOnTouchListener((view, event) -> {
+            int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_UP:
+                    sendMessageData(action, KEYCODE_OK);
+                    break;
+                default:
+                    break;
             }
+            return false;
         });
         Intent i = new Intent(WearConst.ACTION_WEAR_PING_SERVICE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);

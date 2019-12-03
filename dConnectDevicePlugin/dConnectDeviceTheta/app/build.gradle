@@ -69,8 +69,8 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
-    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.burgstaller:okhttp-digest:1.16'
 }

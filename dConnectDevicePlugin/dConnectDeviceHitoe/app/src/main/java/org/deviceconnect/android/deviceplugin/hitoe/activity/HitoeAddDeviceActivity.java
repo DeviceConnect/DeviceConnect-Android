@@ -109,13 +109,9 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         title.setText(R.string.add_device_view);
         Button btn = (Button) findViewById(R.id.btn_add_open);
         btn.setText(R.string.action_search);
-        btn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
-                getManager().discoveryHitoeDevices();
-            }
+        btn.setOnClickListener((view) -> {
+            getManager().addHitoeConnectionListener(HitoeAddDeviceActivity.this);
+            getManager().discoveryHitoeDevices();
         });
     }
 
@@ -141,38 +137,32 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
     @Override
     public void onConnected(final HitoeDevice device) {
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mCheckDialog) {
-                    DefaultDialogFragment.showHitoeSetShirtDialog(HitoeAddDeviceActivity.this);
-                }
-                dismissProgressDialog();
-                mDeviceAdapter.remove(device);
-                mDeviceAdapter.notifyDataSetChanged();
+        runOnUiThread(() -> {
+            if (mCheckDialog) {
+                DefaultDialogFragment.showHitoeSetShirtDialog(HitoeAddDeviceActivity.this);
             }
+            dismissProgressDialog();
+            mDeviceAdapter.remove(device);
+            mDeviceAdapter.notifyDataSetChanged();
         });
     }
 
     @Override
     public void onConnectFailed(final HitoeDevice device) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                dismissProgressDialog();
-                if (device == null) {
-                    if (mConnectingDevice != null) {
-                        HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
-                        if (container != null) {
-                            container.setPinCode(null);
-                            mDeviceAdapter.notifyDataSetChanged();
-                        }
-                        Resources res = getResources();
-                        showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
+        runOnUiThread(() -> {
+            dismissProgressDialog();
+            if (device == null) {
+                if (mConnectingDevice != null) {
+                    HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
+                    if (container != null) {
+                        container.setPinCode(null);
+                        mDeviceAdapter.notifyDataSetChanged();
                     }
-                } else {
-                    showErrorDialogNotConnect(device.getName());
+                    Resources res = getResources();
+                    showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
                 }
+            } else {
+                showErrorDialogNotConnect(device.getName());
             }
         });
     }
@@ -182,17 +172,14 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
         if (mDeviceAdapter == null) {
             return;
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDeviceAdapter.clear();
-                for (HitoeDevice device : devices) {
-                    if (device.getPinCode() == null) {
-                        mDeviceAdapter.add(device);
-                    }
+        runOnUiThread(() -> {
+            mDeviceAdapter.clear();
+            for (HitoeDevice device : devices) {
+                if (device.getPinCode() == null) {
+                    mDeviceAdapter.add(device);
                 }
-                mDeviceAdapter.notifyDataSetChanged();
             }
+            mDeviceAdapter.notifyDataSetChanged();
         });
     }
 
@@ -217,42 +204,33 @@ public class HitoeAddDeviceActivity extends HitoeListActivity  implements HitoeM
             final Resources res = getResources();
             PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance();
             pinDialog.show(getSupportFragmentManager(), "pin_dialog");
-            pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
-                @Override
-                public void onPinCode(final String pin) {
-                    if (pin.isEmpty()) {
-                        showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message02));
-                        return;
-                    }
-                    hitoe.setPinCode(pin);
-                    for (HitoeDevice d: getManager().getRegisterDevices()) {
-                        if (!d.getName().equals(hitoe.getName()) && d.isRegisterFlag()) {
-                            getManager().disconnectHitoeDevice(d);
-                        }
-                    }
-
-                    connectDevice(hitoe);
+            pinDialog.setOnPinCodeListener((pin) -> {
+                if (pin.isEmpty()) {
+                    showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message02));
+                    return;
                 }
+                hitoe.setPinCode(pin);
+                for (HitoeDevice d: getManager().getRegisterDevices()) {
+                    if (!d.getName().equals(hitoe.getName()) && d.isRegisterFlag()) {
+                        getManager().disconnectHitoeDevice(d);
+                    }
+                }
+
+                connectDevice(hitoe);
             });
         }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (mCheckDialog) {
-                    HitoeDevice containar = findDeviceContainerByAddress(hitoe.getId());
-                    if (containar != null) {
-                        containar.setPinCode(null);
-                    }
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            dismissProgressDialog();
-                            Resources res = getResources();
-                            showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message04));
-                        }
-                    });
+        new Handler().postDelayed(() -> {
+            if (mCheckDialog) {
+                HitoeDevice containar = findDeviceContainerByAddress(hitoe.getId());
+                if (containar != null) {
+                    containar.setPinCode(null);
                 }
+
+                runOnUiThread(() -> {
+                    dismissProgressDialog();
+                    Resources res = getResources();
+                    showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message04));
+                });
             }
         }, HitoeConstants.DISCOVERY_CYCLE_TIME);
 

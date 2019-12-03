@@ -19,7 +19,7 @@ public class HeartRateDeviceServiceProvider<T extends Service> extends DConnectM
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) HeartRateDeviceService.class;
+        Class<? extends Service> clazz = HeartRateDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

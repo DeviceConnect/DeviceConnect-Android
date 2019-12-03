@@ -19,7 +19,7 @@ public class HitoeDeviceServiceProvider<T extends Service> extends DConnectMessa
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) HitoeDeviceService.class;
+        Class<? extends Service> clazz = HitoeDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

@@ -8,7 +8,7 @@ package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -37,7 +37,7 @@ public class ChromeCastSettingFragmentActivity extends DConnectSettingCompatPage
      * コンストラクタ.
      */
     public ChromeCastSettingFragmentActivity() {
-        mFragments = new ArrayList<Fragment>();
+        mFragments = new ArrayList<>();
         mFragments.add(new ChromeCastSettingFragmentPage1());
         mFragments.add(new ChromeCastSettingFragmentPage2());
         mFragments.add(new ChromeCastSettingFragmentPage3());
@@ -74,25 +74,19 @@ public class ChromeCastSettingFragmentActivity extends DConnectSettingCompatPage
         if (mIntroductoryOverlay != null) {
             mIntroductoryOverlay.remove();
         }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                    if ((mediaRouteMenuItem != null) && mediaRouteMenuItem.isVisible()) {
-                        mIntroductoryOverlay = new IntroductoryOverlay.Builder(
-                                ChromeCastSettingFragmentActivity.this, mediaRouteMenuItem)
-                                .setTitleText(getString(R.string.introducing_cast))
-                                .setOverlayColor(R.color.primary)
-                                .setSingleTime()
-                                .setOnOverlayDismissedListener(
-                                        new IntroductoryOverlay.OnOverlayDismissedListener() {
-                                            @Override
-                                            public void onOverlayDismissed() {
-                                                mIntroductoryOverlay = null;
-                                            }
-                                        })
-                                .build();
-                        mIntroductoryOverlay.show();
-                    }
+        new Handler().postDelayed(() -> {
+            if ((mediaRouteMenuItem != null) && mediaRouteMenuItem.isVisible()) {
+                mIntroductoryOverlay = new IntroductoryOverlay.Builder(
+                        ChromeCastSettingFragmentActivity.this, mediaRouteMenuItem)
+                        .setTitleText(getString(R.string.introducing_cast))
+                        .setOverlayColor(R.color.primary)
+                        .setSingleTime()
+                        .setOnOverlayDismissedListener(
+                                () -> {
+                                    mIntroductoryOverlay = null;
+                                })
+                        .build();
+                mIntroductoryOverlay.show();
             }
         }, 500);
     }

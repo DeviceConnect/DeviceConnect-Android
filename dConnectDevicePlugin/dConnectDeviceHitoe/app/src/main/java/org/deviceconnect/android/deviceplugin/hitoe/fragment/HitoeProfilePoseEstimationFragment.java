@@ -7,13 +7,14 @@
 package org.deviceconnect.android.deviceplugin.hitoe.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
@@ -31,7 +32,7 @@ import org.deviceconnect.profile.PoseEstimationProfileConstants;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HitoeProfilePoseEstimationFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
+public class HitoeProfilePoseEstimationFragment extends Fragment implements HitoeScheduler.OnRegularNotify {
 
     /**
      * Current Hitoe Device object.
@@ -53,22 +54,14 @@ public class HitoeProfilePoseEstimationFragment extends Fragment  implements Hit
         View rootView = inflater.inflate(R.layout.fragment_pose_instructions, null);
         mScheduler = new HitoeScheduler(this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
-        rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                mScheduler.scanHitoeDevice(true);
-            }
+        rootView.findViewById(R.id.button_register).setOnClickListener((view) -> {
+            mScheduler.scanHitoeDevice(true);
         });
-        rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                mScheduler.scanHitoeDevice(false);
-            }
+        rootView.findViewById(R.id.button_unregister).setOnClickListener((view) -> {
+            mScheduler.scanHitoeDevice(false);
         });
-        TextView title = (TextView) rootView.findViewById(R.id.view_title);
-        mPoseView = (ImageView) rootView.findViewById(R.id.pose_image);
+        TextView title = rootView.findViewById(R.id.view_title);
+        mPoseView = rootView.findViewById(R.id.pose_image);
         Bundle args = getArguments();
         if (args != null) {
 
@@ -98,37 +91,33 @@ public class HitoeProfilePoseEstimationFragment extends Fragment  implements Hit
         if (getActivity() == null) {
             return;
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                HitoeApplication app = (HitoeApplication) getActivity().getApplication();
-                HitoeManager manager = app.getHitoeManager();
+        getActivity().runOnUiThread(() -> {
+            HitoeApplication app = (HitoeApplication) getActivity().getApplication();
+            HitoeManager manager = app.getHitoeManager();
 
-                PoseEstimationData pose = manager.getPoseEstimationData(mCurrentDevice.getId());
-                if (pose != null) {
-                    int poseResource = R.drawable.pose_default;
-                    if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Backward) {
-                        poseResource = R.drawable.pose_backward;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceDown) {
-                        poseResource = R.drawable.pose_facedown;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceLeft) {
-                        poseResource = R.drawable.pose_faceleft;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceRight) {
-                        poseResource = R.drawable.pose_faceright;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceUp) {
-                        poseResource = R.drawable.pose_faceup;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Forward) {
-                        poseResource = R.drawable.pose_forward;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Leftside) {
-                        poseResource = R.drawable.pose_leftside;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Rightside) {
-                        poseResource = R.drawable.pose_rightside;
-                    } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Standing) {
-                        poseResource = R.drawable.pose_standing;
-                    }
-                    mPoseView.setImageResource(poseResource);
+            PoseEstimationData pose = manager.getPoseEstimationData(mCurrentDevice.getId());
+            if (pose != null) {
+                int poseResource = R.drawable.pose_default;
+                if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Backward) {
+                    poseResource = R.drawable.pose_backward;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceDown) {
+                    poseResource = R.drawable.pose_facedown;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceLeft) {
+                    poseResource = R.drawable.pose_faceleft;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceRight) {
+                    poseResource = R.drawable.pose_faceright;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.FaceUp) {
+                    poseResource = R.drawable.pose_faceup;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Forward) {
+                    poseResource = R.drawable.pose_forward;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Leftside) {
+                    poseResource = R.drawable.pose_leftside;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Rightside) {
+                    poseResource = R.drawable.pose_rightside;
+                } else if (pose.getPoseState() == PoseEstimationProfileConstants.PoseState.Standing) {
+                    poseResource = R.drawable.pose_standing;
                 }
-
+                mPoseView.setImageResource(poseResource);
             }
         });
     }

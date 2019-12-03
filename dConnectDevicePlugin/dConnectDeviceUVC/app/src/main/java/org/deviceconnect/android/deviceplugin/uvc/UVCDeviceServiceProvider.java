@@ -21,7 +21,7 @@ public class UVCDeviceServiceProvider<T extends Service> extends DConnectMessage
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) UVCDeviceService.class;
+        Class<? extends Service> clazz = UVCDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

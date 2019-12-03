@@ -10,7 +10,6 @@ package org.deviceconnect.android.deviceplugin.uvc.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Window;
@@ -47,17 +46,11 @@ public class ErrorDialogActivity extends Activity {
         builder.setTitle(title);
         builder.setMessage(message);
         builder.setCancelable(true);
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                finish();
-            }
+        builder.setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
+            finish();
         });
-        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialogInterface) {
-                finish();
-            }
+        builder.setOnCancelListener((dialogInterface) -> {
+            finish();
         });
         builder.create().show();
     }

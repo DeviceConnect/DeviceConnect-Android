@@ -9,7 +9,7 @@ package org.deviceconnect.android.deviceplugin.wear.setting;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 /**
  * Setting Activity.

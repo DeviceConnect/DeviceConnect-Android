@@ -21,7 +21,7 @@ public class SpheroDeviceProvider<T extends Service> extends DConnectMessageServ
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) SpheroDeviceService.class;
+        Class<? extends Service> clazz = SpheroDeviceService.class;
         return (Class<Service>) clazz;
     }
 

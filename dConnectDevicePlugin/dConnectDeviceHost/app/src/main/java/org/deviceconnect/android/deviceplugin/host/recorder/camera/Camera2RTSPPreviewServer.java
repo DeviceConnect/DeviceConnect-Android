@@ -9,7 +9,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.PreferenceManager;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
@@ -33,8 +33,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 
 import java.io.IOException;
 import java.net.Socket;
-
-import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
 
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -347,86 +345,77 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         }
 
         // TextureSurfaceで映像を受け取った際のコールバックリスナー
-        private final SurfaceTexture.OnFrameAvailableListener mOnFrameAvailableListener = new SurfaceTexture.OnFrameAvailableListener() {
-            @Override
-            public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                if (mIsRecording) {
-                    synchronized (mSync) {
-                        requestDraw = true;
-                        mSync.notifyAll();
-                    }
+        private final SurfaceTexture.OnFrameAvailableListener mOnFrameAvailableListener = (surfaceTexture) -> {
+            if (mIsRecording) {
+                synchronized (mSync) {
+                    requestDraw = true;
+                    mSync.notifyAll();
                 }
             }
         };
 
-        private final Runnable mDrawTask = new Runnable() {
-            @Override
-            public void run() {
-                boolean localRequestDraw;
-                synchronized (mSync) {
-                    localRequestDraw = requestDraw;
-                    if (!requestDraw) {
-                        try {
-                            mSync.wait(intervals);
-                            localRequestDraw = requestDraw;
-                            requestDraw = false;
-                        } catch (final InterruptedException e) {
-                            if (DEBUG) {
-                                Log.v(TAG, "draw:InterruptedException");
-                            }
-                            return;
+        private final Runnable mDrawTask = () -> {
+            boolean localRequestDraw;
+            synchronized (mSync) {
+                localRequestDraw = requestDraw;
+                if (!requestDraw) {
+                    try {
+                        mSync.wait(intervals);
+                        localRequestDraw = requestDraw;
+                        requestDraw = false;
+                    } catch (final InterruptedException e) {
+                        if (DEBUG) {
+                            Log.v(TAG, "draw:InterruptedException");
                         }
+                        return;
                     }
                 }
-                if (mIsRecording) {
-                    synchronized (mDrawSync) {
-                        if (localRequestDraw) {
-                            mSourceTexture.updateTexImage();
-                            mSourceTexture.getTransformMatrix(mTexMatrix);
-                            Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
-                            Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
-                        }
-                        // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                        mEncoderSurface.makeCurrent();
-                        mDrawer.draw(mTexId, mTexMatrix, 0);
-                        mEncoderSurface.swap();
-                        // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
-                        makeCurrent();
-                        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                        GLES20.glFlush();
-                        queueEvent(this);
+            }
+            if (mIsRecording) {
+                synchronized (mDrawSync) {
+                    if (localRequestDraw) {
+                        mSourceTexture.updateTexImage();
+                        mSourceTexture.getTransformMatrix(mTexMatrix);
+                        Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
+                        Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
                     }
-                } else {
-                    releaseSelf();
+                    // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                    mEncoderSurface.makeCurrent();
+                    mDrawer.draw(mTexId, mTexMatrix, 0);
+                    mEncoderSurface.swap();
+                    // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
+                    makeCurrent();
+                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                    GLES20.glFlush();
+                    queueEvent(this);
                 }
+            } else {
+                releaseSelf();
             }
         };
 
         private void onDisplayRotationChange(final int rotation) {
-            queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (mDrawSync) {
-                        try {
-                            if (mEncoderSurface != null) {
-                                mEncoderSurface.release();
-                            }
+            queueEvent(() -> {
+                synchronized (mDrawSync) {
+                    try {
+                        if (mEncoderSurface != null) {
+                            mEncoderSurface.release();
+                        }
 
-                            // プレビューサイズ更新
-                            detectDisplayRotation(rotation);
-                            if (DEBUG) {
-                                Log.d(TAG, "Reset PreviewSize: " + mPreviewSize.getWidth() + "x" + mPreviewSize.getHeight());
-                            }
+                        // プレビューサイズ更新
+                        detectDisplayRotation(rotation);
+                        if (DEBUG) {
+                            Log.d(TAG, "Reset PreviewSize: " + mPreviewSize.getWidth() + "x" + mPreviewSize.getHeight());
+                        }
 
-                            int w = mPreviewSize.getWidth();
-                            int h = mPreviewSize.getHeight();
-                            setDefaultBufferSize(rotation, w, h);
-                            mVideoStream.changeResolution(w, h);
-                            mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
-                        } catch (Throwable e) {
-                            if (DEBUG) {
-                                Log.e(TAG, "Failed to update preview rotation.", e);
-                            }
+                        int w = mPreviewSize.getWidth();
+                        int h = mPreviewSize.getHeight();
+                        setDefaultBufferSize(rotation, w, h);
+                        mVideoStream.changeResolution(w, h);
+                        mEncoderSurface = getEgl().createFromSurface(mVideoStream.getInputSurface());
+                    } catch (Throwable e) {
+                        if (DEBUG) {
+                            Log.e(TAG, "Failed to update preview rotation.", e);
                         }
                     }
                 }

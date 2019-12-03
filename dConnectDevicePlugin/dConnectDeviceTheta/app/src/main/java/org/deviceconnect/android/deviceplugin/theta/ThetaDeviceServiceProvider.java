@@ -20,7 +20,7 @@ public class ThetaDeviceServiceProvider<T extends Service> extends DConnectMessa
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) ThetaDeviceService.class;
+        Class<? extends Service> clazz = ThetaDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

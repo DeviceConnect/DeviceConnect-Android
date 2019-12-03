@@ -112,11 +112,6 @@ public class ThingsActivity extends Activity {
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
-//                try {
-//                    addDevicePlugin();
-//                } catch (Exception e) {
-//                    // ignore.
-//                }
             }
 
             @Override

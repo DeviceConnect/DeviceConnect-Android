@@ -20,7 +20,7 @@ public class WearDeviceProvider<T extends Service> extends DConnectMessageServic
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) WearDeviceService.class;
+        Class<? extends Service> clazz = WearDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

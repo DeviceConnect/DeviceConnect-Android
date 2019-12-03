@@ -10,8 +10,8 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.manager.R;
 
@@ -40,11 +40,8 @@ public class ErrorDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(title);
         builder.setMessage(args.getString(EXTRA_MESSAGE));
-        builder.setPositiveButton(R.string.activity_settings_close, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                dialog.dismiss();
-            }
+        builder.setPositiveButton(R.string.activity_settings_close, (dialog, which) -> {
+            dialog.dismiss();
         });
         return builder.create();
     }

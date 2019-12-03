@@ -13,8 +13,9 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.deviceconnect.message.entity.FileEntity;
 import org.deviceconnect.message.entity.MultipartEntity;
@@ -76,7 +77,7 @@ public class IntentDConnectSDKTest {
     };
 
     private void bind() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         context.bindService(new Intent(context, TestService.class),
                 mConnection,
                 Context.BIND_AUTO_CREATE
@@ -90,12 +91,12 @@ public class IntentDConnectSDKTest {
     }
 
     private void unbind() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         context.unbindService(mConnection);
     }
 
     private DConnectSDK getSDK() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         String packageName = context.getPackageName();
         DConnectSDK sdk = DConnectSDKFactory.create(context, DConnectSDKFactory.Type.INTENT);
         IntentDConnectSDK intentSDK = (IntentDConnectSDK)sdk;
@@ -883,7 +884,7 @@ public class IntentDConnectSDKTest {
      */
     @Test
     public void post() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         String path = context.getFilesDir() + "/test.dat";
         final byte[] fileData = "This is a test.".getBytes();
         writeFile(new File(path), fileData);
@@ -993,7 +994,7 @@ public class IntentDConnectSDKTest {
     @Test(expected = NullPointerException.class)
     public void connectWebSocket_listener_null() {
         final String accessToken = "test-accessToken";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.INTENT);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.INTENT);
         sdk.setAccessToken(accessToken);
         sdk.connectWebSocket(null);
     }

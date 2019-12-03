@@ -11,7 +11,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
@@ -73,12 +74,9 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                                     startSearchHvcDevice();
 
                                     // Wait for discovered device cache list to be filled up.
-                                    Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            appendServiceList(response);
-                                            sendResponse(response);
-                                        }
+                                    Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+                                        appendServiceList(response);
+                                        sendResponse(response);
                                     }, DISCOVERY_WAIT, TimeUnit.MILLISECONDS);
                                 }
                                 @NonNull

@@ -14,7 +14,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;

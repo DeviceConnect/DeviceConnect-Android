@@ -52,12 +52,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile im
         addApi(mDeleteOnDeviceOrientation);
     }
 
-    private final LinkingDeviceManager.OnSensorListener mListener = new LinkingDeviceManager.OnSensorListener() {
-        @Override
-        public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
-            notifyOrientation(device, sensor);
-        }
-    };
+    private final LinkingDeviceManager.OnSensorListener mListener = this::notifyOrientation;
 
     private final DConnectApi mGetOnDeviceOrientation = new GetApi() {
         @Override

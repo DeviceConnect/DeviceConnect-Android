@@ -47,12 +47,9 @@ public class HeartRateHealthProfile extends HealthProfile {
      * Implementation of {@link HeartRateManager.OnHeartRateEventListener}.
      */
     private final HeartRateManager.OnHeartRateEventListener mHeartRateEventListener =
-        new HeartRateManager.OnHeartRateEventListener() {
-            @Override
-            public void onReceivedData(final HeartRateDevice device, final HeartRateData data) {
-                notifyHeartRateDataOld(device, data);
-                notifyHeartRateData(device, data);
-            }
+        (device, data) -> {
+            notifyHeartRateDataOld(device, data);
+            notifyHeartRateData(device, data);
         };
 
     private final DConnectApi mGetHeartRateApi = new GetApi() {

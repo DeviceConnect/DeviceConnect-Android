@@ -11,12 +11,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.heartrate.R;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
@@ -34,12 +35,9 @@ public class BluetoothSettingsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_bluetooth_settings, null);
 
-        Button btn = (Button) rootView.findViewById(R.id.btn_settings_open);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                openBluetoothSettings();
-            }
+        Button btn = rootView.findViewById(R.id.btn_settings_open);
+        btn.setOnClickListener((v) -> {
+            openBluetoothSettings();
         });
 
         View permission = rootView.findViewById(R.id.ble_permission);
@@ -49,15 +47,12 @@ public class BluetoothSettingsFragment extends Fragment {
             permission.setVisibility(View.VISIBLE);
         }
 
-        mBlePermissionBtn = (Button) rootView.findViewById(R.id.button_permission);
-        mBlePermissionBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (BleUtils.isBLEPermission(getActivity())) {
-                    openAndroidSettings();
-                } else {
-                    requestPermissions();
-                }
+        mBlePermissionBtn = rootView.findViewById(R.id.button_permission);
+        mBlePermissionBtn.setOnClickListener((v) -> {
+            if (BleUtils.isBLEPermission(getActivity())) {
+                openAndroidSettings();
+            } else {
+                requestPermissions();
             }
         });
         return rootView;

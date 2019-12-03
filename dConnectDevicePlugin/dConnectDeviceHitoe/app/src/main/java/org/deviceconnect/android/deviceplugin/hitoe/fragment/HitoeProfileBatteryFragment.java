@@ -7,13 +7,14 @@
 package org.deviceconnect.android.deviceplugin.hitoe.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
@@ -49,16 +50,12 @@ public class HitoeProfileBatteryFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final @Nullable ViewGroup container,
                              final @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_battery_instructions, null);
-        rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                setBattery();
-            }
+        rootView.findViewById(R.id.button_register).setOnClickListener((view) -> {
+            setBattery();
         });
-        TextView title = (TextView) rootView.findViewById(R.id.view_title);
-        mLevel = (TextView) rootView.findViewById(R.id.battery_value);
-        mBatteryImage = (ImageView) rootView.findViewById(R.id.image_battery);
+        TextView title = rootView.findViewById(R.id.view_title);
+        mLevel = rootView.findViewById(R.id.battery_value);
+        mBatteryImage = rootView.findViewById(R.id.image_battery);
         Bundle args = getArguments();
         if (args != null) {
 
@@ -83,30 +80,26 @@ public class HitoeProfileBatteryFragment extends Fragment {
         if (getActivity() == null) {
             return;
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                HitoeApplication app = (HitoeApplication) getActivity().getApplication();
-                HitoeManager manager = app.getHitoeManager();
+        getActivity().runOnUiThread(() -> {
+            HitoeApplication app = (HitoeApplication) getActivity().getApplication();
+            HitoeManager manager = app.getHitoeManager();
 
-                HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
-                TargetDeviceData device = heart.getDevice();
-                if (device != null) {
-                    float level = device.getBatteryLevel();
-                    if (level == 1.0) {
-                        mBatteryImage.setImageResource(R.drawable.mark_battery01);
-                    } else if (level == 0.75) {
-                        mBatteryImage.setImageResource(R.drawable.mark_battery02);
-                    } else if (level == 0.5) {
-                        mBatteryImage.setImageResource(R.drawable.mark_battery03);
-                    } else if (level == 0.25) {
-                        mBatteryImage.setImageResource(R.drawable.mark_battery04);
-                    } else {
-                        mBatteryImage.setImageResource(R.drawable.mark_battery05);
-                    }
-                    mLevel.setText("" + (level * 100));
+            HeartRateData heart = manager.getHeartRateData(mCurrentDevice.getId());
+            TargetDeviceData device = heart.getDevice();
+            if (device != null) {
+                float level = device.getBatteryLevel();
+                if (level == 1.0) {
+                    mBatteryImage.setImageResource(R.drawable.mark_battery01);
+                } else if (level == 0.75) {
+                    mBatteryImage.setImageResource(R.drawable.mark_battery02);
+                } else if (level == 0.5) {
+                    mBatteryImage.setImageResource(R.drawable.mark_battery03);
+                } else if (level == 0.25) {
+                    mBatteryImage.setImageResource(R.drawable.mark_battery04);
+                } else {
+                    mBatteryImage.setImageResource(R.drawable.mark_battery05);
                 }
-
+                mLevel.setText("" + (level * 100));
             }
         });
 

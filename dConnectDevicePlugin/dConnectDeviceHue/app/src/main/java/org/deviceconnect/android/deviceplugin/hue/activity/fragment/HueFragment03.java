@@ -8,14 +8,15 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.hue.activity.fragment;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 
@@ -40,7 +41,7 @@ public class HueFragment03 extends Fragment implements OnClickListener {
             final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.hue_fragment_03, container, false);
         if (rootView != null) {
-            Button btn = (Button) rootView.findViewById(R.id.btnSearchLight);
+            Button btn = rootView.findViewById(R.id.btnSearchLight);
             btn.setOnClickListener(this);
         }
         return rootView;

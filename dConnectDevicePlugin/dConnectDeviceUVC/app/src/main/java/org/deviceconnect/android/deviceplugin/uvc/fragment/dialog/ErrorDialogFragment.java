@@ -10,7 +10,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
+
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
 
@@ -49,11 +50,8 @@ public class ErrorDialogFragment extends DialogFragment {
         builder.setTitle(title);
         builder.setMessage(message);
         builder.setPositiveButton(R.string.uvc_settings_dialog_positive,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dismiss();
-                    }
+                (dialog, which) -> {
+                    dismiss();
                 });
         mDialog = builder.create();
         return mDialog;

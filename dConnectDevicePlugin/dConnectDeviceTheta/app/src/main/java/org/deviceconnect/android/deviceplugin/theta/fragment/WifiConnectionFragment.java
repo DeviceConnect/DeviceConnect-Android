@@ -27,14 +27,11 @@ public class WifiConnectionFragment extends SettingsFragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_wifi_connection, null);
-        Button btnCameraSearch = (Button) rootView.findViewById(R.id.btn_wifi_settings);
-        btnCameraSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_WIFI_SETTINGS);
-                startActivity(intent);
-            }
+        Button btnCameraSearch = rootView.findViewById(R.id.btn_wifi_settings);
+        btnCameraSearch.setOnClickListener((v) -> {
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_WIFI_SETTINGS);
+            startActivity(intent);
         });
         return rootView;
     }

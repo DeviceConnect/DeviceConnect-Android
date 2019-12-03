@@ -48,13 +48,7 @@ public class LinkingBatteryProfile extends BatteryProfile implements LinkingDest
         addApi(mDeleteOnBatteryChange);
     }
 
-    private final LinkingBeaconManager.OnBeaconBatteryEventListener mListener = new LinkingBeaconManager.OnBeaconBatteryEventListener() {
-        @Override
-        public void onBattery(final LinkingBeacon beacon, final BatteryData battery) {
-            notifyBatteryEvent(beacon, battery);
-        }
-    };
-
+    private final LinkingBeaconManager.OnBeaconBatteryEventListener mListener = this::notifyBatteryEvent;
     private final DConnectApi mGetAll = new GetApi() {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {

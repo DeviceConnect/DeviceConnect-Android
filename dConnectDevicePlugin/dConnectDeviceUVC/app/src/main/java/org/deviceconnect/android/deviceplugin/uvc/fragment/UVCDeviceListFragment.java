@@ -9,10 +9,8 @@ package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.uvc.R;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
@@ -81,7 +81,7 @@ public class UVCDeviceListFragment extends Fragment {
         mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
 
         View rootView = inflater.inflate(R.layout.fragment_uvc_device_list, null);
-        mListView = (ListView) rootView.findViewById(R.id.device_list_view);
+        mListView = rootView.findViewById(R.id.device_list_view);
         mListView.setAdapter(mDeviceAdapter);
         mListView.setItemsCanFocus(true);
         return rootView;
@@ -115,21 +115,18 @@ public class UVCDeviceListFragment extends Fragment {
         if (activity == null) {
             return;
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                UVCDeviceManager mgr = getManager();
-                if (mgr == null) {
-                    return;
-                }
-                LayoutInflater inflater = activity.getLayoutInflater();
-                if (mFooterView != null) {
-                    mListView.removeFooterView(mFooterView);
-                }
-                if (mgr.getDeviceList().size() == 0) {
-                    mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
-                    mListView.addFooterView(mFooterView);
-                }
+        activity.runOnUiThread(() -> {
+            UVCDeviceManager mgr = getManager();
+            if (mgr == null) {
+                return;
+            }
+            LayoutInflater inflater = activity.getLayoutInflater();
+            if (mFooterView != null) {
+                mListView.removeFooterView(mFooterView);
+            }
+            if (mgr.getDeviceList().size() == 0) {
+                mFooterView = inflater.inflate(R.layout.item_uvc_error, null);
+                mListView.addFooterView(mFooterView);
             }
         });
     }
@@ -141,11 +138,8 @@ public class UVCDeviceListFragment extends Fragment {
      */
     private void connectDevice(final DeviceContainer device) {
         showProgressDialog(device.getName());
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                getManager().connectDevice(device.getId());
-            }
+        mExecutor.execute(() -> {
+            getManager().connectDevice(device.getId());
         });
     }
 
@@ -155,11 +149,8 @@ public class UVCDeviceListFragment extends Fragment {
      * @param device UVC device that have heart rate service.
      */
     private void disconnectDevice(final DeviceContainer device) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                getManager().disconnectDevice(device.getId());
-            }
+        mExecutor.execute(() -> {
+            getManager().disconnectDevice(device.getId());
         });
     }
 
@@ -217,11 +208,8 @@ public class UVCDeviceListFragment extends Fragment {
         String title = res.getString(R.string.uvc_settings_dialog_error_title);
         mErrorDialogFragment = ErrorDialogFragment.newInstance(title, message);
         mErrorDialogFragment.show(getFragmentManager(), "error_dialog");
-        mErrorDialogFragment.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                mErrorDialogFragment = null;
-            }
+        mErrorDialogFragment.setOnDismissListener((dialog) -> {
+            mErrorDialogFragment = null;
         });
     }
 
@@ -257,16 +245,13 @@ public class UVCDeviceListFragment extends Fragment {
             if (getActivity() == null) {
                 return;
             }
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    DeviceContainer container = findDeviceContainerById(device.getId());
-                    if (container != null) {
-                        container.setRegisterFlag(true);
-                        mDeviceAdapter.notifyDataSetChanged();
-                    }
-                    dismissProgressDialog();
+            getActivity().runOnUiThread(() -> {
+                DeviceContainer container = findDeviceContainerById(device.getId());
+                if (container != null) {
+                    container.setRegisterFlag(true);
+                    mDeviceAdapter.notifyDataSetChanged();
                 }
+                dismissProgressDialog();
             });
         }
 
@@ -275,12 +260,9 @@ public class UVCDeviceListFragment extends Fragment {
             if (getActivity() == null) {
                 return;
             }
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    dismissProgressDialog();
-                    showErrorDialogNotConnect(device.getName());
-                }
+            getActivity().runOnUiThread(() -> {
+                dismissProgressDialog();
+                showErrorDialogNotConnect(device.getName());
             });
         }
 
@@ -289,16 +271,13 @@ public class UVCDeviceListFragment extends Fragment {
             if (getActivity() == null) {
                 return;
             }
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    DeviceContainer container = findDeviceContainerById(device.getId());
-                    if (container != null) {
-                        container.setRegisterFlag(false);
-                        mDeviceAdapter.notifyDataSetChanged();
-                    }
-                    dismissProgressDialog();
+            getActivity().runOnUiThread(() -> {
+                DeviceContainer container = findDeviceContainerById(device.getId());
+                if (container != null) {
+                    container.setRegisterFlag(false);
+                    mDeviceAdapter.notifyDataSetChanged();
                 }
+                dismissProgressDialog();
             });
         }
     };
@@ -314,14 +293,11 @@ public class UVCDeviceListFragment extends Fragment {
             if (getActivity() == null) {
                 return;
             }
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDeviceAdapter.clear();
-                    mDeviceAdapter.addAll(createDeviceContainers());
-                    mDeviceAdapter.notifyDataSetChanged();
-                    addFooterView();
-                }
+            getActivity().runOnUiThread(() -> {
+                mDeviceAdapter.clear();
+                mDeviceAdapter.addAll(createDeviceContainers());
+                mDeviceAdapter.notifyDataSetChanged();
+                addFooterView();
             });
         }
 
@@ -426,10 +402,10 @@ public class UVCDeviceListFragment extends Fragment {
             final DeviceContainer device = getItem(position);
 
             String name = device.getName();
-            TextView nameView = (TextView) convertView.findViewById(R.id.device_name);
+            TextView nameView = convertView.findViewById(R.id.device_name);
             nameView.setText(name);
 
-            Button btn = (Button) convertView.findViewById(R.id.btn_connect_device);
+            Button btn = convertView.findViewById(R.id.btn_connect_device);
             if (device.isRegisterFlag()) {
                 btn.setBackgroundResource(R.drawable.button_red);
                 btn.setText(R.string.uvc_settings_disconnect);
@@ -437,14 +413,11 @@ public class UVCDeviceListFragment extends Fragment {
                 btn.setBackgroundResource(R.drawable.button_blue);
                 btn.setText(R.string.uvc_settings_connect);
             }
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    if (device.isRegisterFlag()) {
-                        disconnectDevice(device);
-                    } else {
-                        connectDevice(device);
-                    }
+            btn.setOnClickListener((v) -> {
+                if (device.isRegisterFlag()) {
+                    disconnectDevice(device);
+                } else {
+                    connectDevice(device);
                 }
             });
 

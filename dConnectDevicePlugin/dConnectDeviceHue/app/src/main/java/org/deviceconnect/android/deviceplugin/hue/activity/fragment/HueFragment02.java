@@ -11,9 +11,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -22,6 +19,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHMessageType;
@@ -140,18 +141,18 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         View rootView = inflater.inflate(R.layout.hue_fragment_02, container, false);
         // Macアドレスを画面に反映.
-        TextView macTextView = (TextView) rootView.findViewById(R.id.text_mac);
+        TextView macTextView = rootView.findViewById(R.id.text_mac);
         macTextView.setText(mAccessPoint.getMacAddress());
 
         // IPアドレスを画面に反映.
-        TextView ipTextView = (TextView) rootView.findViewById(R.id.text_ip);
+        TextView ipTextView = rootView.findViewById(R.id.text_ip);
         ipTextView.setText(mAccessPoint.getIpAddress());
 
         // 現在の状態を表示.
-        mTextViewStatus = (TextView) rootView.findViewById(R.id.textStatus);
+        mTextViewStatus = rootView.findViewById(R.id.textStatus);
 
         // 作業方法を表示.
-        mTextViewHowTo = (TextView) rootView.findViewById(R.id.textHowto);
+        mTextViewHowTo = rootView.findViewById(R.id.textHowto);
 
         // ボタン.
         mButton = (Button) rootView.findViewById(R.id.btnBridgeTouroku);
@@ -212,20 +213,17 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             mFuture.cancel(false);
         }
 
-        mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                switch (mHueStatus) {
-                    case INIT:
-                        nextImage();
-                        break;
-                    default:
-                    case NO_CONNECT:
-                    case AUTHENTICATE_FAILED:
-                    case AUTHENTICATE_SUCCESS:
-                        stopAnimation();
-                        break;
-                }
+        mFuture = mExecutor.scheduleAtFixedRate(() -> {
+            switch (mHueStatus) {
+                case INIT:
+                    nextImage();
+                    break;
+                default:
+                case NO_CONNECT:
+                case AUTHENTICATE_FAILED:
+                case AUTHENTICATE_SUCCESS:
+                    stopAnimation();
+                    break;
             }
         }, 1, 1, TimeUnit.SECONDS);
     }
@@ -292,17 +290,14 @@ public class HueFragment02 extends Fragment implements OnClickListener {
      * 認証失敗を表示します.
      */
     private void failAuthorization() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                stopAnimation();
+        runOnUiThread(() -> {
+            stopAnimation();
 
-                mTextViewStatus.setText(R.string.frag02_failed);
-                mTextViewHowTo.setText("");
-                mImageView.setImageResource(R.drawable.img01);
-                mButton.setText(R.string.frag02_retry_btn);
-                mButton.setVisibility(View.VISIBLE);
-            }
+            mTextViewStatus.setText(R.string.frag02_failed);
+            mTextViewHowTo.setText("");
+            mImageView.setImageResource(R.drawable.img01);
+            mButton.setText(R.string.frag02_retry_btn);
+            mButton.setVisibility(View.VISIBLE);
         });
     }
 
@@ -331,15 +326,12 @@ public class HueFragment02 extends Fragment implements OnClickListener {
      * Hueブリッジへの誘導を行う文言を表示します.
      */
     private void authenticateHueBridge() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mTextViewStatus.setText(R.string.frag02_init);
-                mTextViewHowTo.setText(R.string.frag02_init_howto);
-                mButton.setText(R.string.frag02_retry_btn);
-                mButton.setVisibility(View.INVISIBLE);
-                startAnimation();
-            }
+        runOnUiThread(() -> {
+            mTextViewStatus.setText(R.string.frag02_init);
+            mTextViewHowTo.setText(R.string.frag02_init_howto);
+            mButton.setText(R.string.frag02_retry_btn);
+            mButton.setVisibility(View.INVISIBLE);
+            startAnimation();
         });
     }
 
@@ -347,21 +339,15 @@ public class HueFragment02 extends Fragment implements OnClickListener {
      * Hueブリッジからレスポンスがなかった場合のエラーダイアログを表示します.
      */
     private void showNotConnection() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                new AlertDialog.Builder(getActivity())
-                        .setTitle(R.string.frag02_failed)
-                        .setMessage(R.string.hue_dialog_no_connect)
-                        .setPositiveButton(R.string.hue_dialog_ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                                moveFirstFragment();
-                            }
-                        })
-                        .setCancelable(false)
-                        .show();
-            }
+        runOnUiThread(() -> {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle(R.string.frag02_failed)
+                    .setMessage(R.string.hue_dialog_no_connect)
+                    .setPositiveButton(R.string.hue_dialog_ok, (dialog, which) -> {
+                        moveFirstFragment();
+                    })
+                    .setCancelable(false)
+                    .show();
         });
     }
 

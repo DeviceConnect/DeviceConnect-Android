@@ -8,8 +8,9 @@ package org.deviceconnect.message;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.deviceconnect.message.entity.FileEntity;
 import org.deviceconnect.message.entity.MultipartEntity;
@@ -189,7 +190,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectResponseMessage response = sdk.availability();
         assertThat(response, is(notNullValue()));
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
@@ -246,7 +247,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.availability(new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage r) {
@@ -357,7 +358,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectResponseMessage response = sdk.authorization(appName, scopes);
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
         assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
@@ -455,7 +456,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.authorization(appName, scopes, new DConnectSDK.OnAuthorizationListener() {
             @Override
             public void onResponse(final String clientId, final String accessToken) {
@@ -537,7 +538,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.authorization(appName, scopes, new DConnectSDK.OnAuthorizationListener() {
             @Override
             public void onResponse(final String clientId, final String accessToken) {
@@ -641,7 +642,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectResponseMessage response = sdk.refreshAccessToken(clientId, appName, scopes);
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
         assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
@@ -732,7 +733,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.refreshAccessToken(clientId, appName, scopes, new DConnectSDK.OnAuthorizationListener() {
             @Override
             public void onResponse(final String clientId, final String accessToken) {
@@ -807,7 +808,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.refreshAccessToken(clientId, appName, scopes, new DConnectSDK.OnAuthorizationListener() {
             @Override
             public void onResponse(final String clientId, final String accessToken) {
@@ -900,7 +901,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
 
         DConnectResponseMessage response = sdk.serviceDiscovery();
@@ -988,7 +989,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
         sdk.serviceDiscovery(new DConnectSDK.OnResponseListener() {
             @Override
@@ -1070,7 +1071,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
         DConnectResponseMessage response = sdk.getServiceInformation(serviceId);
         assertThat(response.getString(DConnectProfileConstants.PARAM_VERSION), is(version));
@@ -1134,7 +1135,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
         sdk.getServiceInformation(serviceId, new DConnectSDK.OnResponseListener() {
             @Override
@@ -1197,7 +1198,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectResponseMessage response = sdk.get("http://localhost:4035/gotapi/availability");
         assertThat(response, notNullValue());
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
@@ -1216,7 +1217,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = NullPointerException.class)
     public void get_uri_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.get((Uri) null);
     }
 
@@ -1229,7 +1230,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void get_uri_empty() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.get("");
     }
 
@@ -1242,7 +1243,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void get_uri_illegal() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.get("test");
     }
 
@@ -1288,7 +1289,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.get("http://localhost:4035/gotapi/availability", new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
@@ -1326,7 +1327,7 @@ public class HttpDConnectSDKTest {
      */
     @Test
     public void post() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getContext();
         String path = context.getFilesDir() + "/test.dat";
         final byte[] fileData = "This is a test.".getBytes();
         writeFile(new File(path), fileData);
@@ -1373,7 +1374,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectResponseMessage response = sdk.post("http://localhost:4035/gotapi/availability", data);
         assertThat(response, notNullValue());
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
@@ -1392,7 +1393,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = NullPointerException.class)
     public void post_uri_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.post((Uri) null, null);
     }
 
@@ -1405,7 +1406,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void post_uri_empty() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.post("", null);
     }
 
@@ -1418,7 +1419,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void post_uri_illegal() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.post("test", null);
     }
 
@@ -1473,7 +1474,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.post("http://localhost:4035/gotapi/availability", data, new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
@@ -1545,7 +1546,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectResponseMessage response = sdk.delete("http://localhost:4035/gotapi/availability?" + key + "=" + value);
         assertThat(response, notNullValue());
         assertThat(response.getResult(), is(DConnectMessage.RESULT_OK));
@@ -1564,7 +1565,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = NullPointerException.class)
     public void delete_uri_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.delete((Uri) null);
     }
 
@@ -1577,7 +1578,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void delete_uri_empty() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.delete("");
     }
 
@@ -1590,7 +1591,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void delete_uri_illegal() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.delete("test");
     }
 
@@ -1636,7 +1637,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.delete("http://localhost:4035/gotapi/availability?" + key +"=" + value, new DConnectSDK.OnResponseListener() {
             @Override
             public void onResponse(final DConnectResponseMessage response) {
@@ -1724,7 +1725,7 @@ public class HttpDConnectSDKTest {
         });
 
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
         sdk.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
@@ -1764,7 +1765,7 @@ public class HttpDConnectSDKTest {
     @Test(expected = NullPointerException.class)
     public void connectWebSocket_listener_null() {
         final String accessToken = "test-accessToken";
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
         sdk.connectWebSocket(null);
     }
@@ -1847,7 +1848,7 @@ public class HttpDConnectSDKTest {
             }
         });
 
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.setAccessToken(accessToken);
         sdk.connectWebSocket(new DConnectSDK.OnWebSocketListener() {
             @Override
@@ -1987,7 +1988,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = NullPointerException.class)
     public void addEventListener_listener_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         DConnectSDK.URIBuilder builder = sdk.createURIBuilder();
         builder.setProfile("deviceOrientation");
         builder.setAttribute("onDeviceOrientation");
@@ -2004,7 +2005,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = NullPointerException.class)
     public void addEventListener_uri_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.addEventListener((Uri) null, new DConnectSDK.OnEventListener() {
             @Override
             public void onMessage(final DConnectEventMessage message) {
@@ -2024,7 +2025,7 @@ public class HttpDConnectSDKTest {
      */
     @Test(expected = NullPointerException.class)
     public void removeEventListener_uri_null() {
-        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getTargetContext(), DConnectSDKFactory.Type.HTTP);
+        DConnectSDK sdk = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getContext(), DConnectSDKFactory.Type.HTTP);
         sdk.removeEventListener((Uri) null);
     }
 }

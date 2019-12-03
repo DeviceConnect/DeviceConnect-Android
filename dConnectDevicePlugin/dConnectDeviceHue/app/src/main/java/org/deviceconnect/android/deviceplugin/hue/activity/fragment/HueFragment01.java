@@ -11,12 +11,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,6 +23,10 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHMessageType;
@@ -64,13 +64,10 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         @Override
         public void onAccessPointsFound(final List<PHAccessPoint> accessPoint) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mAdapter.updateData(accessPoint);
-                    mProgressView.setVisibility(View.GONE);
-                    mSearchButton.setVisibility(View.VISIBLE);
-                }
+            runOnUiThread(() -> {
+                mAdapter.updateData(accessPoint);
+                mProgressView.setVisibility(View.GONE);
+                mSearchButton.setVisibility(View.VISIBLE);
             });
         }
 
@@ -93,12 +90,9 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         @Override
         public void onError(final int code, final String message) {
             if (code == PHMessageType.BRIDGE_NOT_FOUND) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mProgressView.setVisibility(View.GONE);
-                        mSearchButton.setVisibility(View.VISIBLE);
-                    }
+                runOnUiThread(() -> {
+                    mProgressView.setVisibility(View.GONE);
+                    mSearchButton.setVisibility(View.VISIBLE);
                 });
             }
         }
@@ -122,7 +116,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         View rootView = inflater.inflate(R.layout.hue_fragment_01, container, false);
         if (rootView != null) {
-            mSearchButton = (Button) rootView.findViewById(R.id.btnRefresh);
+            mSearchButton =  rootView.findViewById(R.id.btnRefresh);
             mSearchButton.setOnClickListener(this);
 
             mProgressView = rootView.findViewById(R.id.progress_zone);
@@ -131,7 +125,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
             mAdapter = new CustomAdapter(getActivity().getBaseContext(),
                     HueManager.INSTANCE.getAccessPoint());
 
-            ListView listView = (ListView) rootView.findViewById(R.id.bridge_list2);
+            ListView listView =  rootView.findViewById(R.id.bridge_list2);
             listView.setOnItemClickListener(this);
             View headerView = inflater.inflate(R.layout.hue_fragment_01_header, null, false);
             listView.addHeaderView(headerView, null, false);
@@ -193,12 +187,9 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         mAdapter.updateData(HueManager.INSTANCE.getAccessPoint());
         HueManager.INSTANCE.searchHueBridge();
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mProgressView.setVisibility(View.VISIBLE);
-                mSearchButton.setVisibility(View.GONE);
-            }
+        runOnUiThread(() -> {
+            mProgressView.setVisibility(View.VISIBLE);
+            mSearchButton.setVisibility(View.GONE);
         });
     }
 
@@ -208,20 +199,14 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     private void showWifiNotConnected() {
         final Activity activity = getActivity();
         if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+            activity.runOnUiThread(() -> {
                     new AlertDialog.Builder(getActivity())
                             .setTitle(R.string.hue_dialog_network_error)
                             .setMessage(R.string.hue_dialog_not_connect_wifi)
-                            .setPositiveButton(R.string.hue_dialog_ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(final DialogInterface dialog, final int which) {
-                                }
+                            .setPositiveButton(R.string.hue_dialog_ok, (dialog, which) -> {
                             })
                             .setCancelable(false)
                             .show();
-                }
             });
         }
     }
@@ -286,7 +271,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
             View rowView = inflater.inflate(R.layout.hue_list, parent, false);
 
-            TextView mTextView = (TextView) rowView.findViewById(R.id.row_textview1);
+            TextView mTextView = rowView.findViewById(R.id.row_textview1);
 
             String listTitle = mAccessPoints.get(position).getMacAddress() + "("
                     + mAccessPoints.get(position).getIpAddress() + ")";

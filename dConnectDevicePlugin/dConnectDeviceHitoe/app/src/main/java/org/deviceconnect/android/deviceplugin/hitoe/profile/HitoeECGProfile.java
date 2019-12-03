@@ -40,12 +40,7 @@ public class HitoeECGProfile extends ECGProfile {
      * Implementation of {@link HitoeManager.OnHitoeECGEventListener}.
      */
     private final HitoeManager.OnHitoeECGEventListener mECGEventListener =
-            new HitoeManager.OnHitoeECGEventListener() {
-                @Override
-                public void onReceivedData(final HitoeDevice device, final HeartRateData data) {
-                    notifyECGData(device, data);
-                }
-            };
+            this::notifyECGData;
     /**
      * Event Dispatcher object.
      */

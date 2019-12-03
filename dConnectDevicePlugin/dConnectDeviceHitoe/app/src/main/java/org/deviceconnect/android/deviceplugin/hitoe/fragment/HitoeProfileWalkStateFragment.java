@@ -7,12 +7,13 @@
 package org.deviceconnect.android.deviceplugin.hitoe.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
@@ -29,7 +30,7 @@ import org.deviceconnect.android.deviceplugin.hitoe.util.HitoeScheduler;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HitoeProfileWalkStateFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
+public class HitoeProfileWalkStateFragment extends Fragment implements HitoeScheduler.OnRegularNotify {
 
     /**
      * Current Hitoe Device object.
@@ -67,26 +68,18 @@ public class HitoeProfileWalkStateFragment extends Fragment  implements HitoeSch
         View rootView = inflater.inflate(R.layout.fragment_walk_instructions, null);
         mScheduler = new HitoeScheduler(this, HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME,
                                                 HitoeConstants.HR_TEXT_UPDATE_CYCLE_TIME);
-        rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                mScheduler.scanHitoeDevice(true);
-            }
+        rootView.findViewById(R.id.button_register).setOnClickListener((view) -> {
+            mScheduler.scanHitoeDevice(true);
         });
-        rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                mScheduler.scanHitoeDevice(false);
-            }
+        rootView.findViewById(R.id.button_unregister).setOnClickListener((view) -> {
+            mScheduler.scanHitoeDevice(false);
         });
-        TextView title = (TextView) rootView.findViewById(R.id.view_title);
-        mStep = (TextView) rootView.findViewById(R.id.walk_step);
-        mState = (TextView) rootView.findViewById(R.id.walk_state);
-        mSpeed = (TextView) rootView.findViewById(R.id.walk_speed);
-        mDistance = (TextView) rootView.findViewById(R.id.walk_distance);
-        mBalance = (TextView) rootView.findViewById(R.id.walk_balance);
+        TextView title = rootView.findViewById(R.id.view_title);
+        mStep = rootView.findViewById(R.id.walk_step);
+        mState = rootView.findViewById(R.id.walk_state);
+        mSpeed = rootView.findViewById(R.id.walk_speed);
+        mDistance =  rootView.findViewById(R.id.walk_distance);
+        mBalance = rootView.findViewById(R.id.walk_balance);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -116,21 +109,17 @@ public class HitoeProfileWalkStateFragment extends Fragment  implements HitoeSch
         if (getActivity() == null) {
             return;
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                HitoeApplication app = (HitoeApplication) getActivity().getApplication();
-                HitoeManager manager = app.getHitoeManager();
+        getActivity().runOnUiThread(() -> {
+            HitoeApplication app = (HitoeApplication) getActivity().getApplication();
+            HitoeManager manager = app.getHitoeManager();
 
-                WalkStateData walk = manager.getWalkStateData(mCurrentDevice.getId());
-                if (walk != null) {
-                    mStep.setText("" + walk.getStep());
-                    mState.setText(walk.getState().getState());
-                    mSpeed.setText("" + walk.getSpeed());
-                    mDistance.setText("" + walk.getDistance());
-                    mBalance.setText("" + walk.getBalance());
-                }
-
+            WalkStateData walk = manager.getWalkStateData(mCurrentDevice.getId());
+            if (walk != null) {
+                mStep.setText("" + walk.getStep());
+                mState.setText(walk.getState().getState());
+                mSpeed.setText("" + walk.getSpeed());
+                mDistance.setText("" + walk.getDistance());
+                mBalance.setText("" + walk.getBalance());
             }
         });
     }

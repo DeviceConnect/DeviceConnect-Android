@@ -27,12 +27,13 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.tag.BuildConfig;
 

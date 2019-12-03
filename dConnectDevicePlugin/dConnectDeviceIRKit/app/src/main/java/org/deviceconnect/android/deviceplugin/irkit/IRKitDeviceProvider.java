@@ -21,7 +21,7 @@ public class IRKitDeviceProvider<T extends Service> extends DConnectMessageServi
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) IRKitDeviceService.class;
+        Class<? extends Service> clazz = IRKitDeviceService.class;
         return (Class<Service>) clazz;
     }
 

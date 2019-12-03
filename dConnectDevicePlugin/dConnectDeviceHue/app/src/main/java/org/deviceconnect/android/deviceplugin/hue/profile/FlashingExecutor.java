@@ -65,11 +65,8 @@ public class FlashingExecutor {
             next(runnable, identifier);
             return;
         }
-        listener.changeLight(isOn(), new CompleteListener() {
-            @Override
-            public void onComplete() {
-                next(runnable, identifier);
-            }
+        listener.changeLight(isOn(), () -> {
+            next(runnable, identifier);
         });
     }
 

@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.message;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.deviceconnect.utils.RFC3339DateUtils;
 import org.junit.Test;

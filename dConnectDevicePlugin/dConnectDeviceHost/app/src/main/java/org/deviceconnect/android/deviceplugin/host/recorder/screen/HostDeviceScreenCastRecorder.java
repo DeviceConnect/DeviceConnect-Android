@@ -13,7 +13,7 @@ import android.graphics.PixelFormat;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.util.Log;
 

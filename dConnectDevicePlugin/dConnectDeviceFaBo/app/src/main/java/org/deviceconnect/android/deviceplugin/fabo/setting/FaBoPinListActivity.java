@@ -44,12 +44,9 @@ public class FaBoPinListActivity extends Activity {
             showPinFragment(new FaBoPinRadioGroupFragment());
         }
 
-        Button saveBtn = (Button) findViewById(R.id.activity_fabo_pin_save_btn);
-        saveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                savePinList();
-            }
+        Button saveBtn = findViewById(R.id.activity_fabo_pin_save_btn);
+        saveBtn.setOnClickListener((view) -> {
+            savePinList();
         });
 
         // バックキーを押下された時を考慮してキャンセルを設定しておく

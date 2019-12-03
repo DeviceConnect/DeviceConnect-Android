@@ -9,13 +9,14 @@ package org.deviceconnect.android.deviceplugin.hitoe.fragment;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.LineChart;
@@ -42,7 +43,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler.OnRegularNotify {
+public class HitoeProfileECGFragment extends Fragment implements HitoeScheduler.OnRegularNotify {
 
     /** Title size. */
     public static final int CHART_TITLE_SIZE = 25;
@@ -102,22 +103,14 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
         mScheduler = new HitoeScheduler(this, HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME,
                                                                 HitoeConstants.ACC_CHART_UPDATE_CYCLE_TIME);
 
-        rootView.findViewById(R.id.button_register).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                clear();
-                mScheduler.scanHitoeDevice(true);
-            }
+        rootView.findViewById(R.id.button_register).setOnClickListener((view) -> {
+            clear();
+            mScheduler.scanHitoeDevice(true);
         });
-        rootView.findViewById(R.id.button_unregister).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                mScheduler.scanHitoeDevice(false);
-            }
+        rootView.findViewById(R.id.button_unregister).setOnClickListener((view) -> {
+            mScheduler.scanHitoeDevice(false);
         });
-        TextView title = (TextView) rootView.findViewById(R.id.view_title);
+        TextView title = rootView.findViewById(R.id.view_title);
         Bundle args = getArguments();
         if (args != null) {
 
@@ -148,17 +141,13 @@ public class HitoeProfileECGFragment extends Fragment  implements HitoeScheduler
         if (getActivity() == null) {
             return;
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                HitoeApplication app = (HitoeApplication) getActivity().getApplication();
-                HitoeManager manager = app.getHitoeManager();
-                HeartRateData ecg = manager.getECGData(mCurrentDevice.getId());
-                if (ecg != null) {
-                    setECG(ecg.getECG().getTimeStamp(), ecg.getECG().getValue());
-                    updateChart();
-                }
-
+        getActivity().runOnUiThread(() -> {
+            HitoeApplication app = (HitoeApplication) getActivity().getApplication();
+            HitoeManager manager = app.getHitoeManager();
+            HeartRateData ecg = manager.getECGData(mCurrentDevice.getId());
+            if (ecg != null) {
+                setECG(ecg.getECG().getTimeStamp(), ecg.getECG().getValue());
+                updateChart();
             }
         });
     }

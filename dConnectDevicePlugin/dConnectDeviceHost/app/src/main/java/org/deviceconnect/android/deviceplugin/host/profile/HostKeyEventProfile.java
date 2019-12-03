@@ -14,7 +14,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity;
@@ -294,8 +295,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
      * @return Always true.
      */
     private boolean execKeyEventActivity(final String serviceId) {
-        ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+        String mClassName = getApp().getClassnameOfTopActivity();
 
         if (!(KeyEventProfileActivity.class.getName().equals(mClassName))) {
             Intent mIntent = new Intent();
@@ -318,7 +318,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
      * @return Always true.
      */
     private boolean finishKeyEventProfileActivity() {
-        String className = getClassnameOfTopActivity();
+        String className = getApp().getClassnameOfTopActivity();
         if (KeyEventProfileActivity.class.getName().equals(className)) {
             Intent intent = new Intent(HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY);
             LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
@@ -345,16 +345,6 @@ public class HostKeyEventProfile extends KeyEventProfile {
         if (sFlagKeyEventEventManage == 0) {
             finishKeyEventProfileActivity();
         }
-    }
-
-    /**
-     * Get the class name of the Activity being displayed at the top of the screen.
-     * 
-     * @return class name.
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
     }
 
     /**

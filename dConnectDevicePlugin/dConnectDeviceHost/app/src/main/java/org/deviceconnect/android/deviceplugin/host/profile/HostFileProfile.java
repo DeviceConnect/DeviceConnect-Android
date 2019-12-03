@@ -13,7 +13,7 @@ import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -128,24 +128,21 @@ public class HostFileProfile extends FileProfile {
 
             if (oldFile.isFile()) {
                 final boolean forceOverwrite = isForce(request, "forceOverwrite");
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        byte[] data = getContentData(oldFilePath[0]);
-                        if (data != null) {
-                            saveFile(response, newFilePath[0], getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
+                mImageService.execute(() -> {
+                    byte[] data = getContentData(oldFilePath[0]);
+                    if (data != null) {
+                        saveFile(response, newFilePath[0], getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
 
-                                @Override
-                                public void onSavedListener() {
-                                    removeFile(response, oldPath);
-                                }
-                            });
-                            return;
-                        } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
-                        }
-                        sendResponse(response);
+                            @Override
+                            public void onSavedListener() {
+                                removeFile(response, oldPath);
+                            }
+                        });
+                        return;
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
                     }
+                    sendResponse(response);
                 });
                 return false;
             } else if (getMIMEType(oldFile.getPath()) == null) {
@@ -205,38 +202,29 @@ public class HostFileProfile extends FileProfile {
             final byte[] data = getData(request);
             final boolean forceOverwrite = isForce(request, "forceOverwrite");
             if (data == null) {
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        byte[] result;
-                        try {
-                           result = getData(uri);
-                        } catch (OutOfMemoryError e) {
-                            MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                            sendResponse(response);
-                            return;
-                        }
-                        if (result == null) {
-                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                            sendResponse(response);
-                            return;
-                        }
-                        saveFile(response, path, mimeType, result, forceOverwrite, new OnSavedListener() {
-                            @Override
-                            public void onSavedListener() {
-                                sendResponse(response);
-                            }
-                        });
+                mImageService.execute(() -> {
+                    byte[] result;
+                    try {
+                       result = getData(uri);
+                    } catch (OutOfMemoryError e) {
+                        MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                        sendResponse(response);
+                        return;
                     }
+                    if (result == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                        sendResponse(response);
+                        return;
+                    }
+                    saveFile(response, path, mimeType, result, forceOverwrite, () -> {
+                        sendResponse(response);
+                    });
                 });
                 return false;
             }
 
-            saveFile(response, path, mimeType, data, forceOverwrite, new OnSavedListener() {
-                @Override
-                public void onSavedListener() {
-                    sendResponse(response);
-                }
+            saveFile(response, path, mimeType, data, forceOverwrite, () -> {
+                sendResponse(response);
             });
             return false;
         }
@@ -730,41 +718,17 @@ public class HostFileProfile extends FileProfile {
     protected ArrayList<FileAttribute> sortFilelist(final String order, final ArrayList<FileAttribute> filelist) {
         if (order != null) {
             if (order.startsWith(PARAM_PATH)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getPath().compareTo(fa2.getPath());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getPath().compareTo(fa2.getPath()));
             } else if (order.startsWith(PARAM_FILE_NAME)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getName().compareTo(fa2.getName());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getName().compareTo(fa2.getName()));
             } else if (order.startsWith(PARAM_MIME_TYPE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getMimeType().compareTo(fa2.getMimeType());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getMimeType().compareTo(fa2.getMimeType()));
             } else if (order.startsWith(PARAM_FILE_TYPE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getFileType() - fa2.getFileType();
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getFileType() - fa2.getFileType());
             } else if (order.startsWith(PARAM_FILE_SIZE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return (int) (fa1.getFileSize() - fa2.getFileSize());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> (int) (fa1.getFileSize() - fa2.getFileSize()));
             } else if (order.startsWith(PARAM_UPDATE_DATE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getUpdateDate().compareTo(fa2.getUpdateDate());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getUpdateDate().compareTo(fa2.getUpdateDate()));
             }
         }
         return filelist;

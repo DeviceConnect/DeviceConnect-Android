@@ -9,7 +9,8 @@ package org.deviceconnect.android.manager.core.plugin;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -141,12 +142,9 @@ abstract class AbstractConnection implements Connection {
         synchronized (mConnectionStateListeners) {
             if (mConnectionStateListeners.size() > 0) {
                 for (final ConnectionStateListener l : mConnectionStateListeners) {
-                    mExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            sendLocalBroadcast(state, error);
-                            l.onConnectionStateChanged(mPluginId, state);
-                        }
+                    mExecutor.execute(() -> {
+                        sendLocalBroadcast(state, error);
+                        l.onConnectionStateChanged(mPluginId, state);
                     });
                 }
             }

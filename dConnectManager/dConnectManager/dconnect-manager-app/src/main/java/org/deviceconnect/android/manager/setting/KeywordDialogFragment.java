@@ -13,7 +13,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.DialogFragment;
+
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.R;
@@ -32,11 +33,8 @@ public class KeywordDialogFragment extends DialogFragment {
         String keyword = sp.getString(getString(R.string.key_settings_dconn_keyword), DConnectSettings.DEFAULT_KEYWORD);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final Dialog dialog = builder.setTitle(R.string.activity_keyword).setMessage(keyword)
-                .setPositiveButton(R.string.activity_keyword_ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        dialog.dismiss();
-                    }
+                .setPositiveButton(R.string.activity_keyword_ok, (dialogs, which) -> {
+                    dialogs.dismiss();
                 }).create();
         return dialog;
     }

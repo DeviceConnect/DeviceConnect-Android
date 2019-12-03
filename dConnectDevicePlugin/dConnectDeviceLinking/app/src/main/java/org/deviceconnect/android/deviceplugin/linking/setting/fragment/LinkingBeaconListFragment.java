@@ -10,8 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,35 +52,26 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
 
         final View root = inflater.inflate(R.layout.fragment_linking_beacon_list, container, false);
 
-        ListView listView = (ListView) root.findViewById(R.id.fragment_beacon_list_view);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                DeviceItem item = (DeviceItem) view.getTag();
-                if (item != null) {
-                    transitionBeaconControl(item);
-                }
+        ListView listView = root.findViewById(R.id.fragment_beacon_list_view);
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            DeviceItem item = (DeviceItem) view.getTag();
+            if (item != null) {
+                transitionBeaconControl(item);
             }
         });
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                confirmDeleteBeacon(mAdapter.getItem(position).mDevice);
-                return true;
-            }
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            confirmDeleteBeacon(mAdapter.getItem(position).mDevice);
+            return true;
         });
         listView.setAdapter(mAdapter);
 
         Switch switchBtn = (Switch) root.findViewById(R.id.fragment_beacon_scan_switch);
         if (switchBtn != null) {
-            switchBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                    if (isChecked) {
-                        getLinkingBeaconManager().startForceBeaconScan();
-                    } else {
-                        getLinkingBeaconManager().stopForceBeaconScan();
-                    }
+            switchBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    getLinkingBeaconManager().startForceBeaconScan();
+                } else {
+                    getLinkingBeaconManager().stopForceBeaconScan();
                 }
             });
             switchBtn.setChecked(getLinkingBeaconManager().isStartedForceBeaconScan());
@@ -95,7 +86,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         refresh();
 
         if (getView() != null) {
-            Switch switchBtn = (Switch) getView().findViewById(R.id.fragment_beacon_scan_switch);
+            Switch switchBtn = getView().findViewById(R.id.fragment_beacon_scan_switch);
             if (switchBtn != null) {
                 switchBtn.setEnabled(LinkingUtil.isApplicationInstalled(getContext()));
             }
@@ -177,25 +168,22 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
             return;
         }
 
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mAdapter.clear();
-                mAdapter.notifyDataSetChanged();
+        getActivity().runOnUiThread(() -> {
+            mAdapter.clear();
+            mAdapter.notifyDataSetChanged();
 
-                LinkingApplication app = (LinkingApplication) getActivity().getApplication();
-                LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+            LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+            LinkingBeaconManager mgr = app.getLinkingBeaconManager();
 
-                View view = getView();
-                if (view != null) {
-                    ListView listView = (ListView) view.findViewById(R.id.fragment_beacon_list_view);
-                    for (LinkingBeacon device : mgr.getLinkingBeacons()) {
-                        DeviceItem item = new DeviceItem();
-                        item.mDevice = device;
-                        mAdapter.add(item);
-                    }
-                    listView.setAdapter(mAdapter);
+            View view = getView();
+            if (view != null) {
+                ListView listView = view.findViewById(R.id.fragment_beacon_list_view);
+                for (LinkingBeacon device : mgr.getLinkingBeacons()) {
+                    DeviceItem item = new DeviceItem();
+                    item.mDevice = device;
+                    mAdapter.add(item);
                 }
+                listView.setAdapter(mAdapter);
             }
         });
     }
@@ -265,9 +253,9 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
 
             DeviceItem item = getItem(position);
             String deviceName = item.mDevice.getDisplayName();
-            TextView textView = (TextView) convertView.findViewById(R.id.item_device_name);
+            TextView textView = convertView.findViewById(R.id.item_device_name);
             textView.setText(deviceName);
-            TextView statusView = (TextView) convertView.findViewById(R.id.item_device_status);
+            TextView statusView = convertView.findViewById(R.id.item_device_status);
             if (item.mDevice.isOnline()) {
                 textView.setTextColor(Color.BLACK);
                 statusView.setText(getString(R.string.fragment_device_status_online));

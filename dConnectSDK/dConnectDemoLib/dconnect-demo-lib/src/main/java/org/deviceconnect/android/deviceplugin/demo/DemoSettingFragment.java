@@ -20,14 +20,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.pm.ShortcutInfoCompat;
-import android.support.v4.content.pm.ShortcutManagerCompat;
-import android.support.v4.graphics.drawable.IconCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +28,15 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -670,35 +671,29 @@ public abstract class DemoSettingFragment extends Fragment implements View.OnCli
                 String positive = args.getString(KEY_POSITIVE);
                 if (positive != null) {
                     builder.setPositiveButton(positive,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(final DialogInterface dialog, final int which) {
-                                    FragmentManager mgr = getFragmentManager();
-                                    if (mgr != null) {
-                                        DemoSettingFragment l = (DemoSettingFragment) mgr.findFragmentById(mParentId);
-                                        if (l != null) {
-                                            l.onPositiveButton(mTag, MessageDialogFragment.this);
-                                        }
+                            (dialog, which) -> {
+                                FragmentManager mgr = getFragmentManager();
+                                if (mgr != null) {
+                                    DemoSettingFragment l = (DemoSettingFragment) mgr.findFragmentById(mParentId);
+                                    if (l != null) {
+                                        l.onPositiveButton(mTag, MessageDialogFragment.this);
                                     }
-                                    dialog.dismiss();
                                 }
+                                dialog.dismiss();
                             });
                 }
                 String negative = args.getString(KEY_NEGATIVE);
                 if (negative != null) {
                     builder.setNegativeButton(negative,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(final DialogInterface dialog, final int which) {
-                                    FragmentManager mgr = getFragmentManager();
-                                    if (mgr != null) {
-                                        DemoSettingFragment l = (DemoSettingFragment) mgr.findFragmentById(mParentId);
-                                        if (l != null) {
-                                            l.onNegativeButton(mTag, MessageDialogFragment.this);
-                                        }
+                            (dialog, which) -> {
+                                FragmentManager mgr = getFragmentManager();
+                                if (mgr != null) {
+                                    DemoSettingFragment l = (DemoSettingFragment) mgr.findFragmentById(mParentId);
+                                    if (l != null) {
+                                        l.onNegativeButton(mTag, MessageDialogFragment.this);
                                     }
-                                    dialog.dismiss();
                                 }
+                                dialog.dismiss();
                             });
                 }
                 onExtendDialog(builder, activity.getLayoutInflater(), args);

@@ -7,7 +7,7 @@
 package org.deviceconnect.android.observer.util;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.manager.BuildConfig;
 

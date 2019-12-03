@@ -7,7 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 

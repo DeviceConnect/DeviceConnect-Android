@@ -100,19 +100,16 @@ public class FaBoPinCheckBoxFragment extends FaBoBasePinFragment {
 
             FaBoShield.Pin pin = (FaBoShield.Pin) getItem(position);
 
-            CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.item_fabo_check_box_pin);
+            CheckBox checkBox = convertView.findViewById(R.id.item_fabo_check_box_pin);
             checkBox.setText(pin.getPinNames()[1]);
             checkBox.setChecked(mCheckedFlag.get(position));
             checkBox.setEnabled(!usedPin(pin.getPinNumber()));
             // CheckBox#setOnCheckedChangeListenerを使用するとListViewで
             // スクロールした時点でヘックが外れてしまう。
             // ここでは、その問題を回避するためにOnClickListenerを使用します。
-            checkBox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    boolean isChecked = ((CheckBox) view).isChecked();
-                    mCheckedFlag.set(position, isChecked);
-                }
+            checkBox.setOnClickListener((view) -> {
+                boolean isChecked = ((CheckBox) view).isChecked();
+                mCheckedFlag.set(position, isChecked);
             });
 
             return convertView;

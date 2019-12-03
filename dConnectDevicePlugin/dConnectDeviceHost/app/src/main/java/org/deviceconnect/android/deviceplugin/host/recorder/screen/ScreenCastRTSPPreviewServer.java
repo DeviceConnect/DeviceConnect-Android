@@ -3,16 +3,13 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
-import android.media.projection.MediaProjection;
 import android.opengl.GLES20;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.preference.PreferenceManager;
-import android.support.annotation.RequiresApi;
-import android.util.DisplayMetrics;
+import androidx.annotation.RequiresApi;
+
 import android.util.Log;
 import android.view.Surface;
 
@@ -26,16 +23,13 @@ import net.majorkernelpanic.streaming.audio.AACStream;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.rtsp.RtspServerImpl;
 import net.majorkernelpanic.streaming.video.SurfaceH264Stream;
-import net.majorkernelpanic.streaming.video.SurfaceVideoStream;
 import net.majorkernelpanic.streaming.video.VideoQuality;
-import net.majorkernelpanic.streaming.video.VideoStream;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 
 import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
 
@@ -303,54 +297,48 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
         }
 
         // TextureSurfaceで映像を受け取った際のコールバックリスナー
-        private final SurfaceTexture.OnFrameAvailableListener mOnFrameAvailableListener = new SurfaceTexture.OnFrameAvailableListener() {
-            @Override
-            public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
-                if (mIsRecording) {
-                    synchronized (mSync) {
-                        requestDraw = true;
-                        mSync.notifyAll();
-                    }
+        private final SurfaceTexture.OnFrameAvailableListener mOnFrameAvailableListener = (surfaceTexture) -> {
+            if (mIsRecording) {
+                synchronized (mSync) {
+                    requestDraw = true;
+                    mSync.notifyAll();
                 }
             }
         };
 
-        private final Runnable mDrawTask = new Runnable() {
-            @Override
-            public void run() {
-                boolean localRequestDraw;
-                synchronized (mSync) {
-                    localRequestDraw = requestDraw;
-                    if (!requestDraw) {
-                        try {
-                            mSync.wait(intervals);
-                            localRequestDraw = requestDraw;
-                            requestDraw = false;
-                        } catch (final InterruptedException e) {
-                            if (DEBUG) {
-                                Log.v(TAG, "draw:InterruptedException");
-                            }
-                            return;
+        private final Runnable mDrawTask = () -> {
+            boolean localRequestDraw;
+            synchronized (mSync) {
+                localRequestDraw = requestDraw;
+                if (!requestDraw) {
+                    try {
+                        mSync.wait(intervals);
+                        localRequestDraw = requestDraw;
+                        requestDraw = false;
+                    } catch (final InterruptedException e) {
+                        if (DEBUG) {
+                            Log.v(TAG, "draw:InterruptedException");
                         }
+                        return;
                     }
                 }
-                if (mIsRecording) {
-                    if (localRequestDraw) {
-                        mSourceTexture.updateTexImage();
-                        mSourceTexture.getTransformMatrix(mTexMatrix);
-                    }
-                    // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                    mEncoderSurface.makeCurrent();
-                    mDrawer.draw(mTexId, mTexMatrix, 0);
-                    mEncoderSurface.swap();
-                    // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
-                    makeCurrent();
-                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                    GLES20.glFlush();
-                    queueEvent(this);
-                } else {
-                    releaseSelf();
+            }
+            if (mIsRecording) {
+                if (localRequestDraw) {
+                    mSourceTexture.updateTexImage();
+                    mSourceTexture.getTransformMatrix(mTexMatrix);
                 }
+                // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                mEncoderSurface.makeCurrent();
+                mDrawer.draw(mTexId, mTexMatrix, 0);
+                mEncoderSurface.swap();
+                // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
+                makeCurrent();
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                GLES20.glFlush();
+                queueEvent(this);
+            } else {
+                releaseSelf();
             }
         };
 

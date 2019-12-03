@@ -7,8 +7,6 @@
 package org.deviceconnect.android.deviceplugin.hitoe.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +15,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
@@ -55,7 +56,7 @@ public class HitoeProfileListFragment extends Fragment implements AdapterView.On
         mTitle = (TextView) rootView.findViewById(R.id.view_title);
         mProfileListView = (ListView) rootView.findViewById(R.id.device_list_view);
         String[] profiles = getResources().getStringArray(R.array.support_profiles);
-        ArrayAdapter<String> mAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, profiles);
+        ArrayAdapter<String> mAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, profiles);
         mProfileListView.setAdapter(mAdapter);
         mProfileListView.setOnItemClickListener(this);
 

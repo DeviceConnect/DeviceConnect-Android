@@ -70,20 +70,17 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
 
         findViewById(R.id.activity_setting_device_switch).setEnabled(false);
         findViewById(R.id.activity_setting_btn).setEnabled(false);
-        findViewById(R.id.activity_setting_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                if (isStartHOGPServer()) {
-                    openControlActivity();
-                } else {
-                    showNotStartServer();
-                }
+        findViewById(R.id.activity_setting_btn).setOnClickListener((v) -> {
+            if (isStartHOGPServer()) {
+                openControlActivity();
+            } else {
+                showNotStartServer();
             }
         });
 
         mDeviceAdapter = new DeviceAdapter();
 
-        ListView listView = (ListView) findViewById(R.id.activity_setting_list_view);
+        ListView listView = findViewById(R.id.activity_setting_list_view);
         listView.setAdapter(mDeviceAdapter);
 
         setDeviceName();
@@ -145,7 +142,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
 
     @Override
     void onServiceDisconnected() {
-        Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
+        Switch sw =  findViewById(R.id.activity_setting_device_switch);
         sw.setOnCheckedChangeListener(null);
         sw.setEnabled(false);
         findViewById(R.id.activity_setting_btn).setEnabled(false);
@@ -169,12 +166,9 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
     @Override
     public void onStatusChange(final DConnectService dConnectService) {
         if (mDeviceAdapter != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mDeviceAdapter != null) {
-                        mDeviceAdapter.notifyDataSetChanged();
-                    }
+            runOnUiThread(() -> {
+                if (mDeviceAdapter != null) {
+                    mDeviceAdapter.notifyDataSetChanged();
                 }
             });
         }
@@ -196,12 +190,9 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
             }
         }
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mDeviceAdapter != null) {
-                    mDeviceAdapter.setHOGPServiceList(serviceList);
-                }
+        runOnUiThread(() -> {
+            if (mDeviceAdapter != null) {
+                mDeviceAdapter.setHOGPServiceList(serviceList);
             }
         });
     }
@@ -210,7 +201,7 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
      * デバイス名をSwitchのタイトルに設定します.
      */
     private void setDeviceName() {
-        TextView textView = (TextView) findViewById(R.id.activity_setting_device_name);
+        TextView textView = findViewById(R.id.activity_setting_device_name);
         if (BleUtils.isBluetoothEnabled(this)) {
             String name = BleUtils.getBluetoothName(this);
             if (name != null) {
@@ -226,38 +217,29 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
         final HOGPMessageService service = getHOGPMessageService();
         AbstractHOGPServer server = service.getHOGPServer();
 
-        final Switch sw = (Switch) findViewById(R.id.activity_setting_device_switch);
+        final Switch sw = findViewById(R.id.activity_setting_device_switch);
         sw.setChecked(server != null);
         sw.setEnabled(true);
-        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                if (isChecked) {
-                    startHOGPServer();
-                } else {
-                    service.stopHOGPServer();
-                    service.getHOGPSetting().setEnabledServer(false);
-                    setSwitchUI(false);
-                }
+        sw.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                startHOGPServer();
+            } else {
+                service.stopHOGPServer();
+                service.getHOGPSetting().setEnabledServer(false);
+                setSwitchUI(false);
             }
         });
 
-        findViewById(R.id.activity_setting_device_switch_title).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sw.setChecked(!sw.isChecked());
-            }
+        findViewById(R.id.activity_setting_device_switch_title).setOnClickListener((v) -> {
+            sw.setChecked(!sw.isChecked());
         });
 
-        findViewById(R.id.activity_setting_hogp_keyboard_title).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                Switch keyboard = (Switch) findViewById(R.id.activity_setting_hogp_keyboard);
-                keyboard.setChecked(!keyboard.isChecked());
-            }
+        findViewById(R.id.activity_setting_hogp_keyboard_title).setOnClickListener((v) -> {
+            Switch keyboard = findViewById(R.id.activity_setting_hogp_keyboard);
+            keyboard.setChecked(!keyboard.isChecked());
         });
 
-        Spinner mouse = (Spinner) findViewById(R.id.activity_setting_hogp_mouse_mode);
+        Spinner mouse = findViewById(R.id.activity_setting_hogp_mouse_mode);
         mouse.setSelection(service.getHOGPSetting().getMouseMode().getValue());
         mouse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -270,13 +252,10 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
             }
         });
 
-        Switch keyboard = (Switch) findViewById(R.id.activity_setting_hogp_keyboard);
+        Switch keyboard =  findViewById(R.id.activity_setting_hogp_keyboard);
         keyboard.setChecked(service.getHOGPSetting().isEnabledKeyboard());
-        keyboard.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                service.getHOGPSetting().setEnabledKeyboard(isChecked);
-            }
+        keyboard.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            service.getHOGPSetting().setEnabledKeyboard(isChecked);
         });
 
         updateHOGPService();
@@ -289,23 +268,17 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
      */
     private void setLocalOAuthUI() {
         HOGPSetting setting = getHOGPMessageService().getHOGPSetting();
-        final Switch oauthSwitch = (Switch) findViewById(R.id.activity_setting_device_oauth_switch);
+        final Switch oauthSwitch = findViewById(R.id.activity_setting_device_oauth_switch);
         oauthSwitch.setChecked(setting.isEnabledOAuth());
-        oauthSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-                HOGPMessageService service = getHOGPMessageService();
-                if (service != null) {
-                    service.setEnabledOAuth(isChecked);
-                }
+        oauthSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            HOGPMessageService service = getHOGPMessageService();
+            if (service != null) {
+                service.setEnabledOAuth(isChecked);
             }
         });
 
-        findViewById(R.id.activity_setting_device_oauth_title).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                oauthSwitch.setChecked(!oauthSwitch.isChecked());
-            }
+        findViewById(R.id.activity_setting_device_oauth_title).setOnClickListener((v) -> {
+            oauthSwitch.setChecked(!oauthSwitch.isChecked());
         });
     }
 
@@ -432,11 +405,8 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
         new AlertDialog.Builder(this)
                 .setTitle(R.string.activity_setting_bt_enabled_dialog_title)
                 .setMessage(R.string.activity_setting_bt_enabled_dialog_message)
-                .setPositiveButton(R.string.activity_setting_dialog_ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        BleUtils.enableBluetooth(HOGPSettingActivity.this);
-                    }
+                .setPositiveButton(R.string.activity_setting_dialog_ok, (dialog, which) -> {
+                    BleUtils.enableBluetooth(HOGPSettingActivity.this);
                 })
                 .setNegativeButton(R.string.activity_setting_dialog_no, null)
                 .show();
@@ -515,8 +485,8 @@ public class HOGPSettingActivity extends HOGPBaseActivity implements DConnectSer
                 convertView = getLayoutInflater().inflate(R.layout.item_setting_device, null);
             }
 
-            TextView nameView = (TextView) convertView.findViewById(R.id.activity_setting_device_name);
-            TextView statusView = (TextView) convertView.findViewById(R.id.activity_setting_device_status);
+            TextView nameView = convertView.findViewById(R.id.activity_setting_device_name);
+            TextView statusView = convertView.findViewById(R.id.activity_setting_device_status);
 
             HOGPService service = (HOGPService) getItem(position);
             nameView.setText(service.getName());

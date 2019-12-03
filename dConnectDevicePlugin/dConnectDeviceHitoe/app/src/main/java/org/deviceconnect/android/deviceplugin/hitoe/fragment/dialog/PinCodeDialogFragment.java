@@ -11,12 +11,13 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 
@@ -67,13 +68,10 @@ public class PinCodeDialogFragment extends DialogFragment {
         pinEdit.setInputType(InputType.TYPE_CLASS_NUMBER);
         builder.setView(layout);
         builder.setPositiveButton(R.string.hitoe_setting_dialog_positive,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialogInterface, final int i) {
-                        String pinString = pinEdit.getText().toString();
-                        if (mListener != null) {
-                            mListener.onPinCode(pinString);
-                        }
+                (dialogInterface, i) -> {
+                    String pinString = pinEdit.getText().toString();
+                    if (mListener != null) {
+                        mListener.onPinCode(pinString);
                     }
                 });
         builder.setNegativeButton("Cancel", null);

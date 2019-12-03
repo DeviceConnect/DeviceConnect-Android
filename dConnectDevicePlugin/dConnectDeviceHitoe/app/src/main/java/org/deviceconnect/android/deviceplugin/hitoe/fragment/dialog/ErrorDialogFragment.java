@@ -10,8 +10,9 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 
@@ -65,11 +66,8 @@ public class ErrorDialogFragment extends DialogFragment {
         builder.setTitle(title);
         builder.setMessage(message);
         builder.setPositiveButton(R.string.hitoe_setting_dialog_positive,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        dismiss();
-                    }
+                (dialog, which) -> {
+                    dismiss();
                 });
         mDialog = builder.create();
         return mDialog;

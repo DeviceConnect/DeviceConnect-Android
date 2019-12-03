@@ -55,16 +55,13 @@ public class FaBoProfileListActivity extends Activity {
 
         mProfileAdapter = new ProfileAdapter(getProfileTypes());
 
-        ListView listView = (ListView) findViewById(R.id.activity_fabo_profile_list_view);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(final AdapterView<?> adapterView, final View view, final int position, final long id) {
-                ProfileData.Type type = (ProfileData.Type) mProfileAdapter.getItem(position);
-                if (type.getValue() < 100) {
-                    openPinActivity(type.getValue());
-                } else {
-                    selectedProfileData(type.getValue(), null);
-                }
+        ListView listView = findViewById(R.id.activity_fabo_profile_list_view);
+        listView.setOnItemClickListener((adapterView, view, position, id) -> {
+            ProfileData.Type type = (ProfileData.Type) mProfileAdapter.getItem(position);
+            if (type.getValue() < 100) {
+                openPinActivity(type.getValue());
+            } else {
+                selectedProfileData(type.getValue(), null);
             }
         });
         listView.setAdapter(mProfileAdapter);

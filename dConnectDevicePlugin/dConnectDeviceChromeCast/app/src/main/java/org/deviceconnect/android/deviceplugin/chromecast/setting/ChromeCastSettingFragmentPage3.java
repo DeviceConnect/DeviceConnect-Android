@@ -14,7 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -82,25 +82,22 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        changeButtonBackground((Button) getActivity().findViewById(R.id.buttonChromecastSettingApp));
+        changeButtonBackground(getActivity().findViewById(R.id.buttonChromecastSettingApp));
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.chromecast_settings_step_3, container, false);
-        Button button = (Button) rootView.findViewById(R.id.buttonChromecastSettingApp);
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                Intent intent;
-                if (isApplicationInstalled(v.getContext())) {
-                    intent = v.getContext().getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME);
-                } else {
-                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME));
-                }
-                startActivity(intent);
+        Button button = rootView.findViewById(R.id.buttonChromecastSettingApp);
+        button.setOnClickListener((v) -> {
+            Intent intent;
+            if (isApplicationInstalled(v.getContext())) {
+                intent = v.getContext().getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME);
+            } else {
+                intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME));
             }
+            startActivity(intent);
         });
 
         Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.button_google_play);

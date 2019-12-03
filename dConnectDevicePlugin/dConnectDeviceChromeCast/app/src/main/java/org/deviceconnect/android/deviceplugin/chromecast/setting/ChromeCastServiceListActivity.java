@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -33,13 +33,10 @@ public class ChromeCastServiceListActivity extends DConnectServiceListActivity {
         toolbar.setBackgroundColor(Color.parseColor("#00a0e9"));
         addContentView(toolbar, new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         toolbar.setNavigationIcon(R.drawable.close_icon);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
+        toolbar.setNavigationOnClickListener((view) -> {
+            finish();
         });
-        LinearLayout layout = (LinearLayout) findViewById(R.id.fragment_container);
+        LinearLayout layout = findViewById(R.id.fragment_container);
         final TypedArray styledAttributes = getTheme().obtainStyledAttributes(new int[]{android.R.attr.actionBarSize});
         int actionBarSize = (int) styledAttributes.getDimension(0, 0);
         layout.setPadding(0, actionBarSize, 0, 0);

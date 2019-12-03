@@ -9,7 +9,8 @@ package org.deviceconnect.android.deviceplugin.theta;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
-import android.support.v4.util.LruCache;
+
+import androidx.collection.LruCache;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceDetectionFromAccessPoint;

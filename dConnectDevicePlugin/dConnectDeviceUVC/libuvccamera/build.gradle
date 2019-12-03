@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 27
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 29
+        targetSdkVersion 27
     }
 
     buildTypes {
@@ -91,7 +91,7 @@ task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
 }
 dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
-    implementation "com.android.support:support-annotations:${supportLibVersion}"
+    implementation "androidx.legacy:legacy-support-v4:${supportLibVersion}"
     implementation("com.serenegiant:common:${commonLibVersion}") {
         exclude module: 'support-v4'
     }

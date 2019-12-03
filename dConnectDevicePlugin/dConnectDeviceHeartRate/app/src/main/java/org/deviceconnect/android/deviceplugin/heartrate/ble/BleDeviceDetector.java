@@ -77,14 +77,11 @@ public class BleDeviceDetector {
      * @param context context of this application
      */
     public BleDeviceDetector(final Context context) {
-        this(context, new BleDeviceAdapterFactory() {
-            @Override
-            public BleDeviceAdapter createAdapter(Context context) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    return new NewBleDeviceAdapterImpl(context);
-                } else {
-                    return new OldBleDeviceAdapterImpl(context);
-                }
+        this(context, (c) -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                return new NewBleDeviceAdapterImpl(c);
+            } else {
+                return new OldBleDeviceAdapterImpl(c);
             }
         });
     }
@@ -221,13 +218,10 @@ public class BleDeviceDetector {
 
                     }
                 };
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (mBleAdapter.isEnabled()) {
-                    mBleAdapter.stopScan(callback);
-                    listener.onDiscovery(devices);
-                }
+        mHandler.postDelayed(() -> {
+            if (mBleAdapter.isEnabled()) {
+                mBleAdapter.stopScan(callback);
+                listener.onDiscovery(devices);
             }
         }, SCAN_PERIOD);
         mBleAdapter.startScan(callback);
@@ -250,27 +244,21 @@ public class BleDeviceDetector {
                 return;
             }
             mScanning = true;
-            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    // Stops scanning after a pre-defined scan period.
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mBleAdapter.isEnabled()) {
-                                stopBleScan();
-                                notifyBluetoothDevice();
-                            } else {
-                                cancelScanTimer();
-                            }
-                        }
-                    }, SCAN_PERIOD);
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(() -> {
+                // Stops scanning after a pre-defined scan period.
+                mHandler.postDelayed(() -> {
                     if (mBleAdapter.isEnabled()) {
-                        mDevices.clear();
-                        startBleScan();
+                        stopBleScan();
+                        notifyBluetoothDevice();
                     } else {
                         cancelScanTimer();
                     }
+                }, SCAN_PERIOD);
+                if (mBleAdapter.isEnabled()) {
+                    mDevices.clear();
+                    startBleScan();
+                } else {
+                    cancelScanTimer();
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
         } else {

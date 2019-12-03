@@ -13,7 +13,7 @@ import org.deviceconnect.message.DConnectSDKFactory;
 import org.junit.After;
 import org.junit.Before;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 
 /**

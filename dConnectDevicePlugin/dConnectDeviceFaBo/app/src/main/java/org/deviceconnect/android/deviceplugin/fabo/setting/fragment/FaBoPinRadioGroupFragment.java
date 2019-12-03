@@ -31,7 +31,7 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
 
         List<FaBoShield.Pin> pins = getCanUsePinList();
 
-        RadioGroup group = (RadioGroup) view.findViewById(R.id.activity_fabo_pin_layout);
+        RadioGroup group =  view.findViewById(R.id.activity_fabo_pin_layout);
         for (FaBoShield.Pin pin : pins) {
             group.addView(createRadioButton(inflater, pin),
                     new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -40,7 +40,7 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
 
         for (FaBoShield.Pin pin : pins) {
             if (containsPin(pin.getPinNumber())) {
-                RadioButton radioButton = (RadioButton) group.findViewWithTag(pin);
+                RadioButton radioButton = group.findViewWithTag(pin);
                 radioButton.setChecked(true);
                 mSelectedPin = pin;
             }
@@ -60,12 +60,9 @@ public class FaBoPinRadioGroupFragment extends FaBoBasePinFragment {
         radio.setText(pin.getPinNames()[1]);
         radio.setTag(pin);
         radio.setEnabled(!usedPin(pin.getPinNumber()));
-        radio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton compoundButton, final boolean b) {
-                if (b) {
-                    mSelectedPin = pin;
-                }
+        radio.setOnCheckedChangeListener((compoundButton, b) -> {
+            if (b) {
+                mSelectedPin = pin;
             }
         });
         return radio;

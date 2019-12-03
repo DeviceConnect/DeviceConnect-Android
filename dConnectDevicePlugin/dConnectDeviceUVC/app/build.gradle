@@ -64,7 +64,7 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
     implementation project(':libuvccamera')
     implementation project(':libstreaming')
 }

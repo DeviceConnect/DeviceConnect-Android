@@ -14,9 +14,8 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.Log;
-import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -35,8 +34,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting
 import java.io.ByteArrayOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-
-import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
 
 
 /**

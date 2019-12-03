@@ -14,7 +14,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.security.KeyChain;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;

@@ -35,42 +35,39 @@ class DefaultProjector extends AbstractProjector {
             return false;
         }
 
-        mThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mScreen.onStart(DefaultProjector.this);
+        mThread = new Thread(() -> {
+            try {
+                mScreen.onStart(DefaultProjector.this);
 
-                    while(!mIsRequestedToStop) {
-                        long start = System.currentTimeMillis();
+                while(!mIsRequestedToStop) {
+                    long start = System.currentTimeMillis();
 
-                        if (mIsChangedImageSize) {
-                            disposeBuffer();
-                            prepareBuffer();
-                            mRenderer.requestToUpdateTexture();
-                            mIsChangedImageSize = false;
-                        }
-                        draw();
-                        readBuffer();
-
-                        long end = System.currentTimeMillis();
-                        long interval = 100 - (end - start);
-                        if (interval > 0) {
-                            Thread.sleep(interval);
-                        }
+                    if (mIsChangedImageSize) {
+                        disposeBuffer();
+                        prepareBuffer();
+                        mRenderer.requestToUpdateTexture();
+                        mIsChangedImageSize = false;
                     }
-                } catch (InterruptedException e) {
-                    // Nothing to do.
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                } finally {
-                    mIsRequestedToStop = false;
-                    mThread = null;
+                    draw();
+                    readBuffer();
 
-                    disposeBuffer();
-
-                    mScreen.onStop(DefaultProjector.this);
+                    long end = System.currentTimeMillis();
+                    long interval = 100 - (end - start);
+                    if (interval > 0) {
+                        Thread.sleep(interval);
+                    }
                 }
+            } catch (InterruptedException e) {
+                // Nothing to do.
+            } catch (Throwable e) {
+                e.printStackTrace();
+            } finally {
+                mIsRequestedToStop = false;
+                mThread = null;
+
+                disposeBuffer();
+
+                mScreen.onStop(DefaultProjector.this);
             }
         });
         mThread.start();

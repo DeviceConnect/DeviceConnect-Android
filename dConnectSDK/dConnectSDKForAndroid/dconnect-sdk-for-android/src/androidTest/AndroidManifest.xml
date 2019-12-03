@@ -1,13 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.deviceconnect.sdk">
-
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="26" />
-
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <application>
+    <application
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <receiver android:name="org.deviceconnect.message.DConnectMessageReceiver"
             android:exported="true">

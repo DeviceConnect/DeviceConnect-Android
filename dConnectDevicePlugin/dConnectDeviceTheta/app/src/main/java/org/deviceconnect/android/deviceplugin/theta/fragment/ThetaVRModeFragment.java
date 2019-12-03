@@ -9,15 +9,11 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
-import android.support.v4.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -28,6 +24,9 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import androidx.collection.LruCache;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
@@ -122,49 +121,40 @@ public class ThetaVRModeFragment extends Fragment {
             = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public synchronized void onCheckedChanged(final CompoundButton compoundButton, final boolean isStereo) {
-            mExecutorService.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    Activity activity = getActivity();
-                    if (activity != null) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mIsStereo != isStereo) {
-                                    for (int i = 0; i < mVRModeChangeButton.length; i++) {
-                                        mVRModeChangeButton[i].setChecked(isStereo);
-                                    }
-                                    mIsStereo = isStereo;
-                                    enableView();
+            mExecutorService.schedule(() -> {
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mIsStereo != isStereo) {
+                                for (int i = 0; i < mVRModeChangeButton.length; i++) {
+                                    mVRModeChangeButton[i].setChecked(isStereo);
                                 }
-                                if (mSphereView != null) {
-                                    mSphereView.setStereo(mIsStereo);
-                                }
+                                mIsStereo = isStereo;
+                                enableView();
                             }
-                        });
-                    }
+                            if (mSphereView != null) {
+                                mSphereView.setStereo(mIsStereo);
+                            }
+                        }
+                    });
                 }
             }, 50, TimeUnit.MILLISECONDS);
         }
     };
 
     /** ScreenShot shooting button's listener.*/
-    private View.OnClickListener mShootingListener = new View.OnClickListener() {
-        @Override
-        public synchronized void onClick(final View view) {
-            if (mProgress != null) {
-                mProgress.dismiss();
-            }
-            mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.saving));
-            mProgress.show(getActivity().getFragmentManager(),
-                    "fragment_dialog");
-            mExecutorService.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    saveScreenShot();
-                }
-            }, 50, TimeUnit.MILLISECONDS);
+    private View.OnClickListener mShootingListener = (view) -> {
+        if (mProgress != null) {
+            mProgress.dismiss();
         }
+        mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.saving));
+        mProgress.show(getActivity().getFragmentManager(),
+                "fragment_dialog");
+        mExecutorService.schedule(() -> {
+            saveScreenShot();
+        }, 50, TimeUnit.MILLISECONDS);
     };
 
     @Override
@@ -184,8 +174,8 @@ public class ThetaVRModeFragment extends Fragment {
         ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
         mDataCache = app.getCache();
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
-        mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
-        mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
+        mRightLayout = rootView.findViewById(R.id.right_ui);
+        mSphereView = rootView.findViewById(R.id.vr_view);
 
         SphericalViewApi api = app.getSphericalViewApi();
         mSphereView.setViewApi(api);
@@ -277,20 +267,14 @@ public class ThetaVRModeFragment extends Fragment {
         final Activity activity = getActivity();
         if (activity != null) {
             ThetaDialogFragment.showReconnectionDialog(activity,
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int i) {
-                            dialog.dismiss();
-                            activity.finish();
-                            showSettingsActivity();
-                        }
+                    (dialog, i) -> {
+                        dialog.dismiss();
+                        activity.finish();
+                        showSettingsActivity();
                     },
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int i) {
-                            dialog.dismiss();
-                            activity.finish();
-                        }
+                    (dialog, i) -> {
+                        dialog.dismiss();
+                        activity.finish();
                     });
         }
     }
@@ -299,18 +283,12 @@ public class ThetaVRModeFragment extends Fragment {
         final Activity activity = getActivity();
         if (activity != null) {
             ThetaDialogFragment.showDisconnectionDialog(activity,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int i) {
-                        dialog.dismiss();
-                        showSettingsActivity();
-                    }
+                (dialog, i) -> {
+                    dialog.dismiss();
+                    showSettingsActivity();
                 },
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int i) {
-                        dialog.dismiss();
-                    }
+                (dialog, i) -> {
+                    dialog.dismiss();
                 });
         }
     }
@@ -345,10 +323,10 @@ public class ThetaVRModeFragment extends Fragment {
     private void init3DButtons(final View rootView) {
         for (int i = 0; i < mVRModeChangeButton.length; i++) {
             int identifier = getResources().getIdentifier("change_vr_mode_" + i, "id", getActivity().getPackageName());
-            mVRModeChangeButton[i] = (ToggleButton) rootView.findViewById(identifier);
+            mVRModeChangeButton[i] = rootView.findViewById(identifier);
             mVRModeChangeButton[i].setOnCheckedChangeListener(mVRChangeToggleListener);
             identifier = getResources().getIdentifier("theta_shutter_" + i, "id", getActivity().getPackageName());
-            mShootingButton[i] = (Button) rootView.findViewById(identifier);
+            mShootingButton[i] = rootView.findViewById(identifier);
             mShootingButton[i].setOnClickListener(mShootingListener);
         }
     }
@@ -368,13 +346,10 @@ public class ThetaVRModeFragment extends Fragment {
                         mProgress = null;
                     }
                     // Check Android Storage Limit
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ThetaDialogFragment.showAlert(getActivity(),
-                                getResources().getString(R.string.theta_ssid_prefix),
-                                getResources().getString(R.string.theta_error_shortage_by_android), null);
-                        }
+                    activity.runOnUiThread(() -> {
+                        ThetaDialogFragment.showAlert(getActivity(),
+                            getResources().getString(R.string.theta_ssid_prefix),
+                            getResources().getString(R.string.theta_error_shortage_by_android), null);
                     });
                     return;
                 }
@@ -403,32 +378,23 @@ public class ThetaVRModeFragment extends Fragment {
                     values.put(MediaStore.Images.Media.DATA, filePath);
                     contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
                     if (activity != null) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ThetaDialogFragment.showAlert(getActivity(),
-                                        getResources().getString(R.string.theta_ssid_prefix),
-                                        getResources().getString(R.string.theta_save_screenshot), null);
-                            }
+                        activity.runOnUiThread(() -> {
+                            ThetaDialogFragment.showAlert(getActivity(),
+                                    getResources().getString(R.string.theta_ssid_prefix),
+                                    getResources().getString(R.string.theta_save_screenshot), null);
                         });
                     }
                 } catch (IOException e) {
                     if (activity != null) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                failSaveDialog();
-                            }
+                        activity.runOnUiThread(() -> {
+                            failSaveDialog();
                         });
                     }
                 } finally {
                     if (activity != null) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mProgress != null) {
-                                    mProgress.dismiss();
-                                }
+                        activity.runOnUiThread(() -> {
+                            if (mProgress != null) {
+                                mProgress.dismiss();
                             }
                         });
                     }
@@ -440,14 +406,11 @@ public class ThetaVRModeFragment extends Fragment {
             public void onFail() {
                 Activity activity = getActivity();
                 if (activity != null) {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
+                    activity.runOnUiThread(() -> {
                         if (mProgress != null) {
                             mProgress.dismiss();
                         }
                         failSaveDialog();
-                        }
                     });
                 }
             }
@@ -559,11 +522,8 @@ public class ThetaVRModeFragment extends Fragment {
                 if (mError == ThetaDeviceException.OUT_OF_MEMORY) {
                     ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                             getString(R.string.theta_error_memory_warning),
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    getActivity().finish();
-                                }
+                            (dialogInterface, i) -> {
+                                getActivity().finish();
                             });
                 } else if (mError > 0) {
                     // THETA device is found, but communication error occurred.
@@ -588,11 +548,8 @@ public class ThetaVRModeFragment extends Fragment {
                     } catch (OutOfMemoryError e) {
                         ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                                 getString(R.string.theta_error_memory_warning),
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        getActivity().finish();
-                                    }
+                                (dialogInterface, i) -> {
+                                    getActivity().finish();
                                 });
 
                     }

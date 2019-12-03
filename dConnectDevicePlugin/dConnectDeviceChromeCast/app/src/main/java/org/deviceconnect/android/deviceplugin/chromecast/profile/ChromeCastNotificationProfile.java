@@ -66,53 +66,49 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             final String serviceId = getServiceID(request);
             final String body = NotificationProfile.getBody(request);
             final NotificationType type = NotificationProfile.getType(request);
-            ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
-
-                @Override
-                public void onResponse(final boolean connected) {
-                    if (!connected) {
-                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
-                        sendResponse(response);
-                        return;
-                    }
-                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-                    if (body == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "body is null");
+            ((ChromeCastService) getContext()).connectChromeCast(serviceId, (connected) -> {
+                if (!connected) {
+                    MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                    sendResponse(response);
+                    return;
+                }
+                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                if (body == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "body is null");
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    sendResponse(response);
+                    return;
+                }
+                switch (type) {
+                    case PHONE:
+                        break;
+                    case MAIL:
+                        break;
+                    case SMS:
+                        break;
+                    case EVENT:
+                        break;
+                    default:
+                        MessageUtils.setInvalidRequestParameterError(response, "type is null or invalid");
                         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
                         sendResponse(response);
                         return;
-                    }
-                    switch (type) {
-                        case PHONE:
-                            break;
-                        case MAIL:
-                            break;
-                        case SMS:
-                            break;
-                        case EVENT:
-                            break;
-                        default:
-                            MessageUtils.setInvalidRequestParameterError(response, "type is null or invalid");
-                            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-                            sendResponse(response);
-                            return;
-                    }
+                }
 
-                    if (!isDeviceEnable(response, app)) {
-                        sendResponse(response);
-                        return;
-                    }
-                    try {
-                        JSONObject json = new JSONObject();
-                        json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
-                        json.put(KEY_TYPE, type.getValue());
-                        json.put(KEY_MESSAGE, body);
-                        setNotificationId(response, COMMON_ID);
-                        app.sendMessage(response, json.toString());
-                    } catch (JSONException e) {
-                        MessageUtils.setUnknownError(response);
-                        sendResponse(response);
-                    }
+                if (!isDeviceEnable(response, app)) {
+                    sendResponse(response);
+                    return;
+                }
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
+                    json.put(KEY_TYPE, type.getValue());
+                    json.put(KEY_MESSAGE, body);
+                    setNotificationId(response, COMMON_ID);
+                    app.sendMessage(response, json.toString());
+                } catch (JSONException e) {
+                    MessageUtils.setUnknownError(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -128,33 +124,29 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
             final String notificationId = NotificationProfile.getNotificationId(request);
-            ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
-
-                @Override
-                public void onResponse(final boolean connected) {
-                    if (!connected) {
-                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
-                        sendResponse(response);
-                        return;
-                    }
-                    if (notificationId == null || !COMMON_ID.equals(notificationId)) {
-                        MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
-                        sendResponse(response);
-                        return;
-                    }
-                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-                    if (!isDeviceEnable(response, app)) {
-                        sendResponse(response);
-                        return;
-                    }
-                    try {
-                        JSONObject json = new JSONObject();
-                        json.put(KEY_FUNCTION, FUNCTION_DELETE_NOTIFICATION);
-                        app.sendMessage(response, json.toString());
-                    } catch (JSONException e) {
-                        MessageUtils.setUnknownError(response);
-                        sendResponse(response);
-                    }
+            ((ChromeCastService) getContext()).connectChromeCast(serviceId, (connected) -> {
+                if (!connected) {
+                    MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                    sendResponse(response);
+                    return;
+                }
+                if (notificationId == null || !COMMON_ID.equals(notificationId)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
+                    sendResponse(response);
+                    return;
+                }
+                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                if (!isDeviceEnable(response, app)) {
+                    sendResponse(response);
+                    return;
+                }
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_DELETE_NOTIFICATION);
+                    app.sendMessage(response, json.toString());
+                } catch (JSONException e) {
+                    MessageUtils.setUnknownError(response);
+                    sendResponse(response);
                 }
             });
             return false;

@@ -15,8 +15,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,14 +50,11 @@ public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
                              @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.host_setting_gps, null);
 
-        Button btn = (Button) rootView.findViewById(R.id.btn_settings_open);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(intent);
-            }
+        Button btn = rootView.findViewById(R.id.btn_settings_open);
+        btn.setOnClickListener((v) -> {
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
         });
 
         View permission = rootView.findViewById(R.id.gps_permission);
@@ -67,15 +64,12 @@ public class HostGpsSettingFragment extends BaseHostSettingPageFragment {
             permission.setVisibility(View.VISIBLE);
         }
 
-        mGpsPermissionBtn = (Button) rootView.findViewById(R.id.button_permission);
-        mGpsPermissionBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isGPSPermission(getActivity())) {
-                    openAndroidSettings();
-                } else {
-                    requestPermissions();
-                }
+        mGpsPermissionBtn = rootView.findViewById(R.id.button_permission);
+        mGpsPermissionBtn.setOnClickListener((v) -> {
+            if (isGPSPermission(getActivity())) {
+                openAndroidSettings();
+            } else {
+                requestPermissions();
             }
         });
         return rootView;

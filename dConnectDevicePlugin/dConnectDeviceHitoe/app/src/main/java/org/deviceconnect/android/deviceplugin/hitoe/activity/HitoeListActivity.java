@@ -8,7 +8,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,6 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.fragment.app.FragmentActivity;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hitoe.BuildConfig;
@@ -168,45 +169,36 @@ public abstract class HitoeListActivity extends FragmentActivity {
                     Button permission = (Button) mFooterView.findViewById(R.id.button_permission);
                     permission.setVisibility(View.VISIBLE);
                     permission.setText(R.string.bluetooth_settings_ble_permission_off);
-                    permission.setOnClickListener(new View.OnClickListener() {
+                    permission.setOnClickListener((view) -> {
+                        PermissionUtility.requestPermissions(HitoeListActivity.this, mHandler,
+                                BleUtils.BLE_PERMISSIONS,
+                                new PermissionUtility.PermissionRequestCallback() {
+                                    @Override
+                                    public void onSuccess() {
+                                    }
 
-                        @Override
-                        public void onClick(View view) {
-                            PermissionUtility.requestPermissions(HitoeListActivity.this, mHandler,
-                                    BleUtils.BLE_PERMISSIONS,
-                                    new PermissionUtility.PermissionRequestCallback() {
-                                        @Override
-                                        public void onSuccess() {
-                                        }
-
-                                        @Override
-                                        public void onFail(final String deniedPermission) {
-                                        }
-                                    });
-
-                        }
+                                    @Override
+                                    public void onFail(final String deniedPermission) {
+                                    }
+                                });
                     });
 
                     mListView.addFooterView(mFooterView);
 
                 } else if (!BleUtils.isEnabled(HitoeListActivity.this)) {
-                    Button btn = (Button) findViewById(R.id.btn_add_open);
+                    Button btn = findViewById(R.id.btn_add_open);
                     btn.setVisibility(View.GONE);
 
                     mFooterView = inflater.inflate(R.layout.item_hitoe_error, null);
-                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                    TextView textView = mFooterView.findViewById(R.id.error_message);
                     textView.setText(getString(R.string.hitoe_setting_dialog_disable_bluetooth));
-                    Button bluetooth = (Button) mFooterView.findViewById(R.id.button_permission);
+                    Button bluetooth = mFooterView.findViewById(R.id.button_permission);
                     bluetooth.setVisibility(View.VISIBLE);
                     bluetooth.setText(R.string.bluetooth_settings_button);
-                    bluetooth.setOnClickListener(new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(View view) {
-                            Intent intent = new Intent();
-                            intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
-                            startActivity(intent);
-                        }
+                    bluetooth.setOnClickListener((view) -> {
+                        Intent intent = new Intent();
+                        intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
+                        startActivity(intent);
                     });
                     mDeviceAdapter.clear();
                     mDeviceAdapter.notifyDataSetChanged();
@@ -218,18 +210,18 @@ public abstract class HitoeListActivity extends FragmentActivity {
                     mListView.addFooterView(mFooterView);
                 } else if (BleUtils.isEnabled(HitoeListActivity.this)
                         && mEnableConnectedBtn && createDeviceContainers().size() == 0) {
-                    Button btn = (Button) findViewById(R.id.btn_add_open);
+                    Button btn = findViewById(R.id.btn_add_open);
                     btn.setVisibility(View.VISIBLE);
 
                     mFooterView = inflater.inflate(R.layout.item_hitoe_error, null);
                     TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
                     textView.setText(getString(R.string.alert_add_device));
-                    Button bluetooth = (Button) mFooterView.findViewById(R.id.button_permission);
+                    Button bluetooth = mFooterView.findViewById(R.id.button_permission);
                     bluetooth.setVisibility(View.GONE);
 
                     mListView.addFooterView(mFooterView);
                 } else {
-                    Button btn = (Button) findViewById(R.id.btn_add_open);
+                    Button btn = findViewById(R.id.btn_add_open);
                     btn.setVisibility(View.VISIBLE);
                     mDeviceAdapter.clear();
                     mDeviceAdapter.addAll(createDeviceContainers());
@@ -276,15 +268,12 @@ public abstract class HitoeListActivity extends FragmentActivity {
      * @param device BLE device that have heart rate service.
      */
     protected void disconnectDevice(final HitoeDevice device) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                getManager().disconnectHitoeDevice(device);
-                HitoeDevice container = findDeviceContainerByAddress(device.getId());
-                if (container != null) {
-                    container.setRegisterFlag(false);
-                    mDeviceAdapter.notifyDataSetChanged();
-                }
+        runOnUiThread(() -> {
+            getManager().disconnectHitoeDevice(device);
+            HitoeDevice container = findDeviceContainerByAddress(device.getId());
+            if (container != null) {
+                container.setRegisterFlag(false);
+                mDeviceAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -350,11 +339,8 @@ public abstract class HitoeListActivity extends FragmentActivity {
             String title = res.getString(R.string.hitoe_setting_dialog_error_title);
             mErrorDialogFragment = ErrorDialogFragment.newInstance(title, message);
             mErrorDialogFragment.show(getSupportFragmentManager(), "error_dialog");
-            mErrorDialogFragment.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    mErrorDialogFragment = null;
-                }
+            mErrorDialogFragment.setOnDismissListener((dialog) -> {
+                mErrorDialogFragment = null;
             });
         } catch (IllegalStateException e) {
             if (BuildConfig.DEBUG) {
@@ -470,12 +456,12 @@ public abstract class HitoeListActivity extends FragmentActivity {
                 }
             }
 
-            TextView nameView = (TextView) convertView.findViewById(R.id.device_name);
+            TextView nameView = convertView.findViewById(R.id.device_name);
             nameView.setText(name);
 
-            TextView addressView = (TextView) convertView.findViewById(R.id.device_address);
+            TextView addressView = convertView.findViewById(R.id.device_address);
             addressView.setText(device.getId());
-            final Button btn = (Button) convertView.findViewById(R.id.btn_connect_device);
+            final Button btn = convertView.findViewById(R.id.btn_connect_device);
 
             if (mEnableConnectedBtn) {
                 btn.setVisibility(View.VISIBLE);
@@ -487,59 +473,46 @@ public abstract class HitoeListActivity extends FragmentActivity {
                     btn.setBackgroundResource(R.drawable.button_blue);
                     btn.setText(R.string.hitoe_setting_connect);
                 }
-                btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(final View v) {
-                        for (HitoeDevice d: getManager().getRegisterDevices()) {
-                            if (!d.getName().equals(device.getName()) && d.isRegisterFlag()) {
-                                getManager().disconnectHitoeDevice(d);
-                            }
+                btn.setOnClickListener((v) -> {
+                    for (HitoeDevice d: getManager().getRegisterDevices()) {
+                        if (!d.getName().equals(device.getName()) && d.isRegisterFlag()) {
+                            getManager().disconnectHitoeDevice(d);
                         }
+                    }
 
-                        if (device.isRegisterFlag()) {
-                            btn.setBackgroundResource(R.drawable.button_blue);
-                            btn.setText(R.string.hitoe_setting_connect);
-                            disconnectDevice(device);
-                        } else {
-                            if (device.getPinCode() == null) {
-                                final Resources res = getResources();
-                                PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance();
-                                pinDialog.show(getSupportFragmentManager(), "pin_dialog");
-                                pinDialog.setOnPinCodeListener(new PinCodeDialogFragment.OnPinCodeListener() {
-                                    @Override
-                                    public void onPinCode(final String pin) {
-                                        if (pin.isEmpty()) {
-                                            showErrorDialog(
-                                                    res.getString(R.string.hitoe_setting_dialog_error_message02));
-                                            return;
-                                        }
-                                        device.setPinCode(pin);
-                                        connectDevice(device);
-                                    }
-                                });
-                            } else {
-                                connectDevice(device);
-                            }
-                            mHandler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (mCheckDialog) {
-                                        device.setPinCode(null);
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                dismissProgressDialog();
-                                                Resources res = getResources();
-                                                showErrorDialog(
-                                                        res.getString(R.string.hitoe_setting_dialog_error_message04));
-
-                                            }
-                                        });
-                                    }
+                    if (device.isRegisterFlag()) {
+                        btn.setBackgroundResource(R.drawable.button_blue);
+                        btn.setText(R.string.hitoe_setting_connect);
+                        disconnectDevice(device);
+                    } else {
+                        if (device.getPinCode() == null) {
+                            final Resources res = getResources();
+                            PinCodeDialogFragment pinDialog = PinCodeDialogFragment.newInstance();
+                            pinDialog.show(getSupportFragmentManager(), "pin_dialog");
+                            pinDialog.setOnPinCodeListener((pin) -> {
+                                if (pin.isEmpty()) {
+                                    showErrorDialog(
+                                            res.getString(R.string.hitoe_setting_dialog_error_message02));
+                                    return;
                                 }
-                            },  HitoeConstants.DISCOVERY_CYCLE_TIME);
-
+                                device.setPinCode(pin);
+                                connectDevice(device);
+                            });
+                        } else {
+                            connectDevice(device);
                         }
+                        mHandler.postDelayed(() -> {
+                            if (mCheckDialog) {
+                                device.setPinCode(null);
+                                runOnUiThread(() -> {
+                                    dismissProgressDialog();
+                                    Resources res = getResources();
+                                    showErrorDialog(
+                                            res.getString(R.string.hitoe_setting_dialog_error_message04));
+                                });
+                            }
+                        },  HitoeConstants.DISCOVERY_CYCLE_TIME);
+
                     }
                 });
             } else {

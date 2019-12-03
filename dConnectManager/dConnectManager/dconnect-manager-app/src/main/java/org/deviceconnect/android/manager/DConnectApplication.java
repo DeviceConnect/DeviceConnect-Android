@@ -56,12 +56,7 @@ public class DConnectApplication extends HostDeviceApplication {
             logger.setUseParentHandlers(false);
         } else {
             logger.setLevel(Level.OFF);
-            logger.setFilter(new Filter() {
-                @Override
-                public boolean isLoggable(final LogRecord record) {
-                    return false;
-                }
-            });
+            logger.setFilter((record) -> false);
         }
     }
 

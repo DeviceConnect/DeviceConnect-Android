@@ -77,7 +77,10 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
+
+    //implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
+    implementation project(':dconnect-sdk-for-android')
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.46'
 

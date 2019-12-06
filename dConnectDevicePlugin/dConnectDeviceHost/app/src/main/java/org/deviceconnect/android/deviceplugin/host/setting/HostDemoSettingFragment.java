@@ -67,7 +67,7 @@ public class HostDemoSettingFragment extends DemoSettingFragment implements View
 
     @Override
     protected String getShortcutUri(final DemoInstaller installer) {
-        return "gotapi://shortcut/" + installer.getPluginPackageName() + "/demo/camera/index.html";
+        return "gotapi://shortcut/org.deviceconnect.android.deviceplugin.host.provider.included/demo/camera/index.html";
     }
 
     @Override

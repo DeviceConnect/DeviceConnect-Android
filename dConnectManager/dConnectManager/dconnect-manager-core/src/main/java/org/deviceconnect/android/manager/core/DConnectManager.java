@@ -126,15 +126,21 @@ public abstract class DConnectManager implements DConnectInterface {
      * コンストラクタ.
      *
      * @param context コンテキスト
+     * @param settings Device Connect Manager の設定
+     * @param pluginManager プラグイン管理クラス
      * @throws IllegalArgumentException コンテキストがnullの場合に発生
      */
-    public DConnectManager(final Context context, final DConnectSettings settings) {
+    public DConnectManager(final Context context,
+                           final DConnectSettings settings,
+                           final DevicePluginManager pluginManager) {
         if (context == null) {
             throw new IllegalArgumentException("context is null.");
         }
-
         if (settings == null) {
             throw new IllegalArgumentException("settings is null.");
+        }
+        if (pluginManager == null) {
+            throw new IllegalArgumentException("pluginManager is null.");
         }
 
         setupLogger("dconnect.manager");
@@ -148,7 +154,7 @@ public abstract class DConnectManager implements DConnectInterface {
         mSettings = settings;
         mKeyStoreMgr = new EndPointKeyStoreManager(context, DConnectConst.KEYSTORE_FILE_NAME, "0000");
 
-        mCore = new DConnectCore(mContext, mSettings, mEventSessionFactory);
+        mCore = new DConnectCore(mContext, mSettings, pluginManager, mEventSessionFactory);
         mCore.setDConnectInterface(this);
         mCore.setIDConnectCallback(new IDConnectCallback.Stub() {
             @Override

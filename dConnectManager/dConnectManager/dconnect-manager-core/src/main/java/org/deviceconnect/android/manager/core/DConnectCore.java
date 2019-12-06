@@ -144,14 +144,25 @@ public class DConnectCore extends DevicePluginContext {
      *
      * @param context  コンテキスト
      * @param settings Device Connect Manager の設定
+     * @param pluginManager プラグイン管理クラス
      * @throws IllegalArgumentException コンテキストがnullの場合に発生
      */
-    DConnectCore(final Context context, final DConnectSettings settings, final AbstractEventSessionFactory factory) {
+    DConnectCore(final Context context,
+                 final DConnectSettings settings,
+                 final DevicePluginManager pluginManager,
+                 final AbstractEventSessionFactory factory) {
         super(context);
 
         if (settings == null) {
             throw new IllegalArgumentException("settings is null.");
         }
+        if (pluginManager == null) {
+            throw new IllegalArgumentException("pluginManager is null.");
+        }
+        if (factory == null) {
+            throw new IllegalArgumentException("factory is null.");
+        }
+
         mSettings = settings;
 
         // デバイスプラグインとのLocal OAuth情報
@@ -164,7 +175,7 @@ public class DConnectCore extends DevicePluginContext {
         mFileMgr = new FileManager(context);
 
         // プラグイン管理クラスの初期化
-        mPluginManager = new DevicePluginManager(context, DConnectConst.LOCALHOST_DCONNECT);
+        mPluginManager = pluginManager;
         mPluginManager.addEventListener(new DevicePluginManager.DevicePluginEventListener() {
             @Override
             public void onDeviceFound(final DevicePlugin plugin) {

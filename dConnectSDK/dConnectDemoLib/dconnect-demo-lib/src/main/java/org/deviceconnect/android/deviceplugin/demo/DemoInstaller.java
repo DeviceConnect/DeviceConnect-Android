@@ -206,6 +206,7 @@ public class DemoInstaller {
         }
     }
 
+    @Deprecated
     public static boolean isUpdateNeeded(final Context context) {
         String version = readInstalledVersion(context);
         if (version == null) {
@@ -213,6 +214,23 @@ public class DemoInstaller {
         }
         String currentVersion = getCurrentVersionName(context);
         return !version.equals(currentVersion);
+    }
+
+    public boolean isUpdateNeeded() {
+        String version = readInstalledVersion(mContext);
+        if (version == null) {
+            return false;
+        }
+        String currentVersion = getCurrentVersionName(mContext);
+        if (!version.equals(currentVersion)) {
+            return true;
+        }
+        File demoDir = getDemoDirOnStorage();
+        if (!demoDir.exists()) {
+            return true;
+        }
+        File[] children = demoDir.listFiles();
+        return children == null || children.length == 0;
     }
 
     public boolean isInstalledDemoPage() {

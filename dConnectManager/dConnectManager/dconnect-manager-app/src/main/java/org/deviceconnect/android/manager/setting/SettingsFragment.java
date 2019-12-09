@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -173,7 +174,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ドキュメントルート
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
-            File file = new File(getActivity().getExternalFilesDir(null), getActivity().getPackageName());
+            File dir = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ?
+                    getActivity().getExternalFilesDir(null) :
+                    Environment.getExternalStorageDirectory();
+            File file = new File(dir, getActivity().getPackageName());
             docRootPath = file.getPath();
         }
 

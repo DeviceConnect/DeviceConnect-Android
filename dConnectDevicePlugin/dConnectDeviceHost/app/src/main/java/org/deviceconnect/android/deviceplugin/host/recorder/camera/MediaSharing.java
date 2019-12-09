@@ -8,8 +8,10 @@ import android.graphics.Bitmap;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Size;
 
 import androidx.annotation.NonNull;
 
@@ -262,7 +264,60 @@ abstract class MediaSharing {
         public Uri shareVideo(final @NonNull Context context,
                               final @NonNull File videoFile,
                               final @NonNull FileManager fileManager) {
-            // TODO 動画ファイルの共有処理
+            if (checkMediaFile(videoFile)) {
+                ContentResolver resolver = context.getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Video.Media.TITLE, videoFile.getName());
+                values.put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.getName());
+                values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
+                values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
+                values.put(MediaStore.Images.Media.IS_PENDING, 1);
+                Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+                if (uri == null) {
+                    return null;
+                }
+
+                try (InputStream in = new FileInputStream(videoFile);
+                     OutputStream out = resolver.openOutputStream(uri))
+                {
+                    if (out == null) {
+                        return null;
+                    }
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    out.flush();
+                } catch (FileNotFoundException e) {
+                    throw new IllegalStateException(e);
+                } catch (IOException e) {
+                    return null;
+                }
+
+                values.clear();
+                values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                resolver.update(uri, values, null, null);
+
+                try {
+                    Size size = new Size(100, 100);
+                    Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFile, size, new CancellationSignal());
+
+                    ByteArrayOutputStream data = new ByteArrayOutputStream();
+                    thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, data);
+                    String fileName = videoFile.getName() + ".jpg";
+                    String thumbnailFilePath = fileManager.saveFile(fileName, data.toByteArray());
+                    if (DEBUG) {
+                        Log.d(TAG, "Stored thumbnail file: path=" + thumbnailFilePath);
+                    }
+                    return uri;
+                } catch (IOException e) {
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to save video thumbnail: videoFilePath=" + videoFile.getAbsolutePath());
+                    }
+                    return null;
+                }
+            }
             return null;
         }
     }

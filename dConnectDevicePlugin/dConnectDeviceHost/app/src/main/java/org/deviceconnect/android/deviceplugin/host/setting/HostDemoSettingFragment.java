@@ -11,7 +11,10 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Build;
 import android.view.View;
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -27,6 +30,8 @@ import org.deviceconnect.android.deviceplugin.host.demo.HostDemoInstaller;
  */
 public class HostDemoSettingFragment extends DemoSettingFragment implements View.OnClickListener {
 
+    private static final String FILE_PROVIDER_AUTHORITY = "org.deviceconnect.android.deviceplugin.host.provider.included";
+
     private static final String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
@@ -36,7 +41,10 @@ public class HostDemoSettingFragment extends DemoSettingFragment implements View
         super.onAttach(context);
         Activity activity = getActivity();
         if (activity != null) {
-            ((AppCompatActivity) activity).getSupportActionBar().setTitle(getString(R.string.demo_page_settings_title));
+            ActionBar actionBar = ((AppCompatActivity) activity).getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(getString(R.string.demo_page_settings_title));
+            }
         }
     }
 
@@ -67,7 +75,14 @@ public class HostDemoSettingFragment extends DemoSettingFragment implements View
 
     @Override
     protected String getShortcutUri(final DemoInstaller installer) {
-        return "gotapi://shortcut/org.deviceconnect.android.deviceplugin.host.provider.included/demo/camera/index.html";
+        String rootPath;
+        String filePath = "/demo/camera/index.html";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            rootPath = "/" + FILE_PROVIDER_AUTHORITY;
+        } else {
+            rootPath = "/" + installer.getPluginPackageName();
+        }
+        return "gotapi://shortcut" + rootPath + filePath;
     }
 
     @Override

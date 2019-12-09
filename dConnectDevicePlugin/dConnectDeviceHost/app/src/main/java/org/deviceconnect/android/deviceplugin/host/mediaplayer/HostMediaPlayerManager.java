@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 import static org.deviceconnect.android.profile.DConnectProfile.setResult;
 
@@ -127,6 +129,11 @@ public class HostMediaPlayerManager {
     private boolean mOnStatusChangeEventFlag = false;
 
     /**
+     * 現在再生中のメディアのURI.
+     */
+    private Uri mMyCurrentUri;
+
+    /**
      * 現在再生中のファイルパス.
      */
     private String mMyCurrentFilePath = "";
@@ -166,6 +173,9 @@ public class HostMediaPlayerManager {
 
     /** Notification Content */
     private final String NOTIFICATION_CONTENT = "Host Media Player Profileからの起動要求";
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /** Intent Action */
     public static final String INTENT_ACTION_ACTIVITY_START = "org.deviceconnect.android.deviceplugin.host.mediaplayer.ACTIVTY_START";
@@ -250,6 +260,7 @@ public class HostMediaPlayerManager {
 
             try {
                 mSetMediaType = MEDIA_TYPE_MUSIC;
+                mMyCurrentUri = mUri;
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
                 mMediaStatus = MEDIA_PLAYER_SET;
@@ -279,6 +290,7 @@ public class HostMediaPlayerManager {
         } else if (VIDEO_TYPE_LIST.contains(mMineType)) {
             try {
                 mSetMediaType = MEDIA_TYPE_VIDEO;
+                mMyCurrentUri = mUri;
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
 
@@ -289,7 +301,14 @@ public class HostMediaPlayerManager {
                 }
                 mMediaPlayer = new MediaPlayer();
 
-                FileInputStream fis = new FileInputStream(mMyCurrentFilePath);
+                FileInputStream fis;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(mUri, "r");
+                    fis = new ParcelFileDescriptor.AutoCloseInputStream(descriptor);
+                } else {
+                    fis = new FileInputStream(mMyCurrentFilePath);
+                }
                 FileDescriptor mFd = fis.getFD();
 
                 mMediaPlayer.setDataSource(mFd);
@@ -306,12 +325,14 @@ public class HostMediaPlayerManager {
                     sendResponse(response);
                 }
             } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+                mLogger.severe("Failed to mount media: filePath=" + filePath);
                 if (response != null) {
                     MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                     sendResponse(response);
                 }
             }
         } else {
+            mLogger.severe("Not supported media: filePath=" + filePath);
             if (response != null) {
                 MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                 sendResponse(response);
@@ -475,10 +496,12 @@ public class HostMediaPlayerManager {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.setClass(getContext(), VideoPlayer.class);
-                Uri data = Uri.parse(mMyCurrentFilePath);
+                Uri data = mMyCurrentUri;
                 mIntent.setDataAndType(data, mMyCurrentFileMIMEType);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                mLogger.info("Launch VideoPlayer activity: uri = " + data);
                 if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     mHostDevicePluginContext.getContext().startActivity(mIntent);
                     sendOnStatusChangeEvent("play");

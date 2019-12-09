@@ -711,6 +711,8 @@ app = new Vue({
             mediaId = m.mediaId;
             if (m.imageUri) {
               thumbnailUri = m.imageUri.replace('localhost', host);
+            } else {
+              thumbnailUri = media.uri + '.jpg';
             }
             return true;
           }

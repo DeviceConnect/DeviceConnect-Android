@@ -11,6 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.deviceplugin.theta.core.LiveCamera;
 import org.deviceconnect.android.deviceplugin.theta.core.LivePreviewTask;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
@@ -18,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
+import org.deviceconnect.android.deviceplugin.theta.utils.MediaSharing;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -33,6 +36,7 @@ import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +57,7 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
 
     private final ThetaDeviceClient mClient;
     private final FileManager mFileMgr;
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
     private final Object mLockObj = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
@@ -149,7 +154,9 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
                         mFileMgr.saveFile(picture.getFileName(), data, true, new FileManager.SaveFileCallback() {
 
                             @Override
-                            public void onSuccess(final String uri) {
+                            public void onSuccess(final @NonNull String uri) {
+                                mMediaSharing.sharePhoto(getContext(), new File(mFileMgr.getBasePath(), picture.getFileName()));
+
                                 String path = "/" + picture.getFileName();
                                 setUri(response, uri);
                                 setPath(response, path);

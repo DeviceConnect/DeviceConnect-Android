@@ -41,6 +41,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.data.ThetaObjectStorage;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
+import org.deviceconnect.android.deviceplugin.theta.utils.MediaSharing;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -108,6 +109,9 @@ public class ThetaVRModeFragment extends Fragment {
     private LruCache<String, byte[]> mDataCache;
 
     private ThetaObjectStorage mStorage;
+
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
+
     /**
      * Singleton.
      */
@@ -353,7 +357,7 @@ public class ThetaVRModeFragment extends Fragment {
                     });
                     return;
                 }
-                String root = getContext().getExternalFilesDir(null).getPath() + "/Camera/";
+                String root = getContext().getExternalFilesDir(null).getPath() + "/screenshots/";
                 File dir = new File(root);
                 if (!dir.exists()) {
                     dir.mkdir();
@@ -367,16 +371,11 @@ public class ThetaVRModeFragment extends Fragment {
                 try {
                     saveFile(filePath, mSphereView.takeSnapshot());
                     if (BuildConfig.DEBUG) {
-                        mLogger.severe("absolute path:" + filePath);
+                        mLogger.info("absolute path:" + filePath);
                     }
-                    ContentValues values = new ContentValues();
-                    ContentResolver contentResolver = getActivity().getContentResolver();
-                    values.put(MediaStore.Images.Media.TITLE, fileName);
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-                    values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
-                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                    values.put(MediaStore.Images.Media.DATA, filePath);
-                    contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+                    mMediaSharing.sharePhoto(getContext(), new File(filePath));
+
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
                             ThetaDialogFragment.showAlert(getActivity(),
@@ -385,6 +384,7 @@ public class ThetaVRModeFragment extends Fragment {
                         });
                     }
                 } catch (IOException e) {
+                    mLogger.severe("Failed to save screenshot: " + e.getMessage());
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
                             failSaveDialog();

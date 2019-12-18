@@ -221,7 +221,7 @@ abstract class MediaSharing {
         @Override
         public Uri sharePhoto(final @NonNull Context context,
                               final @NonNull File photoFile) {
-            if (!checkMediaFile(photoFile)) {
+            if (checkMediaFile(photoFile)) {
                 ContentResolver resolver = context.getContentResolver();
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Images.Media.TITLE, photoFile.getName());
@@ -231,6 +231,7 @@ abstract class MediaSharing {
                 values.put(MediaStore.Images.Media.IS_PENDING, 1);
                 Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
                 if (uri == null) {
+                    Log.e(TAG, "Failed to share photo: not inserted to media store: path = " + photoFile.getAbsolutePath());
                     return null;
                 }
 
@@ -238,6 +239,7 @@ abstract class MediaSharing {
                      OutputStream out = resolver.openOutputStream(uri))
                 {
                     if (out == null) {
+                        Log.e(TAG, "Failed to share photo: no output stream: path = " + photoFile.getAbsolutePath());
                         return null;
                     }
                     byte[] buf = new byte[1024];
@@ -249,6 +251,7 @@ abstract class MediaSharing {
                 } catch (FileNotFoundException e) {
                     throw new IllegalStateException(e);
                 } catch (IOException e) {
+                    Log.e(TAG, "Failed to share photo: I/O error: path = " + photoFile.getAbsolutePath(), e);
                     return null;
                 }
 
@@ -256,6 +259,8 @@ abstract class MediaSharing {
                 values.put(MediaStore.Images.Media.IS_PENDING, 0);
                 resolver.update(uri, values, null, null);
                 return uri;
+            } else {
+                Log.e(TAG, "Failed to share photo: file not found: path = " + photoFile.getAbsolutePath());
             }
             return null;
         }

@@ -72,11 +72,7 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-
-    //implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
-    implementation project(':dconnect-device-plugin-sdk')
-    implementation project(':dconnect-sdk-for-android')
-
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
     implementation project(':dconnect-demo-lib')
     implementation project(':libstreaming')
     implementation('com.serenegiant:common:2.12.5') {

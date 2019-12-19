@@ -3,10 +3,6 @@ include 'dconnect-server'
 project(':dconnect-server').projectDir = new File('../dConnectServer')
 include 'dconnect-server-nano-httpd'
 project(':dconnect-server-nano-httpd').projectDir = new File('../dConnectServerNanoHttpd/nanohttpd')
-include 'dconnect-sdk-for-android'
-project(':dconnect-sdk-for-android').projectDir = new File('../../dConnectSDK/dConnectSDKForAndroid/dconnect-sdk-for-android')
-include 'dconnect-device-plugin-sdk'
-project(':dconnect-device-plugin-sdk').projectDir = new File('../../dConnectDevicePlugin/dConnectDevicePluginSDK/dconnect-device-plugin-sdk')
 include 'dconnect-device-plugin-host'
 project(':dconnect-device-plugin-host').projectDir = new File('../../dConnectDevicePlugin/dConnectDeviceHost/app')
 include 'libstreaming'

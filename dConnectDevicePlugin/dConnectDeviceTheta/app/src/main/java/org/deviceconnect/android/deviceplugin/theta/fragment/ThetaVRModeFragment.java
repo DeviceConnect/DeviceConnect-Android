@@ -7,13 +7,9 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -28,7 +24,6 @@ import android.widget.ToggleButton;
 import androidx.collection.LruCache;
 import androidx.fragment.app.Fragment;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
@@ -46,7 +41,6 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -338,8 +332,9 @@ public class ThetaVRModeFragment extends Fragment {
     /**
      * Save ScreenShot.
      */
+    @SuppressWarnings("deprecation")
     private void saveScreenShot() {
-        FileManager fileManager = new FileManager(getActivity());
+        final FileManager fileManager = new FileManager(getActivity());
         fileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
             @Override
             public void onSuccess() {
@@ -357,24 +352,21 @@ public class ThetaVRModeFragment extends Fragment {
                     });
                     return;
                 }
-                String root = getContext().getExternalFilesDir(null).getPath() + "/screenshots/";
-                File dir = new File(root);
-                if (!dir.exists()) {
-                    dir.mkdir();
+
+                String cacheDirName = "screenshots";
+                File cacheDir = new File(fileManager.getBasePath(), cacheDirName);
+                if (!cacheDir.exists()) {
+                    cacheDir.mkdirs();
                 }
 
                 Date date = new Date();
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
-                final String filePath = root + fileName;
 
                 try {
-                    saveFile(filePath, mSphereView.takeSnapshot());
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info("absolute path:" + filePath);
-                    }
+                    fileManager.saveFile(cacheDirName + "/" + fileName, mSphereView.takeSnapshot());
 
-                    mMediaSharing.sharePhoto(getContext(), new File(filePath));
+                    mMediaSharing.sharePhoto(getContext(), new File(cacheDir, fileName));
 
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
@@ -418,32 +410,6 @@ public class ThetaVRModeFragment extends Fragment {
 
     }
 
-    /**
-     * Save File.
-     * @param filename absolute path
-     * @param data binary
-     * @throws IOException Failed Save
-     */
-    private void saveFile(final String filename, final byte[] data) throws IOException {
-        Uri u = Uri.parse("file://" + filename);
-        ContentResolver contentResolver = getActivity().getContentResolver();
-        OutputStream out = null;
-        try {
-            out = contentResolver.openOutputStream(u, "w");
-            out.write(data);
-            out.flush();
-        } catch (Exception e) {
-            throw new IOException("Failed to save a file." + filename);
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
     /**
      * ScreenShot failed.
      */

@@ -28,7 +28,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -337,7 +336,7 @@ public class ThetaObjectStorage {
                         dataImage);
                 values.put(THETA_MAIN_URL, imagePath);
 
-                mMediaSharing.sharePhoto(mContext, new File(mFileManager.getBasePath(), imagePath));
+                mMediaSharing.sharePhoto(mContext, new File(imagePath));
             }
         }
         return values;
@@ -346,25 +345,22 @@ public class ThetaObjectStorage {
 
     // save theta's image
     @SuppressWarnings("deprecation")
-    private String saveThetaImage(final String cacheDir,
+    private String saveThetaImage(final String cacheDirName,
                                   final String originalFileName,
                                   final byte[] thetaImage) throws IOException {
-        String root = mFileManager.getBasePath().getAbsolutePath()
-                + "/" + cacheDir + "/";
-        File dir = new File(root);
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new IOException("Failed to create directory: path = " + dir.getAbsolutePath());
+        File cacheDir = new File(mFileManager.getBasePath(), cacheDirName);
+        if (!cacheDir.exists()) {
+            if (!cacheDir.mkdirs()) {
+                throw new IOException("Failed to create directory: path = " + cacheDir.getAbsolutePath());
             }
         }
 
         Date date = new Date();
         SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
         final String fileName =  originalFileName + "." + fileDate.format(date);
-        final String filePath = cacheDir + "/" + fileName;
 
-        mFileManager.saveFile(filePath, thetaImage);
-        return filePath;
+        mFileManager.saveFile(cacheDirName + "/" + fileName, thetaImage);
+        return new File(cacheDir, fileName).getAbsolutePath();
     }
 
     // load theta's image data.

@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscover
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
+import org.deviceconnect.android.deviceplugin.chromecast.core.MediaStoreContent;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -760,17 +761,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * @param   mediaId     メディアID
      * @return  dummyUrl    ダミーURL
      */
-    private String exposeMedia(final int mediaId) {
+    private String exposeMedia(final long mediaId) {
         Uri targetUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        String path = getPathFromUri(ContentUris.withAppendedId(targetUri,
-                Long.valueOf(mediaId)));
-        if (path == null) {
-            return null;
-        }
+        Uri mediaUri = ContentUris.withAppendedId(targetUri, mediaId);
 
         ChromeCastHttpServer server = ((ChromeCastService) getContext())
                 .getChromeCastHttpServer();
-        return server.exposeFile(new MediaFile(new File(path), null));
+        return server.exposeFile(new MediaStoreContent(mediaUri));
     }
 
     private final DConnectApi mPutMediaApi = new PutApi() {

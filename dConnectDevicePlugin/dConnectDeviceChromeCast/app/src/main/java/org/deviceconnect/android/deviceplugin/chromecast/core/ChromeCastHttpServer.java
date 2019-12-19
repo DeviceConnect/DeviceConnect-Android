@@ -93,7 +93,7 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         if (address == null) {
             return null;
         }
-        return "http://" + address + ":" + getListeningPort() + file.getPath();
+        return "http://" + address + ":" + getListeningPort() + "/" + file.getName();
     }
 
     /**
@@ -133,9 +133,9 @@ public class ChromeCastHttpServer extends NanoHTTPD {
             mLogger.info("File not found: URI=" + uri);
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
-        mLogger.info("Found File: " + mediaFile.mFile.getAbsolutePath());
+        mLogger.info("Found File: " + mediaFile.getName());
 
-        Response response = serveFile(uri, headers, mediaFile.mFile, "");
+        Response response = serveFile(headers, mediaFile, "");
         if (response == null) {
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
@@ -151,8 +151,8 @@ public class ChromeCastHttpServer extends NanoHTTPD {
     private MediaFile findFile(final String uri) {
         synchronized (mFileList) {
             for (MediaFile file : mFileList) {
-                mLogger.info(" - " + file.getPath());
-                if (uri.equals(file.getPath())) {
+                mLogger.info(" - " + file.getName());
+                if (uri.equals("/" + file.getName())) {
                     return file;
                 }
             }
@@ -166,10 +166,15 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      * @param   status      ステータス
      * @param   mimeType    MIMEタイプ
      * @param   message     メッセージ (InputStream)
+     * @param   length      送信するデータ長
      * @return レスポンス
      */
-    private Response createResponse(final Response.Status status, final String mimeType, final InputStream message) {
+    private Response createResponse(final Response.Status status,
+                                    final String mimeType,
+                                    final InputStream message,
+                                    final int length) {
         Response res = new Response(status, mimeType, message);
+        res.setContentLength(length);
         res.addHeader("Accept-Ranges", "bytes");
         return res;
     }
@@ -182,7 +187,9 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      * @param   message     メッセージ (String)
      * @return レスポンス
      */
-    private Response createResponse(final Response.Status status, final String mimeType, final String message) {
+    private Response createResponse(final Response.Status status,
+                                    final String mimeType,
+                                    final String message) {
         Response res = new Response(status, mimeType, message);
         res.addHeader("Accept-Ranges", "bytes");
         return res;
@@ -261,19 +268,20 @@ public class ChromeCastHttpServer extends NanoHTTPD {
 
     /**
      * ファイルのレスポンスを作成する.
-     * 
-     * @param   uri         ファイルのURI
+     *
      * @param   header      ヘッダー
      * @param   file        ファイル
      * @param   mime        MIMEタイプ
      * @return レスポンス
      */
-    Response serveFile(final String uri, final Map<String, String> header, final File file, final String mime) {
+    Response serveFile(final Map<String, String> header, final MediaFile file, final String mime) {
 
         Response res;
         try {
-            String etag = Integer.toHexString((file.getAbsolutePath()
-                    + file.lastModified() + "" + file.length()).hashCode());
+            InputStream in = file.open(mContext);
+
+            long fileLen = in.available();
+            String etag = Integer.toHexString((file.getName() + "" + fileLen).hashCode());
 
             long startFrom = 0;
             long endAt = -1;
@@ -296,7 +304,6 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                 }
             }
 
-            long fileLen = file.length();
             if (range != null && startFrom >= 0) {
                 if (startFrom >= fileLen) {
                     res = createResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
@@ -311,17 +318,9 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                         newLen = 0;
                     }
 
-                    final long dataLen = newLen;
-                    FileInputStream fis = new FileInputStream(file) {
-                        @Override
-                        public int available() throws IOException {
-                            return (int) dataLen;
-                        }
-                    };
-                    fis.skip(startFrom);
-
-                    res = createResponse(Response.Status.PARTIAL_CONTENT, mime, fis);
-                    res.addHeader("Content-Length", "" + dataLen);
+                    in.skip(startFrom);
+                    res = createResponse(Response.Status.PARTIAL_CONTENT, mime, in, (int) newLen);
+                    res.addHeader("Content-Length", "" + newLen);
                     res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
                     res.addHeader("ETag", etag);
                 }
@@ -329,7 +328,7 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                 if (etag.equals(header.get("if-none-match"))) {
                     res = createResponse(Response.Status.NOT_MODIFIED, mime, "");
                 } else {
-                    res = createResponse(Response.Status.OK, mime, new FileInputStream(file));
+                    res = createResponse(Response.Status.OK, mime, in, in.available());
                     res.addHeader("Content-Length", "" + fileLen);
                     res.addHeader("ETag", etag);
                 }

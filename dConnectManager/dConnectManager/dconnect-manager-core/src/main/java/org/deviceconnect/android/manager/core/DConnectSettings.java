@@ -216,17 +216,25 @@ public final class DConnectSettings {
      */
     @SuppressWarnings("deprecation")
     public String getDocumentRootPath() {
-        File dir = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ?
-                mContext.getExternalFilesDir(null) :
-                Environment.getExternalStorageDirectory();
-        File file = new File(dir, mContext.getPackageName());
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                throw new RuntimeException("Cannot make a folder. path=" + file.getPath());
+        File dir = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            dir = mContext.getExternalFilesDir(null);
+        } else {
+            File externalDir = Environment.getExternalStorageDirectory();
+            if (externalDir != null) {
+                dir = new File(externalDir, mContext.getPackageName());
+            }
+        }
+        if (dir == null) {
+            dir = mContext.getFilesDir();
+        }
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new RuntimeException("Cannot make a folder. path=" + dir.getPath());
             }
         }
         return mPreferences.getString(mContext.getString(R.string.key_settings_web_server_document_root_path),
-                file.getAbsolutePath());
+                dir.getAbsolutePath());
     }
 
     /**

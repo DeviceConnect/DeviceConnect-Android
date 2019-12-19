@@ -30,8 +30,9 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
-import androidx.annotation.NonNull;
 import android.view.MenuItem;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.DConnectApplication;
@@ -174,11 +175,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ドキュメントルート
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
-            File dir = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ?
-                    getActivity().getExternalFilesDir(null) :
-                    Environment.getExternalStorageDirectory();
-            File file = new File(dir, getActivity().getPackageName());
-            docRootPath = file.getPath();
+            docRootPath = getDocumentRootPath(getActivity());
         }
 
         // Managerの名前
@@ -285,6 +282,23 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         setUIEnabled(power);
 
         mPauseHandler = new PauseHandlerImpl();
+    }
+
+    @SuppressWarnings("deprecation")
+    private String getDocumentRootPath(final Context context) {
+        File dir = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            dir = context.getExternalFilesDir(null);
+        } else {
+            File externalDir = Environment.getExternalStorageDirectory();
+            if (externalDir != null) {
+                dir = new File(externalDir, context.getPackageName());
+            }
+        }
+        if (dir == null) {
+            dir = context.getFilesDir();
+        }
+        return dir.getAbsolutePath();
     }
 
     @Override

@@ -33,8 +33,15 @@ class UpdateTask extends FileTask {
 
     @Override
     protected void execute() throws IOException {
-        if (!deleteDir(mDirectory)) {
-            throw new IOException("Failed to delete directory: " + mDirectory.getAbsolutePath());
+        if (mDirectory.isDirectory()) {
+            if (!deleteDir(mDirectory)) {
+                throw new IOException("Failed to delete directory: path = " + mDirectory.getAbsolutePath());
+            }
+        } else if (mDirectory.isFile()) {
+            File file = mDirectory;
+            if (file.delete()) {
+                throw new IOException("Failed to delete same-named file: path = " + file.getAbsolutePath());
+            }
         }
 
         // デモページを指定されたディレクトリにインストール.

@@ -8,17 +8,23 @@ package org.deviceconnect.android.manager;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.manager.core.DConnectConst;
 import org.deviceconnect.android.manager.core.DConnectSettings;
+import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.util.NotificationUtil;
 import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
@@ -27,10 +33,12 @@ import org.deviceconnect.android.ssl.KeyStoreError;
 import org.deviceconnect.android.ssl.KeyStoreManager;
 import org.deviceconnect.server.nanohttpd.DConnectWebServerNanoHttpd;
 
+import java.io.FileNotFoundException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -65,6 +73,11 @@ public class DConnectWebService extends Service {
     private DConnectSettings mSettings;
 
     /**
+     * プラグイン管理クラス.
+     */
+    private DevicePluginManager mPluginManager;
+
+    /**
      * キーストア管理クラス.
      */
     private KeyStoreManager mKeyStoreMgr;
@@ -89,6 +102,8 @@ public class DConnectWebService extends Service {
         super.onCreate();
 
         mSettings = ((DConnectApplication) getApplication()).getSettings();
+
+        mPluginManager = ((DConnectApplication) getApplication()).getPluginManager();
 
         mKeyStoreMgr = new EndPointKeyStoreManager(getApplicationContext(), DConnectConst.KEYSTORE_FILE_NAME, "0000");
 
@@ -178,6 +193,31 @@ public class DConnectWebService extends Service {
                 .cors("*")
                 .version(getVersion(this))
                 .build();
+        mWebServer.setDispatcher((uri) -> {
+            Uri httpUri = Uri.parse(uri);
+            Uri contentUri = convertToContentUri(httpUri);
+            mLogger.info("Requested File: httpUri=" + httpUri + " -> contentUri=" + contentUri);
+            if (contentUri == null) {
+                return null;
+            }
+            String authority = contentUri.getAuthority();
+            if (authority == null) {
+                return null;
+            }
+            DevicePlugin plugin = findPluginFromAuthority(authority);
+            if (plugin == null) {
+                mLogger.info("Not found plug-in for requested file: contentUri=" + contentUri);
+                return null;
+            }
+            mLogger.info("Found plug-in for requested file: name=" + plugin.getDeviceName() + ", contentUri=" + contentUri);
+            try {
+                ContentResolver resolver = getContentResolver();
+                return resolver.openInputStream(contentUri);
+            } catch (FileNotFoundException e) {
+                mLogger.info("Not found file: contentUri=" + contentUri);
+                return null;
+            }
+        });
 
         try {
             mWebServer.start();
@@ -188,6 +228,30 @@ public class DConnectWebService extends Service {
             stopWebServer();
             throw e;
         }
+    }
+
+    private DevicePlugin findPluginFromAuthority(final @NonNull String authority) {
+        for (DevicePlugin plugin : mPluginManager.getDevicePlugins()) {
+            if (plugin.hasContentProvider(authority)) {
+                return plugin;
+            }
+        }
+        return null;
+    }
+
+    private Uri convertToContentUri(final Uri httpUri) {
+        List<String> segments = httpUri.getPathSegments();
+        if (segments == null || segments.size() == 0) {
+            return null;
+        }
+        Uri.Builder uri = new Uri.Builder()
+                .scheme("content")
+                .authority(segments.get(0));
+        for (int i = 1; i < segments.size(); i++) {
+            uri.appendPath(segments.get(i));
+        }
+        uri.query(httpUri.getQuery());
+        return uri.build();
     }
 
     /**

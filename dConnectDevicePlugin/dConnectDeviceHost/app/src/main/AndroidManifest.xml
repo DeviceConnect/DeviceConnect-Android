@@ -121,7 +121,9 @@
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
             android:exported="true" >
-            
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/host_filelocation" />
         </provider>
     </application>
 

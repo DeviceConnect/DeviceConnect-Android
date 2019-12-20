@@ -250,7 +250,7 @@ public class HostDevicePlugin extends DevicePluginContext {
     }
     private void updateDemoPageIfNeeded() {
         final Context context = getContext();
-        if (DemoInstaller.isUpdateNeeded(context)) {
+        if (mDemoInstaller.isUpdateNeeded()) {
             mLogger.info("Demo page must be updated.");
             updateDemoPage(context);
         } else {

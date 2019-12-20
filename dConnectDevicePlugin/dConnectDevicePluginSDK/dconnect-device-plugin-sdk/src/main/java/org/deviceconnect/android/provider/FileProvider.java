@@ -12,6 +12,7 @@ import android.content.Context;
 import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.webkit.MimeTypeMap;
@@ -106,6 +107,7 @@ public class FileProvider extends ContentProvider {
      * ファイルを管理するためのベースとなるパスを取得する.
      * @return パス
      */
+    @SuppressWarnings("deprecation")
     public File getBasePath() {
         Context context = getContext();
         if (context == null) {
@@ -116,7 +118,11 @@ public class FileProvider extends ContentProvider {
             mLocation = FileLocationParser.parse(context, this.getClass().getName());
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
-            return new File(context.getExternalFilesDir(null), mLocation.getPath());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                return new File(getContext().getExternalFilesDir(null), mLocation.getPath());
+            } else {
+                return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());
+            }
         } else {
             return new File(context.getFilesDir(), mLocation.getPath());
         }
@@ -129,11 +135,18 @@ public class FileProvider extends ContentProvider {
      * @return Fileのインスタンス
      */
     private File get(final Uri uri) {
+        if (uri == null) {
+            throw new IllegalArgumentException("uri is null.");
+        }
+        String path = uri.getPath();
+        if (path == null) {
+            throw new IllegalArgumentException("path of uri is null: uri = " + uri);
+        }
         String accessToken = uri.getQueryParameter("");
         if (!checkAccessToken(accessToken)) {
             throw new IllegalArgumentException("accessToken is invalid.");
         }
-        return new File(getBasePath(), uri.getPath());
+        return new File(getBasePath(), path);
     }
 
     /**

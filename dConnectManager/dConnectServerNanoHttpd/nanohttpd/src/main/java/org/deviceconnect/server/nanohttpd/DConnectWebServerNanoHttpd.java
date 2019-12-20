@@ -38,6 +38,11 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class DConnectWebServerNanoHttpd {
 
+    public interface Dispatcher {
+
+        InputStream dispatch(String uri);
+    }
+
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "NanoWeb";
 
@@ -61,6 +66,11 @@ public class DConnectWebServerNanoHttpd {
      * Webサーバの設定.
      */
     private Config mConfig;
+
+    /**
+     * ファイル取得ロジック.
+     */
+    private Dispatcher mDispatcher = (uri) -> null;
 
     /**
      * コンストラクタ.
@@ -116,6 +126,13 @@ public class DConnectWebServerNanoHttpd {
             mWebServer.stop();
             mWebServer = null;
         }
+    }
+
+    public void setDispatcher(final Dispatcher dispatcher) {
+        if (dispatcher == null) {
+            throw new IllegalArgumentException("dispatcher is null");
+        }
+        mDispatcher = dispatcher;
     }
 
     /**
@@ -238,6 +255,11 @@ public class DConnectWebServerNanoHttpd {
                 return newForbiddenResponse("Won't serve ../ for security reasons.");
             }
 
+            InputStream in = mDispatcher.dispatch(session.getUri());
+            if (in != null) {
+                return serveInputStream(uri, session.getQueryParameterString(), headers, in);
+            }
+
             boolean canServeUri = false;
             String homeDir = null;
             for (int i = 0; !canServeUri && i < mRootDirs.size(); i++) {
@@ -280,6 +302,50 @@ public class DConnectWebServerNanoHttpd {
                 Response response = serveFile(uri, session.getQueryParameterString(), headers, f, mimeTypeForFile);
                 return response != null ? response : newNotFoundResponse();
             }
+        }
+
+        private Response serveInputStream(final String uri,
+                                          final String queryString,
+                                          final Map<String, String> header,
+                                          final InputStream in) {
+            Response retValue;
+
+            String mime = header.get("content-type");
+            // http の仕様より、content-type で MIME Type が特定できない場合は
+            // URI から MIME Type を推測する。
+            if (mime == null || !MIME_TYPES.containsValue(mime)) {
+                mime = getMimeTypeFromURI(uri);
+            }
+
+            try {
+                // If-None-Match対応
+                String etag = createETag(uri, queryString);
+                if (etag.equals(header.get("if-none-match"))) {
+                    retValue = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
+                } else {
+                    retValue = newFixedLengthResponse(Response.Status.OK, mime, in, in.available());
+                    retValue.addHeader("Content-Length", "" + in.available());
+                    retValue.addHeader("ETag", etag);
+                }
+
+                // ByteRangeへの対応は必須ではないため、noneを指定して対応しないことを伝える。
+                // 対応が必要な場合はbyteを設定して実装すること。
+                retValue.addHeader("Accept-Ranges", "none");
+            } catch (IOException e) {
+                if (DEBUG) {
+                    Log.w(TAG, "Not Found a file.", e);
+                }
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException e1) {
+                        // ignore.
+                    }
+                }
+                retValue = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, Response.Status.NOT_FOUND.getDescription());
+            }
+
+            return retValue;
         }
 
         /**
@@ -694,6 +760,7 @@ public class DConnectWebServerNanoHttpd {
             }
             return Integer.toHexString(hashCode);
         }
+
         /**
          * ETagを作成します.
          *
@@ -931,6 +998,7 @@ public class DConnectWebServerNanoHttpd {
             mConfig.mServerSocketFactory = factory;
             return this;
         }
+
         /**
          * {@link DConnectWebServerNanoHttpd} のインスタンスを作成します.
          *

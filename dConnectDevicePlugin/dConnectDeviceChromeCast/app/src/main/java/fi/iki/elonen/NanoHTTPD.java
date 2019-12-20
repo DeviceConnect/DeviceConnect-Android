@@ -558,6 +558,10 @@ public abstract class NanoHTTPD {
          * Use chunkedTransfer
          */
         private boolean chunkedTransfer;
+        /**
+         * Content length.
+         */
+        private int contentLength = -1;
 
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
@@ -599,6 +603,17 @@ public abstract class NanoHTTPD {
             return header.get(name);
         }
 
+        public void setContentLength(final int length) {
+            this.contentLength = length;
+        }
+
+        private int getContentLength() throws IOException {
+            if (contentLength < 0) {
+                return this.data.available();
+            }
+            return contentLength;
+        }
+
         /**
          * Sends given response to the socket.
          */
@@ -634,7 +649,7 @@ public abstract class NanoHTTPD {
                 if (requestMethod != Method.HEAD && chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
                 } else {
-                    int pending = data != null ? data.available() : 0;
+                    int pending = data != null ? getContentLength() : 0;
                     sendContentLengthHeaderIfNotAlreadyPresent(pw, header, pending);
                     pw.print("\r\n");
                     pw.flush();

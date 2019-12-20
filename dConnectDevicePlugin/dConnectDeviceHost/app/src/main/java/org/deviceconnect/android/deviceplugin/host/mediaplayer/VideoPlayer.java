@@ -65,7 +65,7 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
         Intent mIntent = this.getIntent();
         mUri = mIntent.getData();
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             Intent intent = new Intent(HostMediaPlayerManager.INTENT_ACTION_ACTIVITY_START);
             sendBroadcast(intent);
         }

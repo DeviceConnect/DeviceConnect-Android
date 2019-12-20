@@ -15,10 +15,12 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import androidx.annotation.NonNull;
 
+import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
 
@@ -174,12 +176,17 @@ public class FileManager {
      * 
      * @return パス
      */
+    @SuppressWarnings("deprecation")
     public File getBasePath() {
         if (mLocation == null) {
             mLocation = FileLocationParser.parse(getContext(), mFileProviderClassName);
         }
         if (mLocation.getType() == FileLocationParser.TYPE_EXTERNAL_PATH) {
-            return new File(getContext().getExternalFilesDir(null), mLocation.getPath());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                return new File(getContext().getExternalFilesDir(null), mLocation.getPath());
+            } else {
+                return new File(Environment.getExternalStorageDirectory(), mLocation.getPath());
+            }
         } else {
             return new File(getContext().getFilesDir(), mLocation.getPath());
         }

@@ -8,6 +8,7 @@ package org.deviceconnect.android.manager.core;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Environment;
 
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
@@ -213,15 +214,27 @@ public final class DConnectSettings {
      *
      * @return ドキュメントルートパス
      */
+    @SuppressWarnings("deprecation")
     public String getDocumentRootPath() {
-        File file = new File(mContext.getExternalFilesDir(null), mContext.getPackageName());
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                throw new RuntimeException("Cannot make a folder. path=" + file.getPath());
+        File dir = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            dir = mContext.getExternalFilesDir(null);
+        } else {
+            File externalDir = Environment.getExternalStorageDirectory();
+            if (externalDir != null) {
+                dir = new File(externalDir, mContext.getPackageName());
+            }
+        }
+        if (dir == null) {
+            dir = mContext.getFilesDir();
+        }
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                throw new RuntimeException("Cannot make a folder. path=" + dir.getPath());
             }
         }
         return mPreferences.getString(mContext.getString(R.string.key_settings_web_server_document_root_path),
-                file.getAbsolutePath());
+                dir.getAbsolutePath());
     }
 
     /**

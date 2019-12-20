@@ -382,6 +382,21 @@ public class DevicePlugin extends DConnectService {
     }
 
     /**
+     * 指定された名前のコンテンツプロバイダーを公開しているかどうかを取得する.
+     *
+     * @param authority authority名
+     * @return 公開している場合は <code>true</code>. そうでない場合は <code>false</code>
+     */
+    public boolean hasContentProvider(final String authority) {
+        for (String a : mInfo.mProviderAuthorities) {
+            if (a.equals(authority)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * プラグインを有効化する.
      * <p>
      * プラグインに有効化イベントを送信します。
@@ -646,6 +661,11 @@ public class DevicePlugin extends DConnectService {
             return this;
         }
 
+        public Builder addProviderAuthority(final String authority) {
+            mInfo.mProviderAuthorities.add(authority);
+            return this;
+        }
+
         /**
          * {@link DevicePlugin}オブジェクトを生成する.
          *
@@ -708,6 +728,11 @@ public class DevicePlugin extends DConnectService {
          */
         private ConnectionType mConnectionType;
 
+        /**
+         * 公開コンテンツプロバイダーの名前のリスト.
+         */
+        private List<String> mProviderAuthorities = new ArrayList<>();
+
         public int getPluginXmlId() {
             return mPluginXml.getResourceId();
         }
@@ -752,6 +777,10 @@ public class DevicePlugin extends DConnectService {
             return mConnectionType;
         }
 
+        public List<String> getProviderAuthorities() {
+            return mProviderAuthorities;
+        }
+
         @Override
         public int describeContents() {
             return 0;
@@ -768,12 +797,13 @@ public class DevicePlugin extends DConnectService {
             dest.writeString(this.mDeviceName);
             dest.writeValue(this.mPluginIconId);
             dest.writeInt(this.mConnectionType == null ? -1 : this.mConnectionType.ordinal());
+            dest.writeStringList(this.mProviderAuthorities);
         }
 
-        Info() {
+        public Info() {
         }
 
-        Info(Parcel in) {
+        protected Info(Parcel in) {
             this.mPluginXml = in.readParcelable(DevicePluginXml.class.getClassLoader());
             this.mPackageName = in.readString();
             this.mClassName = in.readString();
@@ -784,6 +814,7 @@ public class DevicePlugin extends DConnectService {
             this.mPluginIconId = (Integer) in.readValue(Integer.class.getClassLoader());
             int tmpMConnectionType = in.readInt();
             this.mConnectionType = tmpMConnectionType == -1 ? null : ConnectionType.values()[tmpMConnectionType];
+            this.mProviderAuthorities = in.createStringArrayList();
         }
 
         public static final Creator<Info> CREATOR = new Creator<Info>() {

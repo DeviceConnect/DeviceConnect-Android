@@ -7,36 +7,29 @@
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
 
-import java.io.File;
+import android.content.Context;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Media file.
  * @author NTT DOCOMO, INC.
  */
-public class MediaFile {
-
-    /** The internal path of a media file. */
-    final File mFile;
-
-    /** MimeType of a media file. */
-    final String mMimeType;
+public interface MediaFile {
 
     /**
-     * Constructor.
-     *
-     * @param file the internal path of a media file
-     * @param mimeType MimeType of a media file
-     */
-    public MediaFile(final File file, final String mimeType) {
-        mFile = file;
-        mMimeType = mimeType;
-    }
-
-    /**
-     * Get the path to expose a media file.
+     * Get the name to expose a media file.
      * @return the path to expose a media file
      */
-    String getPath() {
-        return "/" + mFile.getName();
-    }
+    String getName();
+
+    /**
+     * メディアの内容を取得するための入力ストリームを開く.
+     *
+     * @param context コンテキスト
+     * @return 入力ストリーム
+     * @throws IOException 入力ストリームの取得に失敗した場合
+     */
+    InputStream open(Context context) throws IOException;
 }

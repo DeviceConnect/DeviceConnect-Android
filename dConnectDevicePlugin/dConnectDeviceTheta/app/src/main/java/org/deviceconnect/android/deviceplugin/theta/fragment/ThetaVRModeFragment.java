@@ -7,13 +7,9 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -28,7 +24,6 @@ import android.widget.ToggleButton;
 import androidx.collection.LruCache;
 import androidx.fragment.app.Fragment;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
@@ -41,11 +36,11 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.data.ThetaObjectStorage;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
+import org.deviceconnect.android.deviceplugin.theta.utils.MediaSharing;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -108,6 +103,9 @@ public class ThetaVRModeFragment extends Fragment {
     private LruCache<String, byte[]> mDataCache;
 
     private ThetaObjectStorage mStorage;
+
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
+
     /**
      * Singleton.
      */
@@ -334,8 +332,9 @@ public class ThetaVRModeFragment extends Fragment {
     /**
      * Save ScreenShot.
      */
+    @SuppressWarnings("deprecation")
     private void saveScreenShot() {
-        FileManager fileManager = new FileManager(getActivity());
+        final FileManager fileManager = new FileManager(getActivity());
         fileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
             @Override
             public void onSuccess() {
@@ -353,30 +352,22 @@ public class ThetaVRModeFragment extends Fragment {
                     });
                     return;
                 }
-                String root = getContext().getExternalFilesDir(null).getPath() + "/Camera/";
-                File dir = new File(root);
-                if (!dir.exists()) {
-                    dir.mkdir();
+
+                String cacheDirName = "screenshots";
+                File cacheDir = new File(fileManager.getBasePath(), cacheDirName);
+                if (!cacheDir.exists()) {
+                    cacheDir.mkdirs();
                 }
 
                 Date date = new Date();
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
-                final String filePath = root + fileName;
 
                 try {
-                    saveFile(filePath, mSphereView.takeSnapshot());
-                    if (BuildConfig.DEBUG) {
-                        mLogger.severe("absolute path:" + filePath);
-                    }
-                    ContentValues values = new ContentValues();
-                    ContentResolver contentResolver = getActivity().getContentResolver();
-                    values.put(MediaStore.Images.Media.TITLE, fileName);
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-                    values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
-                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                    values.put(MediaStore.Images.Media.DATA, filePath);
-                    contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                    fileManager.saveFile(cacheDirName + "/" + fileName, mSphereView.takeSnapshot());
+
+                    mMediaSharing.sharePhoto(getContext(), new File(cacheDir, fileName));
+
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
                             ThetaDialogFragment.showAlert(getActivity(),
@@ -385,6 +376,7 @@ public class ThetaVRModeFragment extends Fragment {
                         });
                     }
                 } catch (IOException e) {
+                    mLogger.severe("Failed to save screenshot: " + e.getMessage());
                     if (activity != null) {
                         activity.runOnUiThread(() -> {
                             failSaveDialog();
@@ -418,32 +410,6 @@ public class ThetaVRModeFragment extends Fragment {
 
     }
 
-    /**
-     * Save File.
-     * @param filename absolute path
-     * @param data binary
-     * @throws IOException Failed Save
-     */
-    private void saveFile(final String filename, final byte[] data) throws IOException {
-        Uri u = Uri.parse("file://" + filename);
-        ContentResolver contentResolver = getActivity().getContentResolver();
-        OutputStream out = null;
-        try {
-            out = contentResolver.openOutputStream(u, "w");
-            out.write(data);
-            out.flush();
-        } catch (Exception e) {
-            throw new IOException("Failed to save a file." + filename);
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
     /**
      * ScreenShot failed.
      */

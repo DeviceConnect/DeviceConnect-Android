@@ -21,12 +21,13 @@ import android.provider.BaseColumns;
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.utils.MediaSharing;
+import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,6 +52,7 @@ public class ThetaObjectStorage {
      * DB Version.
      */
     private static final int DB_VERSION = 1;
+
     /**
      * Gallery Table.
      */
@@ -82,15 +84,24 @@ public class ThetaObjectStorage {
 
     /** Theta's Movie mimeType. */
     private static final String MIMETYPE_VIDEO = "video/mpeg";
+
     /**
      * DB Helper.
      */
     private ThetaDBHelper mThetaDBHelper;
+
     /** Context. */
     private Context mContext;
 
     /** Listener. */
     private Listener mListener;
+
+    /** File Manager. */
+    private final FileManager mFileManager;
+
+    /** Media Sharing Logic. */
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
+
     /**
      * Logger.
      */
@@ -110,11 +121,13 @@ public class ThetaObjectStorage {
         /** Delete. */
         Delete
     }
-   /**
+
+    /**
      * Constructor.
      */
     public ThetaObjectStorage(final Context context) {
         mContext = context;
+        mFileManager = new FileManager(context);
         mThetaDBHelper = new ThetaDBHelper(context);
     }
 
@@ -133,9 +146,21 @@ public class ThetaObjectStorage {
      * @param object Theta Object
      */
     public synchronized void addThetaObjectCache(final ThetaObject object) {
-        ContentValues values = makeContentValue(object);
+        ContentValues values;
+        try {
+            values = makeContentValue(object);
+        } catch (IOException e) {
+            e.printStackTrace();
+            sLogger.severe("Failed to store theta object: name = " + object.getFileName() + ", error = " + e.getMessage());
+            if (mListener != null) {
+                mListener.onCompleted(DBMode.Add, -1);
+            }
+            return;
+        }
+
         if (!object.isFetched(ThetaObject.DataType.MAIN)
                 || !object.isFetched(ThetaObject.DataType.THUMBNAIL)) {
+            sLogger.severe("theta object not fetched: name = " + object.getFileName());
             if (mListener != null) {
                 mListener.onCompleted(DBMode.Add, -1);
             }
@@ -158,7 +183,16 @@ public class ThetaObjectStorage {
      * @param object Theta Object
      */
     public  synchronized void updateThetaObjectCache(final ThetaObject object) {
-        ContentValues values = makeContentValue(object);
+        ContentValues values;
+        try {
+            values = makeContentValue(object);
+        } catch (IOException e) {
+            if (mListener != null) {
+                mListener.onCompleted(DBMode.Update, -1);
+            }
+            return;
+        }
+
         String whereClause = THETA_FILE_NAME + "=?";
         String[] whereArgs = {
                 object.getFileName()
@@ -262,7 +296,7 @@ public class ThetaObjectStorage {
         return -1;
     }
     /** Make Content Value. */
-    private ContentValues makeContentValue(final ThetaObject object) {
+    private ContentValues makeContentValue(final ThetaObject object) throws IOException {
         ContentValues values = new ContentValues();
         values.put(THETA_FILE_NAME, object.getFileName());
         values.put(THETA_DATE_TIME, object.getCreationTime());
@@ -297,9 +331,12 @@ public class ThetaObjectStorage {
                 }
             }
             if (dataImage != null) {
-                values.put(THETA_MAIN_URL, saveThetaImage("images",
+                String imagePath = saveThetaImage("images",
                         object.getFileName(),
-                        dataImage));
+                        dataImage);
+                values.put(THETA_MAIN_URL, imagePath);
+
+                mMediaSharing.sharePhoto(mContext, new File(imagePath));
             }
         }
         return values;
@@ -307,40 +344,23 @@ public class ThetaObjectStorage {
 
 
     // save theta's image
-    private  String saveThetaImage(final String cacheFoldar,
+    @SuppressWarnings("deprecation")
+    private String saveThetaImage(final String cacheDirName,
                                   final String originalFileName,
-                                  final byte[] thetaImage) {
-        String root = mContext.getExternalFilesDir(null) + "/"
-                        + mContext.getPackageName() + "/" + cacheFoldar + "/";
-        File dir = new File(root);
-        if (!dir.exists()) {
-            dir.mkdir();
+                                  final byte[] thetaImage) throws IOException {
+        File cacheDir = new File(mFileManager.getBasePath(), cacheDirName);
+        if (!cacheDir.exists()) {
+            if (!cacheDir.mkdirs()) {
+                throw new IOException("Failed to create directory: path = " + cacheDir.getAbsolutePath());
+            }
         }
 
         Date date = new Date();
         SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
         final String fileName =  originalFileName + "." + fileDate.format(date);
-        final String filePath = root + fileName;
-        Uri u = Uri.parse("file://" + filePath);
-        ContentResolver contentResolver = mContext.getContentResolver();
-        OutputStream out = null;
 
-        try {
-            out = contentResolver.openOutputStream(u, "w");
-            out.write(thetaImage);
-            out.flush();
-        } catch (IOException e) {
-            throw new IOException("Failed to save a file." + fileName);
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return filePath;
-        }
+        mFileManager.saveFile(cacheDirName + "/" + fileName, thetaImage);
+        return new File(cacheDir, fileName).getAbsolutePath();
     }
 
     // load theta's image data.

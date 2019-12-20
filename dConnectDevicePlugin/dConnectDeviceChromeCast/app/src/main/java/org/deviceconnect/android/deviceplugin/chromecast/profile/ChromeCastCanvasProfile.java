@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.webkit.URLUtil;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
+import org.deviceconnect.android.deviceplugin.chromecast.core.AppLocalMediaFile;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
@@ -165,7 +166,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             throw new IllegalArgumentException("data is null.");
         }
         File file = saveFile(generateFileName(), data);
-        return getHttpServer().exposeFile(new MediaFile(file, mimeType));
+        return getHttpServer().exposeFile(new AppLocalMediaFile(file));
     }
 
     /**

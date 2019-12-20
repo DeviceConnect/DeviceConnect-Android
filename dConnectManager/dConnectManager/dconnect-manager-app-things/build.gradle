@@ -43,7 +43,7 @@ dependencies {
         exclude module: 'support-media-compat'
     }
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.2'
     implementation project(':dconnect-manager-core')
     implementation project(':dconnect-server-nano-httpd')
     implementation project(':dconnect-device-plugin-host')

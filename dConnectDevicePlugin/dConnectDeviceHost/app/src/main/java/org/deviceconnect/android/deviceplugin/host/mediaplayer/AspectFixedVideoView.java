@@ -30,11 +30,15 @@ public class AspectFixedVideoView extends VideoView {
 
     @Override
     public void setVideoURI(Uri uri) {
+        if (BuildConfig.DEBUG) {
+            Log.d("AspectFixedVideoView", "setVideoURI: uri = " + uri);
+        }
+
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(this.getContext(), uri);
         // 音声ファイルの場合はビデオサイズを取得しない
         if (retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH) != null
-            && retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) != null) {
+                && retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT) != null) {
             int w = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
             int h = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
             mVideoRotation = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));

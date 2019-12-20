@@ -130,8 +130,9 @@ public class DConnectService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        mSettings = ((DConnectApplication) getApplication()).getSettings();
-        mManager = new DConnectManager(this, mSettings) {
+        DConnectApplication app = (DConnectApplication) getApplication();
+        mSettings = app.getSettings();
+        mManager = new DConnectManager(this, mSettings, app.getPluginManager()) {
             @Override
             public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
                 return DConnectBroadcastReceiver.class;
@@ -287,6 +288,7 @@ public class DConnectService extends Service {
                             R.xml.org_deviceconnect_android_deviceplugin_host))
                     .setPluginId(DConnectUtil.toMD5(packageName + className))
                     .setPluginSdkVersionName(VersionName.parse("2.0.0"))
+                    .addProviderAuthority("org.deviceconnect.android.deviceplugin.host.provider.included")
                     .build();
             mManager.getPluginManager().addDevicePlugin(plugin);
         } catch (UnsupportedEncodingException e) {

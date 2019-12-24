@@ -7,21 +7,14 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.wear;
 
 import android.app.Application;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.wearable.CapabilityClient;
-import com.google.android.gms.wearable.CapabilityInfo;
-import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.Wearable;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -80,30 +73,21 @@ public class WearApplication extends Application {
      * @param data メッセージのデータ
      */
     public void sendMessage(final String destinationId, final String path, final String data) {
-        mExecutorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                Task<Integer> sendMessageTask =
-                        Wearable.getMessageClient(getApplicationContext())
-                                .sendMessage(destinationId, path, data.getBytes());
-                sendMessageTask.addOnSuccessListener(new OnSuccessListener<Integer>() {
-                    @Override
-                    public void onSuccess(Integer integer) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("WEAR", "Sent result:" + integer);
-                        }
-                    }
-                });
+        mExecutorService.execute(() -> {
+            Task<Integer> sendMessageTask =
+                    Wearable.getMessageClient(getApplicationContext())
+                            .sendMessage(destinationId, path, data.getBytes());
+            sendMessageTask.addOnSuccessListener((integer) -> {
+                if (BuildConfig.DEBUG) {
+                    Log.d("WEAR", "Sent result:" + integer);
+                }
+            });
 
-                sendMessageTask.addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        if (BuildConfig.DEBUG) {
-                            Log.e("WEAR", "Sent result:" + e.getLocalizedMessage());
-                        }
-                    }
-                });
-            }
+            sendMessageTask.addOnFailureListener((e) -> {
+                if (BuildConfig.DEBUG) {
+                    Log.e("WEAR", "Sent result:" + e.getLocalizedMessage());
+                }
+            });
         });
     }
 }

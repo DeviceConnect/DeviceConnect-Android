@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -26,6 +25,8 @@ import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
+
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;

@@ -23,8 +23,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -154,6 +154,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      * @see Surface#ROTATION_270
      */
     private int mCurrentRotation;
+
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     /**
      * コンストラクタ.
@@ -524,140 +526,27 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private void registerVideo(final File videoFile) {
-        if (checkMediaFile(videoFile)) {
+        Uri uri = mMediaSharing.shareVideo(getContext(), videoFile, mFileManager);
+        if (DEBUG) {
             String filePath = videoFile.getAbsolutePath();
-            ContentResolver resolver = getContext().getContentResolver();
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Video.Media.TITLE, videoFile.getName());
-            values.put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.getName());
-            values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
-            values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
-            values.put(MediaStore.Video.Media.DATA, videoFile.toString());
-            Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
-
-            // 動画IDをサムネイルDBに挿入.
-            try {
-                if (uri != null) {
-                    String id = uri.getLastPathSegment();
-                    if (id != null) {
-                        long videoId = Long.parseLong(id);
-                        long thumbnailId = registerVideoThumbnail(videoFile, videoId);
-                        boolean updated = updateThumbnailInfo(thumbnailId, videoId);
-                        if (updated) {
-                            if (DEBUG) {
-                                Log.d(TAG, "Updated videoID on thumbnail info: videoId="
-                                        + videoId + ", thumbnailId=" + thumbnailId);
-                            }
-                        } else {
-                            Log.w(TAG, "Failed to update videoID on thumbnail info: videoId="
-                                    + videoId + ", thumbnailId=" + thumbnailId);
-                        }
-                    }
-                }
-            } catch (NumberFormatException e) {
-                Log.w(TAG, "Failed to parse videoID as long type: video URI=" + uri, e);
-            }
-            if (DEBUG) {
-                if (uri != null) {
-                    Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
-                } else {
-                    Log.e(TAG, "Failed to register video: file=" + filePath);
-                }
+            if (uri != null) {
+                Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register video: file=" + filePath);
             }
         }
-    }
-
-    private long registerVideoThumbnail(final File videoFile, final long videoId) {
-        String videoFilePath = videoFile.getAbsolutePath();
-        final int kind = MediaStore.Images.Thumbnails.MINI_KIND;
-        Bitmap thumbnail = ThumbnailUtils.createVideoThumbnail(videoFilePath, kind);
-
-        ByteArrayOutputStream data = new ByteArrayOutputStream();
-        thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, data);
-        String fileName = videoFile.getName() + ".jpg";
-
-        try {
-            String thumbnailFilePath = mFileManager.saveFile(fileName, data.toByteArray());
-            if (DEBUG) {
-                Log.d(TAG, "Stored thumbnail file: path=" + thumbnailFilePath);
-            }
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Video.Thumbnails.DATA, thumbnailFilePath);
-            values.put(MediaStore.Video.Thumbnails.WIDTH, thumbnail.getWidth());
-            values.put(MediaStore.Video.Thumbnails.HEIGHT, thumbnail.getHeight());
-            values.put(MediaStore.Video.Thumbnails.KIND, kind);
-            values.put(MediaStore.Video.Thumbnails.VIDEO_ID, videoId);
-            ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
-            Uri uri = resolver.insert(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, values);
-            if (uri == null) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to register video thumbnail on content provider: videoFilePath=" + videoFilePath);
-                }
-                return -1;
-            }
-            if (DEBUG) {
-                Log.d(TAG, "Registered video thumbnail: uri=" + uri.toString());
-            }
-            String id = uri.getLastPathSegment();
-            if (id == null) {
-                if (DEBUG) {
-                    Log.e(TAG, "Thumbnail ID is not found in URI: " + uri);
-                }
-                return -1;
-            }
-            return Long.parseLong(id);
-        } catch (IOException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to store video thumbnail by FileManager: videoFilePath=" + videoFilePath, e);
-            }
-            return -1;
-        } catch (NumberFormatException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to parse thumbnail ID as long type: videoFilePath=" + videoFilePath);
-            }
-            return -1;
-        } finally {
-            thumbnail.recycle();
-        }
-    }
-
-    private boolean updateThumbnailInfo(final long thumbnailId, final long videoId) {
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Video.Thumbnails.VIDEO_ID, videoId);
-        return updateThumbnailInfo(thumbnailId, values);
-    }
-
-    private boolean updateThumbnailInfo(final long thumbnailId, final ContentValues values) {
-        ContentResolver resolver = getContext().getApplicationContext().getContentResolver();
-        Uri uri = MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
-        String where = MediaStore.Video.Thumbnails._ID + " =?";
-        String[] args = { Long.toString(thumbnailId) };
-        int result = resolver.update(uri, values, where, args);
-        return result == 1;
     }
 
     private void registerPhoto(final File photoFile) {
-        if (checkMediaFile(photoFile)) {
-            ContentResolver resolver = getContext().getContentResolver();
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.TITLE, photoFile.getName());
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, photoFile.getName());
-            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-            values.put(MediaStore.Images.Media.DATA, photoFile.toString());
-            Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            if (DEBUG) {
-                if (uri != null) {
-                    Log.d(TAG, "Registered photo: uri=" + uri.getPath());
-                } else {
-                    Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
-                }
+        Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
+        if (DEBUG) {
+            if (uri != null) {
+                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
             }
         }
-    }
 
-    private boolean checkMediaFile(final @NonNull File file) {
-        return file.exists() && file.length() > 0;
     }
 
     @Override

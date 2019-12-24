@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectSDKFactory;
@@ -18,7 +18,7 @@ import org.deviceconnect.message.DConnectSDKFactory;
 public class RESTfulDConnectTestCase extends DConnectTestCase {
     @Override
     public void setUp() throws Exception {
-        mDConnectSDK = DConnectSDKFactory.create(InstrumentationRegistry.getContext(), DConnectSDKFactory.Type.HTTP);
+        mDConnectSDK = DConnectSDKFactory.create(InstrumentationRegistry.getInstrumentation().getTargetContext(), DConnectSDKFactory.Type.HTTP);
         mDConnectSDK.setOrigin(getOrigin());
         super.setUp();
     }

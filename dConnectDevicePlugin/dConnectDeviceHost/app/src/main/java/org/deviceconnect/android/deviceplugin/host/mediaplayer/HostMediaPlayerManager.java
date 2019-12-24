@@ -21,10 +21,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -41,6 +44,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 import static org.deviceconnect.android.profile.DConnectProfile.setResult;
 
@@ -125,6 +129,11 @@ public class HostMediaPlayerManager {
     private boolean mOnStatusChangeEventFlag = false;
 
     /**
+     * 現在再生中のメディアのURI.
+     */
+    private Uri mMyCurrentUri;
+
+    /**
      * 現在再生中のファイルパス.
      */
     private String mMyCurrentFilePath = "";
@@ -164,6 +173,9 @@ public class HostMediaPlayerManager {
 
     /** Notification Content */
     private final String NOTIFICATION_CONTENT = "Host Media Player Profileからの起動要求";
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /** Intent Action */
     public static final String INTENT_ACTION_ACTIVITY_START = "org.deviceconnect.android.deviceplugin.host.mediaplayer.ACTIVTY_START";
@@ -248,24 +260,19 @@ public class HostMediaPlayerManager {
 
             try {
                 mSetMediaType = MEDIA_TYPE_MUSIC;
+                mMyCurrentUri = mUri;
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
                 mMediaStatus = MEDIA_PLAYER_SET;
                 mMediaPlayer.setDataSource(filePath);
-                mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(final MediaPlayer arg0) {
-                        mMediaStatus = MEDIA_PLAYER_COMPLETE;
-                        sendOnStatusChangeEvent("complete");
-                    }
+                mMediaPlayer.setOnCompletionListener((mp) -> {
+                    mMediaStatus = MEDIA_PLAYER_COMPLETE;
+                    sendOnStatusChangeEvent("complete");
                 });
                 mMediaPlayer.prepareAsync();
                 mMyCurrentMediaPosition = 0;
-                mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(final MediaPlayer mp) {
-                        mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
-                    }
+                mMediaPlayer.setOnPreparedListener((mp) -> {
+                    mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
                 });
 
                 if (response != null) {
@@ -283,6 +290,7 @@ public class HostMediaPlayerManager {
         } else if (VIDEO_TYPE_LIST.contains(mMineType)) {
             try {
                 mSetMediaType = MEDIA_TYPE_VIDEO;
+                mMyCurrentUri = mUri;
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
 
@@ -293,7 +301,14 @@ public class HostMediaPlayerManager {
                 }
                 mMediaPlayer = new MediaPlayer();
 
-                FileInputStream fis = new FileInputStream(mMyCurrentFilePath);
+                FileInputStream fis;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(mUri, "r");
+                    fis = new ParcelFileDescriptor.AutoCloseInputStream(descriptor);
+                } else {
+                    fis = new FileInputStream(mMyCurrentFilePath);
+                }
                 FileDescriptor mFd = fis.getFD();
 
                 mMediaPlayer.setDataSource(mFd);
@@ -310,12 +325,14 @@ public class HostMediaPlayerManager {
                     sendResponse(response);
                 }
             } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+                mLogger.severe("Failed to mount media: filePath=" + filePath);
                 if (response != null) {
                     MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                     sendResponse(response);
                 }
             }
         } else {
+            mLogger.severe("Not supported media: filePath=" + filePath);
             if (response != null) {
                 MessageUtils.setIllegalServerStateError(response, "can't mount:" + filePath);
                 sendResponse(response);
@@ -467,7 +484,7 @@ public class HostMediaPlayerManager {
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mHostDevicePluginContext.getContext().registerReceiver(mMediaPlayerVideoBR, mIfMediaPlayerVideo);
-            String className = getClassnameOfTopActivity();
+            String className = getApp().getClassnameOfTopActivity();
 
             if (VideoPlayer.class.getName().equals(className)) {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
@@ -475,15 +492,16 @@ public class HostMediaPlayerManager {
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
                 getContext().sendBroadcast(mIntent);
                 sendOnStatusChangeEvent("play");
-
             } else {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.setClass(getContext(), VideoPlayer.class);
-                Uri data = Uri.parse(mMyCurrentFilePath);
+                Uri data = mMyCurrentUri;
                 mIntent.setDataAndType(data, mMyCurrentFileMIMEType);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                mLogger.info("Launch VideoPlayer activity: uri = " + data);
                 if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                     mHostDevicePluginContext.getContext().startActivity(mIntent);
                     sendOnStatusChangeEvent("play");
@@ -574,7 +592,7 @@ public class HostMediaPlayerManager {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             return mMediaPlayer.getCurrentPosition() / UNIT_SEC;
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
-            String className = getClassnameOfTopActivity();
+            String className = getApp().getClassnameOfTopActivity();
             if (VideoPlayer.class.getName().equals(className)) {
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_GET_POS);
@@ -725,7 +743,7 @@ public class HostMediaPlayerManager {
      * @param response レスポンス
      */
     public void getPlayStatus(final Intent response) {
-        String mClassName = getClassnameOfTopActivity();
+        String mClassName = getApp().getClassnameOfTopActivity();
 
         // VideoRecorderの場合は、画面から消えている場合
         if (mSetMediaType == MEDIA_TYPE_VIDEO) {
@@ -799,14 +817,8 @@ public class HostMediaPlayerManager {
         mExt = mExt.toLowerCase(Locale.getDefault());
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(mExt);
     }
-
-    /**
-     * 画面の一番上にでているActivityのクラス名を取得.
-     *
-     * @return クラス名
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        return mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+    private HostDeviceApplication getApp() {
+        return (HostDeviceApplication) getContext().getApplicationContext();
     }
+
 }

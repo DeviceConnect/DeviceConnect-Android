@@ -12,13 +12,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hvc.R;
@@ -134,12 +134,9 @@ public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity
                 final ViewGroup container, final Bundle savedInstanceState) {
             final int layoutId = R.layout.hvc_setting_2;
             View root = inflater.inflate(layoutId, container, false);
-            Button button = (Button) root.findViewById(R.id.button_launch_bluetooth_setting);
-            button.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
-                }
+            Button button = root.findViewById(R.id.button_launch_bluetooth_setting);
+            button.setOnClickListener((v) -> {
+                startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
             });
 
             View permission = root.findViewById(R.id.ble_permission);
@@ -149,15 +146,12 @@ public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity
                 permission.setVisibility(View.VISIBLE);
             }
 
-            mBlePermissionBtn = (Button) root.findViewById(R.id.button_permission);
-            mBlePermissionBtn.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (BleUtils.isBLEPermission(getActivity())) {
-                        openAndroidSettings();
-                    } else {
-                        requestPermissions();
-                    }
+            mBlePermissionBtn = root.findViewById(R.id.button_permission);
+            mBlePermissionBtn.setOnClickListener((v) -> {
+                if (BleUtils.isBLEPermission(getActivity())) {
+                    openAndroidSettings();
+                } else {
+                    requestPermissions();
                 }
             });
             return root;

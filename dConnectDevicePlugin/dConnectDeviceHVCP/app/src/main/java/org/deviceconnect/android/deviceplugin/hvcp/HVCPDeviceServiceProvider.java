@@ -20,7 +20,7 @@ public class HVCPDeviceServiceProvider<T extends Service> extends DConnectMessag
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) HVCPDeviceService.class;
+        Class<? extends Service> clazz = HVCPDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

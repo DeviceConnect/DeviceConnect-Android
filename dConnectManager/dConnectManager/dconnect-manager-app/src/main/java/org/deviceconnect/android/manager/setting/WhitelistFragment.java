@@ -85,7 +85,7 @@ public class WhitelistFragment extends Fragment {
         mListAdapter = new OriginListAdapter(getActivity(), mWhitelist.getOrigins());
 
         mRootView = inflater.inflate(R.layout.fragment_whitelist, container, false);
-        ListView listView = (ListView) mRootView.findViewById(R.id.listview_whitelist);
+        ListView listView = mRootView.findViewById(R.id.listview_whitelist);
         listView.setAdapter(mListAdapter);
         refreshView();
         return mRootView;
@@ -117,14 +117,11 @@ public class WhitelistFragment extends Fragment {
         menu.clear();
         final MenuItem menuItem = menu.add(R.string.menu_add_origin);
         menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        menuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(final MenuItem item) {
-                if (item.getTitle().equals(menuItem.getTitle())) {
-                    openAddDialog();
-                }
-                return true;
+        menuItem.setOnMenuItemClickListener((item) -> {
+            if (item.getTitle().equals(menuItem.getTitle())) {
+                openAddDialog();
             }
+            return true;
         });
     }
 
@@ -173,51 +170,42 @@ public class WhitelistFragment extends Fragment {
                 view = mInflater.inflate(R.layout.item_whitelist_origin, (ViewGroup) null);
             }
 
-            final TextView textViewTitle = (TextView) view.findViewById(R.id.text_origin_title);
+            final TextView textViewTitle = view.findViewById(R.id.text_origin_title);
             textViewTitle.setText(info.getTitle());
-            final TextView textViewOrigin = (TextView) view.findViewById(R.id.text_origin);
+            final TextView textViewOrigin = view.findViewById(R.id.text_origin);
             textViewOrigin.setText(info.getOrigin().toString());
 
-            Button buttonDelete = (Button) view.findViewById(R.id.button_delete_origin);
-            buttonDelete.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    openDeleteDialog(info);
-                }
+            Button buttonDelete = view.findViewById(R.id.button_delete_origin);
+            buttonDelete.setOnClickListener((v) -> {
+                openDeleteDialog(info);
             });
 
-            view.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(final View v) {
-                    Context context = getActivity();
-                    if (context == null) {
-                        return false;
-                    }
-                    ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
-                    builder.mDialogTitle = getString(R.string.dialog_update_origin_title);
-                    builder.mDefaultOrigin = info.getOrigin().toString();
-                    builder.mDefaultOriginTitle = info.getTitle();
-                    builder.mPositiveButtonName = getString(R.string.dialog_update_origin_positive);
-                    builder.mNegativeButtonName = getString(R.string.dialog_update_origin_negative);
-                    builder.mListener = new OnEntryListener() {
-                        @Override
-                        public void onEntry(final String newOriginExp, final String newTitle) {
-                            try {
-                                Origin newOrigin = OriginParser.parse(newOriginExp);
-                                OriginInfo newItem = new OriginInfo(info.mId, newOrigin, newTitle, info.mDate);
-                                updateOrigin(position, newItem);
-                                if (BuildConfig.DEBUG) {
-                                    mLogger.info("Updated origin=" + newOrigin.toString() + " title=" + newTitle);
-                                }
-                            } catch (WhitelistException e) {
-                                mLogger.log(Level.WARNING, "Failed to update origin.", e);
-                                showPopup(e.getMessage());
-                            }
-                        }
-                    };
-                    builder.create().show();
-                    return true;
+            view.setOnLongClickListener((v) -> {
+                Context context = getActivity();
+                if (context == null) {
+                    return false;
                 }
+                ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
+                builder.mDialogTitle = getString(R.string.dialog_update_origin_title);
+                builder.mDefaultOrigin = info.getOrigin().toString();
+                builder.mDefaultOriginTitle = info.getTitle();
+                builder.mPositiveButtonName = getString(R.string.dialog_update_origin_positive);
+                builder.mNegativeButtonName = getString(R.string.dialog_update_origin_negative);
+                builder.mListener = (newOriginExp, newTitle) -> {
+                    try {
+                        Origin newOrigin = OriginParser.parse(newOriginExp);
+                        OriginInfo newItem = new OriginInfo(info.mId, newOrigin, newTitle, info.mDate);
+                        updateOrigin(position, newItem);
+                        if (BuildConfig.DEBUG) {
+                            mLogger.info("Updated origin=" + newOrigin.toString() + " title=" + newTitle);
+                        }
+                    } catch (WhitelistException e) {
+                        mLogger.log(Level.WARNING, "Failed to update origin.", e);
+                        showPopup(e.getMessage());
+                    }
+                };
+                builder.create().show();
+                return true;
             });
             return view;
         }
@@ -233,11 +221,8 @@ public class WhitelistFragment extends Fragment {
         if (activity == null) {
             return;
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(activity, text, Toast.LENGTH_LONG).show();
-            }
+        activity.runOnUiThread(() -> {
+            Toast.makeText(activity, text, Toast.LENGTH_LONG).show();
         });
     }
 
@@ -295,19 +280,13 @@ public class WhitelistFragment extends Fragment {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(origin.getTitle());
-        builder.setMessage(strGuidance).setPositiveButton(strPositive, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                try {
-                    deleteOrigin(origin);
-                } catch (WhitelistException e) {
-                    showPopup(e.getMessage());
-                }
+        builder.setMessage(strGuidance).setPositiveButton(strPositive, (dialog, which) -> {
+            try {
+                deleteOrigin(origin);
+            } catch (WhitelistException e) {
+                showPopup(e.getMessage());
             }
-        }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-            }
+        }).setNegativeButton(strNegative, (dialog, which) -> {
         }).setCancelable(true);
         builder.create().show();
     }
@@ -321,90 +300,78 @@ public class WhitelistFragment extends Fragment {
         builder.setTitle(R.string.dialog_add_origin_title);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            builder.setItems(R.array.whitelist_menu_origin_pre_marshmallow, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                    dialog.dismiss();
-                    Context context = getActivity();
-                    if (context == null) {
-                        return;
-                    }
-                    switch (which) {
-                    case 0:
-                        openListDialog(context, getAllBookmarksOfChrome());
-                        break;
-                    case 1:
-                        openListDialog(context, getInstalledNativeApplications());
-                        break;
-                    case 2:
-                        ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
-                        builder.mDialogTitle = getString(R.string.dialog_add_origin_title);
-                        builder.mDefaultOrigin = "";
-                        builder.mDefaultOriginTitle = "";
-                        builder.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
-                        builder.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
-                        builder.mListener = new OnEntryListener() {
-                            @Override
-                            public void onEntry(final String origin, final String title) {
-                                try {
-                                    addOrigin(origin, title);
-                                    if (BuildConfig.DEBUG) {
-                                        mLogger.info("Updated origin=" + origin + " title=" + title);
-                                    }
-                                } catch (WhitelistException e) {
-                                    mLogger.log(Level.WARNING, "Failed to add origin.", e);
-                                    showPopup(e.getMessage());
-                                }
+            builder.setItems(R.array.whitelist_menu_origin_pre_marshmallow, (dialog, which) -> {
+                dialog.dismiss();
+                Context context = getActivity();
+                if (context == null) {
+                    return;
+                }
+                switch (which) {
+                case 0:
+                    openListDialog(context, getAllBookmarksOfChrome());
+                    break;
+                case 1:
+                    openListDialog(context, getInstalledNativeApplications());
+                    break;
+                case 2:
+                    ManualEntryDialogBuilder builders = new ManualEntryDialogBuilder(context);
+                    builders.mDialogTitle = getString(R.string.dialog_add_origin_title);
+                    builders.mDefaultOrigin = "";
+                    builders.mDefaultOriginTitle = "";
+                    builders.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
+                    builders.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
+                    builders.mListener = (origin, title) -> {
+                        try {
+                            addOrigin(origin, title);
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("Updated origin=" + origin + " title=" + title);
                             }
-                        };
-                        builder.create().show();
-                        break;
-                    default:
-                        // nothing to do
-                        break;
-                    }
+                        } catch (WhitelistException e) {
+                            mLogger.log(Level.WARNING, "Failed to add origin.", e);
+                            showPopup(e.getMessage());
+                        }
+                    };
+                    builders.create().show();
+                    break;
+                default:
+                    // nothing to do
+                    break;
                 }
             });
         } else {
-            builder.setItems(R.array.whitelist_menu_origin_post_marshmallow, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                    dialog.dismiss();
-                    Context context = getActivity();
-                    if (context == null) {
-                        return;
-                    }
-                    switch (which) {
-                    case 0:
-                        openListDialog(context, getInstalledNativeApplications());
-                        break;
-                    case 1:
-                        ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
-                        builder.mDialogTitle = getString(R.string.dialog_add_origin_title);
-                        builder.mDefaultOrigin = "";
-                        builder.mDefaultOriginTitle = "";
-                        builder.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
-                        builder.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
-                        builder.mListener = new OnEntryListener() {
-                            @Override
-                            public void onEntry(final String origin, final String title) {
-                                try {
-                                    addOrigin(origin, title);
-                                    if (BuildConfig.DEBUG) {
-                                        mLogger.info("Updated origin=" + origin + " title=" + title);
-                                    }
-                                } catch (WhitelistException e) {
-                                    mLogger.log(Level.WARNING, "Failed to add origin.", e);
-                                    showPopup(e.getMessage());
-                                }
+            builder.setItems(R.array.whitelist_menu_origin_post_marshmallow, (dialog, which) -> {
+                dialog.dismiss();
+                Context context = getActivity();
+                if (context == null) {
+                    return;
+                }
+                switch (which) {
+                case 0:
+                    openListDialog(context, getInstalledNativeApplications());
+                    break;
+                case 1:
+                    ManualEntryDialogBuilder builders = new ManualEntryDialogBuilder(context);
+                    builders.mDialogTitle = getString(R.string.dialog_add_origin_title);
+                    builders.mDefaultOrigin = "";
+                    builders.mDefaultOriginTitle = "";
+                    builders.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
+                    builders.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
+                    builders.mListener = (origin, title) -> {
+                        try {
+                            addOrigin(origin, title);
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info("Updated origin=" + origin + " title=" + title);
                             }
-                        };
-                        builder.create().show();
-                        break;
-                    default:
-                        // nothing to do
-                        break;
-                    }
+                        } catch (WhitelistException e) {
+                            mLogger.log(Level.WARNING, "Failed to add origin.", e);
+                            showPopup(e.getMessage());
+                        }
+                    };
+                    builder.create().show();
+                    break;
+                default:
+                    // nothing to do
+                    break;
                 }
             });
         }
@@ -422,21 +389,18 @@ public class WhitelistFragment extends Fragment {
         ApplicationListAdapter adapter = new ApplicationListAdapter(getActivity(), list);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(R.string.dialog_add_origin_title);
-        builder.setSingleChoiceItems(adapter, 0, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                try {
-                    KnownApplicationInfo appInfo = list.get(which);
-                    addOrigin(appInfo.getOrigin(), appInfo.getName());
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info("Updated origin=" + appInfo.getOrigin() + " title=" + appInfo.getName());
-                    }
-                } catch (WhitelistException e) {
-                    mLogger.log(Level.WARNING, "Failed to add origin.", e);
-                    showPopup(e.getMessage());
-                } finally {
-                    dialog.dismiss();
+        builder.setSingleChoiceItems(adapter, 0, (dialog, which) -> {
+            try {
+                KnownApplicationInfo appInfo = list.get(which);
+                addOrigin(appInfo.getOrigin(), appInfo.getName());
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("Updated origin=" + appInfo.getOrigin() + " title=" + appInfo.getName());
                 }
+            } catch (WhitelistException e) {
+                mLogger.log(Level.WARNING, "Failed to add origin.", e);
+                showPopup(e.getMessage());
+            } finally {
+                dialog.dismiss();
             }
         });
         builder.setCancelable(true);
@@ -460,7 +424,7 @@ public class WhitelistFragment extends Fragment {
         Uri uri = Uri.parse(getString(R.string.chrome_bookmark_provider_url));
         Cursor c = resolver.query(uri, new String[] { columnTitle, columnURL, columnFavicon }, selectionBookmark, null,
                 null);
-        List<KnownApplicationInfo> bookmarks = new ArrayList<WhitelistFragment.KnownApplicationInfo>();
+        List<KnownApplicationInfo> bookmarks = new ArrayList<>();
         if (c.moveToFirst()) {
             do {
                 final int titleIndex = c.getColumnIndex(columnTitle);
@@ -658,9 +622,9 @@ public class WhitelistFragment extends Fragment {
                 icon = new BitmapDrawable(BitmapFactory.decodeByteArray(new byte[] {}, 0, 0));
             }
             imageIcon.setImageDrawable(icon);
-            TextView textTitle = (TextView) view.findViewById(R.id.text_app_title);
+            TextView textTitle =  view.findViewById(R.id.text_app_title);
             textTitle.setText(info.getName());
-            TextView textOrigin = (TextView) view.findViewById(R.id.text_app_orgin);
+            TextView textOrigin = view.findViewById(R.id.text_app_orgin);
             textOrigin.setText(info.getOrigin());
 
             return view;
@@ -713,33 +677,27 @@ public class WhitelistFragment extends Fragment {
         AlertDialog create() {
             final int layoutId = R.layout.dialog_origin_manual_entry;
             final View root = LayoutInflater.from(mContext).inflate(layoutId, null);
-            final EditText editOrigin = (EditText) root.findViewById(R.id.dialog_origin_manual_entry_edit_origin);
-            final EditText editTitle = (EditText) root.findViewById(R.id.dialog_origin_manual_entry_edit_title);
+            final EditText editOrigin =  root.findViewById(R.id.dialog_origin_manual_entry_edit_origin);
+            final EditText editTitle = root.findViewById(R.id.dialog_origin_manual_entry_edit_title);
             editOrigin.setText(mDefaultOrigin);
             editTitle.setText(mDefaultOriginTitle);
             mBuilder.setTitle(mDialogTitle);
             mBuilder.setView(root);
-            mBuilder.setPositiveButton(mPositiveButtonName, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                    String origin = editOrigin.getText().toString();
-                    String title = editTitle.getText().toString();
-                    if (TextUtils.isEmpty(origin)) {
-                        create().show();
-                        return;
-                    }
-                    if (TextUtils.isEmpty(title)) {
-                        title = origin;
-                    }
-                    if (mListener != null) {
-                        mListener.onEntry(origin, title);
-                    }
+            mBuilder.setPositiveButton(mPositiveButtonName, (dialog, which) -> {
+                String origin = editOrigin.getText().toString();
+                String title = editTitle.getText().toString();
+                if (TextUtils.isEmpty(origin)) {
+                    create().show();
+                    return;
+                }
+                if (TextUtils.isEmpty(title)) {
+                    title = origin;
+                }
+                if (mListener != null) {
+                    mListener.onEntry(origin, title);
                 }
             });
-            mBuilder.setNegativeButton(mNegativeButtonName, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(final DialogInterface dialog, final int which) {
-                }
+            mBuilder.setNegativeButton(mNegativeButtonName, (dialog, which) -> {
             });
             mBuilder.setCancelable(true);
             return mBuilder.create();

@@ -25,7 +25,7 @@ public class TempExData {
      */
     public TempExData(final String key, final ArrayList<String> dataList) {
         setKey(key);
-        setDataList(new ArrayList<String>());
+        setDataList(new ArrayList<>());
         for (int i = 0; i < dataList.size(); i++) {
             getDataList().add(dataList.get(i));
         }

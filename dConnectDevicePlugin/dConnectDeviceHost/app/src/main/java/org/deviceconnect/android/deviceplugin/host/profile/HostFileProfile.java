@@ -13,7 +13,7 @@ import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -33,7 +33,6 @@ import org.deviceconnect.utils.RFC3339DateUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -54,10 +53,11 @@ public class HostFileProfile extends FileProfile {
      */
     private String ATTRIBUTE_DIRECTORY = "directory";
 
-    /** FileManager. */
-    private FileManager mFileManager;
-
     private ExecutorService mImageService = Executors.newSingleThreadExecutor();
+
+    private File getBasePath() {
+        return getFileManager().getBasePath();
+    }
 
     private final DConnectApi mGetReceiveApi = new GetApi() {
 
@@ -70,10 +70,10 @@ public class HostFileProfile extends FileProfile {
 
             // パス名の先頭に"/"が含まれている場合
             if (path.indexOf("/") == 0) {
-                mFile = new File(getFileManager().getBasePath() + path);
+                mFile = new File(getBasePath() + path);
                 filePath = getFileManager().getContentUri() + path;
             } else {
-                mFile = new File(getFileManager().getBasePath() + "/" + path);
+                mFile = new File(getBasePath() + "/" + path);
                 filePath = getFileManager().getContentUri() + "/" + path;
             }
 
@@ -104,16 +104,16 @@ public class HostFileProfile extends FileProfile {
             }
             // パス名の先頭に"/"が含まれている場合
             if (oldPath.indexOf("/") == 0) {
-                oldFile = new File(getFileManager().getBasePath() + oldPath);
+                oldFile = new File(getBasePath() + oldPath);
                 oldFilePath[0] = getFileManager().getContentUri() + "/" + oldFile.getName();
             } else {
-                oldFile = new File(getFileManager().getBasePath() + "/" + oldPath);
+                oldFile = new File(getBasePath() + "/" + oldPath);
                 oldFilePath[0] = getFileManager().getContentUri() + "/" + oldFile.getName();
             }
             if (newPath.indexOf("/") == 0) {
-                newFile = new File(getFileManager().getBasePath() + newPath);
+                newFile = new File(getBasePath() + newPath);
             } else {
-                newFile = new File(getFileManager().getBasePath() + "/" + newPath);
+                newFile = new File(getBasePath() + "/" + newPath);
             }
             File newDirectory = new File(newFile.getParent());
             if (!newDirectory.exists()) {
@@ -128,24 +128,21 @@ public class HostFileProfile extends FileProfile {
 
             if (oldFile.isFile()) {
                 final boolean forceOverwrite = isForce(request, "forceOverwrite");
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        byte[] data = getContentData(oldFilePath[0]);
-                        if (data != null) {
-                            saveFile(response, newFilePath[0], getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
+                mImageService.execute(() -> {
+                    byte[] data = getContentData(oldFilePath[0]);
+                    if (data != null) {
+                        saveFile(response, newFilePath[0], getMIMEType(newPath), data, forceOverwrite, new OnSavedListener() {
 
-                                @Override
-                                public void onSavedListener() {
-                                    removeFile(response, oldPath);
-                                }
-                            });
-                            return;
-                        } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
-                        }
-                        sendResponse(response);
+                            @Override
+                            public void onSavedListener() {
+                                removeFile(response, oldPath);
+                            }
+                        });
+                        return;
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "not found:" + oldPath);
                     }
+                    sendResponse(response);
                 });
                 return false;
             } else if (getMIMEType(oldFile.getPath()) == null) {
@@ -205,38 +202,29 @@ public class HostFileProfile extends FileProfile {
             final byte[] data = getData(request);
             final boolean forceOverwrite = isForce(request, "forceOverwrite");
             if (data == null) {
-                mImageService.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        byte[] result;
-                        try {
-                           result = getData(uri);
-                        } catch (OutOfMemoryError e) {
-                            MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
-                            sendResponse(response);
-                            return;
-                        }
-                        if (result == null) {
-                            MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
-                            sendResponse(response);
-                            return;
-                        }
-                        saveFile(response, path, mimeType, result, forceOverwrite, new OnSavedListener() {
-                            @Override
-                            public void onSavedListener() {
-                                sendResponse(response);
-                            }
-                        });
+                mImageService.execute(() -> {
+                    byte[] result;
+                    try {
+                       result = getData(uri);
+                    } catch (OutOfMemoryError e) {
+                        MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                        sendResponse(response);
+                        return;
                     }
+                    if (result == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                        sendResponse(response);
+                        return;
+                    }
+                    saveFile(response, path, mimeType, result, forceOverwrite, () -> {
+                        sendResponse(response);
+                    });
                 });
                 return false;
             }
 
-            saveFile(response, path, mimeType, data, forceOverwrite, new OnSavedListener() {
-                @Override
-                public void onSavedListener() {
-                    sendResponse(response);
-                }
+            saveFile(response, path, mimeType, data, forceOverwrite, () -> {
+                sendResponse(response);
             });
             return false;
         }
@@ -266,7 +254,7 @@ public class HostFileProfile extends FileProfile {
             getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
                 @Override
                 public void onSuccess() {
-                    File mBaseDir = mFileManager.getBasePath();
+                    File mBaseDir = getBasePath();
                     File mMakeDir = new File(mBaseDir, path);
 
                     if (mMakeDir.isDirectory()) {
@@ -309,7 +297,7 @@ public class HostFileProfile extends FileProfile {
                 public void onSuccess() {
                     String oldPath = request.getStringExtra("oldPath");
                     String newPath = request.getStringExtra("newPath");
-                    File baseDir = mFileManager.getBasePath();
+                    File baseDir = getBasePath();
                     File oldDir = new File(baseDir, oldPath);
                     File newDir = new File(baseDir, newPath);
                     File tempNewDir = new File(baseDir, newPath + "/" + oldDir.getName());
@@ -376,7 +364,7 @@ public class HostFileProfile extends FileProfile {
             getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
                 @Override
                 public void onSuccess() {
-                    File mBaseDir = mFileManager.getBasePath();
+                    File mBaseDir = getBasePath();
                     File mDeleteDir = new File(mBaseDir, path);
 
                     if (mDeleteDir.isFile()) {
@@ -426,11 +414,11 @@ public class HostFileProfile extends FileProfile {
         Boolean currentTop = false;
         if (path == null) {
             // nullの時はTopに指定
-            tmpDir = getFileManager().getBasePath();
+            tmpDir = getBasePath();
             currentTop = true;
         } else if (path.equals("/")) {
             // /の場合はTopに指定
-            tmpDir = getFileManager().getBasePath();
+            tmpDir = getBasePath();
             currentTop = true;
         } else if (path.contains("..")) {
             // ..の場合は、1つ上のフォルダを指定
@@ -446,10 +434,10 @@ public class HostFileProfile extends FileProfile {
             if (mDirs.length == 1 || mPath.equals("/")) {
                 currentTop = true;
             }
-            tmpDir = new File(getFileManager().getBasePath(), mPath);
+            tmpDir = new File(getBasePath(), mPath);
         } else {
             // それ以外は、そのフォルダを指定
-            tmpDir = new File(getFileManager().getBasePath() + "/" + path);
+            tmpDir = new File(getBasePath() + "/" + path);
             currentTop = false;
         }
 
@@ -486,7 +474,7 @@ public class HostFileProfile extends FileProfile {
                             tmpPath = finalMPath;
                         }
                         File parentDir = new File(tmpPath + "/..");
-                        String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
+                        String path = parentDir.getPath().replaceAll("" + getBasePath(), "");
                         String name = parentDir.getName();
                         Long size = parentDir.length();
                         String mineType = "folder/dir";
@@ -580,7 +568,7 @@ public class HostFileProfile extends FileProfile {
             public void onSuccess(@NonNull final String uri) {
                 String mMineType = mimeType;
                 if (mMineType == null) {
-                    mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
+                    mMineType = getMIMEType(getBasePath() + "/" + path);
                 }
 
                 if (BuildConfig.DEBUG) {
@@ -600,7 +588,7 @@ public class HostFileProfile extends FileProfile {
                         || mMineType.endsWith("audio/mp3") || mMineType.endsWith("audio/x-ms-wma")) {
 
                     MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
-                    mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
+                    mMediaMeta.setDataSource(getBasePath() + "/" + path);
                     String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                     String mComposer = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COMPOSER);
                     String mArtist = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
@@ -618,13 +606,13 @@ public class HostFileProfile extends FileProfile {
                     mValues.put(MediaStore.Audio.Media.ARTIST, mArtist);
                     mValues.put(MediaStore.Audio.Media.DURATION, mDuration);
                     mValues.put(MediaStore.Audio.Media.MIME_TYPE, mMineType);
-                    mValues.put(MediaStore.Audio.Media.DATA, getFileManager().getBasePath() + "/" + path);
+                    mValues.put(MediaStore.Audio.Media.DATA, getBasePath() + "/" + path);
                     mContentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mValues);
                 } else if (mMineType.endsWith("video/mp4") || mMineType.endsWith("video/3gpp")
                         || mMineType.endsWith("video/3gpp2") || mMineType.endsWith("video/mpeg")
                         || mMineType.endsWith("video/m4v")) {
                     MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
-                    mMediaMeta.setDataSource(getFileManager().getBasePath() + "/" + path);
+                    mMediaMeta.setDataSource(getBasePath() + "/" + path);
                     String mTitle = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
                     String mArtist = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
                     String mDuration = mMediaMeta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
@@ -636,7 +624,7 @@ public class HostFileProfile extends FileProfile {
                     mValues.put(MediaStore.Video.Media.ARTIST, mArtist);
                     mValues.put(MediaStore.Video.Media.DURATION, mDuration);
                     mValues.put(MediaStore.Video.Media.MIME_TYPE, mMineType);
-                    mValues.put(MediaStore.Video.Media.DATA, getFileManager().getBasePath() + "/" + path);
+                    mValues.put(MediaStore.Video.Media.DATA, getBasePath() + "/" + path);
                     mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mValues);
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -708,7 +696,6 @@ public class HostFileProfile extends FileProfile {
      */
     public HostFileProfile(final FileManager fileMgr) {
         super(fileMgr);
-        mFileManager = fileMgr;
         addApi(mGetReceiveApi);
         addApi(mPutMoveApi);
         addApi(mGetListApi);
@@ -730,41 +717,17 @@ public class HostFileProfile extends FileProfile {
     protected ArrayList<FileAttribute> sortFilelist(final String order, final ArrayList<FileAttribute> filelist) {
         if (order != null) {
             if (order.startsWith(PARAM_PATH)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getPath().compareTo(fa2.getPath());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getPath().compareTo(fa2.getPath()));
             } else if (order.startsWith(PARAM_FILE_NAME)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getName().compareTo(fa2.getName());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getName().compareTo(fa2.getName()));
             } else if (order.startsWith(PARAM_MIME_TYPE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getMimeType().compareTo(fa2.getMimeType());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getMimeType().compareTo(fa2.getMimeType()));
             } else if (order.startsWith(PARAM_FILE_TYPE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getFileType() - fa2.getFileType();
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getFileType() - fa2.getFileType());
             } else if (order.startsWith(PARAM_FILE_SIZE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return (int) (fa1.getFileSize() - fa2.getFileSize());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> (int) (fa1.getFileSize() - fa2.getFileSize()));
             } else if (order.startsWith(PARAM_UPDATE_DATE)) {
-                Collections.sort(filelist, new Comparator<FileAttribute>() {
-                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
-                        return fa1.getUpdateDate().compareTo(fa2.getUpdateDate());
-                    }
-                });
+                Collections.sort(filelist, (fa1, fa2) -> fa1.getUpdateDate().compareTo(fa2.getUpdateDate()));
             }
         }
         return filelist;
@@ -779,7 +742,7 @@ public class HostFileProfile extends FileProfile {
      */
     protected ArrayList<FileAttribute> setArrayList(final File[] respFileList, final ArrayList<FileAttribute> filelist) {
         for (File file : respFileList) {
-            String path = file.getPath().replaceAll("" + mFileManager.getBasePath(), "");
+            String path = file.getPath().replaceAll("" + getBasePath(), "");
             if (path == null) {
                 path = "unknown";
             }

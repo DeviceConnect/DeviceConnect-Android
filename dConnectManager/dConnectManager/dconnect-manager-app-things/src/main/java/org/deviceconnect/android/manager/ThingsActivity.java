@@ -17,10 +17,12 @@ import android.util.Log;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.manager.core.DConnectConst;
 import org.deviceconnect.android.manager.core.DConnectManager;
 import org.deviceconnect.android.manager.core.DConnectSettings;
 import org.deviceconnect.android.manager.core.plugin.ConnectionType;
 import org.deviceconnect.android.manager.core.plugin.DevicePlugin;
+import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.core.util.VersionName;
 import org.deviceconnect.android.manager.util.IpAddressFetcher;
@@ -46,6 +48,11 @@ public class ThingsActivity extends Activity {
      * Device Connect Manager の設定を保持するクラス.
      */
     private DConnectSettings mSettings;
+
+    /**
+     * プラグイン管理クラス.
+     */
+    private DevicePluginManager mPluginManager;
 
     /**
      * Device Connect Manager 本体.
@@ -82,13 +89,16 @@ public class ThingsActivity extends Activity {
      * DConnectManagerを起動します.
      */
     private void startManager() {
-        mSettings = new DConnectSettings(this);
+        Context appContext = getApplicationContext();
+        mSettings = new DConnectSettings(appContext);
         mSettings.setUseALocalOAuth(false);
         mSettings.setRequireOrigin(true);
         mSettings.setAllowExternalIP(true);
         mSettings.setProductName(getString(R.string.app_name));
 
-        mManager = new DConnectManager(this, mSettings) {
+        mPluginManager = new DevicePluginManager(appContext, DConnectConst.LOCALHOST_DCONNECT);
+
+        mManager = new DConnectManager(appContext, mSettings, mPluginManager) {
             @Override
             public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
                 return new BroadcastReceiver() {
@@ -112,11 +122,6 @@ public class ThingsActivity extends Activity {
         mManager.setOnEventListener(new DConnectManager.OnEventListener() {
             @Override
             public void onFinishSearchPlugin() {
-//                try {
-//                    addDevicePlugin();
-//                } catch (Exception e) {
-//                    // ignore.
-//                }
             }
 
             @Override

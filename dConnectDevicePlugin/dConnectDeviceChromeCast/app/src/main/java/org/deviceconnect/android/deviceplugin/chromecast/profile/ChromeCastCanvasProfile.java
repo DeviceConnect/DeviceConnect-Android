@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.webkit.URLUtil;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
+import org.deviceconnect.android.deviceplugin.chromecast.core.AppLocalMediaFile;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
@@ -88,69 +89,65 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             final double x = CanvasProfile.getX(request);
             final double y = CanvasProfile.getY(request);
             final String mode = CanvasProfile.getMode(request);
-            ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+            ((ChromeCastService) getContext()).connectChromeCast(serviceId, (connected) -> {
+                if (!connected) {
+                    MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                    sendResponse(response);
+                    return;
+                }
+                if (data == null && uri == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
+                    sendResponse(response);
+                    return;
+                }
+                if (mimeType != null && !mimeType.contains("image")) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Unsupported mimeType: " + mimeType);
+                    sendResponse(response);
+                    return;
+                }
 
-                @Override
-                public void onResponse(final boolean connected) {
-                    if (!connected) {
-                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                if (uri != null && !URLUtil.isHttpsUrl(uri) && !URLUtil.isHttpUrl(uri)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "uri is not invalid.");
+                    sendResponse(response);
+                    return;
+                }
+
+                try {
+                    String path;
+                    if (data != null) {
+                        path = exposeImage(data, mimeType);
+                    } else {
+                        path = uri;
+                    }
+
+                    mLogger.info("Exposed image: URL=" + path);
+                    if (path == null) {
+                        MessageUtils.setUnknownError(response, "The host device is not in local network.");
                         sendResponse(response);
                         return;
                     }
-                    if (data == null && uri == null) {
-                        MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
+                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                    if (!isDeviceEnable(response, app)) {
                         sendResponse(response);
                         return;
                     }
-                    if (mimeType != null && !mimeType.contains("image")) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                                "Unsupported mimeType: " + mimeType);
-                        sendResponse(response);
-                        return;
-                    }
-
-                    if (uri != null && !URLUtil.isHttpsUrl(uri) && !URLUtil.isHttpUrl(uri)) {
-                        MessageUtils.setInvalidRequestParameterError(response, "uri is not invalid.");
-                        sendResponse(response);
-                        return;
-                    }
-
-                    try {
-                        String path;
-                        if (data != null) {
-                            path = exposeImage(data, mimeType);
-                        } else {
-                            path = uri;
-                        }
-
-                        mLogger.info("Exposed image: URL=" + path);
-                        if (path == null) {
-                            MessageUtils.setUnknownError(response, "The host device is not in local network.");
-                            sendResponse(response);
-                            return;
-                        }
-                        ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-                        if (!isDeviceEnable(response, app)) {
-                            sendResponse(response);
-                            return;
-                        }
-                        JSONObject json = new JSONObject();
-                        json.put(KEY_FUNCTION, FUNCTION_POST_IMAGE);
-                        json.put(KEY_URL, path);
-                        json.put(KEY_MODE, mode);
-                        json.put(KEY_X, x);
-                        json.put(KEY_Y, y);
-                        String message = json.toString();
-                        mLogger.info("Send message successfully: " + message);
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        app.sendMessage(response, message);
-                    } catch (IOException e) {
-                        MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
-                        sendResponse(response);
-                    } catch (Exception e) {
-                        MessageUtils.setUnknownError(response, e.getMessage());
-                        sendResponse(response);
-                    }
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_POST_IMAGE);
+                    json.put(KEY_URL, path);
+                    json.put(KEY_MODE, mode);
+                    json.put(KEY_X, x);
+                    json.put(KEY_Y, y);
+                    String message = json.toString();
+                    mLogger.info("Send message successfully: " + message);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    app.sendMessage(response, message);
+                } catch (IOException e) {
+                    MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
+                    sendResponse(response);
+                } catch (Exception e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                    sendResponse(response);
                 }
             });
             return false;
@@ -169,7 +166,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             throw new IllegalArgumentException("data is null.");
         }
         File file = saveFile(generateFileName(), data);
-        return getHttpServer().exposeFile(new MediaFile(file, mimeType));
+        return getHttpServer().exposeFile(new AppLocalMediaFile(file));
     }
 
     /**
@@ -215,28 +212,24 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
-            ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
-
-                @Override
-                public void onResponse(final boolean connected) {
-                    if (!connected) {
-                        MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
-                        sendResponse(response);
-                        return;
-                    }
-                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-                    if (!isDeviceEnable(response, app)) {
-                        sendResponse(response);
-                        return;
-                    }
-                    try {
-                        JSONObject json = new JSONObject();
-                        json.put(KEY_FUNCTION, FUNCTION_DELETE_IMAGE);
-                        app.sendMessage(response, json.toString());
-                    } catch (JSONException e) {
-                        MessageUtils.setUnknownError(response);
-                        sendResponse(response);
-                    }
+            ((ChromeCastService) getContext()).connectChromeCast(serviceId, (connected) -> {
+                if (!connected) {
+                    MessageUtils.setIllegalDeviceStateError(response, "The chromecast is not in local network.");
+                    sendResponse(response);
+                    return;
+                }
+                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                if (!isDeviceEnable(response, app)) {
+                    sendResponse(response);
+                    return;
+                }
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_DELETE_IMAGE);
+                    app.sendMessage(response, json.toString());
+                } catch (JSONException e) {
+                    MessageUtils.setUnknownError(response);
+                    sendResponse(response);
                 }
             });
             return false;

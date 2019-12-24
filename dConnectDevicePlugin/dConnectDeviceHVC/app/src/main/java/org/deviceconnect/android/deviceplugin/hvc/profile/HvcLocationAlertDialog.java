@@ -39,21 +39,17 @@ public class HvcLocationAlertDialog extends Activity {
 
                 // 位置情報設定画面起動用ボタンとイベント定義
                 .setPositiveButton(R.string.location_settings_title,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                Intent callLocationSettingIntent = new Intent(
-                                        android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                startActivity(callLocationSettingIntent);
-                                mActivity.finish();
-                            }
+                        (dialog, id) -> {
+                            Intent callLocationSettingIntent = new Intent(
+                                    android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(callLocationSettingIntent);
+                            mActivity.finish();
                         });
         // キャンセルボタン処理
         alertDialogBuilder.setNegativeButton(R.string.setting_location_dialog_cancel,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                        mActivity.finish();
-                    }
+                (dialog, id) -> {
+                    dialog.cancel();
+                    mActivity.finish();
                 });
         AlertDialog alert = alertDialogBuilder.create();
         // 設定画面移動問い合わせダイアログ表示

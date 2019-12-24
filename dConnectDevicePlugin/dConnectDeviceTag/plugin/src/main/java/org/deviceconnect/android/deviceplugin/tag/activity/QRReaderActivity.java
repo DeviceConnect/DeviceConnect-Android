@@ -16,7 +16,8 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.tag.R;
 import org.deviceconnect.android.deviceplugin.tag.TagMessageService;

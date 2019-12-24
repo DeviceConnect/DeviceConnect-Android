@@ -33,11 +33,11 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
-import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.DConnectApplication;
@@ -187,8 +187,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // ドキュメントルート
         String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
-            File file = new File(getActivity().getExternalFilesDir(null), getActivity().getPackageName());
-            docRootPath = file.getPath();
+            docRootPath = getDocumentRootPath(getActivity());
         }
 
         // Managerの名前
@@ -296,8 +295,24 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         getActivity().registerReceiver(mWiFiReceiver, filter);
-
     }
+    @SuppressWarnings("deprecation")
+    private String getDocumentRootPath(final Context context) {
+        File dir = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            dir = context.getExternalFilesDir(null);
+        } else {
+            File externalDir = Environment.getExternalStorageDirectory();
+            if (externalDir != null) {
+                dir = new File(externalDir, context.getPackageName());
+            }
+        }
+        if (dir == null) {
+            dir = context.getFilesDir();
+        }
+        return dir.getAbsolutePath();
+    }
+
     @Override
     public void onPause() {
         mPauseHandler.pause();

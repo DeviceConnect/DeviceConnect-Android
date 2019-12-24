@@ -83,12 +83,9 @@ public class LinkingVibrationProfile extends VibrationProfile {
         if (mVibrationExecutor == null) {
             mVibrationExecutor = new VibrationExecutor();
         }
-        mVibrationExecutor.setVibrationControllable(new VibrationExecutor.VibrationControllable() {
-            @Override
-            public void changeVibration(final boolean isOn, final VibrationExecutor.CompleteListener listener) {
-                manager.sendVibrationCommand(device, isOn);
-                listener.onComplete();
-            }
+        mVibrationExecutor.setVibrationControllable((isOn, listener) -> {
+            manager.sendVibrationCommand(device, isOn);
+            listener.onComplete();
         });
         mVibrationExecutor.start(pattern);
     }

@@ -17,12 +17,12 @@ import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.TransactionTooLargeException;
-import android.util.Log;
 import android.util.SparseArray;
 
 import org.deviceconnect.android.localoauth.DevicePluginXml;
@@ -591,7 +591,7 @@ public class DevicePluginManager {
             type = ConnectionType.BROADCAST;
         }
 
-        DevicePlugin plugin = new DevicePlugin.Builder(mContext)
+        DevicePlugin.Builder plugin = new DevicePlugin.Builder(mContext)
                 .setPackageName(componentInfo.packageName)
                 .setClassName(componentInfo.name)
                 .setVersionName(versionName)
@@ -600,9 +600,18 @@ public class DevicePluginManager {
                 .setPluginXml(DevicePluginXmlUtil.getXml(mContext, componentInfo))
                 .setPluginSdkVersionName(sdkVersionName)
                 .setPluginIconId(iconId)
-                .setConnectionType(type)
-                .build();
-        return plugin;
+                .setConnectionType(type);
+
+        ProviderInfo[] providers = pkgInfo.providers;
+        if (providers != null) {
+            for (ProviderInfo provider : providers) {
+                if (provider.exported && provider.enabled) {
+                    plugin.addProviderAuthority(provider.authority);
+                }
+            }
+        }
+
+        return plugin.build();
     }
 
     /**

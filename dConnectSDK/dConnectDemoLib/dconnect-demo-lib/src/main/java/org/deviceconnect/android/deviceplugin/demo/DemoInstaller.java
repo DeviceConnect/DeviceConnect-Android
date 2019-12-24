@@ -18,7 +18,7 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 import java.io.File;
 import java.io.IOException;
@@ -193,16 +193,20 @@ public class DemoInstaller {
         return new File(getDemoRootDir(), mRelativeDirName);
     }
 
+    @SuppressWarnings("deprecation")
     private File getDemoRootDir() {
-        File documentDir = getDocumentDir(mContext);
-        return new File(documentDir, mPluginPackageName);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // アプリ固有フォルダにデモを展開
+            // (FileProvider 経由で公開するようにプラグインを実装すること)
+            return mContext.getExternalFilesDir(null);
+        } else {
+            // DeviceConnectManagerのフォルダにデモを展開
+            File documentRoot = new File(Environment.getExternalStorageDirectory(), DOCUMENT_DIR_NAME);
+            return new File(documentRoot, mPluginPackageName);
+        }
     }
 
-    private static File getDocumentDir(final Context context) {
-        File rootDir = context.getExternalFilesDir(null);
-        return new File(rootDir, DOCUMENT_DIR_NAME);
-    }
-
+    @Deprecated
     public static boolean isUpdateNeeded(final Context context) {
         String version = readInstalledVersion(context);
         if (version == null) {
@@ -210,6 +214,23 @@ public class DemoInstaller {
         }
         String currentVersion = getCurrentVersionName(context);
         return !version.equals(currentVersion);
+    }
+
+    public boolean isUpdateNeeded() {
+        String version = readInstalledVersion(mContext);
+        if (version == null) {
+            return false;
+        }
+        String currentVersion = getCurrentVersionName(mContext);
+        if (!version.equals(currentVersion)) {
+            return true;
+        }
+        File demoDir = getDemoDirOnStorage();
+        if (!demoDir.exists()) {
+            return true;
+        }
+        File[] children = demoDir.listFiles();
+        return children == null || children.length == 0;
     }
 
     public boolean isInstalledDemoPage() {

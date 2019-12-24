@@ -25,7 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.core.content.res.ResourcesCompat;
 import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;

@@ -351,39 +351,33 @@ public class HueLightProfile extends LightProfile {
             exe = new FlashingExecutor();
             mFlashingMap.put(lightId, exe);
         }
-        exe.setLightControllable(new FlashingExecutor.LightControllable() {
-            @Override
-            public void changeLight(final boolean isOn, final FlashingExecutor.CompleteListener listener) {
-                lightState.setOn(isOn);
-                bridge.updateLightState(light, lightState, new PHLightAdapter() {
-                    @Override
-                    public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
-                        listener.onComplete();
-                    }
+        exe.setLightControllable((isOn, listener) -> {
+            lightState.setOn(isOn);
+            bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                @Override
+                public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+                    listener.onComplete();
+                }
 
-                    @Override
-                    public void onError(final int code, final String message) {
-                        listener.onComplete();
-                    }
-                });
-            }
+                @Override
+                public void onError(final int code, final String message) {
+                    listener.onComplete();
+                }
+            });
         });
         exe.start(flashing);
     }
 
     private void sendResponseAfterAwait(final Intent response, final CountDownLatch latch) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (!latch.await(30, TimeUnit.SECONDS)) {
-                        MessageUtils.setTimeoutError(response);
-                    }
-                } catch (InterruptedException e) {
+        new Thread(() -> {
+            try {
+                if (!latch.await(30, TimeUnit.SECONDS)) {
                     MessageUtils.setTimeoutError(response);
                 }
-                sendResponse(response);
+            } catch (InterruptedException e) {
+                MessageUtils.setTimeoutError(response);
             }
+            sendResponse(response);
         }).start();
     }
 

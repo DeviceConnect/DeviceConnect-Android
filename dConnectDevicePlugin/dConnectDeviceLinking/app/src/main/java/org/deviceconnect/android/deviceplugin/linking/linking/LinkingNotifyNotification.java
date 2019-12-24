@@ -95,28 +95,25 @@ class LinkingNotifyNotification {
             Log.d(TAG, "startNotifyNotification");
         }
 
-        mNotifyNotification = new NotifyNotification(mContext, new NotifyNotification.NotificationInterface() {
-            @Override
-            public void onNotify() {
-                SharedPreferences preference = mContext.getSharedPreferences(Define.NotificationInfo, Context.MODE_PRIVATE);
-                int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
-                int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
-                int keyCode = preference.getInt(LinkingUtil.DEVICE_BUTTON_ID, -1);
+        mNotifyNotification = new NotifyNotification(mContext, () -> {
+            SharedPreferences preference = mContext.getSharedPreferences(Define.NotificationInfo, Context.MODE_PRIVATE);
+            int deviceId = preference.getInt(LinkingUtil.DEVICE_ID, -1);
+            int uniqueId = preference.getInt(LinkingUtil.DEVICE_UID, -1);
+            int keyCode = preference.getInt(LinkingUtil.DEVICE_BUTTON_ID, -1);
 
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, "NotifyNotification.NotificationInterface#onNotify");
+                Log.i(TAG, "deviceId:" + deviceId);
+                Log.i(TAG, "uniqueId:" + uniqueId);
+                Log.i(TAG, "keyCode:" + keyCode);
+            }
+
+            LinkingDevice device = findDeviceFromKeyHolders(deviceId, uniqueId);
+            if (device != null) {
+                notifyOnKeyEvent(device, keyCode);
+            } else {
                 if (BuildConfig.DEBUG) {
-                    Log.i(TAG, "NotifyNotification.NotificationInterface#onNotify");
-                    Log.i(TAG, "deviceId:" + deviceId);
-                    Log.i(TAG, "uniqueId:" + uniqueId);
-                    Log.i(TAG, "keyCode:" + keyCode);
-                }
-
-                LinkingDevice device = findDeviceFromKeyHolders(deviceId, uniqueId);
-                if (device != null) {
-                    notifyOnKeyEvent(device, keyCode);
-                } else {
-                    if (BuildConfig.DEBUG) {
-                        Log.w(TAG, "Not found a device.");
-                    }
+                    Log.w(TAG, "Not found a device.");
                 }
             }
         });

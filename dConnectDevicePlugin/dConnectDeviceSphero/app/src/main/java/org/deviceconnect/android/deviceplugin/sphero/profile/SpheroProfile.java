@@ -468,15 +468,12 @@ public class SpheroProfile extends DConnectProfile {
                 return true;
             }
 
-            SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
-                @Override
-                public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
-                    SpheroDeviceService service = (SpheroDeviceService) getContext();
-                    Bundle quaternion = SpheroManager.createQuaternion(data, interval);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    response.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
-                    service.sendResponse(response);
-                }
+            SpheroManager.INSTANCE.startSensor(device, (info, data, interval) -> {
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                Bundle quaternion = SpheroManager.createQuaternion(data, interval);
+                setResult(response, DConnectMessage.RESULT_OK);
+                response.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
+                service.sendResponse(response);
             });
             return false;
         }
@@ -509,15 +506,12 @@ public class SpheroProfile extends DConnectProfile {
                 return true;
             }
 
-            SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
-                @Override
-                public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
-                    SpheroDeviceService service = (SpheroDeviceService) getContext();
-                    Bundle locator = SpheroManager.createLocator(data);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    response.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
-                    service.sendResponse(response);
-                }
+            SpheroManager.INSTANCE.startSensor(device, (info, data, interval) -> {
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                Bundle locator = SpheroManager.createLocator(data);
+                setResult(response, DConnectMessage.RESULT_OK);
+                response.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
+                service.sendResponse(response);
             });
             return false;
         }
@@ -549,15 +543,12 @@ public class SpheroProfile extends DConnectProfile {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-            SpheroManager.INSTANCE.startCollision(device, new DeviceCollisionListener() {
-                @Override
-                public void collisionDetected(final DeviceInfo info, final CollisionDetectedAsyncData data) {
-                    SpheroDeviceService service = (SpheroDeviceService) getContext();
-                    Bundle collision = SpheroManager.createCollision(data);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    response.putExtra(SpheroProfile.PARAM_COLLISION, collision);
-                    service.sendResponse(response);
-                }
+            SpheroManager.INSTANCE.startCollision(device, (info, data) -> {
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                Bundle collision = SpheroManager.createCollision(data);
+                setResult(response, DConnectMessage.RESULT_OK);
+                response.putExtra(SpheroProfile.PARAM_COLLISION, collision);
+                service.sendResponse(response);
             });
             return false;
         }

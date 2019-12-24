@@ -8,10 +8,11 @@ package org.deviceconnect.android.deviceplugin.irkit.settings.activity;
 
 import android.app.ActionBar;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager.widget.ViewPager;
 
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
@@ -22,7 +23,7 @@ import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
  * @author NTT DOCOMO, INC.
  */
 abstract class IRKitAbstractSettingActivity extends FragmentActivity implements
-    DConnectPageCreater<Fragment> {
+        DConnectPageCreater<Fragment> {
 
     /**
      * ページ用のビューページャー.

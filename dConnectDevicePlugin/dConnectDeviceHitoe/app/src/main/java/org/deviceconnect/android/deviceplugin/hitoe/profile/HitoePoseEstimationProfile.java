@@ -40,12 +40,7 @@ public class HitoePoseEstimationProfile extends PoseEstimationProfile {
      * Implementation of {@link HitoeManager.OnHitoePoseEstimationEventListener}.
      */
     private final HitoeManager.OnHitoePoseEstimationEventListener mPoseEstimationEventListener =
-            new HitoeManager.OnHitoePoseEstimationEventListener() {
-                @Override
-                public void onReceivedData(final HitoeDevice device, final PoseEstimationData data) {
-                    notifyPoseEstimationData(device, data);
-                }
-            };
+            this::notifyPoseEstimationData;
     /**
      * Event Dispatcher object.
      */

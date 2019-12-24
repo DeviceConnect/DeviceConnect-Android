@@ -85,15 +85,7 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    testImplementation 'junit:junit:4.12'
     implementation project(':app')
-    implementation('io.fabo:serialkit:0.9.6', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.android.support', module: 'support-v4'
-        exclude group: 'com.android.support', module: 'support-compat'
-    })
+    implementation 'io.fabo:serialkit:0.9.6'
     implementation 'io.fabo.android.stk500:stk500-aar:1.0.4'
 }

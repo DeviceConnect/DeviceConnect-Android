@@ -15,8 +15,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -42,7 +43,6 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -324,7 +324,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                Log.d("ABC", "send:" + getServiceID(request));
                 IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
                 LocalBroadcastManager.getInstance(getContext()).registerReceiver(mAudioEventBR, filter);
 

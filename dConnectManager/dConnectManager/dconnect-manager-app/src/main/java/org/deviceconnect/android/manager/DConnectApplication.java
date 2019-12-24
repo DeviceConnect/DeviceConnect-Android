@@ -11,7 +11,9 @@ import android.content.SharedPreferences;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.logger.AndroidHandler;
+import org.deviceconnect.android.manager.core.DConnectConst;
 import org.deviceconnect.android.manager.core.DConnectSettings;
+import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 
 import java.util.logging.Filter;
@@ -31,6 +33,11 @@ public class DConnectApplication extends HostDeviceApplication {
      * Device Connect システム設定.
      */
     private DConnectSettings mSettings;
+
+    /**
+     * プラグイン管理クラス.
+     */
+    private DevicePluginManager mPluginManager;
 
     @Override
     public void onCreate() {
@@ -55,12 +62,7 @@ public class DConnectApplication extends HostDeviceApplication {
             logger.setLevel(Level.ALL);
         } else {
             logger.setLevel(Level.OFF);
-            logger.setFilter(new Filter() {
-                @Override
-                public boolean isLoggable(final LogRecord record) {
-                    return false;
-                }
-            });
+            logger.setFilter((record) -> false);
         }
     }
 
@@ -81,10 +83,16 @@ public class DConnectApplication extends HostDeviceApplication {
             editor.apply();
         }
 
-        mSettings = new DConnectSettings(this);
+        Context appContext = getApplicationContext();
+        mSettings = new DConnectSettings(appContext);
+        mPluginManager = new DevicePluginManager(appContext, DConnectConst.LOCALHOST_DCONNECT);
     }
 
     public DConnectSettings getSettings() {
         return mSettings;
+    }
+
+    public DevicePluginManager getPluginManager() {
+        return mPluginManager;
     }
 }

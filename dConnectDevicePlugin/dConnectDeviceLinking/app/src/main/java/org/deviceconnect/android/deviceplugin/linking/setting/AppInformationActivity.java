@@ -10,8 +10,8 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -29,7 +29,7 @@ public class AppInformationActivity extends AppCompatActivity {
             actionBar.setElevation(0);
         }
 
-        TextView tv = (TextView) findViewById(R.id.activity_detail_version);
+        TextView tv = findViewById(R.id.activity_detail_version);
         if (tv != null) {
             tv.setText(getVersionName(this));
         }

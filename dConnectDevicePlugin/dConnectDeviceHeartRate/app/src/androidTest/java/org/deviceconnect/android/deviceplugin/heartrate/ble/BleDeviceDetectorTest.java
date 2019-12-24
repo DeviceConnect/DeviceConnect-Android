@@ -2,18 +2,27 @@ package org.deviceconnect.android.deviceplugin.heartrate.ble;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.test.AndroidTestCase;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class BleDeviceDetectorTest extends AndroidTestCase {
+import static androidx.test.InstrumentationRegistry.getContext;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class BleDeviceDetectorTest {
     @Before
     public void setUp() {
     }

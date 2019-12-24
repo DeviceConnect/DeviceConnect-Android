@@ -11,7 +11,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,7 +22,6 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,6 +30,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.TextView;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
@@ -136,14 +136,11 @@ public class CanvasProfileActivity extends Activity  {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_canvas_profile);
 
-        mCanvasView = (ImageView) findViewById(R.id.canvasProfileView);
+        mCanvasView = findViewById(R.id.canvasProfileView);
 
-        Button btn = (Button) findViewById(R.id.buttonClose);
-        btn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                finish();
-            }
+        Button btn =  findViewById(R.id.buttonClose);
+        btn.setOnClickListener((v) -> {
+            finish();
         });
 
         Intent intent = null;
@@ -471,13 +468,10 @@ public class CanvasProfileActivity extends Activity  {
             builder.setMessage(getArguments().getString(KEY_MESSAGE));
             if (getArguments().getString(KEY_POSITIVE) != null) {
                 builder.setPositiveButton(getArguments().getString(KEY_POSITIVE),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                                Activity activity = getActivity();
-                                if (activity != null) {
-                                    activity.finish();
-                                }
+                        (dialog, which) -> {
+                            Activity activity = getActivity();
+                            if (activity != null) {
+                                activity.finish();
                             }
                         });
             }

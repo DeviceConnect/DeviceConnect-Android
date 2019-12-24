@@ -20,7 +20,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.LongSparseArray;
 
 import org.deviceconnect.android.activity.PermissionUtility;

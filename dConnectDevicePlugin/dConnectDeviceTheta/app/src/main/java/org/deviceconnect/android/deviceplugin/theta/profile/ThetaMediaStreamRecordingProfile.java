@@ -11,6 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.deviceplugin.theta.core.LiveCamera;
 import org.deviceconnect.android.deviceplugin.theta.core.LivePreviewTask;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
@@ -18,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
+import org.deviceconnect.android.deviceplugin.theta.utils.MediaSharing;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -33,6 +36,7 @@ import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +57,7 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
 
     private final ThetaDeviceClient mClient;
     private final FileManager mFileMgr;
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
     private final Object mLockObj = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
@@ -149,7 +154,9 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
                         mFileMgr.saveFile(picture.getFileName(), data, true, new FileManager.SaveFileCallback() {
 
                             @Override
-                            public void onSuccess(final String uri) {
+                            public void onSuccess(final @NonNull String uri) {
+                                mMediaSharing.sharePhoto(getContext(), new File(mFileMgr.getBasePath(), picture.getFileName()));
+
                                 String path = "/" + picture.getFileName();
                                 setUri(response, uri);
                                 setPath(response, path);
@@ -352,41 +359,38 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
             final String target = getTarget(request);
-            mClient.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ThetaDevice device = mClient.getConnectedDevice(serviceId);
-                        ThetaDevice.Recorder recorder = device.getRecorder();
-                        if (recorder == null) {
-                            MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
-                            return;
-                        }
-                        if (target != null && !target.equals(recorder.getId())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-                            return;
-                        }
-                        if (!recorder.supportsPreview()) {
-                            MessageUtils.setNotSupportAttributeError(response,
-                                recorder.getName() + " does not support preview.");
-                            return;
-                        }
-
-                        String uri = startLivePreview(device, getWidth(request), getHeight(request));
-                        setUri(response, uri);
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } catch (ThetaDeviceException cause) {
-                        switch (cause.getReason()) {
-                            case ThetaDeviceException.NOT_FOUND_THETA:
-                                MessageUtils.setNotFoundServiceError(response);
-                                break;
-                            default:
-                                MessageUtils.setUnknownError(response, cause.getMessage());
-                                break;
-                        }
-                    } finally {
-                        sendResponse(response);
+            mClient.execute(() -> {
+                try {
+                    ThetaDevice device = mClient.getConnectedDevice(serviceId);
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorder == null) {
+                        MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
+                        return;
                     }
+                    if (target != null && !target.equals(recorder.getId())) {
+                        MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                        return;
+                    }
+                    if (!recorder.supportsPreview()) {
+                        MessageUtils.setNotSupportAttributeError(response,
+                            recorder.getName() + " does not support preview.");
+                        return;
+                    }
+
+                    String uri = startLivePreview(device, getWidth(request), getHeight(request));
+                    setUri(response, uri);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (ThetaDeviceException cause) {
+                    switch (cause.getReason()) {
+                        case ThetaDeviceException.NOT_FOUND_THETA:
+                            MessageUtils.setNotFoundServiceError(response);
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response, cause.getMessage());
+                            break;
+                    }
+                } finally {
+                    sendResponse(response);
                 }
             });
             return false;
@@ -403,40 +407,37 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
         public boolean onRequest(final Intent request, final Intent response) {
             final String serviceId = getServiceID(request);
             final String target = getTarget(request);
-            mClient.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ThetaDevice device = mClient.getConnectedDevice(serviceId);
-                        ThetaDevice.Recorder recorder = device.getRecorder();
-                        if (recorder == null) {
-                            MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
-                            return;
-                        }
-                        if (target != null && !target.equals(recorder.getId())) {
-                            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
-                            return;
-                        }
-                        if (!recorder.supportsPreview()) {
-                            MessageUtils.setNotSupportAttributeError(response,
-                                recorder.getName() + " does not support preview.");
-                            return;
-                        }
-
-                        stopLivePreview();
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } catch (ThetaDeviceException cause) {
-                        switch (cause.getReason()) {
-                            case ThetaDeviceException.NOT_FOUND_THETA:
-                                MessageUtils.setNotFoundServiceError(response);
-                                break;
-                            default:
-                                MessageUtils.setUnknownError(response, cause.getMessage());
-                                break;
-                        }
-                    } finally {
-                        sendResponse(response);
+            mClient.execute(() -> {
+                try {
+                    ThetaDevice device = mClient.getConnectedDevice(serviceId);
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorder == null) {
+                        MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
+                        return;
                     }
+                    if (target != null && !target.equals(recorder.getId())) {
+                        MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                        return;
+                    }
+                    if (!recorder.supportsPreview()) {
+                        MessageUtils.setNotSupportAttributeError(response,
+                            recorder.getName() + " does not support preview.");
+                        return;
+                    }
+
+                    stopLivePreview();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (ThetaDeviceException cause) {
+                    switch (cause.getReason()) {
+                        case ThetaDeviceException.NOT_FOUND_THETA:
+                            MessageUtils.setNotFoundServiceError(response);
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response, cause.getMessage());
+                            break;
+                    }
+                } finally {
+                    sendResponse(response);
                 }
             });
             return false;
@@ -613,44 +614,37 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
     }
 
     public void forcedStopRecording() {
-        /** 動画記録停止処理 */
-        mClient.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ThetaDevice device = mClient.getCurrentConnectDevice();
-                    ThetaDevice.Recorder recorder = device.getRecorder();
-                    if (recorder != null && recorder.supportsVideoRecording()) {
-                        ThetaDevice.RecorderState state = recorder.getState();
-                        switch (state) {
-                            case RECORDING:
-                                device.stopVideoRecording();
-                                break;
-                            case INACTIVE:
-                            default:
-                                break;
-                        }
+        /* 動画記録停止処理 */
+        mClient.execute(() -> {
+            try {
+                ThetaDevice device = mClient.getCurrentConnectDevice();
+                ThetaDevice.Recorder recorder = device.getRecorder();
+                if (recorder != null && recorder.supportsVideoRecording()) {
+                    ThetaDevice.RecorderState state = recorder.getState();
+                    switch (state) {
+                        case RECORDING:
+                            device.stopVideoRecording();
+                            break;
+                        case INACTIVE:
+                        default:
+                            break;
                     }
-                } catch (ThetaDeviceException e) {
-                    // Not operation.
                 }
-
+            } catch (ThetaDeviceException e) {
+                // Not operation.
             }
         });
 
-        /** プレビュー停止処理 */
-        mClient.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ThetaDevice device = mClient.getCurrentConnectDevice();
-                    ThetaDevice.Recorder recorder = device.getRecorder();
-                    if (recorder != null && recorder.supportsPreview()) {
-                        stopLivePreview();
-                    }
-                } catch (ThetaDeviceException cause) {
-                    // Not operation.
+        /* プレビュー停止処理 */
+        mClient.execute(() -> {
+            try {
+                ThetaDevice device = mClient.getCurrentConnectDevice();
+                ThetaDevice.Recorder recorder = device.getRecorder();
+                if (recorder != null && recorder.supportsPreview()) {
+                    stopLivePreview();
                 }
+            } catch (ThetaDeviceException cause) {
+                // Not operation.
             }
         });
     }

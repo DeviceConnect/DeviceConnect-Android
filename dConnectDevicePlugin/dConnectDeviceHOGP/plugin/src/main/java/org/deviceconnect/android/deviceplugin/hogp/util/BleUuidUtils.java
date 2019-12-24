@@ -7,7 +7,8 @@
 package org.deviceconnect.android.deviceplugin.hogp.util;
 
 import android.os.ParcelUuid;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import java.util.UUID;
 

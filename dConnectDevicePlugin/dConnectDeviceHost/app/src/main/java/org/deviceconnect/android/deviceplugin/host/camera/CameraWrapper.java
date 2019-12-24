@@ -24,8 +24,8 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -400,9 +400,6 @@ public class CameraWrapper {
         }
         if (hasAutoExposure()) {
             request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
-            if (trigger) {
-                request.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CameraMetadata.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            }
         }
         setWhiteBalance(request);
         // LightがONの場合は、CONTROL_AE_MODEをCONTROL_AE_MODE_ONにする。
@@ -459,7 +456,6 @@ public class CameraWrapper {
             close();
         }
     }
-
     public synchronized void startRecording(final Surface recordingSurface,
                                             final boolean isResume) throws CameraWrapperException {
         if (mIsRecording && !isResume) {
@@ -467,10 +463,9 @@ public class CameraWrapper {
         }
         mIsRecording = true;
         mRecordingSurface = recordingSurface;
-        if (mCameraDevice != null) {
-            close();
-        }
+
         try {
+
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
@@ -541,6 +536,7 @@ public class CameraWrapper {
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(template);
             request.addTarget(stillImageSurface);
             setDefaultCaptureRequest(request);
+            request.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             mCaptureSession.capture(request.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
@@ -684,10 +680,12 @@ public class CameraWrapper {
                     }
                     if (!mIsAeReady) {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                        if (DEBUG) {
+                            Log.d(TAG, "prepareCapture: onCaptureCompleted: aeState=" + aeState);
+                        }
                         mIsAeReady = aeState == null
                                 || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED
-                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED
-                                || aeState == CaptureRequest.CONTROL_AE_STATE_PRECAPTURE;
+                                || aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED;
                     }
                     mIsCaptureReady |= isCompleted;
                     if (DEBUG) {

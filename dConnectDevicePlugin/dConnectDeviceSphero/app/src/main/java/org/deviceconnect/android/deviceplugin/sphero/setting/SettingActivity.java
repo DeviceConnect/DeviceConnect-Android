@@ -7,23 +7,15 @@
 package org.deviceconnect.android.deviceplugin.sphero.setting;
 
 import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
-import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
-import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.PairingFragment;
 import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.WakeupFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
-
-import java.lang.ref.WeakReference;
-import java.util.List;
 
 /**
  * 設定画面用アクティビティ.

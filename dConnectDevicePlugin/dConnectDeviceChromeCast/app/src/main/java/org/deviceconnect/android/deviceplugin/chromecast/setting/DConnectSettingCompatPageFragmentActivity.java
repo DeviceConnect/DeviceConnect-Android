@@ -8,10 +8,10 @@ package org.deviceconnect.android.deviceplugin.chromecast.setting;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,11 +52,8 @@ public abstract class DConnectSettingCompatPageFragmentActivity extends AppCompa
         toolbar.setTitleTextColor(Color.parseColor("#FFFFFF"));
         addContentView(toolbar, new Toolbar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         toolbar.setNavigationIcon(org.deviceconnect.android.deviceplugin.chromecast.R.drawable.close_icon);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
+        toolbar.setNavigationOnClickListener((view) -> {
+            finish();
         });
         setSupportActionBar(toolbar);
     }

@@ -80,10 +80,9 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
-    androidTestImplementation('junit:junit:4.11') {
-        exclude group: 'org.hamcrest'
-    }
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 

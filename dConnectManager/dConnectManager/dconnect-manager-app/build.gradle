@@ -20,7 +20,7 @@ android {
         targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "URL_HELP_HTML", "\"file:///android_asset/html/help/index.html\""
         buildConfigField "String", "URL_DEMO_HTML", "\"file:///android_asset/html/demo/index.html\""
         manifestPlaceholders = [
@@ -101,28 +101,25 @@ repositories {
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
-    implementation('com.android.support:appcompat-v7:28.0.0') {
-        exclude module: 'animated-vector-drawable'
-        exclude module: 'support-media-compat'
-    }
-    implementation 'com.android.support:recyclerview-v7:28.0.0'
-    implementation 'com.android.support:design:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation 'com.android.support:support-annotations:28.0.0'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.2'
     implementation project(':dconnect-manager-core')
     implementation project(':dconnect-server-nano-httpd')
     implementation project(':dconnect-device-plugin-host')
     implementation project(':dconnect-device-plugin-linking')
-    androidTestImplementation('com.android.support.test:runner:1.0.2') {
+
+    androidTestImplementation('androidx.test.ext:junit:1.1.1') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-    androidTestImplementation('com.android.support.test:rules:1.0.2') {
+    androidTestImplementation('androidx.test:rules:1.1.1') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 }
 
 android.testVariants.all { variant ->

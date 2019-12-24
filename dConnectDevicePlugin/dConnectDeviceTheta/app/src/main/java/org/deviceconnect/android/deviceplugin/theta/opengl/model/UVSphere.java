@@ -44,8 +44,8 @@ public class UVSphere {
      * @param divide Number of partitions (must be an even number)
      */
     public UVSphere(float radius, int divide) {
-        mVertices = new ArrayList<FloatBuffer>();
-        mTextureCoords = new ArrayList<FloatBuffer>();
+        mVertices = new ArrayList<>();
+        mTextureCoords = new ArrayList<>();
         mRadius = radius;
 
         if (radius <= 0 || divide <= 0 || 0 != (divide % 2)) {

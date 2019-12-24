@@ -155,7 +155,8 @@
         <!-- Device Connect Manager本体のサービス. -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"
-            android:exported="false">
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection">
         </service>
 
         <!-- Webサーバを管理するサービス -->

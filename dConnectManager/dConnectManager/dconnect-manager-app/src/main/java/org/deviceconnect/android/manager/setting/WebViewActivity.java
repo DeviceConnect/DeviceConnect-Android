@@ -21,8 +21,8 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -442,12 +442,8 @@ public class WebViewActivity extends AppCompatActivity {
                 if (!zooming) {
                     mRestoringScaleStart = now;
                     view.zoomOut();
-                    view.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            view.zoomOut();
-                        }
-                    }, STABLE_SCALE_CALCULATION_DURATION);
+                    view.postDelayed(view::zoomOut
+                    , STABLE_SCALE_CALCULATION_DURATION);
                 }
             }
         }
@@ -463,18 +459,12 @@ public class WebViewActivity extends AppCompatActivity {
             builder.setTitle(R.string.app_name)
                     .setMessage(message)
                     .setCancelable(true)
-                    .setPositiveButton(R.string.webview_js_alert_positive_btn, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
+                    .setPositiveButton(R.string.webview_js_alert_positive_btn, (dialog, which) -> {
+                        dialog.dismiss();
                     });
             AlertDialog dialog = builder.create();
-            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    result.confirm();
-                }
+            dialog.setOnDismissListener((dialogs) -> {
+                result.confirm();
             });
             dialog.show();
             return true;
@@ -490,29 +480,20 @@ public class WebViewActivity extends AppCompatActivity {
             builder.setTitle(R.string.app_name)
                     .setMessage(message)
                     .setCancelable(true)
-                    .setPositiveButton(R.string.webview_js_alert_positive_btn, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            flag[0] = true;
-                            dialog.dismiss();
-                        }
+                    .setPositiveButton(R.string.webview_js_alert_positive_btn, (dialog, which) -> {
+                        flag[0] = true;
+                        dialog.dismiss();
                     })
-                    .setNegativeButton(R.string.webview_js_alert_negative_btn, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            flag[0] = false;
-                            dialog.dismiss();
-                        }
+                    .setNegativeButton(R.string.webview_js_alert_negative_btn, (dialog, which) -> {
+                        flag[0] = false;
+                        dialog.dismiss();
                     });
             AlertDialog dialog = builder.create();
-            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    if (flag[0]) {
-                        result.confirm();
-                    } else {
-                        result.cancel();
-                    }
+            dialog.setOnDismissListener((dialogs) -> {
+                if (flag[0]) {
+                    result.confirm();
+                } else {
+                    result.cancel();
                 }
             });
             dialog.show();
@@ -530,29 +511,20 @@ public class WebViewActivity extends AppCompatActivity {
             builder.setTitle(R.string.app_name)
                     .setView(editText)
                     .setCancelable(true)
-                    .setPositiveButton(R.string.webview_js_alert_positive_btn, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            flag[0] = true;
-                            dialog.dismiss();
-                        }
+                    .setPositiveButton(R.string.webview_js_alert_positive_btn, (dialog, whichButton) -> {
+                        flag[0] = true;
+                        dialog.dismiss();
                     })
-                    .setNegativeButton(R.string.webview_js_alert_negative_btn, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            flag[0] = false;
-                            dialog.dismiss();
-                        }
+                    .setNegativeButton(R.string.webview_js_alert_negative_btn, (dialog, whichButton) -> {
+                        flag[0] = false;
+                        dialog.dismiss();
                     });
             AlertDialog dialog = builder.create();
-            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    if (flag[0]) {
-                        result.confirm(editText.getText().toString());
-                    } else {
-                        result.cancel();
-                    }
+            dialog.setOnDismissListener((dialogs) -> {
+                if (flag[0]) {
+                    result.confirm(editText.getText().toString());
+                } else {
+                    result.cancel();
                 }
             });
             dialog.show();

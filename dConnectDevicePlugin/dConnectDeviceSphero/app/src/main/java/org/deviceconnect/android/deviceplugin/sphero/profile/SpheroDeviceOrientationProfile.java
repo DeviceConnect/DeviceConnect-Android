@@ -54,15 +54,12 @@ public class SpheroDeviceOrientationProfile extends DeviceOrientationProfile {
                 MessageUtils.setNotFoundServiceError(response);
                 return true;
             }
-            SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
-                @Override
-                public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
-                    Bundle orientation = SpheroManager.createOrientation(data, interval);
-                    DeviceOrientationProfile.setOrientation(response, orientation);
-                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                    SpheroDeviceService service = (SpheroDeviceService) getContext();
-                    service.sendResponse(response);
-                }
+            SpheroManager.INSTANCE.startSensor(device, (info, data, interval) -> {
+                Bundle orientation = SpheroManager.createOrientation(data, interval);
+                DeviceOrientationProfile.setOrientation(response, orientation);
+                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                service.sendResponse(response);
             });
             return false;
         }

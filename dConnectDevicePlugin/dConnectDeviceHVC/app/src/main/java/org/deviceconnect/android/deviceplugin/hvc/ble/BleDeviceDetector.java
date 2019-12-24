@@ -290,28 +290,22 @@ public class BleDeviceDetector {
                 return;
             }
             mScanning = true;
-            mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    // Stops scanning after a pre-defined scan period.
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mBleAdapter.isEnabled()) {
-                                stopBleScan();
-                                notifyBluetoothDevice();
-                            } else {
-                                mScanTimerFuture.cancel(true);
-                                mScanning = false;
-                            }
-                        }
-                    }, SCAN_PERIOD);
+            mScanTimerFuture = mExecutor.scheduleAtFixedRate(() -> {
+                // Stops scanning after a pre-defined scan period.
+                mHandler.postDelayed(() -> {
                     if (mBleAdapter.isEnabled()) {
-                        startBleScan();
+                        stopBleScan();
+                        notifyBluetoothDevice();
                     } else {
                         mScanTimerFuture.cancel(true);
                         mScanning = false;
                     }
+                }, SCAN_PERIOD);
+                if (mBleAdapter.isEnabled()) {
+                    startBleScan();
+                } else {
+                    mScanTimerFuture.cancel(true);
+                    mScanning = false;
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
         } else {

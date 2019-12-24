@@ -41,12 +41,7 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
      * Implementation of {@link HitoeManager.OnHitoeDeviceOrientationEventListener}.
      */
     private final HitoeManager.OnHitoeDeviceOrientationEventListener mDeviceOrientationEventListener =
-            new HitoeManager.OnHitoeDeviceOrientationEventListener() {
-                @Override
-                public void onReceivedData(final HitoeDevice device, final AccelerationData data) {
-                    notifyAccelerationData(device, data);
-                }
-            };
+            this::notifyAccelerationData;
 
     /**
      * Event Dispatcher object.

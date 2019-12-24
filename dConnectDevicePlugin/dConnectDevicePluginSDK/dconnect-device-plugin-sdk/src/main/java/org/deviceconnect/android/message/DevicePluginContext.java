@@ -15,7 +15,7 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.IDConnectCallback;

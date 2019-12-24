@@ -56,13 +56,10 @@ class OverlayProjector extends AbstractProjector {
         if (isShow()) {
             return false;
         }
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                int w = mRenderer.getScreenWidth();
-                int h = mRenderer.getScreenHeight();
-                show(w, h, mRenderer.isStereo());
-            }
+        mHandler.post(() -> {
+            int w = mRenderer.getScreenWidth();
+            int h = mRenderer.getScreenHeight();
+            show(w, h, mRenderer.isStereo());
         });
 
         if (mScreen != null) {
@@ -73,33 +70,30 @@ class OverlayProjector extends AbstractProjector {
     }
 
     private void startProjectionThread() {
-        mThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mScreen.onStart(OverlayProjector.this);
+        mThread = new Thread(() -> {
+            try {
+                mScreen.onStart(OverlayProjector.this);
 
-                    while (!mIsRequestedToStop) {
-                        long start = System.currentTimeMillis();
+                while (!mIsRequestedToStop) {
+                    long start = System.currentTimeMillis();
 
-                        byte[] frame = mRenderer.takeSnapshot();
-                        mImageCache = frame;
-                        mScreen.onProjected(OverlayProjector.this, frame);
+                    byte[] frame = mRenderer.takeSnapshot();
+                    mImageCache = frame;
+                    mScreen.onProjected(OverlayProjector.this, frame);
 
-                        long end = System.currentTimeMillis();
-                        long interval = MAX_INTERVAL - (end - start);
-                        if (interval > 0) {
-                            Thread.sleep(interval);
-                        }
+                    long end = System.currentTimeMillis();
+                    long interval = MAX_INTERVAL - (end - start);
+                    if (interval > 0) {
+                        Thread.sleep(interval);
                     }
-                } catch (InterruptedException e) {
-                    // Nothing to do.
-                } finally {
-                    mIsRequestedToStop = false;
-                    mThread = null;
-
-                    mScreen.onStop(OverlayProjector.this);
                 }
+            } catch (InterruptedException e) {
+                // Nothing to do.
+            } finally {
+                mIsRequestedToStop = false;
+                mThread = null;
+
+                mScreen.onStop(OverlayProjector.this);
             }
         });
         mThread.start();
@@ -110,11 +104,8 @@ class OverlayProjector extends AbstractProjector {
         if (!isShow()) {
             return false;
         }
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                hide();
-            }
+        mHandler.post(() -> {
+            hide();
         });
         if (mThread != null) {
             mIsRequestedToStop = true;
@@ -156,12 +147,8 @@ class OverlayProjector extends AbstractProjector {
             public void onClick(final View v) {
                 i++;
                 Handler handler = new Handler();
-                Runnable r = new Runnable() {
-
-                    @Override
-                    public void run() {
-                        i = 0;
-                    }
+                Runnable r = () -> {
+                    i = 0;
                 };
 
                 if (i == 1) {
@@ -174,15 +161,12 @@ class OverlayProjector extends AbstractProjector {
                 }
             }
         });
-        mPreview.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(final View v) {
-                if (mEventListener != null) {
-                    mEventListener.onClose();
-                }
-                hide();
-                return true;
+        mPreview.setOnLongClickListener((v) -> {
+            if (mEventListener != null) {
+                mEventListener.onClose();
             }
+            hide();
+            return true;
         });
 
         final int w = isStereo ? width * 2 : width;
@@ -220,27 +204,24 @@ class OverlayProjector extends AbstractProjector {
 
     private void updateViewSize(final int width, final int height, final boolean isStereo) {
         final int w = isStereo ? width * 2 : width;
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-                }
-                final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-                    w,
-                    height,
-                        type,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    PixelFormat.TRANSLUCENT);
-                Point size = getDisplaySize();
-                l.x = (int) ((size.x / 2) * getScaledDensity());
-                l.y = (int) ((size.y / 2) * getScaledDensity());
-                mWinMgr.updateViewLayout(mPreview, l);
+        mHandler.post(() -> {
+            int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
             }
+            final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
+                w,
+                height,
+                    type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+            Point size = getDisplaySize();
+            l.x = (int) ((size.x / 2) * getScaledDensity());
+            l.y = (int) ((size.y / 2) * getScaledDensity());
+            mWinMgr.updateViewLayout(mPreview, l);
         });
     }
 

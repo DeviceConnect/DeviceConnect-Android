@@ -59,12 +59,7 @@ public class LinkingKeyEventProfile extends KeyEventProfile implements LinkingDe
         addApi(mDeleteOnKeyChangeApi);
     }
 
-    private final LinkingBeaconManager.OnBeaconButtonEventListener mListener = new LinkingBeaconManager.OnBeaconButtonEventListener() {
-        @Override
-        public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
-            notifyKeyEvent(beacon, keyCode, timeStamp);
-        }
-    };
+    private final LinkingBeaconManager.OnBeaconButtonEventListener mListener = this::notifyKeyEvent;
 
     private final DConnectApi mGetOnDown = new GetApi() {
         @Override

@@ -40,12 +40,7 @@ public class HitoeWalkStateProfile extends WalkStateProfile {
      * Implementation of {@link HitoeManager.OnHitoeWalkStateEventListener}.
      */
     private final HitoeManager.OnHitoeWalkStateEventListener mWalkStateEventListener =
-            new HitoeManager.OnHitoeWalkStateEventListener() {
-                @Override
-                public void onReceivedData(final HitoeDevice device, final WalkStateData data) {
-                    notifyWalkStateData(device, data);
-                }
-            };
+            this::notifyWalkStateData;
     /**
      * Event Dispatcher object.
      */

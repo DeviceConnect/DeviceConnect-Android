@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#FFF">
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.appcompat.widget.RecyclerView
         android:id="@+id/recycler_view_accesslog_date_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

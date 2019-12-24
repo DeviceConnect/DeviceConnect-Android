@@ -7,7 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.os.Handler;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * 写真撮影機能を持つレコーダー.

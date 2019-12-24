@@ -8,9 +8,9 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.0'
-    implementation 'com.android.support:multidex:1.0.3'
-    implementation 'com.google.android.gms:play-services-wearable:15.0.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.google.android.gms:play-services-wearable:17.0.0'
 
     wearApp project(':wear-app')
 }

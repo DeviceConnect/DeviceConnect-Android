@@ -285,36 +285,26 @@ public class ThetaFileProfile extends FileProfile {
         Comparator<ThetaObject> comparator = null;
 
         if (PARAM_PATH.equals(targetParam)) {
-            comparator = new Comparator<ThetaObject>() {
-                public int compare(final ThetaObject f1, final ThetaObject f2) {
-                    return f1.getFileName().compareTo(f2.getFileName());
-                }
+            comparator = (f1, f2) -> {
+                return f1.getFileName().compareTo(f2.getFileName());
             };
         } else if (PARAM_MIME_TYPE.equals(targetParam)) {
-            comparator = new Comparator<ThetaObject>() {
-                public int compare(final ThetaObject f1, final ThetaObject f2) {
-                    return f1.getMimeType().compareTo(f2.getMimeType());
-                }
+            comparator = (f1, f2) -> {
+                return f1.getMimeType().compareTo(f2.getMimeType());
             };
         } else if (PARAM_FILE_NAME.equals(targetParam)) {
-            comparator = new Comparator<ThetaObject>() {
-                public int compare(final ThetaObject f1, final ThetaObject f2) {
-                    return f1.getFileName().compareTo(f2.getFileName());
-                }
+            comparator = (f1, f2) -> {
+                return f1.getFileName().compareTo(f2.getFileName());
             };
         } else if (PARAM_UPDATE_DATE.equals(targetParam)) {
-            comparator = new Comparator<ThetaObject>() {
-                public int compare(final ThetaObject f1, final ThetaObject f2) {
-                    long t1 = f1.getCreationTimeWithUnixTime();
-                    long t2 = f2.getCreationTimeWithUnixTime();
-                    return (t1 < t2) ? -1 : (t1 == t2) ? 0 : -1;
-                }
+            comparator = (f1, f2) -> {
+                long t1 = f1.getCreationTimeWithUnixTime();
+                long t2 = f2.getCreationTimeWithUnixTime();
+                return (t1 < t2) ? -1 : (t1 == t2) ? 0 : -1;
             };
         } else if (PARAM_FILE_SIZE.equals(targetParam)) {
-            comparator = new Comparator<ThetaObject>() {
-                public int compare(final ThetaObject f1, final ThetaObject f2) {
-                    return 0; //(f1.mSize - f2.mSize); // TODO
-                }
+            comparator = (f1, f2) -> {
+                return 0; //(f1.mSize - f2.mSize); // TODO
             };
         }
         // NOTE: It is not necessary to implement sorting by file type because the feature

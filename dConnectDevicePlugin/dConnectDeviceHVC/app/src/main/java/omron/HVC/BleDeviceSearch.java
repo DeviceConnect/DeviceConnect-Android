@@ -30,7 +30,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 /**
 Bluetooth Device Search
@@ -42,7 +43,7 @@ public class BleDeviceSearch {
     private BluetoothReceiver mBluetoothReceiver = null;
 
     public BleDeviceSearch(Context context, final int searchTime) {
-    	deviceList = new ArrayList<BluetoothDevice>();
+    	deviceList = new ArrayList<>();
 
     	// Step 1: Enable Bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();

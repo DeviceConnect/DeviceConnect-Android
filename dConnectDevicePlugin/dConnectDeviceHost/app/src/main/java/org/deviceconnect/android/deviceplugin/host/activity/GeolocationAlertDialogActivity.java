@@ -12,11 +12,11 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.Window;
 
+import androidx.fragment.app.FragmentActivity;
+
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 
 /**
@@ -50,34 +50,30 @@ public class GeolocationAlertDialogActivity extends FragmentActivity {
 
                 // GPS設定画面起動用ボタンとイベント定義
                 .setPositiveButton(R.string.gps_settings_title,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                Intent callGPSSettingIntent = new Intent(
-                                        android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                try {
-                                    startActivity(callGPSSettingIntent);
-                                } catch (ActivityNotFoundException e) {
-                                    if (mResponse != null) {
-                                        MessageUtils.setIllegalDeviceStateError(mResponse,
-                                                "GPS setting is not enabled.");
-                                        getBaseContext().sendBroadcast(mResponse);
-                                    }
+                        (dialog, id) -> {
+                            Intent callGPSSettingIntent = new Intent(
+                                    android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            try {
+                                startActivity(callGPSSettingIntent);
+                            } catch (ActivityNotFoundException e) {
+                                if (mResponse != null) {
+                                    MessageUtils.setIllegalDeviceStateError(mResponse,
+                                            "GPS setting is not enabled.");
+                                    getBaseContext().sendBroadcast(mResponse);
                                 }
-                                mActivity.finish();
                             }
+                            mActivity.finish();
                         });
         // キャンセルボタン処理
         alertDialogBuilder.setNegativeButton(R.string.host_setting_gps_dialog_cancel,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        if (mResponse != null) {
-                            MessageUtils.setIllegalDeviceStateError(mResponse,
-                                    "GPS setting is not enabled.");
-                            getBaseContext().sendBroadcast(mResponse);
-                        }
-                        dialog.cancel();
-                        mActivity.finish();
+                (dialog, id) -> {
+                    if (mResponse != null) {
+                        MessageUtils.setIllegalDeviceStateError(mResponse,
+                                "GPS setting is not enabled.");
+                        getBaseContext().sendBroadcast(mResponse);
                     }
+                    dialog.cancel();
+                    mActivity.finish();
                 });
         AlertDialog alert = alertDialogBuilder.create();
         // 設定画面移動問い合わせダイアログ表示

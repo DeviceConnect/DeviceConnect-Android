@@ -16,7 +16,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.wear.widget.BoxInsetLayout;
+import androidx.wear.widget.BoxInsetLayout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static android.support.wear.widget.BoxInsetLayout.LayoutParams.BOX_ALL;
+import static androidx.wear.widget.BoxInsetLayout.LayoutParams.BOX_ALL;
 
 /**
  * Canvas.
@@ -69,7 +69,7 @@ public class CanvasActivity extends Activity {
         super.onCreate(savedInstanceState);
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock((PowerManager.PARTIAL_WAKE_LOCK
-                | PowerManager.ACQUIRE_CAUSES_WAKEUP), "CanvasWakelockTag");
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP), "DeviceConnect:CanvasWakelockTag");
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_canvas);

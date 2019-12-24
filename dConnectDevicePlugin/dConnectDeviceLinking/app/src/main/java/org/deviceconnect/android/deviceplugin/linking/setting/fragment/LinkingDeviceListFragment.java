@@ -11,8 +11,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,32 +53,23 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
         final View root = inflater.inflate(R.layout.fragment_linking_device_list, container, false);
 
-        ListView listView = (ListView) root.findViewById(R.id.fragment_device_list_view);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                DeviceItem item = (DeviceItem) view.getTag();
-                if (item != null) {
-                    transitionDeviceControl(item);
-                }
+        ListView listView = root.findViewById(R.id.fragment_device_list_view);
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            DeviceItem item = (DeviceItem) view.getTag();
+            if (item != null) {
+                transitionDeviceControl(item);
             }
         });
         listView.setAdapter(mAdapter);
 
-        Button searchBtn = (Button) root.findViewById(R.id.fragment_device_search);
-        searchBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                discoverDevices(root);
-            }
+        Button searchBtn = root.findViewById(R.id.fragment_device_search);
+        searchBtn.setOnClickListener((v) -> {
+            discoverDevices(root);
         });
 
-        Button linkingBtn = (Button) root.findViewById(R.id.fragment_device_guidance_btn);
-        linkingBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                transitionLinkingApp();
-            }
+        Button linkingBtn = root.findViewById(R.id.fragment_device_guidance_btn);
+        linkingBtn.setOnClickListener((v) -> {
+            transitionLinkingApp();
         });
 
         return root;
@@ -162,11 +153,8 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
         if (getActivity() == null) {
             return;
         }
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                discoverDevices(getView());
-            }
+        getActivity().runOnUiThread(() -> {
+            discoverDevices(getView());
         });
     }
 
@@ -206,7 +194,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
                 mDiscoveryDeviceDialogFragment = null;
 
                 if (devices != null) {
-                    ListView listView = (ListView) root.findViewById(R.id.fragment_device_list_view);
+                    ListView listView = root.findViewById(R.id.fragment_device_list_view);
                     for (LinkingDevice device : devices) {
                         DeviceItem item = new DeviceItem();
                         item.mDevice = device;
@@ -236,9 +224,9 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
             DeviceItem item = getItem(position);
             String deviceName = item.mDevice.getDisplayName();
-            TextView textView = (TextView) convertView.findViewById(R.id.item_device_name);
+            TextView textView = convertView.findViewById(R.id.item_device_name);
             textView.setText(deviceName);
-            TextView statusView = (TextView) convertView.findViewById(R.id.item_device_status);
+            TextView statusView = convertView.findViewById(R.id.item_device_status);
             if (item.isConnected) {
                 textView.setTextColor(Color.BLACK);
                 statusView.setText(getString(R.string.fragment_device_status_online));

@@ -7,15 +7,12 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.app.ActivityManager;
-import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.message.MessageUtils;
@@ -115,7 +112,7 @@ public class HostCanvasProfile extends CanvasProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
-            String className = getClassnameOfTopActivity();
+            String className = getApp().getClassnameOfTopActivity();
             if (CanvasProfileActivity.class.getName().equals(className)) {
                 Intent intent = new Intent(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
                 LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
@@ -166,7 +163,7 @@ public class HostCanvasProfile extends CanvasProfile {
     private void drawImage(Intent response, String uri, CanvasDrawImageObject.Mode enumMode, double x, double y) {
         CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
 
-        String className = getClassnameOfTopActivity();
+        String className = getApp().getClassnameOfTopActivity();
         if (CanvasProfileActivity.class.getName().equals(className)) {
             Intent intent = new Intent(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
             drawObj.setValueToIntent(intent);
@@ -187,14 +184,8 @@ public class HostCanvasProfile extends CanvasProfile {
         setResult(response, DConnectMessage.RESULT_OK);
     }
 
-    /**
-     * 画面の一番上にでているActivityのクラス名を取得.
-     *
-     * @return クラス名
-     */
-    private String getClassnameOfTopActivity() {
-        ActivityManager activityMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    private HostDeviceApplication getApp() {
+        return (HostDeviceApplication) getContext().getApplicationContext();
     }
 
     /**

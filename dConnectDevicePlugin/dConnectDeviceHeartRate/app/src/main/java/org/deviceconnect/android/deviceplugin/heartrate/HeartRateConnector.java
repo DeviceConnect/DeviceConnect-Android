@@ -77,7 +77,7 @@ public class HeartRateConnector {
      * List of address of device that registered.
      */
     private final List<String> mRegisterDevices = Collections.synchronizedList(
-            new ArrayList<String>());
+            new ArrayList<>());
 
     /**
      * Instance of ScheduledExecutorService.
@@ -200,37 +200,31 @@ public class HeartRateConnector {
         if (mBleDeviceDetector == null) {
             throw new IllegalStateException("BleDeviceDetector has not been set.");
         }
-        mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                mLogger.info("AutoConnect ");
+        mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(() -> {
+            mLogger.info("AutoConnect ");
 
-                boolean foundOfflineDevice = false;
-                for (String address : mRegisterDevices) {
-                    if (!containGattMap(address)) {
-                        // Found the offline device.
-                        foundOfflineDevice = true;
-                    }
+            boolean foundOfflineDevice = false;
+            for (String address : mRegisterDevices) {
+                if (!containGattMap(address)) {
+                    // Found the offline device.
+                    foundOfflineDevice = true;
                 }
-                if (foundOfflineDevice) {
-                    mLogger.info("Found an offline device.");
+            }
+            if (foundOfflineDevice) {
+                mLogger.info("Found an offline device.");
 
-                    mBleDeviceDetector.scanLeDeviceOnce(new BleDeviceDetector.BleDeviceDiscoveryListener() {
-                        @Override
-                        public void onDiscovery(final List<BluetoothDevice> devices) {
-                            synchronized (mRegisterDevices) {
-                                for (String address : mRegisterDevices) {
-                                    if (!containGattMap(address)) {
-                                        BluetoothDevice device = getBluetoothDeviceFromDeviceList(devices, address);
-                                        if (device != null) {
-                                            connectDevice(device);
-                                        }
-                                    }
+                mBleDeviceDetector.scanLeDeviceOnce((devices) -> {
+                    synchronized (mRegisterDevices) {
+                        for (String address : mRegisterDevices) {
+                            if (!containGattMap(address)) {
+                                BluetoothDevice device = getBluetoothDeviceFromDeviceList(devices, address);
+                                if (device != null) {
+                                    connectDevice(device);
                                 }
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
         }, CHK_FIRST_WAIT_PERIOD, CHK_WAIT_PERIOD, TimeUnit.MILLISECONDS);
     }

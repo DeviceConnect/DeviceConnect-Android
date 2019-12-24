@@ -63,8 +63,8 @@ android {
     flavorDimensions "DeviceWebApi"
     productFlavors {
         DeviceWebApi {
-            versionCode 20
-            versionName "2.3.0"
+            versionCode 21
+            versionName "2.3.1"
             manifestPlaceholders = [
                     appIcon: "@drawable/dconnect_icon",
                     appName: "@string/app_name_for_device_web_api"

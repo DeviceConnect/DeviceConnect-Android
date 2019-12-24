@@ -54,8 +54,8 @@ android {
 
         DeviceWebApi {
             dimension 'DeviceWebApi'
-            versionCode 12
-            versionName "2.4.0"
+            versionCode 13
+            versionName "2.4.1"
             manifestPlaceholders = [
                     appIcon: "@drawable/ic_launcher",
                     appName: "@string/app_name_device_web_api"

@@ -15,7 +15,6 @@
         android:allowBackup="false"
         android:icon="${appIcon}"
         android:label="${appName}"
-        android:name="android.support.multidex.MultiDexApplication"
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config">
 

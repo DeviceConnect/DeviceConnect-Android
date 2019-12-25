@@ -49,13 +49,3 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
 }
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        def requested = details.requested
-        if (requested.group == 'com.android.support') {
-            if (!requested.name.startsWith("multidex")) {
-                details.useVersion '27.1.1'
-            }
-        }
-    }
-}

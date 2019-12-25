@@ -146,7 +146,9 @@ public class HeartRateDeviceService extends DConnectMessageService
     public void onDestroy() {
         super.onDestroy();
         unregisterBluetoothFilter();
-        getServiceProvider().removeServiceListener(this);
+        if (getPluginContext() != null) {
+            getServiceProvider().removeServiceListener(this);
+        }
         mHeartRateManager.removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
         mHeartRateManager.stop();
         mLogger.fine("HeartRateDeviceService end.");

@@ -294,7 +294,9 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         super.onDestroy();
         unregisterBluetoothFilter();
         unregisterDConnectServiceFilter();
-        getServiceProvider().removeServiceListener(this);
+        if (getPluginContext() != null) {
+            getServiceProvider().removeServiceListener(this);
+        }
         SpheroManager.INSTANCE.shutdown();
     }
 

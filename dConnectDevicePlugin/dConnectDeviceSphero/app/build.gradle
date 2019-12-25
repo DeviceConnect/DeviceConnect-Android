@@ -55,18 +55,8 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-    flavorDimensions "DeviceConnect", "DeviceWebApi"
+    flavorDimensions "DeviceWebApi"
     productFlavors {
-        DeviceConnect {
-            dimension 'DeviceConnect'
-            versionCode 12
-            versionName "2.3.1"
-            manifestPlaceholders = [
-                    appIcon: "@drawable/dconnect_icon",
-                    appName: "@string/app_name"
-            ]
-        }
-
         DeviceWebApi {
             dimension 'DeviceWebApi'
             versionCode 12

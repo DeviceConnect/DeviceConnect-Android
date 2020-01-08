@@ -44,7 +44,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
     static final String MIME_TYPE = "video/x-rtp";
 
-    private static final String SERVER_NAME = "Android Host Screen RTSP Server";
+    private static final String SERVER_NAME = "Android Host Camera2 RTSP Server";
 
     private final Object mLockObj = new Object();
 
@@ -62,7 +62,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
     private final Object mSync = new Object();
     private volatile boolean mIsRecording;
     private boolean requestDraw;
-    private DrawTask mScreenCaptureTask;
+    private DrawTask mCameraCaptureTask;
     private AACStream mAac;
 
     Camera2RTSPPreviewServer(final Context context,
@@ -108,7 +108,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
                 }
             }
             if (mHandler == null) {
-                HandlerThread thread = new HandlerThread("ScreenCastRTSPPreviewServer");
+                HandlerThread thread = new HandlerThread("Camera2RTSPPreviewServer");
                 thread.start();
                 mHandler = new Handler(thread.getLooper());
             }
@@ -159,7 +159,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         if (DEBUG) {
             Log.d(TAG, "onDisplayRotation: rotation=" + rotation);
         }
-        DrawTask drawTask = mScreenCaptureTask;
+        DrawTask drawTask = mCameraCaptureTask;
         synchronized (mLockObj) {
             if (drawTask != null) {
                 drawTask.onDisplayRotationChange(rotation);
@@ -209,9 +209,9 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
         synchronized (mLockObj) {
             mClientSocket = clientSocket;
             mVideoStream = new SurfaceH264Stream(prefs, videoQuality);
-            mScreenCaptureTask = new DrawTask(null, 0, videoQuality);
+            mCameraCaptureTask = new DrawTask(null, 0, videoQuality);
             mIsRecording = true;
-            new Thread(mScreenCaptureTask, "ScreenCaptureThread").start();
+            new Thread(mCameraCaptureTask, "CameraCaptureThread").start();
         }
 
         SessionBuilder builder = new SessionBuilder();
@@ -335,7 +335,7 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
 
         @Override
         protected boolean onError(final Exception e) {
-            Log.w(TAG, "mScreenCaptureTask:", e);
+            Log.w(TAG, "mCameraCaptureTask:", e);
             return false;
         }
 
@@ -354,43 +354,46 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer implements Rtsp
             }
         };
 
-        private final Runnable mDrawTask = () -> {
-            boolean localRequestDraw;
-            synchronized (mSync) {
-                localRequestDraw = requestDraw;
-                if (!requestDraw) {
-                    try {
-                        mSync.wait(intervals);
-                        localRequestDraw = requestDraw;
-                        requestDraw = false;
-                    } catch (final InterruptedException e) {
-                        if (DEBUG) {
-                            Log.v(TAG, "draw:InterruptedException");
+        private final Runnable mDrawTask =  new Runnable() {
+            @Override
+            public void run() {
+                boolean localRequestDraw;
+                synchronized (mSync) {
+                    localRequestDraw = requestDraw;
+                    if (!requestDraw) {
+                        try {
+                            mSync.wait(intervals);
+                            localRequestDraw = requestDraw;
+                            requestDraw = false;
+                        } catch (final InterruptedException e) {
+                            if (DEBUG) {
+                                Log.v(TAG, "draw:InterruptedException");
+                            }
+                            return;
                         }
-                        return;
                     }
                 }
-            }
-            if (mIsRecording) {
-                synchronized (mDrawSync) {
-                    if (localRequestDraw) {
-                        mSourceTexture.updateTexImage();
-                        mSourceTexture.getTransformMatrix(mTexMatrix);
-                        Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
-                        Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
+                if (mIsRecording) {
+                    synchronized (mDrawSync) {
+                        if (localRequestDraw) {
+                            mSourceTexture.updateTexImage();
+                            mSourceTexture.getTransformMatrix(mTexMatrix);
+                            Matrix.rotateM(mTexMatrix, 0, mRotationDegree, 0, 0, 1);
+                            Matrix.translateM(mTexMatrix, 0, mDeltaX, mDeltaY, 0);
+                        }
+                        // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                        mEncoderSurface.makeCurrent();
+                        mDrawer.draw(mTexId, mTexMatrix, 0);
+                        mEncoderSurface.swap();
+                        // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
+                        makeCurrent();
+                        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                        GLES20.glFlush();
+                        queueEvent(this);
                     }
-                    // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                    mEncoderSurface.makeCurrent();
-                    mDrawer.draw(mTexId, mTexMatrix, 0);
-                    mEncoderSurface.swap();
-                    // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
-                    makeCurrent();
-                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                    GLES20.glFlush();
-                    queueEvent(this);
+                } else {
+                    releaseSelf();
                 }
-            } else {
-                releaseSelf();
             }
         };
 

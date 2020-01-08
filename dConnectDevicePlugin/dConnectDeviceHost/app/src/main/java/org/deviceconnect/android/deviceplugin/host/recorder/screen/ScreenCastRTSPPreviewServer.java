@@ -306,39 +306,42 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer implements Rts
             }
         };
 
-        private final Runnable mDrawTask = () -> {
-            boolean localRequestDraw;
-            synchronized (mSync) {
-                localRequestDraw = requestDraw;
-                if (!requestDraw) {
-                    try {
-                        mSync.wait(intervals);
-                        localRequestDraw = requestDraw;
-                        requestDraw = false;
-                    } catch (final InterruptedException e) {
-                        if (DEBUG) {
-                            Log.v(TAG, "draw:InterruptedException");
+        private final Runnable mDrawTask =  new Runnable() {
+            @Override
+            public void run() {
+                boolean localRequestDraw;
+                synchronized (mSync) {
+                    localRequestDraw = requestDraw;
+                    if (!requestDraw) {
+                        try {
+                            mSync.wait(intervals);
+                            localRequestDraw = requestDraw;
+                            requestDraw = false;
+                        } catch (final InterruptedException e) {
+                            if (DEBUG) {
+                                Log.v(TAG, "draw:InterruptedException");
+                            }
+                            return;
                         }
-                        return;
                     }
                 }
-            }
-            if (mIsRecording) {
-                if (localRequestDraw) {
-                    mSourceTexture.updateTexImage();
-                    mSourceTexture.getTransformMatrix(mTexMatrix);
+                if (mIsRecording) {
+                    if (localRequestDraw) {
+                        mSourceTexture.updateTexImage();
+                        mSourceTexture.getTransformMatrix(mTexMatrix);
+                    }
+                    // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
+                    mEncoderSurface.makeCurrent();
+                    mDrawer.draw(mTexId, mTexMatrix, 0);
+                    mEncoderSurface.swap();
+                    // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
+                    makeCurrent();
+                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                    GLES20.glFlush();
+                    queueEvent(this);
+                } else {
+                    releaseSelf();
                 }
-                // SurfaceTextureで受け取った画像をMediaCodecの入力用Surfaceへ描画する
-                mEncoderSurface.makeCurrent();
-                mDrawer.draw(mTexId, mTexMatrix, 0);
-                mEncoderSurface.swap();
-                // EGL保持用のオフスクリーンに描画しないとハングアップする機種の為のworkaround
-                makeCurrent();
-                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-                GLES20.glFlush();
-                queueEvent(this);
-            } else {
-                releaseSelf();
             }
         };
 

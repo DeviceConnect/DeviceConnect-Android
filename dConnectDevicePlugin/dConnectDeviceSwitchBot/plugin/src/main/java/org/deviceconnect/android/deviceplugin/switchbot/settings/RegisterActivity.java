@@ -1,0 +1,142 @@
+package org.deviceconnect.android.deviceplugin.switchbot.settings;
+
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
+import org.deviceconnect.android.deviceplugin.switchbot.R;
+import org.deviceconnect.android.deviceplugin.switchbot.SwitchBotMessageService;
+import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
+import org.deviceconnect.android.message.DConnectMessageService;
+
+public class RegisterActivity extends Activity implements View.OnClickListener {
+    private static final String TAG = "RegisterActivity";
+    private static final Boolean DEBUG = BuildConfig.DEBUG;
+
+    private static final int REQUEST_DEVICE_SCAN = 818;
+    private EditText editDeviceAddress;
+    private EditText editDeviceName;
+    private Spinner spinnerDeviceMode;
+    private SwitchBotMessageService switchBotMessageService;
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            if (DEBUG) {
+                Log.d(TAG, "onServiceConnected()");
+            }
+            switchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            if (DEBUG) {
+                Log.d(TAG, "onServiceDisconnected()");
+            }
+            switchBotMessageService = null;
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_register);
+        setTitle("デバイス登録");
+
+        if (DEBUG) {
+            Log.d(TAG, "onCreate()");
+            Log.d(TAG, "savedInstanceState : " + savedInstanceState);
+        }
+
+        Intent intent = new Intent(this, SwitchBotMessageService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+        editDeviceName = findViewById(R.id.edit_device_name);
+        editDeviceAddress = findViewById(R.id.edit_device_address);
+        spinnerDeviceMode = findViewById(R.id.spinner_device_mode);
+        findViewById(R.id.button_scan).setOnClickListener(this);
+        findViewById(R.id.button_register).setOnClickListener(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (DEBUG) {
+            Log.d(TAG, "onDestroy()");
+        }
+        unbindService(connection);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (DEBUG) {
+            Log.d(TAG, "onActivityResult()");
+            Log.d(TAG, "requestCode : " + requestCode);
+            Log.d(TAG, "resultCode : " + resultCode);
+            Log.d(TAG, "data : " + data);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_DEVICE_SCAN) {
+            if (resultCode == RESULT_OK) {
+                editDeviceAddress.setText(data.getStringExtra(ScanActivity.KEY_DEVICE_ADDRESS));
+            }
+        }
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        if (DEBUG) {
+            Log.d(TAG, "onClick()");
+            Log.d(TAG, "view : " + view);
+            Log.d(TAG, "id : " + id);
+        }
+        switch (id) {
+            case R.id.button_register:
+                register();
+                break;
+            case R.id.button_scan:
+                Intent scanActivity = new Intent(this, ScanActivity.class);
+                startActivityForResult(scanActivity, REQUEST_DEVICE_SCAN);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void register() {
+        final String deviceName = editDeviceName.getText().toString();
+        final String deviceAddress = editDeviceAddress.getText().toString();
+        final SwitchBotDevice.Mode deviceMode = SwitchBotDevice.Mode.getInstance(spinnerDeviceMode.getSelectedItemPosition());
+        if (DEBUG) {
+            Log.d(TAG, "register");
+            Log.d(TAG, "device name : " + deviceName);
+            Log.d(TAG, "device address : " + deviceAddress);
+            Log.d(TAG, "device mode : " + deviceMode);
+        }
+        if (editDeviceName.getText().toString().isEmpty()) {
+            Toast.makeText(this, getString(R.string.toast_register_error_device_name_empty), Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (editDeviceAddress.getText().toString().isEmpty()) {
+            Toast.makeText(this, getString(R.string.toast_register_error_device_address_empty), Toast.LENGTH_LONG).show();
+            return;
+        }
+        SwitchBotDevice switchBotDevice = new SwitchBotDevice(switchBotMessageService, deviceName, deviceAddress, deviceMode);
+        if (switchBotMessageService.registerDevice(switchBotDevice)) {
+            Toast.makeText(this, getString(R.string.toast_register_success), Toast.LENGTH_LONG).show();
+            finish();
+        } else {
+            Toast.makeText(this, getString(R.string.toast_register_error), Toast.LENGTH_LONG).show();
+        }
+    }
+}

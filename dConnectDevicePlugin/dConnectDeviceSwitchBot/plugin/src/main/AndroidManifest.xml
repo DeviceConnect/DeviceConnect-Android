@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.deviceconnect.android.deviceplugin.switchbot">
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <activity android:name=".settings.ModifyActivity" />
+        <activity android:name=".settings.ModifyAndDeleteActivity" />
+        <activity android:name=".settings.ScanActivity" />
+        <activity android:name=".settings.RegisterActivity" /> <!-- プラグイン本体サービス -->
+        <service
+            android:name=".SwitchBotMessageService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_switchbot" />
+        </service> <!-- Device Connect API リクエストのレシーバー -->
+        <!--
+            NOTE:  下記のレシーバーは、旧仕様のDevice Connect Managerとの互換性、
+            およびDevice Connect Managerのアンインストール検知のために残しています.
+        -->
+        <receiver
+            android:name=".SwitchBotMessageServiceProvider"
+            android:enabled="true"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_switchbot" />
+
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET" />
+                <action android:name="org.deviceconnect.action.PUT" />
+                <action android:name="org.deviceconnect.action.POST" />
+                <action android:name="org.deviceconnect.action.DELETE" />
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver> <!-- プラグイン設定画面 -->
+        <activity android:name=".settings.SettingActivity" >
+
+            <!-- TODO ランチャー画面に表示させたくない場合は、下記のインテントフィルタを削除。 -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

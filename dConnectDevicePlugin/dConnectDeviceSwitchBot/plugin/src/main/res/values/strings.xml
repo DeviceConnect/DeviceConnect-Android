@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SwitchBot (Device Connect Device Plugin)</string>
+
+    <string name="local_oauth_title">認証(Local OAuth)</string>
+    <string name="key_local_oauth">key_local_oauth</string>
+
+    <string name="activity_settings_device_register">デバイス登録</string>
+    <string name="settings_register_text_device_name">デバイス名</string>
+    <string name="settings_register_hint_device_name">デバイス名(サービス名)を入力して下さい。</string>
+    <string name="settings_register_text_device_address">MAC address</string>
+    <string name="settings_register_hint_device_address">デバイスのMAC addressを入力して下さい。</string>
+    <string name="settings_register_text_device_mode">動作モード</string>
+    <string name="settings_register_button_scan">スキャン</string>
+    <string name="settings_register_button_register">登録</string>
+    <string name="settings_modify_and_delete_button_delete">削除</string>
+    <string name="settings_modify_button_modify">更新</string>
+
+    <string name="activity_settings_device_modify_and_destroy">デバイス名/動作モード変更・削除</string>
+
+    <string name="toast_scan_error_ble_permission_check">アプリケーションに権限が付与されていません。</string>
+    <string name="toast_register_error_device_name_empty">デバイス名が入力されていません。</string>
+    <string name="toast_register_error_device_address_empty">MAC addressが入力されていません。</string>
+    <string name="toast_register_success">デバイスの登録に成功しました。</string>
+    <string name="toast_register_error">デバイスの登録に失敗しました。</string>
+    <string name="toast_modify_error_device_name_empty">デバイス名が入力されていません。</string>
+    <string name="toast_modify_error">デバイスの更新に失敗しました。</string>
+    <string name="toast_modify_success">デバイスの更新に成功しました。</string>
+</resources>

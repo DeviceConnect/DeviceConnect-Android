@@ -1,0 +1,6 @@
+<resources>
+    <string-array name="settings_register_array_device_mode">
+        <item>Button</item>
+        <item>Switch</item>
+    </string-array>
+</resources>

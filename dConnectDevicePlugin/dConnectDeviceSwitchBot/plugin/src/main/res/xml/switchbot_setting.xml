@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="@string/key_local_oauth"
+        android:title="@string/local_oauth_title"
+        android:defaultValue="true"/>
+
+    <PreferenceScreen
+        android:title="@string/activity_settings_device_register">
+        <intent android:targetPackage="org.deviceconnect.android.deviceplugin.switchbot"
+            android:targetClass="org.deviceconnect.android.deviceplugin.switchbot.settings.RegisterActivity"/>
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:title="@string/activity_settings_device_modify_and_destroy">
+        <intent android:targetPackage="org.deviceconnect.android.deviceplugin.switchbot"
+            android:targetClass="org.deviceconnect.android.deviceplugin.switchbot.settings.ModifyAndDeleteActivity"/>
+    </PreferenceScreen>
+
+</PreferenceScreen>

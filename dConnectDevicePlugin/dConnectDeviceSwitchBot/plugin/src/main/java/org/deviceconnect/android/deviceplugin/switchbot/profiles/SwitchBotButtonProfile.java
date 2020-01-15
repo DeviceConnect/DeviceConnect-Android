@@ -1,7 +1,10 @@
 package org.deviceconnect.android.deviceplugin.switchbot.profiles;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -10,73 +13,104 @@ import org.deviceconnect.message.DConnectMessage;
 
 public class SwitchBotButtonProfile extends DConnectProfile {
 
-    private SwitchBotDevice switchBotDevice;
+    private static final String TAG = "SwitchBotButtonProfile";
+    private static final Boolean DEBUG = BuildConfig.DEBUG;
 
-    public SwitchBotButtonProfile(final SwitchBotDevice switchBotDevice) {
-
-        this.switchBotDevice = switchBotDevice;
-
-        // POST /gotapi/button/down
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "down";
+    public SwitchBotButtonProfile(SwitchBotDevice switchBotDevice) {
+        if(DEBUG){
+            Log.d(TAG, "SwitchBotButtonProfile()");
+        }
+        if(switchBotDevice != null) {
+            if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
+                switchBotDevice.connect();
             }
 
-            @Override
-            public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                if(switchBotDevice != null && switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                    MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
-                    return true;
+            // POST /gotapi/button/down
+            addApi(new PostApi() {
+                @Override
+                public String getAttribute() {
+                    return "down";
                 }
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            }
-        });
+                @Override
+                public boolean onRequest(final Intent request, final Intent response) {
+                    Bundle extras = request.getExtras();
+                    if(extras != null) {
+                        String serviceId = (String) request.getExtras().get("serviceId");
+                        if(DEBUG){
+                            Log.d(TAG, "serviceId : " + serviceId);
+                        }
 
-        // POST /gotapi/button/push
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "push";
-            }
+                        if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
+                            MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                            return true;
+                        }
 
-            @Override
-            public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                if(switchBotDevice != null && switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                    MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                        // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
+                        switchBotDevice.down();
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
                     return true;
                 }
+            });
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            }
-        });
+            // POST /gotapi/button/push
+            addApi(new PostApi() {
+                @Override
+                public String getAttribute() {
+                    return "push";
+                }
 
-        // POST /gotapi/button/up
-        addApi(new PostApi() {
-            @Override
-            public String getAttribute() {
-                return "up";
-            }
+                @Override
+                public boolean onRequest(final Intent request, final Intent response) {
+                    Bundle extras = request.getExtras();
+                    if(extras != null) {
+                        String serviceId = (String) request.getExtras().get("serviceId");
+                        if (DEBUG) {
+                            Log.d(TAG, "serviceId : " + serviceId);
+                        }
+                        if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
+                            MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                            return true;
+                        }
 
-            @Override
-            public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
+                        // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
+                        switchBotDevice.press();
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
+                    return true;
+                }
+            });
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            }
-        });
+            // POST /gotapi/button/up
+            addApi(new PostApi() {
+                @Override
+                public String getAttribute() {
+                    return "up";
+                }
 
+                @Override
+                public boolean onRequest(final Intent request, final Intent response) {
+                    Bundle extras = request.getExtras();
+                    if(extras != null) {
+                        String serviceId = (String) request.getExtras().get("serviceId");
+                        if (DEBUG) {
+                            Log.d(TAG, "serviceId : " + serviceId);
+                        }
+
+                        if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
+                            MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                            return true;
+                        }
+
+                        // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
+                        switchBotDevice.up();
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
+                    return true;
+                }
+            });
+        }
     }
 
     @Override

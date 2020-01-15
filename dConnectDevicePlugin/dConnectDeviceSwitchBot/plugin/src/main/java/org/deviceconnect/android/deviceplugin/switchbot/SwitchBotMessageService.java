@@ -15,6 +15,7 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 
 public class SwitchBotMessageService extends DConnectMessageService {
@@ -24,6 +25,7 @@ public class SwitchBotMessageService extends DConnectMessageService {
     private ArrayList<SwitchBotDevice> switchBotDevices;
     private SwitchBotDeviceProvider switchBotDeviceProvider;
 
+    private final Logger mLogger = Logger.getLogger("switchbot.dplugin");
     @Override
     public void onCreate() {
         super.onCreate();
@@ -31,6 +33,8 @@ public class SwitchBotMessageService extends DConnectMessageService {
         if(DEBUG){
             Log.d(TAG, "onCreate()");
         }
+
+        mLogger.info("START!!");
 
         // TODO 以降の処理では常駐型のサービスを生成しています. 要件に適さない場合は修正してください.
         DConnectService service = new DConnectService("SwitchBot.Plugin");
@@ -102,7 +106,6 @@ public class SwitchBotMessageService extends DConnectMessageService {
         if(DEBUG) {
             Log.d(TAG, "unregisterDevice()");
         }
-        ArrayList<String> deviceNames = new ArrayList<>();
         for(SwitchBotDevice switchBotDevice : switchBotDevices) {
             if(DEBUG) {
                 Log.d(TAG, "switchBotDevice : " + switchBotDevice);
@@ -150,7 +153,6 @@ public class SwitchBotMessageService extends DConnectMessageService {
         service.addProfile(new SwitchBotButtonProfile(switchBotDevice));
         service.addProfile(new SwitchBotSwitchProfile(switchBotDevice));
         getServiceProvider().addService(service);
-        switchBotDevice.connect();
     }
 
     /**

@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class SwitchBotDevice {
     private static final String TAG = "SwitchBotDevice";
@@ -66,6 +67,7 @@ public class SwitchBotDevice {
     private BluetoothGatt gatt;
     private BluetoothGattService service;
     private Command command = Command.NONE;
+    private final Object lock = new Object();
 
     public SwitchBotDevice(Context context, final String deviceName, final String deviceAddress, Mode deviceMode) {
         if(DEBUG){
@@ -112,7 +114,7 @@ public class SwitchBotDevice {
                     BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
                     if(device != null) {
                         //暫定的に再接続ON
-                        device.connectGatt(context, true, new BluetoothGattCallback() {
+                        gatt = device.connectGatt(context, true, new BluetoothGattCallback() {
                             @Override
                             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                                 super.onConnectionStateChange(gatt, status, newState);
@@ -124,7 +126,6 @@ public class SwitchBotDevice {
                                 }
                                 if(gatt != null) {
                                     if(newState == BluetoothGatt.STATE_CONNECTED) {
-                                        SwitchBotDevice.this.gatt = gatt;
                                         SwitchBotDevice.this.gatt.discoverServices();
                                     } else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
                                         SwitchBotDevice.this.gatt = null;
@@ -201,7 +202,7 @@ public class SwitchBotDevice {
                                     }
                                     if(command == Command.READ_SETTINGS) {
                                         Mode mode = Mode.getInstance((values[9] >> 4) & 0x01);
-                                        if(DEBUG){
+                                        if (DEBUG) {
                                             Log.d(TAG, "device mode(read) : " + mode);
                                             Log.d(TAG, "device mode : " + deviceMode);
                                         }
@@ -210,6 +211,10 @@ public class SwitchBotDevice {
                                         } else {
                                             command = Command.NONE;
                                         }
+                                    } else if(command == Command.WRITE_SETTINGS){
+                                        command = Command.NONE;
+                                    } else if(command == Command.OTHERS){
+                                        command = Command.NONE;
                                     }
                                 }
                             }
@@ -282,6 +287,118 @@ public class SwitchBotDevice {
         if(gatt != null){
             gatt.close();
             gatt.disconnect();
+        }
+    }
+
+    /**
+     * Press動作を行う
+     */
+    public void press(){
+        if(DEBUG){
+            Log.d(TAG,"press()");
+        }
+        synchronized (lock){
+            if(command == Command.NONE) {
+                byte[] commands = { 0x57, 0x01, 0x00 };
+                if(service != null && gatt != null) {
+                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
+                    if(characteristic != null) {
+                        command = Command.OTHERS;
+                        characteristic.setValue(commands);
+                        gatt.writeCharacteristic(characteristic);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Up動作を行う
+     */
+    public void up(){
+        if(DEBUG){
+            Log.d(TAG,"up()");
+        }
+        synchronized (lock){
+            if(command == Command.NONE) {
+                byte[] commands = { 0x57, 0x01, 0x04 };
+                if(service != null && gatt != null) {
+                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
+                    if(characteristic != null) {
+                        command = Command.OTHERS;
+                        characteristic.setValue(commands);
+                        gatt.writeCharacteristic(characteristic);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Down動作を行う
+     */
+    public void down(){
+        if(DEBUG){
+            Log.d(TAG,"down()");
+        }
+        synchronized (lock){
+            if(command == Command.NONE) {
+                byte[] commands = { 0x57, 0x01, 0x03 };
+                if(service != null && gatt != null) {
+                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
+                    if(characteristic != null) {
+                        command = Command.OTHERS;
+                        characteristic.setValue(commands);
+                        gatt.writeCharacteristic(characteristic);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * turn On動作を行う
+     */
+    public void turnOn(){
+        Logger logger = Logger.getLogger("switchbot.dplugin");
+        if(DEBUG){
+            Log.e(TAG,"turnOn()");
+        }
+        synchronized (lock){
+            if(command == Command.NONE) {
+                byte[] commands = { 0x57, 0x01, 0x01 };
+                if(service != null && gatt != null) {
+                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
+                    if(characteristic != null) {
+                        command = Command.OTHERS;
+                        characteristic.setValue(commands);
+                        gatt.writeCharacteristic(characteristic);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * turn Off動作を行う
+     */
+    public void turnOff(){
+        if(DEBUG){
+            Log.d(TAG,"turnOff()");
+        }
+        synchronized (lock){
+
+            if(command == Command.NONE) {
+                byte[] commands = { 0x57, 0x01, 0x02 };
+                if(service != null && gatt != null) {
+                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
+                    if(characteristic != null) {
+                        command = Command.OTHERS;
+                        characteristic.setValue(commands);
+                        gatt.writeCharacteristic(characteristic);
+                    }
+                }
+            }
         }
     }
 }

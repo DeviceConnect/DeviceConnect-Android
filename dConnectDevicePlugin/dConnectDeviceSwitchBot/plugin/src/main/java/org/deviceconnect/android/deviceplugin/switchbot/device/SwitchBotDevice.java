@@ -30,11 +30,7 @@ public class SwitchBotDevice {
         NONE,           //何もなし
         READ_SETTINGS,  //接続時の設定読み出し
         WRITE_SETTINGS, //モード変更
-        PRESS,
-        TURNON,
-        TURNOFF,
-        UP,
-        DOWN;
+        OTHERS,         //その他
     }
 
     /**
@@ -67,11 +63,9 @@ public class SwitchBotDevice {
     private String deviceAddress;
     private Mode deviceMode;
     private Context context;
-    private BluetoothDevice device;
     private BluetoothGatt gatt;
     private BluetoothGattService service;
     private Command command = Command.NONE;
-    private boolean gattConnected = false;
 
     public SwitchBotDevice(Context context, final String deviceName, final String deviceAddress, Mode deviceMode) {
         if(DEBUG){
@@ -99,6 +93,9 @@ public class SwitchBotDevice {
         return deviceMode;
     }
 
+    /**
+     * デバイスと接続する
+     */
     public void connect() {
         if(DEBUG){
             Log.d(TAG, "connect()");
@@ -112,8 +109,9 @@ public class SwitchBotDevice {
             if(bluetoothManager != null) {
                 BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
                 if(bluetoothAdapter != null) {
-                    device = bluetoothAdapter.getRemoteDevice(deviceAddress);
+                    BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
                     if(device != null) {
+                        //暫定的に再接続ON
                         device.connectGatt(context, true, new BluetoothGattCallback() {
                             @Override
                             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -127,8 +125,10 @@ public class SwitchBotDevice {
                                 if(gatt != null) {
                                     if(newState == BluetoothGatt.STATE_CONNECTED) {
                                         SwitchBotDevice.this.gatt = gatt;
-                                        gattConnected = true;
                                         SwitchBotDevice.this.gatt.discoverServices();
+                                    } else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
+                                        SwitchBotDevice.this.gatt = null;
+                                        SwitchBotDevice.this.service = null;
                                     }
                                 }
                             }
@@ -196,9 +196,20 @@ public class SwitchBotDevice {
                                             Log.d(TAG, "value : " + it);
                                         }
                                     }
-                                    Mode mode = Mode.getInstance((values[9] >> 4) & 0x01);
-                                    if(mode != deviceMode) {
-                                        modeChange();
+                                    if(DEBUG){
+                                        Log.d(TAG, "command : " + command);
+                                    }
+                                    if(command == Command.READ_SETTINGS) {
+                                        Mode mode = Mode.getInstance((values[9] >> 4) & 0x01);
+                                        if(DEBUG){
+                                            Log.d(TAG, "device mode(read) : " + mode);
+                                            Log.d(TAG, "device mode : " + deviceMode);
+                                        }
+                                        if (mode != deviceMode) {
+                                            modeChange();
+                                        } else {
+                                            command = Command.NONE;
+                                        }
                                     }
                                 }
                             }
@@ -221,6 +232,7 @@ public class SwitchBotDevice {
                                     if(service != null) {
                                         BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
                                         if(characteristic != null) {
+                                            command = Command.READ_SETTINGS;
                                             characteristic.setValue(READ_SETTINGS_COMMAND);
                                             gatt.writeCharacteristic(characteristic);
                                         }
@@ -234,26 +246,35 @@ public class SwitchBotDevice {
         }
     }
 
-    public void modeChange(){
+    /**
+     * デバイスの動作モードを変更する
+     * この呼出は接続完了後の設定読み出しでモードが不一致だった場合のみ実施される
+     * deviceModeに設定されたモードに変更する
+     */
+    private void modeChange(){
         if(DEBUG){
             Log.d(TAG,"modeChange()");
         }
-        byte mode = 0;
+        byte mode;
         if(deviceMode == Mode.BUTTON) {
-            mode = 0x10;
-        } else {
             mode = 0x00;
+        } else {
+            mode = 0x10;
         }
         byte[] modeChangeCommand = { 0x57, 0x03, 0x64, mode };
         if(service != null && gatt != null) {
             BluetoothGattCharacteristic characteristic = service.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
             if(characteristic != null) {
+                command = Command.WRITE_SETTINGS;
                 characteristic.setValue(modeChangeCommand);
                 gatt.writeCharacteristic(characteristic);
             }
         }
     }
 
+    /**
+     * デバイスを切断する
+     */
     public void disconnect(){
         if(DEBUG){
             Log.d(TAG, "disconnect()");

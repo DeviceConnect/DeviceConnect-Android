@@ -107,6 +107,7 @@ public class ModifyActivity extends Activity implements View.OnClickListener {
                 Toast.makeText(this, getString(R.string.toast_modify_error), Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this, getString(R.string.toast_modify_success), Toast.LENGTH_LONG).show();
+                unbindService(connection);
                 finish();
             }
         }

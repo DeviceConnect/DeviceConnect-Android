@@ -212,9 +212,6 @@ public class SwitchBotMessageService extends DConnectMessageService {
             switchBotDevices.add(newDevice);
             createService(newDevice);
             oldDevice.disconnect();
-            if(oldDevice.getDeviceMode() != newDevice.getDeviceMode()) {
-                newDevice.modeChange();
-            }
             return true;
         }
         return false;

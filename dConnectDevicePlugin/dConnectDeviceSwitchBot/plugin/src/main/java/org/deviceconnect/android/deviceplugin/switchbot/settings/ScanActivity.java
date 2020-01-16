@@ -49,7 +49,7 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
             Log.d(TAG, "savedInstanceState : " + savedInstanceState);
         }
 
-        BLEScanner = new BLEScanner(this, this);
+        BLEScanner = new BLEScanner(this);
         listAdapter = new ListAdapter<>(new ArrayList<>(), R.layout.list_scan_row, this);
 
         RecyclerView deviceList = findViewById(R.id.list_device);
@@ -86,7 +86,7 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
         PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()), permissions, new PermissionUtility.PermissionRequestCallback(){
             @Override
             public void onSuccess() {
-                BLEScanner.startScan();
+                BLEScanner.startScan(ScanActivity.this);
             }
 
             @Override

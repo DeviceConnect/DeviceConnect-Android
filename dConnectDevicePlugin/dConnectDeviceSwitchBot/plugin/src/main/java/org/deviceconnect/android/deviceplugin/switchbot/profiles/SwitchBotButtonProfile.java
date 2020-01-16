@@ -21,10 +21,6 @@ public class SwitchBotButtonProfile extends DConnectProfile {
             Log.d(TAG, "SwitchBotButtonProfile()");
         }
         if(switchBotDevice != null) {
-            if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                switchBotDevice.connect();
-            }
-
             // POST /gotapi/button/down
             addApi(new PostApi() {
                 @Override

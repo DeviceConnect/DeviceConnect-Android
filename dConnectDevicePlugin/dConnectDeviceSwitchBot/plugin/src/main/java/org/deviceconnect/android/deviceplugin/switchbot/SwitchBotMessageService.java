@@ -18,7 +18,7 @@ import java.util.Locale;
 import java.util.logging.Logger;
 
 
-public class SwitchBotMessageService extends DConnectMessageService {
+public class SwitchBotMessageService extends DConnectMessageService implements SwitchBotDevice.EventListener {
     private static final String TAG = "SwitchBotMessageService";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
 
@@ -114,6 +114,7 @@ public class SwitchBotMessageService extends DConnectMessageService {
                 Log.d(TAG, "device mode : " + switchBotDevice.getDeviceMode());
             }
             getServiceProvider().removeService(makeServiceId(switchBotDevice));
+            switchBotDevice.disconnect();
             removeList(switchBotDevice);
         }
         switchBotDeviceProvider.delete(switchBotDevices);
@@ -147,12 +148,15 @@ public class SwitchBotMessageService extends DConnectMessageService {
         // TODO サービス名の設定
         service.setName(makeServiceName(switchBotDevice));
         // TODO サービスの使用可能フラグのハンドリング
-        service.setOnline(true);
+        //service.setOnline(true);
         // TODO ネットワークタイプの指定 (例: BLE, Wi-Fi)
         service.setNetworkType(NetworkType.UNKNOWN);
         service.addProfile(new SwitchBotButtonProfile(switchBotDevice));
         service.addProfile(new SwitchBotSwitchProfile(switchBotDevice));
         getServiceProvider().addService(service);
+
+        switchBotDevice.setEventListener(this);
+        switchBotDevice.connect();
     }
 
     /**
@@ -217,5 +221,29 @@ public class SwitchBotMessageService extends DConnectMessageService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onConnect(SwitchBotDevice switchBotDevice) {
+        if(DEBUG){
+            Log.d(TAG, "onConnect()");
+            Log.d(TAG, "switchBotDevice : " + switchBotDevice);
+        }
+        DConnectService service = getServiceProvider().getService(makeServiceId(switchBotDevice));
+        if(service != null) {
+            service.setOnline(true);
+        }
+    }
+
+    @Override
+    public void onDisconnect(SwitchBotDevice switchBotDevice) {
+        if(DEBUG){
+            Log.d(TAG, "onDisconnect()");
+            Log.d(TAG, "switchBotDevice : " + switchBotDevice);
+        }
+        DConnectService service = getServiceProvider().getService(makeServiceId(switchBotDevice));
+        if(service != null) {
+            service.setOnline(false);
+        }
     }
 }

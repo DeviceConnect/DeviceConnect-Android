@@ -14,13 +14,13 @@ import org.deviceconnect.message.DConnectMessage;
 public class SwitchBotButtonProfile extends DConnectProfile {
 
     private static final String TAG = "SwitchBotButtonProfile";
-    private static final Boolean DEBUG = BuildConfig.DEBUG;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
     public SwitchBotButtonProfile(SwitchBotDevice switchBotDevice) {
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "SwitchBotButtonProfile()");
         }
-        if(switchBotDevice != null) {
+        if (switchBotDevice != null) {
             // POST /gotapi/button/down
             addApi(new PostApi() {
                 @Override
@@ -31,9 +31,9 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
                     Bundle extras = request.getExtras();
-                    if(extras != null) {
+                    if (extras != null) {
                         String serviceId = (String) request.getExtras().get("serviceId");
-                        if(DEBUG){
+                        if (DEBUG) {
                             Log.d(TAG, "serviceId : " + serviceId);
                         }
 
@@ -43,8 +43,16 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                         }
 
                         // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                        switchBotDevice.down();
-                        setResult(response, DConnectMessage.RESULT_OK);
+                        if (switchBotDevice.isConnected()) {
+                            if (switchBotDevice.down()) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setIllegalServerStateError(response, "target device busy");
+                            }
+                        } else {
+                            switchBotDevice.connect();
+                            MessageUtils.setIllegalServerStateError(response, "target device not online(reconnecting)");
+                        }
                     }
                     return true;
                 }
@@ -60,7 +68,7 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
                     Bundle extras = request.getExtras();
-                    if(extras != null) {
+                    if (extras != null) {
                         String serviceId = (String) request.getExtras().get("serviceId");
                         if (DEBUG) {
                             Log.d(TAG, "serviceId : " + serviceId);
@@ -71,8 +79,16 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                         }
 
                         // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                        switchBotDevice.press();
-                        setResult(response, DConnectMessage.RESULT_OK);
+                        if (switchBotDevice.isConnected()) {
+                            if (switchBotDevice.press()) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setIllegalServerStateError(response, "target device busy");
+                            }
+                        } else {
+                            switchBotDevice.connect();
+                            MessageUtils.setIllegalServerStateError(response, "target device not online(reconnecting)");
+                        }
                     }
                     return true;
                 }
@@ -88,7 +104,7 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                 @Override
                 public boolean onRequest(final Intent request, final Intent response) {
                     Bundle extras = request.getExtras();
-                    if(extras != null) {
+                    if (extras != null) {
                         String serviceId = (String) request.getExtras().get("serviceId");
                         if (DEBUG) {
                             Log.d(TAG, "serviceId : " + serviceId);
@@ -100,8 +116,16 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                         }
 
                         // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                        switchBotDevice.up();
-                        setResult(response, DConnectMessage.RESULT_OK);
+                        if (switchBotDevice.isConnected()) {
+                            if (switchBotDevice.up()) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setIllegalServerStateError(response, "target device busy");
+                            }
+                        } else {
+                            switchBotDevice.connect();
+                            MessageUtils.setIllegalServerStateError(response, "target device not online(reconnecting)");
+                        }
                     }
                     return true;
                 }

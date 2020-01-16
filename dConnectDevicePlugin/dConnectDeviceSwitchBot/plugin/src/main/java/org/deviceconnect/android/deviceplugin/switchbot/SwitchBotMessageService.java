@@ -15,17 +15,15 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.logging.Logger;
 
 
 public class SwitchBotMessageService extends DConnectMessageService implements SwitchBotDevice.EventListener {
     private static final String TAG = "SwitchBotMessageService";
-    private static final Boolean DEBUG = BuildConfig.DEBUG;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
-    private ArrayList<SwitchBotDevice> switchBotDevices;
-    private SwitchBotDeviceProvider switchBotDeviceProvider;
+    private ArrayList<SwitchBotDevice> mSwitchBotDevices;
+    private SwitchBotDeviceProvider mSwitchBotDeviceProvider;
 
-    private final Logger mLogger = Logger.getLogger("switchbot.dplugin");
     @Override
     public void onCreate() {
         super.onCreate();
@@ -33,8 +31,6 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         if(DEBUG){
             Log.d(TAG, "onCreate()");
         }
-
-        mLogger.info("START!!");
 
         // TODO 以降の処理では常駐型のサービスを生成しています. 要件に適さない場合は修正してください.
         DConnectService service = new DConnectService("SwitchBot.Plugin");
@@ -48,9 +44,9 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         service.addProfile(new SwitchBotSwitchProfile(null));
         getServiceProvider().addService(service);
 
-        switchBotDeviceProvider = new SwitchBotDeviceProvider(this);
-        switchBotDevices = switchBotDeviceProvider.getDevices();
-        for(SwitchBotDevice switchBotDevice : switchBotDevices) {
+        mSwitchBotDeviceProvider = new SwitchBotDeviceProvider(this);
+        mSwitchBotDevices = mSwitchBotDeviceProvider.getDevices();
+        for(SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
             createService(switchBotDevice);
         }
     }
@@ -68,7 +64,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
     @Override
     protected void onManagerTerminated() {
         // TODO Device Connect Manager停止時に実行したい処理. 実装は任意.
-        for(SwitchBotDevice switchBotDevice : switchBotDevices) {
+        for(SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
             switchBotDevice.disconnect();
         }
     }
@@ -89,8 +85,8 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
      * @return true : 登録成功, false : 登録失敗(デバイス名の重複)
      */
     public Boolean registerDevice(SwitchBotDevice switchBotDevice) {
-        if (switchBotDeviceProvider.insert(switchBotDevice)) {
-            switchBotDevices.add(switchBotDevice);
+        if (mSwitchBotDeviceProvider.insert(switchBotDevice)) {
+            mSwitchBotDevices.add(switchBotDevice);
             createService(switchBotDevice);
             return true;
         } else {
@@ -117,7 +113,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
             switchBotDevice.disconnect();
             removeList(switchBotDevice);
         }
-        switchBotDeviceProvider.delete(switchBotDevices);
+        mSwitchBotDeviceProvider.delete(switchBotDevices);
     }
 
     /**
@@ -125,9 +121,9 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
      * @param switchBotDevice 削除対象デバイス
      */
     private void removeList(SwitchBotDevice switchBotDevice) {
-        for(int i = 0; i < switchBotDevices.size(); i++) {
-            if(switchBotDevices.get(i).getDeviceName().equals(switchBotDevice.getDeviceName())) {
-                switchBotDevices.remove(i);
+        for(int i = 0; i < mSwitchBotDevices.size(); i++) {
+            if(mSwitchBotDevices.get(i).getDeviceName().equals(switchBotDevice.getDeviceName())) {
+                mSwitchBotDevices.remove(i);
                 break;
             }
         }
@@ -182,7 +178,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
      * @return デバイス一覧
      */
     public ArrayList<SwitchBotDevice> getDeviceList() {
-        return switchBotDevices;
+        return mSwitchBotDevices;
     }
 
     public SwitchBotDevice getSwitchBotDeviceFromDeviceName(String deviceName) {
@@ -190,7 +186,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
             Log.d(TAG, "getSwitchBotDeviceFromDeviceName()");
             Log.d(TAG, "deviceName : " + deviceName);
         }
-        for(SwitchBotDevice switchBotDevice : switchBotDevices) {
+        for(SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
             if(switchBotDevice.getDeviceName().equals(deviceName)) {
                 return switchBotDevice;
             }
@@ -212,10 +208,10 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
             Log.d(TAG,"device mode(old) : " + oldDevice.getDeviceMode());
             Log.d(TAG,"device mode(new) : " + newDevice.getDeviceMode());
         }
-        if(switchBotDeviceProvider.update(oldDevice, newDevice)){
+        if(mSwitchBotDeviceProvider.update(oldDevice, newDevice)){
             removeList(oldDevice);
             getServiceProvider().removeService(makeServiceName(oldDevice));
-            switchBotDevices.add(newDevice);
+            mSwitchBotDevices.add(newDevice);
             createService(newDevice);
             oldDevice.disconnect();
             return true;

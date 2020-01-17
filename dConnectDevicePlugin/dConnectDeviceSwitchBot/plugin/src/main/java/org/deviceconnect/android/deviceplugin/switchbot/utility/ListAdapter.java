@@ -17,20 +17,20 @@ import java.util.ArrayList;
 public class ListAdapter<T> extends RecyclerView.Adapter<ListViewHolder<T>> implements ListViewHolder.EventListener {
     private static final String TAG = "ListViewHolder";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
-    private ArrayList<T> deviceList;
-    private EventListener eventListener;
-    private ArrayList<SwitchBotDevice> checkedList = new ArrayList<>();
-    private final int layoutId;
+    private ArrayList<T> mList;
+    private EventListener mEventListener;
+    private ArrayList<SwitchBotDevice> mCheckedList = new ArrayList<>();
+    private final int mLayoutId;
 
-    public ListAdapter(ArrayList<T> deviceList, int layoutId, EventListener eventListener) {
-        if(DEBUG){
+    public ListAdapter(ArrayList<T> list, int layoutId, EventListener eventListener) {
+        if (DEBUG) {
             Log.d(TAG, "ListAdapter()");
-            Log.d(TAG, "deviceList:" + deviceList);
-            Log.d(TAG, "eventListener:"  + eventListener);
+            Log.d(TAG, "list:" + list);
+            Log.d(TAG, "mEventListener:" + eventListener);
         }
-        this.deviceList = deviceList;
-        this.eventListener = eventListener;
-        this.layoutId = layoutId;
+        mList = list;
+        mEventListener = eventListener;
+        mLayoutId = layoutId;
     }
 
     public void add(T item) {
@@ -42,7 +42,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListViewHolder<T>> impl
             if (DEBUG) {
                 Log.d(TAG, "device address(add) : " + addDeviceAddress);
             }
-            for (T it : deviceList) {
+            for (T it : mList) {
                 final String itDeviceAddress = ((BluetoothDevice) it).getAddress();
                 if (DEBUG) {
                     Log.d(TAG, "device address(it) : " + itDeviceAddress);
@@ -51,25 +51,25 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListViewHolder<T>> impl
                     return;
                 }
             }
-            deviceList.add(item);
-            notifyItemInserted(deviceList.size() - 1);
+            mList.add(item);
+            notifyItemInserted(mList.size() - 1);
         }
     }
 
     @NonNull
     @Override
     public ListViewHolder<T> onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ListViewHolder<>(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false), this);
+        return new ListViewHolder<>(LayoutInflater.from(parent.getContext()).inflate(mLayoutId, parent, false), this);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ListViewHolder<T> holder, int position) {
-        holder.bind(deviceList.get(position));
+        holder.bind(mList.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return deviceList.size();
+        return mList.size();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListViewHolder<T>> impl
             Log.d(TAG, "onItemClick()");
             Log.d(TAG, "device address : " + bluetoothDevice.getAddress());
         }
-        eventListener.onItemClick(bluetoothDevice);
+        mEventListener.onItemClick(bluetoothDevice);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListViewHolder<T>> impl
             Log.d(TAG, "device address : " + switchBotDevice.getDeviceAddress());
             Log.d(TAG, "device mode : " + switchBotDevice.getDeviceMode());
         }
-        eventListener.onItemClick(switchBotDevice);
+        mEventListener.onItemClick(switchBotDevice);
     }
 
     @Override
@@ -100,18 +100,19 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListViewHolder<T>> impl
             Log.d(TAG, "b:" + b);
         }
         if (b) {
-            checkedList.add(switchBotDevice);
+            mCheckedList.add(switchBotDevice);
         } else {
-            checkedList.remove(switchBotDevice);
+            mCheckedList.remove(switchBotDevice);
         }
     }
 
     public ArrayList<SwitchBotDevice> getCheckedList() {
-        return checkedList;
+        return mCheckedList;
     }
 
     public interface EventListener {
         void onItemClick(BluetoothDevice bluetoothDevice);
+
         void onItemClick(SwitchBotDevice switchBotDevice);
     }
 }

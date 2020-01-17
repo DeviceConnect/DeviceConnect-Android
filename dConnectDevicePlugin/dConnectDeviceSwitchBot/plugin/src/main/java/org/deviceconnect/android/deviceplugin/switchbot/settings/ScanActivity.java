@@ -31,37 +31,36 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
     private static final Boolean DEBUG = BuildConfig.DEBUG;
     public static final String KEY_DEVICE_ADDRESS = "key_device_address";
     private static final int REQUEST_ENABLE_BLUETOOTH = 520;
-    private BLEScanner BLEScanner;
-    private ListAdapter<BluetoothDevice> listAdapter;
-    private String[] permissions = {
+    private static final String[] mPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
+    private BLEScanner mBLEScanner;
+    private ListAdapter<BluetoothDevice> mListAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
-        setTitle("デバイススキャン");
 
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "onCreate()");
             Log.d(TAG, "savedInstanceState : " + savedInstanceState);
         }
 
-        BLEScanner = new BLEScanner(this);
-        listAdapter = new ListAdapter<>(new ArrayList<>(), R.layout.list_scan_row, this);
+        mBLEScanner = new BLEScanner(this);
+        mListAdapter = new ListAdapter<>(new ArrayList<>(), R.layout.list_scan_row, this);
 
         RecyclerView deviceList = findViewById(R.id.list_device);
         deviceList.setHasFixedSize(true);
         deviceList.setLayoutManager(new LinearLayoutManager(this));
         deviceList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        deviceList.setAdapter(listAdapter);
+        deviceList.setAdapter(mListAdapter);
 
-        BluetoothManager bluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
-        if(bluetoothManager != null) {
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        if (bluetoothManager != null) {
             BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-            if(bluetoothAdapter.isEnabled()) {
+            if (bluetoothAdapter.isEnabled()) {
                 startScan();
             } else {
                 Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -76,17 +75,17 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
         if (DEBUG) {
             Log.d(TAG, "onDestroy()");
         }
-        BLEScanner.stopScan();
+        mBLEScanner.stopScan();
     }
 
     private void startScan() {
         if (DEBUG) {
             Log.d(TAG, "startScan()");
         }
-        PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()), permissions, new PermissionUtility.PermissionRequestCallback(){
+        PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()), mPermissions, new PermissionUtility.PermissionRequestCallback() {
             @Override
             public void onSuccess() {
-                BLEScanner.startScan(ScanActivity.this);
+                mBLEScanner.startScan(ScanActivity.this);
             }
 
             @Override
@@ -104,8 +103,8 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
             Log.d(TAG, "resultCode : " + resultCode);
             Log.d(TAG, "data : " + data);
         }
-        if(resultCode == RESULT_OK) {
-            if(requestCode == REQUEST_ENABLE_BLUETOOTH) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
                 startScan();
             }
         }
@@ -118,7 +117,7 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
             Log.d(TAG, "onDetectDevice()");
             Log.d(TAG, "device address : " + bluetoothDevice.getAddress());
         }
-        listAdapter.add(bluetoothDevice);
+        mListAdapter.add(bluetoothDevice);
     }
 
     @Override
@@ -127,7 +126,7 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
             Log.d(TAG, "onItemClick()");
             Log.d(TAG, "device address : " + bluetoothDevice.getAddress());
         }
-        BLEScanner.stopScan();
+        mBLEScanner.stopScan();
         Intent result = new Intent();
         result.putExtra(KEY_DEVICE_ADDRESS, bluetoothDevice.getAddress());
         setResult(RESULT_OK, result);

@@ -16,10 +16,10 @@ import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 class ListViewHolder<T> extends RecyclerView.ViewHolder implements CheckBox.OnCheckedChangeListener {
     private static final String TAG = "ListViewHolder";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
-    private TextView deviceAddress;
-    private TextView deviceName;
+    private final TextView mTextDeviceAddress;
+    private final TextView mTextDeviceName;
     private T item;
-    private EventListener eventListener;
+    private final EventListener mEventListener;
 
     ListViewHolder(View itemView, EventListener eventListener) {
         super(itemView);
@@ -28,33 +28,33 @@ class ListViewHolder<T> extends RecyclerView.ViewHolder implements CheckBox.OnCh
             Log.d(TAG, "itemView:" + itemView);
             Log.d(TAG, "eventListener:" + eventListener);
         }
-        deviceAddress = itemView.findViewById(R.id.device_address);
-        if (deviceAddress != null) {
-            deviceAddress.setOnClickListener(view -> {
+        mTextDeviceAddress = itemView.findViewById(R.id.device_address);
+        if (mTextDeviceAddress != null) {
+            mTextDeviceAddress.setOnClickListener(view -> {
                 if (DEBUG) {
-                    Log.d(TAG, "deviceAddress onClick()");
+                    Log.d(TAG, "mTextDeviceAddress onClick()");
                 }
                 if (eventListener != null) {
                     eventListener.onItemClick((BluetoothDevice) item);
                 }
             });
         }
-        deviceName = itemView.findViewById(R.id.device_name);
-        if(deviceName != null) {
-            deviceName.setOnClickListener(view -> {
-                if(DEBUG){
-                    Log.d(TAG, "deviceName onClick()");
+        mTextDeviceName = itemView.findViewById(R.id.device_name);
+        if (mTextDeviceName != null) {
+            mTextDeviceName.setOnClickListener(view -> {
+                if (DEBUG) {
+                    Log.d(TAG, "mTextDeviceName onClick()");
                 }
-                if(eventListener != null){
+                if (eventListener != null) {
                     eventListener.onItemClick((SwitchBotDevice) item);
                 }
             });
         }
         CheckBox deleteCheckBox = itemView.findViewById(R.id.check_delete);
-        if(deleteCheckBox != null) {
+        if (deleteCheckBox != null) {
             deleteCheckBox.setOnCheckedChangeListener(this);
         }
-        this.eventListener = eventListener;
+        mEventListener = eventListener;
     }
 
     @Override
@@ -66,7 +66,7 @@ class ListViewHolder<T> extends RecyclerView.ViewHolder implements CheckBox.OnCh
         }
         if (compoundButton.isFocusable()) {
             if (this.item instanceof SwitchBotDevice) {
-                eventListener.onCheckedChange((SwitchBotDevice) this.item, checked);
+                mEventListener.onCheckedChange((SwitchBotDevice) this.item, checked);
             }
         }
     }
@@ -80,17 +80,18 @@ class ListViewHolder<T> extends RecyclerView.ViewHolder implements CheckBox.OnCh
             if (DEBUG) {
                 Log.d(TAG, "device address:" + ((BluetoothDevice) this.item).getAddress());
             }
-            deviceAddress.setText(((BluetoothDevice) this.item).getAddress());
+            mTextDeviceAddress.setText(((BluetoothDevice) this.item).getAddress());
         } else if (this.item instanceof SwitchBotDevice) {
             if (DEBUG) {
                 Log.d(TAG, "device name:" + ((SwitchBotDevice) this.item).getDeviceName());
             }
-            deviceName.setText(((SwitchBotDevice) this.item).getDeviceName());
+            mTextDeviceName.setText(((SwitchBotDevice) this.item).getDeviceName());
         }
     }
 
     interface EventListener {
         void onItemClick(BluetoothDevice bluetoothDevice);
+
         void onItemClick(SwitchBotDevice switchBotDevice);
 
         void onCheckedChange(SwitchBotDevice device, Boolean checked);

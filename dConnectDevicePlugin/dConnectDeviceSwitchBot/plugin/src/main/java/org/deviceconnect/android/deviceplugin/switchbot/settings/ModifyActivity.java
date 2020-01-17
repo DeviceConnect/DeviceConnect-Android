@@ -26,29 +26,29 @@ public class ModifyActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "ModifyActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
     public static final String KEY_DEVICE_NAME = "key_device_name";
-    private SwitchBotDevice switchBotDevice;
-    private SwitchBotMessageService switchBotMessageService = null;
-    private EditText deviceName;
-    private EditText deviceAddress;
-    private Spinner deviceMode;
-    private ServiceConnection connection = new ServiceConnection() {
+    private SwitchBotDevice mSwitchBotDevice;
+    private SwitchBotMessageService mSwitchBotMessageService = null;
+    private EditText mEditDeviceName;
+    private EditText mEditDeviceAddress;
+    private Spinner mSpinnerDeviceMode;
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             if (DEBUG) {
                 Log.d(TAG, "onServiceConnected()");
             }
-            switchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
-            switchBotDevice = switchBotMessageService.getSwitchBotDeviceFromDeviceName(getIntent().getStringExtra(KEY_DEVICE_NAME));
-            if (switchBotDevice != null) {
+            mSwitchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
+            mSwitchBotDevice = mSwitchBotMessageService.getSwitchBotDeviceFromDeviceName(getIntent().getStringExtra(KEY_DEVICE_NAME));
+            if (mSwitchBotDevice != null) {
                 if (DEBUG) {
-                    Log.d(TAG, "device name : " + switchBotDevice.getDeviceName());
-                    Log.d(TAG, "device address : " + switchBotDevice.getDeviceAddress());
-                    Log.d(TAG, "device mode : " + switchBotDevice.getDeviceMode());
+                    Log.d(TAG, "device name : " + mSwitchBotDevice.getDeviceName());
+                    Log.d(TAG, "device address : " + mSwitchBotDevice.getDeviceAddress());
+                    Log.d(TAG, "device mode : " + mSwitchBotDevice.getDeviceMode());
                 }
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    deviceName.setText(switchBotDevice.getDeviceName());
-                    deviceAddress.setText(switchBotDevice.getDeviceAddress());
-                    deviceMode.setSelection(switchBotDevice.getDeviceMode().getValue());
+                    mEditDeviceName.setText(mSwitchBotDevice.getDeviceName());
+                    mEditDeviceAddress.setText(mSwitchBotDevice.getDeviceAddress());
+                    mSpinnerDeviceMode.setSelection(mSwitchBotDevice.getDeviceMode().getValue());
                 });
             }
         }
@@ -58,7 +58,7 @@ public class ModifyActivity extends Activity implements View.OnClickListener {
             if (DEBUG) {
                 Log.d(TAG, "onServiceDisconnected()");
             }
-            switchBotMessageService = null;
+            mSwitchBotMessageService = null;
         }
     };
 
@@ -73,11 +73,11 @@ public class ModifyActivity extends Activity implements View.OnClickListener {
         }
 
         Intent intent = new Intent(this, SwitchBotMessageService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-        deviceName = findViewById(R.id.edit_device_name);
-        deviceAddress = findViewById(R.id.edit_device_address);
-        deviceMode = findViewById(R.id.spinner_device_mode);
+        mEditDeviceName = findViewById(R.id.edit_device_name);
+        mEditDeviceAddress = findViewById(R.id.edit_device_address);
+        mSpinnerDeviceMode = findViewById(R.id.spinner_device_mode);
         Button button = findViewById(R.id.button_modify);
         button.setOnClickListener(this);
     }
@@ -91,23 +91,24 @@ public class ModifyActivity extends Activity implements View.OnClickListener {
             Log.d(TAG, "view.getId() : " + viewId);
         }
         if (viewId == R.id.button_modify) {
-            if (deviceName.getText().toString().isEmpty()) {
+            if (mEditDeviceName.getText().toString().isEmpty()) {
                 Toast.makeText(this, getString(R.string.toast_modify_error_device_name_empty), Toast.LENGTH_LONG).show();
                 return;
             }
-            if(!switchBotMessageService.modifyDevice(
-                    switchBotDevice,
+            if (!mSwitchBotMessageService.modifyDevice(
+                    mSwitchBotDevice,
                     new SwitchBotDevice(
-                            switchBotMessageService,
-                            deviceName.getText().toString(),
-                            deviceAddress.getText().toString(),
-                            SwitchBotDevice.Mode.getInstance(deviceMode.getSelectedItemPosition())
+                            mSwitchBotMessageService,
+                            mEditDeviceName.getText().toString(),
+                            mEditDeviceAddress.getText().toString(),
+                            SwitchBotDevice.Mode.getInstance(mSpinnerDeviceMode.getSelectedItemPosition()),
+                            mSwitchBotMessageService
                     )
-            )){
+            )) {
                 Toast.makeText(this, getString(R.string.toast_modify_error), Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this, getString(R.string.toast_modify_success), Toast.LENGTH_LONG).show();
-                unbindService(connection);
+                unbindService(mServiceConnection);
                 finish();
             }
         }

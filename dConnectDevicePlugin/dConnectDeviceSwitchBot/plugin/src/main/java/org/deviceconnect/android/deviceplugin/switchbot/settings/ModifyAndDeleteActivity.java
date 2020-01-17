@@ -25,21 +25,21 @@ import org.deviceconnect.android.message.DConnectMessageService;
 public class ModifyAndDeleteActivity extends Activity implements ListAdapter.EventListener, View.OnClickListener {
     private static final String TAG = "ModifyAndDeleteActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
-    private ListAdapter<SwitchBotDevice> listAdapter;
-    private SwitchBotMessageService switchBotMessageService;
-    private ServiceConnection connection = new ServiceConnection() {
+    private static final int REQUEST_DEVICE_MODIFY = 328;
+    private ListAdapter<SwitchBotDevice> mListAdapter;
+    private SwitchBotMessageService mSwitchBotMessageService;
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            switchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
+            mSwitchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
             updateDeviceList();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            switchBotMessageService = null;
+            mSwitchBotMessageService = null;
         }
     };
-    private static final int REQUEST_DEVICE_MODIFY = 328;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class ModifyAndDeleteActivity extends Activity implements ListAdapter.Eve
         setTitle("デバイス更新・削除");
 
         Intent intent = new Intent(this, SwitchBotMessageService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         findViewById(R.id.button_delete).setOnClickListener(this);
     }
@@ -56,7 +56,7 @@ public class ModifyAndDeleteActivity extends Activity implements ListAdapter.Eve
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(connection);
+        unbindService(mServiceConnection);
     }
 
     @Override
@@ -68,15 +68,15 @@ public class ModifyAndDeleteActivity extends Activity implements ListAdapter.Eve
     }
 
     private void updateDeviceList() {
-        listAdapter = new ListAdapter<>(
-                switchBotMessageService.getDeviceList(),
+        mListAdapter = new ListAdapter<>(
+                mSwitchBotMessageService.getDeviceList(),
                 R.layout.list_modify_and_delete_row,
                 this);
         RecyclerView deviceList = findViewById(R.id.list_device);
         deviceList.setHasFixedSize(true);
         deviceList.setLayoutManager(new LinearLayoutManager(this));
         deviceList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        deviceList.setAdapter(listAdapter);
+        deviceList.setAdapter(mListAdapter);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class ModifyAndDeleteActivity extends Activity implements ListAdapter.Eve
             new android.app.AlertDialog.Builder(this)
                     .setMessage("デバイス削除確認")
                     .setPositiveButton("OK", (dialogInterface, i) -> {
-                        switchBotMessageService.unregisterDevices(listAdapter.getCheckedList());
+                        mSwitchBotMessageService.unregisterDevices(mListAdapter.getCheckedList());
                         updateDeviceList();
                     })
                     .setNegativeButton("CANCEL", null)

@@ -22,19 +22,18 @@ import org.deviceconnect.android.message.DConnectMessageService;
 public class RegisterActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "RegisterActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
-
     private static final int REQUEST_DEVICE_SCAN = 818;
-    private EditText editDeviceAddress;
-    private EditText editDeviceName;
-    private Spinner spinnerDeviceMode;
-    private SwitchBotMessageService switchBotMessageService;
-    private ServiceConnection connection = new ServiceConnection() {
+    private EditText mEditDeviceName;
+    private EditText mEditDeviceAddress;
+    private Spinner mSpinnerDeviceMode;
+    private SwitchBotMessageService mSwitchBotMessageService;
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             if (DEBUG) {
                 Log.d(TAG, "onServiceConnected()");
             }
-            switchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
+            mSwitchBotMessageService = (SwitchBotMessageService) ((DConnectMessageService.LocalBinder) iBinder).getMessageService();
         }
 
         @Override
@@ -42,7 +41,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
             if (DEBUG) {
                 Log.d(TAG, "onServiceDisconnected()");
             }
-            switchBotMessageService = null;
+            mSwitchBotMessageService = null;
         }
     };
 
@@ -58,11 +57,11 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         }
 
         Intent intent = new Intent(this, SwitchBotMessageService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-        editDeviceName = findViewById(R.id.edit_device_name);
-        editDeviceAddress = findViewById(R.id.edit_device_address);
-        spinnerDeviceMode = findViewById(R.id.spinner_device_mode);
+        mEditDeviceName = findViewById(R.id.edit_device_name);
+        mEditDeviceAddress = findViewById(R.id.edit_device_address);
+        mSpinnerDeviceMode = findViewById(R.id.spinner_device_mode);
         findViewById(R.id.button_scan).setOnClickListener(this);
         findViewById(R.id.button_register).setOnClickListener(this);
     }
@@ -73,7 +72,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         if (DEBUG) {
             Log.d(TAG, "onDestroy()");
         }
-        unbindService(connection);
+        unbindService(mServiceConnection);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_DEVICE_SCAN) {
             if (resultCode == RESULT_OK) {
-                editDeviceAddress.setText(data.getStringExtra(ScanActivity.KEY_DEVICE_ADDRESS));
+                mEditDeviceAddress.setText(data.getStringExtra(ScanActivity.KEY_DEVICE_ADDRESS));
             }
         }
     }
@@ -114,25 +113,25 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
     }
 
     private void register() {
-        final String deviceName = editDeviceName.getText().toString();
-        final String deviceAddress = editDeviceAddress.getText().toString();
-        final SwitchBotDevice.Mode deviceMode = SwitchBotDevice.Mode.getInstance(spinnerDeviceMode.getSelectedItemPosition());
+        final String deviceName = mEditDeviceName.getText().toString();
+        final String deviceAddress = mEditDeviceAddress.getText().toString();
+        final SwitchBotDevice.Mode deviceMode = SwitchBotDevice.Mode.getInstance(mSpinnerDeviceMode.getSelectedItemPosition());
         if (DEBUG) {
             Log.d(TAG, "register");
             Log.d(TAG, "device name : " + deviceName);
             Log.d(TAG, "device address : " + deviceAddress);
             Log.d(TAG, "device mode : " + deviceMode);
         }
-        if (editDeviceName.getText().toString().isEmpty()) {
+        if (mEditDeviceName.getText().toString().isEmpty()) {
             Toast.makeText(this, getString(R.string.toast_register_error_device_name_empty), Toast.LENGTH_LONG).show();
             return;
         }
-        if (editDeviceAddress.getText().toString().isEmpty()) {
+        if (mEditDeviceAddress.getText().toString().isEmpty()) {
             Toast.makeText(this, getString(R.string.toast_register_error_device_address_empty), Toast.LENGTH_LONG).show();
             return;
         }
-        SwitchBotDevice switchBotDevice = new SwitchBotDevice(switchBotMessageService, deviceName, deviceAddress, deviceMode);
-        if (switchBotMessageService.registerDevice(switchBotDevice)) {
+        SwitchBotDevice switchBotDevice = new SwitchBotDevice(mSwitchBotMessageService, deviceName, deviceAddress, deviceMode, mSwitchBotMessageService);
+        if (mSwitchBotMessageService.registerDevice(switchBotDevice)) {
             Toast.makeText(this, getString(R.string.toast_register_success), Toast.LENGTH_LONG).show();
             finish();
         } else {

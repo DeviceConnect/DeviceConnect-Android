@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.switchbot;
 
+import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
@@ -20,7 +21,7 @@ import java.util.Locale;
 public class SwitchBotMessageService extends DConnectMessageService implements SwitchBotDevice.EventListener {
     private static final String TAG = "SwitchBotMessageService";
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
+    private static final String SHARED_PREF = "org.deviceconnect.android.deviceplugin.switchbot_preferences";
     private ArrayList<SwitchBotDevice> mSwitchBotDevices;
     private SwitchBotDeviceProvider mSwitchBotDeviceProvider;
 
@@ -28,7 +29,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
     public void onCreate() {
         super.onCreate();
 
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "onCreate()");
         }
 
@@ -40,15 +41,21 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         service.setOnline(true);
         // TODO ネットワークタイプの指定 (例: BLE, Wi-Fi)
         service.setNetworkType(NetworkType.UNKNOWN);
-        service.addProfile(new SwitchBotButtonProfile(null));
-        service.addProfile(new SwitchBotSwitchProfile(null));
+        service.addProfile(new SwitchBotButtonProfile(this, null));
+        service.addProfile(new SwitchBotSwitchProfile(this, null));
         getServiceProvider().addService(service);
 
-        mSwitchBotDeviceProvider = new SwitchBotDeviceProvider(this);
+        mSwitchBotDeviceProvider = new SwitchBotDeviceProvider(this, this);
         mSwitchBotDevices = mSwitchBotDeviceProvider.getDevices();
-        for(SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
+        for (SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
             createService(switchBotDevice);
         }
+
+        boolean localOAuth = getSharedPreferences(SHARED_PREF, Context.MODE_PRIVATE).getBoolean(getString(R.string.key_local_oauth), true);
+        if(DEBUG){
+            Log.d(TAG, "localOAuth : " + localOAuth);
+        }
+        setUseLocalOAuth(localOAuth);
     }
 
     @Override
@@ -64,7 +71,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
     @Override
     protected void onManagerTerminated() {
         // TODO Device Connect Manager停止時に実行したい処理. 実装は任意.
-        for(SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
+        for (SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
             switchBotDevice.disconnect();
         }
     }
@@ -80,7 +87,19 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
     }
 
     /**
+     *
+     */
+    public void setLocalOAuthPreference(boolean value) {
+        if (DEBUG) {
+            Log.d(TAG, "setLocalOAuthPreference()");
+            Log.d(TAG, "value : " + value);
+        }
+        setUseLocalOAuth(value);
+    }
+
+    /**
      * デバイス登録処理
+     *
      * @param switchBotDevice 対象デバイス
      * @return true : 登録成功, false : 登録失敗(デバイス名の重複)
      */
@@ -96,14 +115,15 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
 
     /**
      * デバイス登録解除処理
+     *
      * @param switchBotDevices 対象デバイス
      */
     public void unregisterDevices(ArrayList<SwitchBotDevice> switchBotDevices) {
-        if(DEBUG) {
+        if (DEBUG) {
             Log.d(TAG, "unregisterDevice()");
         }
-        for(SwitchBotDevice switchBotDevice : switchBotDevices) {
-            if(DEBUG) {
+        for (SwitchBotDevice switchBotDevice : switchBotDevices) {
+            if (DEBUG) {
                 Log.d(TAG, "switchBotDevice : " + switchBotDevice);
                 Log.d(TAG, "device name : " + switchBotDevice.getDeviceName());
                 Log.d(TAG, "device address : " + switchBotDevice.getDeviceAddress());
@@ -118,11 +138,12 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
 
     /**
      * デバイスリスト削除処理
+     *
      * @param switchBotDevice 削除対象デバイス
      */
     private void removeList(SwitchBotDevice switchBotDevice) {
-        for(int i = 0; i < mSwitchBotDevices.size(); i++) {
-            if(mSwitchBotDevices.get(i).getDeviceName().equals(switchBotDevice.getDeviceName())) {
+        for (int i = 0; i < mSwitchBotDevices.size(); i++) {
+            if (mSwitchBotDevices.get(i).getDeviceName().equals(switchBotDevice.getDeviceName())) {
                 mSwitchBotDevices.remove(i);
                 break;
             }
@@ -131,10 +152,11 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
 
     /**
      * デバイス毎のサービス生成処理
+     *
      * @param switchBotDevice 対象デバイス
      */
     public void createService(SwitchBotDevice switchBotDevice) {
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "createService()");
             Log.d(TAG, "device name : " + switchBotDevice.getDeviceName());
             Log.d(TAG, "device address : " + switchBotDevice.getDeviceAddress());
@@ -147,16 +169,14 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         //service.setOnline(true);
         // TODO ネットワークタイプの指定 (例: BLE, Wi-Fi)
         service.setNetworkType(NetworkType.UNKNOWN);
-        service.addProfile(new SwitchBotButtonProfile(switchBotDevice));
-        service.addProfile(new SwitchBotSwitchProfile(switchBotDevice));
+        service.addProfile(new SwitchBotButtonProfile(this, switchBotDevice));
+        service.addProfile(new SwitchBotSwitchProfile(this, switchBotDevice));
         getServiceProvider().addService(service);
-
-        switchBotDevice.setEventListener(this);
-        switchBotDevice.connect();
     }
 
     /**
      * サービスID生成処理
+     *
      * @param switchBotDevice 対象デバイス
      * @return サービスID
      */
@@ -166,6 +186,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
 
     /**
      * サービス名生成処理
+     *
      * @param switchBotDevice 対象デバイス
      * @return サービス名
      */
@@ -175,19 +196,26 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
 
     /**
      * デバイス一覧取得処理
+     *
      * @return デバイス一覧
      */
     public ArrayList<SwitchBotDevice> getDeviceList() {
         return mSwitchBotDevices;
     }
 
+    /**
+     * デバイス取得処理
+     *
+     * @param deviceName 対象のデバイス名
+     * @return デバイス or null
+     */
     public SwitchBotDevice getSwitchBotDeviceFromDeviceName(String deviceName) {
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "getSwitchBotDeviceFromDeviceName()");
             Log.d(TAG, "deviceName : " + deviceName);
         }
-        for(SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
-            if(switchBotDevice.getDeviceName().equals(deviceName)) {
+        for (SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
+            if (switchBotDevice.getDeviceName().equals(deviceName)) {
                 return switchBotDevice;
             }
         }
@@ -196,19 +224,20 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
 
     /**
      * デバイス情報更新処理
+     *
      * @param oldDevice 旧デバイス情報
      * @param newDevice 新デバイス情報
      * @return 処理結果。true:成功, false:失敗
      */
     public Boolean modifyDevice(SwitchBotDevice oldDevice, SwitchBotDevice newDevice) {
-        if(DEBUG){
-            Log.d(TAG,"modifyDevice()");
-            Log.d(TAG,"device name(old) : " + oldDevice.getDeviceName());
-            Log.d(TAG,"device name(new) : " + newDevice.getDeviceName());
-            Log.d(TAG,"device mode(old) : " + oldDevice.getDeviceMode());
-            Log.d(TAG,"device mode(new) : " + newDevice.getDeviceMode());
+        if (DEBUG) {
+            Log.d(TAG, "modifyDevice()");
+            Log.d(TAG, "device name(old) : " + oldDevice.getDeviceName());
+            Log.d(TAG, "device name(new) : " + newDevice.getDeviceName());
+            Log.d(TAG, "device mode(old) : " + oldDevice.getDeviceMode());
+            Log.d(TAG, "device mode(new) : " + newDevice.getDeviceMode());
         }
-        if(mSwitchBotDeviceProvider.update(oldDevice, newDevice)){
+        if (mSwitchBotDeviceProvider.update(oldDevice, newDevice)) {
             removeList(oldDevice);
             getServiceProvider().removeService(makeServiceName(oldDevice));
             mSwitchBotDevices.add(newDevice);
@@ -219,26 +248,36 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         return false;
     }
 
+    /**
+     * 接続通知
+     *
+     * @param switchBotDevice 接続したデバイス
+     */
     @Override
     public void onConnect(SwitchBotDevice switchBotDevice) {
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "onConnect()");
             Log.d(TAG, "switchBotDevice : " + switchBotDevice);
         }
         DConnectService service = getServiceProvider().getService(makeServiceId(switchBotDevice));
-        if(service != null) {
+        if (service != null) {
             service.setOnline(true);
         }
     }
 
+    /**
+     * 切断通知
+     *
+     * @param switchBotDevice 切断したデバイス
+     */
     @Override
     public void onDisconnect(SwitchBotDevice switchBotDevice) {
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "onDisconnect()");
             Log.d(TAG, "switchBotDevice : " + switchBotDevice);
         }
         DConnectService service = getServiceProvider().getService(makeServiceId(switchBotDevice));
-        if(service != null) {
+        if (service != null) {
             service.setOnline(false);
         }
     }

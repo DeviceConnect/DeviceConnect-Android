@@ -26,4 +26,7 @@
     <string name="toast_modify_error_device_name_empty">デバイス名が入力されていません。</string>
     <string name="toast_modify_error">デバイスの更新に失敗しました。</string>
     <string name="toast_modify_success">デバイスの更新に成功しました。</string>
+    <string name="error_response_mode_unmatched">device mode unmatched</string>
+    <string name="error_response_device_busy">device busy</string>
+    <string name="error_response_connect_failure">device not available or busy</string>
 </resources>

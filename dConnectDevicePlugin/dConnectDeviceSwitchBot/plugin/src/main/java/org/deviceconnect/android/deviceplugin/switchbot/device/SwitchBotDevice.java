@@ -24,248 +24,38 @@ public class SwitchBotDevice {
     private static final UUID SWITCHBOT_BLE_GATT_SERVICE_UUID = UUID.fromString("cba20d00-224d-11e6-9fb8-0002a5d5c51b");
     private static final UUID SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID = UUID.fromString("cba20002-224d-11e6-9fb8-0002a5d5c51b");
     private static final byte[] READ_SETTINGS_COMMAND = {0x57, 0x02};
-    private static boolean sConnecting = false;
-    private static final Object sLock = new Object();
-    private static final long CONNECT_DELAY = 5000;
-
-    /**
-     * デバイスが実施している操作
-     */
-    public enum Command {
-        NONE,               //何もなし(未接続)
-        CONNECTING,         //接続中
-        SERVICE_DISCOVERY,  //サービス検索中
-        READ_SETTINGS,      //接続後の設定読み出し
-        WRITE_SETTINGS,     //モード変更
-        IDLE,               //何もなし(接続中)
-        OTHERS,             //その他
-    }
-
-    /**
-     * デバイスの動作モード
-     */
-    public enum Mode {
-        BUTTON(0), SWITCH(1);
-        private int value;
-
-        Mode(int value) {
-            this.value = value;
-        }
-
-        public static Mode getInstance(int id) {
-            if (id == 0) {
-                return BUTTON;
-            } else if (id == 1) {
-                return SWITCH;
-            } else {
-                throw new RuntimeException();
-            }
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-    private String mDeviceName;
-    private String mDeviceAddress;
-    private Mode mDeviceMode;
-    private Context mContext;
+    private static final long CONNECT_TIMEOUT = 10000;
+    private static final long MODE_CHANGE_DELAY = 3000;
+    private final String mDeviceName;
+    private final String mDeviceAddress;
+    private final Mode mDeviceMode;
+    private final Context mContext;
     private BluetoothGatt mGatt;
     private BluetoothGattService mGattService;
     private Command mCommand = Command.NONE;
     private final Object mLock = new Object();
-    private EventListener mEventListener;
-    private Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
-    private Runnable mConnectTimeout = new Runnable() {
-        @Override
-        public void run() {
-            Log.e(TAG, "connectGatt() timeout");
-            synchronized (sLock) {
-                sConnecting = false;
-                synchronized (mLock) {
-                    if (mCommand == Command.CONNECTING) {
-                        mCommand = Command.NONE;
-                        if (mGatt != null) {
-                            mGatt.disconnect();
-                            mGatt.close();
-                            mGatt = null;
-                        }
-                    }
-                }
-            }
-        }
-    };
-    private static final long CONNECT_TIMEOUT = 10000;
-    private BluetoothGattCallback mBluetoothGattCallback = new BluetoothGattCallback() {
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            super.onConnectionStateChange(gatt, status, newState);
-            if (DEBUG) {
-                Log.d(TAG, "onConnectionStateChange()");
-                Log.d(TAG, "gatt : " + gatt);
-                Log.d(TAG, "status : " + status);
-                Log.d(TAG, "newState : " + newState);
-            }
-            synchronized (sLock) {
-                synchronized (mLock) {
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        Log.d(TAG, "status : success");
-                        if (newState == BluetoothGatt.STATE_CONNECTED) {
-                            sConnecting = false;
-                            if (mGatt != null) {
-                                mCommand = Command.SERVICE_DISCOVERY;
-                                mMainThreadHandler.removeCallbacks(mConnectTimeout);
-                                mGatt.discoverServices();
-                            }
-                        } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                            if (mGatt != null) {
-                                mGatt.disconnect();
-                                mGatt.close();
-                            }
-                            mCommand = Command.NONE;
-                            mEventListener.onDisconnect(SwitchBotDevice.this);
-                        }
-                    } else if (status == 133) {
-                        Log.e(TAG, "status : error");
-                        sConnecting = false;
-                        if (mGatt != null) {
-                            mGatt.disconnect();
-                            mGatt.close();
-                        }
-                        mCommand = Command.NONE;
-                        mEventListener.onDisconnect(SwitchBotDevice.this);
-                    } else if (status == 19) {
-                        Log.e(TAG, "status : disconnected from remote device");
-                        if (mGatt != null) {
-                            mGatt.disconnect();
-                            mGatt.close();
-                        }
-                        mCommand = Command.NONE;
-                        mEventListener.onDisconnect(SwitchBotDevice.this);
-                    }
-                }
-            }
-        }
+    private final EventListener mEventListener;
+    private final Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            super.onServicesDiscovered(gatt, status);
-            if (DEBUG) {
-                Log.d(TAG, "onServicesDiscovered()");
-                Log.d(TAG, "gatt : " + gatt);
-                Log.d(TAG, "status : " + status);
-            }
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                mGattService = mGatt.getService(SWITCHBOT_BLE_GATT_SERVICE_UUID);
-                if (mGattService != null) {
-                    List<BluetoothGattCharacteristic> characteristics = mGattService.getCharacteristics();
-                    if (characteristics != null) {
-                        for (BluetoothGattCharacteristic bluetoothGattCharacteristic : characteristics) {
-                            if (DEBUG) {
-                                Log.d(TAG, "UUID(characteristic) : " + bluetoothGattCharacteristic.getUuid().toString());
-                            }
-                            List<BluetoothGattDescriptor> bluetoothGattDescriptors = bluetoothGattCharacteristic.getDescriptors();
-                            if (bluetoothGattDescriptors != null) {
-                                for (BluetoothGattDescriptor bluetoothGattDescriptor : bluetoothGattDescriptors) {
-                                    if (DEBUG) {
-                                        Log.d(TAG, "UUID(descriptor) : " + bluetoothGattDescriptor.getUuid().toString());
-                                    }
-                                    mGatt.setCharacteristicNotification(bluetoothGattCharacteristic, true);
-                                    bluetoothGattDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                                    mGatt.writeDescriptor(bluetoothGattDescriptor);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicWrite(gatt, characteristic, status);
-            if (DEBUG) {
-                Log.d(TAG, "onCharacteristicWrite()");
-                Log.d(TAG, "gatt : " + gatt);
-                Log.d(TAG, "characteristic : " + characteristic);
-                Log.d(TAG, "status : " + status);
-            }
-        }
-
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            super.onCharacteristicChanged(gatt, characteristic);
-            if (DEBUG) {
-                Log.d(TAG, "onCharacteristicChanged()");
-                Log.d(TAG, "gatt : " + gatt);
-                Log.d(TAG, "characteristic : " + characteristic);
-            }
-            if (characteristic != null) {
-                byte[] values = characteristic.getValue();
-                if (DEBUG) {
-                    for (byte it : values) {
-                        Log.d(TAG, "value : " + it);
-                    }
-                }
-                if (DEBUG) {
-                    Log.d(TAG, "mCommand : " + mCommand);
-                }
-                if (mCommand == Command.READ_SETTINGS) {
-                    Mode mode = Mode.getInstance((values[9] >> 4) & 0x01);
-                    if (DEBUG) {
-                        Log.d(TAG, "device mode(read) : " + mode);
-                        Log.d(TAG, "mDeviceMode : " + mDeviceMode);
-                    }
-                    if (mode != mDeviceMode) {
-                        modeChange();
-                    } else {
-                        mCommand = Command.IDLE;
-                        mEventListener.onConnect(SwitchBotDevice.this);
-                    }
-                } else if (mCommand == Command.WRITE_SETTINGS) {
-                    mCommand = Command.IDLE;
-                    mEventListener.onConnect(SwitchBotDevice.this);
-                } else if (mCommand == Command.OTHERS) {
-                    mCommand = Command.IDLE;
-                }
-            }
-        }
-
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            super.onDescriptorWrite(gatt, descriptor, status);
-            if (DEBUG) {
-                Log.d(TAG, "onDescriptorWrite()");
-                Log.d(TAG, "gatt : " + gatt);
-                Log.d(TAG, "descriptor : " + descriptor);
-                Log.d(TAG, "status : " + status);
-            }
-            if (gatt != null) {
-                if (mGattService != null) {
-                    BluetoothGattCharacteristic characteristic = mGattService.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
-                    if (characteristic != null) {
-                        mCommand = Command.READ_SETTINGS;
-                        characteristic.setValue(READ_SETTINGS_COMMAND);
-                        gatt.writeCharacteristic(characteristic);
-                    }
-                }
-            }
-        }
-    };
-
-    public SwitchBotDevice(Context context, final String deviceName, final String deviceAddress, Mode deviceMode) {
+    public SwitchBotDevice(
+            final Context context,
+            final String deviceName,
+            final String deviceAddress,
+            final Mode deviceMode,
+            final EventListener eventListener) {
         if (DEBUG) {
             Log.d(TAG, "SwitchBotDevice()");
             Log.d(TAG, "context:" + context);
             Log.d(TAG, "device name:" + deviceName);
             Log.d(TAG, "device address:" + deviceAddress);
             Log.d(TAG, "device mode:" + deviceMode);
+            Log.d(TAG, "eventListener:" + eventListener);
         }
         mContext = context;
         mDeviceName = deviceName;
         mDeviceAddress = deviceAddress;
         mDeviceMode = deviceMode;
+        mEventListener = eventListener;
     }
 
     public String getDeviceName() {
@@ -280,55 +70,194 @@ public class SwitchBotDevice {
         return mDeviceMode;
     }
 
-    public void setEventListener(EventListener eventListener) {
-        this.mEventListener = eventListener;
-    }
-
-    /**
-     * デバイスと接続中かどうか判定する
-     *
-     * @return true:接続中, false:未接続
-     */
-    public boolean isConnected() {
-        synchronized (mLock) {
-            return !(mCommand == Command.NONE || mCommand == Command.CONNECTING);
-        }
-    }
-
     /**
      * デバイスと接続する
+     *
+     * @param connectCallback 接続結果通知用
      */
-    public void connect() {
+    public void connect(final ConnectCallback connectCallback) {
         if (DEBUG) {
             Log.d(TAG, "connect()");
         }
-        synchronized (sLock) {
-            if (sConnecting) {
-                //他のデバイスが接続試行中の場合
-                mMainThreadHandler.postDelayed(this::connect, CONNECT_DELAY);
-            } else {
-                //接続試行中のデバイス無し
-                synchronized (mLock) {
-                    if (mCommand != Command.NONE) {
-                        Log.e(TAG, "device busy");
-                    } else {
-                        sConnecting = true;
-                        mCommand = Command.CONNECTING;
-                        if (mContext != null) {
-                            BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
-                            if (bluetoothManager != null) {
-                                BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-                                if (bluetoothAdapter != null) {
-                                    BluetoothDevice device = bluetoothAdapter.getRemoteDevice(mDeviceAddress);
-                                    if (device != null) {
-                                        mGatt = device.connectGatt(mContext, false, mBluetoothGattCallback);
-                                        mMainThreadHandler.postDelayed(mConnectTimeout, CONNECT_TIMEOUT);
+        Runnable connectTimeout = () -> {
+            Log.e(TAG, "connectGatt() timeout");
+            synchronized (mLock) {
+                if (mCommand == Command.CONNECTING) {
+                    mCommand = Command.NONE;
+                    if (mGatt != null) {
+                        mGatt.disconnect();
+                        mGatt.close();
+                        mGatt = null;
+                    }
+                    connectCallback.onFailure();
+                }
+            }
+        };
+        synchronized (mLock) {
+            if (mCommand == Command.IDLE) {
+                connectCallback.onSuccess();
+            } else if (mCommand == Command.NONE) {
+                mCommand = Command.CONNECTING;
+                if (mContext != null) {
+                    BluetoothManager bluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+                    if (bluetoothManager != null) {
+                        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+                        if (bluetoothAdapter != null) {
+                            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(mDeviceAddress);
+                            if (device != null) {
+                                mGatt = device.connectGatt(mContext, false, new BluetoothGattCallback() {
+                                    @Override
+                                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                                        super.onConnectionStateChange(gatt, status, newState);
+                                        if (DEBUG) {
+                                            Log.d(TAG, "onConnectionStateChange()");
+                                            Log.d(TAG, "gatt : " + gatt);
+                                            Log.d(TAG, "status : " + status);
+                                            Log.d(TAG, "newState : " + newState);
+                                        }
+                                        synchronized (mLock) {
+                                            if (status == BluetoothGatt.GATT_SUCCESS) {
+                                                Log.d(TAG, "status : success");
+                                                if (newState == BluetoothGatt.STATE_CONNECTED) {
+                                                    if (mGatt != null) {
+                                                        mCommand = Command.SERVICE_DISCOVERY;
+                                                        mMainThreadHandler.removeCallbacks(connectTimeout);
+                                                        mGatt.discoverServices();
+                                                    }
+                                                } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+                                                    if (mGatt != null) {
+                                                        mGatt.disconnect();
+                                                        mGatt.close();
+                                                    }
+                                                    mCommand = Command.NONE;
+                                                    mEventListener.onDisconnect(SwitchBotDevice.this);
+                                                }
+                                            } else if (status == 133) {
+                                                Log.e(TAG, "status : error");
+                                                if (mGatt != null) {
+                                                    mGatt.disconnect();
+                                                    mGatt.close();
+                                                }
+                                                mCommand = Command.NONE;
+                                                mEventListener.onDisconnect(SwitchBotDevice.this);
+                                            } else if (status == 19) {
+                                                Log.e(TAG, "status : disconnected from remote device");
+                                                if (mGatt != null) {
+                                                    mGatt.disconnect();
+                                                    mGatt.close();
+                                                }
+                                                mCommand = Command.NONE;
+                                                mEventListener.onDisconnect(SwitchBotDevice.this);
+                                            }
+                                        }
                                     }
-                                }
+
+                                    @Override
+                                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                                        super.onServicesDiscovered(gatt, status);
+                                        if (DEBUG) {
+                                            Log.d(TAG, "onServicesDiscovered()");
+                                            Log.d(TAG, "gatt : " + gatt);
+                                            Log.d(TAG, "status : " + status);
+                                        }
+                                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                                            mGattService = mGatt.getService(SWITCHBOT_BLE_GATT_SERVICE_UUID);
+                                            if (mGattService != null) {
+                                                List<BluetoothGattCharacteristic> characteristics = mGattService.getCharacteristics();
+                                                if (characteristics != null) {
+                                                    for (BluetoothGattCharacteristic bluetoothGattCharacteristic : characteristics) {
+                                                        if (DEBUG) {
+                                                            Log.d(TAG, "UUID(characteristic) : " + bluetoothGattCharacteristic.getUuid().toString());
+                                                        }
+                                                        List<BluetoothGattDescriptor> bluetoothGattDescriptors = bluetoothGattCharacteristic.getDescriptors();
+                                                        if (bluetoothGattDescriptors != null) {
+                                                            for (BluetoothGattDescriptor bluetoothGattDescriptor : bluetoothGattDescriptors) {
+                                                                if (DEBUG) {
+                                                                    Log.d(TAG, "UUID(descriptor) : " + bluetoothGattDescriptor.getUuid().toString());
+                                                                }
+                                                                mGatt.setCharacteristicNotification(bluetoothGattCharacteristic, true);
+                                                                bluetoothGattDescriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                                                                mGatt.writeDescriptor(bluetoothGattDescriptor);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                                        super.onCharacteristicChanged(gatt, characteristic);
+                                        if (DEBUG) {
+                                            Log.d(TAG, "onCharacteristicChanged()");
+                                            Log.d(TAG, "gatt : " + gatt);
+                                            Log.d(TAG, "characteristic : " + characteristic);
+                                        }
+                                        if (characteristic != null) {
+                                            byte[] values = characteristic.getValue();
+                                            if (DEBUG) {
+                                                for (byte it : values) {
+                                                    Log.d(TAG, "value : " + it);
+                                                }
+                                            }
+                                            if (DEBUG) {
+                                                Log.d(TAG, "mCommand : " + mCommand);
+                                            }
+                                            if (mCommand == Command.READ_SETTINGS) {
+                                                Mode mode = Mode.getInstance((values[9] >> 4) & 0x01);
+                                                if (DEBUG) {
+                                                    Log.d(TAG, "device mode(read) : " + mode);
+                                                    Log.d(TAG, "mDeviceMode : " + mDeviceMode);
+                                                }
+                                                if (mode != mDeviceMode) {
+                                                    modeChange();
+                                                } else {
+                                                    mCommand = Command.IDLE;
+                                                    mEventListener.onConnect(SwitchBotDevice.this);
+                                                    connectCallback.onSuccess();
+                                                }
+                                            } else if (mCommand == Command.WRITE_SETTINGS) {
+                                                mCommand = Command.IDLE;
+                                                //モードの切り替えを行った場合、少し待ってから接続完了を通知する
+                                                mMainThreadHandler.postDelayed(() -> {
+                                                    mEventListener.onConnect(SwitchBotDevice.this);
+                                                    connectCallback.onSuccess();
+                                                }, MODE_CHANGE_DELAY);
+                                            } else if (mCommand == Command.OTHERS) {
+                                                mCommand = Command.IDLE;
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+                                        super.onDescriptorWrite(gatt, descriptor, status);
+                                        if (DEBUG) {
+                                            Log.d(TAG, "onDescriptorWrite()");
+                                            Log.d(TAG, "gatt : " + gatt);
+                                            Log.d(TAG, "descriptor : " + descriptor);
+                                            Log.d(TAG, "status : " + status);
+                                        }
+                                        if (gatt != null) {
+                                            if (mGattService != null) {
+                                                BluetoothGattCharacteristic characteristic = mGattService.getCharacteristic(SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID);
+                                                if (characteristic != null) {
+                                                    mCommand = Command.READ_SETTINGS;
+                                                    characteristic.setValue(READ_SETTINGS_COMMAND);
+                                                    gatt.writeCharacteristic(characteristic);
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                                mMainThreadHandler.postDelayed(connectTimeout, CONNECT_TIMEOUT);
                             }
                         }
                     }
                 }
+            } else {
+                connectCallback.onFailure();
             }
         }
     }
@@ -517,9 +446,60 @@ public class SwitchBotDevice {
         }
     }
 
+    /**
+     * デバイスが実施している操作
+     */
+    public enum Command {
+        NONE,               //何もなし(未接続)
+        CONNECTING,         //接続中
+        SERVICE_DISCOVERY,  //サービス検索中
+        READ_SETTINGS,      //接続後の設定読み出し
+        WRITE_SETTINGS,     //モード変更
+        IDLE,               //何もなし(接続中)
+        OTHERS,             //その他
+    }
+
+    /**
+     * デバイスの動作モード
+     */
+    public enum Mode {
+        BUTTON(0), SWITCH(1);
+        private int value;
+
+        Mode(int value) {
+            this.value = value;
+        }
+
+        public static Mode getInstance(int id) {
+            if (id == 0) {
+                return BUTTON;
+            } else if (id == 1) {
+                return SWITCH;
+            } else {
+                throw new RuntimeException();
+            }
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * デバイスとの接続状態通知用
+     */
     public interface EventListener {
         void onConnect(SwitchBotDevice switchBotDevice);
 
         void onDisconnect(SwitchBotDevice switchBotDevice);
+    }
+
+    /**
+     * デバイスとの接続処理結果通知用
+     */
+    public interface ConnectCallback {
+        void onSuccess();
+
+        void onFailure();
     }
 }

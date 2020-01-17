@@ -1,10 +1,12 @@
 package org.deviceconnect.android.deviceplugin.switchbot.profiles;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
+import org.deviceconnect.android.deviceplugin.switchbot.R;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -16,7 +18,7 @@ public class SwitchBotButtonProfile extends DConnectProfile {
     private static final String TAG = "SwitchBotButtonProfile";
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
-    public SwitchBotButtonProfile(SwitchBotDevice switchBotDevice) {
+    public SwitchBotButtonProfile(final Context context, final SwitchBotDevice switchBotDevice) {
         if (DEBUG) {
             Log.d(TAG, "SwitchBotButtonProfile()");
         }
@@ -38,23 +40,30 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                         }
 
                         if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                            MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                            MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_mode_unmatched));
                             return true;
                         }
 
                         // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                        if (switchBotDevice.isConnected()) {
-                            if (switchBotDevice.down()) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                MessageUtils.setIllegalServerStateError(response, "target device busy");
+                        switchBotDevice.connect(new SwitchBotDevice.ConnectCallback() {
+                            @Override
+                            public void onSuccess() {
+                                if (switchBotDevice.down()) {
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_device_busy));
+                                }
+                                sendResponse(response);
                             }
-                        } else {
-                            switchBotDevice.connect();
-                            MessageUtils.setIllegalServerStateError(response, "target device not online(reconnecting)");
-                        }
+
+                            @Override
+                            public void onFailure() {
+                                MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_connect_failure));
+                                sendResponse(response);
+                            }
+                        });
                     }
-                    return true;
+                    return false;
                 }
             });
 
@@ -74,23 +83,30 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                             Log.d(TAG, "serviceId : " + serviceId);
                         }
                         if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                            MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                            MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_mode_unmatched));
                             return true;
                         }
 
                         // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                        if (switchBotDevice.isConnected()) {
-                            if (switchBotDevice.press()) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                MessageUtils.setIllegalServerStateError(response, "target device busy");
+                        switchBotDevice.connect(new SwitchBotDevice.ConnectCallback() {
+                            @Override
+                            public void onSuccess() {
+                                if (switchBotDevice.press()) {
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_device_busy));
+                                }
+                                sendResponse(response);
                             }
-                        } else {
-                            switchBotDevice.connect();
-                            MessageUtils.setIllegalServerStateError(response, "target device not online(reconnecting)");
-                        }
+
+                            @Override
+                            public void onFailure() {
+                                MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_connect_failure));
+                                sendResponse(response);
+                            }
+                        });
                     }
-                    return true;
+                    return false;
                 }
             });
 
@@ -111,23 +127,30 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                         }
 
                         if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                            MessageUtils.setIllegalServerStateError(response, "target device mode mismatch");
+                            MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_mode_unmatched));
                             return true;
                         }
 
                         // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                        if (switchBotDevice.isConnected()) {
-                            if (switchBotDevice.up()) {
-                                setResult(response, DConnectMessage.RESULT_OK);
-                            } else {
-                                MessageUtils.setIllegalServerStateError(response, "target device busy");
+                        switchBotDevice.connect(new SwitchBotDevice.ConnectCallback() {
+                            @Override
+                            public void onSuccess() {
+                                if (switchBotDevice.up()) {
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_device_busy));
+                                }
+                                sendResponse(response);
                             }
-                        } else {
-                            switchBotDevice.connect();
-                            MessageUtils.setIllegalServerStateError(response, "target device not online(reconnecting)");
-                        }
+
+                            @Override
+                            public void onFailure() {
+                                MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_connect_failure));
+                                sendResponse(response);
+                            }
+                        });
                     }
-                    return true;
+                    return false;
                 }
             });
         }

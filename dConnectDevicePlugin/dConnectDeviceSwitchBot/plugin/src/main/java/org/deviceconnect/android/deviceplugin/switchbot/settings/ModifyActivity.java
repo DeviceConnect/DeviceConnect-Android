@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -22,7 +21,7 @@ import org.deviceconnect.android.deviceplugin.switchbot.SwitchBotMessageService;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 
-public class ModifyActivity extends Activity implements View.OnClickListener {
+public class ModifyActivity extends BaseSettingActivity implements View.OnClickListener {
     private static final String TAG = "ModifyActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
     public static final String KEY_DEVICE_NAME = "key_device_name";
@@ -80,6 +79,12 @@ public class ModifyActivity extends Activity implements View.OnClickListener {
         mSpinnerDeviceMode = findViewById(R.id.spinner_device_mode);
         Button button = findViewById(R.id.button_modify);
         button.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
@@ -22,7 +21,7 @@ import org.deviceconnect.android.deviceplugin.switchbot.utility.ListAdapter;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 
-public class ModifyAndDeleteActivity extends Activity implements ListAdapter.EventListener, View.OnClickListener {
+public class ModifyAndDeleteActivity extends BaseSettingActivity implements ListAdapter.EventListener, View.OnClickListener {
     private static final String TAG = "ModifyAndDeleteActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
     private static final int REQUEST_DEVICE_MODIFY = 328;

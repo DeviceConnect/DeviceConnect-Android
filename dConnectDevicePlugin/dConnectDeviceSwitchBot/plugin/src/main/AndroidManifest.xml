@@ -12,17 +12,31 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-        <activity android:name=".settings.ModifyActivity" />
-        <activity android:name=".settings.ModifyAndDeleteActivity" />
-        <activity android:name=".settings.ScanActivity" />
-        <activity android:name=".settings.RegisterActivity" /> <!-- プラグイン本体サービス -->
+        <activity
+            android:name=".settings.ModifyActivity"
+            android:label="@string/title_setting_modify"
+            android:theme="@style/AppCompatTheme"/>
+        <activity
+            android:name=".settings.ModifyAndDeleteActivity"
+            android:label="@string/title_setting_modify_and_delete"
+            android:theme="@style/AppCompatTheme" />
+        <activity
+            android:name=".settings.ScanActivity"
+            android:label="@string/title_setting_scan"
+            android:theme="@style/AppCompatTheme" />
+        <activity
+            android:name=".settings.RegisterActivity"
+            android:label="@string/title_setting_register"
+            android:theme="@style/AppCompatTheme" />
+        <!-- プラグイン本体サービス -->
         <service
             android:name=".SwitchBotMessageService"
             android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_switchbot" />
-        </service> <!-- Device Connect API リクエストのレシーバー -->
+        </service>
+        <!-- Device Connect API リクエストのレシーバー -->
         <!--
             NOTE:  下記のレシーバーは、旧仕様のDevice Connect Managerとの互換性、
             およびDevice Connect Managerのアンインストール検知のために残しています.
@@ -47,7 +61,10 @@
                 <data android:scheme="package" />
             </intent-filter>
         </receiver> <!-- プラグイン設定画面 -->
-        <activity android:name=".settings.SettingActivity" >
+        <activity
+            android:name=".settings.SettingActivity"
+            android:label="@string/title_setting"
+            android:theme="@style/AppCompatTheme">
 
             <!-- TODO ランチャー画面に表示させたくない場合は、下記のインテントフィルタを削除。 -->
             <intent-filter>

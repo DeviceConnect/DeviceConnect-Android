@@ -2,7 +2,14 @@
 <resources>
     <string name="app_name">SwitchBot (Device Connect Device Plugin)</string>
 
-    <string name="local_oauth_title">認証(Local OAuth)</string>
+    <string name="title_setting">設定</string>
+    <string name="title_setting_register">デバイス登録</string>
+    <string name="title_setting_scan">デバイススキャン</string>
+    <string name="title_setting_modify_and_delete">デバイス一覧・削除</string>
+    <string name="title_setting_modify">デバイス名・動作モード変更</string>
+    <string name="settings_title_local_oauth">認証(Local OAuth)</string>
+    <string name="settings_title_device_register">デバイス登録</string>
+    <string name="settings_title_device_modify_and_delete">デバイス名/動作モード変更・削除</string>
     <string name="key_local_oauth">key_local_oauth</string>
 
     <string name="activity_settings_device_register">デバイス登録</string>
@@ -21,6 +28,7 @@
     <string name="toast_scan_error_ble_permission_check">アプリケーションに権限が付与されていません。</string>
     <string name="toast_register_error_device_name_empty">デバイス名が入力されていません。</string>
     <string name="toast_register_error_device_address_empty">MAC addressが入力されていません。</string>
+    <string name="toast_register_error_device_address_unrecognized">MACアドレスの形式を認識できません。</string>
     <string name="toast_register_success">デバイスの登録に成功しました。</string>
     <string name="toast_register_error">デバイスの登録に失敗しました。</string>
     <string name="toast_modify_error_device_name_empty">デバイス名が入力されていません。</string>

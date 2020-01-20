@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -19,10 +18,14 @@ import org.deviceconnect.android.deviceplugin.switchbot.SwitchBotMessageService;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 
-public class RegisterActivity extends Activity implements View.OnClickListener {
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class RegisterActivity extends BaseSettingActivity implements View.OnClickListener {
     private static final String TAG = "RegisterActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
     private static final int REQUEST_DEVICE_SCAN = 818;
+    private static final String REGX_PATTERN = "^([0-9A-Fa-f]{1,2}[:-]){5}[0-9A-Fa-f]{1,2}$";
     private EditText mEditDeviceName;
     private EditText mEditDeviceAddress;
     private Spinner mSpinnerDeviceMode;
@@ -130,6 +133,10 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
             Toast.makeText(this, getString(R.string.toast_register_error_device_address_empty), Toast.LENGTH_LONG).show();
             return;
         }
+        if (!checkFormat(mEditDeviceAddress.getText().toString())) {
+            Toast.makeText(this, getString(R.string.toast_register_error_device_address_unrecognized), Toast.LENGTH_LONG).show();
+            return;
+        }
         SwitchBotDevice switchBotDevice = new SwitchBotDevice(mSwitchBotMessageService, deviceName, deviceAddress, deviceMode, mSwitchBotMessageService);
         if (mSwitchBotMessageService.registerDevice(switchBotDevice)) {
             Toast.makeText(this, getString(R.string.toast_register_success), Toast.LENGTH_LONG).show();
@@ -137,5 +144,16 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
         } else {
             Toast.makeText(this, getString(R.string.toast_register_error), Toast.LENGTH_LONG).show();
         }
+    }
+
+    /**
+     * MACアドレス形式チェック
+     * @param macAddress チェック対象MAC Address
+     * @return true(OK), false(NG)
+     */
+    private boolean checkFormat(String macAddress) {
+        Pattern pattern = Pattern.compile(REGX_PATTERN);
+        Matcher matcher = pattern.matcher(macAddress);
+        return matcher.find();
     }
 }

@@ -4,20 +4,17 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceActivity;
-
-import android.preference.CheckBoxPreference;
 import android.util.Log;
+import android.widget.CheckBox;
 
 import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
 import org.deviceconnect.android.deviceplugin.switchbot.R;
 import org.deviceconnect.android.deviceplugin.switchbot.SwitchBotMessageService;
 import org.deviceconnect.android.message.DConnectMessageService;
 
-public class SettingActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class SettingActivity extends BaseSettingActivity {
     private static final String TAG = "SettingActivity";
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private SwitchBotMessageService mSwitchBotMessageService;
@@ -42,40 +39,36 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.switchbot_setting);
-
-        // TODO デバイスとの接続等で手動操作が必要な場合は、設定画面を実装してください.
-        // TODO 不要な場合は削除してください.
+        setContentView(R.layout.activity_setting);
 
         Intent intent = new Intent(this, SwitchBotMessageService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-    }
+        CheckBox checkBox = findViewById(R.id.checkbox_local_oauth);
+        checkBox.setChecked(Settings.getBoolean(this, Settings.KEY_LOCAL_OAUTH, true));
+        checkBox.setOnCheckedChangeListener((compoundButton, value) -> {
+            if(checkBox.isFocusable()) {
+                if(mSwitchBotMessageService != null) {
+                    Settings.setBoolean(this, Settings.KEY_LOCAL_OAUTH, value);
+                    mSwitchBotMessageService.setLocalOAuthPreference(value);
+                }
+            }
+        });
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        findViewById(R.id.text_title_device_register).setOnClickListener((view) -> {
+            Intent registerActivity = new Intent(this, RegisterActivity.class);
+            startActivity(registerActivity);
+        });
+
+        findViewById(R.id.text_title_device_modify_and_delete).setOnClickListener((view) -> {
+            Intent modifyAndDeleteActivity = new Intent(this, ModifyAndDeleteActivity.class);
+            startActivity(modifyAndDeleteActivity);
+        });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbindService(mServiceConnection);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (DEBUG) {
-            Log.d(TAG, "key : " + key);
-        }
-        if (key.equals(getString(R.string.key_local_oauth))) {
-            mSwitchBotMessageService.setLocalOAuthPreference(sharedPreferences.getBoolean(key, true));
-        }
     }
 }

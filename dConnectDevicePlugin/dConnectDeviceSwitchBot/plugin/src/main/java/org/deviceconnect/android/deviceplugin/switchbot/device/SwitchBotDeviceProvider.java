@@ -42,7 +42,8 @@ public class SwitchBotDeviceProvider extends SQLiteOpenHelper {
             Log.d(TAG, "mSQLiteDatabase : " + sqLiteDatabase);
         }
         sqLiteDatabase.execSQL(
-                "CREATE TABLE " + TABLE_NAME + " ( " + COLUMN_NAME + " TEXT PRIMARY KEY, " + COLUMN_ADDRESS + " TEXT, " + COLUMN_MODE + " INTEGER )"
+                "CREATE TABLE " + TABLE_NAME + " ( " + COLUMN_NAME + " TEXT UNIQUE, " + COLUMN_ADDRESS + " TEXT UNIQUE, " + COLUMN_MODE
+                        + " INTEGER, PRIMARY KEY(" + COLUMN_NAME + "," + COLUMN_ADDRESS + "))"
         );
     }
 
@@ -102,7 +103,16 @@ public class SwitchBotDeviceProvider extends SQLiteOpenHelper {
         for (int i = 0; i < switchBotDevices.size(); i++) {
             deviceNames[i] = switchBotDevices.get(i).getDeviceName();
         }
-        mSQLiteDatabase.delete(TABLE_NAME, COLUMN_NAME + " =? ", deviceNames);
+        mSQLiteDatabase.delete(TABLE_NAME, generateWherePhrase(deviceNames), deviceNames);
+    }
+
+    private String generateWherePhrase(String[] deviceNames) {
+        StringBuilder sb = new StringBuilder();
+        for(String ignored : deviceNames) {
+            sb.append(COLUMN_NAME + " = ? OR ");
+        }
+        sb.setLength(sb.length() - 4);
+        return sb.toString();
     }
 
     /**

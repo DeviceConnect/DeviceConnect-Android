@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -26,7 +25,7 @@ import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 
 import java.util.ArrayList;
 
-public class ScanActivity extends Activity implements BLEScanner.EventListener, ListAdapter.EventListener {
+public class ScanActivity extends BaseSettingActivity implements BLEScanner.EventListener, ListAdapter.EventListener {
     private static final String TAG = "ScanActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
     public static final String KEY_DEVICE_ADDRESS = "key_device_address";
@@ -103,6 +102,7 @@ public class ScanActivity extends Activity implements BLEScanner.EventListener, 
             Log.d(TAG, "resultCode : " + resultCode);
             Log.d(TAG, "data : " + data);
         }
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
                 startScan();

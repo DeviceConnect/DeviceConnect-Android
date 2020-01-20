@@ -5,6 +5,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDeviceProvider;
+import org.deviceconnect.android.deviceplugin.switchbot.settings.Settings;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
@@ -51,7 +52,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
             createService(switchBotDevice);
         }
 
-        boolean localOAuth = getSharedPreferences(SHARED_PREF, Context.MODE_PRIVATE).getBoolean(getString(R.string.key_local_oauth), true);
+        boolean localOAuth = Settings.getBoolean(this, Settings.KEY_LOCAL_OAUTH, true);
         if(DEBUG){
             Log.d(TAG, "localOAuth : " + localOAuth);
         }

@@ -138,6 +138,9 @@ public class SwitchBotDevice {
                                                     mGatt.disconnect();
                                                     mGatt.close();
                                                 }
+                                                if (mCommand == Command.CONNECTING) {
+                                                    connectCallback.onFailure();
+                                                }
                                                 mCommand = Command.NONE;
                                                 mEventListener.onDisconnect(SwitchBotDevice.this);
                                             } else if (status == 19) {

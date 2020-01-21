@@ -1,3 +1,9 @@
+/*
+ SwitchBotSystemProfile.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.profiles;
 
 import android.app.Activity;
@@ -6,7 +12,6 @@ import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.switchbot.settings.SettingActivity;
 import org.deviceconnect.android.profile.SystemProfile;
-
 
 public class SwitchBotSystemProfile extends SystemProfile {
     @Override

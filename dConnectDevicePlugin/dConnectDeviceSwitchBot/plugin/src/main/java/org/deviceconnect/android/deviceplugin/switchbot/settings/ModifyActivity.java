@@ -1,3 +1,9 @@
+/*
+ ModifyActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.content.ComponentName;
@@ -21,6 +27,9 @@ import org.deviceconnect.android.deviceplugin.switchbot.SwitchBotMessageService;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 
+/**
+ * SwitchBotデバイス情報更新用Activity
+ */
 public class ModifyActivity extends BaseSettingActivity implements View.OnClickListener {
     private static final String TAG = "ModifyActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;

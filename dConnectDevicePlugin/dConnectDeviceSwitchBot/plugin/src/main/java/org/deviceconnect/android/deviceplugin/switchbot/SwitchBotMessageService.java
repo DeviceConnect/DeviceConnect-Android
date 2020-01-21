@@ -1,6 +1,11 @@
+/*
+ SwitchBotMessageService.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot;
 
-import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
@@ -17,7 +22,6 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import java.util.ArrayList;
 import java.util.Locale;
-
 
 public class SwitchBotMessageService extends DConnectMessageService implements SwitchBotDevice.EventListener {
     private static final String TAG = "SwitchBotMessageService";

@@ -1,3 +1,9 @@
+/*
+ SwitchBotDeviceProvider.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.device;
 
 import android.content.ContentValues;
@@ -11,6 +17,9 @@ import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
 
 import java.util.ArrayList;
 
+/**
+ * SwitchBotデバイスの情報を保存するためのクラス
+ */
 public class SwitchBotDeviceProvider extends SQLiteOpenHelper {
     private static final String TAG = "SwitchBotDeviceProvider";
     private static final Boolean DEBUG = BuildConfig.DEBUG;

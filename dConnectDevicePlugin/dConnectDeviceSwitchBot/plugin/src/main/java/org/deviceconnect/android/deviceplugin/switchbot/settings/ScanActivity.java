@@ -1,3 +1,9 @@
+/*
+ ScanActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.Manifest;
@@ -25,6 +31,9 @@ import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 
 import java.util.ArrayList;
 
+/**
+ * SwitchBotデバイススキャン用Activity
+ */
 public class ScanActivity extends BaseSettingActivity implements BLEScanner.EventListener, ListAdapter.EventListener {
     private static final String TAG = "ScanActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
@@ -77,6 +86,9 @@ public class ScanActivity extends BaseSettingActivity implements BLEScanner.Even
         mBLEScanner.stopScan();
     }
 
+    /**
+     * BLEスキャン開始処理
+     */
     private void startScan() {
         if (DEBUG) {
             Log.d(TAG, "startScan()");

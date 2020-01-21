@@ -1,3 +1,9 @@
+/*
+ SettingActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.content.ComponentName;
@@ -14,6 +20,9 @@ import org.deviceconnect.android.deviceplugin.switchbot.R;
 import org.deviceconnect.android.deviceplugin.switchbot.SwitchBotMessageService;
 import org.deviceconnect.android.message.DConnectMessageService;
 
+/**
+ * 設定(root)用Activity
+ */
 public class SettingActivity extends BaseSettingActivity {
     private static final String TAG = "SettingActivity";
     private static final boolean DEBUG = BuildConfig.DEBUG;

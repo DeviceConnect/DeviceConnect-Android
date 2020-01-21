@@ -1,3 +1,9 @@
+/*
+ BaseSettingActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.os.Bundle;
@@ -6,6 +12,9 @@ import android.view.MenuItem;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * 設定画面のベース
+ */
 public abstract class BaseSettingActivity extends AppCompatActivity {
 
     @Override

@@ -1,3 +1,9 @@
+/*
+ ModifyAndDeleteActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.bluetooth.BluetoothDevice;
@@ -21,6 +27,9 @@ import org.deviceconnect.android.deviceplugin.switchbot.utility.ListAdapter;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 
+/**
+ * SwitchBot更新・削除用Activity
+ */
 public class ModifyAndDeleteActivity extends BaseSettingActivity implements ListAdapter.EventListener, View.OnClickListener {
     private static final String TAG = "ModifyAndDeleteActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;

@@ -1,3 +1,9 @@
+/*
+ RegisterActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.settings;
 
 import android.content.ComponentName;
@@ -21,6 +27,9 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * SwitchBotデバイス登録用Activity
+ */
 public class RegisterActivity extends BaseSettingActivity implements View.OnClickListener {
     private static final String TAG = "RegisterActivity";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
@@ -115,6 +124,9 @@ public class RegisterActivity extends BaseSettingActivity implements View.OnClic
         }
     }
 
+    /**
+     * デバイス登録処理
+     */
     private void register() {
         final String deviceName = mEditDeviceName.getText().toString();
         final String deviceAddress = mEditDeviceAddress.getText().toString();

@@ -1,3 +1,9 @@
+/*
+ SwitchBotDevice.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+*/
 package org.deviceconnect.android.deviceplugin.switchbot.device;
 
 import android.bluetooth.BluetoothAdapter;
@@ -18,6 +24,9 @@ import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * SwitchBotデバイス
+ */
 public class SwitchBotDevice {
     private static final String TAG = "SwitchBotDevice";
     private static final boolean DEBUG = BuildConfig.DEBUG;

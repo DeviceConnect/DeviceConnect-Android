@@ -47,6 +47,10 @@ public class NotificationUtils {
     private static final String NOTIFICATION_CONTENT_TITLE = "Device Connect Plugin";
 
     /**
+     * Decline Notification Action Index.
+     */
+    private static final int PENDING_DECLINE_INDEX = 1;
+    /**
      * 通知のチャンネルを作成する
      * @param context コンテキスト
      */
@@ -87,6 +91,7 @@ public class NotificationUtils {
                     .setSmallIcon(R.drawable.ic_action_labels)
                     .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_action_labels))
                     .setStyle(new Notification.BigTextStyle().setBigContentTitle(NOTIFICATION_CONTENT_TITLE).bigText(contentText))
+                    .setDeleteIntent(actions[PENDING_DECLINE_INDEX].actionIntent)
                     .build();
             notificationManager.notify(notificationId, notification);
         }

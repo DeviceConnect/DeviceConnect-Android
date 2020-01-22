@@ -1,1 +1,1 @@
-include ':app', ':libstreaming', ':librtmpstreaming'
+include ':app', ':libstreaming', ':librtmpstreaming', ':libmedia', ':libsrt'

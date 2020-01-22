@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RTSP サーバ</string>
+    <string name="settings_name">設定</string>
+    <string name="action_settings">Settings</string>
+</resources>

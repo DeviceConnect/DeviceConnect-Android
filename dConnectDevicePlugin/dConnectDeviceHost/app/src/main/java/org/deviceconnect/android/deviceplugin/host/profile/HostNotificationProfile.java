@@ -438,7 +438,7 @@ public class HostNotificationProfile extends NotificationProfile {
             if (intent.getAction().equals(ACTON_CLICK_NOTIFICATION)) {
                 profile = HostNotificationProfile.ATTRIBUTE_ON_CLICK;
             } else if (intent.getAction().equals(ACTON_DELETE_NOTIFICATION)) {
-                profile = HostNotificationProfile.ACTON_DELETE_NOTIFICATION;
+                profile = HostNotificationProfile.ATTRIBUTE_ON_CLOSE;
             } else {
                 return;
             }

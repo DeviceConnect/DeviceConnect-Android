@@ -46,7 +46,7 @@ public abstract class CanvasVideoEncoder extends VideoSurfaceEncoder {
     // VideoSurfaceEncoder
 
     @Override
-    void onStartSurfaceDrawing() {
+    protected void onStartSurfaceDrawing() {
         if (mThread != null) {
             mThread.terminate();
         }
@@ -56,7 +56,7 @@ public abstract class CanvasVideoEncoder extends VideoSurfaceEncoder {
     }
 
     @Override
-    void onStopSurfaceDrawing() {
+    protected void onStopSurfaceDrawing() {
         if (mThread != null) {
             mThread.terminate();
             mThread = null;

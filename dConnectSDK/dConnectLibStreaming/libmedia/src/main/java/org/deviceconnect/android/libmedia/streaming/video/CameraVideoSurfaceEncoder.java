@@ -9,14 +9,14 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -117,13 +117,13 @@ public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
     // VideoSurfaceEncoder
 
     @Override
-    void onStartSurfaceDrawing() {
+    protected void onStartSurfaceDrawing() {
         startCamera();
         registerScreenChange();
     }
 
     @Override
-    void onStopSurfaceDrawing() {
+    protected void onStopSurfaceDrawing() {
         unregisterScreenChange();
         releaseCamera();
     }

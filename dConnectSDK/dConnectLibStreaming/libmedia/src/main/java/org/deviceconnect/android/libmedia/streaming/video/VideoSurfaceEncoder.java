@@ -4,11 +4,11 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaCodecInfo;
 import android.util.Log;
 
-import java.io.IOException;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.gles.CodecInputSurface;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
+
+import java.io.IOException;
 
 /**
  * Camera2 API から Surface でプレビューを取得して、エンコードするためのエンコーダ.
@@ -92,19 +92,19 @@ public abstract class VideoSurfaceEncoder extends VideoEncoder {
      *
      * @return SurfaceTexture
      */
-    SurfaceTexture getSurfaceTexture() {
+    protected SurfaceTexture getSurfaceTexture() {
         return mStManager != null ? mStManager.getSurfaceTexture() : null;
     }
 
     /**
      * Surface への描画準備が完了したことを通知します.
      */
-    abstract void onStartSurfaceDrawing();
+    protected abstract void onStartSurfaceDrawing();
 
     /**
      * Surface への描画が終了したことを通知します.
      */
-    abstract void onStopSurfaceDrawing();
+    protected abstract void onStopSurfaceDrawing();
 
     /**
      * Surface への描画を行うスレッド.

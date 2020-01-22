@@ -12,7 +12,6 @@ import android.media.projection.MediaProjection;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
-import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
@@ -26,8 +25,8 @@ class ImageScreenCast extends AbstractScreenCast {
     ImageScreenCast(final Context context,
                     final MediaProjection mediaProjection,
                     final ImageReader imageReader,
-                    final HostDeviceRecorder.PictureSize size) {
-        super(context, mediaProjection, size);
+                    int width, int height) {
+        super(context, mediaProjection, width, height);
         mImageReader = imageReader;
     }
 
@@ -38,6 +37,10 @@ class ImageScreenCast extends AbstractScreenCast {
         int h = size.getHeight();
 
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+
         DisplayMetrics dm = new DisplayMetrics();
         wm.getDefaultDisplay().getMetrics(dm);
         if (dm.widthPixels > dm.heightPixels) {

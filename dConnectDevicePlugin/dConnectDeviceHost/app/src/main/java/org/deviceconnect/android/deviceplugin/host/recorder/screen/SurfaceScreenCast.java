@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.display.DisplayManager;
@@ -12,40 +11,38 @@ import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-
-
 @TargetApi(21)
 class SurfaceScreenCast extends AbstractScreenCast {
 
-    private final Surface mOutputSurface;
+    private Surface mOutputSurface;
 
-    SurfaceScreenCast(final Context context,
-                      final MediaProjection mediaProjection,
-                      final Surface outputSurface,
-                      final HostDeviceRecorder.PictureSize size) {
-        super(context, mediaProjection, size);
+    SurfaceScreenCast(Context context, MediaProjection mediaProjection,
+                      Surface outputSurface, int width, int height) {
+        super(context, mediaProjection, width, height);
         mOutputSurface = outputSurface;
     }
 
     @Override
     protected VirtualDisplay createVirtualDisplay() {
-        HostDeviceRecorder.PictureSize size = mDisplaySize;
-        int w = size.getWidth();
-        int h = size.getHeight();
+        int w = mWidth;
+        int h = mHeight;
 
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+
         DisplayMetrics dm = new DisplayMetrics();
         wm.getDefaultDisplay().getMetrics(dm);
         if (dm.widthPixels > dm.heightPixels) {
             if (w < h) {
-                w = size.getHeight();
-                h = size.getWidth();
+                w = mHeight;
+                h = mWidth;
             }
         } else {
             if (w > h) {
-                w = size.getHeight();
-                h = size.getWidth();
+                w = mHeight;
+                h = mWidth;
             }
         }
 
@@ -59,5 +56,4 @@ class SurfaceScreenCast extends AbstractScreenCast {
                 getDisplayCallback(),
                 new Handler(Looper.getMainLooper()));
     }
-
 }

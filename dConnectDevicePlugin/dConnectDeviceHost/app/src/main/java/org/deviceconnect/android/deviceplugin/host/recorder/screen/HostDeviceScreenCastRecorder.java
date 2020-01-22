@@ -13,7 +13,6 @@ import android.graphics.PixelFormat;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -36,6 +35,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import androidx.annotation.NonNull;
 
 /**
  * Host Device Screen Cast.
@@ -334,7 +335,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
                         int w = size.getWidth();
                         int h = size.getHeight();
                         ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-                        final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size);
+                        final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size.getWidth(), size.getHeight());
                         final Bitmap[] screenshot = new Bitmap[1];
                         final CountDownLatch mLatch = new CountDownLatch(1);
                         imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {

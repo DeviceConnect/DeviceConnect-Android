@@ -150,7 +150,7 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
                 int w = size.getWidth();
                 int h = size.getHeight();
                 mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-                mScreenCast = mScreenCastMgr.createScreenCast(mImageReader, size);
+                mScreenCast = mScreenCastMgr.createScreenCast(mImageReader, size.getWidth(), size.getHeight());
                 mScreenCast.startCast();
 
                 mStreamingThread = new Thread(() -> {
@@ -212,5 +212,4 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
             start();
         }
     }
-
 }

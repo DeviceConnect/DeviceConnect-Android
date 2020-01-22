@@ -75,6 +75,7 @@ dependencies {
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
     implementation project(':dconnect-demo-lib')
     implementation project(':libstreaming')
+    implementation project(':libmedia')
     implementation 'com.serenegiant:common:2.12.5'
 }
 

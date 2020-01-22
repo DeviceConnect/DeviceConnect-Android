@@ -15,7 +15,6 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.view.Surface;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.util.NotificationUtils;
 
 @TargetApi(21)
@@ -33,10 +32,14 @@ class ScreenCastManager {
 
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
 
-    /** Notification Id */
+    /**
+     * Notification Id
+     */
     private final int NOTIFICATION_ID = 3539;
 
-    /** Notification Content */
+    /**
+     * Notification Content
+     */
     private final String NOTIFICATION_CONTENT = "Host Media Streaming Recording Profileからの起動要求";
 
 
@@ -85,7 +88,7 @@ class ScreenCastManager {
                 }
             }
         });
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             mContext.startActivity(intent);
         } else {
             NotificationUtils.createNotificationChannel(mContext);
@@ -93,22 +96,23 @@ class ScreenCastManager {
         }
     }
 
-    public SurfaceScreenCast createScreenCast(final Surface outputSurface, final HostDeviceRecorder.PictureSize size) {
+    public SurfaceScreenCast createScreenCast(final Surface outputSurface, int width, int height) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
         }
-        return new SurfaceScreenCast(mContext, mMediaProjection, outputSurface, size);
+        return new SurfaceScreenCast(mContext, mMediaProjection, outputSurface, width, height);
     }
 
-    public ImageScreenCast createScreenCast(final ImageReader imageReader, final HostDeviceRecorder.PictureSize size) {
+    public ImageScreenCast createScreenCast(final ImageReader imageReader, int width, int height) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
         }
-        return new ImageScreenCast(mContext, mMediaProjection, imageReader, size);
+        return new ImageScreenCast(mContext, mMediaProjection, imageReader, width, height);
     }
 
     interface PermissionCallback {
         void onAllowed();
+
         void onDisallowed();
     }
 }

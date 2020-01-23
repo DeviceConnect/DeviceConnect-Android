@@ -8,15 +8,22 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import java.io.IOException;
 
 public class ScreenCastVideoEncoder extends VideoEncoder {
+    /**
+     * エンコードするための情報を格納するクラス.
+     */
+    private VideoQuality mVideoQuality = new VideoQuality("video/avc");
 
-    private VideoQuality mVideoQuality;
-
+    /**
+     * Android 端末の画面をキャストを管理するクラス.
+     */
     private ScreenCastManager mScreenCastMgr;
 
+    /**
+     * Android 端末の画面をキャストするためのクラス.
+     */
     private ScreenCast mScreenCast;
 
     ScreenCastVideoEncoder(ScreenCastManager screenCastManager) {
-        mVideoQuality = new VideoQuality("video/avc");
         mScreenCastMgr = screenCastManager;
     }
 
@@ -32,6 +39,11 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
         return mVideoQuality;
     }
 
+    @Override
+    protected int getDisplayRotation() {
+        return mScreenCastMgr.getDisplayRotation();
+    }
+
     // MediaEncoder
 
     @Override
@@ -41,8 +53,15 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
         if (mScreenCast != null) {
             mScreenCast.stopCast();
         }
-        mScreenCast = mScreenCastMgr.createScreenCast(mMediaCodec.createInputSurface(),
-                mVideoQuality.getVideoWidth(), mVideoQuality.getVideoHeight());
+
+        int w = mVideoQuality.getVideoWidth();
+        int h = mVideoQuality.getVideoHeight();
+        if (isSwappedDimensions()) {
+            w = mVideoQuality.getVideoHeight();
+            h = mVideoQuality.getVideoWidth();
+        }
+
+        mScreenCast = mScreenCastMgr.createScreenCast(mMediaCodec.createInputSurface(), w, h);
         mScreenCast.startCast();
     }
 

@@ -68,6 +68,10 @@ public class ScreenCastMJPEGEncoder extends MJPEGEncoder {
         public void run() {
             int w = getMJPEGQuality().getWidth();
             int h = getMJPEGQuality().getHeight();
+            if (mScreenCastMgr.isSwappedDimensions()) {
+                w = getMJPEGQuality().getHeight();
+                h = getMJPEGQuality().getWidth();
+            }
             long frameInterval = 1000L / (long) getMJPEGQuality().getFrameRate();
 
             try {

@@ -2,10 +2,10 @@ package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.util.Log;
 
-import java.net.Socket;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.util.MixedReplaceMediaServer;
+
+import java.net.Socket;
 
 public class MJPEGServer {
     /**
@@ -85,6 +85,34 @@ public class MJPEGServer {
     }
 
     /**
+     * MJPEG サーバへの URI を取得します.
+     * <p>
+     * {@link #start()} がされていない場合には null を返却します。
+     * </p>
+     * @return MJPEG サーバへの URI
+     */
+    public String getUri() {
+        if (mMixedReplaceMediaServer == null) {
+            return null;
+        }
+        return mMixedReplaceMediaServer.getUrl();
+    }
+
+    /**
+     * MJPEG のエンコーダを再起動します.
+     *
+     * <p>
+     * エンコーダが設定されていない場合には何も処理を行いません。
+     * </p>
+     */
+    public void restartEncoder() {
+        if (mMJPEGEncoder != null) {
+            mMJPEGEncoder.stop();
+            mMJPEGEncoder.start();
+        }
+    }
+
+    /**
      * MJPEG サーバを開始します.
      */
     public synchronized void start() {
@@ -102,27 +130,34 @@ public class MJPEGServer {
         mMixedReplaceMediaServer.setCallback(new MixedReplaceMediaServer.Callback() {
             @Override
             public boolean onAccept(Socket socket) {
-                boolean result = false;
-                if (mCallback != null) {
-                    result = mCallback.onAccept(socket);
-                    if (result) {
-                        startMJPEGEncoder();
+                synchronized (MJPEGServer.this) {
+                    boolean result = false;
+                    if (mCallback != null) {
+                        result = mCallback.onAccept(socket);
+                        if (result) {
+                            startMJPEGEncoder();
+                        }
                     }
+                    return result && mMJPEGEncoder != null;
                 }
-                return result && mMJPEGEncoder != null;
             }
 
             @Override
             public void onClosed(Socket socket) {
-                if (mCallback != null) {
-                    mCallback.onClosed(socket);
-                    if (mMixedReplaceMediaServer == null || mMixedReplaceMediaServer.isEmptyConnection()) {
-                        stopMJPEGEncoder();
+                synchronized (MJPEGServer.this) {
+                    if (mCallback != null) {
+                        mCallback.onClosed(socket);
+                        if (mMixedReplaceMediaServer == null || mMixedReplaceMediaServer.isEmptyConnection()) {
+                            stopMJPEGEncoder();
+                        }
                     }
                 }
             }
         });
-        mMixedReplaceMediaServer.start();
+        String url = mMixedReplaceMediaServer.start();
+        if (url == null) {
+            // TODO 起動失敗
+        }
 
         if (DEBUG) {
             Log.i(TAG, "MixedReplaceMediaServer is started.");

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
-import org.deviceconnect.android.libmedia.streaming.video.CameraVideoSurfaceEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 public class CameraVideoStream extends H264VideoStream {
@@ -25,7 +25,7 @@ public class CameraVideoStream extends H264VideoStream {
      */
     public CameraVideoStream(Context context) {
         mContext = context;
-        mVideoEncoder = new CameraVideoSurfaceEncoder(context);
+        mVideoEncoder = new CameraSurfaceVideoEncoder(context);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class CameraVideoStream extends H264VideoStream {
      * @param surface Surface
      */
     public void addSurface(Surface surface) {
-        ((CameraVideoSurfaceEncoder) mVideoEncoder).addSurface(surface);
+        ((CameraSurfaceVideoEncoder) mVideoEncoder).addSurface(surface);
     }
 
     /**
@@ -48,7 +48,7 @@ public class CameraVideoStream extends H264VideoStream {
      * @param surface Surface
      */
     public void removeSurface(Surface surface) {
-        ((CameraVideoSurfaceEncoder) mVideoEncoder).removeSurface(surface);
+        ((CameraSurfaceVideoEncoder) mVideoEncoder).removeSurface(surface);
     }
 
     @Override

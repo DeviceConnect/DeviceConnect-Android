@@ -63,6 +63,15 @@ public abstract class H264VideoStream extends VideoStream {
      */
     private byte[] mSPS;
 
+    /**
+     * 縦横の解像度をスワップするか確認します.
+     *
+     * <p>
+     * 画面の回転した場合には解像度の縦横が変わる場合などに使用します。
+     * </p>
+     *
+     * @return スワップする場合はtrue、それ以外はfalse
+     */
     protected boolean isSwappedDimensions() {
         return false;
     }

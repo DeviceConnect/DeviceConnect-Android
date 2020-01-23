@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 /**
  * Camera2 API から ImageReader でプレビューを取得して、エンコードするためのエンコーダ.
  */
-public abstract class VideoImageReaderEncoder extends VideoEncoder {
+public abstract class ImageReaderVideoEncoder extends VideoEncoder {
     private static final long INPUT_TIMEOUT = 500000;
 
     @Override

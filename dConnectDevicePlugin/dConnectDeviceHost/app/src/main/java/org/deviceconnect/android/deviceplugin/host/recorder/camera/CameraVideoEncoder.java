@@ -5,13 +5,13 @@ import android.view.Surface;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.SurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
-import org.deviceconnect.android.libmedia.streaming.video.VideoSurfaceEncoder;
 
 /**
  * カメラの映像をエンコードするクラス.
  */
-public class CameraVideoEncoder extends VideoSurfaceEncoder {
+public class CameraVideoEncoder extends SurfaceVideoEncoder {
     /**
      * カメラ操作クラス.
      */

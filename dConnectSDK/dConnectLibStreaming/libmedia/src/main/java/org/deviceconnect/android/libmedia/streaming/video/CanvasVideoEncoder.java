@@ -7,7 +7,7 @@ import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 
-public abstract class CanvasVideoEncoder extends VideoSurfaceEncoder {
+public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CANVAS";
 
@@ -43,7 +43,7 @@ public abstract class CanvasVideoEncoder extends VideoSurfaceEncoder {
         return mVideoQuality;
     }
 
-    // VideoSurfaceEncoder
+    // SurfaceVideoEncoder
 
     @Override
     protected void onStartSurfaceDrawing() {

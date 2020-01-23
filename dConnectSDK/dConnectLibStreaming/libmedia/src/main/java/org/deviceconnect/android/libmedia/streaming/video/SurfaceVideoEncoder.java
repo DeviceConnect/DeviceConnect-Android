@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * Camera2 API から Surface でプレビューを取得して、エンコードするためのエンコーダ.
  */
-public abstract class VideoSurfaceEncoder extends VideoEncoder {
+public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "VIDEO-SURFACE-ENCODER";
 

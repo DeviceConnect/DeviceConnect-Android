@@ -18,7 +18,7 @@ import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManage
 import java.util.ArrayList;
 import java.util.List;
 
-public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
+public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CAMERA";
 
@@ -46,7 +46,7 @@ public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
      * コンストラクタ.
      * @param context コンテキスト
      */
-    public CameraVideoSurfaceEncoder(Context context) {
+    public CameraSurfaceVideoEncoder(Context context) {
        this(context, new CameraVideoQuality("video/avc"));
     }
 
@@ -56,7 +56,7 @@ public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
      * @param context コンテキスト
      * @param videoQuality 映像エンコードの設定
      */
-    public CameraVideoSurfaceEncoder(Context context, CameraVideoQuality videoQuality) {
+    public CameraSurfaceVideoEncoder(Context context, CameraVideoQuality videoQuality) {
         mContext = context;
         mVideoQuality = videoQuality;
     }
@@ -114,7 +114,7 @@ public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
         return mCamera2 == null ? Surface.ROTATION_0 : mCamera2.getDisplayRotation();
     }
 
-    // VideoSurfaceEncoder
+    // SurfaceVideoEncoder
 
     @Override
     protected void onStartSurfaceDrawing() {
@@ -159,7 +159,7 @@ public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
             @Override
             public void onOpen() {
                 if (DEBUG) {
-                    Log.d(TAG, "CameraVideoSurfaceEncoder::onOpen");
+                    Log.d(TAG, "CameraSurfaceVideoEncoder::onOpen");
                 }
                 if (mCamera2 != null) {
                     mCamera2.startPreview();
@@ -169,14 +169,14 @@ public class CameraVideoSurfaceEncoder extends VideoSurfaceEncoder {
             @Override
             public void onStartPreview() {
                 if (DEBUG) {
-                    Log.d(TAG, "CameraVideoSurfaceEncoder::onStartPreview");
+                    Log.d(TAG, "CameraSurfaceVideoEncoder::onStartPreview");
                 }
             }
 
             @Override
             public void onStopPreview() {
                 if (DEBUG) {
-                    Log.d(TAG, "CameraVideoSurfaceEncoder::onStopPreview");
+                    Log.d(TAG, "CameraSurfaceVideoEncoder::onStopPreview");
                 }
             }
 

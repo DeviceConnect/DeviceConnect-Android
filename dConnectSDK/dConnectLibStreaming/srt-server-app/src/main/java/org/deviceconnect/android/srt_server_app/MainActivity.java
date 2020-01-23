@@ -5,6 +5,8 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.Size;
 import android.view.Menu;
@@ -27,8 +29,8 @@ import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TsSegmenter;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
+import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
-import org.deviceconnect.android.libmedia.streaming.video.CameraVideoSurfaceEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.SRTServer;
 
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity
 
     private final IpAddressManager mAddressManager = new IpAddressManager();
 
-    private CameraVideoSurfaceEncoder mEncoder;
+    private CameraSurfaceVideoEncoder mEncoder;
 
     private AutoFitSurfaceView mCameraView;
 
@@ -125,6 +127,27 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onError(final MediaEncoderException e) {
             Log.e(TAG, "MediaEncoder.Callback: onError", e);
+        }
+    };
+
+    private final SRTServer.EventListener mServerEventListener = new SRTServer.EventListener() {
+        @Override
+        public void onOpen(final SRTServer server) {
+            if (DEBUG) {
+                Log.d(TAG, "Started SRT Server: " + server.getServerAddress() + ":" + server.getServerPort());
+            }
+            showServerAddress(server.getServerAddress());
+        }
+
+        @Override
+        public void onClose(final SRTServer server) {
+            if (DEBUG) {
+                Log.d(TAG, "Stopped SRT Server: " + server.getServerAddress() + ":" + server.getServerPort());
+            }
+        }
+
+        @Override
+        public void onErrorOpen(final SRTServer server, final int error) {
         }
     };
 
@@ -237,15 +260,13 @@ public class MainActivity extends AppCompatActivity
 
     private void startStreaming(final boolean startServer) {
         String serverAddress = getIpAddress();
-
         if (serverAddress == null) {
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "WiFi ルーターに接続してください", Toast.LENGTH_LONG).show());
             return;
         }
-        showServerAddress(serverAddress);
 
         try {
-            mEncoder = new CameraVideoSurfaceEncoder(getApplicationContext());
+            mEncoder = new CameraSurfaceVideoEncoder(getApplicationContext());
             mEncoder.addSurface(mCameraView.getHolder().getSurface());
             mEncoder.setCallback(mEncoderCallback);
 
@@ -256,7 +277,8 @@ public class MainActivity extends AppCompatActivity
 
             if (startServer) {
                 mSRTServer = new SRTServer(serverAddress, 12345);
-                mSRTServer.start();
+                mSRTServer.addEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
+                mSRTServer.open();
             }
 
             mH264TsSegmenter.initialize(0, 0,0, fps);
@@ -269,7 +291,6 @@ public class MainActivity extends AppCompatActivity
             videoQuality.setVideoHeight(previewSize.getHeight());
 
             if (DEBUG) {
-                Log.d(TAG, "Started SRT Server: " + serverAddress);
                 Log.d(TAG, "Settings > Video Size: " + previewSize.getWidth() + " x " + previewSize.getHeight());
             }
 
@@ -285,7 +306,7 @@ public class MainActivity extends AppCompatActivity
             mEncoder = null;
         }
         if (stopServer && mSRTServer != null) {
-            mSRTServer.stop();
+            mSRTServer.close();
             mSRTServer = null;
         }
     }

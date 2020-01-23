@@ -46,7 +46,7 @@ JNI_METHOD_NAME(cleanup)(JNIEnv *env, jclass clazz) {
 
 
 JNIEXPORT jlong JNICALL
-JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jint port) {
+JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jint port, jint backlog) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_createSrtSocket()");
 
     const char *addressString = env->GetStringUTFChars(address, nullptr);
@@ -75,7 +75,7 @@ JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jin
         return -1;
     }
 
-    st = srt_listen(ss, 5);
+    st = srt_listen(ss, backlog);
     if (st == SRT_ERROR) {
         LOGE("srt_listen: %s\n", srt_getlasterror_str());
         return -1;
@@ -112,7 +112,7 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jstring address, j
     }
     env->ReleaseStringUTFChars(address, addressString);
 
-    int st = srt_accept((int) ptr, NULL, 0);
+    int st = srt_accept((int) ptr, nullptr, 0);
     if (st == SRT_ERROR) {
         LOGE("srt_accept: %s\n", srt_getlasterror_str());
         return -1;

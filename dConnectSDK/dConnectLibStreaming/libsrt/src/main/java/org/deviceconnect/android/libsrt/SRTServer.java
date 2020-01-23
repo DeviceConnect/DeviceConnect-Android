@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libsrt;
 
+import android.os.Handler;
 import android.util.Log;
 
 import java.io.IOException;
@@ -7,18 +8,47 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
-
 /**
  * SRTサーバー.
  */
 public class SRTServer {
 
+    /**
+     * サーバーの動作状態に関するイベントを受信するリスナー.
+     */
+    public interface EventListener {
+
+        /**
+         * サーバーが開始したタイミングで実行されます.
+         *
+         * @param server サーバーのインスタンス
+         */
+        void onOpen(SRTServer server);
+
+        /**
+         * サーバーが停止したタイミングで実行されます.
+         *
+         * @param server サーバーのインスタンス
+         */
+        void onClose(SRTServer server);
+
+        /**
+         * サーバーの開始に失敗した場合に実行されます.
+         * @param server サーバーのインスタンス
+         * @param error 失敗の原因
+         */
+        void onErrorOpen(SRTServer server, int error);
+    }
+
     private static final String TAG = "SRT";
 
-    private final String mAddress;
+    private static final int DEFAULT_BACKLOG = 5;
 
-    private final int mPort;
+    private final String mServerAddress;
+
+    private final int mServerPort;
+
+    private final int mBacklog;
 
     private final List<ClientSocket> mClientSocketList = new ArrayList<>();
 
@@ -26,31 +56,44 @@ public class SRTServer {
 
     private Thread mServerThread;
 
-    private QueueThread<Message> mMessageThread;
-
     private boolean mStarted;
 
+    private final EventListenerManager mListenerManager = new EventListenerManager();
 
-    public SRTServer(final String address, final int port) {
-        mAddress = address;
-        mPort = port;
+    public SRTServer(final String serverAddress, final int serverPort, final int backlog) {
+        mServerAddress = serverAddress;
+        mServerPort = serverPort;
+        mBacklog = backlog;
+    }
+
+    public SRTServer(final String serverAddress, final int serverPort) {
+        this(serverAddress, serverPort, DEFAULT_BACKLOG);
+    }
+
+    public String getServerAddress() {
+        return mServerAddress;
+    }
+
+    public int getServerPort() {
+        return mServerPort;
     }
 
     @Override
     protected void finalize() throws Throwable {
-        stop();
+        close();
         super.finalize();
     }
 
-    public synchronized void start() throws IOException {
+    public synchronized void open() throws IOException {
         if (mStarted) {
             return;
         }
 
         NdkHelper.startup();
-        mNativeSocket = NdkHelper.createSrtSocket(mAddress, mPort);
+        mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
         if (mNativeSocket < 0) {
-            throw new IOException("Failed to create server socket: " + mAddress + ":" + mPort);
+            mListenerManager.onErrorOpen(this, (int) mNativeSocket);
+            throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
         }
         Log.d(TAG, "Created server socket: native pointer = " + mNativeSocket);
         mStarted = true;
@@ -59,7 +102,7 @@ public class SRTServer {
             try {
                 while (mStarted && !Thread.interrupted()) {
                     Log.d(TAG, "Waiting for SRT client...");
-                    long ptr = NdkHelper.accept(mNativeSocket, mAddress, mPort);
+                    long ptr = NdkHelper.accept(mNativeSocket, mServerAddress, mServerPort);
                     Log.d(TAG, "NdkHelper.accept: clientSocket = " + ptr);
 
                     if (ptr >= 0) {
@@ -67,7 +110,7 @@ public class SRTServer {
                             mClientSocketList.add(new ClientSocket(ptr));
                         }
                     } else {
-                        stop();
+                        close();
                     }
                 }
             } catch (Throwable e) {
@@ -77,23 +120,7 @@ public class SRTServer {
         mServerThread.setName("ServerThread");
         mServerThread.start();
 
-        mMessageThread = new QueueThread<Message>() {
-            @Override
-            public void run() {
-                try {
-                    while (mStarted && !Thread.interrupted()) {
-                        Message message = get();
-                        if (message != null) {
-                            try {
-                                sendPacket(message.mData);
-                            } catch (IOException ignored) {}
-                        }
-                    }
-                } catch (InterruptedException ignored) {}
-            }
-        };
-        mMessageThread.setName("MessageThread");
-        mMessageThread.start();
+        mListenerManager.onOpen(this);
     }
 
     public void sendPacket(final byte[] packet) throws IOException {
@@ -113,7 +140,7 @@ public class SRTServer {
         }
     }
 
-    public synchronized void stop() {
+    public synchronized void close() {
         if (!mStarted) {
             return;
         }
@@ -130,19 +157,16 @@ public class SRTServer {
         mStarted = false;
         mServerThread.interrupt();
         mServerThread = null;
-        mMessageThread.interrupt();
-        mMessageThread = null;
+
+        mListenerManager.onClose(this);
     }
 
-    public void offer(final byte[] data, final int length) {
-        offer(data, 0, length);
+    public void addEventListener(final EventListener listener, final Handler handler) {
+        mListenerManager.addListener(listener, handler);
     }
 
-    public void offer(final byte[] data, final int offset, final int length) {
-        if (!mStarted) {
-            throw new IllegalStateException();
-        }
-        mMessageThread.add(new Message(data, offset, length));
+    public void removeEventListener(final EventListener listener) {
+        mListenerManager.removeListener(listener);
     }
 
     public static class ClientSocketException extends IOException {
@@ -175,30 +199,92 @@ public class SRTServer {
             }
         }
 
-        public synchronized void close() {
+        synchronized void close() {
             mClosed = true;
             NdkHelper.closeSrtSocket(mSocketPtr);
         }
     }
 
-    private static class Message {
-        final byte[] mData;
-        final int mOffset;
-        final int mLength;
+    private static class EventListenerManager implements EventListener {
 
-        Message(final byte[] data, final int offset, final int length) {
-            if (data == null) {
-                throw new IllegalArgumentException("data is null");
+        final List<EventListenerWrapper> mEventListenerList = new ArrayList<>();
+
+        void addListener(final EventListener listener, final Handler handler) {
+            synchronized (mEventListenerList) {
+                mEventListenerList.add(new EventListenerWrapper(listener, handler));
             }
-            if (offset < 0) {
-                throw new IllegalArgumentException("offset is negative");
+        }
+
+        void removeListener(final EventListener listener) {
+            synchronized (mEventListenerList) {
+                for (Iterator<EventListenerWrapper> it = mEventListenerList.iterator(); it.hasNext(); ) {
+                    EventListenerWrapper cache = it.next();
+                    if (listener == cache.mEventListener) {
+                        cache.dispose();
+                        it.remove();
+                        return;
+                    }
+                }
             }
-            if (length < 0) {
-                throw new IllegalArgumentException("length is negative");
+        }
+
+        @Override
+        public void onOpen(final SRTServer server) {
+            synchronized (mEventListenerList) {
+                for (EventListener l : mEventListenerList) {
+                    l.onOpen(server);
+                }
             }
-            mData = data;
-            mOffset = offset;
-            mLength = length;
+        }
+
+        @Override
+        public void onClose(final SRTServer server) {
+            synchronized (mEventListenerList) {
+                for (EventListener l : mEventListenerList) {
+                    l.onClose(server);
+                }
+            }
+        }
+
+        @Override
+        public void onErrorOpen(final SRTServer server, final int error) {
+            synchronized (mEventListenerList) {
+                for (EventListener l : mEventListenerList) {
+                    l.onErrorOpen(server, error);
+                }
+            }
+        }
+    }
+
+    private static class EventListenerWrapper implements EventListener {
+
+        EventListener mEventListener;
+
+        Handler mHandler;
+
+        EventListenerWrapper(final EventListener eventListener, final Handler handler) {
+            mEventListener = eventListener;
+            mHandler = handler;
+        }
+
+        void dispose() {
+            mEventListener = null;
+            mHandler = null;
+        }
+
+        @Override
+        public void onOpen(final SRTServer server) {
+            mHandler.post(() -> mEventListener.onOpen(server));
+        }
+
+        @Override
+        public void onClose(final SRTServer server) {
+            mHandler.post(() -> mEventListener.onClose(server));
+        }
+
+        @Override
+        public void onErrorOpen(final SRTServer server, final int error) {
+            mHandler.post(() -> mEventListener.onErrorOpen(server, error));
         }
     }
 }

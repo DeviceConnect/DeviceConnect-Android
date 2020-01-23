@@ -33,7 +33,16 @@ public class SRTServer {
         void onClose(SRTServer server);
 
         /**
+         * クライアントと接続したタイミングで実行されます.
+         *
+         * @param server サーバーのインスタンス
+         * @param clientSocket クライアント側のソケット情報
+         */
+        void onAcceptClient(SRTServer server, SRTClientSocket clientSocket);
+
+        /**
          * サーバーの開始に失敗した場合に実行されます.
+         *
          * @param server サーバーのインスタンス
          * @param error 失敗の原因
          */
@@ -50,7 +59,7 @@ public class SRTServer {
 
     private final int mBacklog;
 
-    private final List<ClientSocket> mClientSocketList = new ArrayList<>();
+    private final List<SRTClientSocket> mClientSocketList = new ArrayList<>();
 
     private long mNativeSocket;
 
@@ -102,13 +111,16 @@ public class SRTServer {
             try {
                 while (mStarted && !Thread.interrupted()) {
                     Log.d(TAG, "Waiting for SRT client...");
-                    long ptr = NdkHelper.accept(mNativeSocket, mServerAddress, mServerPort);
-                    Log.d(TAG, "NdkHelper.accept: clientSocket = " + ptr);
+                    SRTClientSocket socket = new SRTClientSocket();
+                    NdkHelper.accept(mNativeSocket, socket);
+                    Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
 
-                    if (ptr >= 0) {
+                    if (socket.isAvailable()) {
                         synchronized (mClientSocketList) {
-                            mClientSocketList.add(new ClientSocket(ptr));
+                            mClientSocketList.add(socket);
                         }
+
+                        mListenerManager.onAcceptClient(this, socket);
                     } else {
                         close();
                     }
@@ -125,8 +137,8 @@ public class SRTServer {
 
     public void sendPacket(final byte[] packet) throws IOException {
         synchronized (mClientSocketList) {
-            for (Iterator<ClientSocket> it = mClientSocketList.iterator(); it.hasNext(); ) {
-                ClientSocket socket = it.next();
+            for (Iterator<SRTClientSocket> it = mClientSocketList.iterator(); it.hasNext(); ) {
+                SRTClientSocket socket = it.next();
                 try {
                     socket.send(packet, packet.length);
                 } catch (ClientSocketException e) {
@@ -147,7 +159,7 @@ public class SRTServer {
 
         NdkHelper.closeSrtSocket(mNativeSocket);
         synchronized (mClientSocketList) {
-            for (ClientSocket socket : mClientSocketList) {
+            for (SRTClientSocket socket : mClientSocketList) {
                 socket.close();
             }
             mClientSocketList.clear();
@@ -176,32 +188,6 @@ public class SRTServer {
         ClientSocketException(final int error) {
             super();
             mError = error;
-        }
-    }
-
-    private static class ClientSocket {
-
-        private final long mSocketPtr;
-
-        private boolean mClosed;
-
-        ClientSocket(final long ptr) {
-            mSocketPtr = ptr;
-        }
-
-        public synchronized void send(final byte[] data, final int length) throws IOException {
-            if (mClosed) {
-                throw new IOException("already closed");
-            }
-            int result = NdkHelper.sendMessage(mSocketPtr, data, length);
-            if (result < 0) {
-                throw new ClientSocketException(result);
-            }
-        }
-
-        synchronized void close() {
-            mClosed = true;
-            NdkHelper.closeSrtSocket(mSocketPtr);
         }
     }
 
@@ -247,6 +233,15 @@ public class SRTServer {
         }
 
         @Override
+        public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
+            synchronized (mEventListenerList) {
+                for (EventListener l : mEventListenerList) {
+                    l.onAcceptClient(server, clientSocket);
+                }
+            }
+        }
+
+        @Override
         public void onErrorOpen(final SRTServer server, final int error) {
             synchronized (mEventListenerList) {
                 for (EventListener l : mEventListenerList) {
@@ -280,6 +275,11 @@ public class SRTServer {
         @Override
         public void onClose(final SRTServer server) {
             mHandler.post(() -> mEventListener.onClose(server));
+        }
+
+        @Override
+        public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
+            mHandler.post(() -> mEventListener.onAcceptClient(server, clientSocket));
         }
 
         @Override

@@ -98,25 +98,29 @@ JNI_METHOD_NAME(closeSrtSocket)(JNIEnv *env, jclass clazz, jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jstring address, jint port) {
+JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_accept()");
 
-    const char *addressString = env->GetStringUTFChars(address, nullptr);
-    struct sockaddr_in sa;
-    sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
-    if (inet_pton(AF_INET, addressString, &sa.sin_addr) != 1) {
-        env->ReleaseStringUTFChars(address, addressString);
-        LOGE("inet_pton error.");
-        return -1;
-    }
-    env->ReleaseStringUTFChars(address, addressString);
-
-    int st = srt_accept((int) ptr, nullptr, 0);
+    struct sockaddr addr;
+    int addrlen;
+    int st = srt_accept((int) ptr, &addr, &addrlen);
     if (st == SRT_ERROR) {
         LOGE("srt_accept: %s\n", srt_getlasterror_str());
         return -1;
     }
+
+    // クライアント側のソケットへのポインタ
+    jclass socketCls = env->FindClass("org/deviceconnect/android/libsrt/SRTClientSocket");
+    jfieldID socketPtr = env->GetFieldID(socketCls, "mSocketPtr", "J");
+    env->SetLongField(socket, socketPtr, st);
+
+    // クライアントのIPアドレス
+    char format[] = "%d.%d.%d.%d";
+    char buf[15];
+    sprintf(buf, format, addr.sa_data[2], addr.sa_data[3], addr.sa_data[4], addr.sa_data[5]);
+    jstring address = env->NewStringUTF(buf);
+    jfieldID addressField = env->GetFieldID(socketCls, "mSocketAddress", "Ljava/lang/String;");
+    env->SetObjectField(socket, addressField, address);
 
     return st;
 }

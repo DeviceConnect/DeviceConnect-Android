@@ -35,12 +35,12 @@ class ScreenCastManager {
     /**
      * Notification Id
      */
-    private final int NOTIFICATION_ID = 3539;
+    private static final int NOTIFICATION_ID = 3539;
 
     /**
      * Notification Content
      */
-    private final String NOTIFICATION_CONTENT = "Host Media Streaming Recording Profileからの起動要求";
+    private static final String NOTIFICATION_CONTENT = "Host Media Streaming Recording Profileからの起動要求";
 
 
     ScreenCastManager(final Context context) {
@@ -56,7 +56,7 @@ class ScreenCastManager {
         }
     }
 
-    public void requestPermission(final PermissionCallback callback) {
+    void requestPermission(final PermissionCallback callback) {
         if (mMediaProjection != null) {
             callback.onAllowed();
             return;
@@ -96,14 +96,14 @@ class ScreenCastManager {
         }
     }
 
-    public SurfaceScreenCast createScreenCast(final Surface outputSurface, int width, int height) {
+    SurfaceScreenCast createScreenCast(final Surface outputSurface, int width, int height) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
         }
         return new SurfaceScreenCast(mContext, mMediaProjection, outputSurface, width, height);
     }
 
-    public ImageScreenCast createScreenCast(final ImageReader imageReader, int width, int height) {
+    ImageScreenCast createScreenCast(final ImageReader imageReader, int width, int height) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
         }

@@ -5,15 +5,15 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
 
-public class CameraMJPEGEncoder extends MJPEGEncoder {
+import java.util.ArrayList;
+import java.util.List;
+
+public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     /**
      * カメラ.
      */

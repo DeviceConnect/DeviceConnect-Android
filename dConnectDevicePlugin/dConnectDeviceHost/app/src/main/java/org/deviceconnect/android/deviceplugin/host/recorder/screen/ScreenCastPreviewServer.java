@@ -12,23 +12,30 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 
-
 public abstract class ScreenCastPreviewServer implements PreviewServer {
 
     protected final Context mContext;
     protected final AbstractPreviewServerProvider mServerProvider;
-    private BroadcastReceiver mConfigChangeReceiver;
     private boolean mMute;
 
-    ScreenCastPreviewServer(final Context context,
-                            final AbstractPreviewServerProvider serverProvider) {
+    private final BroadcastReceiver mConfigChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            onConfigChange();
+        }
+    };
+
+    ScreenCastPreviewServer(Context context, AbstractPreviewServerProvider serverProvider) {
         mContext = context;
         mServerProvider = serverProvider;
         mMute = true;
     }
 
-    private int getRotation() {
+    private int getDisplayRotation() {
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
         Display display = wm.getDefaultDisplay();
         return display.getRotation();
     }
@@ -37,7 +44,7 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
         HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
         int w;
         int h;
-        switch (getRotation()) {
+        switch (getDisplayRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
                 w = size.getWidth();
@@ -52,21 +59,15 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
     }
 
     synchronized void registerConfigChangeReceiver() {
-        mConfigChangeReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                onConfigChange();
-            }
-        };
-        IntentFilter filter = new IntentFilter(
-                "android.intent.action.CONFIGURATION_CHANGED");
+        IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
         mContext.registerReceiver(mConfigChangeReceiver, filter);
     }
 
     synchronized void unregisterConfigChangeReceiver() {
-        if (mConfigChangeReceiver != null) {
+        try {
             mContext.unregisterReceiver(mConfigChangeReceiver);
-            mConfigChangeReceiver = null;
+        } catch (Exception e) {
+            // ignore.
         }
     }
 
@@ -78,6 +79,7 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
     public void onDisplayRotation(final int degree) {
         // NOP.
     }
+
     /**
      * Recorderをmute状態にする.
      */

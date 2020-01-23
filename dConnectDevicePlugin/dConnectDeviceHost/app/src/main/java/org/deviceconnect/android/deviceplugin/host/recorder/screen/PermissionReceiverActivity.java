@@ -62,8 +62,7 @@ public class PermissionReceiverActivity extends Activity {
     }
 
     @Override
-    protected void onActivityResult(final int requestCode, final int resultCode,
-                                    final Intent data) {
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode != REQUEST_CODE) {
             return;
         }
@@ -72,7 +71,9 @@ public class PermissionReceiverActivity extends Activity {
         response.putParcelable(HostDeviceScreenCastRecorder.RESULT_DATA, data);
 
         ResultReceiver callback = getIntent().getParcelableExtra(HostDeviceScreenCastRecorder.EXTRA_CALLBACK);
-        callback.send(Activity.RESULT_OK, response);
+        if (callback != null) {
+            callback.send(Activity.RESULT_OK, response);
+        }
         finish();
     }
 }

@@ -25,10 +25,13 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "ScreenCastRTSP";
 
+    /**
+     * RTSP のマイムタイプを定義します.
+     */
     static final String MIME_TYPE = "video/x-rtp";
 
     /**
-     * サーバ名を定義.
+     * RTSP のサーバ名を定義します.
      */
     private static final String SERVER_NAME = "Android Host Screen RTSP Server";
 
@@ -42,7 +45,8 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
      */
     private RtspServer mRtspServer;
 
-    ScreenCastRTSPPreviewServer(Context context, AbstractPreviewServerProvider serverProvider,
+    ScreenCastRTSPPreviewServer(Context context,
+                                AbstractPreviewServerProvider serverProvider,
                                 ScreenCastManager screenCastMgr) {
         super(context, serverProvider);
         mScreenCastMgr = screenCastMgr;
@@ -116,7 +120,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
             videoQuality.setVideoWidth(780);
             videoQuality.setVideoHeight(1280);
-            videoQuality.setBitRate(mServerProvider.getPreviewBitRate());
+            videoQuality.setBitRate(mServerProvider.getPreviewBitRate() * 1024);
             videoQuality.setFrameRate((int) mServerProvider.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
 

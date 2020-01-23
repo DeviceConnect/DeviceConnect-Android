@@ -11,11 +11,10 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 
-import androidx.annotation.NonNull;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
+
+import androidx.annotation.NonNull;
 
 /**
  * Camera2 API で実装されるレコーダーの基底クラス.
@@ -23,17 +22,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
  * @author NTT DOCOMO, INC.
  */
 public abstract class AbstractCamera2Recorder extends AbstractPreviewServerProvider {
-
-    /**
-     * ログ出力用タグ.
-     */
-    private static final String TAG = "host.dplugin";
-
-    /**
-     * デバッグフラグ.
-     */
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-
     /**
      * NotificationID のベースを定義.
      */
@@ -126,5 +114,4 @@ public abstract class AbstractCamera2Recorder extends AbstractPreviewServerProvi
             return mName;
         }
     }
-
 }

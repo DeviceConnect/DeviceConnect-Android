@@ -38,6 +38,9 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
     protected void prepare() throws IOException {
         super.prepare();
 
+        if (mScreenCast != null) {
+            mScreenCast.stopCast();
+        }
         mScreenCast = mScreenCastMgr.createScreenCast(mMediaCodec.createInputSurface(),
                 mVideoQuality.getVideoWidth(), mVideoQuality.getVideoHeight());
         mScreenCast.startCast();

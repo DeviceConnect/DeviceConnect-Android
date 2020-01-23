@@ -8,6 +8,9 @@ import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoSurfaceEncoder;
 
+/**
+ * カメラの映像をエンコードするクラス.
+ */
 public class CameraVideoEncoder extends VideoSurfaceEncoder {
     /**
      * カメラ操作クラス.

@@ -9,6 +9,7 @@ import android.util.Log;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -71,8 +72,22 @@ public class MicAACLATMEncoder extends AudioEncoder {
     }
 
     @Override
+    protected void prepare() throws IOException {
+        if (isMute()) {
+            // ミュートの場合には、MediaCodec を作成させないようにします。
+            return;
+        }
+        super.prepare();
+    }
+
+    @Override
     protected synchronized void startRecording() {
+        if (isMute()) {
+            // ミュートの場合には、AudioCodec を作成させないようにします。
+            return;
+        }
         super.startRecording();
+
         try {
             startAudioRecord();
         } catch (Exception e) {

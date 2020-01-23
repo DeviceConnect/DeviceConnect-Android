@@ -60,7 +60,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     private static final String MIME_TYPE = "video/x-mjpeg";
 
-    private static final double DEFAULT_MAX_FPS = 10.0d;
+    private static final double DEFAULT_MAX_FPS = 30.0d;
 
     /** ファイル名に付けるプレフィックス. */
     private static final String FILENAME_PREFIX = "android_screen_";
@@ -94,6 +94,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     private FileManager mFileMgr;
     private PictureSize mPreviewSize;
     private PictureSize mPictureSize;
+    private int mPreviewBitRate = 1024 * 1024;
     private double mMaxFps = DEFAULT_MAX_FPS;
     private RecorderState mState = RecorderState.INACTTIVE;
 
@@ -116,13 +117,24 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
+        if (DEBUG) {
+            Log.d(TAG, "ScreenCastSupportedPreviewSize");
+            Log.d(TAG, "  size: " + originalSize);
+        }
+
         final int num = 4;
         final int w = originalSize.getWidth();
         final int h = originalSize.getHeight();
         mSupportedPreviewSizes.clear();
         for (int i = 1; i <= num; i++) {
             float scale = i / ((float) num);
-            PictureSize previewSize = new PictureSize((int) (w * scale), (int) (h * scale));
+            // MediaCodec に解像度を渡す時に端数を持っているとエラーになってしまう
+            // 場合があったので、キリの良い値になるように調整
+            int width = (int) (w * scale);
+            int height = (int) (h * scale);
+            width += 10 - (width % 10);
+            height += 10 - (height % 10);
+            PictureSize previewSize = new PictureSize(width, height);
             mSupportedPreviewSizes.add(previewSize);
             mSupportedPictureSizes.add(previewSize);
         }
@@ -221,12 +233,12 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     @Override
     public int getPreviewBitRate() {
-        return 0; // TODO ビットレートの取得
+        return mPreviewBitRate;
     }
 
     @Override
     public void setPreviewBitRate(int bitRate) {
-        // TODO ビットレートの設定
+        mPreviewBitRate = bitRate;
     }
 
     @Override
@@ -246,11 +258,9 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     @Override
     public boolean isSupportedPictureSize(int width, int height) {
-        if (mSupportedPictureSizes != null) {
-            for (PictureSize size : mSupportedPictureSizes) {
-                if (width == size.getWidth() && height == size.getHeight()) {
-                    return true;
-                }
+        for (PictureSize size : mSupportedPictureSizes) {
+            if (width == size.getWidth() && height == size.getHeight()) {
+                return true;
             }
         }
         return false;
@@ -258,11 +268,9 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     @Override
     public boolean isSupportedPreviewSize(int width, int height) {
-        if (mSupportedPreviewSizes != null) {
-            for (PictureSize size : mSupportedPreviewSizes) {
-                if (width == size.getWidth() && height == size.getHeight()) {
-                    return true;
-                }
+        for (PictureSize size : mSupportedPreviewSizes) {
+            if (width == size.getWidth() && height == size.getHeight()) {
+                return true;
             }
         }
         return false;

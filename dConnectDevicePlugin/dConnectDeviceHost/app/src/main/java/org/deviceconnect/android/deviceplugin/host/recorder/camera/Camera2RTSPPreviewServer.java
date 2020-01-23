@@ -68,6 +68,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             mRtspServer.stop();
             mRtspServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -75,7 +76,10 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
         if (mRtspServer != null) {
             new Thread(() -> {
                 if (mRtspServer != null) {
-                    mRtspServer.getRtspSession().getVideoStream().getVideoEncoder().restart();
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        session.getVideoStream().getVideoEncoder().restart();
+                    }
                 }
             }).start();
         }
@@ -84,26 +88,21 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
     @Override
     public void mute() {
         super.mute();
-
-        if (mRtspServer != null) {
-            new Thread(() -> {
-                if (mRtspServer != null) {
-                    RtspSession session = mRtspServer.getRtspSession();
-                    if (session != null) {
-                        AudioStream stream = session.getAudioStream();
-                        if (stream  != null) {
-                            stream.getAudioEncoder().setMute(true);
-                        }
-                    }
-                }
-            }).start();
-        }
+        setMute(true);
     }
 
     @Override
     public void unMute() {
         super.unMute();
+        setMute(false);
+    }
 
+    /**
+     * AudioEncoder にミュート設定を行います.
+     *
+     * @param mute ミュート設定
+     */
+    private void setMute(boolean mute) {
         if (mRtspServer != null) {
             new Thread(() -> {
                 if (mRtspServer != null) {
@@ -111,7 +110,8 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                     if (session != null) {
                         AudioStream stream = session.getAudioStream();
                         if (stream  != null) {
-                            stream.getAudioEncoder().setMute(false);
+                            stream.getAudioEncoder().setMute(mute);
+                            stream.getAudioEncoder().restart();
                         }
                     }
                 }
@@ -139,6 +139,8 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             videoQuality.setIFrameInterval(2);
 
             session.setVideoMediaStream(videoStream);
+
+            // TODO 音声の設定を外部から設定できるようにすること。
 
             AudioStream audioStream = new MicAACLATMStream();
             audioStream.setDestinationPort(5004);

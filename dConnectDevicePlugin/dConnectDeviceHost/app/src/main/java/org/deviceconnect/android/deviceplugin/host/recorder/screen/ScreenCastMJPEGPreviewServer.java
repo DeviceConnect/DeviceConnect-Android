@@ -14,7 +14,6 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
 import java.net.Socket;
 
-
 @TargetApi(21)
 class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
@@ -72,6 +71,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override

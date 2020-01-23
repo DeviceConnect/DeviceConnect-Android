@@ -22,7 +22,6 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
 import java.net.Socket;
 
-
 /**
  * カメラのプレビューをMJPEG形式で配信するサーバー.
  *
@@ -77,6 +76,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override

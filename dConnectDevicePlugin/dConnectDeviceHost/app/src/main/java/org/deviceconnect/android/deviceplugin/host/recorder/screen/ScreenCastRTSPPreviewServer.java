@@ -81,6 +81,7 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             mRtspServer.stop();
             mRtspServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -92,36 +93,28 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
         if (mRtspServer != null) {
             new Thread(() -> {
                 if (mRtspServer != null) {
-                    mRtspServer.getRtspSession().getVideoStream().getVideoEncoder().restart();
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        session.getVideoStream().getVideoEncoder().restart();
+                    }
                 }
             }).start();
         }
     }
 
-
     @Override
     public void mute() {
         super.mute();
-
-        if (mRtspServer != null) {
-            new Thread(() -> {
-                if (mRtspServer != null) {
-                    RtspSession session = mRtspServer.getRtspSession();
-                    if (session != null) {
-                        AudioStream stream = session.getAudioStream();
-                        if (stream  != null) {
-                            stream.getAudioEncoder().setMute(true);
-                        }
-                    }
-                }
-            }).start();
-        }
+        setMute(true);
     }
 
     @Override
     public void unMute() {
         super.unMute();
+        setMute(false);
+    }
 
+    private void setMute(boolean mute) {
         if (mRtspServer != null) {
             new Thread(() -> {
                 if (mRtspServer != null) {
@@ -129,14 +122,14 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
                     if (session != null) {
                         AudioStream stream = session.getAudioStream();
                         if (stream  != null) {
-                            stream.getAudioEncoder().setMute(false);
+                            stream.getAudioEncoder().setMute(mute);
+                            stream.getAudioEncoder().restart();
                         }
                     }
                 }
             }).start();
         }
     }
-
 
     private final RtspServer.Callback mCallback = new RtspServer.Callback() {
         @Override
@@ -151,13 +144,15 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(320);
-            videoQuality.setVideoHeight(560);
-            videoQuality.setBitRate(1024 * 1024);
-            videoQuality.setFrameRate(30);
+            videoQuality.setVideoWidth(previewSize.getWidth());
+            videoQuality.setVideoHeight(previewSize.getHeight());
+            videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
+            videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
 
             session.setVideoMediaStream(videoStream);
+
+            // TODO 音声の設定を外部から設定できるようにすること。
 
             AudioStream audioStream = new MicAACLATMStream();
             audioStream.setDestinationPort(5004);
@@ -166,7 +161,7 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             audioEncoder.setMute(isMuted());
             AudioQuality audioQuality = audioEncoder.getAudioQuality();
             audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-            audioQuality.setSamplingRate(48000);
+            audioQuality.setSamplingRate(8000);
             audioQuality.setBitRate(64 * 1024);
             audioQuality.setUseAEC(true);
 

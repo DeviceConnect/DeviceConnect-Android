@@ -785,8 +785,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
-        for (PreviewServer server : getServers()) {
-            server.onDisplayRotation(degree);
-        }
+//        for (PreviewServer server : getServers()) {
+//            server.onDisplayRotation(degree);
+//        }
     }
 }

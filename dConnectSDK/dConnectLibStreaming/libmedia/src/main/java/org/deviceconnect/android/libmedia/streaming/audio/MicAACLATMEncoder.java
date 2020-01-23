@@ -6,10 +6,11 @@ import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
 import android.util.Log;
 
-import java.nio.ByteBuffer;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
+
+import java.nio.ByteBuffer;
 
 /**
  * マイクから音声データを取得して、エンコードするクラス.
@@ -60,13 +61,9 @@ public class MicAACLATMEncoder extends AudioEncoder {
         return mAudioQuality;
     }
 
-    public int getFreqIdx(int sampleRate) {
-        for (int i = 0; i < SUPPORT_AUDIO_SAMPLING_RATES.length; i++) {
-            if (sampleRate == SUPPORT_AUDIO_SAMPLING_RATES[i]) {
-                return i;
-            }
-        }
-        return -1;
+    @Override
+    protected void release() {
+        super.release();
     }
 
     @Override
@@ -91,10 +88,28 @@ public class MicAACLATMEncoder extends AudioEncoder {
         super.stopRecording();
     }
 
+    @Override
+    protected void onInputData(ByteBuffer inputData, int index) {
+        while (mMicRecordThread == null) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+        mMicRecordThread.add(new MediaCodecBuffer(inputData, index));
+    }
+
+    @Override
+    public void setMute(boolean mute) {
+        super.setMute(mute);
+//        new Thread(this::restart).start();
+    }
+
     /**
      * 音声レコード用のスレッド.
      */
-    private class MicRecordThread extends Thread {
+    private class MicRecordThread extends QueueThread<MediaCodecBuffer> {
         /**
          * マイクから音声をレコードするクラス.
          */
@@ -147,7 +162,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
         /**
          * 音声をレコードして、MediaCodec に渡します.
          */
-        private void recordAudio() {
+        private void recordAudio() throws InterruptedException {
             AudioQuality audioQuality = getAudioQuality();
 
             int bufferSize = AudioRecord.getMinBufferSize(audioQuality.getSamplingRate(),
@@ -184,23 +199,20 @@ public class MicAACLATMEncoder extends AudioEncoder {
             mAudioRecord.startRecording();
 
             while (!mStopFlag) {
-                int bufferIndex = mMediaCodec.dequeueInputBuffer(10000);
-                if (bufferIndex >= 0) {
-                    int len = 0;
-                    ByteBuffer buffer = mMediaCodec.getInputBuffer(bufferIndex);
-                    if (buffer != null) {
-                        buffer.clear();
-                        len = mAudioRecord.read(buffer, bufferSize);
-                        if (len < 0) {
-                            if (DEBUG) {
-                                Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
-                            }
+                MediaCodecBuffer mediaCodecBuffer = get();
+                ByteBuffer buffer = mediaCodecBuffer.mByteBuffer;
+                buffer.clear();
+                int len = 0;
+                if (!isMute()) {
+                    len = mAudioRecord.read(buffer, bufferSize);
+                    if (len < 0) {
+                        if (DEBUG) {
+                            Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
                         }
-                        buffer.flip();
                     }
-
-                    mMediaCodec.queueInputBuffer(bufferIndex, 0, len, 0, 0);
+                    buffer.flip();
                 }
+                mMediaCodec.queueInputBuffer(mediaCodecBuffer.mIndex, 0, len, System.nanoTime()/1000, 0);
             }
         }
 
@@ -213,6 +225,16 @@ public class MicAACLATMEncoder extends AudioEncoder {
                     Log.w(TAG, "", e);
                 }
             }
+        }
+    }
+
+    private class MediaCodecBuffer {
+        ByteBuffer mByteBuffer;
+        int mIndex;
+
+        MediaCodecBuffer(ByteBuffer byteBuffer, int index) {
+            mByteBuffer = byteBuffer;
+            mIndex = index;
         }
     }
 }

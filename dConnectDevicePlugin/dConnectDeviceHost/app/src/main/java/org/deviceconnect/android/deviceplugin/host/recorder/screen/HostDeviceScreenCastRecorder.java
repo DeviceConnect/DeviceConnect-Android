@@ -112,7 +112,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mScreenCastRTSPServer = new ScreenCastRTSPPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer = new ScreenCastMJPEGPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer.setQuality(RecorderSettingData.getInstance(getContext())
-                .readPreviewQuality(mScreenCastMJPEGServer.mServerProvider.getId()));
+                .readPreviewQuality(mScreenCastMJPEGServer.getServerProvider().getId()));
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -399,9 +399,6 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     public void onDisplayRotation(final int rotation) {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastRecorder.onDisplayRotation: rotation=" + rotation);
-        }
-        for (PreviewServer server : getServers()) {
-            server.onDisplayRotation(rotation);
         }
     }
 }

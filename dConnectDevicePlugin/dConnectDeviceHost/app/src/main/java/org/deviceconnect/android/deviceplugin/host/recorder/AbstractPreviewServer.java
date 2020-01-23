@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.screen;
+package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,14 +8,9 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
-
-public abstract class ScreenCastPreviewServer implements PreviewServer {
-
-    protected final Context mContext;
-    protected final AbstractPreviewServerProvider mServerProvider;
+public abstract class AbstractPreviewServer implements PreviewServer {
+    private final Context mContext;
+    private final AbstractPreviewServerProvider mServerProvider;
     private boolean mMute;
 
     private final BroadcastReceiver mConfigChangeReceiver = new BroadcastReceiver() {
@@ -25,10 +20,18 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
         }
     };
 
-    ScreenCastPreviewServer(Context context, AbstractPreviewServerProvider serverProvider) {
+    public AbstractPreviewServer(Context context, AbstractPreviewServerProvider serverProvider) {
         mContext = context;
         mServerProvider = serverProvider;
         mMute = true;
+    }
+
+    public Context getContext() {
+        return mContext;
+    }
+
+    public AbstractPreviewServerProvider getServerProvider() {
+        return mServerProvider;
     }
 
     private int getDisplayRotation() {
@@ -40,30 +43,33 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
         return display.getRotation();
     }
 
-    HostDeviceRecorder.PictureSize getRotatedPreviewSize() {
-        HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
-        int w;
-        int h;
+    private boolean isSwapSize() {
         switch (getDisplayRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
-                w = size.getWidth();
-                h = size.getHeight();
-                break;
+                return false;
             default:
-                w = size.getHeight();
-                h = size.getWidth();
-                break;
+                return true;
+        }
+    }
+
+    public HostDeviceRecorder.PictureSize getRotatedPreviewSize() {
+        HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
+        int w = size.getWidth();
+        int h = size.getHeight();
+        if (isSwapSize()) {
+            w = size.getHeight();
+            h = size.getWidth();
         }
         return new HostDeviceRecorder.PictureSize(w, h);
     }
 
-    synchronized void registerConfigChangeReceiver() {
+    public synchronized void registerConfigChangeReceiver() {
         IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
         mContext.registerReceiver(mConfigChangeReceiver, filter);
     }
 
-    synchronized void unregisterConfigChangeReceiver() {
+    public synchronized void unregisterConfigChangeReceiver() {
         try {
             mContext.unregisterReceiver(mConfigChangeReceiver);
         } catch (Exception e) {
@@ -71,33 +77,30 @@ public abstract class ScreenCastPreviewServer implements PreviewServer {
         }
     }
 
-    protected void onConfigChange() {
-        // NOP.
+    @Override
+    public  void onConfigChange() {
     }
 
     @Override
-    public void onDisplayRotation(final int degree) {
-        // NOP.
+    public int getQuality() {
+        return 0;
     }
 
-    /**
-     * Recorderをmute状態にする.
-     */
+    @Override
+    public void setQuality(int quality) {
+    }
+
+    @Override
     public void mute() {
         mMute = true;
     }
 
-    /**
-     * Recorderのmute状態を解除する.
-     */
+    @Override
     public void unMute() {
         mMute = false;
     }
 
-    /**
-     * Recorderのmute状態を返す.
-     * @return mute状態
-     */
+    @Override
     public boolean isMuted() {
         return mMute;
     }

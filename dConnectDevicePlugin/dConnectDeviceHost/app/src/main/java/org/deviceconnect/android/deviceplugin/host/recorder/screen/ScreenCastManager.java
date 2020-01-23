@@ -31,6 +31,9 @@ class ScreenCastManager {
 
     private MediaProjection mMediaProjection;
 
+    /**
+     * コールバックの通知を受けるスレッド.
+     */
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
 
     /**
@@ -76,6 +79,9 @@ class ScreenCastManager {
         return wm.getDefaultDisplay().getRotation();
     }
 
+    /**
+     * MediaProjection の後始末を行います.
+     */
     synchronized void clean() {
         MediaProjection projection = mMediaProjection;
         if (projection != null) {
@@ -84,7 +90,12 @@ class ScreenCastManager {
         }
     }
 
-    void requestPermission(final PermissionCallback callback) {
+    /**
+     * MediaProjection のパーミッションの許可を要求します.
+     *
+     * @param callback 許可の結果を通知するコールバック
+     */
+    synchronized void requestPermission(final PermissionCallback callback) {
         if (mMediaProjection != null) {
             callback.onAllowed();
             return;
@@ -127,6 +138,14 @@ class ScreenCastManager {
         }
     }
 
+    /**
+     * Surface に端末の画面をキャストするクラスを作成します.
+     *
+     * @param outputSurface キャスト先の Surface
+     * @param width キャスト先の Surface の横幅
+     * @param height キャスト先の Surface の縦幅
+     * @return SurfaceScreenCast のインスタンス
+     */
     SurfaceScreenCast createScreenCast(final Surface outputSurface, int width, int height) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
@@ -134,6 +153,14 @@ class ScreenCastManager {
         return new SurfaceScreenCast(mContext, mMediaProjection, outputSurface, width, height);
     }
 
+    /**
+     * ImageReader に端末の画面をキャストするクラスを作成します.
+     *
+     * @param imageReader キャスト先の ImageReader
+     * @param width キャスト先の ImageReader の横幅
+     * @param height キャスト先の ImageReader の縦幅
+     * @return ImageScreenCast のインスタンス
+     */
     ImageScreenCast createScreenCast(final ImageReader imageReader, int width, int height) {
         if (mMediaProjection == null) {
             throw new IllegalStateException("Media Projection is not allowed.");
@@ -141,9 +168,18 @@ class ScreenCastManager {
         return new ImageScreenCast(mContext, mMediaProjection, imageReader, width, height);
     }
 
+    /**
+     * MediaProjection の許可確認の結果を通知するコールバック.
+     */
     interface PermissionCallback {
+        /**
+         * MediaProjection が許可された場合に通知されます.
+         */
         void onAllowed();
 
+        /**
+         * MediaProjection が許可されなかった場合に通知されます.
+         */
         void onDisallowed();
     }
 }

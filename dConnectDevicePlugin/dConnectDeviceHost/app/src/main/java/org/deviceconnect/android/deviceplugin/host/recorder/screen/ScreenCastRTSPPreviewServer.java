@@ -6,6 +6,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
@@ -21,7 +22,7 @@ import java.io.IOException;
 import androidx.annotation.RequiresApi;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
+class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "ScreenCastRTSP";
 
@@ -83,7 +84,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
-    protected void onConfigChange() {
+    public void onConfigChange() {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastRTSPPreviewServer#onConfigChange");
         }
@@ -97,15 +98,45 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
         }
     }
 
+
     @Override
-    public int getQuality() {
-        return 0; // Not support.
+    public void mute() {
+        super.mute();
+
+        if (mRtspServer != null) {
+            new Thread(() -> {
+                if (mRtspServer != null) {
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        AudioStream stream = session.getAudioStream();
+                        if (stream  != null) {
+                            stream.getAudioEncoder().setMute(true);
+                        }
+                    }
+                }
+            }).start();
+        }
     }
 
     @Override
-    public void setQuality(int quality) {
-        // Not support.
+    public void unMute() {
+        super.unMute();
+
+        if (mRtspServer != null) {
+            new Thread(() -> {
+                if (mRtspServer != null) {
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        AudioStream stream = session.getAudioStream();
+                        if (stream  != null) {
+                            stream.getAudioEncoder().setMute(false);
+                        }
+                    }
+                }
+            }).start();
+        }
     }
+
 
     private final RtspServer.Callback mCallback = new RtspServer.Callback() {
         @Override
@@ -128,19 +159,18 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
 
             session.setVideoMediaStream(videoStream);
 
-            if (!isMuted()) {
-                AudioStream audioStream = new MicAACLATMStream();
-                audioStream.setDestinationPort(5004);
+            AudioStream audioStream = new MicAACLATMStream();
+            audioStream.setDestinationPort(5004);
 
-                AudioEncoder audioEncoder = audioStream.getAudioEncoder();
-                AudioQuality audioQuality = audioEncoder.getAudioQuality();
-                audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-                audioQuality.setSamplingRate(48000);
-                audioQuality.setBitRate(64 * 1024);
-                audioQuality.setUseAEC(true);
+            AudioEncoder audioEncoder = audioStream.getAudioEncoder();
+            audioEncoder.setMute(isMuted());
+            AudioQuality audioQuality = audioEncoder.getAudioQuality();
+            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+            audioQuality.setSamplingRate(48000);
+            audioQuality.setBitRate(64 * 1024);
+            audioQuality.setUseAEC(true);
 
-                session.setAudioMediaStream(audioStream);
-            }
+            session.setAudioMediaStream(audioStream);
 
             registerConfigChangeReceiver();
         }

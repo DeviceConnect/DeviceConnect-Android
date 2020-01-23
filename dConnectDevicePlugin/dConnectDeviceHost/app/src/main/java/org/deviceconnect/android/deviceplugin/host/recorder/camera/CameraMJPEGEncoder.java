@@ -17,6 +17,15 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
         mCamera2Recorder = camera2Recorder;
     }
 
+    // MJPEGEncoder
+
+    @Override
+    protected int getDisplayRotation() {
+        return mCamera2Recorder.getRotation();
+    }
+
+    // SurfaceMJPEGEncoder
+
     @Override
     protected void prepare() throws IOException {
         try {

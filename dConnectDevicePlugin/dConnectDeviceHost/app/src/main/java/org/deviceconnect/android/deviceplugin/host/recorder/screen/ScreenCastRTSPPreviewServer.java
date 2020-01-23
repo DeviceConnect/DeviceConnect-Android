@@ -87,6 +87,14 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastRTSPPreviewServer#onConfigChange");
         }
+
+        if (mRtspServer != null) {
+            new Thread(() -> {
+                if (mRtspServer != null) {
+                    mRtspServer.getRtspSession().getVideoStream().getVideoEncoder().restart();
+                }
+            }).start();
+        }
     }
 
     @Override
@@ -109,19 +117,13 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
             ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr);
             videoStream.setDestinationPort(5006);
 
-            // TODO 映像の解像度設定
             HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
 
-            // 縦横切り替わった時に、初期化する必要のないように長い方に合わせる
-            int resolution = previewSize.getWidth();
-            if (resolution < previewSize.getHeight()) {
-                resolution = previewSize.getHeight();
-            }
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(780);
-            videoQuality.setVideoHeight(1280);
-            videoQuality.setBitRate(mServerProvider.getPreviewBitRate() * 1024);
-            videoQuality.setFrameRate((int) mServerProvider.getMaxFrameRate());
+            videoQuality.setVideoWidth(320);
+            videoQuality.setVideoHeight(560);
+            videoQuality.setBitRate(1024 * 1024);
+            videoQuality.setFrameRate(30);
             videoQuality.setIFrameInterval(2);
 
             session.setVideoMediaStream(videoStream);
@@ -139,6 +141,8 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
 
                 session.setAudioMediaStream(audioStream);
             }
+
+            registerConfigChangeReceiver();
         }
 
         @Override
@@ -146,6 +150,8 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
+
+            unregisterConfigChangeReceiver();
         }
     };
 }

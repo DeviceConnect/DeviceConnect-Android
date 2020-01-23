@@ -171,9 +171,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mRequestHandler = new Handler(requestThread.getLooper());
         mFileManager = fileManager;
 
-        Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(this);
-        mjpegServer.setQuality(RecorderSettingData.getInstance(getContext())
-                .readPreviewQuality(camera.getId()));
+        Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(getContext(), this, this);
+        mjpegServer.setQuality(RecorderSettingData.getInstance(getContext()).readPreviewQuality(camera.getId()));
         Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
         mPreviewServers.add(mjpegServer);
         mPreviewServers.add(rtspServer);
@@ -391,9 +390,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
-    private int getRotation() {
-        WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-        return windowManager.getDefaultDisplay().getRotation();
+    public int getRotation() {
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+        return wm.getDefaultDisplay().getRotation();
     }
 
     PictureSize getRotatedPreviewSize() {

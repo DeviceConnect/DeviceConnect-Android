@@ -2,6 +2,7 @@ package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
+import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
@@ -67,12 +68,27 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     }
 
     /**
+     * 解像度の縦横のサイズをスワップするか判断します.
+     *
+     * @return スワップする場合は true、それ以外は false
+     */
+    public boolean isSwappedDimensions() {
+        switch (getDisplayRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /**
      * 画面の回転を取得します.
      *
      * @return 画面の回転
      */
     protected int getDisplayRotation() {
-        return 0;
+        return Surface.ROTATION_0;
     }
 
     /**
@@ -129,7 +145,13 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     }
 
     protected OffscreenSurface createOffscreenSurface() {
-        return new OffscreenSurface(getMJPEGQuality().getWidth(), getMJPEGQuality().getHeight());
+        int w = getMJPEGQuality().getWidth();
+        int h = getMJPEGQuality().getHeight();
+        if (isSwappedDimensions()) {
+            w = getMJPEGQuality().getHeight();
+            h = getMJPEGQuality().getWidth();
+        }
+        return new OffscreenSurface(w, h);
     }
 
     /**

@@ -13,22 +13,25 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 
 
-public abstract class AbstractRTSPPreviewServer implements PreviewServer {
+public abstract class CameraPreviewServer implements PreviewServer {
 
     protected final Context mContext;
     protected final AbstractPreviewServerProvider mServerProvider;
     private BroadcastReceiver mConfigChangeReceiver;
     private boolean mMute;
 
-    AbstractRTSPPreviewServer(final Context context,
-                              final AbstractPreviewServerProvider serverProvider) {
+    CameraPreviewServer(final Context context,
+                        final AbstractPreviewServerProvider serverProvider) {
         mContext = context;
         mServerProvider = serverProvider;
         mMute = true;
     }
 
-    private int getRotation() {
+    private int getDisplayRotation() {
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
         Display display = wm.getDefaultDisplay();
         return display.getRotation();
     }
@@ -37,7 +40,7 @@ public abstract class AbstractRTSPPreviewServer implements PreviewServer {
         HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
         int w;
         int h;
-        switch (getRotation()) {
+        switch (getDisplayRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
                 w = size.getWidth();
@@ -58,8 +61,7 @@ public abstract class AbstractRTSPPreviewServer implements PreviewServer {
                 onConfigChange();
             }
         };
-        IntentFilter filter = new IntentFilter(
-                "android.intent.action.CONFIGURATION_CHANGED");
+        IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
         mContext.registerReceiver(mConfigChangeReceiver, filter);
     }
 
@@ -73,6 +75,7 @@ public abstract class AbstractRTSPPreviewServer implements PreviewServer {
     protected void onConfigChange() {
         // NOP.
     }
+
     /**
      * Recorderをmute状態にする.
      */

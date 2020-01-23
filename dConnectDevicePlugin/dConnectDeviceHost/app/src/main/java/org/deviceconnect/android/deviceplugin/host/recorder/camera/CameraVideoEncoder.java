@@ -28,10 +28,19 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
         mVideoQuality.setRotation(Camera2Wrapper.Rotation.FREE);
     }
 
+    // VideoEncoder
+
     @Override
     public VideoQuality getVideoQuality() {
         return mVideoQuality;
     }
+
+    @Override
+    protected int getDisplayRotation() {
+        return mCamera2Recorder.getRotation();
+    }
+
+    // SurfaceVideoEncoder
 
     @Override
     protected void onStartSurfaceDrawing() {

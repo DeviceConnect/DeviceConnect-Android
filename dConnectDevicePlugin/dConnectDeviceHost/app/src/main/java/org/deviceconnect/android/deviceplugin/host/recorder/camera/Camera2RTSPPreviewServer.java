@@ -21,7 +21,7 @@ import java.io.IOException;
 import androidx.annotation.RequiresApi;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer {
+class Camera2RTSPPreviewServer extends CameraPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraRTSP";
 
@@ -71,6 +71,13 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer {
 
     @Override
     protected void onConfigChange() {
+        if (mRtspServer != null) {
+            new Thread(() -> {
+                if (mRtspServer != null) {
+                    mRtspServer.getRtspSession().getVideoStream().getVideoEncoder().restart();
+                }
+            }).start();
+        }
     }
 
     @Override
@@ -124,6 +131,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer {
 
                 session.setAudioMediaStream(audioStream);
             }
+
+            registerConfigChangeReceiver();
         }
 
         @Override
@@ -131,6 +140,8 @@ class Camera2RTSPPreviewServer extends AbstractRTSPPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
+
+            unregisterConfigChangeReceiver();
         }
     };
 }

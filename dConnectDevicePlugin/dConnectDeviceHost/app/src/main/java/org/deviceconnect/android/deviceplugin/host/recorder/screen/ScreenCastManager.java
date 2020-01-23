@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.util.NotificationUtils;
 
@@ -42,10 +43,37 @@ class ScreenCastManager {
      */
     private static final String NOTIFICATION_CONTENT = "Host Media Streaming Recording Profileからの起動要求";
 
-
     ScreenCastManager(final Context context) {
         mContext = context;
         mMediaProjectionMgr = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+    }
+
+    /**
+     * 画面が回転して解像度のスワップが必要か確認します.
+     *
+     * @return 解像度のスワップが必要な場合はtrue、それ以外はfalse
+     */
+    boolean isSwappedDimensions() {
+        switch (getDisplayRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * 画面の回転を取得します.
+     *
+     * @return 画面の回転
+     */
+    int getDisplayRotation() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+        return wm.getDefaultDisplay().getRotation();
     }
 
     synchronized void clean() {
@@ -88,9 +116,12 @@ class ScreenCastManager {
                 }
             }
         });
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             mContext.startActivity(intent);
         } else {
+            // Android 10(Q) からは、バックグラウンドから Activity を起動できなくなったので、
+            // Notification から起動するようにします。
             NotificationUtils.createNotificationChannel(mContext);
             NotificationUtils.notify(mContext, NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
         }

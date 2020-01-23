@@ -4,12 +4,12 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import androidx.annotation.NonNull;
-
-import org.deviceconnect.android.libmedia.BuildConfig;
 
 public abstract class MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -110,7 +110,7 @@ public abstract class MediaEncoder {
     /**
      * エンコーダを再起動の処理を行います.
      */
-    protected synchronized void restart() {
+    public synchronized void restart() {
         stopEncoder();
         startEncoder();
     }
@@ -195,7 +195,7 @@ public abstract class MediaEncoder {
     private boolean startEncoder() {
         try {
             prepare();
-        } catch (IOException e) {
+        } catch (Exception e) {
             postOnError(new MediaEncoderException(e));
             return false;
         }

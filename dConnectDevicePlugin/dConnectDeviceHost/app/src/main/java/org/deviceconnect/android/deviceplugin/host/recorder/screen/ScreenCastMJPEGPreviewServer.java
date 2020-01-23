@@ -75,6 +75,13 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     @Override
     protected void onConfigChange() {
+        if (mMJPEGServer != null) {
+            new Thread(() -> {
+                if (mMJPEGServer != null) {
+                    mMJPEGServer.restartEncoder();
+                }
+            }).start();
+        }
     }
 
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
@@ -89,6 +96,8 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
         @Override
         public MJPEGEncoder createMJPEGEncoder() {
+            registerConfigChangeReceiver();
+
             HostDeviceRecorder.PictureSize size = getRotatedPreviewSize();
 
             ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
@@ -103,6 +112,7 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
         @Override
         public void releaseMJPEGEncoder(MJPEGEncoder encoder) {
+            unregisterConfigChangeReceiver();
         }
     };
 }

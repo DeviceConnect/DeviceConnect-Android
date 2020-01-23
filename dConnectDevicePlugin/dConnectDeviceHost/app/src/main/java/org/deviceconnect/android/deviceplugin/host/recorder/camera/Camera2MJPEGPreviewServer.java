@@ -6,12 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
+import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
@@ -26,10 +27,8 @@ import java.net.Socket;
  *
  * {@link SurfaceTexture} をもとに実装.
  */
-class Camera2MJPEGPreviewServer implements PreviewServer {
-
+class Camera2MJPEGPreviewServer extends CameraPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
     private static final String TAG = "host.dplugin";
 
     private static final String MIME_TYPE = "video/x-mjpeg";
@@ -38,7 +37,10 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
 
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(final Camera2Recorder recorder) {
+    Camera2MJPEGPreviewServer(Context context,
+                              AbstractPreviewServerProvider serverProvider,
+                             Camera2Recorder recorder) {
+        super(context, serverProvider);
         mRecorder = recorder;
     }
 
@@ -73,6 +75,17 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
         if (mMJPEGServer != null) {
             mMJPEGServer.stop();
             mMJPEGServer = null;
+        }
+    }
+
+    @Override
+    protected void onConfigChange() {
+        if (mMJPEGServer != null) {
+            new Thread(() -> {
+                if (mMJPEGServer != null) {
+                    mMJPEGServer.restartEncoder();
+                }
+            }).start();
         }
     }
 
@@ -121,6 +134,7 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#createMJPEGEncoder: ");
             }
+            registerConfigChangeReceiver();
 
             HostDeviceRecorder.PictureSize size = mRecorder.getRotatedPreviewSize();
 
@@ -139,6 +153,8 @@ class Camera2MJPEGPreviewServer implements PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#releaseMJPEGEncoder: ");
             }
+
+            unregisterConfigChangeReceiver();
         }
     };
 }

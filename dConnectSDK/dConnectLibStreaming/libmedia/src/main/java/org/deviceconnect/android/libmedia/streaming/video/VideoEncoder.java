@@ -9,12 +9,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.deviceconnect.android.libmedia.BuildConfig;
-import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 
 public abstract class VideoEncoder extends MediaEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -73,7 +73,13 @@ public abstract class VideoEncoder extends MediaEncoder {
      * @return スワップする場合は true、それ以外は false
      */
     public boolean isSwappedDimensions() {
-        return false;
+        switch (getDisplayRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                return false;
+            default:
+                return true;
+        }
     }
 
     /**
@@ -215,7 +221,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
 
         if (codecInfo == null) {
-            throw new IOException("Not found a codec.");
+            throw new IOException("Not found a codec. mimeType=" + mimeType);
         }
 
         if (DEBUG) {
@@ -223,7 +229,13 @@ public abstract class VideoEncoder extends MediaEncoder {
             for (MediaCodecInfo info : infoList) {
                 Log.d(TAG, "  " + info.getName());
             }
-            Log.i(TAG, "  SELECT: " + codecInfo.getName());
+            Log.i(TAG, "---");
+            Log.i(TAG, "SELECT: " + codecInfo.getName());
+            Log.i(TAG, "MIME_TYPE: " + videoQuality.getMimeType());
+            Log.i(TAG, "SIZE: " + w + "x" + h);
+            Log.i(TAG, "BIT_RATE: " + videoQuality.getBitRate());
+            Log.i(TAG, "FRAME_RATE: " + videoQuality.getFrameRate());
+            Log.i(TAG, "I_FRAME_INTERVAL: " + videoQuality.getIFrameInterval());
         }
 
         MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(videoQuality.getMimeType());

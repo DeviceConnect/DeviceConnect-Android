@@ -2,48 +2,35 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
 
-        ndk {
-            // Specifies the ABI configurations of your native
-            // libraries Gradle should build and package with your APK.
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86','x86_64'
-        }
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
-        debug {
-            externalNativeBuild {
-                cmake {
-                    cFlags "-DDEBUG"
-                    cppFlags "-DDEBUG"
-                    arguments "-DANDROID_STL=c++_shared"
-                }
-            }
-        }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            externalNativeBuild {
-                cmake {
-                    cppFlags ""
-                    arguments "-DANDROID_STL=c++_shared"
-                }
-            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path 'CMakeLists.txt'
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+}
 
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile project(':libmedia')
+    compile project(':libsrt')
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }

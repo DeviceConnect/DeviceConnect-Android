@@ -6,10 +6,11 @@ import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
 import android.util.Log;
 
-import java.nio.ByteBuffer;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * マイクから音声データを取得して、エンコードするクラス.
@@ -51,168 +52,135 @@ public class MicAACLATMEncoder extends AudioEncoder {
     };
 
     /**
-     * マイクから音声を入力するためのスレッド.
+     * マイクから音声をレコードするクラス.
      */
-    private MicRecordThread mMicRecordThread;
+    private AudioRecord mAudioRecord;
+
+    /**
+     * エコーキャンセラー.
+     */
+    private AcousticEchoCanceler mEchoCanceler;
+
+    /**
+     * AudioRecord で使用するバッファサイズ.
+     */
+    private int mBufferSize;
 
     @Override
     public AudioQuality getAudioQuality() {
         return mAudioQuality;
     }
 
-    public int getFreqIdx(int sampleRate) {
-        for (int i = 0; i < SUPPORT_AUDIO_SAMPLING_RATES.length; i++) {
-            if (sampleRate == SUPPORT_AUDIO_SAMPLING_RATES[i]) {
-                return i;
-            }
+    @Override
+    protected void prepare() throws IOException {
+        if (isMute()) {
+            // ミュートの場合には、MediaCodec を作成させないようにします。
+            return;
         }
-        return -1;
+        super.prepare();
     }
 
     @Override
     protected synchronized void startRecording() {
+        if (isMute()) {
+            // ミュートの場合には、AudioCodec を作成させないようにします。
+            return;
+        }
         super.startRecording();
 
-        if (mMicRecordThread != null) {
-            mMicRecordThread.terminate();
+        try {
+            startAudioRecord();
+        } catch (Exception e) {
+            // AudioRecord の初期化中にエラーが発生した場合はとりあえず停止しておく
+            stopAudioRecord();
         }
-        mMicRecordThread = new MicRecordThread();
-        mMicRecordThread.setName("MIC-RECORD");
-        mMicRecordThread.setPriority(Thread.MAX_PRIORITY);
-        mMicRecordThread.start();
     }
 
     @Override
     protected synchronized void stopRecording() {
-        if (mMicRecordThread != null) {
-            mMicRecordThread.terminate();
-            mMicRecordThread = null;
-        }
+        stopAudioRecord();
         super.stopRecording();
     }
 
+    @Override
+    protected void onInputData(ByteBuffer inputData, int index) {
+        inputData.clear();
+        int len = 0;
+
+        // ミュート設定の場合には、AudioRecord からデータを取得しない
+        if (!isMute() && mAudioRecord != null) {
+            len = mAudioRecord.read(inputData, mBufferSize);
+            if (len < 0) {
+                if (DEBUG) {
+                    Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
+                }
+            }
+            inputData.flip();
+        }
+        mMediaCodec.queueInputBuffer(index, 0, len, System.nanoTime() / 1000, 0);
+    }
+
     /**
-     * 音声レコード用のスレッド.
+     * AudioRecord を開始します.
      */
-    private class MicRecordThread extends Thread {
-        /**
-         * マイクから音声をレコードするクラス.
-         */
-        private AudioRecord mAudioRecord;
+    private void startAudioRecord() {
+        AudioQuality audioQuality = getAudioQuality();
 
-        /**
-         * エコーキャンセラー.
-         */
-        private AcousticEchoCanceler mEchoCanceler;
+        mBufferSize = AudioRecord.getMinBufferSize(audioQuality.getSamplingRate(),
+                audioQuality.getChannel(), audioQuality.getFormat()) * 4;
 
-        /**
-         * 停止フラグ.
-         */
-        private boolean mStopFlag;
+        if (DEBUG) {
+            Log.d(TAG, "AudioQuality: " + audioQuality);
+        }
 
-        /**
-         * 音声レコード用のスレッドを停止します.
-         */
-        private void terminate() {
-            mStopFlag = true;
+        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
+                audioQuality.getSamplingRate(),
+                audioQuality.getChannel(),
+                audioQuality.getFormat(),
+                mBufferSize);
 
-            if (mAudioRecord != null) {
-                try {
-                    mAudioRecord.stop();
-                } catch (Exception e) {
-                    // ignore.
-                }
-                try {
-                    mAudioRecord.release();
-                } catch (Exception e) {
-                    // ignore.
-                }
-                mAudioRecord = null;
-            }
+        if (mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+            postOnError(new MediaEncoderException("AudioRecord is already initialized."));
+            return;
+        }
 
+        if (mAudioQuality.isUseAEC() && AcousticEchoCanceler.isAvailable()) {
+            // ノイズキャンセラー
+            mEchoCanceler = AcousticEchoCanceler.create(mAudioRecord.getAudioSessionId());
             if (mEchoCanceler != null) {
-                mEchoCanceler.release();
-                mEchoCanceler = null;
+                int ret = mEchoCanceler.setEnabled(true);
+                if (ret != AudioEffect.SUCCESS) {
+                    if (DEBUG) {
+                        Log.w(TAG, "AcousticEchoCanceler is not supported.");
+                    }
+                }
             }
+        }
 
-            interrupt();
+        mAudioRecord.startRecording();
+    }
 
+    /**
+     * AudioRecord を停止します.
+     */
+    private void stopAudioRecord() {
+        if (mAudioRecord != null) {
             try {
-                join(500);
-            } catch (InterruptedException e) {
+                mAudioRecord.stop();
+            } catch (Exception e) {
                 // ignore.
             }
-        }
-
-        /**
-         * 音声をレコードして、MediaCodec に渡します.
-         */
-        private void recordAudio() {
-            AudioQuality audioQuality = getAudioQuality();
-
-            int bufferSize = AudioRecord.getMinBufferSize(audioQuality.getSamplingRate(),
-                    audioQuality.getChannel(), audioQuality.getFormat()) * 4;
-
-            if (DEBUG) {
-                Log.d(TAG, "AudioQuality: " + audioQuality);
-            }
-
-            mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
-                    audioQuality.getSamplingRate(),
-                    audioQuality.getChannel(),
-                    audioQuality.getFormat(),
-                    bufferSize);
-
-            if (mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
-                postOnError(new MediaEncoderException("AudioRecord is already initialized."));
-                return;
-            }
-
-            if (mAudioQuality.isUseAEC() && AcousticEchoCanceler.isAvailable()) {
-                // ノイズキャンセラー
-                mEchoCanceler = AcousticEchoCanceler.create(mAudioRecord.getAudioSessionId());
-                if (mEchoCanceler != null) {
-                    int ret = mEchoCanceler.setEnabled(true);
-                    if (ret != AudioEffect.SUCCESS) {
-                        if (DEBUG) {
-                            Log.w(TAG, "AcousticEchoCanceler is not supported.");
-                        }
-                    }
-                }
-            }
-
-            mAudioRecord.startRecording();
-
-            while (!mStopFlag) {
-                int bufferIndex = mMediaCodec.dequeueInputBuffer(10000);
-                if (bufferIndex >= 0) {
-                    int len = 0;
-                    ByteBuffer buffer = mMediaCodec.getInputBuffer(bufferIndex);
-                    if (buffer != null) {
-                        buffer.clear();
-                        len = mAudioRecord.read(buffer, bufferSize);
-                        if (len < 0) {
-                            if (DEBUG) {
-                                Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
-                            }
-                        }
-                        buffer.flip();
-                    }
-
-                    mMediaCodec.queueInputBuffer(bufferIndex, 0, len, 0, 0);
-                }
-            }
-        }
-
-        @Override
-        public void run() {
             try {
-                recordAudio();
+                mAudioRecord.release();
             } catch (Exception e) {
-                if (DEBUG) {
-                    Log.w(TAG, "", e);
-                }
+                // ignore.
             }
+            mAudioRecord = null;
+        }
+
+        if (mEchoCanceler != null) {
+            mEchoCanceler.release();
+            mEchoCanceler = null;
         }
     }
 }

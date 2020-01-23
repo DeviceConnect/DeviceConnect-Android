@@ -6,6 +6,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
@@ -21,7 +22,7 @@ import java.io.IOException;
 import androidx.annotation.RequiresApi;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class Camera2RTSPPreviewServer extends CameraPreviewServer {
+class Camera2RTSPPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraRTSP";
 
@@ -67,34 +68,55 @@ class Camera2RTSPPreviewServer extends CameraPreviewServer {
             mRtspServer.stop();
             mRtspServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override
-    protected void onConfigChange() {
+    public void onConfigChange() {
         if (mRtspServer != null) {
             new Thread(() -> {
                 if (mRtspServer != null) {
-                    mRtspServer.getRtspSession().getVideoStream().getVideoEncoder().restart();
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        session.getVideoStream().getVideoEncoder().restart();
+                    }
                 }
             }).start();
         }
     }
 
     @Override
-    public void onDisplayRotation(final int rotation) {
-        if (DEBUG) {
-            Log.d(TAG, "onDisplayRotation: rotation=" + rotation);
+    public void mute() {
+        super.mute();
+        setMute(true);
+    }
+
+    @Override
+    public void unMute() {
+        super.unMute();
+        setMute(false);
+    }
+
+    /**
+     * AudioEncoder にミュート設定を行います.
+     *
+     * @param mute ミュート設定
+     */
+    private void setMute(boolean mute) {
+        if (mRtspServer != null) {
+            new Thread(() -> {
+                if (mRtspServer != null) {
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        AudioStream stream = session.getAudioStream();
+                        if (stream  != null) {
+                            stream.getAudioEncoder().setMute(mute);
+                            stream.getAudioEncoder().restart();
+                        }
+                    }
+                }
+            }).start();
         }
-    }
-
-    @Override
-    public int getQuality() {
-        return 0; // Not support.
-    }
-
-    @Override
-    public void setQuality(int quality) {
-        // Not support.
     }
 
     private final RtspServer.Callback mCallback = new RtspServer.Callback() {
@@ -112,25 +134,26 @@ class Camera2RTSPPreviewServer extends CameraPreviewServer {
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
             videoQuality.setVideoWidth(previewSize.getHeight());
             videoQuality.setVideoHeight(previewSize.getWidth());
-            videoQuality.setBitRate(mServerProvider.getPreviewBitRate());
-            videoQuality.setFrameRate((int) mServerProvider.getMaxFrameRate());
+            videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
+            videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
 
             session.setVideoMediaStream(videoStream);
 
-            if (!isMuted()) {
-                AudioStream audioStream = new MicAACLATMStream();
-                audioStream.setDestinationPort(5004);
+            // TODO 音声の設定を外部から設定できるようにすること。
 
-                AudioEncoder audioEncoder = audioStream.getAudioEncoder();
-                AudioQuality audioQuality = audioEncoder.getAudioQuality();
-                audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-                audioQuality.setSamplingRate(48000);
-                audioQuality.setBitRate(64 * 1024);
-                audioQuality.setUseAEC(true);
+            AudioStream audioStream = new MicAACLATMStream();
+            audioStream.setDestinationPort(5004);
 
-                session.setAudioMediaStream(audioStream);
-            }
+            AudioEncoder audioEncoder = audioStream.getAudioEncoder();
+            audioEncoder.setMute(isMuted());
+            AudioQuality audioQuality = audioEncoder.getAudioQuality();
+            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+            audioQuality.setSamplingRate(8000);
+            audioQuality.setBitRate(64 * 1024);
+            audioQuality.setUseAEC(true);
+
+            session.setAudioMediaStream(audioStream);
 
             registerConfigChangeReceiver();
         }

@@ -4,11 +4,16 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 
-import java.io.IOException;
-
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 
+import java.io.IOException;
+
 public abstract class AudioEncoder extends MediaEncoder {
+    /**
+     * ミュート設定.
+     */
+    private boolean mMute = true;
+
     /**
      * 音声のエンコード設定を取得します.
      *
@@ -46,5 +51,27 @@ public abstract class AudioEncoder extends MediaEncoder {
             mMediaCodec.release();
             mMediaCodec = null;
         }
+    }
+
+    /**
+     * ミュート設定を取得します.
+     *
+     * @return ミュートの場合はtrue、それ以外はfalse
+     */
+    public boolean isMute() {
+        return mMute;
+    }
+
+    /**
+     * ミュートを設定します.
+     *
+     * <p>
+     * デフォルトでは、ミュートは true になっています。
+     * </p>
+     *
+     * @param mute ミュートにする場合はtrue、それ以外はfalse
+     */
+    public void setMute(boolean mute) {
+        mMute = mute;
     }
 }

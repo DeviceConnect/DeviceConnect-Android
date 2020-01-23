@@ -3,6 +3,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 import android.annotation.TargetApi;
 import android.content.Context;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
@@ -13,9 +14,8 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
 import java.net.Socket;
 
-
 @TargetApi(21)
-class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
+class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * MJPEG のマイムタイプを定義します.
      */
@@ -40,12 +40,12 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     @Override
     public int getQuality() {
-        return RecorderSettingData.getInstance(mContext).readPreviewQuality(mServerProvider.getId());
+        return RecorderSettingData.getInstance(getContext()).readPreviewQuality(getServerProvider().getId());
     }
 
     @Override
     public void setQuality(int quality) {
-        RecorderSettingData.getInstance(mContext).storePreviewQuality(mServerProvider.getId(), quality);
+        RecorderSettingData.getInstance(getContext()).storePreviewQuality(getServerProvider().getId(), quality);
     }
 
     @Override
@@ -71,10 +71,11 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override
-    protected void onConfigChange() {
+    public void onConfigChange() {
         if (mMJPEGServer != null) {
             new Thread(() -> {
                 if (mMJPEGServer != null) {
@@ -105,7 +106,7 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
             quality.setWidth(size.getWidth());
             quality.setHeight(size.getHeight());
             quality.setQuality(getQuality());
-            quality.setFrameRate((int) mServerProvider.getMaxFrameRate());
+            quality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             quality.setRotation(Camera2Wrapper.Rotation.FREE);
             return encoder;
         }

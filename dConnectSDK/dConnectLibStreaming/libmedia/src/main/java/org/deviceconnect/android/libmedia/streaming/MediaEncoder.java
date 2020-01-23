@@ -82,6 +82,7 @@ public abstract class MediaEncoder {
         }
 
         mStartingThread = new StartingThread();
+        mStartingThread.setName("StartingThread");
         mStartingThread.start();
     }
 
@@ -183,8 +184,9 @@ public abstract class MediaEncoder {
      * MediaCodec にエンコードするためのデータを書き込みます.
      *
      * @param inputData 書き込むデータ
+     * @param index バッファのインデックス
      */
-    protected void onInputData(ByteBuffer inputData) {
+    protected void onInputData(ByteBuffer inputData, int index) {
     }
 
     /**
@@ -200,16 +202,16 @@ public abstract class MediaEncoder {
             return false;
         }
 
-        if (mMediaCodec != null) {
-            mMediaCodec.setCallback(mMediaCodecCallback);
-            mMediaCodec.start();
-        }
-
         try {
             startRecording();
         } catch (Exception e) {
             postOnError(new MediaEncoderException(e));
             return false;
+        }
+
+        if (mMediaCodec != null) {
+            mMediaCodec.setCallback(mMediaCodecCallback);
+            mMediaCodec.start();
         }
 
         return true;
@@ -237,7 +239,7 @@ public abstract class MediaEncoder {
         public void onInputBufferAvailable(@NonNull MediaCodec codec, int index) {
             try {
                 ByteBuffer inputData = mMediaCodec.getInputBuffer(index);
-                onInputData(inputData);
+                onInputData(inputData, index);
             } catch (Exception e) {
                 if (DEBUG) {
                     Log.w(TAG, "MediaCodec.Callback#onInputBufferAvailable", e);

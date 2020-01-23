@@ -11,6 +11,7 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
@@ -21,13 +22,12 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
 import java.net.Socket;
 
-
 /**
  * カメラのプレビューをMJPEG形式で配信するサーバー.
  *
  * {@link SurfaceTexture} をもとに実装.
  */
-class Camera2MJPEGPreviewServer extends CameraPreviewServer {
+class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "host.dplugin";
 
@@ -76,10 +76,11 @@ class Camera2MJPEGPreviewServer extends CameraPreviewServer {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
+        unregisterConfigChangeReceiver();
     }
 
     @Override
-    protected void onConfigChange() {
+    public void onConfigChange() {
         if (mMJPEGServer != null) {
             new Thread(() -> {
                 if (mMJPEGServer != null) {
@@ -87,28 +88,6 @@ class Camera2MJPEGPreviewServer extends CameraPreviewServer {
                 }
             }).start();
         }
-    }
-
-    @Override
-    public void onDisplayRotation(final int rotation) {
-        if (DEBUG) {
-            Log.d(TAG, "Camera2MJPEGPreviewServer#onDisplayRotation: " + rotation);
-        }
-    }
-
-    @Override
-    public void mute() {
-        // NOP
-    }
-
-    @Override
-    public void unMute() {
-        // NOP
-    }
-
-    @Override
-    public boolean isMuted() {
-        return true;
     }
 
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {

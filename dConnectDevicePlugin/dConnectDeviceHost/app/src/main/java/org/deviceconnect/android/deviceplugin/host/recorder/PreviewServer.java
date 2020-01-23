@@ -8,7 +8,11 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 
 public interface PreviewServer {
-
+    /**
+     * サーバが配信するプレビューのマイムタイプを取得します.
+     *
+     * @return マイムタイプ
+     */
     String getMimeType();
 
     /**
@@ -35,10 +39,10 @@ public interface PreviewServer {
     void setQuality(int quality);
 
     /**
-     * 端末の画面が回転したタイミングで実行されるメソッド.
-     * @param degree 0, 90, 180, 270 のいずれか.
+     * 画面が回転されたことを通知します.
      */
-    void onDisplayRotation(int degree);
+    void onConfigChange();
+
     /**
      * Recorderをmute状態にする.
      */
@@ -54,6 +58,7 @@ public interface PreviewServer {
      * @return mute状態
      */
     boolean isMuted();
+
     /**
      * Callback interface used to receive the result of starting a web server.
      */

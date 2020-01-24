@@ -12,6 +12,7 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
+import java.io.IOException;
 import java.net.Socket;
 
 @TargetApi(21)
@@ -60,7 +61,12 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
             mMJPEGServer.setServerName("HostDevicePlugin Server");
             mMJPEGServer.setServerPort(11000);
             mMJPEGServer.setCallback(mCallback);
-            mMJPEGServer.start();
+            try {
+                mMJPEGServer.start();
+            } catch (IOException e) {
+                callback.onFail();
+                return;
+            }
         }
         callback.onStart("http://localhost:11000/mjpeg");
     }

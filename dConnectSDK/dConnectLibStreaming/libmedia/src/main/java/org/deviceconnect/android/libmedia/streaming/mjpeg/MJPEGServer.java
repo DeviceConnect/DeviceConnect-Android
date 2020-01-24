@@ -5,6 +5,7 @@ import android.util.Log;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.util.MixedReplaceMediaServer;
 
+import java.io.IOException;
 import java.net.Socket;
 
 public class MJPEGServer {
@@ -115,7 +116,7 @@ public class MJPEGServer {
     /**
      * MJPEG サーバを開始します.
      */
-    public synchronized void start() {
+    public synchronized void start() throws IOException {
         if (mMixedReplaceMediaServer != null) {
             if (DEBUG) {
                 Log.w(TAG, "MixedReplaceMediaServer is already started.");
@@ -156,7 +157,7 @@ public class MJPEGServer {
         });
         String url = mMixedReplaceMediaServer.start();
         if (url == null) {
-            // TODO 起動失敗
+            throw new IOException("Failed to start a MJPEGServer.");
         }
 
         if (DEBUG) {
@@ -198,8 +199,17 @@ public class MJPEGServer {
 
     private synchronized void stopMJPEGEncoder() {
         if (mMJPEGEncoder != null) {
-            mMJPEGEncoder.stop();
-            mCallback.releaseMJPEGEncoder(mMJPEGEncoder);
+            try {
+                mMJPEGEncoder.stop();
+            } catch (Exception e) {
+                // ignore.
+            }
+
+            try {
+                mCallback.releaseMJPEGEncoder(mMJPEGEncoder);
+            } catch (Exception e) {
+                // ignore.
+            }
             mMJPEGEncoder = null;
         }
     }

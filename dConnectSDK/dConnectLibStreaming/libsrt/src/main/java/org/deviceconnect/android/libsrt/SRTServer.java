@@ -114,7 +114,7 @@ public class SRTServer {
             mServerSocket.open();
             mStarted = true;
         } catch (IOException e) {
-            mServerEventListener.onErrorOpen(this, (int) mServerSocket.mNativeSocket);
+            mServerEventListener.onErrorOpen(this, -1); // TODO エラーをJNIから取得
             throw e;
         }
 
@@ -124,23 +124,21 @@ public class SRTServer {
                     if (DEBUG) {
                         Log.d(TAG, "Waiting for SRT client...");
                     }
+
                     SRTClientSocket socket = mServerSocket.accept();
+
                     if (DEBUG) {
                         Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
                     }
-
-                    if (socket.isAvailable()) {
-                        synchronized (mClientSocketList) {
-                            mClientSocketList.add(socket);
-                        }
-
-                        mServerEventListener.onAcceptClient(this, socket);
-                    } else {
-                        close();
+                    synchronized (mClientSocketList) {
+                        mClientSocketList.add(socket);
                     }
+                    mServerEventListener.onAcceptClient(this, socket);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
+            } finally {
+                close();
             }
         });
         mServerThread.setName("ServerThread");
@@ -156,7 +154,10 @@ public class SRTServer {
                 try {
                     final int length = packet.length;
                     socket.send(packet, length);
-                    mClientEventListener.onSendPacket(this, socket, length);
+
+                    if (DEBUG) {
+                        mClientEventListener.onSendPacket(this, socket, length);
+                    }
                 } catch (ClientSocketException e) {
                     if (e.mError == -1) {
                         Log.e(TAG, "Client socket is closed.");

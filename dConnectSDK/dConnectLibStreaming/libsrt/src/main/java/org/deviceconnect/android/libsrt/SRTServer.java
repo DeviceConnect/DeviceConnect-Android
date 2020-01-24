@@ -16,7 +16,7 @@ public class SRTServer {
     /**
      * サーバーの動作状態に関するイベントを受信するリスナー.
      */
-    public interface EventListener {
+    public interface ServerEventListener {
 
         /**
          * サーバーが開始したタイミングで実行されます.
@@ -49,6 +49,21 @@ public class SRTServer {
         void onErrorOpen(SRTServer server, int error);
     }
 
+    /**
+     * クライアントに関するイベントを受信するリスナー.
+     */
+    public interface ClientEventListener {
+
+        /**
+         * クライアントへデータを送信したタイミングで実行されます.
+         *
+         * @param server サーバーのインスタンス
+         * @param clientSocket クライアント側のソケット情報
+         * @param payloadByteSize 送信したデータのサイズ. 単位はバイト
+         */
+        void onSendPacket(SRTServer server, SRTClientSocket clientSocket, int payloadByteSize);
+    }
+
     private static final String TAG = "SRT";
 
     private static final int DEFAULT_BACKLOG = 5;
@@ -67,7 +82,9 @@ public class SRTServer {
 
     private boolean mStarted;
 
-    private final EventListenerManager mListenerManager = new EventListenerManager();
+    private final ServerEventListenerManager mServerEventListener = new ServerEventListenerManager();
+
+    private final ClientEventListenerManager mClientEventListener = new ClientEventListenerManager();
 
     public SRTServer(final String serverAddress, final int serverPort, final int backlog) {
         mServerAddress = serverAddress;
@@ -101,7 +118,7 @@ public class SRTServer {
         NdkHelper.startup();
         mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
         if (mNativeSocket < 0) {
-            mListenerManager.onErrorOpen(this, (int) mNativeSocket);
+            mServerEventListener.onErrorOpen(this, (int) mNativeSocket);
             throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
         }
         Log.d(TAG, "Created server socket: native pointer = " + mNativeSocket);
@@ -120,7 +137,7 @@ public class SRTServer {
                             mClientSocketList.add(socket);
                         }
 
-                        mListenerManager.onAcceptClient(this, socket);
+                        mServerEventListener.onAcceptClient(this, socket);
                     } else {
                         close();
                     }
@@ -132,7 +149,7 @@ public class SRTServer {
         mServerThread.setName("ServerThread");
         mServerThread.start();
 
-        mListenerManager.onOpen(this);
+        mServerEventListener.onOpen(this);
     }
 
     public void sendPacket(final byte[] packet) throws IOException {
@@ -140,7 +157,9 @@ public class SRTServer {
             for (Iterator<SRTClientSocket> it = mClientSocketList.iterator(); it.hasNext(); ) {
                 SRTClientSocket socket = it.next();
                 try {
-                    socket.send(packet, packet.length);
+                    final int length = packet.length;
+                    socket.send(packet, length);
+                    mClientEventListener.onSendPacket(this, socket, length);
                 } catch (ClientSocketException e) {
                     if (e.mError == -1) {
                         Log.e(TAG, "Client socket is closed.");
@@ -170,15 +189,23 @@ public class SRTServer {
         mServerThread.interrupt();
         mServerThread = null;
 
-        mListenerManager.onClose(this);
+        mServerEventListener.onClose(this);
     }
 
-    public void addEventListener(final EventListener listener, final Handler handler) {
-        mListenerManager.addListener(listener, handler);
+    public void addServerEventListener(final ServerEventListener listener, final Handler handler) {
+        mServerEventListener.addListener(new ServerEventListenerWrapper(listener, handler));
     }
 
-    public void removeEventListener(final EventListener listener) {
-        mListenerManager.removeListener(listener);
+    public void removeEventListener(final ServerEventListener listener) {
+        mServerEventListener.removeListener(listener);
+    }
+
+    public void addClientEventListener(final ClientEventListener listener, final Handler handler) {
+        mClientEventListener.addListener(new ClientEventListenerWrapper(listener, handler));
+    }
+
+    public void removeEventListener(final ClientEventListener listener) {
+        mClientEventListener.removeListener(listener);
     }
 
     public static class ClientSocketException extends IOException {
@@ -191,100 +218,87 @@ public class SRTServer {
         }
     }
 
-    private static class EventListenerManager implements EventListener {
-
-        final List<EventListenerWrapper> mEventListenerList = new ArrayList<>();
-
-        void addListener(final EventListener listener, final Handler handler) {
-            synchronized (mEventListenerList) {
-                mEventListenerList.add(new EventListenerWrapper(listener, handler));
-            }
-        }
-
-        void removeListener(final EventListener listener) {
-            synchronized (mEventListenerList) {
-                for (Iterator<EventListenerWrapper> it = mEventListenerList.iterator(); it.hasNext(); ) {
-                    EventListenerWrapper cache = it.next();
-                    if (listener == cache.mEventListener) {
-                        cache.dispose();
-                        it.remove();
-                        return;
-                    }
-                }
-            }
-        }
+    private static class ServerEventListenerManager
+            extends EventListenerManager<ServerEventListener>
+            implements ServerEventListener {
 
         @Override
         public void onOpen(final SRTServer server) {
-            synchronized (mEventListenerList) {
-                for (EventListener l : mEventListenerList) {
-                    l.onOpen(server);
-                }
-            }
+            listeners(l -> l.onOpen(server));
         }
 
         @Override
         public void onClose(final SRTServer server) {
-            synchronized (mEventListenerList) {
-                for (EventListener l : mEventListenerList) {
-                    l.onClose(server);
-                }
-            }
+            listeners(l -> l.onClose(server));
         }
 
         @Override
         public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
-            synchronized (mEventListenerList) {
-                for (EventListener l : mEventListenerList) {
-                    l.onAcceptClient(server, clientSocket);
-                }
-            }
+            listeners(l -> l.onAcceptClient(server, clientSocket));
         }
 
         @Override
         public void onErrorOpen(final SRTServer server, final int error) {
-            synchronized (mEventListenerList) {
-                for (EventListener l : mEventListenerList) {
-                    l.onErrorOpen(server, error);
-                }
-            }
+            listeners(l -> l.onErrorOpen(server, error));
         }
     }
 
-    private static class EventListenerWrapper implements EventListener {
+    private static class ClientEventListenerManager
+        extends EventListenerManager<ClientEventListener>
+        implements ClientEventListener {
 
-        EventListener mEventListener;
-
-        Handler mHandler;
-
-        EventListenerWrapper(final EventListener eventListener, final Handler handler) {
-            mEventListener = eventListener;
-            mHandler = handler;
+        @Override
+        public void onSendPacket(SRTServer server,
+                                 SRTClientSocket clientSocket,
+                                 int payloadByteSize) {
+            listeners(l -> l.onSendPacket(server, clientSocket, payloadByteSize));
         }
+    }
 
-        void dispose() {
-            mEventListener = null;
-            mHandler = null;
+    private static class ServerEventListenerWrapper
+        extends EventListenerWrapper<ServerEventListener>
+        implements ServerEventListener {
+
+        ServerEventListenerWrapper(final ServerEventListener listener,
+                                   final Handler handler) {
+            super(listener, handler);
         }
 
         @Override
         public void onOpen(final SRTServer server) {
-            mHandler.post(() -> mEventListener.onOpen(server));
+            post(() -> mEventListener.onOpen(server));
         }
 
         @Override
         public void onClose(final SRTServer server) {
-            mHandler.post(() -> mEventListener.onClose(server));
+            post(() -> mEventListener.onClose(server));
         }
 
         @Override
         public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
-            mHandler.post(() -> mEventListener.onAcceptClient(server, clientSocket));
+            post(() -> mEventListener.onAcceptClient(server, clientSocket));
         }
 
         @Override
         public void onErrorOpen(final SRTServer server, final int error) {
-            mHandler.post(() -> mEventListener.onErrorOpen(server, error));
+            post(() -> mEventListener.onErrorOpen(server, error));
+        }
+    }
+
+    private static class ClientEventListenerWrapper
+        extends EventListenerWrapper<ClientEventListener>
+        implements ClientEventListener {
+
+        ClientEventListenerWrapper(final ClientEventListener listener,
+                                   final Handler handler) {
+            super(listener, handler);
+        }
+
+        @Override
+        public void onSendPacket(final SRTServer server,
+                                 final SRTClientSocket clientSocket,
+                                 final int payloadByteSize) {
+            post(() -> mEventListener.onSendPacket(server, clientSocket, payloadByteSize));
         }
     }
 }

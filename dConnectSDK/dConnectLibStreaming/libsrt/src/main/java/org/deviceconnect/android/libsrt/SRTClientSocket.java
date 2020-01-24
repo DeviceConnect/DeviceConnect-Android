@@ -2,6 +2,9 @@ package org.deviceconnect.android.libsrt;
 
 import java.io.IOException;
 
+/**
+ * SRTクライアントのソケット.
+ */
 public class SRTClientSocket {
 
     private long mSocketPtr = -1;

@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
-    private final SRTServer.EventListener mServerEventListener = new SRTServer.EventListener() {
+    private final SRTServer.ServerEventListener mServerEventListener = new SRTServer.ServerEventListener() {
         @Override
         public void onOpen(final SRTServer server) {
             if (DEBUG) {
@@ -159,6 +159,18 @@ public class MainActivity extends AppCompatActivity
             if (DEBUG) {
                 Log.d(TAG, "onErrorOpen: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
+        }
+    };
+
+    private final SRTServer.ClientEventListener mClientEventListener = new SRTServer.ClientEventListener() {
+
+        @Override
+        public void onSendPacket(final SRTServer server,
+                                 final SRTClientSocket clientSocket,
+                                 final int payloadByteSize) {
+//            if (DEBUG) {
+//                Log.d(TAG, "onSendPacket: payloadByteSize = " + payloadByteSize);
+//            }
         }
     };
 
@@ -288,7 +300,8 @@ public class MainActivity extends AppCompatActivity
 
             if (startServer) {
                 mSRTServer = new SRTServer(serverAddress, 12345);
-                mSRTServer.addEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
+                mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
+                mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
                 mSRTServer.open();
             }
 

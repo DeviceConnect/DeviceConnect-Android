@@ -7,7 +7,9 @@ import java.io.IOException;
  *
  * このクラスはスレッドセーフではありません.
  */
-class SRTServerSocket {
+public class SRTServerSocket {
+
+    private static final int DEFAULT_BACKLOG = 5;
 
     private long mNativeSocket;
 
@@ -19,10 +21,23 @@ class SRTServerSocket {
 
     private boolean mIsOpen;
 
-    SRTServerSocket(final String serverAddress, final int serverPort, final int backlog) {
+    public SRTServerSocket(final String serverAddress, final int serverPort, final int backlog) {
         mServerAddress = serverAddress;
         mServerPort = serverPort;
         mBacklog = backlog;
+    }
+
+    public SRTServerSocket(final String serverAddress, final int serverPort) {
+        this(serverAddress, serverPort, DEFAULT_BACKLOG);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
     }
 
     public String getServerAddress() {
@@ -33,17 +48,19 @@ class SRTServerSocket {
         return mServerPort;
     }
 
-    void open() throws IOException {
+    public void open() throws IOException {
         if (!mIsOpen) {
+            NdkHelper.startup();
             mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
             if (mNativeSocket < 0) {
                 throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
             }
+
             mIsOpen = true;
         }
     }
 
-    SRTClientSocket accept() throws IOException {
+    public SRTClientSocket accept() throws IOException {
         SRTClientSocket socket = new SRTClientSocket();
         NdkHelper.accept(mNativeSocket, socket);
         if (!socket.isAvailable()) {
@@ -52,9 +69,10 @@ class SRTServerSocket {
         return socket;
     }
 
-    void close() {
+    public void close() {
         if (mIsOpen) {
             NdkHelper.closeSrtSocket(mNativeSocket);
+            NdkHelper.cleanup();
             mIsOpen = false;
         }
     }

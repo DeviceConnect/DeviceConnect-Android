@@ -1,4 +1,4 @@
-package org.deviceconnect.android.libsrt;
+package org.deviceconnect.android.libsrt.server;
 
 import android.os.Handler;
 

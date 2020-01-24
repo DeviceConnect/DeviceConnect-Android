@@ -1,4 +1,4 @@
-package org.deviceconnect.android.libsrt;
+package org.deviceconnect.android.libsrt.server;
 
 import java.util.ArrayList;
 import java.util.Iterator;

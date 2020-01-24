@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
+
 /**
  * SRTサーバー.
  */
@@ -68,15 +70,9 @@ public class SRTServer {
 
     private static final int DEFAULT_BACKLOG = 5;
 
-    private final String mServerAddress;
-
-    private final int mServerPort;
-
-    private final int mBacklog;
+    private final SRTServerSocket mServerSocket;
 
     private final List<SRTClientSocket> mClientSocketList = new ArrayList<>();
-
-    private long mNativeSocket;
 
     private Thread mServerThread;
 
@@ -87,9 +83,7 @@ public class SRTServer {
     private final ClientEventListenerManager mClientEventListener = new ClientEventListenerManager();
 
     public SRTServer(final String serverAddress, final int serverPort, final int backlog) {
-        mServerAddress = serverAddress;
-        mServerPort = serverPort;
-        mBacklog = backlog;
+        mServerSocket = new SRTServerSocket(serverAddress, serverPort, backlog);
     }
 
     public SRTServer(final String serverAddress, final int serverPort) {
@@ -97,11 +91,11 @@ public class SRTServer {
     }
 
     public String getServerAddress() {
-        return mServerAddress;
+        return mServerSocket.getServerAddress();
     }
 
     public int getServerPort() {
-        return mServerPort;
+        return mServerSocket.getServerPort();
     }
 
     @Override
@@ -116,21 +110,24 @@ public class SRTServer {
         }
 
         NdkHelper.startup();
-        mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
-        if (mNativeSocket < 0) {
-            mServerEventListener.onErrorOpen(this, (int) mNativeSocket);
-            throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
+        try {
+            mServerSocket.open();
+            mStarted = true;
+        } catch (IOException e) {
+            mServerEventListener.onErrorOpen(this, (int) mServerSocket.mNativeSocket);
+            throw e;
         }
-        Log.d(TAG, "Created server socket: native pointer = " + mNativeSocket);
-        mStarted = true;
 
         mServerThread = new Thread(() -> {
             try {
                 while (mStarted && !Thread.interrupted()) {
-                    Log.d(TAG, "Waiting for SRT client...");
-                    SRTClientSocket socket = new SRTClientSocket();
-                    NdkHelper.accept(mNativeSocket, socket);
-                    Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
+                    if (DEBUG) {
+                        Log.d(TAG, "Waiting for SRT client...");
+                    }
+                    SRTClientSocket socket = mServerSocket.accept();
+                    if (DEBUG) {
+                        Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
+                    }
 
                     if (socket.isAvailable()) {
                         synchronized (mClientSocketList) {
@@ -176,7 +173,7 @@ public class SRTServer {
             return;
         }
 
-        NdkHelper.closeSrtSocket(mNativeSocket);
+        mServerSocket.close();
         synchronized (mClientSocketList) {
             for (SRTClientSocket socket : mClientSocketList) {
                 socket.close();

@@ -32,6 +32,7 @@ import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+import org.deviceconnect.android.libsrt.SRTClientSocket;
 import org.deviceconnect.android.libsrt.SRTServer;
 
 import static org.deviceconnect.android.srt_server_app.BuildConfig.DEBUG;
@@ -134,20 +135,30 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onOpen(final SRTServer server) {
             if (DEBUG) {
-                Log.d(TAG, "Started SRT Server: " + server.getServerAddress() + ":" + server.getServerPort());
+                Log.d(TAG, "Started SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
-            showServerAddress(server.getServerAddress());
+            showServerAddress(server);
         }
 
         @Override
         public void onClose(final SRTServer server) {
             if (DEBUG) {
-                Log.d(TAG, "Stopped SRT Server: " + server.getServerAddress() + ":" + server.getServerPort());
+                Log.d(TAG, "Stopped SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
+            }
+        }
+
+        @Override
+        public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
+            if (DEBUG) {
+                Log.d(TAG, "Accepted SRT Client: client address = " + clientSocket.getSocketAddress());
             }
         }
 
         @Override
         public void onErrorOpen(final SRTServer server, final int error) {
+            if (DEBUG) {
+                Log.d(TAG, "onErrorOpen: address = " + server.getServerAddress() + ":" + server.getServerPort());
+            }
         }
     };
 
@@ -311,11 +322,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void showServerAddress(final String address) {
+    private void showServerAddress(final SRTServer server) {
         runOnUiThread(() -> {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
-                actionBar.setTitle(getString(R.string.app_name) + " (" + address + ")");
+                actionBar.setTitle("srt://" + server.getServerAddress()  + ":" + server.getServerPort());
             }
         });
     }

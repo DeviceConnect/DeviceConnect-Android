@@ -148,6 +148,7 @@ public class SwitchBotDevice {
                                                     mGatt.close();
                                                 }
                                                 if (mCommand == Command.CONNECTING) {
+                                                    mMainThreadHandler.removeCallbacks(connectTimeout);
                                                     connectCallback.onFailure();
                                                 }
                                                 mCommand = Command.NONE;

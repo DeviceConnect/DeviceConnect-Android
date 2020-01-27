@@ -122,7 +122,6 @@ public class ModifyActivity extends BaseSettingActivity implements View.OnClickL
                 Toast.makeText(this, getString(R.string.toast_modify_error), Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this, getString(R.string.toast_modify_success), Toast.LENGTH_LONG).show();
-                unbindService(mServiceConnection);
                 finish();
             }
         }

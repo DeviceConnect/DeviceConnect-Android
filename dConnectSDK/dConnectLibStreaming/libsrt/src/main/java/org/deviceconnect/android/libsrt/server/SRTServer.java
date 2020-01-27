@@ -4,12 +4,10 @@ import android.os.Handler;
 import android.util.Log;
 
 import org.deviceconnect.android.libsrt.SRTClientSocket;
-import org.deviceconnect.android.libsrt.SRTClientSocketException;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
@@ -29,14 +27,14 @@ public class SRTServer {
          *
          * @param server サーバーのインスタンス
          */
-        void onOpen(SRTServer server);
+        void onStart(SRTServer server);
 
         /**
          * サーバーが停止したタイミングで実行されます.
          *
          * @param server サーバーのインスタンス
          */
-        void onClose(SRTServer server);
+        void onStop(SRTServer server);
 
         /**
          * クライアントと接続したタイミングで実行されます.
@@ -52,7 +50,7 @@ public class SRTServer {
          * @param server サーバーのインスタンス
          * @param error 失敗の原因
          */
-        void onErrorOpen(SRTServer server, int error);
+        void onErrorStart(SRTServer server, int error);
     }
 
     /**
@@ -80,6 +78,8 @@ public class SRTServer {
 
     private static final String TAG = "SRT";
 
+    private static final long DEFAULT_STATS_INTERVAL = 5 * 1000;
+
     private final SRTServerSocket mServerSocket;
 
     private Thread mServerThread;
@@ -89,13 +89,11 @@ public class SRTServer {
      */
     private final List<SocketThread> mSocketThreads = new ArrayList<>();
 
-    private boolean mOpen;
+    private boolean mIsStarted;
 
     private final ServerEventListenerManager mServerEventListener = new ServerEventListenerManager();
 
     private final ClientEventListenerManager mClientEventListener = new ClientEventListenerManager();
-
-    private final List<SRTClientSocket> mClientSocketList = new ArrayList<>();
 
     /**
      * SRT の処理を行うセッション.
@@ -106,6 +104,10 @@ public class SRTServer {
      * SRT サーバへのイベントを通知するコールバック.
      */
     private Callback mCallback;
+
+    private boolean mStatsEnabled = false;
+
+    private long mStatsInterval = DEFAULT_STATS_INTERVAL;
 
     public SRTServer(final String serverAddress, final int serverPort, final int backlog) {
         mServerSocket = new SRTServerSocket(serverAddress, serverPort, backlog);
@@ -127,94 +129,73 @@ public class SRTServer {
         return mServerSocket.getServerPort();
     }
 
-    public synchronized void open() throws IOException {
-        if (mOpen) {
+    public void setStatsEnabled(boolean enable) {
+        mStatsEnabled = enable;
+    }
+
+    public void setStatsInterval(final long statsInterval) {
+        mStatsInterval = statsInterval;
+    }
+
+    public synchronized void start() throws IOException {
+        if (mIsStarted) {
             return;
         }
 
         try {
             mServerSocket.open();
-            mOpen = true;
+            if (mStatsEnabled) {
+                mServerSocket.startDumpStats(mStatsInterval);
+            }
+            mIsStarted = true;
         } catch (IOException e) {
-            mServerEventListener.onErrorOpen(this, -1); // TODO エラーをJNIから取得
+            mServerEventListener.onErrorStart(this, -1); // TODO エラーをJNIから取得
             throw e;
         }
 
         mServerThread = new Thread(() -> {
             try {
-                while (mOpen && !Thread.interrupted()) {
+                while (mIsStarted && !Thread.interrupted()) {
                     if (DEBUG) {
                         Log.d(TAG, "Waiting for SRT client...");
                     }
 
                     SRTClientSocket socket = mServerSocket.accept();
-                    new SocketThread(socket).start();
+                    if (socket != null) {
+                        new SocketThread(socket).start();
 
-                    if (DEBUG) {
-                        Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
+                        if (DEBUG) {
+                            Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
+                        }
+
+                        mServerEventListener.onAcceptClient(this, socket);
                     }
-                    synchronized (mClientSocketList) {
-                        mClientSocketList.add(socket);
-                    }
-                    mServerEventListener.onAcceptClient(this, socket);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
             } finally {
-                close();
+                stop();
             }
         });
         mServerThread.setName("ServerThread");
         mServerThread.start();
 
-        mServerEventListener.onOpen(this);
+        mServerEventListener.onStart(this);
     }
 
-    public void sendPacket(final byte[] packet) {
-        sendPacket(packet, packet.length);
-    }
-
-    public void sendPacket(final byte[] packet, final int length) {
-        synchronized (mClientSocketList) {
-            for (Iterator<SRTClientSocket> it = mClientSocketList.iterator(); it.hasNext(); ) {
-                SRTClientSocket socket = it.next();
-                try {
-                    socket.send(packet, length);
-
-                    if (DEBUG) {
-                        mClientEventListener.onSendPacket(this, socket, length);
-                    }
-                } catch (SRTClientSocketException e) {
-                    if (e.getError() == -1) {
-                        Log.e(TAG, "Client socket is closed.");
-                        it.remove();
-                    }
-                    mClientEventListener.onErrorSendPacket(this, socket);
-                }
-            }
-        }
-    }
-
-    public synchronized void close() {
-        if (!mOpen) {
+    public synchronized void stop() {
+        if (!mIsStarted) {
             return;
         }
-        mOpen = false;
+        mIsStarted = false;
 
         mServerSocket.close();
-        synchronized (mClientSocketList) {
-            for (SRTClientSocket socket : mClientSocketList) {
-                socket.close();
-            }
-            mClientSocketList.clear();
-        }
 
         synchronized (mSocketThreads) {
             for (SocketThread t : mSocketThreads) {
                 t.terminate();
             }
         }
-
 
         mServerThread.interrupt();
         try {
@@ -224,7 +205,7 @@ public class SRTServer {
         }
         mServerThread = null;
 
-        mServerEventListener.onClose(this);
+        mServerEventListener.onStop(this);
     }
 
     public void addServerEventListener(final ServerEventListener listener, final Handler handler) {
@@ -248,13 +229,13 @@ public class SRTServer {
             implements ServerEventListener {
 
         @Override
-        public void onOpen(final SRTServer server) {
-            listeners(l -> l.onOpen(server));
+        public void onStart(final SRTServer server) {
+            listeners(l -> l.onStart(server));
         }
 
         @Override
-        public void onClose(final SRTServer server) {
-            listeners(l -> l.onClose(server));
+        public void onStop(final SRTServer server) {
+            listeners(l -> l.onStop(server));
         }
 
         @Override
@@ -263,8 +244,8 @@ public class SRTServer {
         }
 
         @Override
-        public void onErrorOpen(final SRTServer server, final int error) {
-            listeners(l -> l.onErrorOpen(server, error));
+        public void onErrorStart(final SRTServer server, final int error) {
+            listeners(l -> l.onErrorStart(server, error));
         }
     }
 
@@ -296,13 +277,13 @@ public class SRTServer {
         }
 
         @Override
-        public void onOpen(final SRTServer server) {
-            post(() -> mEventListener.onOpen(server));
+        public void onStart(final SRTServer server) {
+            post(() -> mEventListener.onStart(server));
         }
 
         @Override
-        public void onClose(final SRTServer server) {
-            post(() -> mEventListener.onClose(server));
+        public void onStop(final SRTServer server) {
+            post(() -> mEventListener.onStop(server));
         }
 
         @Override
@@ -311,8 +292,8 @@ public class SRTServer {
         }
 
         @Override
-        public void onErrorOpen(final SRTServer server, final int error) {
-            post(() -> mEventListener.onErrorOpen(server, error));
+        public void onErrorStart(final SRTServer server, final int error) {
+            post(() -> mEventListener.onErrorStart(server, error));
         }
     }
 

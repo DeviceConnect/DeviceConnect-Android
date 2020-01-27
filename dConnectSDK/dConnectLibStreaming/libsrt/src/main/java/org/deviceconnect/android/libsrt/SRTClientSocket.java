@@ -17,14 +17,6 @@ public class SRTClientSocket {
 
     private boolean mOpen = true;
 
-    private ScheduledExecutorService mStatsThread;
-
-    SRTClientSocket() {
-        if (DEBUG) {
-            //startStats();
-        }
-    }
-
     @Override
     protected void finalize() throws Throwable {
         try {
@@ -34,21 +26,7 @@ public class SRTClientSocket {
         }
     }
 
-    private void startStats() {
-        if (mStatsThread == null) {
-            mStatsThread = Executors.newSingleThreadScheduledExecutor();
-            mStatsThread.scheduleAtFixedRate(this::dumpStats, 0, 5000, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    private void stopStats() {
-        if (mStatsThread != null) {
-            mStatsThread.shutdown();
-            mStatsThread = null;
-        }
-    }
-
-    private void dumpStats() {
+    void dumpStats() {
         NdkHelper.dumpStats(mSocketPtr);
     }
 
@@ -71,7 +49,6 @@ public class SRTClientSocket {
             return;
         }
         mOpen = false;
-        stopStats();
         NdkHelper.closeSrtSocket(mSocketPtr);
     }
 

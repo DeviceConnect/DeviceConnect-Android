@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity
 
     private final SRTServer.ServerEventListener mServerEventListener = new SRTServer.ServerEventListener() {
         @Override
-        public void onOpen(final SRTServer server) {
+        public void onStart(final SRTServer server) {
             if (DEBUG) {
                 Log.d(TAG, "Started SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onClose(final SRTServer server) {
+        public void onStop(final SRTServer server) {
             if (DEBUG) {
                 Log.d(TAG, "Stopped SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
@@ -84,9 +84,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onErrorOpen(final SRTServer server, final int error) {
+        public void onErrorStart(final SRTServer server, final int error) {
             if (DEBUG) {
-                Log.d(TAG, "onErrorOpen: address = " + server.getServerAddress() + ":" + server.getServerPort());
+                Log.d(TAG, "onErrorStart: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
         }
     };
@@ -109,13 +109,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
     };
-
-    private void sendPacket(final byte[] packet) throws IOException {
-        SRTServer server = mSRTServer;
-        if (server != null) {
-            server.sendPacket(packet);
-        }
-    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -164,6 +157,7 @@ public class MainActivity extends AppCompatActivity
 
         try {
             mSRTServer = new SRTServer(serverAddress, 12345);
+            mSRTServer.setStatsEnabled(DEBUG);
             mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.setCallback(new SRTServer.Callback() {
@@ -195,7 +189,7 @@ public class MainActivity extends AppCompatActivity
 
                 }
             });
-            mSRTServer.open();
+            mSRTServer.start();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -203,7 +197,7 @@ public class MainActivity extends AppCompatActivity
 
     private void stopStreaming() {
         if (mSRTServer != null) {
-            mSRTServer.close();
+            mSRTServer.stop();
             mSRTServer = null;
         }
     }

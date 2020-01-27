@@ -335,7 +335,6 @@ public class SRTServer {
         if (mCallback != null) {
             mCallback.createSession(mSRTSession);
         }
-        mSRTSession.configure();
         mSRTSession.start();
     }
 
@@ -386,7 +385,7 @@ public class SRTServer {
                     }
                 }
 
-                mSRTSession.getVideoStream().addSRTClientSocket(mClientSocket);
+                mSRTSession.addSRTClientSocket(mClientSocket);
 
                 while (!isInterrupted()) {
                     if (mClientSocket.isClosed()) {
@@ -403,7 +402,7 @@ public class SRTServer {
             } catch (Exception e) {
                 // ignore.
             } finally {
-                mSRTSession.getVideoStream().removeSRTClientSocket(mClientSocket);
+                mSRTSession.removeSRTClientSocket(mClientSocket);
 
                 try {
                     mClientSocket.close();

@@ -24,7 +24,6 @@ import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
-import org.deviceconnect.android.libsrt.server.video.CameraVideoStream;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -173,8 +172,7 @@ public class MainActivity extends AppCompatActivity
                 public void createSession(final SRTSession session) {
                     Log.e("ABC", "AAAAAAAAAAAAA createSession");
 
-                    CameraVideoStream videoMediaStream = new CameraVideoStream(getApplicationContext());
-                    CameraSurfaceVideoEncoder encoder = (CameraSurfaceVideoEncoder) videoMediaStream.getVideoEncoder();
+                    CameraSurfaceVideoEncoder encoder = new CameraSurfaceVideoEncoder(getApplicationContext());
                     encoder.addSurface(mCameraView.getHolder().getSurface());
 
                     CameraVideoQuality videoQuality = (CameraVideoQuality) encoder.getVideoQuality();
@@ -188,7 +186,7 @@ public class MainActivity extends AppCompatActivity
                     videoQuality.setVideoWidth(previewSize.getWidth());
                     videoQuality.setVideoHeight(previewSize.getHeight());
 
-                    session.setVideoStream(videoMediaStream);
+                    session.setVideoEncoder(encoder);
                 }
 
                 @Override

@@ -24,11 +24,11 @@ public class SRTSocket {
         NdkHelper.dumpStats(mSocketPtr);
     }
 
-    public synchronized void send(final byte[] data, final int length) throws SRTSocketException {
+    public synchronized void send(final byte[] data, final int offset, final int length) throws SRTSocketException {
         if (!mOpen) {
             throw new SRTSocketException(0);
         }
-        int result = NdkHelper.sendMessage(mSocketPtr, data, length);
+        int result = NdkHelper.sendMessage(mSocketPtr, data, offset, length);
         if (result < 0) {
             throw new SRTSocketException(result);
         }

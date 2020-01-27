@@ -126,14 +126,31 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
 }
 
 JNIEXPORT int JNICALL
-JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint length) {
+JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint offset, jint length) {
     jboolean isCopy;
     jbyte* data = env->GetByteArrayElements(byteArray, &isCopy);
     if (data == nullptr) {
         return -1;
     }
 
-    int result = srt_sendmsg2((int) ptr, (const char*)data, length, nullptr);
+    int result = srt_sendmsg2((int) ptr, (const char *) &data[offset], length, nullptr);
+    if (result == SRT_ERROR) {
+        LOGE("srt_send: %s\n", srt_getlasterror_str());
+    }
+    env->ReleaseByteArrayElements(byteArray, data, 0);
+    return result;
+}
+
+
+JNIEXPORT int JNICALL
+JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint length) {
+    jboolean isCopy;
+    jbyte* data = env->GetByteArrayElements(byteArray, &isCopy);
+    if (data == nullptr) {
+        return -1;
+    }
+
+    int result = srt_recvmsg((int) ptr, (char *) data, length);
     if (result == SRT_ERROR) {
         LOGE("srt_send: %s\n", srt_getlasterror_str());
     }

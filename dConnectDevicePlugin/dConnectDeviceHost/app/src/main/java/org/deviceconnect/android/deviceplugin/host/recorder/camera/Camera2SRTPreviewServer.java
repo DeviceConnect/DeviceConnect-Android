@@ -7,13 +7,10 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
-import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
-import org.deviceconnect.android.libsrt.server.video.VideoStream;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -87,7 +84,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 if (mSRTServer != null) {
                     SRTSession session = mSRTServer.getSRTSession();
                     if (session != null) {
-                        session.getVideoStream().getVideoEncoder().restart();
+                        session.getVideoEncoder().restart();
                     }
                 }
             }).start();
@@ -101,15 +98,15 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
-            SRTCameraVideoStream videoStream = new SRTCameraVideoStream(mRecorder);
-            VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
+            CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
+            VideoQuality videoQuality = encoder.getVideoQuality();
             HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
             videoQuality.setVideoWidth(previewSize.getHeight());
             videoQuality.setVideoHeight(previewSize.getWidth());
             videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
             videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
-            session.setVideoStream(videoStream);
+            session.setVideoEncoder(encoder);
 
             registerConfigChangeReceiver();
 
@@ -124,21 +121,4 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             unregisterConfigChangeReceiver();
         }
     };
-
-    private class SRTCameraVideoStream extends VideoStream {
-
-        /**
-         * 映像用エンコーダ.
-         */
-        private final VideoEncoder mVideoEncoder;
-
-        SRTCameraVideoStream(final Camera2Recorder camera2Recorder) {
-            mVideoEncoder = new CameraVideoEncoder(camera2Recorder);
-        }
-
-        @Override
-        public VideoEncoder getVideoEncoder() {
-            return mVideoEncoder;
-        }
-    }
 }

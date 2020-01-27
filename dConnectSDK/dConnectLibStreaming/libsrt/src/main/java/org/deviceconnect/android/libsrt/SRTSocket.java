@@ -31,6 +31,31 @@ public class SRTSocket {
         NdkHelper.dumpStats(mNativePtr);
     }
 
+    public int getLocalPort() {
+        // TODO 実装
+        return -1;
+    }
+
+    public String getLocalSocketAddress() {
+        // TODO 実装
+        return null;
+    }
+
+    public String getRemoteSocketAddress() {
+        // TODO 実装
+        return null;
+    }
+
+    public int getPort() {
+        // TODO 実装
+        return -1;
+    }
+
+    public boolean isBound() {
+        // TODO 実装
+        return true;
+    }
+
     public boolean isClosed() {
         return mClosed;
     }
@@ -89,7 +114,7 @@ public class SRTSocket {
         if (mClosed) {
             return;
         }
-        mClosed = false;
+        mClosed = true;
 
         NdkHelper.closeSrtSocket(mNativePtr);
     }

@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTClientSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
@@ -114,9 +115,11 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mCameraView = findViewById(R.id.surface_view);
 
+        mCameraView = findViewById(R.id.surface_view);
         mSettings = new Settings(getApplicationContext());
+
+        SRT.startup();
     }
 
     @Override
@@ -135,6 +138,12 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         stopStreaming();
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        SRT.cleanup();
+        super.onDestroy();
     }
 
     @Override

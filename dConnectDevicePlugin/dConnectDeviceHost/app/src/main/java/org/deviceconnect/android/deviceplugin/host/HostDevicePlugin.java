@@ -52,6 +52,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvide
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -180,10 +181,13 @@ public class HostDevicePlugin extends DevicePluginContext {
         );
         mHostBatteryManager = new HostBatteryManager(this);
         mHostBatteryManager.getBatteryInfo();
+
+        SRT.startup();
         mRecorderMgr = new HostDeviceRecorderManager(this);
         initRecorders(mRecorderMgr);
         mRecorderMgr.start();
         initRecorderSetting(mRecorderMgr);
+
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
         DConnectService hostService = new DConnectService(SERVICE_ID);
@@ -317,6 +321,8 @@ public class HostDevicePlugin extends DevicePluginContext {
         mRecorderMgr.stop();
         mRecorderMgr.clean();
         mRecorderMgr.destroy();
+        SRT.cleanup();
+
         mFileDataManager.stopTimer();
         if (mCameraWrapperManager != null) {
             mCameraWrapperManager.destroy();

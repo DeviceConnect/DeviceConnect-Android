@@ -59,8 +59,6 @@ public class SRTServerSocket {
 
     public void open() throws IOException {
         if (!mIsOpen) {
-
-            NdkHelper.startup();
             mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
             if (mNativeSocket < 0) {
                 throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
@@ -98,7 +96,6 @@ public class SRTServerSocket {
                 }
                 mClientSocketList.clear();
             }
-            NdkHelper.cleanup();
         }
     }
 

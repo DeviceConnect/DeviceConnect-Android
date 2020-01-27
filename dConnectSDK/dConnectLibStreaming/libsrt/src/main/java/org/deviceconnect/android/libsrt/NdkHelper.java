@@ -18,4 +18,6 @@ class NdkHelper {
 
     public static native void accept(long nativePtr, SRTClientSocket socket);
     public static native int sendMessage(long nativePtr, byte[] data, int length);
+
+    public static native void dumpStats(long nativePtr);
 }

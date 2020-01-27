@@ -1,6 +1,10 @@
 package org.deviceconnect.android.libsrt;
 
-import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
 
 /**
  * SRTクライアントのソケット.
@@ -11,15 +15,28 @@ public class SRTClientSocket {
 
     private String mSocketAddress;
 
-    private boolean mClosed;
+    private boolean mOpen = true;
 
-    synchronized void send(final byte[] data, final int length) throws IOException {
-        if (mClosed) {
-            throw new IOException("already closed");
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+    void dumpStats() {
+        NdkHelper.dumpStats(mSocketPtr);
+    }
+
+    public synchronized void send(final byte[] data, final int length) throws SRTClientSocketException {
+        if (!mOpen) {
+            throw new SRTClientSocketException(0);
         }
         int result = NdkHelper.sendMessage(mSocketPtr, data, length);
         if (result < 0) {
-            throw new SRTServer.ClientSocketException(result);
+            throw new SRTClientSocketException(result);
         }
     }
 
@@ -27,9 +44,16 @@ public class SRTClientSocket {
         return mSocketAddress;
     }
 
-    synchronized void close() {
-        mClosed = true;
+    public synchronized void close() {
+        if (!mOpen) {
+            return;
+        }
+        mOpen = false;
         NdkHelper.closeSrtSocket(mSocketPtr);
+    }
+
+    public boolean isClosed() {
+        return !mOpen;
     }
 
     boolean isAvailable() {

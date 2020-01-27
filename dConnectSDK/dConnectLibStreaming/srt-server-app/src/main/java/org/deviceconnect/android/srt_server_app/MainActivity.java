@@ -1,9 +1,6 @@
 package org.deviceconnect.android.srt_server_app;
 
 import android.Manifest;
-import android.media.MediaCodec;
-import android.media.MediaFormat;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,20 +17,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
+import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libsrt.SRTClientSocket;
+import org.deviceconnect.android.libsrt.server.SRTServer;
+import org.deviceconnect.android.libsrt.server.SRTSession;
+import org.deviceconnect.android.libsrt.server.video.CameraVideoStream;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
-
-import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
-import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TsSegmenter;
-import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
-import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
-import org.deviceconnect.android.libsrt.SRTClientSocket;
-import org.deviceconnect.android.libsrt.SRTServer;
 
 import static org.deviceconnect.android.srt_server_app.BuildConfig.DEBUG;
 
@@ -59,81 +54,15 @@ public class MainActivity extends AppCompatActivity
 
     private Settings mSettings;
 
-    private H264TsSegmenter mH264TsSegmenter;
-
     private SRTServer mSRTServer;
 
     private final IpAddressManager mAddressManager = new IpAddressManager();
 
-    private CameraSurfaceVideoEncoder mEncoder;
-
     private AutoFitSurfaceView mCameraView;
-
-    /**
-     * データを一時的に格納するためのバッファ.
-     */
-    private byte[] mVideoConfig;
-
-    /**
-     * SPS、PPS のデータを格納するバッファ.
-     */
-    private ByteBuffer mVideoSPSandPPS;
-
-    private boolean mRequestedRestart;
-
-    private MediaEncoder.Callback mEncoderCallback = new MediaEncoder.Callback() {
-        @Override
-        public void onStarted() {
-            Log.d(TAG, "MediaEncoder.Callback: onStarted");
-            runOnUiThread(() -> {
-                VideoQuality q = mEncoder.getVideoQuality();
-                mCameraView.setAspectRatio(q.getVideoHeight(), q.getVideoWidth());
-            });
-        }
-
-        @Override
-        public void onStopped() {
-            Log.d(TAG, "MediaEncoder.Callback: onStopped");
-            if (mRequestedRestart) {
-                mRequestedRestart = false;
-                startStreaming(false);
-            }
-        }
-
-        @Override
-        public void onFormatChanged(final MediaFormat newFormat) {
-            Log.d(TAG, "MediaEncoder.Callback: onFormatChanged");
-        }
-
-        @Override
-        public void onWriteData(final ByteBuffer encodedData, final MediaCodec.BufferInfo bufferInfo) {
-            if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                createSPSandPPS(encodedData, bufferInfo);
-                bufferInfo.size = 0;
-            }
-
-            if (bufferInfo.size != 0) {
-                encodedData.position(bufferInfo.offset);
-                encodedData.limit(bufferInfo.offset + bufferInfo.size);
-
-                if (checkKeyFrame(bufferInfo)) {
-                    packageSPSandPPS(encodedData, bufferInfo);
-                    mH264TsSegmenter.generatePackets(mVideoSPSandPPS, bufferInfo.presentationTimeUs / 1000L);
-                } else {
-                    mH264TsSegmenter.generatePackets(encodedData, bufferInfo.presentationTimeUs / 1000L);
-                }
-            }
-        }
-
-        @Override
-        public void onError(final MediaEncoderException e) {
-            Log.e(TAG, "MediaEncoder.Callback: onError", e);
-        }
-    };
 
     private final SRTServer.ServerEventListener mServerEventListener = new SRTServer.ServerEventListener() {
         @Override
-        public void onOpen(final SRTServer server) {
+        public void onStart(final SRTServer server) {
             if (DEBUG) {
                 Log.d(TAG, "Started SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
@@ -141,7 +70,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onClose(final SRTServer server) {
+        public void onStop(final SRTServer server) {
             if (DEBUG) {
                 Log.d(TAG, "Stopped SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
@@ -155,9 +84,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onErrorOpen(final SRTServer server, final int error) {
+        public void onErrorStart(final SRTServer server, final int error) {
             if (DEBUG) {
-                Log.d(TAG, "onErrorOpen: address = " + server.getServerAddress() + ":" + server.getServerPort());
+                Log.d(TAG, "onErrorStart: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
         }
     };
@@ -172,73 +101,14 @@ public class MainActivity extends AppCompatActivity
 //                Log.d(TAG, "onSendPacket: payloadByteSize = " + payloadByteSize);
 //            }
         }
-    };
 
-    /**
-     * 指定されたコーデックのバッファ情報がキーフレームか確認します.
-     *
-     * @param bufferInfo バッファ情報
-     * @return キーフレームの場合はtrue、それ以外はfalse
-     */
-    @SuppressWarnings("deprecation")
-    private boolean checkKeyFrame(MediaCodec.BufferInfo bufferInfo) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return (bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
-        } else {
-            return (bufferInfo.flags & MediaCodec.BUFFER_FLAG_SYNC_FRAME) != 0;
-        }
-    }
-
-    private void createSPSandPPS(final ByteBuffer encodedData, final MediaCodec.BufferInfo bufferInfo) {
-        mVideoSPSandPPS = ByteBuffer.allocateDirect(bufferInfo.size);
-        mVideoConfig = new byte[bufferInfo.size];
-        encodedData.get(mVideoConfig, 0, bufferInfo.size);
-        encodedData.position(bufferInfo.offset);
-        mVideoSPSandPPS.put(mVideoConfig, 0, bufferInfo.size);
-    }
-
-    private void packageSPSandPPS(final ByteBuffer encodedData, final MediaCodec.BufferInfo bufferInfo) {
-        if (mVideoSPSandPPS.capacity() < mVideoConfig.length + bufferInfo.size) {
-            mVideoSPSandPPS = ByteBuffer.allocateDirect(mVideoConfig.length + bufferInfo.size);
-            mVideoSPSandPPS.put(mVideoConfig);
-            mVideoSPSandPPS.put(encodedData);
-        } else {
-            mVideoSPSandPPS.position(mVideoConfig.length);
-            mVideoSPSandPPS.put(encodedData);
-        }
-        mVideoSPSandPPS.position(0);
-    }
-
-
-    private final H264TsSegmenter.BufferListener mBufferListener = (final byte[] result) -> {
-        try {
-            final int max = 188 * 7;
-            if (result.length > max) {
-                for (int offset = 0; offset < result.length; offset += max) {
-                    final int length;
-                    if (result.length - offset < max) {
-                        length = result.length - offset;
-                    } else {
-                        length = max;
-                    }
-                    byte[] data = new byte[length];
-                    System.arraycopy(result, offset, data, 0, length);
-                    sendPacket(data);
-                }
-            } else {
-                sendPacket(result);
+        @Override
+        public void onErrorSendPacket(final SRTServer server, final SRTClientSocket clientSocket) {
+            if (DEBUG) {
+                Log.d(TAG, "onErrorSendPacket: clientSocket = " + clientSocket.getSocketAddress());
             }
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to send packet", e);
         }
     };
-
-    private void sendPacket(final byte[] packet) throws IOException {
-        SRTServer server = mSRTServer;
-        if (server != null) {
-            server.sendPacket(packet);
-        }
-    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -247,9 +117,6 @@ public class MainActivity extends AppCompatActivity
         mCameraView = findViewById(R.id.surface_view);
 
         mSettings = new Settings(getApplicationContext());
-
-        mH264TsSegmenter = new H264TsSegmenter();
-        mH264TsSegmenter.setBufferListener(mBufferListener);
     }
 
     @Override
@@ -260,13 +127,13 @@ public class MainActivity extends AppCompatActivity
         if (!denies.isEmpty()) {
             PermissionUtil.requestPermissions(this, denies, PERMISSION_REQUEST_CODE);
         } else {
-            startStreaming(true);
+            startStreaming();
         }
     }
 
     @Override
     protected void onPause() {
-        stopStreaming(true);
+        stopStreaming();
         super.onPause();
     }
 
@@ -281,7 +148,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void startStreaming(final boolean startServer) {
+    private void startStreaming() {
         String serverAddress = getIpAddress();
         if (serverAddress == null) {
             runOnUiThread(() -> Toast.makeText(getApplicationContext(), "WiFi ルーターに接続してください", Toast.LENGTH_LONG).show());
@@ -289,48 +156,48 @@ public class MainActivity extends AppCompatActivity
         }
 
         try {
-            mEncoder = new CameraSurfaceVideoEncoder(getApplicationContext());
-            mEncoder.addSurface(mCameraView.getHolder().getSurface());
-            mEncoder.setCallback(mEncoderCallback);
+            mSRTServer = new SRTServer(serverAddress, 12345);
+            mSRTServer.setStatsEnabled(DEBUG);
+            mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
+            mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
+            mSRTServer.setCallback(new SRTServer.Callback() {
+                @Override
+                public void createSession(final SRTSession session) {
+                    Log.e("ABC", "AAAAAAAAAAAAA createSession");
 
-            int facing = mSettings.getCameraFacing();
-            int fps = mSettings.getEncoderFrameRate();
-            int biteRate = mSettings.getEncoderBitRate();
-            Size previewSize = mSettings.getCameraPreviewSize(facing);
+                    CameraVideoStream videoMediaStream = new CameraVideoStream(getApplicationContext());
+                    CameraSurfaceVideoEncoder encoder = (CameraSurfaceVideoEncoder) videoMediaStream.getVideoEncoder();
+                    encoder.addSurface(mCameraView.getHolder().getSurface());
 
-            if (startServer) {
-                mSRTServer = new SRTServer(serverAddress, 12345);
-                mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
-                mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
-                mSRTServer.open();
-            }
+                    CameraVideoQuality videoQuality = (CameraVideoQuality) encoder.getVideoQuality();
+                    int facing = mSettings.getCameraFacing();
+                    int fps = mSettings.getEncoderFrameRate();
+                    int biteRate = mSettings.getEncoderBitRate();
+                    Size previewSize = mSettings.getCameraPreviewSize(facing);
+                    videoQuality.setFacing(facing);
+                    videoQuality.setBitRate(biteRate);
+                    videoQuality.setFrameRate(fps);
+                    videoQuality.setVideoWidth(previewSize.getWidth());
+                    videoQuality.setVideoHeight(previewSize.getHeight());
 
-            mH264TsSegmenter.initialize(0, 0,0, fps);
+                    session.setVideoStream(videoMediaStream);
+                }
 
-            CameraVideoQuality videoQuality = (CameraVideoQuality) mEncoder.getVideoQuality();
-            videoQuality.setFacing(facing);
-            videoQuality.setBitRate(biteRate);
-            videoQuality.setFrameRate(fps);
-            videoQuality.setVideoWidth(previewSize.getWidth());
-            videoQuality.setVideoHeight(previewSize.getHeight());
+                @Override
+                public void releaseSession(final SRTSession session) {
+                    Log.e("ABC", "AAAAAAAAAAAAA releaseSession");
 
-            if (DEBUG) {
-                Log.d(TAG, "Settings > Video Size: " + previewSize.getWidth() + " x " + previewSize.getHeight());
-            }
-
-            mEncoder.start();
+                }
+            });
+            mSRTServer.start();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void stopStreaming(final boolean stopServer) {
-        if (mEncoder != null) {
-            mEncoder.stop();
-            mEncoder = null;
-        }
-        if (stopServer && mSRTServer != null) {
-            mSRTServer.close();
+    private void stopStreaming() {
+        if (mSRTServer != null) {
+            mSRTServer.stop();
             mSRTServer = null;
         }
     }
@@ -378,7 +245,7 @@ public class MainActivity extends AppCompatActivity
             getSupportFragmentManager().beginTransaction().remove(settingsDialog).commit();
         }
 
-        mRequestedRestart = true;
-        stopStreaming(false);
+        stopStreaming();
+        startStreaming();
     }
 }

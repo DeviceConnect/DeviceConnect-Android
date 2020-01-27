@@ -141,6 +141,18 @@ JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
     return result;
 }
 
+JNIEXPORT void JNICALL
+JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_dumpStats(): ptr=%d", ptr);
+
+    SRT_TRACEBSTATS stats;
+    int result = srt_bstats((int) ptr, &stats, 0);
+    if (result == SRT_ERROR) {
+        return;
+    }
+    LOGD("dumpStats: pktSentTotal=%d, pktRetransTotal=%d, pktSndLossTotal=%d", stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal);
+}
+
 #ifdef __cplusplus
 }
 #endif

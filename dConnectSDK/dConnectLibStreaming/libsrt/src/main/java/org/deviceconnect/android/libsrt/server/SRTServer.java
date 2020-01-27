@@ -109,8 +109,8 @@ public class SRTServer {
 
     private long mStatsInterval = DEFAULT_STATS_INTERVAL;
 
-    public SRTServer(final String serverAddress, final int serverPort, final int backlog) {
-        mServerSocket = new SRTServerSocket(serverAddress, serverPort, backlog);
+    public SRTServer(final String serverAddress, final int serverPort, final int maxClientNum) {
+        mServerSocket = new SRTServerSocket(serverAddress, serverPort, maxClientNum);
     }
 
     public SRTServer(final String serverAddress, final int serverPort) {
@@ -416,6 +416,8 @@ public class SRTServer {
                         releaseSRTSession();
                     }
                 }
+
+                mServerSocket.removeSocket(mClientSocket);
             }
         }
     }

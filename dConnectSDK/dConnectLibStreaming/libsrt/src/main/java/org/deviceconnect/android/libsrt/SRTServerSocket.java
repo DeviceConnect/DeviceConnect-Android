@@ -11,6 +11,8 @@ import java.util.List;
  */
 public class SRTServerSocket {
 
+    private static final int DEFAULT_MAX_CLIENT_NUM = 10;
+
     private static final int DEFAULT_BACKLOG = 5;
 
     private long mNativeSocket;
@@ -18,6 +20,8 @@ public class SRTServerSocket {
     private final String mServerAddress;
 
     private final int mServerPort;
+
+    private final int mMaxClientNum;
 
     private final int mBacklog;
 
@@ -29,15 +33,23 @@ public class SRTServerSocket {
 
     public SRTServerSocket(final String serverAddress,
                            final int serverPort,
+                           final int maxClientNum,
                            final int backlog) {
         mServerAddress = serverAddress;
         mServerPort = serverPort;
+        mMaxClientNum = maxClientNum;
         mBacklog = backlog;
     }
 
     public SRTServerSocket(final String serverAddress,
+                           final int serverPort,
+                           final int maxClientNum) {
+        this(serverAddress, serverPort, maxClientNum, DEFAULT_BACKLOG);
+    }
+
+    public SRTServerSocket(final String serverAddress,
                            final int serverPort) {
-        this(serverAddress, serverPort, DEFAULT_BACKLOG);
+        this(serverAddress, serverPort, DEFAULT_MAX_CLIENT_NUM);
     }
 
     @Override
@@ -77,10 +89,24 @@ public class SRTServerSocket {
         if (!socket.isAvailable()) {
             throw new IOException("Failed to accept client.");
         }
+        if (isMaxClientNum()) {
+            socket.close();
+            return null;
+        }
         synchronized (mClientSocketList) {
             mClientSocketList.add(socket);
         }
         return socket;
+    }
+
+    public void removeSocket(final SRTSocket socket) {
+        synchronized (mClientSocketList) {
+            mClientSocketList.remove(socket);
+        }
+    }
+
+    private boolean isMaxClientNum() {
+        return mClientSocketList.size() >= mMaxClientNum;
     }
 
     public void close() {

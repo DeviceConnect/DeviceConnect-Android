@@ -34,7 +34,7 @@ public class SwitchBotDevice {
     private static final UUID SWITCHBOT_BLE_GATT_CHARACTERISTIC_UUID = UUID.fromString("cba20002-224d-11e6-9fb8-0002a5d5c51b");
     private static final byte[] READ_SETTINGS_COMMAND = {0x57, 0x02};
     private static final long CONNECT_TIMEOUT = 10000;
-    private static final long MODE_CHANGE_DELAY = 3000;
+    private static final long MODE_CHANGE_DELAY = 5000;
     private final String mDeviceName;
     private final String mDeviceAddress;
     private final Mode mDeviceMode;

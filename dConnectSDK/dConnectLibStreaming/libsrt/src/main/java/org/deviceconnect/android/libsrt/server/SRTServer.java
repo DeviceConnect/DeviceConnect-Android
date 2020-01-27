@@ -129,6 +129,10 @@ public class SRTServer {
         return mServerSocket.getServerPort();
     }
 
+    public SRTSession getSRTSession() {
+        return mSRTSession;
+    }
+
     public void setStatsEnabled(boolean enable) {
         mStatsEnabled = enable;
     }

@@ -176,9 +176,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
         Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(getContext(), this, this);
         mjpegServer.setQuality(RecorderSettingData.getInstance(getContext()).readPreviewQuality(camera.getId()));
-        Camera2RTSPPreviewServer rtspServer = new Camera2RTSPPreviewServer(getContext(), this, this);
         mPreviewServers.add(mjpegServer);
-        mPreviewServers.add(rtspServer);
+        mPreviewServers.add(new Camera2RTSPPreviewServer(getContext(), this, this));
+        mPreviewServers.add(new Camera2SRTPreviewServer(getContext(), this, this));
     }
 
     private CameraWrapper getCameraWrapper() {

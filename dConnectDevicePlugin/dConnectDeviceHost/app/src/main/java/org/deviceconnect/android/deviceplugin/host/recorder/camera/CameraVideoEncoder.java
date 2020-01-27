@@ -37,7 +37,7 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
 
     @Override
     protected int getDisplayRotation() {
-        return mCamera2Recorder.getRotation();
+        return mCamera2Recorder.getDisplayRotation();
     }
 
     // SurfaceVideoEncoder

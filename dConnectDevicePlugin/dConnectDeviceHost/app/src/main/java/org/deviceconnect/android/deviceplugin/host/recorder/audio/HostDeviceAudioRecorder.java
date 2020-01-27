@@ -17,7 +17,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
-import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
@@ -32,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import androidx.annotation.NonNull;
 
 /**
  * Host Device Audio Recorder.
@@ -170,12 +171,10 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
 
     @Override
     public void mute() {
-
     }
 
     @Override
     public void unMute() {
-
     }
 
     @Override
@@ -327,5 +326,4 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
             mMediaRecorder = null;
         }
     }
-
 }

@@ -37,6 +37,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                                  ScreenCastManager screenCastMgr) {
         super(context, serverProvider);
         mScreenCastMgr = screenCastMgr;
+        setPort(11000);
     }
 
     @Override
@@ -59,7 +60,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
         if (mMJPEGServer == null) {
             mMJPEGServer = new MJPEGServer();
             mMJPEGServer.setServerName("HostDevicePlugin Server");
-            mMJPEGServer.setServerPort(11000);
+            mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
             try {
                 mMJPEGServer.start();
@@ -68,7 +69,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart("http://localhost:11000/mjpeg");
+        callback.onStart(mMJPEGServer.getUri());
     }
 
     @Override

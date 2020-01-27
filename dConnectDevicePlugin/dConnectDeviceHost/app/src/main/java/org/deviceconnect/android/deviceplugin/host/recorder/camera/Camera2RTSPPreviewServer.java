@@ -38,6 +38,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                              Camera2Recorder recorder) {
         super(context, serverProvider);
         mRecorder = recorder;
+        setPort(20000);
     }
 
     @Override
@@ -50,7 +51,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
         if (mRtspServer == null) {
             mRtspServer = new RtspServer();
             mRtspServer.setServerName(SERVER_NAME);
-            mRtspServer.setServerPort(20000);
+            mRtspServer.setServerPort(getPort());
             mRtspServer.setCallback(mCallback);
             try {
                 mRtspServer.start();
@@ -59,7 +60,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart("rtsp://localhost:20000");
+        callback.onStart("rtsp://localhost:" + getPort());
     }
 
     @Override

@@ -11,6 +11,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -21,10 +22,12 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -97,6 +100,8 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     private int mPreviewBitRate = 1024 * 1024;
     private double mMaxFps = DEFAULT_MAX_FPS;
     private RecorderState mState = RecorderState.INACTTIVE;
+
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     public HostDeviceScreenCastRecorder(final Context context,
                                         final FileManager fileMgr) {
@@ -297,26 +302,14 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
-    public void turnOnFlashLight(final TurnOnFlashLightListener listener,
-                                 final Handler handler) {
-        if (listener == null) {
-            throw new IllegalArgumentException("listener is null.");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("handler is null.");
-        }
+    public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
+                                 final @NonNull Handler handler) {
         handler.post(() -> listener.onError(Error.UNSUPPORTED));
     }
 
     @Override
-    public void turnOffFlashLight(final TurnOffFlashLightListener listener,
-                                  final Handler handler) {
-        if (listener == null) {
-            throw new IllegalArgumentException("listener is null.");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("handler is null.");
-        }
+    public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
+                                  final @NonNull Handler handler) {
         handler.post(() -> listener.onError(Error.UNSUPPORTED));
     }
 
@@ -335,61 +328,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mScreenCastMgr.requestPermission(new ScreenCastManager.PermissionCallback() {
             @Override
             public void onAllowed() {
-                mPhotoThread.execute(() -> {
-                    try {
-                        mState = RecorderState.RECORDING;
-
-                        HostDeviceRecorder.PictureSize size = getPreviewSize();
-                        int w = size.getWidth();
-                        int h = size.getHeight();
-                        ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-                        final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size.getWidth(), size.getHeight());
-                        final Bitmap[] screenshot = new Bitmap[1];
-                        final CountDownLatch mLatch = new CountDownLatch(1);
-                        imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                            @Override
-                            public void onImageAvailable(final ImageReader reader) {
-                                if (BuildConfig.DEBUG) {
-                                    mLogger.info("onImageAvailable");
-                                }
-                                screenshot[0] = screenCast.getScreenshot();
-                                mLatch.countDown();
-                            }
-                        }, mImageReaderHandler);
-                        screenCast.startCast();
-                        mLatch.await(5, TimeUnit.SECONDS);
-                        screenCast.stopCast();
-
-                        Bitmap bitmap = screenshot[0];
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, mScreenCastMJPEGServer.getQuality(), baos);
-                        byte[] media = baos.toByteArray();
-                        if (media == null) {
-                            mState = RecorderState.INACTTIVE;
-                            listener.onFailedTakePhoto("Failed to get Screenshot.");
-                            return;
-                        }
-
-                        // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
-                        mFileMgr.saveFile(createNewFileName(), media, true, new FileManager.SaveFileCallback() {
-                            @Override
-                            public void onSuccess(@NonNull final String uri) {
-                                mState = RecorderState.INACTTIVE;
-                                listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
-                            }
-
-                            @Override
-                            public void onFail(@NonNull final Throwable throwable) {
-                                mState = RecorderState.INACTTIVE;
-                                listener.onFailedTakePhoto(throwable.getMessage());
-                            }
-                        });
-                    } catch (InterruptedException e) {
-                        listener.onFailedTakePhoto("Taking photo is shutdown.");
-                    } catch (OutOfMemoryError e) {
-                        listener.onFailedTakePhoto("Out of memory.");
-                    }
-                });
+                mPhotoThread.execute(() -> takePhotoInternal(listener));
             }
 
             @Override
@@ -399,14 +338,80 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         });
     }
 
-    private String createNewFileName() {
-        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
-    }
-
     @Override
     public void onDisplayRotation(final int rotation) {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastRecorder.onDisplayRotation: rotation=" + rotation);
+        }
+    }
+
+    private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
+        try {
+            mState = RecorderState.RECORDING;
+
+            HostDeviceRecorder.PictureSize size = getPreviewSize();
+            int w = size.getWidth();
+            int h = size.getHeight();
+            ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
+            final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size.getWidth(), size.getHeight());
+            final Bitmap[] screenshot = new Bitmap[1];
+            final CountDownLatch mLatch = new CountDownLatch(1);
+            imageReader.setOnImageAvailableListener((reader) -> {
+                if (BuildConfig.DEBUG) {
+                    mLogger.info("onImageAvailable");
+                }
+                screenshot[0] = screenCast.getScreenshot();
+                mLatch.countDown();
+            }, mImageReaderHandler);
+            screenCast.startCast();
+            mLatch.await(5, TimeUnit.SECONDS);
+            screenCast.stopCast();
+
+            Bitmap bitmap = screenshot[0];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] media = baos.toByteArray();
+            if (media == null) {
+                mState = RecorderState.INACTTIVE;
+                listener.onFailedTakePhoto("Failed to get Screenshot.");
+                return;
+            }
+
+            // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
+            String filename = createNewFileName();
+            mFileMgr.saveFile(filename, media, true, new FileManager.SaveFileCallback() {
+                @Override
+                public void onSuccess(@NonNull final String uri) {
+                    mState = RecorderState.INACTTIVE;
+                    registerPhoto(new File(mFileMgr.getBasePath(), filename));
+                    listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
+                }
+
+                @Override
+                public void onFail(@NonNull final Throwable throwable) {
+                    mState = RecorderState.INACTTIVE;
+                    listener.onFailedTakePhoto(throwable.getMessage());
+                }
+            });
+        } catch (OutOfMemoryError e) {
+            listener.onFailedTakePhoto("Out of memory.");
+        } catch (Exception e) {
+            listener.onFailedTakePhoto("Taking photo is shutdown.");
+        }
+    }
+
+    private String createNewFileName() {
+        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
+    }
+
+    private void registerPhoto(final File photoFile) {
+        Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
+        if (DEBUG) {
+            if (uri != null) {
+                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+            }
         }
     }
 }

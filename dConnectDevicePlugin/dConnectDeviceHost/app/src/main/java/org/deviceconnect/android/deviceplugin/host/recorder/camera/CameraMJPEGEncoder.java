@@ -21,7 +21,7 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
     @Override
     protected int getDisplayRotation() {
-        return mCamera2Recorder.getRotation();
+        return mCamera2Recorder.getDisplayRotation();
     }
 
     // SurfaceMJPEGEncoder

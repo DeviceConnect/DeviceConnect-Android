@@ -17,9 +17,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import androidx.core.app.NotificationCompat;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+
+import androidx.core.app.NotificationCompat;
 
 /**
  * Host Device Preview Server.
@@ -27,7 +28,6 @@ import org.deviceconnect.android.deviceplugin.host.R;
  * @author NTT DOCOMO, INC.
  */
 public abstract class AbstractPreviewServerProvider implements PreviewServerProvider, HostDeviceRecorder {
-
     /**
      * コンテキスト.
      */
@@ -149,6 +149,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     public Context getContext() {
         return mContext;
     }
+
     public void setPreviewQuality(final PreviewServer server, final int quality) {
         server.setQuality(quality);
         storePreviewQuality(server, quality);

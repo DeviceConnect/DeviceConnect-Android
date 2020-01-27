@@ -7,12 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -36,12 +31,14 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,7 +82,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      * 日付のフォーマット.
      */
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
-
 
     /**
      * 写真の JPEG 品質.
@@ -132,11 +128,15 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     private final CameraWrapper mCameraWrapper;
 
-    private final HandlerThread mPreviewThread = new HandlerThread("preview");
-
-    private final HandlerThread mPhotoThread = new HandlerThread("photo");
-
+    /**
+     * リクエストの処理を実行するハンドラ.
+     */
     private final Handler mRequestHandler;
+
+    /**
+     * 写真撮影の処理を実行するハンドラ.
+     */
+    private final Handler mPhotoHandler;
 
     /**
      * 現在の端末の回転方向.
@@ -162,13 +162,16 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                            final @NonNull FileManager fileManager) {
         super(context, camera.getId());
         mCameraWrapper = camera;
-        camera.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
+        mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
 
-        mPreviewThread.start();
-        mPhotoThread.start();
-        HandlerThread requestThread = new HandlerThread("request");
+        HandlerThread photoThread = new HandlerThread("host-camera-photo");
+        photoThread.start();
+        mPhotoHandler = new Handler(photoThread.getLooper());
+
+        HandlerThread requestThread = new HandlerThread("host-camera-request");
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
+
         mFileManager = fileManager;
 
         Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(getContext(), this, this);
@@ -178,7 +181,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mPreviewServers.add(rtspServer);
     }
 
-    CameraWrapper getCameraWrapper() {
+    private CameraWrapper getCameraWrapper() {
         return mCameraWrapper;
     }
 
@@ -211,274 +214,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mRequestHandler.post(() -> takePhotoInternal(listener));
     }
 
-    private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
-        try {
-            final CameraWrapper camera = getCameraWrapper();
-            final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.JPEG);
-            if (DEBUG) {
-                int w = stillImageReader.getWidth();
-                int h = stillImageReader.getHeight();
-                Log.d(TAG, "takePhoto: surface: " + w + "x" + h);
-            }
-            stillImageReader.setOnImageAvailableListener((reader) -> {
-                Image photo = reader.acquireNextImage();
-                if (photo == null) {
-                    listener.onFailedTakePhoto("Failed to acquire image.");
-                    return;
-                }
-                if (DEBUG) {
-                    int w = photo.getWidth();
-                    int h = photo.getHeight();
-                    Rect rect = photo.getCropRect();
-                    Log.d(TAG, "takePhoto: onImageAvailable: image=" + w + "x" + h + " rect=" + rect.width() + "x" + rect.height());
-                }
-
-                storePhoto(photo, listener);
-                photo.close();
-            }, new Handler(mPhotoThread.getLooper()));
-
-            camera.takeStillImage(stillImageReader.getSurface());
-        } catch (CameraWrapperException e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to take photo.", e);
-            }
-            listener.onFailedTakePhoto("Failed to take photo.");
-        }
-    }
-
-    private void storePhoto(final Image image, final OnPhotoEventListener listener) {
-        byte[] jpeg = convertToJPEG(image);
-        if (DEBUG) {
-            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(getContext()));
-        }
-        jpeg = rotateJPEG(jpeg, PHOTO_JPEG_QUALITY);
-
-        // ファイル保存
-        final String filename = createNewFileName();
-        mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
-            @Override
-            public void onSuccess(@NonNull final String uri) {
-                if (DEBUG) {
-                    Log.d(TAG, "Saved photo: uri=" + uri);
-                }
-
-                String photoFilePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
-                registerPhoto(new File(mFileManager.getBasePath(), filename));
-                listener.onTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
-            }
-
-            @Override
-            public void onFail(@NonNull final Throwable e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to save photo", e);
-                }
-
-                listener.onFailedTakePhoto(e.getMessage());
-            }
-        });
-    }
-
-    private static byte[] readJPEG(final Image jpegImage) {
-        ByteBuffer buffer = jpegImage.getPlanes()[0].getBuffer();
-        byte[] data = new byte[buffer.remaining()];
-        buffer.get(data, 0, data.length);
-        return data;
-    }
-
-    byte[] rotateJPEG(final byte[] jpeg, int quality) {
-        Bitmap bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
-        int deviceRotation = ROTATIONS.get(mCurrentRotation);
-        int cameraRotation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
-        int degrees = (360 - deviceRotation + cameraRotation) % 360;
-        Bitmap rotated;
-        Matrix m = new Matrix();
-        if (mFacing == CameraFacing.FRONT) {
-            degrees = (180 - degrees) % 360;
-        }
-        m.postRotate(degrees);
-        rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        rotated.compress(Bitmap.CompressFormat.JPEG, quality, baos);
-        byte[] result = baos.toByteArray();
-        bitmap.recycle();
-        rotated.recycle();
-        return result;
-    }
-
-    static byte[] convertToJPEG(Image image) {
-        byte[] jpeg;
-        if (image.getFormat() == ImageFormat.JPEG) {
-            jpeg = readJPEG(image);
-        } else if (image.getFormat() == ImageFormat.YUV_420_888) {
-            jpeg = NV21toJPEG(YUV420toNV21(image), image.getWidth(), image.getHeight(), 100);
-        } else {
-            throw new RuntimeException("Unsupported format: " + image.getFormat());
-        }
-        return jpeg;
-    }
-
-    static byte[] NV21toJPEG(byte[] nv21, int width, int height, int quality) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
-        yuv.compressToJpeg(new Rect(0, 0, width, height), quality, out);
-        return out.toByteArray();
-    }
-
-    static byte[] YUV420toNV21(Image image) {
-        Rect crop = image.getCropRect();
-        int format = image.getFormat();
-        int width = crop.width();
-        int height = crop.height();
-        Image.Plane[] planes = image.getPlanes();
-        byte[] data = new byte[width * height * ImageFormat.getBitsPerPixel(format) / 8];
-        byte[] rowData = new byte[planes[0].getRowStride()];
-
-        int channelOffset = 0;
-        int outputStride = 1;
-        for (int i = 0; i < planes.length; i++) {
-            switch (i) {
-                case 0:
-                    channelOffset = 0;
-                    outputStride = 1;
-                    break;
-                case 1:
-                    channelOffset = width * height + 1;
-                    outputStride = 2;
-                    break;
-                case 2:
-                    channelOffset = width * height;
-                    outputStride = 2;
-                    break;
-            }
-
-            ByteBuffer buffer = planes[i].getBuffer();
-            int rowStride = planes[i].getRowStride();
-            int pixelStride = planes[i].getPixelStride();
-
-            int shift = (i == 0) ? 0 : 1;
-            int w = width >> shift;
-            int h = height >> shift;
-            buffer.position(rowStride * (crop.top >> shift) + pixelStride * (crop.left >> shift));
-            for (int row = 0; row < h; row++) {
-                int length;
-                if (pixelStride == 1 && outputStride == 1) {
-                    length = w;
-                    buffer.get(data, channelOffset, length);
-                    channelOffset += length;
-                } else {
-                    length = (w - 1) * pixelStride + 1;
-                    buffer.get(rowData, 0, length);
-                    for (int col = 0; col < w; col++) {
-                        data[channelOffset] = rowData[col * pixelStride];
-                        channelOffset += outputStride;
-                    }
-                }
-                if (row < h - 1) {
-                    buffer.position(buffer.position() + rowStride - length);
-                }
-            }
-        }
-        return data;
-    }
-
-    /**
-     * 新規のファイル名を作成する.
-     *
-     * @return ファイル名
-     */
-    private String createNewFileName() {
-        return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
-    }
-
-    public int getRotation() {
-        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            throw new RuntimeException("WindowManager is not supported.");
-        }
-        return wm.getDefaultDisplay().getRotation();
-    }
-
-    PictureSize getRotatedPreviewSize() {
-        Size original = getCameraWrapper().getOptions().getPreviewSize();
-        Size rotated;
-        int rotation = getRotation();
-        switch (rotation) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                rotated = new Size(original.getHeight(), original.getWidth());
-                break;
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-            default:
-                rotated = original;
-                break;
-        }
-        return new PictureSize(rotated.getWidth(), rotated.getHeight());
-    }
-
-    boolean isStartedPreview() {
-        CameraWrapper camera = getCameraWrapper();
-        return camera.isPreview();
-    }
-
-    void startPreview(final Surface previewSurface) throws CameraWrapperException {
-        CameraWrapper camera = getCameraWrapper();
-        camera.startPreview(previewSurface, false);
-    }
-
-    void stopPreview() throws CameraWrapperException {
-        CameraWrapper camera = getCameraWrapper();
-        camera.stopPreview();
-    }
-
-    @Override
-    public boolean canPauseRecording() {
-        return false;
-    }
-
     @Override
     public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
         mRequestHandler.post(() -> startRecordingInternal(serviceId, listener));
-    }
-
-    public synchronized void startRecordingInternal(final String serviceId, final RecordingListener listener) {
-        if (mSurfaceRecorder != null) {
-            listener.onFailed(this, "Recording has started already.");
-            return;
-        }
-        try {
-            final CameraWrapper camera = getCameraWrapper();
-            mSurfaceRecorder = new DefaultSurfaceRecorder(
-                    getContext(),
-                    mFacing,
-                    camera.getSensorOrientation(),
-                    camera.getOptions().getPictureSize(),
-                    mFileManager.getBasePath());
-            mSurfaceRecorder.start(new SurfaceRecorder.OnRecordingStartListener() {
-                @Override
-                public void onRecordingStart() {
-                    try {
-                        camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
-                        listener.onRecorded(Camera2Recorder.this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
-                    } catch (CameraWrapperException e) {
-                        listener.onFailed(Camera2Recorder.this, "Failed to start recording because of camera problem: " + e.getMessage());
-                    }
-                }
-
-                @Override
-                public void onRecordingStartError(final Throwable e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
-                    }
-                    listener.onFailed(Camera2Recorder.this, "Failed to start recording for unexpected problem: " + e.getMessage());
-                }
-            });
-        } catch (Throwable e) {
-            if (DEBUG) {
-                Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
-            }
-            listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
-        }
     }
 
     @Override
@@ -486,62 +224,10 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         mRequestHandler.post(() -> stopRecordingInternal(listener));
     }
 
-    private void stopRecordingInternal(final StoppingListener listener) {
-        if (mSurfaceRecorder == null) {
-            listener.onFailed(this, "Recording has stopped already.");
-            return;
-        }
-        try {
-            CameraWrapper camera = getCameraWrapper();
-            camera.stopRecording();
-            mSurfaceRecorder.stop(new SurfaceRecorder.OnRecordingStopListener() {
-                @Override
-                public void onRecordingStop() {
-                    File videoFile = mSurfaceRecorder.getOutputFile();
-                    mSurfaceRecorder = null;
-
-                    registerVideo(videoFile);
-                    listener.onStopped(Camera2Recorder.this, videoFile.getName());
-                }
-
-                @Override
-                public void onRecordingStopError(Throwable e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "Failed to stop recording for unexpected error.", e);
-                    }
-                    listener.onFailed(Camera2Recorder.this, "Failed to stop recording for unexpected error: " + e.getMessage());
-                }
-            });
-        } catch (CameraWrapperException e) {
-            if (DEBUG) {
-                Log.w(TAG, "Failed to stop recording.", e);
-            }
-            listener.onFailed(this, "Failed to stop recording: " + e.getMessage());
-        }
-    }
-
-    private void registerVideo(final File videoFile) {
-        Uri uri = mMediaSharing.shareVideo(getContext(), videoFile, mFileManager);
-        if (DEBUG) {
-            String filePath = videoFile.getAbsolutePath();
-            if (uri != null) {
-                Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register video: file=" + filePath);
-            }
-        }
-    }
-
-    private void registerPhoto(final File photoFile) {
-        Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
-        if (DEBUG) {
-            if (uri != null) {
-                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
-            } else {
-                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
-            }
-        }
-
+    @Override
+    public boolean canPauseRecording() {
+        // 録画の一時停止はサポートしない
+        return false;
     }
 
     @Override
@@ -562,12 +248,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     @Override
     public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
                                  final @NonNull Handler handler) {
-        if (listener == null) {
-            throw new IllegalArgumentException("listener is null.");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("handler is null.");
-        }
         mRequestHandler.post(() -> {
             try {
                 CameraWrapper camera = getCameraWrapper();
@@ -577,7 +257,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 if (DEBUG) {
                     Log.e(TAG, "Failed to turn on flash light.", e);
                 }
-                handler.post(() -> { listener.onError(Error.FATAL_ERROR); });
+                handler.post(() -> listener.onError(Error.FATAL_ERROR));
             }
         });
     }
@@ -585,12 +265,6 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     @Override
     public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
                                   final @NonNull Handler handler) {
-        if (listener == null) {
-            throw new IllegalArgumentException("listener is null.");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("handler is null.");
-        }
         mRequestHandler.post(() -> {
             CameraWrapper camera = getCameraWrapper();
             camera.turnOffTorch(listener::onTurnOff, handler);
@@ -621,8 +295,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public void destroy() {
-        mPreviewThread.quit();
-        mPhotoThread.quit();
+        mPhotoHandler.getLooper().quit();
         mRequestHandler.getLooper().quit();
     }
 
@@ -788,5 +461,224 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 //        for (PreviewServer server : getServers()) {
 //            server.onDisplayRotation(degree);
 //        }
+    }
+
+    /**
+     * 新規のファイル名を作成する.
+     *
+     * @return ファイル名
+     */
+    private String createNewFileName() {
+        return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
+    }
+
+    int getDisplayRotation() {
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+        return wm.getDefaultDisplay().getRotation();
+    }
+
+    PictureSize getRotatedPreviewSize() {
+        Size original = getCameraWrapper().getOptions().getPreviewSize();
+        Size rotated;
+        int rotation = getDisplayRotation();
+        switch (rotation) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                rotated = new Size(original.getHeight(), original.getWidth());
+                break;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+            default:
+                rotated = original;
+                break;
+        }
+        return new PictureSize(rotated.getWidth(), rotated.getHeight());
+    }
+
+    boolean isStartedPreview() {
+        CameraWrapper camera = getCameraWrapper();
+        return camera.isPreview();
+    }
+
+    void startPreview(final Surface previewSurface) throws CameraWrapperException {
+        CameraWrapper camera = getCameraWrapper();
+        camera.startPreview(previewSurface, false);
+    }
+
+    void stopPreview() throws CameraWrapperException {
+        CameraWrapper camera = getCameraWrapper();
+        camera.stopPreview();
+    }
+
+    private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
+        try {
+            final CameraWrapper camera = getCameraWrapper();
+            final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.JPEG);
+            if (DEBUG) {
+                int w = stillImageReader.getWidth();
+                int h = stillImageReader.getHeight();
+                Log.d(TAG, "takePhoto: surface: " + w + "x" + h);
+            }
+            stillImageReader.setOnImageAvailableListener((reader) -> {
+                Image photo = reader.acquireNextImage();
+                if (photo == null) {
+                    listener.onFailedTakePhoto("Failed to acquire image.");
+                    return;
+                }
+                storePhoto(photo, listener);
+                photo.close();
+            }, mPhotoHandler);
+
+            camera.takeStillImage(stillImageReader.getSurface());
+        } catch (CameraWrapperException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Failed to take photo.", e);
+            }
+            listener.onFailedTakePhoto("Failed to take photo.");
+        }
+    }
+
+    private void storePhoto(final Image image, final OnPhotoEventListener listener) {
+        if (DEBUG) {
+            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(getContext()));
+        }
+
+        byte[] jpeg = ImageUtil.convertToJPEG(image);
+        int deviceRotation = ROTATIONS.get(mCurrentRotation);
+        int cameraRotation = Camera2Helper.getSensorOrientation(mCameraManager, mCameraId);
+        int degrees = (360 - deviceRotation + cameraRotation) % 360;
+        if (mFacing == CameraFacing.FRONT) {
+            degrees = (180 - degrees) % 360;
+        }
+
+        jpeg = ImageUtil.rotateJPEG(jpeg, PHOTO_JPEG_QUALITY, degrees);
+
+        final String filename = createNewFileName();
+        mFileManager.saveFile(filename, jpeg, true, new FileManager.SaveFileCallback() {
+            @Override
+            public void onSuccess(@NonNull final String uri) {
+                if (DEBUG) {
+                    Log.d(TAG, "Saved photo: uri=" + uri);
+                }
+
+                String photoFilePath = mFileManager.getBasePath().getAbsolutePath() + "/" + uri;
+                registerPhoto(new File(mFileManager.getBasePath(), filename));
+                listener.onTakePhoto(uri, photoFilePath, MIME_TYPE_JPEG);
+            }
+
+            @Override
+            public void onFail(@NonNull final Throwable e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to save photo", e);
+                }
+
+                listener.onFailedTakePhoto(e.getMessage());
+            }
+        });
+    }
+
+    private synchronized void startRecordingInternal(final String serviceId, final RecordingListener listener) {
+        if (mSurfaceRecorder != null) {
+            listener.onFailed(this, "Recording has started already.");
+            return;
+        }
+
+        try {
+            final CameraWrapper camera = getCameraWrapper();
+            mSurfaceRecorder = new DefaultSurfaceRecorder(
+                    getContext(),
+                    mFacing,
+                    camera.getSensorOrientation(),
+                    camera.getOptions().getPictureSize(),
+                    mFileManager.getBasePath());
+            mSurfaceRecorder.start(new SurfaceRecorder.OnRecordingStartListener() {
+                @Override
+                public void onRecordingStart() {
+                    try {
+                        camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
+                        listener.onRecorded(Camera2Recorder.this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
+                    } catch (CameraWrapperException e) {
+                        listener.onFailed(Camera2Recorder.this,
+                                "Failed to start recording because of camera problem: " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onRecordingStartError(final Throwable e) {
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+                    }
+                    listener.onFailed(Camera2Recorder.this,
+                            "Failed to start recording for unexpected problem: " + e.getMessage());
+                }
+            });
+        } catch (Throwable e) {
+            if (DEBUG) {
+                Log.e(TAG, "Failed to start recording for unexpected problem: ", e);
+            }
+            listener.onFailed(this, "Failed to start recording for unexpected problem: " + e.getMessage());
+        }
+    }
+
+    private void stopRecordingInternal(final StoppingListener listener) {
+        if (mSurfaceRecorder == null) {
+            listener.onFailed(this, "Recording has stopped already.");
+            return;
+        }
+
+        try {
+            CameraWrapper camera = getCameraWrapper();
+            camera.stopRecording();
+            mSurfaceRecorder.stop(new SurfaceRecorder.OnRecordingStopListener() {
+                @Override
+                public void onRecordingStop() {
+                    File videoFile = mSurfaceRecorder.getOutputFile();
+                    mSurfaceRecorder = null;
+
+                    registerVideo(videoFile);
+                    listener.onStopped(Camera2Recorder.this, videoFile.getName());
+                }
+
+                @Override
+                public void onRecordingStopError(Throwable e) {
+                    if (DEBUG) {
+                        Log.e(TAG, "Failed to stop recording for unexpected error.", e);
+                    }
+                    listener.onFailed(Camera2Recorder.this,
+                            "Failed to stop recording for unexpected error: " + e.getMessage());
+                }
+            });
+        } catch (CameraWrapperException e) {
+            if (DEBUG) {
+                Log.w(TAG, "Failed to stop recording.", e);
+            }
+            listener.onFailed(this, "Failed to stop recording: " + e.getMessage());
+        }
+    }
+
+    private void registerVideo(final File videoFile) {
+        Uri uri = mMediaSharing.shareVideo(getContext(), videoFile, mFileManager);
+        if (DEBUG) {
+            String filePath = videoFile.getAbsolutePath();
+            if (uri != null) {
+                Log.d(TAG, "Registered video: filePath=" + filePath + ", uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register video: file=" + filePath);
+            }
+        }
+    }
+
+    private void registerPhoto(final File photoFile) {
+        Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
+        if (DEBUG) {
+            if (uri != null) {
+                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+            }
+        }
     }
 }

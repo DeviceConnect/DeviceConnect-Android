@@ -6,7 +6,9 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
+/**
+ * プレビュー配信用サーバを定義するインターフェース.
+ */
 public interface PreviewServer {
     /**
      * サーバが配信するプレビューのマイムタイプを取得します.
@@ -14,6 +16,13 @@ public interface PreviewServer {
      * @return マイムタイプ
      */
     String getMimeType();
+
+    /**
+     * プレビュー配信サーバのポート番号を設定します.
+     *
+     * @param port ポート番号
+     */
+    void setPort(int port);
 
     /**
      * サーバを開始します.

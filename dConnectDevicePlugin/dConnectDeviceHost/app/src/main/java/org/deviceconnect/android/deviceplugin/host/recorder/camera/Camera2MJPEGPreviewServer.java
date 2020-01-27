@@ -43,6 +43,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
                              Camera2Recorder recorder) {
         super(context, serverProvider);
         mRecorder = recorder;
+        setPort(11000);
     }
 
     public int getQuality() {
@@ -64,7 +65,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
         if (mMJPEGServer == null) {
             mMJPEGServer = new MJPEGServer();
             mMJPEGServer.setServerName("HostDevicePlugin Server");
-            mMJPEGServer.setServerPort(11000);
+            mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
             try {
                 mMJPEGServer.start();
@@ -73,7 +74,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart("http://localhost:11000/mjpeg");
+        callback.onStart(mMJPEGServer.getUri());
     }
 
     @Override

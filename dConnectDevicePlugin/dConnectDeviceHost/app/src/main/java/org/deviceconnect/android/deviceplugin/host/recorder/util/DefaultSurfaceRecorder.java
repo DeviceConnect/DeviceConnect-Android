@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.content.Context;
 import android.media.MediaRecorder;
@@ -17,6 +17,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.AbstractCamera2Recorder;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * 指定された Surface を録画します.
+ */
 public class DefaultSurfaceRecorder implements SurfaceRecorder {
 
     /**
@@ -74,7 +78,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
 
     private Handler mRecorderThread;
 
-    DefaultSurfaceRecorder(final Context context,
+    public DefaultSurfaceRecorder(final Context context,
                            final AbstractCamera2Recorder.CameraFacing facing,
                            final Integer sensorOrientation,
                            final Size videoSize,
@@ -96,12 +100,12 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
 
     private void setUpMediaRecorder(final File outputFile) throws IOException {
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
+
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mMediaRecorder.setOutputFile(outputFile.getAbsolutePath());
-
         mMediaRecorder.setVideoEncodingBitRate(10000000);
         mMediaRecorder.setVideoFrameRate(30);
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());

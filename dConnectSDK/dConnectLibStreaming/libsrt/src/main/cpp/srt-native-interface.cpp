@@ -49,8 +49,6 @@ JNIEXPORT jlong JNICALL
 JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jint port, jint backlog) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_createSrtSocket()");
 
-    const char *addressString = env->GetStringUTFChars(address, nullptr);
-
     int yes = 1;
     int st;
     int ss = srt_create_socket();
@@ -59,13 +57,16 @@ JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jin
         return -1;
     }
 
+    const char *addressString = env->GetStringUTFChars(address, nullptr);
     struct sockaddr_in sa;
     sa.sin_family = AF_INET;
     sa.sin_port = htons(port);
     if (inet_pton(AF_INET, addressString, &sa.sin_addr) != 1) {
         LOGE("inet_pton error.");
+        env->ReleaseStringUTFChars(address, addressString);
         return -1;
     }
+    env->ReleaseStringUTFChars(address, addressString);
 
     srt_setsockflag(ss, SRTO_RCVSYN, &yes, sizeof yes);
 
@@ -80,8 +81,6 @@ JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jin
         LOGE("srt_listen: %s\n", srt_getlasterror_str());
         return -1;
     }
-
-    env->ReleaseStringUTFChars(address, addressString);
 
     return ss;
 }

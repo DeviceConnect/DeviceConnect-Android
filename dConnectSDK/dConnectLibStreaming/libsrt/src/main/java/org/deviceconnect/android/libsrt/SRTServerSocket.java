@@ -52,6 +52,10 @@ public class SRTServerSocket {
         this(serverAddress, serverPort, DEFAULT_MAX_CLIENT_NUM);
     }
 
+    public SRTServerSocket(final int serverPort) {
+        this("0.0.0.0", serverPort);
+    }
+
     @Override
     protected void finalize() throws Throwable {
         try {

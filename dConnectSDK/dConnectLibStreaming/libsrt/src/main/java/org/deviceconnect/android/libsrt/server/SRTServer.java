@@ -117,6 +117,10 @@ public class SRTServer {
         mServerSocket = new SRTServerSocket(serverAddress, serverPort);
     }
 
+    public SRTServer(final int serverPort) {
+        mServerSocket = new SRTServerSocket(serverPort);
+    }
+
     public void setCallback(final Callback callback) {
         mCallback = callback;
     }

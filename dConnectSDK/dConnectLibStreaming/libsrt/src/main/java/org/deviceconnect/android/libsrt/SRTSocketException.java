@@ -4,10 +4,24 @@ import java.io.IOException;
 
 public class SRTSocketException extends IOException {
 
-    private final int mError;
+    private int mError;
 
-    SRTSocketException(final int error) {
-        super();
+    public SRTSocketException(int error) {
+        mError = error;
+    }
+
+    public SRTSocketException(String message, int error) {
+        super(message);
+        mError = error;
+    }
+
+    public SRTSocketException(String message, Throwable cause, int error) {
+        super(message, cause);
+        mError = error;
+    }
+
+    public SRTSocketException(Throwable cause, int error) {
+        super(cause);
         mError = error;
     }
 

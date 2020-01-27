@@ -63,11 +63,6 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
     @Override
     protected void release() {
-        if (mSurfaceDrawingThread != null) {
-            mSurfaceDrawingThread.terminate();
-            mSurfaceDrawingThread = null;
-        }
-
         if (mInputSurface != null) {
             mInputSurface.release();
             mInputSurface = null;
@@ -81,6 +76,26 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     @Override
     public int getColorFormat() {
         return MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface;
+    }
+
+    /**
+     * SurfaceTextureManager を作成します.
+     */
+    private synchronized void createStManager() {
+        if (mStManager != null) {
+            return;
+        }
+        mStManager = new SurfaceTextureManager();
+    }
+
+    /**
+     * SurfaceTextureManager の後始末を行います.
+     */
+    private synchronized void releaseStManager() {
+        if (mStManager != null) {
+            mStManager.release();
+            mStManager = null;
+        }
     }
 
     /**
@@ -114,10 +129,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
          * スレッドを終了します.
          */
         private void terminate() {
-            if (mStManager != null) {
-                mStManager.release();
-                mStManager = null;
-            }
+            releaseStManager();
 
             interrupt();
 
@@ -133,7 +145,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
             try {
                 mInputSurface.makeCurrent();
 
-                mStManager = new SurfaceTextureManager();
+                createStManager();
 
                 onStartSurfaceDrawing();
 
@@ -150,11 +162,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
             } catch (Exception e) {
                 // ignore.
             } finally {
-                if (mStManager != null) {
-                    mStManager.release();
-                    mStManager = null;
-                }
-
+                releaseStManager();
                 onStopSurfaceDrawing();
             }
         }

@@ -40,6 +40,7 @@ public class MicAACLATMStream extends AudioStream {
     private String mAudioConfig;
 
     public MicAACLATMStream() {
+        super();
         mAudioEncoder =  new MicAACLATMEncoder();
     }
 

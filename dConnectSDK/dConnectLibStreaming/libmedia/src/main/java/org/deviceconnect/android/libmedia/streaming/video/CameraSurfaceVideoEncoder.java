@@ -47,7 +47,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
      * @param context コンテキスト
      */
     public CameraSurfaceVideoEncoder(Context context) {
-       this(context, new CameraVideoQuality("video/avc"));
+        this(context, new CameraVideoQuality("video/avc"));
     }
 
     /**
@@ -93,7 +93,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     @Override
     protected void release() {
         unregisterScreenChange();
-        releaseCamera();
+        stopCamera();
         super.release();
     }
 
@@ -125,7 +125,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     @Override
     protected void onStopSurfaceDrawing() {
         unregisterScreenChange();
-        releaseCamera();
+        stopCamera();
     }
 
     /**
@@ -146,9 +146,9 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
      * カメラの準備を行います.
      */
-    private synchronized void startCamera() {
+    public synchronized void startCamera() {
         if (mCamera2 != null) {
-            throw new RuntimeException("Camera already initialized.");
+            return;
         }
 
         int videoWidth = mVideoQuality.getVideoWidth();
@@ -193,7 +193,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
      * カメラの解放を行います.
      */
-    private synchronized void releaseCamera() {
+    public synchronized void stopCamera() {
         if (mCamera2 != null) {
             mCamera2.stopPreview();
             mCamera2.close();

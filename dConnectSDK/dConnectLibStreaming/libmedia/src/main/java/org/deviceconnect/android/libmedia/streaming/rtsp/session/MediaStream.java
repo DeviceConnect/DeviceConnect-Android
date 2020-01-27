@@ -1,12 +1,12 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.session;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpPacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpSocket;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public abstract class MediaStream {
     /**

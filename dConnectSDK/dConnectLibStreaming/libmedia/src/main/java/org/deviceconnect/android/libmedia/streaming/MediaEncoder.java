@@ -82,7 +82,7 @@ public abstract class MediaEncoder {
         }
 
         mStartingThread = new StartingThread();
-        mStartingThread.setName("StartingThread");
+        mStartingThread.setName("Encoder-Starting-Thread");
         mStartingThread.start();
     }
 
@@ -105,6 +105,7 @@ public abstract class MediaEncoder {
         }
 
         mStoppingThread = new StoppingThread();
+        mStoppingThread.setName("Encoder-Stopping-Thread");
         mStoppingThread.start();
     }
 
@@ -112,6 +113,13 @@ public abstract class MediaEncoder {
      * エンコーダを再起動の処理を行います.
      */
     public synchronized void restart() {
+        if (mStartingThread == null) {
+            if (DEBUG) {
+                Log.w(TAG, "MediaEncoder has not started.");
+            }
+            return;
+        }
+
         stopEncoder();
         startEncoder();
     }
@@ -182,6 +190,11 @@ public abstract class MediaEncoder {
 
     /**
      * MediaCodec にエンコードするためのデータを書き込みます.
+     *
+     * <p>
+     * 指定された index を引数にして、{@link MediaCodec#queueInputBuffer(int, int, int, long, int)}
+     * を呼び出してください。
+     * </p>
      *
      * @param inputData 書き込むデータ
      * @param index バッファのインデックス
@@ -291,6 +304,8 @@ public abstract class MediaEncoder {
         @Override
         public void run() {
             stopEncoder();
+            mStartingThread = null;
+            mStoppingThread = null;
             postOnStopped();
         }
     }

@@ -24,6 +24,7 @@ public class CameraVideoStream extends H264VideoStream {
      * @param context コンテキスト
      */
     public CameraVideoStream(Context context) {
+        super();
         mContext = context;
         mVideoEncoder = new CameraSurfaceVideoEncoder(context);
     }

@@ -63,6 +63,10 @@ public abstract class H264VideoStream extends VideoStream {
      */
     private byte[] mSPS;
 
+    public H264VideoStream() {
+        super();
+    }
+
     /**
      * 縦横の解像度をスワップするか確認します.
      *

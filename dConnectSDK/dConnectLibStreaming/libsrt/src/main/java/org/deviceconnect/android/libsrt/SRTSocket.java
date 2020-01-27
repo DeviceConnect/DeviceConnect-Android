@@ -27,7 +27,7 @@ public class SRTSocket {
         return mSocketAddress;
     }
 
-    void dumpStats() {
+    public void dumpStats() {
         NdkHelper.dumpStats(mNativePtr);
     }
 

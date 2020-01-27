@@ -1,8 +1,6 @@
 package org.deviceconnect.android.libsrt;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * SRTサーバーのソケット.
@@ -10,8 +8,6 @@ import java.util.List;
  * このクラスはスレッドセーフではありません.
  */
 public class SRTServerSocket {
-
-    private static final int DEFAULT_MAX_CLIENT_NUM = 10;
 
     private static final int DEFAULT_BACKLOG = 5;
 
@@ -21,35 +17,21 @@ public class SRTServerSocket {
 
     private final int mServerPort;
 
-    private final int mMaxClientNum;
-
     private final int mBacklog;
-
-    private final List<SRTSocket> mClientSocketList = new ArrayList<>();
 
     private boolean mIsOpen;
 
-    private Thread mStatsThread;
-
     public SRTServerSocket(final String serverAddress,
                            final int serverPort,
-                           final int maxClientNum,
                            final int backlog) {
         mServerAddress = serverAddress;
         mServerPort = serverPort;
-        mMaxClientNum = maxClientNum;
         mBacklog = backlog;
     }
 
     public SRTServerSocket(final String serverAddress,
-                           final int serverPort,
-                           final int maxClientNum) {
-        this(serverAddress, serverPort, maxClientNum, DEFAULT_BACKLOG);
-    }
-
-    public SRTServerSocket(final String serverAddress,
                            final int serverPort) {
-        this(serverAddress, serverPort, DEFAULT_MAX_CLIENT_NUM);
+        this(serverAddress, serverPort, DEFAULT_BACKLOG);
     }
 
     public SRTServerSocket(final int serverPort) {
@@ -93,87 +75,13 @@ public class SRTServerSocket {
         if (!socket.isAvailable()) {
             throw new IOException("Failed to accept client.");
         }
-        if (isMaxClientNum()) {
-            socket.close();
-            return null;
-        }
-        synchronized (mClientSocketList) {
-            mClientSocketList.add(socket);
-        }
         return socket;
-    }
-
-    public void removeSocket(final SRTSocket socket) {
-        synchronized (mClientSocketList) {
-            mClientSocketList.remove(socket);
-        }
-    }
-
-    private boolean isMaxClientNum() {
-        return mClientSocketList.size() >= mMaxClientNum;
     }
 
     public void close() {
         if (mIsOpen) {
             mIsOpen = false;
-
-            stopDumpStats();
-
             NdkHelper.closeSrtSocket(mNativeSocket);
-            synchronized (mClientSocketList) {
-                for (SRTSocket socket : mClientSocketList) {
-                    socket.close();
-                }
-                mClientSocketList.clear();
-            }
-        }
-    }
-
-    public void startDumpStats(final long interval) {
-        mStatsThread = new StatsThread(interval);
-        mStatsThread.start();
-    }
-
-    public void stopDumpStats() {
-        if (mStatsThread != null) {
-            mStatsThread.interrupt();
-            mStatsThread = null;
-        }
-    }
-
-    private void dumpStats() {
-        synchronized (mClientSocketList) {
-            for (SRTSocket socket : mClientSocketList) {
-                socket.dumpStats();
-            }
-        }
-    }
-
-    private class StatsThread extends Thread {
-
-        /**
-         * 統計データをデバッグログとして出力するインターバル. 単位はミリ秒.
-         */
-        private final long mStatsInterval;
-
-        StatsThread(final long interval) {
-            if (interval < 0) {
-                throw new IllegalArgumentException("interval is negative");
-            }
-            mStatsInterval = interval;
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (!Thread.interrupted()) {
-                    dumpStats();
-
-                    Thread.sleep(mStatsInterval);
-                }
-            } catch (InterruptedException e) {
-                // ignored
-            }
         }
     }
 }

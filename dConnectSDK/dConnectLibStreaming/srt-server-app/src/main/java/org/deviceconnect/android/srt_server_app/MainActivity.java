@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
@@ -28,6 +29,8 @@ import org.deviceconnect.android.libsrt.server.SRTSession;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static org.deviceconnect.android.srt_server_app.BuildConfig.DEBUG;
 
@@ -59,6 +62,8 @@ public class MainActivity extends AppCompatActivity
 
     private AutoFitSurfaceView mCameraView;
 
+    private Timer mStatsTimer;
+
     private final SRTServer.ServerEventListener mServerEventListener = new SRTServer.ServerEventListener() {
         @Override
         public void onStart(final SRTServer server) {
@@ -66,6 +71,16 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "Started SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
             showServerAddress(server);
+
+            mStatsTimer = new Timer();
+            mStatsTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    for (SRTSocket socket : server.getSocketList()) {
+                        socket.dumpStats();
+                    }
+                }
+            }, 0, 5 * 1000);
         }
 
         @Override
@@ -73,6 +88,9 @@ public class MainActivity extends AppCompatActivity
             if (DEBUG) {
                 Log.d(TAG, "Stopped SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
             }
+
+            mStatsTimer.cancel();
+            mStatsTimer = null;
         }
 
         @Override
@@ -158,7 +176,7 @@ public class MainActivity extends AppCompatActivity
     private void startStreaming() {
         try {
             mSRTServer = new SRTServer(12345);
-            mSRTServer.setStatsEnabled(DEBUG);
+            mSRTServer.setMaxClientNum(1);
             mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.setCallback(new SRTServer.Callback() {

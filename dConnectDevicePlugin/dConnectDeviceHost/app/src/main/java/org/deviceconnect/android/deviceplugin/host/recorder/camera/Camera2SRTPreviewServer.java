@@ -7,13 +7,14 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Camera2SRTPreviewServer extends AbstractPreviewServer {
 
@@ -27,7 +28,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    private final IpAddressManager mAddressManager = new IpAddressManager();
+    private Timer mStatsTimer;
 
     Camera2SRTPreviewServer(final Context context,
                                    final AbstractPreviewServerProvider serverProvider,
@@ -44,17 +45,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
-
-            // TODO Wi-Fi に接続されてないくても起動できるようにする
-            mAddressManager.storeIPAddress();
-            InetAddress ipAddress = mAddressManager.getWifiIPv4Address();
-            if (ipAddress == null) {
-                callback.onFail();
-                return;
-            }
-
-            mSRTServer = new SRTServer(ipAddress.getHostAddress(), 12345);
-            mSRTServer.setStatsEnabled(DEBUG); // TODO build.gradle の定数で指定できるようにする
+            mSRTServer = new SRTServer(23456);
             mSRTServer.setCallback(mCallback);
             try {
                 mSRTServer.start();
@@ -65,7 +56,18 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 callback.onFail();
             }
         }
-        callback.onStart("srt://" + mSRTServer.getServerAddress() + ":" + mSRTServer.getServerPort());
+        if (mStatsTimer == null) {
+            mStatsTimer = new Timer();
+            mStatsTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    for (SRTSocket socket : mSRTServer.getSocketList()) {
+                        socket.dumpStats();
+                    }
+                }
+            }, 0, 5 * 1000); // TODO build.gralde ログ出力フラグとインターバルを設定
+        }
+        callback.onStart("srt://localhost:" + mSRTServer.getServerPort());
     }
 
     @Override
@@ -73,6 +75,10 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
         if (mSRTServer != null) {
             mSRTServer.stop();
             mSRTServer = null;
+        }
+        if (mStatsTimer != null) {
+            mStatsTimer.cancel();
+            mStatsTimer = null;
         }
         unregisterConfigChangeReceiver();
     }

@@ -18,7 +18,7 @@ public class SRTSession {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "RTSP-SESSION";
+    private static final String TAG = "SRT-SESSION";
 
     /**
      * ストリーミングを行うためのクラス.

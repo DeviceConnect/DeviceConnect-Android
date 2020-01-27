@@ -1,15 +1,9 @@
 package org.deviceconnect.android.libsrt;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
-
 /**
- * SRTクライアントのソケット.
+ * SRTソケット.
  */
-public class SRTClientSocket {
+public class SRTSocket {
 
     private long mSocketPtr = -1;
 
@@ -30,13 +24,13 @@ public class SRTClientSocket {
         NdkHelper.dumpStats(mSocketPtr);
     }
 
-    public synchronized void send(final byte[] data, final int length) throws SRTClientSocketException {
+    public synchronized void send(final byte[] data, final int length) throws SRTSocketException {
         if (!mOpen) {
-            throw new SRTClientSocketException(0);
+            throw new SRTSocketException(0);
         }
         int result = NdkHelper.sendMessage(mSocketPtr, data, length);
         if (result < 0) {
-            throw new SRTClientSocketException(result);
+            throw new SRTSocketException(result);
         }
     }
 

@@ -3,7 +3,7 @@ package org.deviceconnect.android.libsrt.server;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TsSegmenter;
-import org.deviceconnect.android.libsrt.SRTClientSocket;
+import org.deviceconnect.android.libsrt.SRTSocket;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,7 +14,7 @@ public abstract class MediaStream {
     /**
      * 送信先のソケットのリスト.
      */
-    private final List<SRTClientSocket> mSRTClientSocketList = new ArrayList<>();
+    private final List<SRTSocket> mSRTSocketList = new ArrayList<>();
 
     /**
      * H264 のセグメントに分割するkクラス.
@@ -75,9 +75,9 @@ public abstract class MediaStream {
      *
      * @param socket 追加するソケット
      */
-    public void addSRTClientSocket(SRTClientSocket socket) {
-        synchronized (mSRTClientSocketList) {
-            mSRTClientSocketList.add(socket);
+    public void addSRTClientSocket(SRTSocket socket) {
+        synchronized (mSRTSocketList) {
+            mSRTSocketList.add(socket);
         }
     }
 
@@ -86,9 +86,9 @@ public abstract class MediaStream {
      *
      * @param socket 削除するソケット
      */
-    public void removeSRTClientSocket(SRTClientSocket socket) {
-        synchronized (mSRTClientSocketList) {
-            mSRTClientSocketList.remove(socket);
+    public void removeSRTClientSocket(SRTSocket socket) {
+        synchronized (mSRTSocketList) {
+            mSRTSocketList.remove(socket);
         }
     }
 
@@ -98,8 +98,8 @@ public abstract class MediaStream {
      * @param data 送信するデータ
      */
     private void sendPacket(byte[] data) {
-        synchronized (mSRTClientSocketList) {
-            for (SRTClientSocket socket : mSRTClientSocketList) {
+        synchronized (mSRTSocketList) {
+            for (SRTSocket socket : mSRTSocketList) {
                 try {
                     socket.send(data, data.length);
                 } catch (IOException e) {

@@ -110,7 +110,7 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
     }
 
     // クライアント側のソケットへのポインタ
-    jclass socketCls = env->FindClass("org/deviceconnect/android/libsrt/SRTClientSocket");
+    jclass socketCls = env->FindClass("org/deviceconnect/android/libsrt/SRTSocket");
     jfieldID socketPtr = env->GetFieldID(socketCls, "mSocketPtr", "J");
     env->SetLongField(socket, socketPtr, st);
 

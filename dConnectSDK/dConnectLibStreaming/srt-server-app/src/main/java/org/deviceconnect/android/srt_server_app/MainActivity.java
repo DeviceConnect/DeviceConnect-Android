@@ -21,14 +21,13 @@ import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libsrt.SRT;
-import org.deviceconnect.android.libsrt.SRTClientSocket;
+import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 import org.deviceconnect.android.libsrt.server.video.CameraVideoStream;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import static org.deviceconnect.android.srt_server_app.BuildConfig.DEBUG;
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
+        public void onAcceptClient(final SRTServer server, final SRTSocket clientSocket) {
             if (DEBUG) {
                 Log.d(TAG, "Accepted SRT Client: client address = " + clientSocket.getSocketAddress());
             }
@@ -96,7 +95,7 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onSendPacket(final SRTServer server,
-                                 final SRTClientSocket clientSocket,
+                                 final SRTSocket clientSocket,
                                  final int payloadByteSize) {
 //            if (DEBUG) {
 //                Log.d(TAG, "onSendPacket: payloadByteSize = " + payloadByteSize);
@@ -104,7 +103,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        public void onErrorSendPacket(final SRTServer server, final SRTClientSocket clientSocket) {
+        public void onErrorSendPacket(final SRTServer server, final SRTSocket clientSocket) {
             if (DEBUG) {
                 Log.d(TAG, "onErrorSendPacket: clientSocket = " + clientSocket.getSocketAddress());
             }

@@ -3,7 +3,7 @@ package org.deviceconnect.android.libsrt.server;
 import android.os.Handler;
 import android.util.Log;
 
-import org.deviceconnect.android.libsrt.SRTClientSocket;
+import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class SRTServer {
          * @param server サーバーのインスタンス
          * @param clientSocket クライアント側のソケット情報
          */
-        void onAcceptClient(SRTServer server, SRTClientSocket clientSocket);
+        void onAcceptClient(SRTServer server, SRTSocket clientSocket);
 
         /**
          * サーバーの開始に失敗した場合に実行されます.
@@ -65,7 +65,7 @@ public class SRTServer {
          * @param clientSocket クライアント側のソケット情報
          * @param payloadByteSize 送信したデータのサイズ. 単位はバイト
          */
-        void onSendPacket(SRTServer server, SRTClientSocket clientSocket, int payloadByteSize);
+        void onSendPacket(SRTServer server, SRTSocket clientSocket, int payloadByteSize);
 
         /**
          * クライアントへの送信に失敗したタイミングで実行されます.
@@ -73,7 +73,7 @@ public class SRTServer {
          * @param server サーバーのインスタンス
          * @param clientSocket クライアント側のソケット情報
          */
-        void onErrorSendPacket(SRTServer server, SRTClientSocket clientSocket);
+        void onErrorSendPacket(SRTServer server, SRTSocket clientSocket);
     }
 
     private static final String TAG = "SRT";
@@ -164,7 +164,7 @@ public class SRTServer {
                         Log.d(TAG, "Waiting for SRT client...");
                     }
 
-                    SRTClientSocket socket = mServerSocket.accept();
+                    SRTSocket socket = mServerSocket.accept();
                     if (socket != null) {
                         new SocketThread(socket).start();
 
@@ -243,7 +243,7 @@ public class SRTServer {
         }
 
         @Override
-        public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
+        public void onAcceptClient(final SRTServer server, final SRTSocket clientSocket) {
             listeners(l -> l.onAcceptClient(server, clientSocket));
         }
 
@@ -259,14 +259,14 @@ public class SRTServer {
 
         @Override
         public void onSendPacket(final SRTServer server,
-                                 final SRTClientSocket clientSocket,
+                                 final SRTSocket clientSocket,
                                  final int payloadByteSize) {
             listeners(l -> l.onSendPacket(server, clientSocket, payloadByteSize));
         }
 
         @Override
         public void onErrorSendPacket(final SRTServer server,
-                                      final SRTClientSocket clientSocket) {
+                                      final SRTSocket clientSocket) {
             listeners(l -> l.onErrorSendPacket(server, clientSocket));
         }
     }
@@ -291,7 +291,7 @@ public class SRTServer {
         }
 
         @Override
-        public void onAcceptClient(final SRTServer server, final SRTClientSocket clientSocket) {
+        public void onAcceptClient(final SRTServer server, final SRTSocket clientSocket) {
             post(() -> mEventListener.onAcceptClient(server, clientSocket));
         }
 
@@ -312,14 +312,14 @@ public class SRTServer {
 
         @Override
         public void onSendPacket(final SRTServer server,
-                                 final SRTClientSocket clientSocket,
+                                 final SRTSocket clientSocket,
                                  final int payloadByteSize) {
             post(() -> mEventListener.onSendPacket(server, clientSocket, payloadByteSize));
         }
 
         @Override
         public void onErrorSendPacket(final SRTServer server,
-                                      final SRTClientSocket clientSocket) {
+                                      final SRTSocket clientSocket) {
             post(() -> mEventListener.onErrorSendPacket(server, clientSocket));
         }
     }
@@ -360,9 +360,9 @@ public class SRTServer {
         /**
          * 生存確認を行うソケット.
          */
-        private SRTClientSocket mClientSocket;
+        private SRTSocket mClientSocket;
 
-        SocketThread(SRTClientSocket clientSocket) {
+        SocketThread(SRTSocket clientSocket) {
             mClientSocket = clientSocket;
         }
 

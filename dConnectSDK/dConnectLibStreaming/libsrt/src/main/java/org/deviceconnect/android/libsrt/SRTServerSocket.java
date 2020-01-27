@@ -21,7 +21,7 @@ public class SRTServerSocket {
 
     private final int mBacklog;
 
-    private final List<SRTClientSocket> mClientSocketList = new ArrayList<>();
+    private final List<SRTSocket> mClientSocketList = new ArrayList<>();
 
     private boolean mIsOpen;
 
@@ -68,8 +68,8 @@ public class SRTServerSocket {
         }
     }
 
-    public SRTClientSocket accept() throws IOException {
-        SRTClientSocket socket = new SRTClientSocket();
+    public SRTSocket accept() throws IOException {
+        SRTSocket socket = new SRTSocket();
         NdkHelper.accept(mNativeSocket, socket);
         if (!mIsOpen) {
             return null;
@@ -91,7 +91,7 @@ public class SRTServerSocket {
 
             NdkHelper.closeSrtSocket(mNativeSocket);
             synchronized (mClientSocketList) {
-                for (SRTClientSocket socket : mClientSocketList) {
+                for (SRTSocket socket : mClientSocketList) {
                     socket.close();
                 }
                 mClientSocketList.clear();
@@ -113,7 +113,7 @@ public class SRTServerSocket {
 
     private void dumpStats() {
         synchronized (mClientSocketList) {
-            for (SRTClientSocket socket : mClientSocketList) {
+            for (SRTSocket socket : mClientSocketList) {
                 socket.dumpStats();
             }
         }

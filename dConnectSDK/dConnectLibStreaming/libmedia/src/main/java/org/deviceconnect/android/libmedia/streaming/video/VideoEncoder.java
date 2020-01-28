@@ -40,6 +40,11 @@ public abstract class VideoEncoder extends MediaEncoder {
      */
     private boolean mRequestChangeBitRate;
 
+    /**
+     * ソフトウェアエンコーダを優先的に使用するフラグ.
+     */
+    private boolean mUseSoftwareEncoder;
+
     // MediaEncoder
 
     @Override
@@ -55,16 +60,29 @@ public abstract class VideoEncoder extends MediaEncoder {
 
     @Override
     protected void release() {
-        // TODO: release を継承する場合には、必ず super.release を呼び出すこと。
+        // TODO: release を継承する場合には、必ず super.release() を呼び出すこと。
         if (mMediaCodec != null) {
             try {
                 mMediaCodec.stop();
             } catch (Exception e) {
                 // ignore.
             }
-            mMediaCodec.release();
+            try {
+                mMediaCodec.release();
+            } catch (Exception e) {
+                // ignore.
+            }
             mMediaCodec = null;
         }
+    }
+
+    /**
+     * ソフトウェアエンコーダを使用するか設定します.
+     *
+     * @param useSoftwareEncoder ソフトウェアエンコーダを使用する場合はtrue、それ以外はfalse
+     */
+    public void setUseSoftwareEncoder(boolean useSoftwareEncoder) {
+        mUseSoftwareEncoder = useSoftwareEncoder;
     }
 
     /**
@@ -199,9 +217,16 @@ public abstract class VideoEncoder extends MediaEncoder {
             throw new IOException(mimeType + " not supported.");
         }
 
+        // エンコーダ名が OMX.qcom. から始まる場合はハードウェアエンコーダ
+        // エンコーダ名が OMX.google. から始まる場合はソフトウェアエンコーダ
+        String encoderPrefix = "OMX.qcom.";
+        if (mUseSoftwareEncoder) {
+            encoderPrefix = "OMX.google.";
+        }
+
         if (MIME_TYPE_H264.equalsIgnoreCase(mimeType)) {
             for (MediaCodecInfo info : infoList) {
-                if (codecInfo == null || info.getName().startsWith("OMX.qcom.")) {
+                if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
                     codecInfo = info;
                 }
             }
@@ -214,7 +239,7 @@ public abstract class VideoEncoder extends MediaEncoder {
             }
         } else if (MIME_TYPE_H265.equalsIgnoreCase(mimeType)) {
             for (MediaCodecInfo info : infoList) {
-                if (codecInfo == null || info.getName().startsWith("OMX.qcom.")) {
+                if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
                     codecInfo = info;
                 }
             }

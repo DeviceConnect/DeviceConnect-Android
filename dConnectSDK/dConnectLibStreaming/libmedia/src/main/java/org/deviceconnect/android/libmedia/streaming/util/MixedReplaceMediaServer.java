@@ -9,6 +9,8 @@ package org.deviceconnect.android.libmedia.streaming.util;
 import android.net.Uri;
 import android.util.Log;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -27,8 +29,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
-
-import org.deviceconnect.android.libmedia.BuildConfig;
 
 /**
  * Mixed Replace Media Server.
@@ -269,10 +269,7 @@ public class MixedReplaceMediaServer {
         new Thread(() -> {
             try {
                 while (!mStopFlag) {
-                    Socket socket = mServerSocket.accept();
-                    ClientThread run = new ClientThread(socket);
-                    run.setName("MRMServer" + socket.getInetAddress().getHostAddress());
-                    run.start();
+                    new ClientThread(mServerSocket.accept()).start();
                 }
             } catch (Exception e) {
                 if (DEBUG) {
@@ -365,6 +362,7 @@ public class MixedReplaceMediaServer {
          */
         ClientThread(Socket socket) {
             mSocket = socket;
+            setName("MRMServer-" + socket.getInetAddress().getHostAddress());
         }
 
         /**

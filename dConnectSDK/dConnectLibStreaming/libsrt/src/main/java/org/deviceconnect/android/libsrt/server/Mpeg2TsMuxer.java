@@ -11,24 +11,21 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 
-import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
-
 public class Mpeg2TsMuxer extends SRTMuxer {
+    /**
+     * PPS、SPS のデータを一時的に格納するバッファ.
+     */
+    private byte[] mConfigData;
 
     /**
-     * 音声用のデータを一時的に格納するバッファ.
+     * データを一時的に格納するバッファ.
      */
-    private byte[] mAudioBuffer = new byte[4096];
+    private ByteBuffer mByteBuffer;
 
     /**
      * H264 のセグメントに分割するkクラス.
      */
     private H264TsSegmenter mH264TsSegmenter;
-
-    /**
-     * データを一時的に格納するバッファ.
-     */
-    private ByteBuffer mByteBuffer = ByteBuffer.allocate(4096);
 
     /**
      * mpeg2ts に変換されたデータを受信するリスナー.
@@ -88,8 +85,18 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         //   = (((27 * 1000 * 1000) * presentation_time_in_milliseconds / 1000) / 30) % (2^33)
         //   = (presentation_time_in_milliseconds * 90) % (2^33)
         long pts = (((System.currentTimeMillis()) * 90) % 8589934592L);
-        
-        mH264TsSegmenter.generatePackets(encodedData, pts);
+
+        encodedData.position(bufferInfo.offset);
+        encodedData.limit(bufferInfo.offset + bufferInfo.size);
+
+        if (isConfigFrame(bufferInfo)) {
+            createConfig(encodedData, bufferInfo);
+        } else if (isKeyFrame(bufferInfo) && mConfigData != null) {
+            appendConfig(encodedData, bufferInfo);
+            mH264TsSegmenter.generatePackets(mByteBuffer, pts);
+        } else {
+            mH264TsSegmenter.generatePackets(encodedData, pts);
+        }
     }
 
     @Override
@@ -98,35 +105,67 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        if (mAudioBuffer.length < bufferInfo.size) {
-            mAudioBuffer = new byte[bufferInfo.size];
-        }
-        encodedData.get(mAudioBuffer, 0, bufferInfo.size);
-
         // TODO 音声データも H264TsSegmenter に渡して良いか確認すること。
-
-        writePacket(mAudioBuffer, bufferInfo.size, bufferInfo.presentationTimeUs);
     }
 
     @Override
     public void onReleased() {
+        mH264TsSegmenter.close();
     }
 
     /**
-     * 送信するパケットデータを書き込みます.
+     * SPS、PPS などの設定値か確認します.
      *
-     * @param packet パケットデータ
-     * @param packetLength パケットデータサイズ
-     * @param pts プレゼンテションタイム
+     * @param bufferInfo 映像データの情報
+     * @return 設定データの場合はtrue、それ以外はfalse
      */
-    private void writePacket(byte[] packet, int packetLength, long pts) {
-        if (mByteBuffer.capacity() < packetLength) {
-            mByteBuffer = ByteBuffer.allocate(packetLength);
-        }
-        mByteBuffer.clear();
-        mByteBuffer.put(packet, 0, packetLength);
-        mByteBuffer.flip();
+    private boolean isConfigFrame(MediaCodec.BufferInfo bufferInfo) {
+        return (bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0;
+    }
 
-        mH264TsSegmenter.generatePackets(mByteBuffer, pts / 1000L);
+    /**
+     * キーフレームか確認します.
+     *
+     * @param bufferInfo 映像データの情報
+     * @return キーフレームの場合はtrue、それ以外はfalse
+     */
+    @SuppressWarnings("deprecation")
+    private boolean isKeyFrame(MediaCodec.BufferInfo bufferInfo) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return (bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
+        } else {
+            return (bufferInfo.flags & MediaCodec.BUFFER_FLAG_SYNC_FRAME) != 0;
+        }
+    }
+
+    /**
+     * SPS、PPS の設定値を一時保管します.
+     *
+     * @param encodedData 映像データ
+     * @param bufferInfo 映像データの情報
+     */
+    private void createConfig(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        mConfigData = new byte[bufferInfo.size];
+        encodedData.get(mConfigData, 0, bufferInfo.size);
+    }
+
+    /**
+     * SPS、PPS の設定値を映像データの先頭に追加します.
+     *
+     * @param encodedData 映像データ
+     * @param bufferInfo 映像データの情報
+     */
+    private void appendConfig(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        int packetLength = bufferInfo.size + mConfigData.length;
+        if (mByteBuffer == null || mByteBuffer.capacity() < packetLength) {
+            mByteBuffer = ByteBuffer.allocateDirect(packetLength);
+            mByteBuffer.put(mConfigData);
+            mByteBuffer.put(encodedData);
+        } else {
+            mByteBuffer.clear();
+            mByteBuffer.position(mConfigData.length);
+            mByteBuffer.put(encodedData);
+        }
+        mByteBuffer.flip();
     }
 }

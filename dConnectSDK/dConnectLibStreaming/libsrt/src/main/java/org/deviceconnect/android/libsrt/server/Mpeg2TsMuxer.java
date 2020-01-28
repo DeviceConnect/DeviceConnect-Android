@@ -2,6 +2,7 @@ package org.deviceconnect.android.libsrt.server;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -10,26 +11,14 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 
+import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
+
 public class Mpeg2TsMuxer extends SRTMuxer {
-    /**
-     * 映像用のデータを一時的に格納するバッファ.
-     */
-    private byte[] mVideoBuffer = new byte[4096];
 
     /**
      * 音声用のデータを一時的に格納するバッファ.
      */
     private byte[] mAudioBuffer = new byte[4096];
-
-    /**
-     * PPS、SPS のデータを一時的に格納するバッファ.
-     */
-    private byte[] mConfigData;
-
-    /**
-     * PPS、SPS のデータをバッファサイズ.
-     */
-    private int mConfigLength;
 
     /**
      * H264 のセグメントに分割するkクラス.
@@ -84,7 +73,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
         mH264TsSegmenter = new H264TsSegmenter();
         mH264TsSegmenter.setBufferListener(mBufferListener);
-        mH264TsSegmenter.initialize(sampleRate, sampleSizeInBits,channels, fps);
+        mH264TsSegmenter.initialize(sampleRate, sampleSizeInBits, channels, fps);
         return true;
     }
 
@@ -94,31 +83,13 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     @Override
     public void onWriteVideoData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        boolean isConfigFrame = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0;
-        if (isConfigFrame) {
-            if (mConfigData == null || mConfigData.length < bufferInfo.size) {
-                mConfigData = new byte[bufferInfo.size];
-            }
-            encodedData.position(bufferInfo.offset);
-            encodedData.limit(bufferInfo.offset + bufferInfo.size);
-            encodedData.get(mConfigData, 0, bufferInfo.size);
-            mConfigLength = bufferInfo.size;
-        }
-
-        boolean isKeyFrame = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
-        if (isKeyFrame && mConfigData != null) {
-            // H264 の SPS、PPS はキーフレームごとに送信するようにする。
-            writePacket(mConfigData, mConfigLength, bufferInfo.presentationTimeUs);
-        }
-
-        if (mVideoBuffer.length < bufferInfo.size) {
-            mVideoBuffer = new byte[bufferInfo.size];
-        }
-        encodedData.position(bufferInfo.offset);
-        encodedData.limit(bufferInfo.offset + bufferInfo.size);
-        encodedData.get(mVideoBuffer, 0, bufferInfo.size);
-
-        writePacket(mVideoBuffer, bufferInfo.size, bufferInfo.presentationTimeUs);
+        // PTS[k]
+        //   = ((system_clock_frequency * presentation_time_in_seconds) / 300) % (2^33)
+        //   = (((27 * 1000 * 1000) * presentation_time_in_milliseconds / 1000) / 30) % (2^33)
+        //   = (presentation_time_in_milliseconds * 90) % (2^33)
+        long pts = (((System.currentTimeMillis()) * 90) % 8589934592L);
+        
+        mH264TsSegmenter.generatePackets(encodedData, pts);
     }
 
     @Override

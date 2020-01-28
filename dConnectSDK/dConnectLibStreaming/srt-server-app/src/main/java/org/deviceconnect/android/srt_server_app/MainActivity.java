@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity
             mSRTServer.setCallback(new SRTServer.Callback() {
                 @Override
                 public void createSession(final SRTSession session) {
-                    Log.e("ABC", "AAAAAAAAAAAAA createSession");
+                    Log.d(TAG, "createSession");
 
                     CameraSurfaceVideoEncoder encoder = new CameraSurfaceVideoEncoder(getApplicationContext());
                     encoder.addSurface(mCameraView.getHolder().getSurface());
@@ -202,8 +202,7 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void releaseSession(final SRTSession session) {
-                    Log.e("ABC", "AAAAAAAAAAAAA releaseSession");
-
+                    Log.d(TAG, "releaseSession");
                 }
             });
             mSRTServer.start();

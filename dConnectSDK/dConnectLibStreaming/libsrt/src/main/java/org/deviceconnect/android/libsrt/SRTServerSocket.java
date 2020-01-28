@@ -70,7 +70,7 @@ public class SRTServerSocket {
         SRTSocket socket = new SRTSocket();
         NdkHelper.accept(mNativeSocket, socket);
         if (!mIsOpen) {
-            return null;
+            throw new IOException("already closed");
         }
         if (!socket.isAvailable()) {
             throw new IOException("Failed to accept client.");

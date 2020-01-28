@@ -185,16 +185,7 @@ public class SRTServer {
                         continue;
                     }
 
-                    SRTSocket socket = mServerSocket.accept();
-                    if (socket != null) {
-                        new SocketThread(socket).start();
-
-                        if (DEBUG) {
-                            Log.d(TAG, "NdkHelper.accept: client address = " + socket.getSocketAddress());
-                        }
-
-                        mServerEventListener.onAcceptClient(this, socket);
-                    }
+                    new SocketThread(mServerSocket.accept()).start();
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -390,7 +381,7 @@ public class SRTServer {
          */
         private SRTSocket mClientSocket;
 
-        SocketThread(SRTSocket clientSocket) {
+        SocketThread(final SRTSocket clientSocket) {
             mClientSocket = clientSocket;
         }
 
@@ -407,6 +398,8 @@ public class SRTServer {
         @Override
         public void run() {
             try {
+                mServerEventListener.onAcceptClient(SRTServer.this, mClientSocket);
+
                 synchronized (mClientSocketList) {
                     mClientSocketList.add(mClientSocket);
                 }
@@ -462,7 +455,7 @@ public class SRTServer {
          * SRTSession を作成時に呼び出します.
          *
          * <p>
-         * この SRTSession にストリームを設定します。
+         * この SRTSession にエンコーダを設定します。
          * </p>
          *
          * @param session セッション

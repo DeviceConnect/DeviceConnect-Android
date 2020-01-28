@@ -176,7 +176,6 @@ public class MainActivity extends AppCompatActivity
     private void startStreaming() {
         try {
             mSRTServer = new SRTServer(12345);
-            mSRTServer.setMaxClientNum(1);
             mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.setCallback(new SRTServer.Callback() {

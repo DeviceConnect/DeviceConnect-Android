@@ -118,7 +118,7 @@ public class H264TsSegmenter extends AbstractTsSegmenter {
 
 		for (NALUnit unit : units) {
 			boolean isFrame = unit.type == H264NT_SLICE || unit.type == H264NT_SLICE_IDR;
-			long pts = isFrame ? defaultPts /*getPts()*/ : -1;
+			long pts = isFrame ? getPts() : -1;
 			long dts = pts;
 			buffer.position(unit.offset);
 			tsWriter.writeVideoBuffer(isFirstPes, buffer, unit.length, pts, dts);

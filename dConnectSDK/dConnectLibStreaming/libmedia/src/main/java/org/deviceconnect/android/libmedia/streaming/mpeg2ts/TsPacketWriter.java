@@ -345,7 +345,7 @@ public class TsPacketWriter {
 					writePacket((byte) 0x00);
 				} else {
 					writePacket((byte) 0x01); // adaptation_field_length
-					writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x10)));
+					writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x00)));
 					// flag bits 0001 0000 , 0x10
 					// flag bits 0100 0000 , 0x40
 				}

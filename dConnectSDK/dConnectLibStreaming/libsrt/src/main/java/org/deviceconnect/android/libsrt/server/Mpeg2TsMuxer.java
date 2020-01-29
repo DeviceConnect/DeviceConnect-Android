@@ -13,17 +13,12 @@ import java.nio.ByteBuffer;
 
 public class Mpeg2TsMuxer extends SRTMuxer {
     /**
-     * PPS、SPS のデータを一時的に格納するバッファ.
+     * SPS と PPS のデータを格納するバッファ.
      */
-    private byte[] mConfigData;
+    private ByteBuffer mConfigBuffer;
 
     /**
-     * データを一時的に格納するバッファ.
-     */
-    private ByteBuffer mByteBuffer;
-
-    /**
-     * H264 のセグメントに分割するkクラス.
+     * H264 のセグメントに分割するクラス.
      */
     private H264TsSegmenter mH264TsSegmenter;
 
@@ -94,7 +89,15 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         encodedData.position(bufferInfo.offset);
         encodedData.limit(bufferInfo.offset + bufferInfo.size);
 
-        mH264TsSegmenter.generatePackets(encodedData, pts);
+        if (isConfigFrame(bufferInfo)) {
+            storeConfig(encodedData, bufferInfo);
+        } else {
+            if (isKeyFrame(bufferInfo) && mConfigBuffer.remaining() > 0) {
+                mH264TsSegmenter.generatePackets(mConfigBuffer, pts);
+            }
+            mH264TsSegmenter.generatePackets(encodedData, pts);
+        }
+
     }
 
     @Override
@@ -142,28 +145,11 @@ public class Mpeg2TsMuxer extends SRTMuxer {
      * @param encodedData 映像データ
      * @param bufferInfo 映像データの情報
      */
-    private void createConfig(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        mConfigData = new byte[bufferInfo.size];
-        encodedData.get(mConfigData, 0, bufferInfo.size);
-    }
-
-    /**
-     * SPS、PPS の設定値を映像データの先頭に追加します.
-     *
-     * @param encodedData 映像データ
-     * @param bufferInfo 映像データの情報
-     */
-    private void appendConfig(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        int packetLength = bufferInfo.size + mConfigData.length;
-        if (mByteBuffer == null || mByteBuffer.capacity() < packetLength) {
-            mByteBuffer = ByteBuffer.allocateDirect(packetLength);
-            mByteBuffer.put(mConfigData);
-            mByteBuffer.put(encodedData);
-        } else {
-            mByteBuffer.clear();
-            mByteBuffer.position(mConfigData.length);
-            mByteBuffer.put(encodedData);
-        }
-        mByteBuffer.flip();
+    private void storeConfig(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        mConfigBuffer = ByteBuffer.allocateDirect(bufferInfo.size);
+        byte[] data = new byte[bufferInfo.size];
+        encodedData.get(data);
+        mConfigBuffer.put(data);
+        mConfigBuffer.flip();
     }
 }

@@ -300,6 +300,7 @@ public class TsPacketWriter {
 
 		boolean isFristTs = true;
 		boolean isAudio = false;
+		boolean syncTime = pts >= 0;
 		byte[] frameBuf = new byte[length];
 		buffer.get(frameBuf);
 		int frameBufSize = frameBuf.length;
@@ -313,22 +314,30 @@ public class TsPacketWriter {
 			resetPacket((byte) 0x00);
 
 			// write ts header
-			writePacket((byte) 0x47);
+			writePacket((byte) 0x47); // sync_byte
 			writePacket((byte) ((isFristTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1f)));
 			writePacket((byte) (pid & 0xff));
 			writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((isAudio ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
 
 			if (isFristTs) {
-				writePacket((byte) 0x07);                						 							// size
-				writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
-				// flag bits 0001 0000 , 0x10
-				// flag bits 0101 0000 , 0x50
-				/* write PCR */
-				long pcr = pts;
-				writePacket((byte) ((pcr >> 25) & 0xFF));
-				writePacket((byte) ((pcr >> 17) & 0xFF));
-				writePacket((byte) ((pcr >> 9) & 0xFF));
-				writePacket((byte) ((pcr >> 1) & 0xFF));
+				if (syncTime) {
+					writePacket((byte) 0x07); // adaptation_field_length
+					writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x10)));
+					// flag bits 0001 0000 , 0x10
+					// flag bits 0100 0000 , 0x40
+
+					/* write PCR */
+					long pcr = pts;
+					writePacket((byte) ((pcr >> 25) & 0xFF));
+					writePacket((byte) ((pcr >> 17) & 0xFF));
+					writePacket((byte) ((pcr >> 9) & 0xFF));
+					writePacket((byte) ((pcr >> 1) & 0xFF));
+				} else {
+					writePacket((byte) 0x03); // adaptation_field_length
+					writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
+					// flag bits 0001 0000 , 0x10
+					// flag bits 0101 0000 , 0x50
+				}
 				writePacket((byte) 0x00); //(byte) (pcr << 7 | 0x7E); // (6bit) reserved， 0x00
 				writePacket((byte) 0x00);
 
@@ -341,7 +350,7 @@ public class TsPacketWriter {
 
 				int header_size = 5 + 5;
 
-				// PES 包长度
+				// PES パケット長
 				if (isAudio) {
 					int pes_size = frameBufSize + header_size + 3;
 					writePacket((byte) ((pes_size >> 8) & 0xFF));
@@ -351,20 +360,22 @@ public class TsPacketWriter {
 					writePacket((byte) 0x00); // 16:
 				}
 
-				// PES 包头识别标志
-				byte PTS_DTS_flags =  (byte) 0xc0;
+				// PES ヘッダーの識別
+				byte PTS_DTS_flags = syncTime ? (byte) 0xc0 : (byte) 0x00;
 				writePacket((byte) 0x80); 			// 0x80 no flags set,  0x84 just data alignment indicator flag set
 				writePacket(PTS_DTS_flags); 		// 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
-				writePacket((byte) header_size);	// 0x0A PTS & DTS,  0x05 PTS,  0x00 no
 
 				// write pts & dts
 				if ( PTS_DTS_flags == (byte)0xc0 ) {
+					writePacket((byte) 0x0A);
 
-					//PTS_DTS_flags >> 6
 					write_pts_dts(3, pts);
 					write_pts_dts(1, dts);
 				} else if ( PTS_DTS_flags == (byte)0x80 ) {
+					writePacket((byte) 0x05);
 					write_pts_dts(2, pts);
+				} else {
+					writePacket((byte) 0x00);
 				}
 
 

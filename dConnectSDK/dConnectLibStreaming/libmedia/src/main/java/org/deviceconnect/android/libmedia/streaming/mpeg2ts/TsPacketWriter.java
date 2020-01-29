@@ -1,10 +1,14 @@
 package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
+import android.util.Log;
+
 import com.google.common.primitives.Bytes;
 
 import java.nio.ByteBuffer;
 
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.util.TsUtil;
+
+import static org.deviceconnect.android.libmedia.BuildConfig.DEBUG;
 
 public class TsPacketWriter {
 	
@@ -286,7 +290,9 @@ public class TsPacketWriter {
 		return write(isFirstPes, FrameDataType.VIDEO, frameData);
 	}
 
-	public void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts) {
+	private int mPcrCount = 0;
+
+	public void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame) {
 
 		FrameDataType frameDataType = FrameDataType.VIDEO;
 
@@ -298,9 +304,8 @@ public class TsPacketWriter {
 		write_pmt( frameDataType );
 		notifyPacket();
 
-		boolean isFristTs = true;
+		boolean isFirstTs = true;
 		boolean isAudio = false;
-		boolean syncTime = pts >= 0;
 		byte[] frameBuf = new byte[length];
 		buffer.get(frameBuf);
 		int frameBufSize = frameBuf.length;
@@ -309,22 +314,26 @@ public class TsPacketWriter {
 
 		while (frameBufPtr < frameBufSize) {
 			int frameBufRemaining = frameBufSize - frameBufPtr;
-			boolean isAdaptationField = (isFristTs || ( frameBufRemaining < TS_PAYLOAD_SIZE ));
+			boolean isAdaptationField = (isFirstTs || ( frameBufRemaining < TS_PAYLOAD_SIZE ));
 
 			resetPacket((byte) 0x00);
 
 			// write ts header
 			writePacket((byte) 0x47); // sync_byte
-			writePacket((byte) ((isFristTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1f)));
+			writePacket((byte) ((isFirstTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1f)));
 			writePacket((byte) (pid & 0xff));
 			writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((isAudio ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
 
-			if (isFristTs) {
-				if (syncTime) {
+			if (isFirstTs) {
+				if (isFrame) {
+					if (DEBUG) {
+						Log.d("ABC", "PCR [" + mPcrCount++ + "] pts = " + pts);
+					}
+
 					writePacket((byte) 0x07); // adaptation_field_length
-					writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x10)));
+					writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
 					// flag bits 0001 0000 , 0x10
-					// flag bits 0100 0000 , 0x40
+					// flag bits 0101 0000 , 0x50
 
 					/* write PCR */
 					long pcr = pts;
@@ -332,15 +341,14 @@ public class TsPacketWriter {
 					writePacket((byte) ((pcr >> 17) & 0xFF));
 					writePacket((byte) ((pcr >> 9) & 0xFF));
 					writePacket((byte) ((pcr >> 1) & 0xFF));
+					writePacket((byte) 0x00); //(byte) (pcr << 7 | 0x7E); // (6bit) reserved， 0x00
+					writePacket((byte) 0x00);
 				} else {
-					writePacket((byte) 0x03); // adaptation_field_length
-					writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
+					writePacket((byte) 0x01); // adaptation_field_length
+					writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x10)));
 					// flag bits 0001 0000 , 0x10
-					// flag bits 0101 0000 , 0x50
+					// flag bits 0100 0000 , 0x40
 				}
-				writePacket((byte) 0x00); //(byte) (pcr << 7 | 0x7E); // (6bit) reserved， 0x00
-				writePacket((byte) 0x00);
-
 
 				/* write PES HEADER */
 				writePacket((byte) 0x00);
@@ -361,7 +369,7 @@ public class TsPacketWriter {
 				}
 
 				// PES ヘッダーの識別
-				byte PTS_DTS_flags = syncTime ? (byte) 0xc0 : (byte) 0x00;
+				byte PTS_DTS_flags = isFrame ? (byte) 0xc0 : (byte) 0x00;
 				writePacket((byte) 0x80); 			// 0x80 no flags set,  0x84 just data alignment indicator flag set
 				writePacket(PTS_DTS_flags); 		// 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
 
@@ -453,7 +461,7 @@ public class TsPacketWriter {
 
 			}
 
-			isFristTs = false;
+			isFirstTs = false;
 			notifyPacket();
 		}
 	}

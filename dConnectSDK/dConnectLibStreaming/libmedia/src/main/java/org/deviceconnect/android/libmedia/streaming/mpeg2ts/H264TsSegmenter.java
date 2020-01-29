@@ -121,7 +121,7 @@ public class H264TsSegmenter extends AbstractTsSegmenter {
 			long pts = isFrame ? getPts() : -1;
 			long dts = pts;
 			buffer.position(unit.offset);
-			tsWriter.writeVideoBuffer(isFirstPes, buffer, unit.length, pts, dts);
+			tsWriter.writeVideoBuffer(isFirstPes, buffer, unit.length, pts, dts, isFrame);
 			isFirstPes = false;
 		}
 	}
@@ -331,7 +331,8 @@ public class H264TsSegmenter extends AbstractTsSegmenter {
 		return avcFrames;
 	}
 	
-	private long getPts() {
+	private synchronized long getPts() {
+		//return (((System.currentTimeMillis()) * 90) % 8589934592L);
 		return pts += ptsIncPerFrame;
 	}
 	

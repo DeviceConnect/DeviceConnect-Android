@@ -92,7 +92,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         if (isConfigFrame(bufferInfo)) {
             storeConfig(encodedData, bufferInfo);
         } else {
-            if (isKeyFrame(bufferInfo) && mConfigBuffer.remaining() > 0) {
+            if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
                 mH264TsSegmenter.generatePackets(mConfigBuffer, pts);
             }
             mH264TsSegmenter.generatePackets(encodedData, pts);

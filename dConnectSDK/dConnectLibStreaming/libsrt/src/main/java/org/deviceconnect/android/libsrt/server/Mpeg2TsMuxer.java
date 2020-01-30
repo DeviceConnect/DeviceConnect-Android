@@ -23,11 +23,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     private H264TsSegmenter mH264TsSegmenter;
 
     /**
-     * 前回のプレゼンテーションタイムを格納する変数.
-     */
-    private long mPreviousPresentationTimeUs;
-
-    /**
      * mpeg2ts に変換されたデータを受信するリスナー.
      */
     private final H264TsSegmenter.BufferListener mBufferListener = (result) -> {
@@ -71,7 +66,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         mH264TsSegmenter = new H264TsSegmenter();
         mH264TsSegmenter.setBufferListener(mBufferListener);
         mH264TsSegmenter.initialize(sampleRate, sampleSizeInBits, channels, fps);
-        mPreviousPresentationTimeUs = 0;
         return true;
     }
 
@@ -81,11 +75,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     @Override
     public void onWriteVideoData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        if (mPreviousPresentationTimeUs == 0) {
-            mPreviousPresentationTimeUs = bufferInfo.presentationTimeUs;
-        }
-        long pts = (bufferInfo.presentationTimeUs - mPreviousPresentationTimeUs) / 1000L;
-
         encodedData.position(bufferInfo.offset);
         encodedData.limit(bufferInfo.offset + bufferInfo.size);
 
@@ -93,9 +82,9 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             storeConfig(encodedData, bufferInfo);
         } else {
             if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
-                mH264TsSegmenter.generatePackets(mConfigBuffer, pts);
+                mH264TsSegmenter.generatePackets(mConfigBuffer);
             }
-            mH264TsSegmenter.generatePackets(encodedData, pts);
+            mH264TsSegmenter.generatePackets(encodedData);
         }
 
     }

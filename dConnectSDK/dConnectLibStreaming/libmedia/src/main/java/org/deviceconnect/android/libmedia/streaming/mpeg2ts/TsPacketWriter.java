@@ -261,38 +261,8 @@ public class TsPacketWriter {
 		writePacket((byte) ((pts3  & 0x7F80) >> 7));
 		writePacket((byte) (((pts3 & 0x007F) << 1) | 0x01));
 	}
-	
-	public byte[] writeAAC(boolean isFirstPes, byte[] aacBuf, int length, long pts, long dts) {
-		byte[] buf = aacBuf;
-		if ( aacBuf.length > length ) {
-			buf = new byte[ length ];
-			System.arraycopy(aacBuf, 0, buf, 0, length);
-		}
-		
-		FrameData frameData = new FrameData();
-		frameData.buf = buf;
-		frameData.pts = pts;
-		frameData.dts = dts;
-		frameData.isAudio = true;
-		
-		return write(isFirstPes, FrameDataType.AUDIO, frameData);
-	}
-	
-	public byte[] writeH264(boolean isFirstPes, byte[] h264Buf, int length, long pts, long dts) {
-		byte[] buf = h264Buf;
-		
-		FrameData frameData = new FrameData();
-		frameData.buf = buf;
-		frameData.pts = pts;
-		frameData.dts = dts;
-		frameData.isAudio = false;
-		
-		return write(isFirstPes, FrameDataType.VIDEO, frameData);
-	}
 
-	private int mPcrCount = 0;
-
-	public void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame) {
+	void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame) {
 
 		FrameDataType frameDataType = FrameDataType.VIDEO;
 
@@ -326,10 +296,6 @@ public class TsPacketWriter {
 
 			if (isFirstTs) {
 				if (isFrame) {
-					if (DEBUG) {
-						Log.d("ABC", "PCR [" + mPcrCount++ + "] pts = " + pts);
-					}
-
 					writePacket((byte) 0x07); // adaptation_field_length
 					writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
 					// flag bits 0001 0000 , 0x10
@@ -427,10 +393,6 @@ public class TsPacketWriter {
 					int start = TS_HEADER_SIZE + adaptationFieldLength + 1;
 					int end = offset - 1;
 
-					// DEBUG
-					// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-					//System.out.println("start=" + start + ", end=" + end);
-
 					// move
 					for (int i = end; i >= start; i--) {
 						tsBuf[i + paddingSize] = tsBuf[i];
@@ -464,169 +426,6 @@ public class TsPacketWriter {
 			isFirstTs = false;
 			notifyPacket();
 		}
-	}
-	
-	public byte[] write(boolean isFirstPes, FrameDataType frameDataType, FrameData... frames) {
-		// write pat table
-		write_pat();
-		notifyPacket();
-		
-		// write pmt table
-		write_pmt( frameDataType );
-		notifyPacket();
-
-		for (FrameData frame: frames) {
-			boolean isFristTs = true;
-			boolean isAudio = frame.isAudio;
-			long pts = frame.pts;
-			long dts = frame.dts;
-			byte[] frameBuf = frame.buf;
-			int frameBufSize = frameBuf.length;
-			int frameBufPtr = 0;
-			int pid = isAudio ? TS_AUDIO_PID : TS_VIDEO_PID;
-
-			while (frameBufPtr < frameBufSize) {
-				int frameBufRemaining = frameBufSize - frameBufPtr;
-				boolean isAdaptationField = (isFristTs || ( frameBufRemaining < TS_PAYLOAD_SIZE ));
-
-				resetPacket((byte) 0x00);
-				
-				// write ts header
-				writePacket((byte) 0x47);
-				writePacket((byte) ((isFristTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1f)));
-				writePacket((byte) (pid & 0xff));
-				writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((isAudio ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
-				
-				if (isFristTs) {
-					writePacket((byte) 0x07);                						 							// size
-					writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
-																												// flag bits 0001 0000 , 0x10
-																												// flag bits 0101 0000 , 0x50
-					/* write PCR */
-					long pcr = pts;
-					writePacket((byte) ((pcr >> 25) & 0xFF));
-					writePacket((byte) ((pcr >> 17) & 0xFF));
-					writePacket((byte) ((pcr >> 9) & 0xFF));
-					writePacket((byte) ((pcr >> 1) & 0xFF));
-					writePacket((byte) 0x00); //(byte) (pcr << 7 | 0x7E); // (6bit) reserved， 0x00
-					writePacket((byte) 0x00);
-					 
-					 
-					/* write PES HEADER */
-					writePacket((byte) 0x00);
-					writePacket((byte) 0x00);
-					writePacket((byte) 0x01);
-					writePacket(isAudio ? (byte) 0xc0 : (byte) 0xe0);
-					
-					int header_size = 5 + 5;
-					
-					// PES 包长度
-					if (isAudio) {
-						int pes_size = frameBufSize + header_size + 3;
-						writePacket((byte) ((pes_size >> 8) & 0xFF));
-						writePacket((byte) (pes_size & 0xFF));
-					} else {
-						writePacket((byte) 0x00); // 为0表示不受限制
-						writePacket((byte) 0x00); // 16:
-					}
-					
-					// PES 包头识别标志
-					byte PTS_DTS_flags =  (byte) 0xc0;
-					writePacket((byte) 0x80); 			// 0x80 no flags set,  0x84 just data alignment indicator flag set
-					writePacket(PTS_DTS_flags); 		// 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
-					writePacket((byte) header_size);	// 0x0A PTS & DTS,  0x05 PTS,  0x00 no
-					
-					// write pts & dts
-					if ( PTS_DTS_flags == (byte)0xc0 ) {
-						
-						//PTS_DTS_flags >> 6
-						write_pts_dts(3, pts);
-						write_pts_dts(1, dts);
-					} else if ( PTS_DTS_flags == (byte)0x80 ) {
-						write_pts_dts(2, pts);
-					}
-
-					
-		     		// H264 NAL
-					if ( !isAudio && Bytes.indexOf(frameBuf, H264_NAL ) == -1 ) {
-						writePacket(H264_NAL, 0, H264_NAL.length);
-					}
-					
-				}  else {
-					
-					// has adaptation
-					if ( isAdaptationField ) {
-						 writePacket((byte) 1);
-						 writePacket((byte) 0x00);
-						 
-					} else {
-						// no adaptation
-						// ts_header + ts_payload
-					}
-
-				}
-				
-				
-				// fill data
-				int tsBufRemaining = TS_PACKET_SIZE - mPacket.mOffset;
-				if (frameBufRemaining >= tsBufRemaining) {
-					writePacket(frameBuf, frameBufPtr, tsBufRemaining);
-					frameBufPtr += tsBufRemaining;
-				} else {
-					
-					int paddingSize = tsBufRemaining - frameBufRemaining;
-					byte[] tsBuf = mPacket.mData;
-					int offset = mPacket.mOffset;
-
-					// 0x30  0011 0000
-					// 0x10  0001 0000
-					// has adaptation
-					if ( isAdaptationField ) {
-	
-						int adaptationFieldLength = (tsBuf[4] & 0xFF);
-						int start = TS_HEADER_SIZE + adaptationFieldLength + 1;
-						int end = offset - 1;
-	
-						// DEBUG
-						// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-						//System.out.println("start=" + start + ", end=" + end);
-	
-						// move 
-						for (int i = end; i >= start; i--) {
-							tsBuf[i + paddingSize] = tsBuf[i];
-						}
-	
-						// fill data, 0xff
-						for (int i = 0; i < paddingSize; i++) {
-							tsBuf[start + i] = (byte) 0xff;
-						}
-	
-						tsBuf[4] += paddingSize;
-						 
-					// no adaptation
-					} else {
-						
-						// set adaptation
-						tsBuf[3] |= 0x20;
-						tsBuf[4] = (byte) paddingSize;
-						tsBuf[5] = 0;
-						
-						for (int i = 0; i < paddingSize; i++) {
-							tsBuf[6 + i] = (byte) 0xFF;
-						}
-					}
-					
-					System.arraycopy(frameBuf, frameBufPtr, tsBuf, offset + paddingSize, frameBufRemaining);
-					frameBufPtr += frameBufRemaining;
-					
-				}
-				
-				isFristTs = false;
-				notifyPacket();
-			}
-		}
-			
-		return null;
 	}
 	
 	public void reset() {

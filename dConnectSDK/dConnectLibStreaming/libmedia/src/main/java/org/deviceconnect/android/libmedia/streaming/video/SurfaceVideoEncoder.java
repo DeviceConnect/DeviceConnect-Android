@@ -86,6 +86,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
             return;
         }
         mStManager = new SurfaceTextureManager();
+
+        // SurfaceTexture に解像度を設定
+        VideoQuality quality = getVideoQuality();
+        SurfaceTexture st = mStManager.getSurfaceTexture();
+        st.setDefaultBufferSize(quality.getVideoWidth(), quality.getVideoHeight());
     }
 
     /**

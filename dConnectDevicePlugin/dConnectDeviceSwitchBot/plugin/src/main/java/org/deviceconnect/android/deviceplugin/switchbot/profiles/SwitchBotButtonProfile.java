@@ -6,6 +6,8 @@
 */
 package org.deviceconnect.android.deviceplugin.switchbot.profiles;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,8 +47,25 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                             Log.d(TAG, "serviceId : " + serviceId);
                         }
 
+                        BluetoothManager bluetoothManager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
+                        if (bluetoothManager != null) {
+                            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+                            if (bluetoothAdapter != null) {
+                                if (!bluetoothAdapter.isEnabled()) {
+                                    MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                                    return true;
+                                }
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                                return true;
+                            }
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                            return true;
+                        }
+
                         if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                            MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_mode_unmatched));
+                            MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_mode_unmatched));
                             return true;
                         }
 
@@ -57,14 +76,14 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                                 if (switchBotDevice.down()) {
                                     setResult(response, DConnectMessage.RESULT_OK);
                                 } else {
-                                    MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_device_busy));
+                                    MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_device_busy));
                                 }
                                 sendResponse(response);
                             }
 
                             @Override
                             public void onFailure() {
-                                MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_connect_failure));
+                                MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_connect_failure));
                                 sendResponse(response);
                             }
                         });
@@ -88,8 +107,26 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                         if (DEBUG) {
                             Log.d(TAG, "serviceId : " + serviceId);
                         }
+
+                        BluetoothManager bluetoothManager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
+                        if (bluetoothManager != null) {
+                            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+                            if (bluetoothAdapter != null) {
+                                if (!bluetoothAdapter.isEnabled()) {
+                                    MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                                    return true;
+                                }
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                                return true;
+                            }
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                            return true;
+                        }
+
                         if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                            MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_mode_unmatched));
+                            MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_mode_unmatched));
                             return true;
                         }
 
@@ -100,14 +137,14 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                                 if (switchBotDevice.press()) {
                                     setResult(response, DConnectMessage.RESULT_OK);
                                 } else {
-                                    MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_device_busy));
+                                    MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_device_busy));
                                 }
                                 sendResponse(response);
                             }
 
                             @Override
                             public void onFailure() {
-                                MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_connect_failure));
+                                MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_connect_failure));
                                 sendResponse(response);
                             }
                         });
@@ -132,8 +169,25 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                             Log.d(TAG, "serviceId : " + serviceId);
                         }
 
+                        BluetoothManager bluetoothManager = (BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);
+                        if (bluetoothManager != null) {
+                            BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+                            if (bluetoothAdapter != null) {
+                                if (!bluetoothAdapter.isEnabled()) {
+                                    MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                                    return true;
+                                }
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                                return true;
+                            }
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_bluetooth_not_available));
+                            return true;
+                        }
+
                         if (switchBotDevice.getDeviceMode() == SwitchBotDevice.Mode.SWITCH) {
-                            MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_mode_unmatched));
+                            MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_mode_unmatched));
                             return true;
                         }
 
@@ -144,14 +198,14 @@ public class SwitchBotButtonProfile extends DConnectProfile {
                                 if (switchBotDevice.up()) {
                                     setResult(response, DConnectMessage.RESULT_OK);
                                 } else {
-                                    MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_device_busy));
+                                    MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_device_busy));
                                 }
                                 sendResponse(response);
                             }
 
                             @Override
                             public void onFailure() {
-                                MessageUtils.setIllegalServerStateError(response, context.getString(R.string.error_response_connect_failure));
+                                MessageUtils.setIllegalDeviceStateError(response, context.getString(R.string.error_response_connect_failure));
                                 sendResponse(response);
                             }
                         });

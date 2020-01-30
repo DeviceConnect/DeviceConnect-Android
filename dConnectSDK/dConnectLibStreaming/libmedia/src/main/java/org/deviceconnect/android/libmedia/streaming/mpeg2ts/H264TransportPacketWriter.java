@@ -1,42 +1,36 @@
 package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
-import android.util.Log;
-
 import com.google.common.primitives.Bytes;
 
 import java.nio.ByteBuffer;
 
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.util.TsUtil;
-
-import static org.deviceconnect.android.libmedia.BuildConfig.DEBUG;
-
-public class TsPacketWriter {
+class H264TransportPacketWriter {
 	
 	// Transport Stream packets are 188 bytes in length
-	public static final int TS_PACKET_SIZE 				= 188;	
-	public static final int TS_HEADER_SIZE				= 4;
-	public static final int TS_PAYLOAD_SIZE 			= TS_PACKET_SIZE - TS_HEADER_SIZE;
+	private static final int TS_PACKET_SIZE 			= 188;
+	private static final int TS_HEADER_SIZE				= 4;
+	private static final int TS_PAYLOAD_SIZE 			= TS_PACKET_SIZE - TS_HEADER_SIZE;
 	
 	// Table 2-29 – Stream type assignments. page 66
-	public static final byte STREAM_TYPE_AUDIO_AAC 		= 0x0f;
-	public static final byte STREAM_TYPE_AUDIO_MP3 		= 0x03;
-	public static final byte STREAM_TYPE_VIDEO_H264 	= 0x1b;
+	private static final byte STREAM_TYPE_AUDIO_AAC 	= 0x0f;
+	private static final byte STREAM_TYPE_AUDIO_MP3 	= 0x03;
+	private static final byte STREAM_TYPE_VIDEO_H264 	= 0x1b;
 
 
-	public static final int TS_PAT_PID 					= 0x0000;	// 0
-	public static final int TS_PMT_PID 					= 0x1000;	// 4096
-	public static final int TS_AUDIO_PID 				= 0x101;	// 257
-	public static final int TS_VIDEO_PID 				= 0x100;	// 256
+	private static final int TS_PAT_PID 				= 0x0000;	// 0
+	private static final int TS_PMT_PID 				= 0x1000;	// 4096
+	private static final int TS_AUDIO_PID 				= 0x101;	// 257
+	private static final int TS_VIDEO_PID 				= 0x100;	// 256
 	
 	// Transport Stream Description Table
-	public static final int TS_PAT_TABLE_ID 			= 0x00;
-	public static final int TS_PMT_TABLE_ID 			= 0x02;
+	private static final int TS_PAT_TABLE_ID 			= 0x00;
+	private static final int TS_PMT_TABLE_ID 			= 0x02;
 
 	
 	// H264 Nalu
-	public static byte[] H264_NAL = { 0x00, 0x00, 0x00, 0x01, 0x09, (byte)0xf0 };
+	private static byte[] H264_NAL = { 0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0 };
 	
-	// cC
+	// ContinuityCounter
 	private byte mAudioContinuityCounter = 0;
 	private byte mVideoContinuityCounter = 0;
 	private int mPatContinuityCounter = 0;
@@ -80,10 +74,6 @@ public class TsPacketWriter {
 		mPacket.add(b);
 	}
 
-	private void writePacket(ByteBuffer buffer, int len) {
-		mPacket.add(buffer, len);
-	}
-
 	private void writePacket(byte[] buffer, int offset, int length) {
 		for (int i = 0; i < length; i++) {
 			mPacket.add(buffer[offset + i]);
@@ -112,7 +102,7 @@ public class TsPacketWriter {
 		writePacket((byte) ((transport_error_indicator << 7) | (payload_unit_start_indicator << 6) | (transport_priority << 5) | ((pid >> 8) & 0x1F)));
 		writePacket((byte) (pid & 0xff));
 		writePacket((byte) ((transport_scrambling_control << 6) | (adaptation_field_control << 4) | (continuity_counter & 0x0F)));
-		writePacket((byte) 0x00);	//起始指示符
+		writePacket((byte) 0x00);	//開始インジケータ
 	}
 
 	private void write_pat() {
@@ -120,7 +110,7 @@ public class TsPacketWriter {
 		
 		// header
 		write_ts_header(TS_PAT_PID, mPatContinuityCounter);
-		mPatContinuityCounter = (mPatContinuityCounter + 1) & 0x0F; //包递增计数器(0-15)
+		mPatContinuityCounter = (mPatContinuityCounter + 1) & 0x0F;
 		
 		// PAT body
 		int section_syntax_indicator = 1;
@@ -169,10 +159,9 @@ public class TsPacketWriter {
 		
 		// header
 		write_ts_header(TS_PMT_PID, mPmtContinuityCounter );
-		mPmtContinuityCounter = (mPmtContinuityCounter + 1) & 0x0F; //包递增计数器(0-15)
+		mPmtContinuityCounter = (mPmtContinuityCounter + 1) & 0x0F;
 		
 		 // PMT body
-	    int table_id = TS_PMT_TABLE_ID;
 	    int section_syntax_indicator = 1;
 	    int zero = 0;
 	    int reserved_1 = 3;
@@ -188,7 +177,7 @@ public class TsPacketWriter {
 	    int reserved_4 = 15;
 	    int program_info_length = 0;
 	    
-	    writePacket((byte) table_id);
+	    writePacket((byte) TS_PMT_TABLE_ID);
 	    writePacket((byte) ((section_syntax_indicator << 7) | (zero << 6) | (reserved_1 << 4) | ((section_length >> 8) & 0x0F)));
 	    writePacket((byte) (section_length & 0xFF));
 	    writePacket((byte) ((program_number >> 8) & 0xFF));
@@ -242,14 +231,7 @@ public class TsPacketWriter {
 	    writePacket((byte) ((crc >> 8) & 0xFF));
 	    writePacket((byte) ((crc) & 0xFF));
 	}	
-	
-	
-	/**
-	 * write a PTS or DTS
-	 * 
-	 * @see //https://github.com/kynesim/tstools/blob/master/ts.c
-	 * @see //https://www.ffmpeg.org/doxygen/0.6/mpegtsenc_8c-source.html
-	 */
+
 	private void write_pts_dts(int guard_bits, long value) {
 		int pts1 = (int) ((value >> 30) & 0x07);
 		int pts2 = (int) ((value >> 15) & 0x7FFF);
@@ -298,8 +280,6 @@ public class TsPacketWriter {
 				if (isFrame) {
 					writePacket((byte) 0x07); // adaptation_field_length
 					writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
-					// flag bits 0001 0000 , 0x10
-					// flag bits 0101 0000 , 0x50
 
 					/* write PCR */
 					long pcr = pts;
@@ -312,8 +292,6 @@ public class TsPacketWriter {
 				} else {
 					writePacket((byte) 0x01); // adaptation_field_length
 					writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x00)));
-					// flag bits 0001 0000 , 0x10
-					// flag bits 0100 0000 , 0x40
 				}
 
 				/* write PES HEADER */
@@ -330,7 +308,7 @@ public class TsPacketWriter {
 					writePacket((byte) ((pes_size >> 8) & 0xFF));
 					writePacket((byte) (pes_size & 0xFF));
 				} else {
-					writePacket((byte) 0x00); // 为0表示不受限制
+					writePacket((byte) 0x00); // 0x00==無制限
 					writePacket((byte) 0x00); // 16:
 				}
 
@@ -427,25 +405,11 @@ public class TsPacketWriter {
 			notifyPacket();
 		}
 	}
-	
-	public void reset() {
-		mPatContinuityCounter = 0;
-		mPmtContinuityCounter = 0;
-		mAudioContinuityCounter = 0;
-		mVideoContinuityCounter = 0;
-	}
 
 	public enum FrameDataType {
 		AUDIO,
 		VIDEO,
 		MIXED
-	}
-
-	public static class FrameData {
-		public boolean isAudio;			// h264 | aac
-		public byte[] buf;
-		public long pts;
-		public long dts;
 	}
 	
 }

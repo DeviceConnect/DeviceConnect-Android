@@ -6,7 +6,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TsSegmenter;
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TransportStreamWriter;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
@@ -20,12 +20,12 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     /**
      * H264 のセグメントに分割するクラス.
      */
-    private H264TsSegmenter mH264TsSegmenter;
+    private H264TransportStreamWriter mH264TsSegmenter;
 
     /**
      * mpeg2ts に変換されたデータを受信するリスナー.
      */
-    private final H264TsSegmenter.BufferListener mBufferListener = (result) -> {
+    private final H264TransportStreamWriter.PacketListener mBufferListener = (result) -> {
         try {
             final int max = 188 * 7;
             if (result.length > max) {
@@ -63,7 +63,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             channels = audioQuality.getChannelCount();
         }
 
-        mH264TsSegmenter = new H264TsSegmenter();
+        mH264TsSegmenter = new H264TransportStreamWriter();
         mH264TsSegmenter.setBufferListener(mBufferListener);
         mH264TsSegmenter.initialize(sampleRate, sampleSizeInBits, channels, fps);
         return true;
@@ -100,7 +100,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     @Override
     public void onReleased() {
-        mH264TsSegmenter.close();
     }
 
     /**

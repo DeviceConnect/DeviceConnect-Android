@@ -1,6 +1,6 @@
-package org.deviceconnect.android.libmedia.streaming.mpeg2ts.util;
+package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
-public class TsUtil {
+final class TsUtil {
 	
 	private static final long[] crc_table = new long[] { 0x00000000, 0x04c11db7,
 			0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b, 0x1a864db2,
@@ -64,32 +64,6 @@ public class TsUtil {
 
 		return crc;
 	}
-	
-	public static byte[] margeByteArray(byte[] a, byte[] b) {
-		
-		if ( a == null ) {
-			return b;
-		}
 
-		byte[] buf = new byte[a.length + b.length];
-		System.arraycopy(a, 0, buf, 0, a.length);
-		System.arraycopy(b, 0, buf, a.length, b.length);
-
-		return buf;
-	}
-	
-	public static String hexString(byte[] bytes, int offset, int length) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("    ");
-        for (int i = offset; i < offset + length; i++) {
-        	
-        	sb.append( String.format("%02x", bytes[i]) ).append(" ");
-            //sb.append("0x").append( String.format("%02x", bytes[i]) ).append(" ");
-            if ((i + 1) % 32 == 0) {
-                sb.append("\r\n    ");
-            } 
-        }
-        return sb.toString();
-    }
-
+	private TsUtil() {}
 }

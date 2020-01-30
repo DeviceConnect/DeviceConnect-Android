@@ -11,7 +11,11 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 
+
 public class Mpeg2TsMuxer extends SRTMuxer {
+
+    private static final String TAG = "Mpeg2Ts";
+
     /**
      * SPS と PPS のデータを格納するバッファ.
      */
@@ -23,26 +27,27 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     private H264TransportStreamWriter mH264TsSegmenter;
 
     /**
+     * SRT パケットのペイロード. SRT パケットのデフォルトの最大サイズに合わせる.
+     */
+    private final byte[] mPayload = new byte[188 * 7];
+
+    /**
+     * SRT パケットのペイロードを格納するためのバッファ.
+     */
+    private final ByteBuffer mPacketBuffer = ByteBuffer.wrap(mPayload);
+
+    /**
      * mpeg2ts に変換されたデータを受信するリスナー.
      */
-    private final H264TransportStreamWriter.PacketListener mBufferListener = (result) -> {
+    private final H264TransportStreamWriter.PacketListener mBufferListener = (packet) -> {
         try {
-            final int max = 188 * 7;
-            if (result.length > max) {
-                for (int offset = 0; offset < result.length; offset += max) {
-                    final int length;
-                    if (result.length - offset < max) {
-                        length = result.length - offset;
-                    } else {
-                        length = max;
-                    }
-                    sendPacket(result, offset, length);
-                }
-            } else {
-                sendPacket(result);
+            mPacketBuffer.put(packet);
+            if (!mPacketBuffer.hasRemaining()) {
+                sendPacket(mPayload);
+                mPacketBuffer.clear();
             }
         } catch (Exception e) {
-            Log.e("Mpeg2Ts", "Failed to send packet", e);
+            Log.e(TAG, "Failed to send packet", e);
         }
     };
 

@@ -1,9 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
-import android.content.Context;
 import android.hardware.camera2.CameraCharacteristics;
-
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 
 public class CameraVideoQuality extends VideoQuality {
     /**
@@ -44,15 +41,5 @@ public class CameraVideoQuality extends VideoQuality {
      */
     public void setFacing(int facing) {
         mFacing = facing;
-    }
-
-    /**
-     * カメラの向きとディスプレイの向きでプレビューの横幅・縦幅を交換する必要があるか確認します.
-     *
-     * @param context コンテキスト
-     * @return 交換が必要な場合は true、それ以外は false
-     */
-    public boolean isSwappedDimensions(Context context) {
-        return Camera2WrapperManager.isSwappedDimensions(context, getFacing());
     }
 }

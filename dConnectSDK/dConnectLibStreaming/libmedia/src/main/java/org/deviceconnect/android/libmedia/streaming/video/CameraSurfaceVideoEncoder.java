@@ -100,11 +100,6 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     // VideoEncoder
 
     @Override
-    public boolean isSwappedDimensions() {
-        return mVideoQuality.isSwappedDimensions(mContext);
-    }
-
-    @Override
     public VideoQuality getVideoQuality() {
         return mVideoQuality;
     }
@@ -112,6 +107,11 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     @Override
     protected int getDisplayRotation() {
         return Camera2WrapperManager.getDisplayRotation(mContext);
+    }
+
+    @Override
+    public boolean isSwappedDimensions() {
+        return Camera2WrapperManager.isSwappedDimensions(mContext, mVideoQuality.getFacing());
     }
 
     // SurfaceVideoEncoder

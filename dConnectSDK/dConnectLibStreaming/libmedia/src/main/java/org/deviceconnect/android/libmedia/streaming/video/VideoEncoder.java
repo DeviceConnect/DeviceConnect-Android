@@ -205,8 +205,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     private MediaCodec createMediaCodec(int colorFormat, int w, int h) throws IOException {
         VideoQuality videoQuality = getVideoQuality();
 
-        printCodecInfo();
-
         String mimeType = videoQuality.getMimeType();
         MediaCodecInfo codecInfo = null;
 
@@ -266,7 +264,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(videoQuality.getMimeType());
         MediaCodecInfo.EncoderCapabilities encoderCapabilities =  codecCapabilities.getEncoderCapabilities();
 
-        MediaFormat format = MediaFormat.createVideoFormat(videoQuality.getMimeType(), w, h);
+        MediaFormat format = MediaFormat.createVideoFormat(videoQuality.getMimeType(), h, w);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
         format.setInteger(MediaFormat.KEY_BIT_RATE, videoQuality.getBitRate());
         format.setInteger(MediaFormat.KEY_FRAME_RATE, videoQuality.getFrameRate());

@@ -23,11 +23,12 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
-import org.deviceconnect.android.libmedia.BuildConfig;
 
 /**
  * Camera2 API でカメラデバイスを制御するためのクラス.
@@ -107,17 +108,6 @@ public class Camera2Wrapper {
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
-
-    /**
-     * カメラの回転方向を定義します.
-     */
-    public enum Rotation {
-        ROTATION_0,
-        ROTATION_90,
-        ROTATION_180,
-        ROTATION_270,
-        FREE
     }
 
     /**
@@ -469,13 +459,13 @@ public class Camera2Wrapper {
             mSettings.setPreviewSize(previewSizes.get(0));
         }
 
-        if (DEBUG) {
-            try {
-                Camera2Helper.debugInfo(mCameraManager, mSettings.getCameraId());
-            } catch (Exception e) {
-                Log.e(TAG,"", e);
-            }
-        }
+//        if (DEBUG) {
+//            try {
+//                Camera2Helper.debugInfo(mCameraManager, mSettings.getCameraId());
+//            } catch (Exception e) {
+//                Log.e(TAG,"", e);
+//            }
+//        }
     }
 
     /**
@@ -561,11 +551,6 @@ public class Camera2Wrapper {
      * 画面の回転を取得します.
      *
      * <p>
-     * {@link Settings#setRotation(Rotation)} で指定した回転を設定を返却します。
-     * </p>
-     *
-     * <p>
-     * {@link Rotation#FREE} が設定されていた場合には、
      * 画面の回転に合わせて以下のいずれかの値を返却します。
      * <ul>
      *     <li>Surface.ROTATION_0</li>
@@ -578,19 +563,7 @@ public class Camera2Wrapper {
      * @return 画面の回転
      */
     public int getDisplayRotation() {
-        switch (mSettings.getRotation()) {
-            default:
-            case FREE:
-                return Camera2Helper.getDisplayRotation(mContext);
-            case ROTATION_0:
-                return Surface.ROTATION_0;
-            case ROTATION_90:
-                return Surface.ROTATION_90;
-            case ROTATION_180:
-                return Surface.ROTATION_180;
-            case ROTATION_270:
-                return Surface.ROTATION_270;
-        }
+        return Camera2Helper.getDisplayRotation(mContext);
     }
 
     /**
@@ -897,20 +870,10 @@ public class Camera2Wrapper {
 
         @Override
         public void enter() throws CameraAccessException {
-            boolean swappedDimensions = isSwappedDimensions();
-
             int pictureWidth = mSettings.getPictureSize().getWidth();
             int pictureHeight = mSettings.getPictureSize().getHeight();
-
-            int previewWidth;
-            int previewHeight;
-            if (swappedDimensions) {
-                previewWidth = mSettings.getPreviewSize().getHeight();
-                previewHeight = mSettings.getPreviewSize().getWidth();
-            } else {
-                previewWidth = mSettings.getPreviewSize().getWidth();
-                previewHeight = mSettings.getPreviewSize().getHeight();
-            }
+            int previewWidth = mSettings.getPreviewSize().getWidth();
+            int previewHeight = mSettings.getPreviewSize().getHeight();
 
             if (DEBUG) {
                 Log.d(TAG, "### sensorOrientation: " + getSensorOrientation());
@@ -934,7 +897,12 @@ public class Camera2Wrapper {
             }
 
             if (mTextureView != null) {
-                mTextureView.setAspectRatio(previewWidth, previewHeight);
+                boolean swappedDimensions = isSwappedDimensions();
+                if (swappedDimensions) {
+                    mTextureView.setAspectRatio(previewHeight, previewWidth);
+                } else {
+                    mTextureView.setAspectRatio(previewWidth, previewHeight);
+                }
             }
 
             List<Surface> outputs = new ArrayList<>(mSurfaces);
@@ -1368,11 +1336,6 @@ public class Camera2Wrapper {
         private boolean mAutoFlash;
 
         /**
-         * カメラの回転方向.
-         */
-        private Rotation mRotation = Rotation.FREE;
-
-        /**
          * コンストラクタ.
          * <p>
          * 他でインスタンスが作られないようprivateにしておく。
@@ -1490,32 +1453,6 @@ public class Camera2Wrapper {
          */
         public void setAutoFlash(boolean autoFlash) {
             mAutoFlash = autoFlash;
-        }
-
-        /**
-         * カメラの回転方向を取得します.
-         *
-         * @return カメラの回転方向
-         */
-        public Rotation getRotation() {
-            return mRotation;
-        }
-
-        /**
-         * カメラの回転方向を設定します.
-         *
-         * <p>
-         * カメラの映像を指定された方向に回転して撮影を行います。
-         * </p>
-         *
-         * <p>
-         * {@link Rotation#FREE} が指定された場合に画面の回転方向で撮影を行います。
-         * </p>
-         *
-         * @param rotation 回転方向
-         */
-        public void setRotation(Rotation rotation) {
-            mRotation = rotation;
         }
 
         @NonNull

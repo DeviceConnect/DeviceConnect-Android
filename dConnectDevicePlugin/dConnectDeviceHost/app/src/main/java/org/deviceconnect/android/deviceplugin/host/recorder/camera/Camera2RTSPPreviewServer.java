@@ -133,8 +133,8 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             videoStream.setDestinationPort(5006);
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(previewSize.getHeight());
-            videoQuality.setVideoHeight(previewSize.getWidth());
+            videoQuality.setVideoWidth(previewSize.getWidth());
+            videoQuality.setVideoHeight(previewSize.getHeight());
             videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
             videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
@@ -148,6 +148,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
 
             AudioEncoder audioEncoder = audioStream.getAudioEncoder();
             audioEncoder.setMute(isMuted());
+
             AudioQuality audioQuality = audioEncoder.getAudioQuality();
             audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
             audioQuality.setSamplingRate(8000);

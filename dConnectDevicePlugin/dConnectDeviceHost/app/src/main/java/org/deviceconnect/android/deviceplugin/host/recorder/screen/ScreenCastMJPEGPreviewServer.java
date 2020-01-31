@@ -7,7 +7,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
@@ -114,7 +113,6 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
             quality.setHeight(size.getHeight());
             quality.setQuality(getQuality());
             quality.setFrameRate((int) getServerProvider().getMaxFrameRate());
-            quality.setRotation(Camera2Wrapper.Rotation.FREE);
             return encoder;
         }
 

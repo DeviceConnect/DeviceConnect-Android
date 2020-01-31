@@ -46,8 +46,7 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     @Override
     protected OffscreenSurface createOffscreenSurface() {
         MJPEGQuality quality = getMJPEGQuality();
-        boolean isSwapped = Camera2WrapperManager.isSwappedDimensions(mContext,
-                quality.getFacing(), quality.getRotation());
+        boolean isSwapped = Camera2WrapperManager.isSwappedDimensions(mContext, quality.getFacing());
         int w = isSwapped ? quality.getHeight() : quality.getWidth();
         int h = isSwapped ? quality.getWidth() : quality.getHeight();
         return new OffscreenSurface(w, h);
@@ -79,7 +78,6 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
             public void onError(Camera2WrapperException e) {
             }
         });
-        mCamera2.getSettings().setRotation(quality.getRotation());
         mCamera2.getSettings().setPreviewSize(new Size(videoWidth, videoHeight));
         mCamera2.open(getSurfaceTexture(), new ArrayList<>(mSurfaces));
     }

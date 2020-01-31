@@ -1,12 +1,12 @@
 package org.deviceconnect.android.libmedia.streaming.rtp;
 
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Random;
-
-import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 public class RtpSocket implements RtpPacketize.Callback {
     /**
@@ -71,6 +71,29 @@ public class RtpSocket implements RtpPacketize.Callback {
     }
 
     /**
+     * コンストラクタ.
+     *
+     * @param dest 接続先のアドレス
+     * @param port RTP のポート番号
+     * @param rtcpPort RTCP のポート番号
+     *
+     * @throws IOException ソケットの作成に失敗した場合に発生
+     */
+    public RtpSocket(InetAddress dest, int port, int rtcpPort) throws IOException {
+        this();
+        setDestination(dest, port, rtcpPort);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+    /**
      * データが破棄されるまでの時間を設定します.
      *
      * TTLのいくつかのデフォルト値
@@ -98,20 +121,6 @@ public class RtpSocket implements RtpPacketize.Callback {
      */
     public void setSoTimeout(int timeout) throws IOException {
         mSocket.setSoTimeout(timeout);
-    }
-
-    /**
-     * コンストラクタ.
-     *
-     * @param dest 接続先のアドレス
-     * @param port RTP のポート番号
-     * @param rtcpPort RTCP のポート番号
-     *
-     * @throws IOException ソケットの作成に失敗した場合に発生
-     */
-    public RtpSocket(InetAddress dest, int port, int rtcpPort) throws IOException {
-        this();
-        setDestination(dest, port, rtcpPort);
     }
 
     /**

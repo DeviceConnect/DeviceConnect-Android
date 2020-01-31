@@ -61,6 +61,18 @@ public class RtcpSocket {
         mPacket = new DatagramPacket(mBuffer, 1);
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+    /**
+     * RTCP 送信用のソケットを閉じます.
+     */
     public void close() {
         try {
             mSocket.close();

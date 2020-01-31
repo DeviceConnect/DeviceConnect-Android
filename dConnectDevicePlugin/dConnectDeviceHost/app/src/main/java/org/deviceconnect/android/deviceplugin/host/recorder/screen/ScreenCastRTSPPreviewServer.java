@@ -147,11 +147,11 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr);
             videoStream.setDestinationPort(5006);
 
-            HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
+            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(previewSize.getWidth());
-            videoQuality.setVideoHeight(previewSize.getHeight());
+            videoQuality.setVideoWidth(size.getWidth());
+            videoQuality.setVideoHeight(size.getHeight());
             videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
             videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);

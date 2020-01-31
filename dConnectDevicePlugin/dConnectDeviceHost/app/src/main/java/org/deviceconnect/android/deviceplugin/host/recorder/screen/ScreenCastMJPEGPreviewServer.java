@@ -105,7 +105,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
         public MJPEGEncoder createMJPEGEncoder() {
             registerConfigChangeReceiver();
 
-            HostDeviceRecorder.PictureSize size = getRotatedPreviewSize();
+            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
 
             ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
             MJPEGQuality quality = encoder.getMJPEGQuality();

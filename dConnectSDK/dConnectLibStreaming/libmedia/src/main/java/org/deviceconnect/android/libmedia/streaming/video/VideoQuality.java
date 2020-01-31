@@ -3,7 +3,7 @@ package org.deviceconnect.android.libmedia.streaming.video;
 public class VideoQuality {
     private static final int DEFAULT_FRAME_RATE = 30;
     private static final int DEFAULT_IFRAME_INTERVAL = 3;
-    private static final int DEFAULT_BIT_RATE = 512 * 1024;
+    private static final int DEFAULT_BIT_RATE = 1024 * 1024;
 
     private String mMimeType;
     private int mVideoWidth = 1920;

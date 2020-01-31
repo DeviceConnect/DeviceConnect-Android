@@ -480,22 +480,25 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return wm.getDefaultDisplay().getRotation();
     }
 
-    PictureSize getRotatedPreviewSize() {
-        Size original = getCameraWrapper().getOptions().getPreviewSize();
-        Size rotated;
-        int rotation = getDisplayRotation();
-        switch (rotation) {
+    boolean isSwappedDimensions() {
+        int sensorOrientation = mCameraWrapper.getSensorOrientation();
+        switch (getDisplayRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
-                rotated = new Size(original.getHeight(), original.getWidth());
+                if (sensorOrientation == 90 || sensorOrientation == 270) {
+                    return true;
+                }
                 break;
             case Surface.ROTATION_90:
             case Surface.ROTATION_270:
+                if (sensorOrientation == 0 || sensorOrientation == 180) {
+                    return true;
+                }
+                break;
             default:
-                rotated = original;
                 break;
         }
-        return new PictureSize(rotated.getWidth(), rotated.getHeight());
+        return false;
     }
 
     boolean isStartedPreview() {

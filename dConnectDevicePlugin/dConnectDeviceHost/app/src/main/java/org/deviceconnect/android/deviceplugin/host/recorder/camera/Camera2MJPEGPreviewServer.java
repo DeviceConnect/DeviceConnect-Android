@@ -121,7 +121,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             }
             registerConfigChangeReceiver();
 
-            HostDeviceRecorder.PictureSize size = mRecorder.getRotatedPreviewSize();
+            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
 
             CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(mRecorder);
             MJPEGQuality quality = encoder.getMJPEGQuality();

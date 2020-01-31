@@ -38,6 +38,11 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
         return mCamera2Recorder.getDisplayRotation();
     }
 
+    @Override
+    public boolean isSwappedDimensions() {
+        return mCamera2Recorder.isSwappedDimensions();
+    }
+
     // SurfaceVideoEncoder
 
     @Override

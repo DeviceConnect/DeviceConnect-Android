@@ -86,21 +86,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     }
 
     /**
-     * MediaCodec に渡す解像度の縦横のサイズをスワップするか判断します.
-     *
-     * @return スワップする場合は true、それ以外は false
-     */
-    public boolean isSwappedDimensions() {
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                return false;
-            default:
-                return true;
-        }
-    }
-
-    /**
      * MediaCodec に渡すカラーフォーマットを取得します.
      *
      * @return カラーフォーマット
@@ -125,6 +110,25 @@ public abstract class VideoEncoder extends MediaEncoder {
      */
     protected int getDisplayRotation() {
         return Surface.ROTATION_0;
+    }
+
+    /**
+     * MediaCodec に渡す解像度の縦横のサイズをスワップするか判断します.
+     *
+     * <p>
+     * 端末の回転に合わせて、解像度を変更する時に使用します。
+     * </p>
+     *
+     * @return スワップする場合は true、それ以外は false
+     */
+    public boolean isSwappedDimensions() {
+        switch (getDisplayRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                return false;
+            default:
+                return true;
+        }
     }
 
     /**
@@ -264,7 +268,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(videoQuality.getMimeType());
         MediaCodecInfo.EncoderCapabilities encoderCapabilities =  codecCapabilities.getEncoderCapabilities();
 
-        MediaFormat format = MediaFormat.createVideoFormat(videoQuality.getMimeType(), h, w);
+        MediaFormat format = MediaFormat.createVideoFormat(videoQuality.getMimeType(), w, h);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
         format.setInteger(MediaFormat.KEY_BIT_RATE, videoQuality.getBitRate());
         format.setInteger(MediaFormat.KEY_FRAME_RATE, videoQuality.getFrameRate());

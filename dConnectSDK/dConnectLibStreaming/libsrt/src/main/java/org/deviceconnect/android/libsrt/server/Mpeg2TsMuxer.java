@@ -9,12 +9,43 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TransportStreamWriter;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
 
 
 public class Mpeg2TsMuxer extends SRTMuxer {
 
     private static final String TAG = "Mpeg2Ts";
+
+    /**
+     * 使用できるサンプリングレートを定義します.
+     */
+    private static final int[] SUPPORT_AUDIO_SAMPLING_RATES = {
+            96000, // 0
+            88200, // 1
+            64000, // 2
+            48000, // 3
+            44100, // 4
+            32000, // 5
+            24000, // 6
+            22050, // 7
+            16000, // 8
+            12000, // 9
+            11025, // 10
+            8000,  // 11
+            7350,  // 12
+            -1,   // 13
+            -1,   // 14
+            -1,   // 15
+    };
+
+    /**
+     * ADTS ヘッダーファイルサイズを定義します.
+     */
+    private static final int ADTS_LENGTH = 7;
 
     /**
      * SPS と PPS のデータを格納するバッファ.
@@ -27,6 +58,36 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     private H264TransportStreamWriter mH264TsSegmenter;
 
     /**
+     * 映像と音声の両方を送信するフラグ.
+     */
+    private boolean mMixed;
+
+    /**
+     * ADTS ヘッダーに格納するサンプリングレートのインデックス.
+     */
+    private int mFreqIdx;
+
+    /**
+     * ADTS ヘッダーに格納するプロファイル.
+     */
+    private int mProfile;
+
+    /**
+     * ADTS ヘッダーに格納するチャンネル数.
+     */
+    private int mChannelConfig;
+
+    /**
+     * ADTS を保持するためのバイト配列.
+     */
+    private byte[] mADTS = null;
+
+    /**
+     * ADTS の バイト配列をラップしたバッファ.
+     */
+    private ByteBuffer mADTSBuffer = null;
+
+    /**
      * SRT パケットのペイロード. SRT パケットのデフォルトの最大サイズに合わせる.
      */
     private final byte[] mPayload = new byte[188 * 7];
@@ -35,6 +96,12 @@ public class Mpeg2TsMuxer extends SRTMuxer {
      * SRT パケットのペイロードを格納するためのバッファ.
      */
     private final ByteBuffer mPacketBuffer = ByteBuffer.wrap(mPayload);
+
+    private final ByteArrayOutputStream mAudioRawCache = new ByteArrayOutputStream();
+
+    byte[] getAudioRawCache() {
+        return mAudioRawCache.toByteArray();
+    }
 
     /**
      * mpeg2ts に変換されたデータを受信するリスナー.
@@ -63,10 +130,15 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         }
 
         if (audioQuality != null) {
+            mProfile = 2;
+            mChannelConfig = audioQuality.getChannelCount();
+            mFreqIdx = getFreqIdx(audioQuality.getSamplingRate());
             sampleRate = audioQuality.getSamplingRate();
             sampleSizeInBits = audioQuality.getFormat();
             channels = audioQuality.getChannelCount();
         }
+
+        mMixed = videoQuality != null && audioQuality != null;
 
         mH264TsSegmenter = new H264TransportStreamWriter();
         mH264TsSegmenter.setBufferListener(mBufferListener);
@@ -87,11 +159,10 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             storeConfig(encodedData, bufferInfo);
         } else {
             if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
-                mH264TsSegmenter.generatePackets(mConfigBuffer);
+                mH264TsSegmenter.pushVideoBuffer(mConfigBuffer, mMixed);
             }
-            mH264TsSegmenter.generatePackets(encodedData);
+            mH264TsSegmenter.pushVideoBuffer(encodedData, mMixed);
         }
-
     }
 
     @Override
@@ -100,11 +171,47 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
-        // TODO 音声データも H264TsSegmenter に渡して良いか確認すること。
+        int outBitsSize = bufferInfo.size;
+        int outPacketSize = outBitsSize + ADTS_LENGTH;
+        if (mADTS == null || mADTS.length != outPacketSize) {
+            mADTS = new byte[outPacketSize];
+            mADTSBuffer = ByteBuffer.wrap(mADTS);
+        }
+        addADTStoPacket(mADTS, outPacketSize);
+        encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
+
+        if (DEBUG) {
+            try {
+                mAudioRawCache.write(mADTS);
+            } catch (IOException ignored) {}
+        }
+
+        mADTSBuffer.limit(outPacketSize);
+        mADTSBuffer.position(0);
+        mH264TsSegmenter.pushAudioBuffer(mADTSBuffer, bufferInfo.size, mMixed);
     }
 
     @Override
     public void onReleased() {
+    }
+
+    private int getFreqIdx(int sampleRate) {
+        for (int i = 0; i < SUPPORT_AUDIO_SAMPLING_RATES.length; i++) {
+            if (sampleRate == SUPPORT_AUDIO_SAMPLING_RATES[i]) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void addADTStoPacket(byte[] packet, int packetLen) {
+        packet[0] = (byte) 0xFF;
+        packet[1] = (byte) 0xF9;
+        packet[2] = (byte) (((mProfile - 1) << 6) + (mFreqIdx << 2) + (mChannelConfig >> 2));
+        packet[3] = (byte) (((mChannelConfig & 3) << 6) + (packetLen >> 11));
+        packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
+        packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
+        packet[6] = (byte) 0xFC;
     }
 
     /**

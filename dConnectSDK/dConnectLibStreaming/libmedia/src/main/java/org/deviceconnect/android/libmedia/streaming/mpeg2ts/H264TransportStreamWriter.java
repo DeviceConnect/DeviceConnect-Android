@@ -57,7 +57,7 @@ public class H264TransportStreamWriter {
         pts += ptsIncPerFrame;
     }
 
-    public void generatePackets(final ByteBuffer buffer) {
+    public void pushVideoBuffer(final ByteBuffer buffer, final boolean mixed) {
         List<Integer> offsets = ByteUtil.kmp(buffer, H264_START_CODE);
         buffer.position(0);
         int totalLength = buffer.remaining();
@@ -75,9 +75,15 @@ public class H264TransportStreamWriter {
             boolean isFrame = type == H264NT_SLICE || type == H264NT_SLICE_IDR;
             long pts = getPts();
             buffer.position(unitOffset);
-            tsWriter.writeVideoBuffer(isFirstPes, buffer, unitLength, pts, pts, isFrame);
+            tsWriter.writeVideoBuffer(isFirstPes, buffer, unitLength, pts, pts, isFrame, mixed);
             isFirstPes = false;
         }
+    }
+
+    public void pushAudioBuffer(final ByteBuffer buffer, final int length, final boolean mixed) {
+        long pts = getPts();
+        tsWriter.writeAudioBuffer(isFirstPes, buffer, length, pts, pts, mixed);
+        isFirstPes = false;
     }
 
     private long getPts() {

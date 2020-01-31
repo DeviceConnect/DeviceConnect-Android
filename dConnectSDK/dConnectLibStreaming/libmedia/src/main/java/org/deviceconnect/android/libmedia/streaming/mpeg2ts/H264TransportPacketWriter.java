@@ -244,10 +244,15 @@ class H264TransportPacketWriter {
         writePacket((byte) (((pts3 & 0x007F) << 1) | 0x01));
     }
 
-    void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame) {
+    void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame, boolean mixed) {
+        writeBuffer(mixed ? FrameDataType.MIXED : FrameDataType.VIDEO, isFirstPes, buffer, length, pts, dts, isFrame, false);
+    }
 
-        FrameDataType frameDataType = FrameDataType.VIDEO;
+    void writeAudioBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean mixed) {
+        writeBuffer(mixed ? FrameDataType.MIXED : FrameDataType.AUDIO, isFirstPes, buffer, length, pts, dts, true, true);
+    }
 
+    private void writeBuffer(FrameDataType frameDataType, boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame, boolean isAudio) {
         // write pat table
         write_pat();
         notifyPacket();
@@ -257,7 +262,6 @@ class H264TransportPacketWriter {
         notifyPacket();
 
         boolean isFirstTs = true;
-        boolean isAudio = false;
         byte[] frameBuf = new byte[length];
         buffer.get(frameBuf);
         int frameBufSize = frameBuf.length;

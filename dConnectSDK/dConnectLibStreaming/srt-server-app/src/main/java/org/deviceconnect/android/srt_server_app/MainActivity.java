@@ -1,6 +1,7 @@
 package org.deviceconnect.android.srt_server_app;
 
 import android.Manifest;
+import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,16 +18,23 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Timer;
@@ -51,7 +59,8 @@ public class MainActivity extends AppCompatActivity
      * 使用するパーミッションのリスト.
      */
     private static final String[] PERMISSIONS = {
-            Manifest.permission.CAMERA
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO
     };
 
     private Settings mSettings;
@@ -183,32 +192,70 @@ public class MainActivity extends AppCompatActivity
                 public void createSession(final SRTSession session) {
                     Log.d(TAG, "createSession");
 
-                    CameraSurfaceVideoEncoder encoder = new CameraSurfaceVideoEncoder(getApplicationContext());
-                    encoder.addSurface(mCameraView.getHolder().getSurface());
-
-                    CameraVideoQuality videoQuality = (CameraVideoQuality) encoder.getVideoQuality();
-                    int facing = mSettings.getCameraFacing();
-                    int fps = mSettings.getEncoderFrameRate();
-                    int biteRate = mSettings.getEncoderBitRate();
-                    Size previewSize = mSettings.getCameraPreviewSize(facing);
-                    videoQuality.setFacing(facing);
-                    videoQuality.setBitRate(biteRate);
-                    videoQuality.setFrameRate(fps);
-                    videoQuality.setVideoWidth(previewSize.getWidth());
-                    videoQuality.setVideoHeight(previewSize.getHeight());
-
-                    session.setVideoEncoder(encoder);
+                    session.setVideoEncoder(createVideoEncoder());
+                    session.setAudioEncoder(createAudioEncoder());
                 }
 
                 @Override
                 public void releaseSession(final SRTSession session) {
                     Log.d(TAG, "releaseSession");
+
+                    if (DEBUG) {
+                        // TODO SRTによる音声配信を実装できたら削除.
+                        try {
+                            File aacFile = new File(getExternalFilesDir(null), "audio.aac");
+                            storeFile(session.getAudioRawCache(), aacFile);
+                            Log.d(TAG, "store aac file: " + aacFile.getAbsolutePath());
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to store ts file: " + e.getMessage(), e);
+                        }
+                    }
                 }
             });
             mSRTServer.start();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    void storeFile(final byte[] data, final File file) throws IOException {
+        if (!file.exists()) {
+            if (!file.createNewFile()) {
+                throw new IOException("Failed to create new file: " + file.getAbsolutePath());
+            }
+        }
+        try (OutputStream out = new FileOutputStream(file)) {
+            out.write(data);
+            out.flush();
+        }
+    }
+
+    private VideoEncoder createVideoEncoder() {
+        CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(getApplicationContext());
+        videoEncoder.addSurface(mCameraView.getHolder().getSurface());
+
+        CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
+        int facing = mSettings.getCameraFacing();
+        int fps = mSettings.getEncoderFrameRate();
+        int biteRate = mSettings.getEncoderBitRate();
+        Size previewSize = mSettings.getCameraPreviewSize(facing);
+        videoQuality.setFacing(facing);
+        videoQuality.setBitRate(biteRate);
+        videoQuality.setFrameRate(fps);
+        videoQuality.setVideoWidth(previewSize.getWidth());
+        videoQuality.setVideoHeight(previewSize.getHeight());
+        return videoEncoder;
+    }
+
+    private AudioEncoder createAudioEncoder() {
+        MicAACLATMEncoder audioEncoder = new MicAACLATMEncoder();
+        audioEncoder.setMute(false);
+        AudioQuality audioQuality = audioEncoder.getAudioQuality();
+        audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+        audioQuality.setSamplingRate(8000);
+        audioQuality.setBitRate(64 * 1024);
+        audioQuality.setUseAEC(true);
+        return audioEncoder;
     }
 
     private void stopStreaming() {

@@ -44,6 +44,11 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
         return mScreenCastMgr.getDisplayRotation();
     }
 
+    @Override
+    public boolean isSwappedDimensions() {
+        return mScreenCastMgr.isSwappedDimensions();
+    }
+
     // MediaEncoder
 
     @Override

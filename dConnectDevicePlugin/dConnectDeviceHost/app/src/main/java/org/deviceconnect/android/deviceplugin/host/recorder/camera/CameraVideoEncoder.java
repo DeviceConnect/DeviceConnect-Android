@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.SurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
@@ -25,7 +24,6 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
     CameraVideoEncoder(Camera2Recorder camera2Recorder) {
         mCamera2Recorder = camera2Recorder;
         mVideoQuality = new CameraVideoQuality("video/avc");
-        mVideoQuality.setRotation(Camera2Wrapper.Rotation.FREE);
     }
 
     // VideoEncoder
@@ -38,6 +36,11 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
     @Override
     protected int getDisplayRotation() {
         return mCamera2Recorder.getDisplayRotation();
+    }
+
+    @Override
+    public boolean isSwappedDimensions() {
+        return mCamera2Recorder.isSwappedDimensions();
     }
 
     // SurfaceVideoEncoder

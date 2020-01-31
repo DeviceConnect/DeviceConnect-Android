@@ -100,18 +100,18 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     // VideoEncoder
 
     @Override
-    public boolean isSwappedDimensions() {
-        return mVideoQuality.isSwappedDimensions(mContext);
-    }
-
-    @Override
     public VideoQuality getVideoQuality() {
         return mVideoQuality;
     }
 
     @Override
     protected int getDisplayRotation() {
-        return mCamera2 == null ? Surface.ROTATION_0 : mCamera2.getDisplayRotation();
+        return Camera2WrapperManager.getDisplayRotation(mContext);
+    }
+
+    @Override
+    public boolean isSwappedDimensions() {
+        return Camera2WrapperManager.isSwappedDimensions(mContext, mVideoQuality.getFacing());
     }
 
     // SurfaceVideoEncoder
@@ -185,7 +185,6 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
                 postOnError(new MediaEncoderException(e));
             }
         });
-        mCamera2.getSettings().setRotation(mVideoQuality.getRotation());
         mCamera2.getSettings().setPreviewSize(new Size(videoWidth, videoHeight));
         mCamera2.open(getSurfaceTexture(), new ArrayList<>(mSurfaces));
     }
@@ -227,9 +226,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     private final BroadcastReceiver mConfigurationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (mVideoQuality.getRotation() == Camera2Wrapper.Rotation.FREE) {
-                requestChangeVideoSize();
-            }
+            requestChangeVideoSize();
         }
     };
 }

@@ -98,11 +98,12 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
+            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+
             ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr);
-            HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
             VideoQuality videoQuality = videoEncoder.getVideoQuality();
-            videoQuality.setVideoWidth(previewSize.getWidth());
-            videoQuality.setVideoHeight(previewSize.getHeight());
+            videoQuality.setVideoWidth(size.getWidth());
+            videoQuality.setVideoHeight(size.getHeight());
             videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
             videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);

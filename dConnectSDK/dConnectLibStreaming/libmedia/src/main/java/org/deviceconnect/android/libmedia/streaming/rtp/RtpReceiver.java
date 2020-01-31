@@ -39,6 +39,15 @@ public class RtpReceiver {
         mRtcpPort = rtcpPort;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
     /**
      * 受信した RTP・RTCP パケットを通知するコールバックを設定します.
      *

@@ -4,11 +4,6 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
@@ -24,6 +19,11 @@ import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionName;
 import org.deviceconnect.android.libmedia.streaming.sdp.Time;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class RtspSession {
     /**
@@ -232,6 +232,9 @@ public class RtspSession {
 
         @Override
         public void onVideoFormatChanged(MediaFormat newFormat) {
+            if (DEBUG) {
+                Log.i(TAG, "RtspSession::onVideoFormatChanged: " + newFormat);
+            }
         }
 
         @Override
@@ -268,6 +271,9 @@ public class RtspSession {
 
         @Override
         public void onAudioFormatChanged(MediaFormat newFormat) {
+            if (DEBUG) {
+                Log.i(TAG, "RtspSession::onAudioFormatChanged: " + newFormat);
+            }
         }
 
         @Override

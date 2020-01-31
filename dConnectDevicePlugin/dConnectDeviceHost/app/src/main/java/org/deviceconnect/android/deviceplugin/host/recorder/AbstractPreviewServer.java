@@ -4,9 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.view.Display;
-import android.view.Surface;
-import android.view.WindowManager;
 
 /**
  * プレビュー配信サーバ.
@@ -56,51 +53,6 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public int getPort() {
         return mPort;
-    }
-
-    /**
-     * 画面の回転を取得します.
-     * @return 画面の回転
-     */
-    private int getDisplayRotation() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            // WindowManager がサポートされていないので、回転は無し。
-            return Surface.ROTATION_0;
-        }
-        Display display = wm.getDefaultDisplay();
-        return display.getRotation();
-    }
-
-    /**
-     * 画面の回転から解像度の縦横をスワップする必要があるか確認します.
-     *
-     * @return 回転する場合はtrue、それ以外はfalse
-     */
-    private boolean isSwapSize() {
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                return false;
-            default:
-                return true;
-        }
-    }
-
-    /**
-     * 画面の回転に合わせたプレビューの解像度を取得します.
-     *
-     * @return プレビューの解像度
-     */
-    public HostDeviceRecorder.PictureSize getRotatedPreviewSize() {
-        HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
-        int w = size.getWidth();
-        int h = size.getHeight();
-        if (isSwapSize()) {
-            w = size.getHeight();
-            h = size.getWidth();
-        }
-        return new HostDeviceRecorder.PictureSize(w, h);
     }
 
     /**

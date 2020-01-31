@@ -24,6 +24,11 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
         return mCamera2Recorder.getDisplayRotation();
     }
 
+    @Override
+    public boolean isSwappedDimensions() {
+        return mCamera2Recorder.isSwappedDimensions();
+    }
+
     // SurfaceMJPEGEncoder
 
     @Override

@@ -104,18 +104,18 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
+            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+
             CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
             VideoQuality videoQuality = encoder.getVideoQuality();
-            HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
-            videoQuality.setVideoWidth(previewSize.getHeight());
-            videoQuality.setVideoHeight(previewSize.getWidth());
+            videoQuality.setVideoWidth(size.getWidth());
+            videoQuality.setVideoHeight(size.getHeight());
             videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
             videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
             session.setVideoEncoder(encoder);
 
             registerConfigChangeReceiver();
-
         }
 
         @Override

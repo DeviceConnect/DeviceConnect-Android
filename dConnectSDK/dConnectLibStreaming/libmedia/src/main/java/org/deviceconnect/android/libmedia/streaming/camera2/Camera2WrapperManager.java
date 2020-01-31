@@ -8,12 +8,32 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
+import android.util.SparseIntArray;
 import android.view.Surface;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Camera2WrapperManager {
+
+    private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
+    private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
+    private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
+    private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
+
+    static {
+        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
+        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_90, 0);
+        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_180, 270);
+        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
+
+    static {
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 270);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_90, 180);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_180, 90);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 0);
+    }
 
     /**
      * カメラが取り付けられている向きを取得します.
@@ -41,26 +61,32 @@ public class Camera2WrapperManager {
     }
 
     /**
+     * カメラの向きのヒントを取得します.
+     *
+     * @param context コンテキスト
+     * @param facing カメラ
+     * @return カメラの向き(0, 90, 180, 270)
+     */
+    public static int getOrientationHit(Context context, int facing) {
+        int sensorOrientation = getSensorOrientation(context, facing);
+        int rotation = getDisplayRotation(context);
+        switch (sensorOrientation) {
+            case SENSOR_ORIENTATION_DEFAULT_DEGREES:
+                return DEFAULT_ORIENTATIONS.get(rotation);
+            case SENSOR_ORIENTATION_INVERSE_DEGREES:
+                return INVERSE_ORIENTATIONS.get(rotation);
+        }
+        return 0;
+    }
+
+    /**
      * ディスプレイの向きを取得します.
      *
      * @param context コンテキスト
-     * @param rotation カメラの向き指定
      * @return ディスプレイの向き(Surface.ROTATION_0, Surface.ROTATION_90, Surface.ROTATION_180, Surface.ROTATION_270)
      */
-    public static int getDisplayRotation(Context context, Camera2Wrapper.Rotation rotation) {
-        switch (rotation) {
-            default:
-            case FREE:
-                return Camera2Helper.getDisplayRotation(context);
-            case ROTATION_0:
-                return Surface.ROTATION_0;
-            case ROTATION_90:
-                return Surface.ROTATION_90;
-            case ROTATION_180:
-                return Surface.ROTATION_180;
-            case ROTATION_270:
-                return Surface.ROTATION_270;
-        }
+    public static int getDisplayRotation(Context context) {
+        return Camera2Helper.getDisplayRotation(context);
     }
 
     /**
@@ -68,9 +94,9 @@ public class Camera2WrapperManager {
      *
      * @return スワップが必要な場合はtrue、それ以外はfalse
      */
-    public static boolean isSwappedDimensions(Context context, int facing, Camera2Wrapper.Rotation rotation) {
+    public static boolean isSwappedDimensions(Context context, int facing) {
         int sensorOrientation = getSensorOrientation(context, facing);
-        switch (getDisplayRotation(context, rotation)) {
+        switch (getDisplayRotation(context)) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
                 if (sensorOrientation == 90 || sensorOrientation == 270) {

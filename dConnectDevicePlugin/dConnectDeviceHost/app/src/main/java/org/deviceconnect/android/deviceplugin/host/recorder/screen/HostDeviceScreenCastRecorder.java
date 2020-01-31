@@ -82,6 +82,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
             add(MIME_TYPE_JPEG);
             add(ScreenCastMJPEGPreviewServer.MIME_TYPE);
             add(ScreenCastRTSPPreviewServer.MIME_TYPE);
+            add(ScreenCastSRTPreviewServer.MIME_TYPE);
         }
     };
 
@@ -89,6 +90,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     private final List<PictureSize> mSupportedPictureSizes = new ArrayList<>();
     private final Logger mLogger = Logger.getLogger("host.dplugin");
     private final ScreenCastManager mScreenCastMgr;
+    private final ScreenCastSRTPreviewServer mScreenCastSRTServer;
     private final ScreenCastRTSPPreviewServer mScreenCastRTSPServer;
     private final ScreenCastMJPEGPreviewServer mScreenCastMJPEGServer;
     private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(4);
@@ -115,6 +117,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         setMaxFrameRate(mMaxFps);
 
         mScreenCastMgr = new ScreenCastManager(context);
+        mScreenCastSRTServer = new ScreenCastSRTPreviewServer(context, this, mScreenCastMgr);
         mScreenCastRTSPServer = new ScreenCastRTSPPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer = new ScreenCastMJPEGPreviewServer(context, this, mScreenCastMgr);
         mScreenCastMJPEGServer.setQuality(RecorderSettingData.getInstance(getContext())
@@ -152,6 +155,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         List<PreviewServer> servers = new ArrayList<>();
         servers.add(mScreenCastMJPEGServer);
         servers.add(mScreenCastRTSPServer);
+        servers.add(mScreenCastSRTServer);
         return servers;
     }
 

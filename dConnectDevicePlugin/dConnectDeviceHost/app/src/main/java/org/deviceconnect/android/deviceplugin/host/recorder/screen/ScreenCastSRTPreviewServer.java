@@ -1,4 +1,10 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+/*
+ ScreenCastSRTPreviewServer.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
+package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.content.Context;
 import android.util.Log;
@@ -16,25 +22,32 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Camera2SRTPreviewServer extends AbstractPreviewServer {
+/**
+ * スクリーンキャストを SRT で配信するサーバー.
+ *
+ * @author NTT DOCOMO, INC.
+ */
+public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
     private static final String TAG = "CameraSRT";
 
-    private static final String MIME_TYPE = "video/MP2T";
+    // 参照: https://www.iana.org/assignments/media-types/video/MP2T
+    public static final String MIME_TYPE = "video/MP2T";
 
-    private Camera2Recorder mRecorder;
+    private ScreenCastManager mScreenCastMgr;
 
     private SRTServer mSRTServer;
 
     private Timer mStatsTimer;
 
-    Camera2SRTPreviewServer(final Context context,
-                                   final AbstractPreviewServerProvider serverProvider,
-                                   final Camera2Recorder recorder) {
+    public ScreenCastSRTPreviewServer(final Context context,
+                                      final AbstractPreviewServerProvider serverProvider,
+                                      final ScreenCastManager screenCastMgr) {
         super(context, serverProvider);
-        mRecorder = recorder;
+        mScreenCastMgr = screenCastMgr;
+        setPort(23456);
     }
 
     @Override
@@ -45,7 +58,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
-            mSRTServer = new SRTServer(23456);
+            mSRTServer = new SRTServer(getPort());
             mSRTServer.setCallback(mCallback);
             try {
                 mSRTServer.start();
@@ -80,50 +93,26 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             mStatsTimer.cancel();
             mStatsTimer = null;
         }
-        unregisterConfigChangeReceiver();
-    }
-
-    @Override
-    public void onConfigChange() {
-        if (mSRTServer != null) {
-            new Thread(() -> {
-                if (mSRTServer != null) {
-                    SRTSession session = mSRTServer.getSRTSession();
-                    if (session != null) {
-                        session.getVideoEncoder().restart();
-                    }
-                }
-            }).start();
-        }
     }
 
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
-            if (DEBUG) {
-                Log.d(TAG, "RtspServer.Callback#createSession()");
-            }
-
-            CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
-            VideoQuality videoQuality = encoder.getVideoQuality();
+            ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr);
             HostDeviceRecorder.PictureSize previewSize = getRotatedPreviewSize();
-            videoQuality.setVideoWidth(previewSize.getHeight());
-            videoQuality.setVideoHeight(previewSize.getWidth());
+            VideoQuality videoQuality = videoEncoder.getVideoQuality();
+            videoQuality.setVideoWidth(previewSize.getWidth());
+            videoQuality.setVideoHeight(previewSize.getHeight());
             videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
             videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
-            session.setVideoEncoder(encoder);
+            session.setVideoEncoder(videoEncoder);
 
             registerConfigChangeReceiver();
-
         }
 
         @Override
         public void releaseSession(final SRTSession session) {
-            if (DEBUG) {
-                Log.d(TAG, "RtspServer.Callback#releaseSession()");
-            }
-
             unregisterConfigChangeReceiver();
         }
     };

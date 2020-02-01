@@ -79,7 +79,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                 if (mRtspServer != null) {
                     RtspSession session = mRtspServer.getRtspSession();
                     if (session != null) {
-                        session.getVideoStream().getVideoEncoder().restart();
+                        session.restartVideoStream();
                     }
                 }
             }).start();
@@ -111,8 +111,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                     if (session != null) {
                         AudioStream stream = session.getAudioStream();
                         if (stream  != null) {
-                            stream.getAudioEncoder().setMute(mute);
-                            stream.getAudioEncoder().restart();
+                            stream.setMute(mute);
                         }
                     }
                 }
@@ -131,8 +130,6 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
 
             CameraVideoStream videoStream = new CameraVideoStream(mRecorder);
             videoStream.setDestinationPort(5006);
-
-            Log.e("ABC", "SSSSSSSSSSS " + size);
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
             videoQuality.setVideoWidth(size.getWidth());

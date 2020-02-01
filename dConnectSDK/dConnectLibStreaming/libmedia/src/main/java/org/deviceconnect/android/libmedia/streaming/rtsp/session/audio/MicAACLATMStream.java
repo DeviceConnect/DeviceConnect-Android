@@ -60,6 +60,8 @@ public class MicAACLATMStream extends AudioStream {
         return 0;
     }
 
+    // MediaStream
+
     @Override
     public RtpPacketize createRtpPacketize() {
         AACLATMPacketize packetize = new AACLATMPacketize();
@@ -82,11 +84,6 @@ public class MicAACLATMStream extends AudioStream {
                 Log.d(TAG, "### Audio Config " + mAudioConfig);
             }
         }
-    }
-
-    @Override
-    public AudioEncoder getAudioEncoder() {
-        return mAudioEncoder;
     }
 
     @Override
@@ -127,5 +124,22 @@ public class MicAACLATMStream extends AudioStream {
         mediaDescription.addAttribute(fmt);
         mediaDescription.addAttribute(new ControlAttribute("trackID=" + getTrackId()));
         return mediaDescription;
+    }
+
+    // AudioStream
+
+    @Override
+    public void setMute(boolean mute) {
+        // ミュート設定にした時にエンコーダを再起動
+        AudioEncoder audioEncoder = getAudioEncoder();
+        if (audioEncoder != null) {
+            audioEncoder.setMute(mute);
+            audioEncoder.restart();
+        }
+    }
+
+    @Override
+    public AudioEncoder getAudioEncoder() {
+        return mAudioEncoder;
     }
 }

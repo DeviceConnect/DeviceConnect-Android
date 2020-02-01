@@ -67,19 +67,6 @@ public abstract class H264VideoStream extends VideoStream {
         super();
     }
 
-    /**
-     * 縦横の解像度をスワップするか確認します.
-     *
-     * <p>
-     * 画面の回転した場合には解像度の縦横が変わる場合などに使用します。
-     * </p>
-     *
-     * @return スワップする場合はtrue、それ以外はfalse
-     */
-    protected boolean isSwappedDimensions() {
-        return false;
-    }
-
     @Override
     public RtpPacketize createRtpPacketize() {
         H264Packetize packetize = new H264Packetize();
@@ -95,9 +82,10 @@ public abstract class H264VideoStream extends VideoStream {
             final CountDownLatch stop = new CountDownLatch(1);
             final AtomicBoolean result = new AtomicBoolean();
 
-            VideoQuality quality = getVideoEncoder().getVideoQuality();
+            VideoEncoder videoEncoder = getVideoEncoder();
+            VideoQuality quality = videoEncoder.getVideoQuality();
 
-            boolean isSwapped = isSwappedDimensions();
+            boolean isSwapped = videoEncoder.isSwappedDimensions();
             int w = isSwapped ? quality.getVideoHeight() : quality.getVideoWidth();
             int h = isSwapped ? quality.getVideoWidth() : quality.getVideoHeight();
 

@@ -10,7 +10,7 @@ public class CameraVideoStream extends H264VideoStream {
     /**
      * 映像用エンコーダ.
      */
-    private VideoEncoder mVideoEncoder;
+    private CameraSurfaceVideoEncoder mVideoEncoder;
 
     /**
      * コンテキスト.
@@ -29,8 +29,8 @@ public class CameraVideoStream extends H264VideoStream {
     }
 
     @Override
-    protected boolean isSwappedDimensions() {
-        return mVideoEncoder.isSwappedDimensions();
+    public VideoEncoder getVideoEncoder() {
+        return mVideoEncoder;
     }
 
     /**
@@ -39,7 +39,7 @@ public class CameraVideoStream extends H264VideoStream {
      * @param surface Surface
      */
     public void addSurface(Surface surface) {
-        ((CameraSurfaceVideoEncoder) mVideoEncoder).addSurface(surface);
+        mVideoEncoder.addSurface(surface);
     }
 
     /**
@@ -48,11 +48,6 @@ public class CameraVideoStream extends H264VideoStream {
      * @param surface Surface
      */
     public void removeSurface(Surface surface) {
-        ((CameraSurfaceVideoEncoder) mVideoEncoder).removeSurface(surface);
-    }
-
-    @Override
-    public VideoEncoder getVideoEncoder() {
-        return mVideoEncoder;
+        mVideoEncoder.removeSurface(surface);
     }
 }

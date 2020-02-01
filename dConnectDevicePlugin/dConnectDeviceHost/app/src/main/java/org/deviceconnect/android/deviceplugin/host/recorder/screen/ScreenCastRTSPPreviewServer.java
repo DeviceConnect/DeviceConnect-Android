@@ -96,7 +96,7 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
                 if (mRtspServer != null) {
                     RtspSession session = mRtspServer.getRtspSession();
                     if (session != null) {
-                        session.getVideoStream().getVideoEncoder().restart();
+                        session.restartVideoStream();
                     }
                 }
             }).start();
@@ -128,8 +128,7 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
                     if (session != null) {
                         AudioStream stream = session.getAudioStream();
                         if (stream  != null) {
-                            stream.getAudioEncoder().setMute(mute);
-                            stream.getAudioEncoder().restart();
+                            stream.setMute(mute);
                         }
                     }
                 }

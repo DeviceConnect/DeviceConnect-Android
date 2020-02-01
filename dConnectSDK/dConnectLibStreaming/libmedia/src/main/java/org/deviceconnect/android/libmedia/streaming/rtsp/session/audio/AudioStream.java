@@ -14,6 +14,13 @@ public abstract class AudioStream extends MediaStream {
     }
 
     /**
+     * ミュートの設定を行います.
+     *
+     * @param mute ミュートにする場合はtrue、それ以外はfalse
+     */
+    public abstract void setMute(boolean mute);
+
+    /**
      * 音声用のエンコーダを取得します.
      *
      * @return 音声用のエンコーダ

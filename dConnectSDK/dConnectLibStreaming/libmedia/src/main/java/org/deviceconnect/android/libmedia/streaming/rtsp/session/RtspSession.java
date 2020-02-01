@@ -202,6 +202,26 @@ public class RtspSession {
     }
 
     /**
+     * 映像用のストリームをリスタートします.
+     */
+    public void restartVideoStream() {
+        VideoStream videoStream = getVideoStream();
+        if (videoStream != null) {
+            videoStream.getVideoEncoder().restart();
+        }
+    }
+
+    /**
+     * 音声用のストリームをリスタートします.
+     */
+    public void restartAudioStream() {
+        AudioStream audioStream = getAudioStream();
+        if (audioStream != null) {
+            audioStream.getAudioEncoder().restart();
+        }
+    }
+
+    /**
      * エンコードされたデータを送信する処理を行います.
      */
     private final IMediaMuxer mMediaMuxer = new IMediaMuxer() {

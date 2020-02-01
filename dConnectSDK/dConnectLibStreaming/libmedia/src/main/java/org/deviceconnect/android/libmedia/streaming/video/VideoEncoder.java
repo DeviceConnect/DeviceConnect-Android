@@ -31,6 +31,16 @@ public abstract class VideoEncoder extends MediaEncoder {
     private static final String MIME_TYPE_H265 = "video/hevc";
 
     /**
+     * VP8 のマイムタイプを定義.
+     */
+    private static final String MIME_TYPE_VP8 = "video/x-vnd.on2.vp8";
+
+    /**
+     * VP9 のマイムタイプを定義.
+     */
+    private static final String MIME_TYPE_VP9 = "video/x-vnd.on2.vp9";
+
+    /**
      * キーフレームの同期フラグ.
      */
     private boolean mSyncKeyFrame;
@@ -240,6 +250,12 @@ public abstract class VideoEncoder extends MediaEncoder {
                 }
             }
         } else if (MIME_TYPE_H265.equalsIgnoreCase(mimeType)) {
+            for (MediaCodecInfo info : infoList) {
+                if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
+                    codecInfo = info;
+                }
+            }
+        } else if (MIME_TYPE_VP8.equalsIgnoreCase(mimeType) || MIME_TYPE_VP9.equalsIgnoreCase(mimeType)) {
             for (MediaCodecInfo info : infoList) {
                 if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
                     codecInfo = info;

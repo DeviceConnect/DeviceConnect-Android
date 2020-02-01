@@ -81,7 +81,7 @@ dConnectDeviceHost/
 ここでは、デモアプリのインストーラーをプラグイン側に組み込みます。
 
 ### DemoInstaller の拡張
-インストーラーの機能は以下のクラスで既に実装されています。
+デモアプリのインストールを管理する機能は以下のクラスで既に実装されています。
 
 ```
 org.deviceconnect.android.deviceplugin.demo.DemoInstaller
@@ -95,16 +95,16 @@ org.deviceconnect.android.deviceplugin.demo.DemoInstaller
 
 例えば、Host プラグインでは `DemoInstaller ` を  `HostDemoInstaller ` として拡張しています。
 
-```
-package org.deviceconnect.android.deviceplugin.example.demo;
+``` java
+package org.deviceconnect.android.deviceplugin.host.demo;
 
 import android.content.Context;
 import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
-import org.deviceconnect.android.deviceplugin.example.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
-public class ExampleDemoInstaller extends DemoInstaller {
+public class HostDemoInstaller extends DemoInstaller {
 
-    public ExampleDemoInstaller(final Context context) {
+    public HostDemoInstaller(final Context context) {
         super(context, BuildConfig.PACKAGE_NAME, BuildConfig.DEMO_DIR, BuildConfig.DEMO_ZIP);
     }
 }
@@ -118,7 +118,7 @@ public class ExampleDemoInstaller extends DemoInstaller {
 
 プラグイン起動時に初期化と自動更新を行っています。
 
-```
+``` java
     // インストーラーの初期化
     mDemoInstaller = new HostDemoInstaller(getContext());
     
@@ -142,7 +142,7 @@ public class ExampleDemoInstaller extends DemoInstaller {
 
 自動更新通知の登録は、以下のように実装します。
 
-```
+``` java
     private void registerDemoNotification() {
         IntentFilter filter  = new IntentFilter();
         filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
@@ -153,7 +153,7 @@ public class ExampleDemoInstaller extends DemoInstaller {
 
 自動更新は、以下のように実装します。
 
-```
+``` java
     private void updateDemoPageIfNeeded() {
         final Context context = getContext();
         if (mDemoInstaller.isUpdateNeeded()) {

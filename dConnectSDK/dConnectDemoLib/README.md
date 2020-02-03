@@ -26,7 +26,7 @@ repositories {
 
 ``` gradle
 dependencies {
-    implementation 'org.deviceconnect:dconnect-demo-lib:0.9.0'
+    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.0'
     ...
 }
 ```
@@ -189,6 +189,30 @@ public class HostDemoInstaller extends DemoInstaller {
     }
 ```
 
+## ContentProvider の定義
+Android 10 以降、ファイルの保存場所はプライベートな領域に限られます。デモアプリを外部に公開するためには、ContentProvider が必要になります。
+
+以下のように、AndroidManifest.xml に `<provider>` の定義を追加してください。
+
+``` xml
+        <provider
+            android:name="org.deviceconnect.android.provider.FileProvider"
+            android:authorities="<プラグインのパッケージ名>.provider"
+            android:exported="true">
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
+```
+
+また、プラグインの `res/xml` フォルダに、以下の内容の `filelocation.xml` を追加してください。
+
+``` xml
+<?xml version="1.0" encoding="UTF-8"?>
+<file-locations>
+    <external-location path="" />
+</file-locations>
+``` 
 
 ## インストール用画面の組み込み
 デモアプリを端末にインストール・アンインストールするためのUIは、以下の `Fragment` クラスで提供されます。
@@ -223,9 +247,18 @@ org.deviceconnect.android.deviceplugin.demo.DemoSettingFragment
 デモアプリをインテント経由で表示するための URI を返します。
 
 ``` java
+    private static final String FILE_PROVIDER_AUTHORITY = "<Manifestで定義したFilePrpviderのauthorities名>";
+
     @Override
     protected String getShortcutUri(final DemoInstaller installer) {
-        return "gotapi://shortcut/" + installer.getPluginPackageName() + "/demo/<トップページのhtmlファイルへの相対パス>";
+        String rootPath;
+        String filePath = "/demo/<トップページのhtmlファイルへの相対パス>";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            rootPath = "/" + FILE_PROVIDER_AUTHORITY;
+        } else {
+            rootPath = "/" + installer.getPluginPackageName();
+        }
+        return "gotapi://shortcut" + rootPath + filePath;
     }
 ```
 

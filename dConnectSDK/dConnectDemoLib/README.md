@@ -274,7 +274,18 @@ org.deviceconnect.android.deviceplugin.demo.DemoSettingFragment
 ### getMainActivity
 プラグインで定義されている画面のうち、主に使われる画面のコンポーネント名を返します。
 
+例えば、`SettingActivity` というクラスで設定画面を作成している場合は、以下のようにコンポーネント名を返してください。
+
+``` java
+    @Override
+    protected ComponentName getMainActivity(final Context context) {
+        return new ComponentName(context, SettingActivity.class);
+    }
+```
+
 これは、Android フレームワークのショートカット API でエラーが出ないようにするための措置です。（よって、画面を開くために使われるものではありません）
+
+なお、Host プラグインのように、Device Connect Manager に直接組み込むプラグインの場合は、以下のように `null` を返してください。
 
 ``` java
     @Override

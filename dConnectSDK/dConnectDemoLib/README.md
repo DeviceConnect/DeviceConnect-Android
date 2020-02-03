@@ -223,9 +223,6 @@ org.deviceconnect.android.deviceplugin.demo.DemoSettingFragment
 デモアプリをインテント経由で表示するための URI を返します。
 
 ``` java
-
-    private static final String FILE_PROVIDER_AUTHORITY = "org.deviceconnect.android.deviceplugin.host.provider.included";
-
     @Override
     protected String getShortcutUri(final DemoInstaller installer) {
         return "gotapi://shortcut/" + installer.getPluginPackageName() + "/demo/<トップページのhtmlファイルへの相対パス>";

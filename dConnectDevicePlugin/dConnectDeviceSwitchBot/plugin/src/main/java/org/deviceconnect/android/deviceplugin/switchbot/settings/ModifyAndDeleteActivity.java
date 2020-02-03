@@ -27,6 +27,8 @@ import org.deviceconnect.android.deviceplugin.switchbot.utility.ListAdapter;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 
+import java.util.ArrayList;
+
 /**
  * SwitchBot更新・削除用Activity
  */
@@ -110,14 +112,17 @@ public class ModifyAndDeleteActivity extends BaseSettingActivity implements List
             Log.d(TAG, "viewId : " + viewId);
         }
         if (viewId == R.id.button_delete) {
-            new android.app.AlertDialog.Builder(this)
-                    .setMessage("デバイス削除確認")
-                    .setPositiveButton("OK", (dialogInterface, i) -> {
-                        mSwitchBotMessageService.unregisterDevices(mListAdapter.getCheckedList());
-                        updateDeviceList();
-                    })
-                    .setNegativeButton("CANCEL", null)
-                    .show();
+            final ArrayList<SwitchBotDevice> checkedList = mListAdapter.getCheckedList();
+            if (checkedList != null && checkedList.size() != 0) {
+                new android.app.AlertDialog.Builder(this)
+                        .setMessage("デバイス削除確認")
+                        .setPositiveButton("OK", (dialogInterface, i) -> {
+                            mSwitchBotMessageService.unregisterDevices(checkedList);
+                            updateDeviceList();
+                        })
+                        .setNegativeButton("CANCEL", null)
+                        .show();
+            }
         }
     }
 

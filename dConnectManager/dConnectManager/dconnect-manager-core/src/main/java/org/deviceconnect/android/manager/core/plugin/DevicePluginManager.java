@@ -423,7 +423,7 @@ public class DevicePluginManager {
         }
         PackageManager pkgMgr = mContext.getPackageManager();
         try {
-            int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS;
+            int flag = PackageManager.GET_SERVICES | PackageManager.GET_RECEIVERS | PackageManager.GET_PROVIDERS;
             PackageInfo pkg = pkgMgr.getPackageInfo(packageName, flag);
             mLogger.info("PluginManager: get package info: " + pkg);
             if (pkg != null) {

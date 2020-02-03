@@ -228,14 +228,7 @@ org.deviceconnect.android.deviceplugin.demo.DemoSettingFragment
 
     @Override
     protected String getShortcutUri(final DemoInstaller installer) {
-        String rootPath;
-        String filePath = "/demo/camera/index.html";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            rootPath = "/" + FILE_PROVIDER_AUTHORITY;
-        } else {
-            rootPath = "/" + installer.getPluginPackageName();
-        }
-        return "gotapi://shortcut" + rootPath + filePath;
+        return "gotapi://shortcut/" + installer.getPluginPackageName() + "/demo/<トップページのhtmlファイルへの相対パス>";
     }
 ```
 

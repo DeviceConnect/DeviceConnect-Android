@@ -7,9 +7,11 @@
     <string name="title_setting_scan">デバイススキャン</string>
     <string name="title_setting_modify_and_delete">デバイス一覧・削除</string>
     <string name="title_setting_modify">デバイス名・動作モード変更</string>
+    <string name="title_setting_demo_app">デモアプリ</string>
     <string name="settings_title_local_oauth">認証(Local OAuth)</string>
     <string name="settings_title_device_register">デバイス登録</string>
     <string name="settings_title_device_modify_and_delete">デバイス名/動作モード変更・削除</string>
+    <string name="settings_title_demo_app">デモページ</string>
     <string name="key_local_oauth">key_local_oauth</string>
 
     <string name="activity_settings_device_register">デバイス登録</string>
@@ -38,4 +40,7 @@
     <string name="error_response_device_busy">device busy</string>
     <string name="error_response_connect_failure">device not available or busy</string>
     <string name="error_response_bluetooth_not_available">bluetooth not available</string>
+
+    <string name="demo_page_description">以下よりデモページのインストールを行うことが出来ます。</string>
+    <string name="demo_page_shortcut_label">SwitchBot Demo</string>
 </resources>

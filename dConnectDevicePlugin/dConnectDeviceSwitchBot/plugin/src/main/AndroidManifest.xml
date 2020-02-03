@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />"
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
 
     <application
         android:allowBackup="true"
@@ -13,9 +16,13 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".settings.DemoSettingActivity"
+            android:label="@string/title_setting_demo_app"
+            android:theme="@style/AppCompatTheme"/>
+        <activity
             android:name=".settings.ModifyActivity"
             android:label="@string/title_setting_modify"
-            android:theme="@style/AppCompatTheme"/>
+            android:theme="@style/AppCompatTheme" />
         <activity
             android:name=".settings.ModifyAndDeleteActivity"
             android:label="@string/title_setting_modify_and_delete"
@@ -27,16 +34,14 @@
         <activity
             android:name=".settings.RegisterActivity"
             android:label="@string/title_setting_register"
-            android:theme="@style/AppCompatTheme" />
-        <!-- プラグイン本体サービス -->
+            android:theme="@style/AppCompatTheme" /> <!-- プラグイン本体サービス -->
         <service
             android:name=".SwitchBotMessageService"
             android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_switchbot" />
-        </service>
-        <!-- Device Connect API リクエストのレシーバー -->
+        </service> <!-- Device Connect API リクエストのレシーバー -->
         <!--
             NOTE:  下記のレシーバーは、旧仕様のDevice Connect Managerとの互換性、
             およびDevice Connect Managerのアンインストール検知のために残しています.
@@ -73,6 +78,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:name="org.deviceconnect.android.provider.FileProvider"
+            android:authorities="org.deviceconnect.android.deviceplugin.switchbot.provider"
+            android:exported="true">
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
     </application>
 
 </manifest>

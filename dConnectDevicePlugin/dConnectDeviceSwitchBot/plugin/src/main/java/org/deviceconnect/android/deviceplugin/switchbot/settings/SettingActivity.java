@@ -73,6 +73,11 @@ public class SettingActivity extends BaseSettingActivity {
             Intent modifyAndDeleteActivity = new Intent(this, ModifyAndDeleteActivity.class);
             startActivity(modifyAndDeleteActivity);
         });
+
+        findViewById(R.id.text_title_demo_app).setOnClickListener((view) -> {
+            Intent demoSettingActivity = new Intent(this, DemoSettingActivity.class);
+            startActivity(demoSettingActivity);
+        });
     }
 
     @Override

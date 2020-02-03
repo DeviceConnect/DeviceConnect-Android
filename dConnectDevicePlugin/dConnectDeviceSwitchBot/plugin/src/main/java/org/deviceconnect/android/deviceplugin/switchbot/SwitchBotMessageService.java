@@ -6,8 +6,16 @@
 */
 package org.deviceconnect.android.deviceplugin.switchbot;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
+import org.deviceconnect.android.deviceplugin.switchbot.demo.SwitchBotDemoInstaller;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDevice;
 import org.deviceconnect.android.deviceplugin.switchbot.device.SwitchBotDeviceProvider;
 import org.deviceconnect.android.deviceplugin.switchbot.settings.Settings;
@@ -20,15 +28,27 @@ import org.deviceconnect.android.deviceplugin.switchbot.profiles.SwitchBotSwitch
 import org.deviceconnect.android.deviceplugin.switchbot.profiles.SwitchBotSystemProfile;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class SwitchBotMessageService extends DConnectMessageService implements SwitchBotDevice.EventListener {
     private static final String TAG = "SwitchBotMessageService";
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String SHARED_PREF = "org.deviceconnect.android.deviceplugin.switchbot_preferences";
+    private static final String DEMO_INSTALLER_NOTIFICATION_CHANNEL_ID = "org.deviceconnect.android.deviceplugin.switchbot.notification";
+    private static final String DEMO_INSTALLER_NOTIFICATION_CHANNEL_TITLE = "SwitchBot Plugin Demo";
+    private static final String DEMO_INSTALLER_NOTIFICATION_CHANNEL_DESCRIPTION = "SwitchBot Plugin Demo";
     private ArrayList<SwitchBotDevice> mSwitchBotDevices;
     private SwitchBotDeviceProvider mSwitchBotDeviceProvider;
+    private SwitchBotDemoInstaller mSwitchBotDemoInstaller;
+    private DemoInstaller.Notification mSwitchBotDemoInstallerNotification;
+    private BroadcastReceiver mSwitchBotDemoNotificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -57,10 +77,20 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         }
 
         boolean localOAuth = Settings.getBoolean(this, Settings.KEY_LOCAL_OAUTH, true);
-        if(DEBUG){
+        if (DEBUG) {
             Log.d(TAG, "localOAuth : " + localOAuth);
         }
         setUseLocalOAuth(localOAuth);
+
+        mSwitchBotDemoInstaller = new SwitchBotDemoInstaller(this);
+        mSwitchBotDemoInstallerNotification = new DemoInstaller.Notification(
+                1, getString(R.string.app_name), R.drawable.ic_launcher,
+                DEMO_INSTALLER_NOTIFICATION_CHANNEL_ID, DEMO_INSTALLER_NOTIFICATION_CHANNEL_TITLE,
+                DEMO_INSTALLER_NOTIFICATION_CHANNEL_DESCRIPTION);
+
+        registerDemoNotification();
+
+        updateDemoPage();
     }
 
     @Override
@@ -79,6 +109,7 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         for (SwitchBotDevice switchBotDevice : mSwitchBotDevices) {
             switchBotDevice.disconnect();
         }
+        unregisterDemoNotification();
     }
 
     @Override
@@ -284,6 +315,47 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
         DConnectService service = getServiceProvider().getService(makeServiceId(switchBotDevice));
         if (service != null) {
             service.setOnline(false);
+        }
+    }
+
+    private void registerDemoNotification() {
+        IntentFilter filter  = new IntentFilter();
+        filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
+        filter.addAction(DemoInstaller.Notification.ACTON_UPDATE_DEMO);
+        registerReceiver(mSwitchBotDemoNotificationReceiver, filter);
+    }
+
+    private void unregisterDemoNotification() {
+        unregisterReceiver(mSwitchBotDemoNotificationReceiver);
+    }
+
+    private void updateDemoPage() {
+        final Context context = this;
+        if (mSwitchBotDemoInstaller.isUpdateNeeded()) {
+            mSwitchBotDemoInstaller.update(new DemoInstaller.UpdateCallback() {
+                @Override
+                public void onBeforeUpdate(final File demoDir) {
+                    // 自動更新を実行する直前
+                }
+
+                @Override
+                public void onAfterUpdate(final File demoDir) {
+                    // 自動更新に成功した直後
+                    mSwitchBotDemoInstallerNotification.showUpdateSuccess(context);
+                }
+
+                @Override
+                public void onFileError(final IOException e) {
+                    // 自動更新時にファイルアクセスエラーが発生した場合
+                    mSwitchBotDemoInstallerNotification.showUpdateError(context);
+                }
+
+                @Override
+                public void onUnexpectedError(final Throwable e) {
+                    // 自動更新時に不明なエラーが発生した場合
+                    mSwitchBotDemoInstallerNotification.showUpdateError(context);
+                }
+            }, new Handler(Looper.getMainLooper()));
         }
     }
 }

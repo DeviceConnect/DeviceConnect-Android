@@ -37,6 +37,8 @@ dependencies {
 プラグインを実装するモジュールの `build.gradle` に、下記の定数を追加してください。
 
 ``` gradle
+    def DEMO_ZIP_NAME = "demo.zip"
+
     defaultConfig {
         ...
 
@@ -59,6 +61,15 @@ task zipDemo(type:Zip) {
 }
 
 tasks.preBuild.dependsOn(zipDemo)
+```
+
+## パーミッションの宣言
+dConnectDemoLib ではデモアプリへのショートカットアイコンをホーム画面上に作成する UI を提供しますが、そのためにはパーミッションが必要です。
+
+以下のパーミッションを、プラグインの `AndroidManifest.xml` に追加してください。
+
+``` xml
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
 ```
 
 ## デモアプリの配置

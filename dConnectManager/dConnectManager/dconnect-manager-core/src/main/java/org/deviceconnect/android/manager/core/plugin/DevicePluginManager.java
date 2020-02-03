@@ -338,7 +338,7 @@ public class DevicePluginManager {
      */
     private List<DevicePlugin> getInstalledServices(final PackageManager pkgMgr) {
         List<DevicePlugin> result = new ArrayList<>();
-        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_SERVICES);
+        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_SERVICES | PackageManager.GET_PROVIDERS);
         for (PackageInfo pkg : pkgList) {
             result.addAll(getInstalledServicesForPackage(pkgMgr, pkg));
         }
@@ -380,7 +380,7 @@ public class DevicePluginManager {
      */
     private List<DevicePlugin> getInstalledReceivers(final PackageManager pkgMgr) {
         List<DevicePlugin> result = new ArrayList<>();
-        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_RECEIVERS);
+        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_RECEIVERS | PackageManager.GET_PROVIDERS);
         for (PackageInfo pkg : pkgList) {
             result.addAll(getInstalledReceiversForPackage(pkgMgr, pkg));
         }

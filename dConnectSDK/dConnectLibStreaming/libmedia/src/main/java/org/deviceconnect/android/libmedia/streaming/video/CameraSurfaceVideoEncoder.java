@@ -17,6 +17,8 @@ import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManage
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -154,6 +156,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
         int videoWidth = mVideoQuality.getVideoWidth();
         int videoHeight = mVideoQuality.getVideoHeight();
 
+        CountDownLatch latch = new CountDownLatch(1);
         mCamera2 = Camera2WrapperManager.createCamera(mContext, mVideoQuality.getFacing());
         mCamera2.setCameraEventListener(new Camera2Wrapper.CameraEventListener() {
             @Override
@@ -164,6 +167,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
                 if (mCamera2 != null) {
                     mCamera2.startPreview();
                 }
+                latch.countDown();
             }
 
             @Override
@@ -187,6 +191,15 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
         });
         mCamera2.getSettings().setPreviewSize(new Size(videoWidth, videoHeight));
         mCamera2.open(getSurfaceTexture(), new ArrayList<>(mSurfaces));
+
+        try {
+            if (!latch.await(5, TimeUnit.SECONDS)) {
+                // タイムアウト
+                throw new RuntimeException("Timed out opening a camera.");
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

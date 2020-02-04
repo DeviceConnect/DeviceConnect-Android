@@ -3,8 +3,6 @@ package org.deviceconnect.android.srt_server_app;
 import android.Manifest;
 import android.media.AudioFormat;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.util.Size;
 import android.view.Menu;
@@ -27,20 +25,12 @@ import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEnco
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.SRT;
-import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import static org.deviceconnect.android.srt_server_app.BuildConfig.DEBUG;
 
 /**
  * SRTサーバからAndroid端末のカメラ映像を配信する画面.
@@ -70,71 +60,6 @@ public class MainActivity extends AppCompatActivity
     private final IpAddressManager mAddressManager = new IpAddressManager();
 
     private AutoFitSurfaceView mCameraView;
-
-    private Timer mStatsTimer;
-
-    private final SRTServer.ServerEventListener mServerEventListener = new SRTServer.ServerEventListener() {
-        @Override
-        public void onStart(final SRTServer server) {
-            if (DEBUG) {
-                Log.d(TAG, "Started SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
-            }
-            showServerAddress(server);
-
-            mStatsTimer = new Timer();
-            mStatsTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    for (SRTSocket socket : server.getSocketList()) {
-                        socket.dumpStats();
-                    }
-                }
-            }, 0, 5 * 1000);
-        }
-
-        @Override
-        public void onStop(final SRTServer server) {
-            if (DEBUG) {
-                Log.d(TAG, "Stopped SRT Server: address = " + server.getServerAddress() + ":" + server.getServerPort());
-            }
-
-            mStatsTimer.cancel();
-            mStatsTimer = null;
-        }
-
-        @Override
-        public void onAcceptClient(final SRTServer server, final SRTSocket clientSocket) {
-            if (DEBUG) {
-                Log.d(TAG, "Accepted SRT Client: client address = " + clientSocket.getSocketAddress());
-            }
-        }
-
-        @Override
-        public void onErrorStart(final SRTServer server, final int error) {
-            if (DEBUG) {
-                Log.d(TAG, "onErrorStart: address = " + server.getServerAddress() + ":" + server.getServerPort());
-            }
-        }
-    };
-
-    private final SRTServer.ClientEventListener mClientEventListener = new SRTServer.ClientEventListener() {
-
-        @Override
-        public void onSendPacket(final SRTServer server,
-                                 final SRTSocket clientSocket,
-                                 final int payloadByteSize) {
-//            if (DEBUG) {
-//                Log.d(TAG, "onSendPacket: payloadByteSize = " + payloadByteSize);
-//            }
-        }
-
-        @Override
-        public void onErrorSendPacket(final SRTServer server, final SRTSocket clientSocket) {
-            if (DEBUG) {
-                Log.d(TAG, "onErrorSendPacket: clientSocket = " + clientSocket.getSocketAddress());
-            }
-        }
-    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -185,48 +110,25 @@ public class MainActivity extends AppCompatActivity
     private void startStreaming() {
         try {
             mSRTServer = new SRTServer(12345);
-            mSRTServer.addServerEventListener(mServerEventListener, new Handler(Looper.getMainLooper()));
-            mSRTServer.addClientEventListener(mClientEventListener, new Handler(Looper.getMainLooper()));
             mSRTServer.setCallback(new SRTServer.Callback() {
                 @Override
                 public void createSession(final SRTSession session) {
                     Log.d(TAG, "createSession");
 
                     session.setVideoEncoder(createVideoEncoder());
-                    session.setAudioEncoder(createAudioEncoder());
+                    //session.setAudioEncoder(createAudioEncoder());
                 }
 
                 @Override
                 public void releaseSession(final SRTSession session) {
                     Log.d(TAG, "releaseSession");
-
-                    if (DEBUG) {
-                        // TODO SRTによる音声配信を実装できたら削除.
-                        try {
-                            File aacFile = new File(getExternalFilesDir(null), "audio.aac");
-                            storeFile(session.getAudioRawCache(), aacFile);
-                            Log.d(TAG, "store aac file: " + aacFile.getAbsolutePath());
-                        } catch (Exception e) {
-                            Log.e(TAG, "Failed to store ts file: " + e.getMessage(), e);
-                        }
-                    }
                 }
             });
             mSRTServer.start();
+
+            showServerAddress(getIpAddress(), mSRTServer);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    void storeFile(final byte[] data, final File file) throws IOException {
-        if (!file.exists()) {
-            if (!file.createNewFile()) {
-                throw new IOException("Failed to create new file: " + file.getAbsolutePath());
-            }
-        }
-        try (OutputStream out = new FileOutputStream(file)) {
-            out.write(data);
-            out.flush();
         }
     }
 
@@ -265,11 +167,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void showServerAddress(final SRTServer server) {
+    private void showServerAddress(final String address, final SRTServer server) {
         runOnUiThread(() -> {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
-                actionBar.setTitle("srt://" + server.getServerAddress()  + ":" + server.getServerPort());
+                actionBar.setTitle("srt://" + address  + ":" + server.getServerPort());
             }
         });
     }
@@ -280,7 +182,7 @@ public class MainActivity extends AppCompatActivity
         if (address != null) {
             return address.getHostAddress();
         }
-        return null;
+        return "127.0.0.1";
     }
 
     @Override

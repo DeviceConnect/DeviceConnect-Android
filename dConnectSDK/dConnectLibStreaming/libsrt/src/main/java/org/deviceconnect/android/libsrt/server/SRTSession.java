@@ -142,8 +142,4 @@ public class SRTSession {
     public void removeSRTClientSocket(SRTSocket socket) {
         mSRTMuxer.removeSRTClientSocket(socket);
     }
-
-    public byte[] getAudioRawCache() {
-        return ((Mpeg2TsMuxer) mSRTMuxer).getAudioRawCache();
-    }
 }

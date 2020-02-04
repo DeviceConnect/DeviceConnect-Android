@@ -9,11 +9,7 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TransportStreamWriter;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
 
 
 public class Mpeg2TsMuxer extends SRTMuxer {
@@ -97,12 +93,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
      */
     private final ByteBuffer mPacketBuffer = ByteBuffer.wrap(mPayload);
 
-    private final ByteArrayOutputStream mAudioRawCache = new ByteArrayOutputStream();
-
-    byte[] getAudioRawCache() {
-        return mAudioRawCache.toByteArray();
-    }
-
     /**
      * mpeg2ts に変換されたデータを受信するリスナー.
      */
@@ -179,12 +169,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         }
         addADTStoPacket(mADTS, outPacketSize);
         encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
-
-        if (DEBUG) {
-            try {
-                mAudioRawCache.write(mADTS);
-            } catch (IOException ignored) {}
-        }
 
         mADTSBuffer.limit(outPacketSize);
         mADTSBuffer.position(0);

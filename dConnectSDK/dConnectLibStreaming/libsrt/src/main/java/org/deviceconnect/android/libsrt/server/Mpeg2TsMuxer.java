@@ -11,6 +11,8 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 
+import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
+
 
 public class Mpeg2TsMuxer extends SRTMuxer {
 
@@ -170,9 +172,13 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         addADTStoPacket(mADTS, outPacketSize);
         encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
 
+        if (DEBUG) {
+            Log.d("AAA", "onWriteAudioData: outPacketSize = " + outPacketSize);
+        }
+
         mADTSBuffer.limit(outPacketSize);
         mADTSBuffer.position(0);
-        mH264TsSegmenter.pushAudioBuffer(mADTSBuffer, bufferInfo.size, mMixed);
+        mH264TsSegmenter.pushAudioBuffer(mADTSBuffer, outPacketSize, mMixed);
     }
 
     @Override

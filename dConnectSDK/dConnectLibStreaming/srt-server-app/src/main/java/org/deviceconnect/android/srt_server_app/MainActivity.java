@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity
                     Log.d(TAG, "createSession");
 
                     session.setVideoEncoder(createVideoEncoder());
-                    //session.setAudioEncoder(createAudioEncoder());
+                    session.setAudioEncoder(createAudioEncoder());
                 }
 
                 @Override

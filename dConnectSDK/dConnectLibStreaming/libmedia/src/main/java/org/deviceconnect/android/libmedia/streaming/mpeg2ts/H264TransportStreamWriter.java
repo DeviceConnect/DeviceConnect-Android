@@ -17,10 +17,6 @@ public class H264TransportStreamWriter {
 
     private static final int H264NT_SLICE_IDR = 5;
 
-    private static final int H264NT_SPS = 7;
-
-    private static final int H264NT_PPS = 8;
-
     private static final byte[] H264_START_CODE = {0x00, 0x00, 0x00, 0x01};
 
     private final H264TransportPacketWriter tsWriter;
@@ -31,16 +27,9 @@ public class H264TransportStreamWriter {
 
     private int fps;
 
-    private long pts = 1L;
+    private PTS videoPts;
 
-    /**
-     * ptsステップサイズ.
-     *
-     * ・音声: 1つのAACフレームに対応するサンプリングサンプル数/サンプリング周波数（単位: s)
-     * ・映像：1000 / fps（単位：ms）
-     * ・ミリ秒への変換：h264の設定によると90HZであるため、PTS/DTSのミリ秒への変換式は次のとおり。ms = pts / 90
-     */
-    private long ptsIncPerFrame;
+    private PTS audioPts;
 
     public H264TransportStreamWriter() {
         tsWriter = new H264TransportPacketWriter();
@@ -53,11 +42,21 @@ public class H264TransportStreamWriter {
 
     public void initialize(float sampleRate, int sampleSizeInBits, int channels, int fps) {
         this.fps = fps;
-        ptsIncPerFrame = (long) (1000 / this.fps) * 90;
-        pts += ptsIncPerFrame;
+
+        /*
+         * ptsステップサイズ.
+         *
+         * ・音声: 1つのAACフレームに対応するサンプリングサンプル数/サンプリング周波数（単位: s)
+         * ・映像：1000 / fps（単位：ms）
+         * ・ミリ秒への変換：h264の設定によると90HZであるため、PTS/DTSのミリ秒への変換式は次のとおり。ms = pts / 90
+         */
+        this.videoPts = new PTS((long) (1000 / this.fps) * 90);
+        if (sampleRate > 0) {
+            this.audioPts = new PTS((90000 << 10) / (int) sampleRate);
+        }
     }
 
-    public void pushVideoBuffer(final ByteBuffer buffer, final boolean mixed) {
+    public synchronized void pushVideoBuffer(final ByteBuffer buffer, final boolean mixed) {
         List<Integer> offsets = ByteUtil.kmp(buffer, H264_START_CODE);
         buffer.position(0);
         int totalLength = buffer.remaining();
@@ -73,21 +72,29 @@ public class H264TransportStreamWriter {
             int type = buffer.get(unitOffset + H264_START_CODE.length) & 0x1F;
 
             boolean isFrame = type == H264NT_SLICE || type == H264NT_SLICE_IDR;
-            long pts = getPts();
+            long pts = videoPts.getPts();
             buffer.position(unitOffset);
             tsWriter.writeVideoBuffer(isFirstPes, buffer, unitLength, pts, pts, isFrame, mixed);
             isFirstPes = false;
         }
     }
 
-    public void pushAudioBuffer(final ByteBuffer buffer, final int length, final boolean mixed) {
-        long pts = getPts();
+    public synchronized void pushAudioBuffer(final ByteBuffer buffer, final int length, final boolean mixed) {
+        long pts = audioPts.getPts();
         tsWriter.writeAudioBuffer(isFirstPes, buffer, length, pts, pts, mixed);
         isFirstPes = false;
     }
 
-    private long getPts() {
-        return pts += ptsIncPerFrame;
-    }
+    private static class PTS {
+        long time;
+        final long inc;
 
+        PTS(long inc) {
+            this.inc = inc;
+        }
+
+        long getPts() {
+            return time += inc;
+        }
+    }
 }

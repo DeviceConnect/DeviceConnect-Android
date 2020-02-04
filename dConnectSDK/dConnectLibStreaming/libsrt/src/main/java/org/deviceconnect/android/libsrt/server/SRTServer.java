@@ -8,6 +8,8 @@ import org.deviceconnect.android.libsrt.SRTServerSocket;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
 
@@ -29,8 +31,6 @@ public class SRTServer {
      */
     private final List<SocketThread> mSocketThreads = new ArrayList<>();
 
-    private final List<SRTSocket> mClientSocketList = new ArrayList<>();
-
     private int mMaxClientNum = DEFAULT_MAX_CLIENT_NUM;
 
     private boolean mIsStarted;
@@ -46,22 +46,17 @@ public class SRTServer {
     private Callback mCallback;
 
     /**
+     * 統計データをログ出力するタイマー.
+     */
+    private Timer mStatsTimer;
+
+    /**
      * コンストラクタ.
      *
      * @param port サーバーのソケットにバインドするローカルのポート番号.
      */
     public SRTServer(final int port) {
         mServerSocket = new SRTServerSocket(port);
-    }
-
-    /**
-     * 接続しているクライアントのソケット一覧を取得します.
-     * @return ソケット一覧
-     */
-    public List<SRTSocket> getSocketList() {
-        synchronized (mClientSocketList) {
-            return new ArrayList<>(mClientSocketList);
-        }
     }
 
     /**
@@ -95,14 +90,8 @@ public class SRTServer {
         if (mIsStarted) {
             return;
         }
-
-        try {
-            mServerSocket.open();
-            mIsStarted = true;
-        } catch (IOException e) {
-            throw e;
-        }
-
+        mServerSocket.open();
+        mIsStarted = true;
         startServerThread();
     }
 
@@ -133,7 +122,7 @@ public class SRTServer {
     }
 
     private boolean isMaxClientNum() {
-        return mClientSocketList.size() >= mMaxClientNum;
+        return mSocketThreads.size() >= mMaxClientNum;
     }
 
     public synchronized void stop() {
@@ -143,12 +132,6 @@ public class SRTServer {
         mIsStarted = false;
 
         mServerSocket.close();
-        synchronized (mClientSocketList) {
-            for (SRTSocket socket : mClientSocketList) {
-                socket.close();
-            }
-            mClientSocketList.clear();
-        }
         synchronized (mSocketThreads) {
             for (SocketThread t : mSocketThreads) {
                 t.terminate();
@@ -163,6 +146,27 @@ public class SRTServer {
             // ignore
         }
         mServerThread = null;
+    }
+
+    public synchronized void startStatsTimer() {
+        if (mStatsTimer == null) {
+            mStatsTimer = new Timer();
+            mStatsTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    for (SocketThread thread : mSocketThreads) {
+                        thread.mClientSocket.dumpStats();
+                    }
+                }
+            }, 0, 5 * 1000);
+        }
+    }
+
+    public synchronized void stopStatsTimer() {
+        if (mStatsTimer != null) {
+            mStatsTimer.cancel();
+            mStatsTimer = null;
+        }
     }
 
     /**
@@ -219,11 +223,6 @@ public class SRTServer {
         @Override
         public void run() {
             try {
-
-                synchronized (mClientSocketList) {
-                    mClientSocketList.add(mClientSocket);
-                }
-
                 synchronized (mSocketThreads) {
                     mSocketThreads.add(this);
                     if (mSocketThreads.size() == 1) {
@@ -261,10 +260,6 @@ public class SRTServer {
                     if (mSocketThreads.isEmpty()) {
                         releaseSRTSession();
                     }
-                }
-
-                synchronized (mClientSocketList) {
-                    mClientSocketList.remove(mClientSocket);
                 }
             }
         }

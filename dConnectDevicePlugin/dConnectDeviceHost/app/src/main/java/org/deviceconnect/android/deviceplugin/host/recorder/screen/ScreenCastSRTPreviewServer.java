@@ -40,8 +40,6 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    private Timer mStatsTimer;
-
     public ScreenCastSRTPreviewServer(final Context context,
                                       final AbstractPreviewServerProvider serverProvider,
                                       final ScreenCastManager screenCastMgr) {
@@ -62,6 +60,7 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
             mSRTServer.setCallback(mCallback);
             try {
                 mSRTServer.start();
+                mSRTServer.startStatsTimer();
             } catch (IOException e) {
                 if (DEBUG) {
                     Log.d(TAG, "Failed to start SRT server.", e);
@@ -69,29 +68,15 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
                 callback.onFail();
             }
         }
-        if (mStatsTimer == null) {
-            mStatsTimer = new Timer();
-            mStatsTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    for (SRTSocket socket : mSRTServer.getSocketList()) {
-                        socket.dumpStats();
-                    }
-                }
-            }, 0, 5 * 1000); // TODO build.gralde ログ出力フラグとインターバルを設定
-        }
         callback.onStart("srt://localhost:" + mSRTServer.getServerPort());
     }
 
     @Override
     public void stopWebServer() {
         if (mSRTServer != null) {
+            mSRTServer.stopStatsTimer();
             mSRTServer.stop();
             mSRTServer = null;
-        }
-        if (mStatsTimer != null) {
-            mStatsTimer.cancel();
-            mStatsTimer = null;
         }
     }
 

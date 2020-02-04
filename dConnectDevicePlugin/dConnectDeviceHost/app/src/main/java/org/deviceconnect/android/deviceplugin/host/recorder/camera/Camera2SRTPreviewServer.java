@@ -8,13 +8,10 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
-import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class Camera2SRTPreviewServer extends AbstractPreviewServer {
 
@@ -27,8 +24,6 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
     private Camera2Recorder mRecorder;
 
     private SRTServer mSRTServer;
-
-    private Timer mStatsTimer;
 
     Camera2SRTPreviewServer(final Context context,
                                    final AbstractPreviewServerProvider serverProvider,
@@ -49,6 +44,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             mSRTServer.setCallback(mCallback);
             try {
                 mSRTServer.start();
+                mSRTServer.startStatsTimer();
             } catch (IOException e) {
                 if (DEBUG) {
                     Log.d(TAG, "Failed to start SRT server.", e);
@@ -56,29 +52,15 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 callback.onFail();
             }
         }
-        if (mStatsTimer == null) {
-            mStatsTimer = new Timer();
-            mStatsTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    for (SRTSocket socket : mSRTServer.getSocketList()) {
-                        socket.dumpStats();
-                    }
-                }
-            }, 0, 5 * 1000); // TODO build.gralde ログ出力フラグとインターバルを設定
-        }
         callback.onStart("srt://localhost:" + mSRTServer.getServerPort());
     }
 
     @Override
     public void stopWebServer() {
         if (mSRTServer != null) {
+            mSRTServer.stopStatsTimer();
             mSRTServer.stop();
             mSRTServer = null;
-        }
-        if (mStatsTimer != null) {
-            mStatsTimer.cancel();
-            mStatsTimer = null;
         }
         unregisterConfigChangeReceiver();
     }

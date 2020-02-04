@@ -114,11 +114,13 @@ public class SRTServer {
                         Log.d(TAG, "Waiting for SRT client...");
                     }
 
-                    if (isMaxClientNum()) {
-                        continue;
-                    }
+                    SRTSocket socket = mServerSocket.accept();
 
-                    new SocketThread(mServerSocket.accept()).start();
+                    if (isMaxClientNum()) {
+                        socket.close();
+                    } else {
+                        new SocketThread(socket).start();
+                    }
                 }
             } catch (Throwable e) {
                 e.printStackTrace();

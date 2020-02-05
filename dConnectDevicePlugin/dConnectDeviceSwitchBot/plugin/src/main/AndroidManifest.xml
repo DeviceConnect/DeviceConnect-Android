@@ -72,11 +72,6 @@
             android:theme="@style/AppCompatTheme">
 
             <!-- TODO ランチャー画面に表示させたくない場合は、下記のインテントフィルタを削除。 -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"

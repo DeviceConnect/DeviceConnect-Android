@@ -58,18 +58,6 @@ public class SwitchBotMessageService extends DConnectMessageService implements S
             Log.d(TAG, "onCreate()");
         }
 
-        // TODO 以降の処理では常駐型のサービスを生成しています. 要件に適さない場合は修正してください.
-        DConnectService service = new DConnectService("SwitchBot.Plugin");
-        // TODO サービス名の設定
-        service.setName("SwitchBot Device Plugin Service");
-        // TODO サービスの使用可能フラグのハンドリング
-        service.setOnline(true);
-        // TODO ネットワークタイプの指定 (例: BLE, Wi-Fi)
-        service.setNetworkType(NetworkType.UNKNOWN);
-        service.addProfile(new SwitchBotButtonProfile(this, null));
-        service.addProfile(new SwitchBotSwitchProfile(this, null));
-        getServiceProvider().addService(service);
-
         mSwitchBotDeviceProvider = new SwitchBotDeviceProvider(this, this);
         mSwitchBotDevices = mSwitchBotDeviceProvider.getDevices();
         for (SwitchBotDevice switchBotDevice : mSwitchBotDevices) {

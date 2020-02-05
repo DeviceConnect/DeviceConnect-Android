@@ -303,22 +303,18 @@ public class ScreenCastRecorder implements HostDeviceRecorder, HostDevicePhotoRe
 
     @Override
     public void startRecording(RecordingListener listener) {
-
     }
 
     @Override
     public void stopRecording(StoppingListener listener) {
-
     }
 
     @Override
     public void pauseRecording() {
-
     }
 
     @Override
     public void resumeRecording() {
-
     }
 
     @Override
@@ -328,17 +324,14 @@ public class ScreenCastRecorder implements HostDeviceRecorder, HostDevicePhotoRe
 
     @Override
     public void destroy() {
-
     }
 
     @Override
     public void muteTrack() {
-
     }
 
     @Override
     public void unMuteTrack() {
-
     }
 
     @Override
@@ -353,9 +346,7 @@ public class ScreenCastRecorder implements HostDeviceRecorder, HostDevicePhotoRe
 
     @Override
     public void onDisplayRotation(final int rotation) {
-        if (DEBUG) {
-            Log.d(TAG, "ScreenCastRecorder.onDisplayRotation: rotation=" + rotation);
-        }
+        mScreenCastPreviewServerProvider.onConfigChange();
     }
 
     public ScreenCastManager getScreenCastMgr() {

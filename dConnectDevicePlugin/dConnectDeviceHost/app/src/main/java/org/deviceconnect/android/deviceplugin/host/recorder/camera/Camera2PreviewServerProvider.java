@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 
 /**
  * カメラのプレビュー配信用サーバを管理するクラス.
@@ -35,10 +34,8 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder) {
         super(context, recorder, BASE_NOTIFICATION_ID + recorder.getId().hashCode());
 
-        Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(context, recorder);
-        mjpegServer.setQuality(RecorderSettingData.getInstance(getContext()).readPreviewQuality(recorder.getId()));
-        addServer(mjpegServer);
-        addServer(new Camera2RTSPPreviewServer(context, recorder));
-        addServer(new Camera2SRTPreviewServer(context, recorder));
+        addServer(new Camera2MJPEGPreviewServer(context, recorder, 11000));
+        addServer(new Camera2RTSPPreviewServer(context, recorder, 20000));
+        addServer(new Camera2SRTPreviewServer(context, recorder, 23456));
     }
 }

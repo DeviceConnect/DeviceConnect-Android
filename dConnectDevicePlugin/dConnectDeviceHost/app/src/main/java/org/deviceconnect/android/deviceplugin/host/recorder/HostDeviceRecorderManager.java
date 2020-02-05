@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
@@ -53,25 +52,22 @@ public class HostDeviceRecorderManager {
     private final DevicePluginContext mHostDevicePluginContext;
 
     /** インテントフィルタ. */
-    private final IntentFilter mIntentFilter = new IntentFilter();
-    {
-        mIntentFilter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-    }
+    private final IntentFilter mIntentFilter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
 
     /** ブロードキャストレシーバ. */
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            if (DEBUG) {
-                Log.d(TAG, "BroadcastReceiver.onReceive: action=" + intent.getAction());
-            }
             WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            int rotation = windowManager.getDefaultDisplay().getRotation();
-            for (HostDeviceRecorder recorder : mRecorders) {
-                if (DEBUG) {
-                    Log.d(TAG, "BroadcastReceiver.onReceive: recorder=" + recorder.getId());
+            if (windowManager != null) {
+                int rotation = windowManager.getDefaultDisplay().getRotation();
+                for (HostDeviceRecorder recorder : mRecorders) {
+                    try {
+                        recorder.onDisplayRotation(rotation);
+                    } catch (Exception e) {
+                        // ignore.
+                    }
                 }
-                recorder.onDisplayRotation(rotation);
             }
         }
     };

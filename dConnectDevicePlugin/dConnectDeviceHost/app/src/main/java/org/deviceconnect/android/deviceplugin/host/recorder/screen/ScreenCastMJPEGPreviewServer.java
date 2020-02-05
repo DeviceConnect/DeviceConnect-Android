@@ -30,10 +30,10 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder) {
+    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
         mScreenCastMgr = recorder.getScreenCastMgr();
-        setPort(11000);
+        setPort(port);
     }
 
     @Override
@@ -79,7 +79,6 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
-        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -105,8 +104,6 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
         @Override
         public MJPEGEncoder createMJPEGEncoder() {
-            registerConfigChangeReceiver();
-
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
             HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
@@ -122,7 +119,6 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
         @Override
         public void releaseMJPEGEncoder(MJPEGEncoder encoder) {
-            unregisterConfigChangeReceiver();
         }
     };
 }

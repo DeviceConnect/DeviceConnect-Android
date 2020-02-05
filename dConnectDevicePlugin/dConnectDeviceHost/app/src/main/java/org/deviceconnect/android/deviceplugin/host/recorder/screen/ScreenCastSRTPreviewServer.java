@@ -36,10 +36,10 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder) {
+    ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder, final int port) {
         super(context, recorder);
         mScreenCastMgr = recorder.getScreenCastMgr();
-        setPort(23456);
+        setPort(port);
     }
 
     @Override
@@ -94,13 +94,10 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
             session.setVideoEncoder(videoEncoder);
-
-            registerConfigChangeReceiver();
         }
 
         @Override
         public void releaseSession(final SRTSession session) {
-            unregisterConfigChangeReceiver();
         }
     };
 }

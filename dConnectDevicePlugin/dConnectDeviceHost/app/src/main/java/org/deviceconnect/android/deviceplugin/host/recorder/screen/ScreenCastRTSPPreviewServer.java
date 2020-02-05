@@ -45,10 +45,10 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
      */
     private RtspServer mRtspServer;
 
-    ScreenCastRTSPPreviewServer(Context context, ScreenCastRecorder recorder) {
+    ScreenCastRTSPPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
         mScreenCastMgr = recorder.getScreenCastMgr();
-        setPort(20000);
+        setPort(port);
     }
 
     @Override
@@ -84,7 +84,6 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             mRtspServer.stop();
             mRtspServer = null;
         }
-        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -175,8 +174,6 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             audioQuality.setUseAEC(true);
 
             session.setAudioMediaStream(audioStream);
-
-            registerConfigChangeReceiver();
         }
 
         @Override
@@ -184,8 +181,6 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
-
-            unregisterConfigChangeReceiver();
         }
     };
 }

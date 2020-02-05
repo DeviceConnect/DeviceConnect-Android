@@ -61,4 +61,9 @@ public interface PreviewServerProvider {
      * 全てのサーバを停止します.
      */
     void stopServers();
+
+    /**
+     * 設定が変更されたことを通知します.
+     */
+    void onConfigChange();
 }

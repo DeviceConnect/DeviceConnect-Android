@@ -1,9 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 
 /**
  * プレビュー配信サーバ.
@@ -28,16 +25,6 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      * ミュート設定.
      */
     private boolean mMute;
-
-    /**
-     * 画面回転のイベントを受信するためのレシーバー.
-     */
-    private final BroadcastReceiver mConfigChangeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            onConfigChange();
-        }
-    };
 
     /**
      * コンストラクタ.
@@ -68,7 +55,7 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     }
 
     @Override
-    public  void onConfigChange() {
+    public void onConfigChange() {
     }
 
     @Override
@@ -111,24 +98,5 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      */
     public HostDeviceRecorder getRecorder() {
         return mHostDeviceRecorder;
-    }
-
-    /**
-     * 画面の回転イベントを受信するレシーバーを登録します.
-     */
-    public synchronized void registerConfigChangeReceiver() {
-        IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
-        mContext.registerReceiver(mConfigChangeReceiver, filter);
-    }
-
-    /**
-     * 画面の回転イベントを受信するレシーバーを解除します.
-     */
-    public synchronized void unregisterConfigChangeReceiver() {
-        try {
-            mContext.unregisterReceiver(mConfigChangeReceiver);
-        } catch (Exception e) {
-            // ignore.
-        }
     }
 }

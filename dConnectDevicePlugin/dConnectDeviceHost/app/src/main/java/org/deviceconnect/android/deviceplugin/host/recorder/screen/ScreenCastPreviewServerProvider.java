@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 
 /**
  * スクリーンキャストのプレビューを配信するサーバを管理するクラス.
@@ -17,10 +16,8 @@ class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
     ScreenCastPreviewServerProvider(Context context, ScreenCastRecorder recorder) {
         super(context, recorder, NOTIFICATION_ID);
 
-        ScreenCastMJPEGPreviewServer mjpegServer = new ScreenCastMJPEGPreviewServer(context, recorder);
-        mjpegServer.setQuality(RecorderSettingData.getInstance(getContext()).readPreviewQuality(recorder.getId()));
-        addServer(mjpegServer);
-        addServer(new ScreenCastRTSPPreviewServer(context, recorder));
-        addServer(new ScreenCastSRTPreviewServer(context, recorder));
+        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, 11000));
+        addServer(new ScreenCastRTSPPreviewServer(context, recorder, 20000));
+        addServer(new ScreenCastSRTPreviewServer(context, recorder, 23456));
     }
 }

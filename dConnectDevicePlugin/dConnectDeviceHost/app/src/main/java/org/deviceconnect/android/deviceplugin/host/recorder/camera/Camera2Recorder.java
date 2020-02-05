@@ -460,6 +460,7 @@ public class Camera2Recorder implements HostDeviceRecorder, HostDevicePhotoRecor
     @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
+        mCamera2PreviewServerProvider.onConfigChange();
     }
 
     public void setWhiteBalance(final String whiteBalance) {

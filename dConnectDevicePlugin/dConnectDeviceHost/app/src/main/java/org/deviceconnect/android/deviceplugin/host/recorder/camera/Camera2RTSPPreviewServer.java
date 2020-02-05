@@ -45,10 +45,10 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
      */
     private RtspServer mRtspServer;
 
-    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder) {
+    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port) {
         super(context, recorder);
         mRecorder = recorder;
-        setPort(20000);
+        setPort(port);
     }
 
     @Override
@@ -84,7 +84,6 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             mRtspServer.stop();
             mRtspServer = null;
         }
-        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -172,8 +171,6 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             audioQuality.setUseAEC(true);
 
             session.setAudioMediaStream(audioStream);
-
-            registerConfigChangeReceiver();
         }
 
         @Override
@@ -181,8 +178,6 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
-
-            unregisterConfigChangeReceiver();
         }
     };
 }

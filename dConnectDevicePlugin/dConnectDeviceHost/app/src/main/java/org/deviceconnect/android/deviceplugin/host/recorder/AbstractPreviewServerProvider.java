@@ -14,9 +14,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 
@@ -136,33 +134,11 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         }
     }
 
-    protected int getDefaultPreviewQuality(String mimeType) {
-        return 0;
-    }
-
-    public Context getContext() {
-        return mContext;
-    }
-
-    public void setPreviewQuality(final PreviewServer server, String id, final int quality) {
-        server.setQuality(quality);
-        storePreviewQuality(server, id, quality);
-    }
-
-    private SharedPreferences getSharedPreferences() {
-        return PreferenceManager.getDefaultSharedPreferences(getContext());
-    }
-
-    protected void storePreviewQuality(final PreviewServer server, String id, int quality) {
-        getSharedPreferences().edit().putInt(getPreviewQualityKey(server, id), quality).apply();
-    }
-
-    protected int readPreviewQuality(final PreviewServer server, String id) {
-        return getSharedPreferences().getInt(getPreviewQualityKey(server, id), getDefaultPreviewQuality(server.getMimeType()));
-    }
-
-    private String getPreviewQualityKey(final PreviewServer server, String id) {
-        return id + "-" + server.getMimeType() + "-preview-quality";
+    @Override
+    public void onConfigChange() {
+        for (PreviewServer server : getServers()) {
+            server.onConfigChange();
+        }
     }
 
     /**

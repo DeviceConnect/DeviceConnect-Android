@@ -24,10 +24,10 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder) {
+    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port) {
         super(context, recorder);
         mRecorder = recorder;
-        setPort(23456);
+        setPort(port);
     }
 
     @Override
@@ -65,7 +65,6 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             mSRTServer.stop();
             mSRTServer = null;
         }
-        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -101,8 +100,6 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
             session.setVideoEncoder(encoder);
-
-            registerConfigChangeReceiver();
         }
 
         @Override
@@ -110,8 +107,6 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
-
-            unregisterConfigChangeReceiver();
         }
     };
 }

@@ -45,9 +45,9 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder) {
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port) {
         super(context, recorder);
-        setPort(11000);
+        setPort(port);
     }
 
     // PreviewServer
@@ -95,7 +95,6 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             mMJPEGServer.stop();
             mMJPEGServer = null;
         }
-        unregisterConfigChangeReceiver();
     }
 
     @Override
@@ -132,7 +131,6 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#createMJPEGEncoder: ");
             }
-            registerConfigChangeReceiver();
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
@@ -152,8 +150,6 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#releaseMJPEGEncoder: ");
             }
-
-            unregisterConfigChangeReceiver();
         }
     };
 }

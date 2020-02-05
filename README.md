@@ -139,6 +139,7 @@ curl  -X GET \
 |[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Hueのデバイスプラグイン。|
 |[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|IRKitのデバイスプラグイン。|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Linkingのデバイスプラグイン。|
+|[dConnectDeviceSwitchBot](dConnectDevicePlugin/dConnectDeviceSwitchBot)|SwitchBotのデバイスプラグイン。|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
 |[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|DeviceConnectのテスト用のデバイスプラグイン。|
@@ -218,6 +219,7 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
+* [SwitchBot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SwitchBot-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)

@@ -72,6 +72,11 @@ class FileTask implements Runnable {
     protected void onUnexpectedError(final Throwable e) {}
 
     static void unzip(final InputStream src, final File destDir) throws IOException {
+        if (!destDir.exists()) {
+            if (!destDir.mkdirs()) {
+                throw new IOException("Failed to create new directory: " + destDir.getAbsolutePath());
+            }
+        }
         try (ZipInputStream in = new ZipInputStream(src)) {
             ZipEntry entry;
             while ((entry = in.getNextEntry()) != null) {

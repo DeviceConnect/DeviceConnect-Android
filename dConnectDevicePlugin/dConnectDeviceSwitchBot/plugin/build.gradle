@@ -1,0 +1,88 @@
+apply plugin: 'com.android.application'
+
+def DEMO_ZIP_NAME = "demo.zip"
+
+dependencies {
+    implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.preference:preference:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
+}
+
+repositories {
+    maven {
+        url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/'
+    }
+    maven {
+        url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/'
+    }
+    maven {
+        url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectDemoLib/repository/'
+    }
+    maven {
+        url 'file://' + rootDir + '/../../dConnectSDK/dConnectDemoLib/repository/'
+    }
+}
+
+android {
+
+    compileSdkVersion 29
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.switchbot"
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName '1.0.0'
+
+        buildConfigField "String", "PACKAGE_NAME", "\"org.deviceconnect.android.deviceplugin.switchbot\""
+        buildConfigField "String", "DEMO_DIR", "\"demo\""
+        buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile = file(project.properties.storeFile)
+            storePassword = project.properties.storePassword
+            keyAlias = project.properties.keyAlias
+            keyPassword = project.properties.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+task zipDemo(type: Zip) {
+    File demoDir = new File(projectDir, '../demo')
+    File assetsDir = new File(projectDir, 'src/main/assets')
+
+    from demoDir
+    destinationDir assetsDir
+    archiveName = DEMO_ZIP_NAME
+}
+
+tasks.preBuild.dependsOn(zipDemo)

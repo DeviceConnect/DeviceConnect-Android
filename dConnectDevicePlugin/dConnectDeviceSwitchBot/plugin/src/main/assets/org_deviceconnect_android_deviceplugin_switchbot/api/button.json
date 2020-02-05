@@ -1,0 +1,158 @@
+
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "動作モードがbuttonモード時の機能を提供するAPI。",
+        "version": "1.0.0",
+        "title": "Button Profile"
+    },
+    "basePath": "/gotapi/button",
+    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "paths": {
+        "/down": {
+            "post": {
+                "summary": "『アームを下げる』動作を行う。",
+                "description": "指定したデバイスに接続し、『アームを下げる』動作を行う。",
+                "operationId": "ButtonDownPost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。<br> 操作対象デバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "デバイスの操作結果を返す。 操作に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/DownResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/push": {
+            "post": {
+                "summary": "『押す』動作を行う。",
+                "description": "指定したデバイスに接続し、『押す』動作を行う。",
+                "operationId": "ButtonPushPost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。<br> 操作対象デバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "デバイスの操作結果を返す。 操作に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/PushResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/up": {
+            "post": {
+                "summary": "『アームを上げる』動作を行う。",
+                "description": "指定したデバイスに接続し、『アームを上げる』動作を行う。",
+                "operationId": "ButtonUpPost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。<br> 操作対象デバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "デバイスの操作結果を返す。 操作に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/UpResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        }
+    },
+    "definitions": {
+        "PushResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "DownResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "UpResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": ["product", "result", "version"],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        }
+    }
+}

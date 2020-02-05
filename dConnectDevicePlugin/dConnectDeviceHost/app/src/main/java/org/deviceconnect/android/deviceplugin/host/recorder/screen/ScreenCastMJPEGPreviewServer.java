@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
@@ -31,22 +30,25 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    ScreenCastMJPEGPreviewServer(Context context,
-                                 AbstractPreviewServerProvider serverProvider,
-                                 ScreenCastManager screenCastMgr) {
-        super(context, serverProvider);
-        mScreenCastMgr = screenCastMgr;
+    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder) {
+        super(context, recorder);
+        mScreenCastMgr = recorder.getScreenCastMgr();
         setPort(11000);
     }
 
     @Override
+    public String getUri() {
+        return mMJPEGServer == null ? null : mMJPEGServer.getUri();
+    }
+
+    @Override
     public int getQuality() {
-        return RecorderSettingData.getInstance(getContext()).readPreviewQuality(getServerProvider().getId());
+        return RecorderSettingData.getInstance(getContext()).readPreviewQuality(getRecorder().getId());
     }
 
     @Override
     public void setQuality(int quality) {
-        RecorderSettingData.getInstance(getContext()).storePreviewQuality(getServerProvider().getId(), quality);
+        RecorderSettingData.getInstance(getContext()).storePreviewQuality(getRecorder().getId(), quality);
     }
 
     @Override
@@ -68,7 +70,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart(mMJPEGServer.getUri());
+        callback.onStart(getUri());
     }
 
     @Override
@@ -105,14 +107,16 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
         public MJPEGEncoder createMJPEGEncoder() {
             registerConfigChangeReceiver();
 
-            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+            ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+
+            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
 
             ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
             MJPEGQuality quality = encoder.getMJPEGQuality();
             quality.setWidth(size.getWidth());
             quality.setHeight(size.getHeight());
             quality.setQuality(getQuality());
-            quality.setFrameRate((int) getServerProvider().getMaxFrameRate());
+            quality.setFrameRate((int) recorder.getMaxFrameRate());
             return encoder;
         }
 

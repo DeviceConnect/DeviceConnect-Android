@@ -21,7 +21,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.screen.HostDeviceScreenCastRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
@@ -85,7 +85,7 @@ public class HostDeviceRecorderManager {
     }
 
     public void createScreenCastRecorder(final FileManager fileMgr) {
-        mRecorders.add(new HostDeviceScreenCastRecorder(getContext(), fileMgr));
+        mRecorders.add(new ScreenCastRecorder(getContext(), fileMgr));
     }
 
     public void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
@@ -171,25 +171,22 @@ public class HostDeviceRecorderManager {
         return null;
     }
 
-    public PreviewServerProvider getPreviewServerProvider(final String id) {
-        if (id == null) {
-            return mDefaultPhotoRecorder;
-        }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof PreviewServerProvider) {
-                return (AbstractPreviewServerProvider) recorder;
-            }
-        }
-        return null;
-    }
-
-    public void stopWebServer(final String id) {
+    /**
+     * 指定された ID のレコーダのプレビューを停止します.
+     *
+     * @param id レコーダのID
+     */
+    public void stopPreviewServer(final String id) {
         if (id == null) {
             return;
         }
+
         HostDeviceRecorder recorder = getRecorder(id);
-        if (recorder instanceof PreviewServerProvider) {
-            ((PreviewServerProvider) recorder).stopWebServers();
+        if (recorder != null) {
+            PreviewServerProvider provider = recorder.getServerProvider();
+            if (provider != null) {
+                provider.stopServers();
+            }
         }
     }
 

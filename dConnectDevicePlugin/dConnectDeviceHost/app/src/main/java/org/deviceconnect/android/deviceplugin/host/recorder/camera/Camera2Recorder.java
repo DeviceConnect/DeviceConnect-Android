@@ -8,6 +8,9 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -28,13 +31,13 @@ import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -47,7 +50,7 @@ import java.util.Locale;
 
 import androidx.annotation.NonNull;
 
-public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+public class Camera2Recorder implements HostDeviceRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
     /**
      * ログ出力用タグ.
      */
@@ -100,33 +103,36 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     /**
-     * マイムタイプ一覧.
-     */
-    private final List<String> mMimeTypes = new ArrayList<String>() {
-        {
-            add(MIME_TYPE_JPEG);
-            add("video/x-mjpeg");
-            add("video/x-rtp");
-            add("video/mp4");
-        }
-    };
-
-    /**
      * ファイルマネージャ.
      */
     private final FileManager mFileManager;
-
-    /**
-     * プレビュー配信サーバーのリスト.
-     */
-    private final List<PreviewServer> mPreviewServers = new ArrayList<>();
 
     /**
      * {@link SurfaceRecorder} のインスタンス.
      */
     private SurfaceRecorder mSurfaceRecorder;
 
+    /**
+     * {@link CameraManager} のインスタンス.
+     */
+    private final CameraManager mCameraManager;
+
+    /**
+     * カメラ操作オブジェクト.
+     */
     private final CameraWrapper mCameraWrapper;
+
+    /**
+     * カメラID.
+     *
+     * @see CameraManager#getCameraIdList()
+     */
+    private final String mCameraId;
+
+    /**
+     * カメラの位置.
+     */
+    private final Camera2Recorder.CameraFacing mFacing;
 
     /**
      * リクエストの処理を実行するハンドラ.
@@ -148,7 +154,17 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
      */
     private int mCurrentRotation;
 
+    /**
+     * ファイルを Android 端末内で共有するためのクラス.
+     */
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
+
+    /**
+     * プレビュー配信サーバを管理するクラス.
+     */
+    private Camera2PreviewServerProvider mCamera2PreviewServerProvider;
+
+    private Context mContext;
 
     /**
      * コンストラクタ.
@@ -160,9 +176,12 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     public Camera2Recorder(final @NonNull Context context,
                            final @NonNull CameraWrapper camera,
                            final @NonNull FileManager fileManager) {
-        super(context, camera.getId());
+        mContext = context;
+        mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
+        mCameraId = camera.getId();
+        mFacing = detectFacing();
 
         HandlerThread photoThread = new HandlerThread("host-camera-photo");
         photoThread.start();
@@ -174,17 +193,14 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
         mFileManager = fileManager;
 
-        Camera2MJPEGPreviewServer mjpegServer = new Camera2MJPEGPreviewServer(getContext(), this, this);
-        mjpegServer.setQuality(RecorderSettingData.getInstance(getContext()).readPreviewQuality(camera.getId()));
-        mPreviewServers.add(mjpegServer);
-        mPreviewServers.add(new Camera2RTSPPreviewServer(getContext(), this, this));
-        mPreviewServers.add(new Camera2SRTPreviewServer(getContext(), this, this));
+        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
     }
 
-    private CameraWrapper getCameraWrapper() {
-        return mCameraWrapper;
-    }
-
+    /**
+     * トーストでカメラ操作のイベントをユーザに通知します.
+     *
+     * @param event カメラ操作のイベント
+     */
     private void notifyEventToUser(final CameraWrapper.CameraEvent event) {
         switch (event) {
             case SHUTTERED:
@@ -202,11 +218,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private String getString(final int stringId) {
-        return getContext().getString(stringId);
+        return mContext.getString(stringId);
     }
 
     private void showToast(final String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -215,8 +231,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
-        mRequestHandler.post(() -> startRecordingInternal(serviceId, listener));
+    public synchronized void startRecording(final RecordingListener listener) {
+        mRequestHandler.post(() -> startRecordingInternal(listener));
     }
 
     @Override
@@ -241,8 +257,18 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public boolean isBack() {
-        return mFacing == CameraFacing.BACK;
+    public void muteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void unMuteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isMutedTrack() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -250,8 +276,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                                  final @NonNull Handler handler) {
         mRequestHandler.post(() -> {
             try {
-                CameraWrapper camera = getCameraWrapper();
-                camera.turnOnTorch(listener::onTurnOn, handler);
+                mCameraWrapper.turnOnTorch(listener::onTurnOn, handler);
                 handler.post(listener::onRequested);
             } catch (CameraWrapperException e) {
                 if (DEBUG) {
@@ -266,8 +291,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
                                   final @NonNull Handler handler) {
         mRequestHandler.post(() -> {
-            CameraWrapper camera = getCameraWrapper();
-            camera.turnOffTorch(listener::onTurnOff, handler);
+            mCameraWrapper.turnOffTorch(listener::onTurnOff, handler);
             handler.post(listener::onRequested);
         });
     }
@@ -288,20 +312,13 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public synchronized void clean() {
-        for (PreviewServer server : getServers()) {
-            server.stopWebServer();
-        }
+        mCamera2PreviewServerProvider.stopServers();
     }
 
     @Override
     public void destroy() {
         mPhotoHandler.getLooper().quit();
         mRequestHandler.getLooper().quit();
-    }
-
-    @Override
-    protected int getDefaultPreviewQuality(String mimeType) {
-        return PHOTO_JPEG_QUALITY;
     }
 
     @Override
@@ -316,7 +333,8 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public String getMimeType() {
-        return mMimeTypes.get(0);
+        // デフォルトのマイムタイプを返却
+        return MIME_TYPE_JPEG;
     }
 
     @Override
@@ -334,7 +352,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public PictureSize getPictureSize() {
-        return new PictureSize(getCameraWrapper().getOptions().getPictureSize());
+        return new PictureSize(mCameraWrapper.getOptions().getPictureSize());
     }
 
     @Override
@@ -394,7 +412,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
 
     @Override
     public List<String> getSupportedMimeTypes() {
-        return mMimeTypes;
+        List<String> mimeTypes = mCamera2PreviewServerProvider.getSupportedMimeType();
+        mimeTypes.add(0, MIME_TYPE_JPEG);
+        return mimeTypes;
     }
 
     @Override
@@ -417,17 +437,9 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return false;
     }
 
-    public void setWhiteBalance(final String whiteBalance) {
-        getCameraWrapper().getOptions().setWhiteBalance(whiteBalance);
-    }
-
-    public String getWhiteBalance() {
-        return getCameraWrapper().getOptions().getWhiteBalance();
-    }
-
     @Override
     public void requestPermission(final PermissionCallback callback) {
-        CapabilityUtil.requestPermissions(getContext(), new PermissionUtility.PermissionRequestCallback() {
+        CapabilityUtil.requestPermissions(mContext, new PermissionUtility.PermissionRequestCallback() {
             @Override
             public void onSuccess() {
                 callback.onAllowed();
@@ -441,26 +453,21 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     @Override
-    public List<PreviewServer> getServers() {
-        return mPreviewServers;
-    }
-
-    @Override
-    public PreviewServer getServerForMimeType(final String mimeType) {
-        for (PreviewServer server : getServers()) {
-            if (server.getMimeType().equals(mimeType)) {
-                return server;
-            }
-        }
-        return null;
+    public PreviewServerProvider getServerProvider() {
+        return mCamera2PreviewServerProvider;
     }
 
     @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
-//        for (PreviewServer server : getServers()) {
-//            server.onDisplayRotation(degree);
-//        }
+    }
+
+    public void setWhiteBalance(final String whiteBalance) {
+        mCameraWrapper.getOptions().setWhiteBalance(whiteBalance);
+    }
+
+    public String getWhiteBalance() {
+        return mCameraWrapper.getOptions().getWhiteBalance();
     }
 
     /**
@@ -472,14 +479,34 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return FILENAME_PREFIX + DATE_FORMAT.format(new Date()) + FILE_EXTENSION;
     }
 
+    /**
+     * 画面の回転を取得します.
+     *
+     * <p>
+     *  取得できる値は以下の通りです。
+     *  <ul>
+     *  <li>Surface.ROTATION_0</li>
+     *  <li>Surface.ROTATION_90</li>
+     *  <li>Surface.ROTATION_180</li>
+     *  <li>Surface.ROTATION_270</li>
+     *  </ul>
+     * </p>
+     *
+     * @return 画面の回転
+     */
     int getDisplayRotation() {
-        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         if (wm == null) {
             throw new RuntimeException("WindowManager is not supported.");
         }
         return wm.getDefaultDisplay().getRotation();
     }
 
+    /**
+     * 画面の回転に合わせて、カメラの解像度の横幅と縦幅をスワップするか確認します.
+     *
+     * @return 回転する場合はtrue、それ以外はfalse
+     */
     boolean isSwappedDimensions() {
         int sensorOrientation = mCameraWrapper.getSensorOrientation();
         switch (getDisplayRotation()) {
@@ -501,30 +528,33 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         return false;
     }
 
-    boolean isStartedPreview() {
-        CameraWrapper camera = getCameraWrapper();
-        return camera.isPreview();
-    }
-
+    /**
+     * プレビューを開始します.
+     *
+     * @param previewSurface プレビューを描画する Surface
+     * @throws CameraWrapperException カメラの操作に失敗した場合に発生
+     */
     void startPreview(final Surface previewSurface) throws CameraWrapperException {
-        CameraWrapper camera = getCameraWrapper();
-        camera.startPreview(previewSurface, false);
+        mCameraWrapper.startPreview(previewSurface, false);
     }
 
+    /**
+     * プレビューを停止します.
+     *
+     * @throws CameraWrapperException カメラの操作に失敗した場合に発生
+     */
     void stopPreview() throws CameraWrapperException {
-        CameraWrapper camera = getCameraWrapper();
-        camera.stopPreview();
+        mCameraWrapper.stopPreview();
     }
 
+    /**
+     * 静止画の撮影を行います.
+     *
+     * @param listener 静止画の撮影結果を通知するリスナー
+     */
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {
         try {
-            final CameraWrapper camera = getCameraWrapper();
-            final ImageReader stillImageReader = camera.createStillImageReader(ImageFormat.JPEG);
-            if (DEBUG) {
-                int w = stillImageReader.getWidth();
-                int h = stillImageReader.getHeight();
-                Log.d(TAG, "takePhoto: surface: " + w + "x" + h);
-            }
+            ImageReader stillImageReader = mCameraWrapper.createStillImageReader(ImageFormat.JPEG);
             stillImageReader.setOnImageAvailableListener((reader) -> {
                 Image photo = reader.acquireNextImage();
                 if (photo == null) {
@@ -534,8 +564,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
                 storePhoto(photo, listener);
                 photo.close();
             }, mPhotoHandler);
-
-            camera.takeStillImage(stillImageReader.getSurface());
+            mCameraWrapper.takeStillImage(stillImageReader.getSurface());
         } catch (CameraWrapperException e) {
             if (DEBUG) {
                 Log.e(TAG, "Failed to take photo.", e);
@@ -544,9 +573,15 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         }
     }
 
+    /**
+     * 撮影した静止画をファイルに保存します.
+     *
+     * @param image 撮影された静止画
+     * @param listener 静止画の撮影結果を通知するリスナー
+     */
     private void storePhoto(final Image image, final OnPhotoEventListener listener) {
         if (DEBUG) {
-            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(getContext()));
+            Log.d(TAG, "storePhoto: screen orientation: " + Camera2Helper.getScreenOrientation(mContext));
         }
 
         byte[] jpeg = ImageUtil.convertToJPEG(image);
@@ -583,25 +618,29 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         });
     }
 
-    private synchronized void startRecordingInternal(final String serviceId, final RecordingListener listener) {
+    /**
+     * 録画を行います.
+     *
+     * @param listener 録画開始結果を通知するリスナー
+     */
+    private synchronized void startRecordingInternal(final RecordingListener listener) {
         if (mSurfaceRecorder != null) {
             listener.onFailed(this, "Recording has started already.");
             return;
         }
 
         try {
-            final CameraWrapper camera = getCameraWrapper();
             mSurfaceRecorder = new DefaultSurfaceRecorder(
-                    getContext(),
+                    mContext,
                     mFacing,
-                    camera.getSensorOrientation(),
-                    camera.getOptions().getPictureSize(),
+                    mCameraWrapper.getSensorOrientation(),
+                    mCameraWrapper.getOptions().getPictureSize(),
                     mFileManager.getBasePath());
             mSurfaceRecorder.start(new SurfaceRecorder.OnRecordingStartListener() {
                 @Override
                 public void onRecordingStart() {
                     try {
-                        camera.startRecording(mSurfaceRecorder.getInputSurface(), false);
+                        mCameraWrapper.startRecording(mSurfaceRecorder.getInputSurface(), false);
                         listener.onRecorded(Camera2Recorder.this, mSurfaceRecorder.getOutputFile().getAbsolutePath());
                     } catch (CameraWrapperException e) {
                         listener.onFailed(Camera2Recorder.this,
@@ -626,6 +665,11 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         }
     }
 
+    /**
+     * 録画停止を行います.
+     *
+     * @param listener 録画停止結果を通知するリスナー
+     */
     private void stopRecordingInternal(final StoppingListener listener) {
         if (mSurfaceRecorder == null) {
             listener.onFailed(this, "Recording has stopped already.");
@@ -633,8 +677,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
         }
 
         try {
-            CameraWrapper camera = getCameraWrapper();
-            camera.stopRecording();
+            mCameraWrapper.stopRecording();
             mSurfaceRecorder.stop(new SurfaceRecorder.OnRecordingStopListener() {
                 @Override
                 public void onRecordingStop() {
@@ -663,7 +706,7 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private void registerVideo(final File videoFile) {
-        Uri uri = mMediaSharing.shareVideo(getContext(), videoFile, mFileManager);
+        Uri uri = mMediaSharing.shareVideo(mContext, videoFile, mFileManager);
         if (DEBUG) {
             String filePath = videoFile.getAbsolutePath();
             if (uri != null) {
@@ -675,13 +718,71 @@ public class Camera2Recorder extends AbstractCamera2Recorder implements HostDevi
     }
 
     private void registerPhoto(final File photoFile) {
-        Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
+        Uri uri = mMediaSharing.sharePhoto(mContext, photoFile);
         if (DEBUG) {
             if (uri != null) {
                 Log.d(TAG, "Registered photo: uri=" + uri.getPath());
             } else {
                 Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
             }
+        }
+    }
+
+    /**
+     * カメラの位置を判定する.
+     * @return カメラの位置
+     */
+    private CameraFacing detectFacing() {
+        try {
+            int facing = Camera2Helper.getFacing(mCameraManager, mCameraId);
+            switch (facing) {
+                case CameraCharacteristics.LENS_FACING_BACK:
+                    return CameraFacing.BACK;
+                case CameraCharacteristics.LENS_FACING_FRONT:
+                    return CameraFacing.FRONT;
+                case CameraCharacteristics.LENS_FACING_EXTERNAL:
+                    return CameraFacing.EXTERNAL;
+                default:
+                    return CameraFacing.UNKNOWN;
+            }
+        } catch (CameraAccessException e) {
+            return CameraFacing.UNKNOWN;
+        }
+    }
+
+    /**
+     * カメラの位置.
+     */
+    public enum CameraFacing {
+        /** スマートフォンの裏側. */
+        BACK("Back"),
+
+        /** スマートフォンの正面. */
+        FRONT("Front"),
+
+        /** 外部接続. (e.g. OTG 接続されている USB カメラ) */
+        EXTERNAL("External"),
+
+        /** 不明. */
+        UNKNOWN("Unknown");
+
+        /** カメラの位置を表現する名前. */
+        private final String mName;
+
+        /**
+         * コンストラクタ.
+         * @param name カメラの位置を表現する名前
+         */
+        CameraFacing(final String name) {
+            mName = name;
+        }
+
+        /**
+         * カメラの位置を表現する名前を取得する.
+         * @return 名前
+         */
+        public String getName() {
+            return mName;
         }
     }
 }

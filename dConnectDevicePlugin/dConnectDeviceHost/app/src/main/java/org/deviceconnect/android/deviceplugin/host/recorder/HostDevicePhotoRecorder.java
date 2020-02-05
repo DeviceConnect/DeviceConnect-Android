@@ -10,7 +10,7 @@ import android.os.Handler;
 import androidx.annotation.NonNull;
 
 /**
- * 写真撮影機能を持つレコーダー.
+ * 静止画の撮影を行うためのインターフェース.
  *
  * @author NTT DOCOMO, INC.
  */
@@ -22,13 +22,6 @@ public interface HostDevicePhotoRecorder {
      * @param listener 写真撮影の結果を受け取るためのリスナー
      */
     void takePhoto(OnPhotoEventListener listener);
-
-    /**
-     * バックカメラを使用するかどうかをチェックする.
-     *
-     * @return バックカメラの場合は<code>true</code>, そうでない場合は<code>false</code>
-     */
-    boolean isBack();
 
     /**
      * カメラのライトを ON にする.

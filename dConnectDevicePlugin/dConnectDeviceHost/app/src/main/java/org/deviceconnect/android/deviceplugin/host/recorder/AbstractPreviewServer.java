@@ -9,8 +9,15 @@ import android.content.IntentFilter;
  * プレビュー配信サーバ.
  */
 public abstract class AbstractPreviewServer implements PreviewServer {
-    private final Context mContext;
-    private final AbstractPreviewServerProvider mServerProvider;
+    /**
+     * コンテキスト.
+     */
+    private Context mContext;
+
+    /**
+     * プレビュー再生を行うレコーダ.
+     */
+    private HostDeviceRecorder mHostDeviceRecorder;
 
     /**
      * プレビュー配信サーバのポート番号.
@@ -32,46 +39,27 @@ public abstract class AbstractPreviewServer implements PreviewServer {
         }
     };
 
-    public AbstractPreviewServer(Context context, AbstractPreviewServerProvider serverProvider) {
+    /**
+     * コンストラクタ.
+     *
+     * <p>
+     * デフォルトでは、mute は true に設定しています。
+     * </p>
+     *
+     * @param context コンテキスト
+     * @param recorder プレビューで表示するレコーダ
+     */
+    public AbstractPreviewServer(Context context, HostDeviceRecorder recorder) {
         mContext = context;
-        mServerProvider = serverProvider;
+        mHostDeviceRecorder = recorder;
         mMute = true;
     }
 
-    public Context getContext() {
-        return mContext;
-    }
+    // PreviewServer
 
-    public AbstractPreviewServerProvider getServerProvider() {
-        return mServerProvider;
-    }
-
-    /**
-     * プレビュー配信サーバのポート番号を取得します.
-     *
-     * @return ポート番号
-     */
+    @Override
     public int getPort() {
         return mPort;
-    }
-
-    /**
-     * 画面の回転イベントを受信するレシーバーを登録します.
-     */
-    public synchronized void registerConfigChangeReceiver() {
-        IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
-        mContext.registerReceiver(mConfigChangeReceiver, filter);
-    }
-
-    /**
-     * 画面の回転イベントを受信するレシーバーを解除します.
-     */
-    public synchronized void unregisterConfigChangeReceiver() {
-        try {
-            mContext.unregisterReceiver(mConfigChangeReceiver);
-        } catch (Exception e) {
-            // ignore.
-        }
     }
 
     @Override
@@ -105,5 +93,42 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     @Override
     public boolean isMuted() {
         return mMute;
+    }
+
+    /**
+     * コンテキストを取得します.
+     *
+     * @return コンテキスト
+     */
+    public Context getContext() {
+        return mContext;
+    }
+
+    /**
+     * プレビューを表示するレコーダー.
+     *
+     * @return レコーダー
+     */
+    public HostDeviceRecorder getRecorder() {
+        return mHostDeviceRecorder;
+    }
+
+    /**
+     * 画面の回転イベントを受信するレシーバーを登録します.
+     */
+    public synchronized void registerConfigChangeReceiver() {
+        IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
+        mContext.registerReceiver(mConfigChangeReceiver, filter);
+    }
+
+    /**
+     * 画面の回転イベントを受信するレシーバーを解除します.
+     */
+    public synchronized void unregisterConfigChangeReceiver() {
+        try {
+            mContext.unregisterReceiver(mConfigChangeReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 }

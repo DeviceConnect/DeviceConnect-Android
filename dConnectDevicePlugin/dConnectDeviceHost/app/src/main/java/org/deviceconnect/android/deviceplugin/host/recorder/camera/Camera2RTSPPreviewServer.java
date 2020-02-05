@@ -7,7 +7,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -26,19 +25,35 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraRTSP";
 
+    /**
+     * マイムタイプを定義します.
+     */
     private static final String MIME_TYPE = "video/x-rtp";
 
+    /**
+     * サーバー名を定義します.
+     */
     private static final String SERVER_NAME = "Android Host Camera2 RTSP Server";
 
+    /**
+     * カメラを操作するレコーダ.
+     */
     private Camera2Recorder mRecorder;
 
+    /**
+     * RTSP 配信サーバ.
+     */
     private RtspServer mRtspServer;
 
-    Camera2RTSPPreviewServer(Context context, AbstractPreviewServerProvider serverProvider,
-                             Camera2Recorder recorder) {
-        super(context, serverProvider);
+    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder) {
+        super(context, recorder);
         mRecorder = recorder;
         setPort(20000);
+    }
+
+    @Override
+    public String getUri() {
+        return "rtsp://localhost:" + getPort();
     }
 
     @Override
@@ -60,7 +75,7 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart("rtsp://localhost:" + getPort());
+        callback.onStart(getUri());
     }
 
     @Override
@@ -126,7 +141,9 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
-            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+            Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+
+            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
 
             CameraVideoStream videoStream = new CameraVideoStream(mRecorder);
             videoStream.setDestinationPort(5006);
@@ -134,8 +151,8 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
             videoQuality.setVideoWidth(size.getWidth());
             videoQuality.setVideoHeight(size.getHeight());
-            videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
-            videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
+            videoQuality.setBitRate(recorder.getPreviewBitRate());
+            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
 
             session.setVideoMediaStream(videoStream);

@@ -21,26 +21,18 @@ public interface PreviewServerProvider {
     String EXTRA_CAMERA_ID = "cameraId";
 
     /**
-     * パーミッション結果通知用コールバック.
+     * プレビューで配信するマイムタイプを取得します.
+     *
+     * @return プレビューで配信するマイムタイプ
      */
-    interface PermissionCallback {
-        /**
-         * 許可された場合に呼び出されます.
-         */
-        void onAllowed();
-
-        /**
-         * 拒否された場合に呼び出されます.
-         */
-        void onDisallowed();
-    }
+    List<String> getSupportedMimeType();
 
     /**
-     * パーミッションの要求結果を通知するコールバックを設定します.
+     * サポートしているプレビュー配信サーバを追加します.
      *
-     * @param callback コールバック
+     * @param server 追加するプレビュー配信サーバ
      */
-    void requestPermission(PermissionCallback callback);
+    void addServer(PreviewServer server);
 
     /**
      * サポートしているプレビュー配信用サーバのリストを取得します.
@@ -59,7 +51,14 @@ public interface PreviewServerProvider {
     PreviewServer getServerForMimeType(String mimeType);
 
     /**
+     * 全てのサーバを開始します.
+     *
+     * @return 起動したプレビュー配信サーバのリスト
+     */
+    List<PreviewServer> startServers();
+
+    /**
      * 全てのサーバを停止します.
      */
-    void stopWebServers();
+    void stopServers();
 }

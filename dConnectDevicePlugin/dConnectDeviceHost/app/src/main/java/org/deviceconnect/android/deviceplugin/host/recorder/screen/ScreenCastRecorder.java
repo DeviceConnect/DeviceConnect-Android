@@ -18,12 +18,11 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -47,7 +46,8 @@ import androidx.annotation.NonNull;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(21)
-public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider implements HostDevicePhotoRecorder {
+public class ScreenCastRecorder implements HostDeviceRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     static final String RESULT_DATA = "result_data";
 
@@ -74,25 +74,9 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     /** 日付のフォーマット. */
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
-    /**
-     * マイムタイプ一覧を定義.
-     */
-    private List<String> mMimeTypes = new ArrayList<String>() {
-        {
-            add(MIME_TYPE_JPEG);
-            add(ScreenCastMJPEGPreviewServer.MIME_TYPE);
-            add(ScreenCastRTSPPreviewServer.MIME_TYPE);
-            add(ScreenCastSRTPreviewServer.MIME_TYPE);
-        }
-    };
-
     private final List<PictureSize> mSupportedPreviewSizes = new ArrayList<>();
     private final List<PictureSize> mSupportedPictureSizes = new ArrayList<>();
-    private final Logger mLogger = Logger.getLogger("host.dplugin");
     private final ScreenCastManager mScreenCastMgr;
-    private final ScreenCastSRTPreviewServer mScreenCastSRTServer;
-    private final ScreenCastRTSPPreviewServer mScreenCastRTSPServer;
-    private final ScreenCastMJPEGPreviewServer mScreenCastMJPEGServer;
     private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(4);
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
 
@@ -105,23 +89,21 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
-    public HostDeviceScreenCastRecorder(final Context context,
-                                        final FileManager fileMgr) {
-        super(context, 2001);
+    private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
+    private Context mContext;
+
+    public ScreenCastRecorder(final Context context,
+                              final FileManager fileMgr) {
+        mContext = context;
         mFileMgr = fileMgr;
 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         PictureSize size = new PictureSize(metrics.widthPixels, metrics.heightPixels);
         initSupportedPreviewSizes(size);
-
         setMaxFrameRate(mMaxFps);
 
         mScreenCastMgr = new ScreenCastManager(context);
-        mScreenCastSRTServer = new ScreenCastSRTPreviewServer(context, this, mScreenCastMgr);
-        mScreenCastRTSPServer = new ScreenCastRTSPPreviewServer(context, this, mScreenCastMgr);
-        mScreenCastMJPEGServer = new ScreenCastMJPEGPreviewServer(context, this, mScreenCastMgr);
-        mScreenCastMJPEGServer.setQuality(RecorderSettingData.getInstance(getContext())
-                .readPreviewQuality(mScreenCastMJPEGServer.getServerProvider().getId()));
+        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -137,7 +119,7 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         for (int i = 1; i <= num; i++) {
             float scale = i / ((float) num);
             // MediaCodec に解像度を渡す時に端数を持っているとエラーになってしまう
-            // 場合があったので、キリの良い値になるように調整
+            // 場合があったので、キリの良い値になるように調整しています。
             int width = (int) (w * scale);
             int height = (int) (h * scale);
             width += 10 - (width % 10);
@@ -150,23 +132,8 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
         mPictureSize = mSupportedPictureSizes.get(num - 1);
     }
 
-    @Override
-    public List<PreviewServer> getServers() {
-        List<PreviewServer> servers = new ArrayList<>();
-        servers.add(mScreenCastMJPEGServer);
-        servers.add(mScreenCastRTSPServer);
-        servers.add(mScreenCastSRTServer);
-        return servers;
-    }
-
-    @Override
-    public PreviewServer getServerForMimeType(final String mimeType) {
-        for (PreviewServer server : getServers()) {
-            if (server.getMimeType().equals(mimeType)) {
-                return server;
-            }
-        }
-        return null;
+    public Context getContext() {
+        return mContext;
     }
 
     @Override
@@ -176,18 +143,8 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     @Override
     public void clean() {
-        stopWebServers();
-    }
-
-    @Override
-    public void stopWebServers() {
-        super.stopWebServers();
+        mScreenCastPreviewServerProvider.stopServers();
         mScreenCastMgr.clean();
-    }
-
-    @Override
-    protected int getDefaultPreviewQuality(String mimeType) {
-        return 100;
     }
 
     @Override
@@ -262,7 +219,9 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
 
     @Override
     public List<String> getSupportedMimeTypes() {
-        return mMimeTypes;
+        List<String> mimeTypes = mScreenCastPreviewServerProvider.getSupportedMimeType();
+        mimeTypes.add(0, MIME_TYPE_JPEG);
+        return mimeTypes;
     }
 
     @Override
@@ -298,11 +257,6 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
                 callback.onDisallowed();
             }
         });
-    }
-
-    @Override
-    public boolean isBack() {
-        return false;
     }
 
     @Override
@@ -343,10 +297,69 @@ public class HostDeviceScreenCastRecorder extends AbstractPreviewServerProvider 
     }
 
     @Override
+    public boolean canPauseRecording() {
+        return false;
+    }
+
+    @Override
+    public void startRecording(RecordingListener listener) {
+
+    }
+
+    @Override
+    public void stopRecording(StoppingListener listener) {
+
+    }
+
+    @Override
+    public void pauseRecording() {
+
+    }
+
+    @Override
+    public void resumeRecording() {
+
+    }
+
+    @Override
+    public String getStreamMimeType() {
+        return null;
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
+    @Override
+    public void muteTrack() {
+
+    }
+
+    @Override
+    public void unMuteTrack() {
+
+    }
+
+    @Override
+    public boolean isMutedTrack() {
+        return false;
+    }
+
+    @Override
+    public PreviewServerProvider getServerProvider() {
+        return mScreenCastPreviewServerProvider;
+    }
+
+    @Override
     public void onDisplayRotation(final int rotation) {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastRecorder.onDisplayRotation: rotation=" + rotation);
         }
+    }
+
+    public ScreenCastManager getScreenCastMgr() {
+        return mScreenCastMgr;
     }
 
     private void takePhotoInternal(final @NonNull OnPhotoEventListener listener) {

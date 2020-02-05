@@ -11,16 +11,12 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
-import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * スクリーンキャストを SRT で配信するサーバー.
@@ -40,12 +36,15 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    public ScreenCastSRTPreviewServer(final Context context,
-                                      final AbstractPreviewServerProvider serverProvider,
-                                      final ScreenCastManager screenCastMgr) {
-        super(context, serverProvider);
-        mScreenCastMgr = screenCastMgr;
+    ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder) {
+        super(context, recorder);
+        mScreenCastMgr = recorder.getScreenCastMgr();
         setPort(23456);
+    }
+
+    @Override
+    public String getUri() {
+        return "srt://localhost:" + getPort();
     }
 
     @Override
@@ -68,7 +67,7 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
                 callback.onFail();
             }
         }
-        callback.onStart("srt://localhost:" + mSRTServer.getServerPort());
+        callback.onStart(getUri());
     }
 
     @Override
@@ -83,14 +82,16 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
-            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+            ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+
+            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
 
             ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr);
             VideoQuality videoQuality = videoEncoder.getVideoQuality();
             videoQuality.setVideoWidth(size.getWidth());
             videoQuality.setVideoHeight(size.getHeight());
-            videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
-            videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
+            videoQuality.setBitRate(recorder.getPreviewBitRate());
+            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
             session.setVideoEncoder(videoEncoder);
 

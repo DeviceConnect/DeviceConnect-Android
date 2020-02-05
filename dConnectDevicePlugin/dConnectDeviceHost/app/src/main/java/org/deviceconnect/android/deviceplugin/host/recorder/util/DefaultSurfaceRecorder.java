@@ -17,7 +17,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.AbstractCamera2Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
 
     private final Context mContext;
 
-    private final AbstractCamera2Recorder.CameraFacing mFacing;
+    private final Camera2Recorder.CameraFacing mFacing;
 
     private final Integer mSensorOrientation;
 
@@ -79,7 +79,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
     private Handler mRecorderThread;
 
     public DefaultSurfaceRecorder(final Context context,
-                           final AbstractCamera2Recorder.CameraFacing facing,
+                           final Camera2Recorder.CameraFacing facing,
                            final Integer sensorOrientation,
                            final Size videoSize,
                            final File basePath) {
@@ -113,7 +113,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         int hint;
         SparseIntArray orientations;
-        if (mFacing == AbstractCamera2Recorder.CameraFacing.FRONT) {
+        if (mFacing == Camera2Recorder.CameraFacing.FRONT) {
             switch (rotation) {
                 case Surface.ROTATION_0:
                     rotation = Surface.ROTATION_0;

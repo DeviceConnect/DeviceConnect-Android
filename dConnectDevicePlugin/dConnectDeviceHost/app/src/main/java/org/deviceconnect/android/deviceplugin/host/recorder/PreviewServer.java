@@ -18,6 +18,20 @@ public interface PreviewServer {
     String getMimeType();
 
     /**
+     * サーバへの URL を取得します.
+     *
+     * @return サーバへの URL
+     */
+    String getUri();
+
+    /**
+     * プレビュー配信サーバのポート番号を取得します.
+     *
+     * @return ポート番号
+     */
+    int getPort();
+
+    /**
      * プレビュー配信サーバのポート番号を設定します.
      *
      * @param port ポート番号

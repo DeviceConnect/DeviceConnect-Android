@@ -5,7 +5,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
@@ -25,11 +24,15 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    Camera2SRTPreviewServer(final Context context,
-                                   final AbstractPreviewServerProvider serverProvider,
-                                   final Camera2Recorder recorder) {
-        super(context, serverProvider);
+    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder) {
+        super(context, recorder);
         mRecorder = recorder;
+        setPort(23456);
+    }
+
+    @Override
+    public String getUri() {
+        return "srt://localhost:" + getPort();
     }
 
     @Override
@@ -40,7 +43,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
-            mSRTServer = new SRTServer(23456);
+            mSRTServer = new SRTServer(getPort());
             mSRTServer.setCallback(mCallback);
             try {
                 mSRTServer.start();
@@ -52,7 +55,7 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 callback.onFail();
             }
         }
-        callback.onStart("srt://localhost:" + mSRTServer.getServerPort());
+        callback.onStart(getUri());
     }
 
     @Override
@@ -86,14 +89,16 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
-            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+            Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+
+            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
 
             CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
             VideoQuality videoQuality = encoder.getVideoQuality();
             videoQuality.setVideoWidth(size.getWidth());
             videoQuality.setVideoHeight(size.getHeight());
-            videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
-            videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
+            videoQuality.setBitRate(recorder.getPreviewBitRate());
+            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
             session.setVideoEncoder(encoder);
 

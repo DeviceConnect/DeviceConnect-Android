@@ -392,7 +392,7 @@ public class HostDevicePlugin extends DevicePluginContext {
     }
 
     private void stopWebServer(final Intent intent) {
-        mRecorderMgr.stopWebServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
+        mRecorderMgr.stopPreviewServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
     }
 
     private void onChangedBluetoothStatus() {

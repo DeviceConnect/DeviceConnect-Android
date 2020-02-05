@@ -15,10 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
@@ -47,7 +43,9 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+
+import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import static org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst.SEND_VIDEO_TO_HOSTDP;
 
@@ -428,58 +426,41 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
 
-            final PreviewServerProvider serverProvider = mRecorderMgr.getPreviewServerProvider(target);
+            final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
 
-            if (serverProvider == null) {
+            if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
-            serverProvider.requestPermission(new PreviewServerProvider.PermissionCallback() {
+            recorder.requestPermission(new HostDeviceRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
                     mRecorderMgr.initialize();
 
-                    final List<PreviewServer> servers = serverProvider.getServers();
-                    final String[] defaultUri = new String[1];
-                    final CountDownLatch lock = new CountDownLatch(servers.size());
-                    final List<Bundle> streams = new ArrayList<>();
-                    for (final PreviewServer server : servers) {
-                        server.startWebServer(new PreviewServer.OnWebServerStartCallback() {
-                            @Override
-                            public void onStart(@NonNull String uri) {
-                                if ("video/x-mjpeg".equals(server.getMimeType())) {
-                                    defaultUri[0] = uri;
-                                }
-
-                                Bundle stream = new Bundle();
-                                stream.putString("mimeType", server.getMimeType());
-                                stream.putString("uri", uri);
-                                streams.add(stream);
-
-                                lock.countDown();
+                    PreviewServerProvider provider = recorder.getServerProvider();
+                    List<PreviewServer> servers = provider.startServers();
+                    if (servers.isEmpty()) {
+                        MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+                    } else {
+                        String defaultUri = null;
+                        List<Bundle> streams = new ArrayList<>();
+                        for (PreviewServer server : servers) {
+                            // Motion-JPEG をデフォルトの値として使用します
+                            if ("video/x-mjpeg".equals(server.getMimeType())) {
+                                defaultUri = server.getUri();
                             }
 
-                            @Override
-                            public void onFail() {
-                                lock.countDown();
-                            }
-                        });
-                    }
-                    try {
-                        lock.await();
-                        if (streams.size() > 0) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setUri(response, defaultUri[0] != null ? defaultUri[0] : "");
-                            response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
-                        } else {
-                            MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+                            Bundle stream = new Bundle();
+                            stream.putString("mimeType", server.getMimeType());
+                            stream.putString("uri", server.getUri());
+                            streams.add(stream);
                         }
-                    } catch (InterruptedException e) {
-                        MessageUtils.setIllegalServerStateError(response, "Forced to shutdown request thread.");
-                    } finally {
-                        sendResponse(response);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        setUri(response, defaultUri != null ? defaultUri : "");
+                        response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
                     }
+                    sendResponse(response);
                 }
 
                 @Override
@@ -504,8 +485,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         public boolean onRequest(final Intent request, final Intent response) {
             String target = getTarget(request);
 
-            final PreviewServerProvider serverProvider = mRecorderMgr.getPreviewServerProvider(target);
-            if (serverProvider == null) {
+            final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
+            if (recorder == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
@@ -513,7 +494,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    serverProvider.stopWebServers();
+                    recorder.getServerProvider().stopServers();
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
                 }
@@ -569,17 +550,17 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private boolean setMute(final boolean muted, final Intent request, final Intent response) {
         String target = getTarget(request);
 
-        final PreviewServerProvider serverProvider = mRecorderMgr.getPreviewServerProvider(target);
+        final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
 
-        if (serverProvider == null) {
+        if (recorder == null) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
 
-        serverProvider.requestPermission(new PreviewServerProvider.PermissionCallback() {
+        recorder.requestPermission(new HostDeviceRecorder.PermissionCallback() {
             @Override
             public void onAllowed() {
-                PreviewServer server = serverProvider.getServerForMimeType("video/x-rtp");
+                PreviewServer server = recorder.getServerProvider().getServerForMimeType("video/x-rtp");
                 if (server != null) {
                     if (muted) {
                         server.mute();
@@ -621,8 +602,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+            final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
+                MessageUtils.setNotSupportAttributeError(response,
+                        "target does not support stream recording.");
+                return true;
+            }
+
+            if (!(recorder instanceof HostDeviceStreamRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
                         "target does not support stream recording.");
                 return true;
@@ -634,17 +621,20 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
+            HostDeviceStreamRecorder streamRecorder = (HostDeviceStreamRecorder) recorder;
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    recorder.startRecording(getServiceID(request), new HostDeviceStreamRecorder.RecordingListener() {
+                    streamRecorder.startRecording(new HostDeviceStreamRecorder.RecordingListener() {
                         @Override
-                        public void onRecorded(final HostDeviceStreamRecorder recorder, final String fileName) {
+                        public void onRecorded(final HostDeviceStreamRecorder streamRecorder, final String fileName) {
                             setResult(response, DConnectMessage.RESULT_OK);
                             setPath(response, "/" + fileName);
                             setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mFileManager.getContentUri() + "/" + fileName,
+
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),
+                                    mFileManager.getContentUri() + "/" + fileName,
                                     "/" + fileName, recorder.getMimeType(), null);
                         }
 
@@ -684,29 +674,38 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+            final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
                 MessageUtils.setNotSupportAttributeError(response,
                         "target does not support stream recording.");
                 return true;
             }
+
+            if (!(recorder instanceof HostDeviceStreamRecorder)) {
+                MessageUtils.setNotSupportAttributeError(response,
+                        "target does not support stream recording.");
+                return true;
+            }
+
             if (recorder.getState() == HostDeviceRecorder.RecorderState.INACTTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
                 return true;
             }
 
+            HostDeviceStreamRecorder streamRecorder = (HostDeviceStreamRecorder) recorder;
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-
-                    recorder.stopRecording(new HostDeviceStreamRecorder.StoppingListener() {
+                    streamRecorder.stopRecording(new HostDeviceStreamRecorder.StoppingListener() {
                         @Override
-                        public void onStopped(HostDeviceStreamRecorder recorder, String fileName) {
+                        public void onStopped(HostDeviceStreamRecorder streamRecorder, String fileName) {
                             setResult(response, DConnectMessage.RESULT_OK);
                             setPath(response, "/" + fileName);
                             setUri(response, mFileManager.getContentUri() + "/" + fileName);
                             sendResponse(response);
-                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),mFileManager.getContentUri() + "/" + fileName,
+
+                            mRecorderMgr.sendEventForRecordingChange(getServiceID(request), recorder.getState(),
+                                    mFileManager.getContentUri() + "/" + fileName,
                                     "/" + fileName, recorder.getMimeType(), null);
                         }
 
@@ -747,14 +746,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            final HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+            final HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
                 MessageUtils.setNotSupportAttributeError(response,
                         "target does not support stream recording.");
                 return true;
             }
 
-            if (!recorder.canPauseRecording()) {
+            if (!(recorder instanceof HostDeviceStreamRecorder)) {
+                MessageUtils.setNotSupportAttributeError(response,
+                        "target does not support stream recording.");
+                return true;
+            }
+
+            HostDeviceStreamRecorder streamRecorder = (HostDeviceStreamRecorder) recorder;
+
+            if (!streamRecorder.canPauseRecording()) {
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
             }
@@ -767,7 +774,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             init(new PermissionUtility.PermissionRequestCallback() {
                 @Override
                 public void onSuccess() {
-                    recorder.pauseRecording();
+                    streamRecorder.pauseRecording();
 
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);

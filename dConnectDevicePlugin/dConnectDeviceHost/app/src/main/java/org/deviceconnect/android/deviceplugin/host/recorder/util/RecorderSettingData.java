@@ -18,6 +18,7 @@ public class RecorderSettingData {
 
     /** Context */
     private Context context;
+
     /** シングルトン用 */
     private static RecorderSettingData instance;
 

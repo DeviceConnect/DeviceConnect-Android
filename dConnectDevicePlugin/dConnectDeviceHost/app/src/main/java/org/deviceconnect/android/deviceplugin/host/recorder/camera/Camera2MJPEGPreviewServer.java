@@ -12,7 +12,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
@@ -31,27 +30,41 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "host.dplugin";
 
+    /**
+     * Motion JPEG のマイムタイプを定義します.
+     */
     private static final String MIME_TYPE = "video/x-mjpeg";
 
-    private final Camera2Recorder mRecorder;
+    /**
+     * サーバー名を定義します.
+     */
+    private static final String SERVER_NAME = "Android Host Camera2 MJPEG Server";
 
+    /**
+     * MotionJPEG 配信サーバ.
+     */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context,
-                              AbstractPreviewServerProvider serverProvider,
-                             Camera2Recorder recorder) {
-        super(context, serverProvider);
-        mRecorder = recorder;
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder) {
+        super(context, recorder);
         setPort(11000);
     }
 
+    // PreviewServer
+
+    @Override
     public int getQuality() {
-        return RecorderSettingData.getInstance(mRecorder.getContext()).readPreviewQuality(mRecorder.getId());
+        return RecorderSettingData.getInstance(getContext()).readPreviewQuality(getRecorder().getId());
     }
 
     @Override
     public void setQuality(int quality) {
-        RecorderSettingData.getInstance(mRecorder.getContext()).storePreviewQuality(mRecorder.getId(), quality);
+        RecorderSettingData.getInstance(getContext()).storePreviewQuality(getRecorder().getId(), quality);
+    }
+
+    @Override
+    public String getUri() {
+        return mMJPEGServer == null ? null : mMJPEGServer.getUri();
     }
 
     @Override
@@ -63,7 +76,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mMJPEGServer == null) {
             mMJPEGServer = new MJPEGServer();
-            mMJPEGServer.setServerName("HostDevicePlugin Server");
+            mMJPEGServer.setServerName(SERVER_NAME);
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
             try {
@@ -73,7 +86,7 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart(mMJPEGServer.getUri());
+        callback.onStart(getUri());
     }
 
     @Override
@@ -121,14 +134,16 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             }
             registerConfigChangeReceiver();
 
-            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+            Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(mRecorder);
+            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
+
+            CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(recorder);
             MJPEGQuality quality = encoder.getMJPEGQuality();
             quality.setWidth(size.getWidth());
             quality.setHeight(size.getHeight());
             quality.setQuality(getQuality());
-            quality.setFrameRate((int) mRecorder.getMaxFrameRate());
+            quality.setFrameRate((int) recorder.getMaxFrameRate());
             return encoder;
         }
 

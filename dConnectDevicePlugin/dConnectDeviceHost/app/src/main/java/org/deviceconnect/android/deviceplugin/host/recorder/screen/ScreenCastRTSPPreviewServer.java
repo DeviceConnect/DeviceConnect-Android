@@ -7,7 +7,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -46,12 +45,15 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
      */
     private RtspServer mRtspServer;
 
-    ScreenCastRTSPPreviewServer(Context context,
-                                AbstractPreviewServerProvider serverProvider,
-                                ScreenCastManager screenCastMgr) {
-        super(context, serverProvider);
-        mScreenCastMgr = screenCastMgr;
+    ScreenCastRTSPPreviewServer(Context context, ScreenCastRecorder recorder) {
+        super(context, recorder);
+        mScreenCastMgr = recorder.getScreenCastMgr();
         setPort(20000);
+    }
+
+    @Override
+    public String getUri() {
+        return "rtsp://localhost:" + getPort();
     }
 
     @Override
@@ -73,7 +75,7 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
-        callback.onStart("rtsp://localhost:" + getPort());
+        callback.onStart(getUri());
     }
 
     @Override
@@ -143,16 +145,18 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
+            ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+
             ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr);
             videoStream.setDestinationPort(5006);
 
-            HostDeviceRecorder.PictureSize size = getServerProvider().getPreviewSize();
+            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
             videoQuality.setVideoWidth(size.getWidth());
             videoQuality.setVideoHeight(size.getHeight());
-            videoQuality.setBitRate(getServerProvider().getPreviewBitRate());
-            videoQuality.setFrameRate((int) getServerProvider().getMaxFrameRate());
+            videoQuality.setBitRate(recorder.getPreviewBitRate());
+            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(2);
 
             session.setVideoMediaStream(videoStream);

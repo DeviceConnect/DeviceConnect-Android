@@ -22,6 +22,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -50,8 +51,10 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     private final Context mContext;
+
     /** MediaRecoder. */
     private MediaRecorder mMediaRecorder;
+
     /** フォルダURI. */
     private File mFile;
 
@@ -170,16 +173,26 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
-    public void mute() {
+    public void muteTrack() {
     }
 
     @Override
-    public void unMute() {
+    public void unMuteTrack() {
     }
 
     @Override
-    public boolean isMuted() {
+    public boolean isMutedTrack() {
         return false;
+    }
+
+    @Override
+    public PreviewServerProvider getServerProvider() {
+        return null;
+    }
+
+    @Override
+    public void requestPermission(PermissionCallback callback) {
+
     }
 
     @Override
@@ -193,7 +206,7 @@ public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceSt
     }
 
     @Override
-    public synchronized void startRecording(final String serviceId, final RecordingListener listener) {
+    public synchronized void startRecording(final RecordingListener listener) {
         if (getState() == RecorderState.RECORDING) {
             throw new IllegalStateException();
         }

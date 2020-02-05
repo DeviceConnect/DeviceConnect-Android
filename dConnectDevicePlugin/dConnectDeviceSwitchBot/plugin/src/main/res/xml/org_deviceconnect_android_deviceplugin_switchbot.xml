@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceplugin-provider spec-path="org_deviceconnect_android_deviceplugin_switchbot/api">
+
+    <profile name="button" />
+    <profile name="switch" />
+
+    <profile name="serviceDiscovery" />
+    <profile name="serviceInformation" />
+    <profile name="system" />
+
+</deviceplugin-provider>

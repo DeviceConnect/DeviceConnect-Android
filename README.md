@@ -137,12 +137,8 @@ curl  -X GET \
 |[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
 |[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Androidのデバイスプラグイン。|
 |[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Hueのデバイスプラグイン。|
-|[dConnectDeviceHVC](dConnectDevicePlugin/dConnectDeviceHVC)|HVC-Cのデバイスプラグイン。|
-|[dConnectDeviceHVCC2W](dConnectDevicePlugin/dConnectDeviceHVCC2W)|HVC-C2Wのデバイスプラグイン。|
-|[dConnectDeviceHVCP](dConnectDevicePlugin/dConnectDeviceHVCP)|HVC-Pのデバイスプラグイン。|
 |[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|IRKitのデバイスプラグイン。|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Linkingのデバイスプラグイン。|
-|[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Spheroのデバイスプラグイン。|
 |[dConnectDeviceSwitchBot](dConnectDevicePlugin/dConnectDeviceSwitchBot)|SwitchBotのデバイスプラグイン。|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
@@ -221,12 +217,8 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
-* [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)
-* [HVC-C2W](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCC2WDevice-Build)
-* [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
-* [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
 * [SwitchBot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SwitchBot-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)

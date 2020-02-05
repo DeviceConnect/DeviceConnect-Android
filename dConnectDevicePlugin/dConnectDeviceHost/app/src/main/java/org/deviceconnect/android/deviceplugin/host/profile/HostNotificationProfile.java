@@ -55,7 +55,8 @@ public class HostNotificationProfile extends NotificationProfile {
     /**
      * Notification Flag.
      */
-    private static final String ACTON_NOTIFICATION = "org.deviceconnect.android.intent.action.notifiy";
+    private static final String ACTON_CLICK_NOTIFICATION = "org.deviceconnect.android.intent.action.click.notifiy";
+    private static final String ACTON_DELETE_NOTIFICATION = "org.deviceconnect.android.intent.action.delete.notifiy";
 
     /** ランダムシード. */
     private final Random mRandom = new Random();
@@ -71,8 +72,10 @@ public class HostNotificationProfile extends NotificationProfile {
         public boolean onRequest(final Intent request, final Intent response) {
             if (mNotificationStatusReceiver == null) {
                 mNotificationStatusReceiver = new NotificationStatusReceiver();
-                getContext().getApplicationContext().registerReceiver(mNotificationStatusReceiver,
-                    new IntentFilter(ACTON_NOTIFICATION));
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(ACTON_CLICK_NOTIFICATION);
+                filter.addAction(ACTON_DELETE_NOTIFICATION);
+                getContext().getApplicationContext().registerReceiver(mNotificationStatusReceiver, filter);
             }
             String serviceId = getServiceID(request);
             NotificationType type = getType(request);
@@ -120,12 +123,20 @@ public class HostNotificationProfile extends NotificationProfile {
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             } else {
                 // Build intent for notification content
-                Intent notifyIntent = new Intent(ACTON_NOTIFICATION);
-                notifyIntent.putExtra("notificationId", notifyId);
-                notifyIntent.putExtra("serviceId", serviceId);
+                Intent notifyClickIntent = new Intent(ACTON_CLICK_NOTIFICATION);
+                notifyClickIntent.putExtra("notificationId", notifyId);
+                notifyClickIntent.putExtra("serviceId", serviceId);
 
-                PendingIntent mPendingIntent = PendingIntent.getBroadcast(getContext(),
-                    notifyId, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent pendingClickIntent = PendingIntent.getBroadcast(getContext(),
+                    notifyId, notifyClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                Intent notifyDeleteIntent = new Intent(ACTON_DELETE_NOTIFICATION);
+                notifyDeleteIntent.putExtra("notificationId", notifyId);
+                notifyDeleteIntent.putExtra("serviceId", serviceId);
+
+                PendingIntent pendingDeleteIntent = PendingIntent.getBroadcast(getContext(),
+                        notifyId, notifyDeleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
                 Notification notification;
                 // Get an instance of the NotificationManager service
@@ -137,7 +148,8 @@ public class HostNotificationProfile extends NotificationProfile {
                             .setSmallIcon(iconType)
                             .setContentTitle("" + title)
                             .setContentText(encodeBody)
-                            .setContentIntent(mPendingIntent);
+                            .setContentIntent(pendingClickIntent)
+                            .setDeleteIntent(pendingDeleteIntent);
                     notification = notificationBuilder.build();
                 } else {
                     Notification.Builder notificationBuilder =
@@ -145,7 +157,8 @@ public class HostNotificationProfile extends NotificationProfile {
                             .setSmallIcon(Icon.createWithResource(getContext(), iconType))
                             .setContentTitle("" + title)
                             .setContentText(encodeBody)
-                            .setContentIntent(mPendingIntent);
+                            .setContentIntent(pendingClickIntent)
+                            .setDeleteIntent(pendingDeleteIntent);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         String channelId = getContext().getResources().getString(R.string.host_notification_channel_id);
                         NotificationChannel channel = new NotificationChannel(
@@ -235,7 +248,7 @@ public class HostNotificationProfile extends NotificationProfile {
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
             mNotificationStatusReceiver = new NotificationStatusReceiver();
-            IntentFilter intentFilter = new IntentFilter(ACTON_NOTIFICATION);
+            IntentFilter intentFilter = new IntentFilter(ACTON_CLICK_NOTIFICATION);
             getContext().registerReceiver(mNotificationStatusReceiver, intentFilter);
 
             // イベントの登録
@@ -259,6 +272,10 @@ public class HostNotificationProfile extends NotificationProfile {
 
         @Override
         public boolean onRequest(final Intent request, final Intent response) {
+            mNotificationStatusReceiver = new NotificationStatusReceiver();
+            IntentFilter intentFilter = new IntentFilter(ACTON_DELETE_NOTIFICATION);
+            getContext().registerReceiver(mNotificationStatusReceiver, intentFilter);
+
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
 
@@ -412,6 +429,19 @@ public class HostNotificationProfile extends NotificationProfile {
 
         @Override
         public void onReceive(final Context context, final Intent intent) {
+            String profile;
+            if (intent.getAction() == null) {
+                return;
+            }
+            // Intent#getAction()によってイベントプロファイル名を決める。
+            // 他のアクション名であれば処理をしない。
+            if (intent.getAction().equals(ACTON_CLICK_NOTIFICATION)) {
+                profile = HostNotificationProfile.ATTRIBUTE_ON_CLICK;
+            } else if (intent.getAction().equals(ACTON_DELETE_NOTIFICATION)) {
+                profile = HostNotificationProfile.ATTRIBUTE_ON_CLOSE;
+            } else {
+                return;
+            }
             // クリティカルセクション（バッテリーステータスの状態更新etc）にmutexロックを掛ける。
             synchronized (this) {
 
@@ -422,7 +452,7 @@ public class HostNotificationProfile extends NotificationProfile {
                         mServiceId,
                         HostNotificationProfile.PROFILE_NAME,
                         null,
-                        HostNotificationProfile.ATTRIBUTE_ON_CLICK);
+                        profile);
 
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);

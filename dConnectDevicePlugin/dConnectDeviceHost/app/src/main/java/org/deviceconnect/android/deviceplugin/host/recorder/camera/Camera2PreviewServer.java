@@ -20,6 +20,11 @@ abstract class Camera2PreviewServer extends AbstractPreviewServer {
     }
 
     /**
+     * カメラの再起動を要求します.
+     */
+    abstract void restartCamera();
+
+    /**
      * Camera2 のイベントを通知するリスナーを設定します.
      *
      * @param lister リスナー

@@ -99,6 +99,13 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
+        restartCamera();
+    }
+
+    // Camera2PreviewServer
+
+    @Override
+    void restartCamera() {
         if (mMJPEGServer != null) {
             new Thread(() -> {
                 if (mMJPEGServer != null) {

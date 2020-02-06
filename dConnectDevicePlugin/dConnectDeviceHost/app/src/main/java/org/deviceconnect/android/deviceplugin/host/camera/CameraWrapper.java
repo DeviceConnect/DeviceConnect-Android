@@ -337,12 +337,14 @@ public class CameraWrapper {
     private List<Surface> createSurfaceList() {
         List<Surface> surfaceList = new LinkedList<>();
         if (mIsPreview) {
-            surfaceList.add(mPreviewSurface);
+            if (mPreviewSurface != null) {
+                surfaceList.add(mPreviewSurface);
+            }
+            if (mTargetSurface != null) {
+                surfaceList.add(mTargetSurface);
+            }
         } else {
             surfaceList.add(mDummyPreviewReader.getSurface());
-        }
-        if (mTargetSurface != null) {
-            surfaceList.add(mTargetSurface);
         }
         if (mIsRecording) {
             surfaceList.add(mRecordingSurface);
@@ -433,7 +435,9 @@ public class CameraWrapper {
             CameraDevice cameraDevice = openCamera();
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            request.addTarget(mPreviewSurface);
+            if (mPreviewSurface != null) {
+                request.addTarget(mPreviewSurface);
+            }
             if (mTargetSurface != null) {
                 request.addTarget(mTargetSurface);
             }
@@ -459,7 +463,6 @@ public class CameraWrapper {
         }
         mIsPreview = false;
         mPreviewSurface = null;
-        mTargetSurface = null;
         if (mCaptureSession != null) {
             mCaptureSession.close();
             mCaptureSession = null;
@@ -487,7 +490,12 @@ public class CameraWrapper {
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
             if (mIsPreview) {
-                request.addTarget(mPreviewSurface);
+                if (mPreviewSurface != null) {
+                    request.addTarget(mPreviewSurface);
+                }
+                if (mTargetSurface != null) {
+                    request.addTarget(mTargetSurface);
+                }
             }
             request.addTarget(mRecordingSurface);
             setDefaultCaptureRequest(request);
@@ -659,7 +667,12 @@ public class CameraWrapper {
             final AtomicReference<CaptureResult> resultRef = new AtomicReference<>();
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             if (mIsPreview) {
-                request.addTarget(mPreviewSurface);
+                if (mPreviewSurface != null) {
+                    request.addTarget(mPreviewSurface);
+                }
+                if (mTargetSurface != null) {
+                    request.addTarget(mTargetSurface);
+                }
             } else {
                 request.addTarget(mDummyPreviewReader.getSurface());
             }
@@ -757,7 +770,12 @@ public class CameraWrapper {
             mCaptureSession = createCaptureSession(cameraDevice);
             final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             if (mIsPreview) {
-                requestBuilder.addTarget(mPreviewSurface);
+                if (mPreviewSurface != null) {
+                    requestBuilder.addTarget(mPreviewSurface);
+                }
+                if (mTargetSurface != null) {
+                    requestBuilder.addTarget(mTargetSurface);
+                }
             } else {
                 requestBuilder.addTarget(mDummyPreviewReader.getSurface());
             }
@@ -795,7 +813,12 @@ public class CameraWrapper {
                 mCaptureSession = createCaptureSession(cameraDevice);
                 final CaptureRequest.Builder requestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                 if (mIsPreview) {
-                    requestBuilder.addTarget(mPreviewSurface);
+                    if (mPreviewSurface != null) {
+                        requestBuilder.addTarget(mPreviewSurface);
+                    }
+                    if (mTargetSurface != null) {
+                        requestBuilder.addTarget(mTargetSurface);
+                    }
                 } else {
                     requestBuilder.addTarget(mDummyPreviewReader.getSurface());
                 }

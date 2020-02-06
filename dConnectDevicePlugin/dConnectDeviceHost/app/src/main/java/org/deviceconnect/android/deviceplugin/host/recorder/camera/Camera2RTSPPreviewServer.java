@@ -94,16 +94,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
-        if (mRtspServer != null) {
-            new Thread(() -> {
-                if (mRtspServer != null) {
-                    RtspSession session = mRtspServer.getRtspSession();
-                    if (session != null) {
-                        session.restartVideoStream();
-                    }
-                }
-            }).start();
-        }
+        restartCamera();
     }
 
     @Override
@@ -116,6 +107,22 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
     public void unMute() {
         super.unMute();
         setMute(false);
+    }
+
+    // Camera2PreviewServer
+
+    @Override
+    void restartCamera() {
+        if (mRtspServer != null) {
+            new Thread(() -> {
+                if (mRtspServer != null) {
+                    RtspSession session = mRtspServer.getRtspSession();
+                    if (session != null) {
+                        session.restartVideoStream();
+                    }
+                }
+            }).start();
+        }
     }
 
     /**

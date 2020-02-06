@@ -69,6 +69,13 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
+        restartCamera();
+    }
+
+    // Camera2PreviewServer
+
+    @Override
+    void restartCamera() {
         if (mSRTServer != null) {
             new Thread(() -> {
                 if (mSRTServer != null) {

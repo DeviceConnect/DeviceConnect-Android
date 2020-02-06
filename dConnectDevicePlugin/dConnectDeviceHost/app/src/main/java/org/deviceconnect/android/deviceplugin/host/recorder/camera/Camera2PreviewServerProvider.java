@@ -239,6 +239,9 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
             return;
         }
 
+        // Notification を閉じるイベントを送信
+        mContext.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+        
         if (!mOverlayManager.isOverlayAllowed()) {
             openOverlayPermissionActivity();
             return;

@@ -76,8 +76,26 @@ android {
     }
 }
 
-task zipDemo(type: Zip) {
-    File demoDir = new File(projectDir, '../demo')
+task cleanDemo(type: Exec) {
+    workingDir '../demo'
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'build.bat'
+    } else {
+        commandLine 'sh', 'build.sh', 'clean'
+    }
+}
+
+task buildDemo(type: Exec) {
+    workingDir '../demo'
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'build.bat'
+    } else {
+        commandLine 'sh', 'build.sh', 'build'
+    }
+}
+
+task zipDemo(type: Zip, dependsOn: buildDemo) {
+    File demoDir = new File(projectDir, '../demo/dist')
     File assetsDir = new File(projectDir, 'src/main/assets')
 
     from demoDir
@@ -85,4 +103,9 @@ task zipDemo(type: Zip) {
     archiveName = DEMO_ZIP_NAME
 }
 
-tasks.preBuild.dependsOn(zipDemo)
+tasks.clean.dependsOn(cleanDemo)
+tasks.whenTaskAdded { t ->
+    if (t.name.startsWith('generate') && t.name.endsWith('Assets')){
+        t.dependsOn zipDemo
+    }
+}

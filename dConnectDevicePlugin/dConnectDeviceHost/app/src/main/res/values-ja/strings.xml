@@ -25,6 +25,9 @@
     <string name="overlay_preview_content_title">カメラ撮影中</string>
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
 
+    <string name="overlay_preview_show">プレビューを画面に表示</string>
+    <string name="overlay_preview_hide">プレビューを画面から削除</string>
+
     <string name="host_settings_title">Host設定</string>
     <string name="host_settings_item_gps">GPS</string>
     <string name="host_settings_item_jpeg_quality_preview">JPEG 品質 - プレビュー</string>

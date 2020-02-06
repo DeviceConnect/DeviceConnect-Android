@@ -6,7 +6,6 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -21,7 +20,7 @@ import java.io.IOException;
 import androidx.annotation.RequiresApi;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class Camera2RTSPPreviewServer extends AbstractPreviewServer {
+class Camera2RTSPPreviewServer extends Camera2PreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraRTSP";
 
@@ -49,6 +48,13 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
         super(context, recorder);
         mRecorder = recorder;
         setPort(port);
+    }
+
+    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener onEventListener) {
+        super(context, recorder);
+        mRecorder = recorder;
+        setPort(port);
+        setOnEventListener(onEventListener);
     }
 
     @Override
@@ -140,6 +146,10 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
+            // カメラを開始することを通知
+            postOnCameraStarted();
+
+
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
             HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
@@ -178,6 +188,9 @@ class Camera2RTSPPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
+
+            // カメラを停止したことを通知
+            postOnCameraStopped();
         }
     };
 }

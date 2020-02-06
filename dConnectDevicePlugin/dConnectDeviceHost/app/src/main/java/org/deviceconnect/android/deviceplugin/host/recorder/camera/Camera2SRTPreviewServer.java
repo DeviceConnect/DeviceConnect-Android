@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
@@ -12,7 +11,7 @@ import org.deviceconnect.android.libsrt.server.SRTSession;
 
 import java.io.IOException;
 
-public class Camera2SRTPreviewServer extends AbstractPreviewServer {
+public class Camera2SRTPreviewServer extends Camera2PreviewServer {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
@@ -24,10 +23,11 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
 
     private SRTServer mSRTServer;
 
-    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port) {
+    Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port, final OnEventListener listener) {
         super(context, recorder);
         mRecorder = recorder;
         setPort(port);
+        setOnEventListener(listener);
     }
 
     @Override
@@ -88,6 +88,8 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "RtspServer.Callback#createSession()");
             }
 
+            postOnCameraStarted();
+
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
             HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
@@ -107,6 +109,8 @@ public class Camera2SRTPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "RtspServer.Callback#releaseSession()");
             }
+
+            postOnCameraStopped();
         }
     };
 }

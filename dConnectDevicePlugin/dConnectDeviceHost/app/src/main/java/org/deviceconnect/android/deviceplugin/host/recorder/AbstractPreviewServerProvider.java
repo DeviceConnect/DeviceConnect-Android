@@ -146,12 +146,12 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      *
      * @return NotificationId
      */
-    private int getNotificationId() {
+    protected int getNotificationId() {
         return mNotificationId;
     }
 
     /**
-     * Notificationを削除する.
+     * プレビュー配信サーバ停止用の Notification を削除します.
      *
      * @param id notification を識別する ID
      */
@@ -164,7 +164,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     /**
-     * Notificationを送信する.
+     * プレビュー配信サーバ停止用の Notification を送信します.
      *
      * @param id notification を識別する ID
      * @param name 名前
@@ -197,7 +197,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      * @param name 名前
      * @return Notification
      */
-    private Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
+    protected Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
             builder.setContentIntent(pendingIntent);

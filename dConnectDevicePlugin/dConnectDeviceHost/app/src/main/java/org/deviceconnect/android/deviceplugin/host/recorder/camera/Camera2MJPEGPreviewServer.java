@@ -11,7 +11,6 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
@@ -26,7 +25,7 @@ import java.net.Socket;
  *
  * {@link SurfaceTexture} をもとに実装.
  */
-class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
+class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "host.dplugin";
 
@@ -45,9 +44,10 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
      */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port) {
+    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener listener) {
         super(context, recorder);
         setPort(port);
+        setOnEventListener(listener);
     }
 
     // PreviewServer
@@ -132,6 +132,8 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
                 Log.d(TAG, "MJPEGServer.Callback#createMJPEGEncoder: ");
             }
 
+            postOnCameraStarted();
+
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
             HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
@@ -150,6 +152,8 @@ class Camera2MJPEGPreviewServer extends AbstractPreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#releaseMJPEGEncoder: ");
             }
+
+            postOnCameraStopped();
         }
     };
 }

@@ -11,16 +11,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
@@ -31,30 +32,44 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData.PREVIEW_JPEG_MIME_TYPE;
+
 /**
  * Host Device Recorder Manager.
  *
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceRecorderManager {
-
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-
-    private static final String TAG = "RecorderManager";
-
-    /** List of HostDeviceRecorder. */
+    /**
+     * List of HostDeviceRecorder.
+     */
     private final List<HostDeviceRecorder> mRecorders = new ArrayList<>();
 
-    /** HostDevicePhotoRecorder. */
+    /**
+     * HostDevicePhotoRecorder.
+     */
     private Camera2Recorder mDefaultPhotoRecorder;
 
-    /** コンテキスト. */
+    /**
+     * コンテキスト.
+     */
     private final DevicePluginContext mHostDevicePluginContext;
 
-    /** インテントフィルタ. */
+    /**
+     * 画面回転のイベントを受け取るための IntentFilter.
+     */
     private final IntentFilter mIntentFilter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
 
-    /** ブロードキャストレシーバ. */
+    /**
+     * カメラ管理クラス.
+     */
+    private CameraWrapperManager mCameraWrapperManager;
+
+    private FileManager mFileManager;
+
+    /**
+     * 画面の回転イベントを受け取るための BroadcastReceiver.
+     */
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -72,19 +87,44 @@ public class HostDeviceRecorderManager {
         }
     };
 
-    public HostDeviceRecorderManager(final DevicePluginContext pluginContext) {
+    public HostDeviceRecorderManager(final DevicePluginContext pluginContext, final FileManager fileManager) {
         mHostDevicePluginContext = pluginContext;
+        mFileManager = fileManager;
     }
 
-    public void createAudioRecorders() {
+    /**
+     * レコーダの初期化処理を行います.
+     *
+     * <p>
+     * ここで使用できるレコーダの登録を行います。
+     * </p>
+     */
+    public void initRecorders() {
+        if (checkCameraHardware()) {
+            mCameraWrapperManager = new CameraWrapperManager(getContext());
+            createCameraRecorders(mCameraWrapperManager, mFileManager);
+        }
+
+        if (checkMicrophone()) {
+            createAudioRecorders();
+        }
+
+        if (checkMediaProjection()) {
+            createScreenCastRecorder(mFileManager);
+        }
+
+        initRecorderSetting();
+    }
+
+    private void createAudioRecorders() {
         mRecorders.add(new HostDeviceAudioRecorder(getContext()));
     }
 
-    public void createScreenCastRecorder(final FileManager fileMgr) {
+    private void createScreenCastRecorder(final FileManager fileMgr) {
         mRecorders.add(new ScreenCastRecorder(getContext(), fileMgr));
     }
 
-    public void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
+    private void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
         for (CameraWrapper camera : cameraMgr.getCameraList()) {
             photoRecorders.add(new Camera2Recorder(getContext(), camera, fileMgr));
@@ -95,36 +135,91 @@ public class HostDeviceRecorderManager {
         }
     }
 
+    private void initRecorderSetting() {
+        final RecorderSettingData setting = RecorderSettingData.getInstance(getContext().getApplicationContext());
+        List<String> targets = new ArrayList<>();
+
+        for (HostDeviceRecorder recorder : getRecorders()) {
+            if (recorder instanceof AbstractPreviewServerProvider) {
+                PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
+                if (server != null) {
+                    targets.add(recorder.getId());
+                    setting.storePreviewQuality(recorder.getId(), server.getQuality());
+                    setting.storePreviewName(recorder.getId(), recorder.getName());
+                }
+            }
+        }
+        setting.saveTargets(targets.toArray(new String[targets.size()]));
+    }
+
+    /**
+     * 初期化処理を行います.
+     * <p>
+     * TODO 何も実装されていない
+     */
     public void initialize() {
         for (HostDeviceRecorder recorder : getRecorders()) {
             recorder.initialize();
         }
     }
 
+    /**
+     * 画面回転の監視を開始します.
+     */
     public void start() {
         getContext().registerReceiver(mBroadcastReceiver, mIntentFilter);
     }
 
+    /**
+     * 画面回転の監視を停止します.
+     */
     public void stop() {
-        getContext().unregisterReceiver(mBroadcastReceiver);
+        // 登録されていない BroadcastReceiver を解除すると例外が発生するので、try-catchしておく。
+        try {
+            getContext().unregisterReceiver(mBroadcastReceiver);
+        } catch (Exception e) {
+            // ignore.
+        }
     }
 
+    /**
+     * レコーダのクリア処理を行います.
+     */
     public void clean() {
         for (HostDeviceRecorder recorder : getRecorders()) {
             recorder.clean();
         }
     }
 
+    /**
+     * レコーダの破棄処理を行います.
+     */
     public void destroy() {
         for (HostDeviceRecorder recorder : getRecorders()) {
             recorder.destroy();
         }
+        mCameraWrapperManager.destroy();
     }
 
+    /**
+     * レコーダの配列を取得します.
+     *
+     * @return レコーダの配列
+     */
     public synchronized HostDeviceRecorder[] getRecorders() {
         return mRecorders.toArray(new HostDeviceRecorder[mRecorders.size()]);
     }
 
+    /**
+     * 指定された ID に対応するレコーダを取得します.
+     *
+     * <p>
+     * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
+     * </p>
+     *
+     * @param id レコーダの識別子
+     * @return レコーダ
+     */
     public HostDeviceRecorder getRecorder(final String id) {
         if (mRecorders.size() == 0) {
             return null;
@@ -143,6 +238,16 @@ public class HostDeviceRecorderManager {
         return null;
     }
 
+    /**
+     * 指定された ID に対応する静止画用のレコーダを取得します.
+     *
+     * <p>
+     * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
+     * </p>
+     *
+     * @param id  レコーダの識別子
+     * @return レコーダ
+     */
     public HostDevicePhotoRecorder getCameraRecorder(final String id) {
         if (id == null) {
             return mDefaultPhotoRecorder;
@@ -155,6 +260,16 @@ public class HostDeviceRecorderManager {
         return null;
     }
 
+    /**
+     * 指定された ID に対応する録画・録音用のレコーダを取得します.
+     *
+     * <p>
+     * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
+     * </p>
+     *
+     * @param id  レコーダの識別子
+     * @return レコーダ
+     */
     public HostDeviceStreamRecorder getStreamRecorder(final String id) {
         if (id == null) {
             return mDefaultPhotoRecorder;
@@ -188,8 +303,8 @@ public class HostDeviceRecorderManager {
 
     @SuppressWarnings("deprecation")
     public void sendEventForRecordingChange(final String serviceId, final HostDeviceRecorder.RecorderState state,
-                                             final String uri, final String path,
-                                             final String mimeType, final String errorMessage) {
+                                            final String uri, final String path,
+                                            final String mimeType, final String errorMessage) {
         List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
                 MediaStreamRecordingProfile.PROFILE_NAME, null,
                 MediaStreamRecordingProfile.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -231,4 +346,30 @@ public class HostDeviceRecorderManager {
         return mHostDevicePluginContext.getContext();
     }
 
+    /**
+     * カメラを端末がサポートしているかチェックします.
+     *
+     * @return カメラをサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkCameraHardware() {
+        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
+    }
+
+    /**
+     * マイク入力を端末がサポートしているかチェックします.
+     *
+     * @return マイク入力をサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkMicrophone() {
+        return getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
+    }
+
+    /**
+     * MediaProjection APIを端末がサポートしているかチェックします.
+     *
+     * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
+     */
+    private boolean checkMediaProjection() {
+        return HostDeviceRecorderManager.isSupportedMediaProjection();
+    }
 }

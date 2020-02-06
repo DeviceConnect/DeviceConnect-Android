@@ -530,6 +530,24 @@ public class Camera2Recorder implements HostDeviceRecorder, HostDevicePhotoRecor
     }
 
     /**
+     * プレビュー確認用の Surface を設定します.
+     *
+     * @param surface Surface
+     */
+    void setTargetSurface(Surface surface) {
+        mCameraWrapper.setTargetSurface(surface);
+    }
+
+    /**
+     * プレビュー中か確認します.
+     *
+     * @return プレビュー中の場合はtrue、それ以外はfalse
+     */
+    boolean isPreview() {
+        return mCameraWrapper.isPreview();
+    }
+
+    /**
      * プレビューを開始します.
      *
      * @param previewSurface プレビューを描画する Surface

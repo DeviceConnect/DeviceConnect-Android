@@ -24,8 +24,6 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -38,6 +36,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * カメラ操作クラス.
@@ -109,6 +110,11 @@ public class CameraWrapper {
     private Surface mPreviewSurface;
 
     private Surface mRecordingSurface;
+
+    /**
+     * プレビュー配信の画像を確認するための Surface.
+     */
+    private Surface mTargetSurface;
 
     private boolean mIsTouchOn;
 
@@ -324,12 +330,19 @@ public class CameraWrapper {
         return null;
     }
 
+    public void setTargetSurface(Surface surface) {
+        mTargetSurface = surface;
+    }
+
     private List<Surface> createSurfaceList() {
         List<Surface> surfaceList = new LinkedList<>();
         if (mIsPreview) {
             surfaceList.add(mPreviewSurface);
         } else {
             surfaceList.add(mDummyPreviewReader.getSurface());
+        }
+        if (mTargetSurface != null) {
+            surfaceList.add(mTargetSurface);
         }
         if (mIsRecording) {
             surfaceList.add(mRecordingSurface);
@@ -402,7 +415,7 @@ public class CameraWrapper {
             request.set(CaptureRequest.CONTROL_AE_MODE, mAutoExposureMode);
         }
         setWhiteBalance(request);
-        // LightがONの場合は、CONTROL_AE_MODEをCONTROL_AE_MODE_ONにする。
+        // Light が ON の場合は、CONTROL_AE_MODE を CONTROL_AE_MODE_ON にする。
         if (mIsTouchOn) {
             mUseTouch = true;
             request.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
@@ -421,6 +434,9 @@ public class CameraWrapper {
             CameraCaptureSession captureSession = createCaptureSession(cameraDevice);
             CaptureRequest.Builder request = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             request.addTarget(mPreviewSurface);
+            if (mTargetSurface != null) {
+                request.addTarget(mTargetSurface);
+            }
             request.set(CaptureRequest.JPEG_QUALITY, mPreviewJpegQuality);
             setDefaultCaptureRequest(request);
             captureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
@@ -443,6 +459,7 @@ public class CameraWrapper {
         }
         mIsPreview = false;
         mPreviewSurface = null;
+        mTargetSurface = null;
         if (mCaptureSession != null) {
             mCaptureSession.close();
             mCaptureSession = null;

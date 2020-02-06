@@ -25,6 +25,9 @@
     <string name="overlay_preview_content_title">Being captured by the camera</string>
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
 
+    <string name="overlay_preview_show">Show preview on screen</string>
+    <string name="overlay_preview_hide">Hide preview on screen</string>
+
     <string name="host_settings_title">Host Settings</string>
     <string name="host_settings_item_gps">GPS</string>
     <string name="host_settings_item_jpeg_quality_preview">JPEG Quality - Preview</string>

@@ -20,7 +20,6 @@ import android.telephony.TelephonyManager;
 
 import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.demo.HostDemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
@@ -43,13 +42,10 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libsrt.SRT;
@@ -62,11 +58,8 @@ import org.deviceconnect.android.service.DConnectService;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
-import static org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData.PREVIEW_JPEG_MIME_TYPE;
 
 /**
  * Host Device Plugin Context.
@@ -95,9 +88,6 @@ public class HostDevicePlugin extends DevicePluginContext {
 
     /** メディアプレイヤー管理クラス. */
     private HostMediaPlayerManager mHostMediaPlayerManager;
-
-    /** カメラ管理クラス. */
-    private CameraWrapperManager mCameraWrapperManager;
 
     /** レコーダ管理クラス. */
     private HostDeviceRecorderManager mRecorderMgr;
@@ -183,10 +173,9 @@ public class HostDevicePlugin extends DevicePluginContext {
         mHostBatteryManager.getBatteryInfo();
 
         SRT.startup();
-        mRecorderMgr = new HostDeviceRecorderManager(this);
-        initRecorders(mRecorderMgr);
+        mRecorderMgr = new HostDeviceRecorderManager(this, mFileMgr);
+        mRecorderMgr.initRecorders();
         mRecorderMgr.start();
-        initRecorderSetting(mRecorderMgr);
 
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
@@ -214,11 +203,14 @@ public class HostDevicePlugin extends DevicePluginContext {
             hostService.addProfile(new HostProximityProfile());
         }
 
+        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
         if (mRecorderMgr.getRecorders().length > 0) {
             mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
             hostService.addProfile(mHostMediaStreamRecordingProfile);
             hostService.addProfile(new HostCameraProfile(mRecorderMgr));
         }
+
+        // カメラが使用できる場合は、Light プロファイルを追加
         if (checkCameraHardware()) {
             HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
             if (defaultRecorder instanceof HostDevicePhotoRecorder) {
@@ -261,34 +253,7 @@ public class HostDevicePlugin extends DevicePluginContext {
             mLogger.info("Demo page update is not needed.");
         }
     }
-    private void initRecorders(final HostDeviceRecorderManager recorderMgr) {
-        if (checkCameraHardware()) {
-            mCameraWrapperManager = new CameraWrapperManager(getContext());
-            recorderMgr.createCameraRecorders(mCameraWrapperManager, mFileMgr);
-        }
-        if (checkMicrophone()) {
-            recorderMgr.createAudioRecorders();
-        }
-        if (checkMediaProjection()) {
-            recorderMgr.createScreenCastRecorder(mFileMgr);
-        }
-    }
-    private void initRecorderSetting(final HostDeviceRecorderManager recorderMgr) {
-        final RecorderSettingData setting = RecorderSettingData.getInstance(getContext().getApplicationContext());
-        List<String> targets = new ArrayList<>();
 
-        for (HostDeviceRecorder recorder : recorderMgr.getRecorders()) {
-            if (recorder instanceof AbstractPreviewServerProvider) {
-                PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
-                if (server != null) {
-                    targets.add(recorder.getId());
-                    setting.storePreviewQuality(recorder.getId(), server.getQuality());
-                    setting.storePreviewName(recorder.getId(), recorder.getName());
-                }
-            }
-        }
-        setting.saveTargets(targets.toArray(new String[targets.size()]));
-    }
     private void updateDemoPage(final Context context) {
         mDemoInstaller.update(new DemoInstaller.UpdateCallback() {
             @Override
@@ -324,9 +289,7 @@ public class HostDevicePlugin extends DevicePluginContext {
         SRT.cleanup();
 
         mFileDataManager.stopTimer();
-        if (mCameraWrapperManager != null) {
-            mCameraWrapperManager.destroy();
-        }
+
         if (mHostMediaStreamRecordingProfile != null) {
             mHostMediaStreamRecordingProfile.destroy();
         }

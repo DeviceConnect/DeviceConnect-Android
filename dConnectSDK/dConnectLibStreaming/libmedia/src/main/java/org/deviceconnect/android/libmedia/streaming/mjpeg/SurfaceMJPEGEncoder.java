@@ -188,6 +188,10 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
 
                 mStManager = new SurfaceTextureManager(true);
 
+                MJPEGQuality quality = getMJPEGQuality();
+                SurfaceTexture st = mStManager.getSurfaceTexture();
+                st.setDefaultBufferSize(quality.getWidth(), quality.getHeight());
+
                 prepare();
 
                 while (!mStopFlag) {

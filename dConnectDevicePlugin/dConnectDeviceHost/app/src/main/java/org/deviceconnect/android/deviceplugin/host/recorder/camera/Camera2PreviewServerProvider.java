@@ -28,6 +28,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServe
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayPermissionActivity;
 
 import java.util.List;
 
@@ -221,10 +222,25 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     }
 
     /**
+     * オーバーレイの許可を求めるための Activity を開きます.
+     */
+    private void openOverlayPermissionActivity() {
+        Intent intent = new Intent();
+        intent.setClass(mContext, OverlayPermissionActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContext.startActivity(intent);
+    }
+
+    /**
      * オーバーレイ上にプレビューを表示します.
      */
     private synchronized void showPreviewOnOverlay() {
         if (mOverlayView != null) {
+            return;
+        }
+
+        if (!mOverlayManager.isOverlayAllowed()) {
+            openOverlayPermissionActivity();
             return;
         }
 

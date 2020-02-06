@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
+import android.provider.Settings;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
@@ -275,6 +276,19 @@ public class OverlayManager {
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
+    }
+
+    /**
+     * オーバーレイの表示許可を確認します.
+     *
+     * @return オーバーレイの表示許可がある場合はtrue、それ以外はfalse
+     */
+    public boolean isOverlayAllowed() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.canDrawOverlays(mContext);
+        } else {
+            return true;
+        }
     }
 
     private static class OverlayTag {

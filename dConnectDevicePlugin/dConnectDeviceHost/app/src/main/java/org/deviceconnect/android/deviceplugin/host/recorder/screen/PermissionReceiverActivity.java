@@ -11,6 +11,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.view.View;
@@ -22,7 +23,7 @@ import android.view.WindowManager;
  *
  * @author NTT DOCOMO, INC.
  */
-@TargetApi(21)
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class PermissionReceiverActivity extends Activity {
 
     private static final int REQUEST_CODE = 1;

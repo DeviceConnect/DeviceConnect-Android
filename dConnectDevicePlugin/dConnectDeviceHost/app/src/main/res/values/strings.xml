@@ -26,6 +26,11 @@
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
     <string name="overlay_preview_content_message2">Being captured by the camera.</string>
 
+    <string name="overlay_no_permission_title">Permission</string>
+    <string name="overlay_no_permission_message">You have not been granted permission to view the overlay. \ nDo you want to open the settings screen?</string>
+    <string name="overlay_no_permission_ok">Yes</string>
+    <string name="overlay_no_permission_no">No</string>
+
     <string name="overlay_preview_show">Show preview on screen</string>
     <string name="overlay_preview_hide">Hide preview on screen</string>
     <string name="overlay_preview_stop">Stop preview</string>

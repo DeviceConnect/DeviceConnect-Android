@@ -111,7 +111,7 @@ public class HostRecorderSettingFragment extends BaseHostSettingPageFragment {
             int quality = mRecorderSetting.getJpegQuality(target.getTarget(), 40);
 
             holder.mNameView.setText(target.getName());
-            holder.mValueView.setText(String.valueOf(quality));
+            holder.mValueView.setText(quality + "%");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 holder.mSeekBar.setMin(1);
             }

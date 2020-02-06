@@ -13,14 +13,15 @@ import java.util.Set;
  * Recorderの設定データ管理クラス.
  */
 public class RecorderSetting {
-    public static final String PREVIEW_JPEG_MIME_TYPE = "video/x-mjpeg";
 
-    /** Context */
-    private Context mContext;
+    /**
+     * シングルトン用のインスタンス.
+     */
+    private static RecorderSetting mInstance;
 
-    /** シングルトン用 */
-    private static RecorderSetting instance;
-
+    /**
+     * データを保存するプリファレンス.
+     */
     private SharedPreferences mSharedPreferences;
 
     /**
@@ -30,7 +31,6 @@ public class RecorderSetting {
      * @param context Context
      */
     private RecorderSetting(Context context) {
-        mContext = context;
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
@@ -41,10 +41,10 @@ public class RecorderSetting {
      * @return インスタンス
      */
     public static RecorderSetting getInstance(Context context) {
-        if (instance == null) {
-            instance = new RecorderSetting(context);
+        if (mInstance == null) {
+            mInstance = new RecorderSetting(context);
         }
-        return instance;
+        return mInstance;
     }
 
     /**

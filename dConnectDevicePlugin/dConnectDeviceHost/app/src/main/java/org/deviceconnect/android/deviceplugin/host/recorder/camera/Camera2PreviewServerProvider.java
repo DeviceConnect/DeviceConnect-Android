@@ -21,7 +21,6 @@ import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
@@ -129,6 +128,8 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
 
     @Override
     public void onConfigChange() {
+        super.onConfigChange();
+
         if (mOverlayView != null) {
             // 画面が回転したので、オーバーレイのレイアウトも調整
             mOverlayManager.update();
@@ -140,8 +141,6 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
 
             adjustSurfaceView(mRecorder.isSwappedDimensions());
         }
-
-        super.onConfigChange();
     }
 
     @Override
@@ -320,10 +319,16 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
                 changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
             }
 
-            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
-            layoutParams.width = changeSize.getWidth();
-            layoutParams.height = changeSize.getHeight();
-            surfaceView.setLayoutParams(layoutParams);
+//            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
+//            layoutParams.width = changeSize.getWidth();
+//            layoutParams.height = changeSize.getHeight();
+//            surfaceView.setLayoutParams(layoutParams);
+
+            mOverlayManager.updateView(mOverlayView,
+                    0,
+                    0,
+                    changeSize.getWidth(),
+                    changeSize.getHeight());
 
             surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
         });

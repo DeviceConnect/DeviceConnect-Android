@@ -267,7 +267,7 @@ public class OverlayManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         } else {
-            type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+            type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         }
         return new WindowManager.LayoutParams(
                 w, h, type,

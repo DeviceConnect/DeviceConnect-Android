@@ -50,13 +50,13 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     /**
      * プレビュー配信を行うレコーダ.
      */
-    private HostDeviceRecorder mRecorder;
+    private HostMediaRecorder mRecorder;
 
     /**
      * コンストラクタ.
      * @param context コンテキスト
      */
-    public AbstractPreviewServerProvider(final Context context, final HostDeviceRecorder recorder, final int notificationId) {
+    public AbstractPreviewServerProvider(final Context context, final HostMediaRecorder recorder, final int notificationId) {
         mContext = context;
         mRecorder = recorder;
         mNotificationId = notificationId;
@@ -203,7 +203,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             builder.setContentIntent(pendingIntent);
             builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
             builder.setSmallIcon(R.drawable.dconnect_icon);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + name + ")");
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
@@ -216,7 +216,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
             int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
                     R.drawable.dconnect_icon : R.drawable.dconnect_icon_lollipop;
             builder.setSmallIcon(iconType);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + name + ")");
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);

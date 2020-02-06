@@ -20,8 +20,8 @@ import androidx.annotation.NonNull;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.FlashingExecutor;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -257,9 +257,9 @@ public class HostLightProfile extends LightProfile {
     /**
      * Constructor.
      * @param context context.
-     * @param manager HostDeviceRecorderManager.
+     * @param manager HostMediaRecorderManager.
      */
-    public HostLightProfile(final Context context, final HostDeviceRecorderManager manager) {
+    public HostLightProfile(final Context context, final HostMediaRecorderManager manager) {
         mContext = context;
         manager.initialize();
         mPhotoRec = manager.getCameraRecorder(null);
@@ -296,7 +296,7 @@ public class HostLightProfile extends LightProfile {
      * @return 使用可能の場合は true, そうでない場合は false.
      */
     private boolean isCameraAvailable() {
-        if (((HostDeviceRecorder) mPhotoRec).getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+        if (((HostMediaRecorder) mPhotoRec).getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
             return false;
         }
         return true;

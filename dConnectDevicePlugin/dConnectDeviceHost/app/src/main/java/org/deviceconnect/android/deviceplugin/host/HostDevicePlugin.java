@@ -43,8 +43,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -90,7 +90,7 @@ public class HostDevicePlugin extends DevicePluginContext {
     private HostMediaPlayerManager mHostMediaPlayerManager;
 
     /** レコーダ管理クラス. */
-    private HostDeviceRecorderManager mRecorderMgr;
+    private HostMediaRecorderManager mRecorderMgr;
     /**
      * MediaStreamRecordingProfile の実装.
      */
@@ -173,7 +173,7 @@ public class HostDevicePlugin extends DevicePluginContext {
         mHostBatteryManager.getBatteryInfo();
 
         SRT.startup();
-        mRecorderMgr = new HostDeviceRecorderManager(this, mFileMgr);
+        mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
         mRecorderMgr.initRecorders();
         mRecorderMgr.start();
 
@@ -212,7 +212,7 @@ public class HostDevicePlugin extends DevicePluginContext {
 
         // カメラが使用できる場合は、Light プロファイルを追加
         if (checkCameraHardware()) {
-            HostDeviceRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
+            HostMediaRecorder defaultRecorder = mRecorderMgr.getRecorder(null);
             if (defaultRecorder instanceof HostDevicePhotoRecorder) {
                 hostService.addProfile(new HostLightProfile(context, mRecorderMgr));
             }
@@ -483,7 +483,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkMediaProjection() {
-        return HostDeviceRecorderManager.isSupportedMediaProjection();
+        return HostMediaRecorderManager.isSupportedMediaProjection();
     }
 
     @Override

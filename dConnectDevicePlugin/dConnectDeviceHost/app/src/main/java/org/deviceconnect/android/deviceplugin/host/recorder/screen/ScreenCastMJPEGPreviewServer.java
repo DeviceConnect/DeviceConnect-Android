@@ -4,7 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
@@ -106,7 +106,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
         public MJPEGEncoder createMJPEGEncoder() {
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
-            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
+            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
 
             ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
             MJPEGQuality quality = encoder.getMJPEGQuality();

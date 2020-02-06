@@ -1,5 +1,5 @@
 /*
- HostDeviceRecorderManager.java
+ HostMediaRecorderManager.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -39,11 +39,11 @@ import static org.deviceconnect.android.deviceplugin.host.recorder.util.Recorder
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceRecorderManager {
+public class HostMediaRecorderManager {
     /**
-     * List of HostDeviceRecorder.
+     * List of HostMediaRecorder.
      */
-    private final List<HostDeviceRecorder> mRecorders = new ArrayList<>();
+    private final List<HostMediaRecorder> mRecorders = new ArrayList<>();
 
     /**
      * HostDevicePhotoRecorder.
@@ -76,7 +76,7 @@ public class HostDeviceRecorderManager {
             WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             if (windowManager != null) {
                 int rotation = windowManager.getDefaultDisplay().getRotation();
-                for (HostDeviceRecorder recorder : mRecorders) {
+                for (HostMediaRecorder recorder : mRecorders) {
                     try {
                         recorder.onDisplayRotation(rotation);
                     } catch (Exception e) {
@@ -87,7 +87,7 @@ public class HostDeviceRecorderManager {
         }
     };
 
-    public HostDeviceRecorderManager(final DevicePluginContext pluginContext, final FileManager fileManager) {
+    public HostMediaRecorderManager(final DevicePluginContext pluginContext, final FileManager fileManager) {
         mHostDevicePluginContext = pluginContext;
         mFileManager = fileManager;
     }
@@ -139,7 +139,7 @@ public class HostDeviceRecorderManager {
         final RecorderSettingData setting = RecorderSettingData.getInstance(getContext().getApplicationContext());
         List<String> targets = new ArrayList<>();
 
-        for (HostDeviceRecorder recorder : getRecorders()) {
+        for (HostMediaRecorder recorder : getRecorders()) {
             if (recorder instanceof AbstractPreviewServerProvider) {
                 PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
                 if (server != null) {
@@ -158,7 +158,7 @@ public class HostDeviceRecorderManager {
      * TODO 何も実装されていない
      */
     public void initialize() {
-        for (HostDeviceRecorder recorder : getRecorders()) {
+        for (HostMediaRecorder recorder : getRecorders()) {
             recorder.initialize();
         }
     }
@@ -186,7 +186,7 @@ public class HostDeviceRecorderManager {
      * レコーダのクリア処理を行います.
      */
     public void clean() {
-        for (HostDeviceRecorder recorder : getRecorders()) {
+        for (HostMediaRecorder recorder : getRecorders()) {
             recorder.clean();
         }
     }
@@ -195,7 +195,7 @@ public class HostDeviceRecorderManager {
      * レコーダの破棄処理を行います.
      */
     public void destroy() {
-        for (HostDeviceRecorder recorder : getRecorders()) {
+        for (HostMediaRecorder recorder : getRecorders()) {
             recorder.destroy();
         }
         mCameraWrapperManager.destroy();
@@ -206,8 +206,8 @@ public class HostDeviceRecorderManager {
      *
      * @return レコーダの配列
      */
-    public synchronized HostDeviceRecorder[] getRecorders() {
-        return mRecorders.toArray(new HostDeviceRecorder[mRecorders.size()]);
+    public synchronized HostMediaRecorder[] getRecorders() {
+        return mRecorders.toArray(new HostMediaRecorder[mRecorders.size()]);
     }
 
     /**
@@ -220,7 +220,7 @@ public class HostDeviceRecorderManager {
      * @param id レコーダの識別子
      * @return レコーダ
      */
-    public HostDeviceRecorder getRecorder(final String id) {
+    public HostMediaRecorder getRecorder(final String id) {
         if (mRecorders.size() == 0) {
             return null;
         }
@@ -230,7 +230,7 @@ public class HostDeviceRecorderManager {
             }
             return mRecorders.get(0);
         }
-        for (HostDeviceRecorder recorder : mRecorders) {
+        for (HostMediaRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId())) {
                 return recorder;
             }
@@ -252,7 +252,7 @@ public class HostDeviceRecorderManager {
         if (id == null) {
             return mDefaultPhotoRecorder;
         }
-        for (HostDeviceRecorder recorder : mRecorders) {
+        for (HostMediaRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
                 return (HostDevicePhotoRecorder) recorder;
             }
@@ -274,7 +274,7 @@ public class HostDeviceRecorderManager {
         if (id == null) {
             return mDefaultPhotoRecorder;
         }
-        for (HostDeviceRecorder recorder : mRecorders) {
+        for (HostMediaRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
                 return (HostDeviceStreamRecorder) recorder;
             }
@@ -292,7 +292,7 @@ public class HostDeviceRecorderManager {
             return;
         }
 
-        HostDeviceRecorder recorder = getRecorder(id);
+        HostMediaRecorder recorder = getRecorder(id);
         if (recorder != null) {
             PreviewServerProvider provider = recorder.getServerProvider();
             if (provider != null) {
@@ -302,7 +302,7 @@ public class HostDeviceRecorderManager {
     }
 
     @SuppressWarnings("deprecation")
-    public void sendEventForRecordingChange(final String serviceId, final HostDeviceRecorder.RecorderState state,
+    public void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.RecorderState state,
                                             final String uri, final String path,
                                             final String mimeType, final String errorMessage) {
         List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
@@ -370,6 +370,6 @@ public class HostDeviceRecorderManager {
      * @return MediaProjection APIをサポートしている場合はtrue、それ以外はfalse
      */
     private boolean checkMediaProjection() {
-        return HostDeviceRecorderManager.isSupportedMediaProjection();
+        return HostMediaRecorderManager.isSupportedMediaProjection();
     }
 }

@@ -19,7 +19,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
@@ -46,7 +46,7 @@ import androidx.annotation.NonNull;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(21)
-public class ScreenCastRecorder implements HostDeviceRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
     private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     static final String RESULT_DATA = "result_data";
@@ -357,7 +357,7 @@ public class ScreenCastRecorder implements HostDeviceRecorder, HostDevicePhotoRe
         try {
             mState = RecorderState.RECORDING;
 
-            HostDeviceRecorder.PictureSize size = getPreviewSize();
+            HostMediaRecorder.PictureSize size = getPreviewSize();
             int w = size.getWidth();
             int h = size.getHeight();
             ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);

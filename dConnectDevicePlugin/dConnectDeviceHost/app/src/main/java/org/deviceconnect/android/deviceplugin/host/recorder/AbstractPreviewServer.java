@@ -14,7 +14,7 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     /**
      * プレビュー再生を行うレコーダ.
      */
-    private HostDeviceRecorder mHostDeviceRecorder;
+    private HostMediaRecorder mHostMediaRecorder;
 
     /**
      * プレビュー配信サーバのポート番号.
@@ -36,9 +36,9 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      * @param context コンテキスト
      * @param recorder プレビューで表示するレコーダ
      */
-    public AbstractPreviewServer(Context context, HostDeviceRecorder recorder) {
+    public AbstractPreviewServer(Context context, HostMediaRecorder recorder) {
         mContext = context;
-        mHostDeviceRecorder = recorder;
+        mHostMediaRecorder = recorder;
         mMute = true;
     }
 
@@ -96,7 +96,7 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      *
      * @return レコーダー
      */
-    public HostDeviceRecorder getRecorder() {
-        return mHostDeviceRecorder;
+    public HostMediaRecorder getRecorder() {
+        return mHostMediaRecorder;
     }
 }

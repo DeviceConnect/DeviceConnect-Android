@@ -6,7 +6,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
@@ -159,7 +159,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
+            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
 
             CameraVideoStream videoStream = new CameraVideoStream(mRecorder);
             videoStream.setDestinationPort(5006);

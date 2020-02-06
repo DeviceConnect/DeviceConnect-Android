@@ -22,11 +22,13 @@
     <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
     <string name="overlay_preview_channel_title">Device Connect Preview</string>
     <string name="overlay_preview_channel_message">Preview with DeviceConnect.</string>
-    <string name="overlay_preview_content_title">Being captured by the camera</string>
+    <string name="overlay_preview_content_title">Running a preview Server [ %1$s ]</string>
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
+    <string name="overlay_preview_content_message2">Being captured by the camera.</string>
 
     <string name="overlay_preview_show">Show preview on screen</string>
     <string name="overlay_preview_hide">Hide preview on screen</string>
+    <string name="overlay_preview_stop">Stop preview</string>
 
     <string name="host_settings_title">Host Settings</string>
     <string name="host_settings_item_gps">GPS</string>

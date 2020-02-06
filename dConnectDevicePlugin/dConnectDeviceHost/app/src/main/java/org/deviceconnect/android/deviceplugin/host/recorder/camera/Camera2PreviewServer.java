@@ -3,7 +3,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 
 /**
  * Camera2 のプレビュー配信サーバの基底クラス.
@@ -15,7 +15,7 @@ abstract class Camera2PreviewServer extends AbstractPreviewServer {
      */
     private OnEventListener mOnEventListener;
 
-    Camera2PreviewServer(Context context, HostDeviceRecorder recorder) {
+    Camera2PreviewServer(Context context, HostMediaRecorder recorder) {
         super(context, recorder);
     }
 

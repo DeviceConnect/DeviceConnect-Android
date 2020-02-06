@@ -11,7 +11,7 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
@@ -143,7 +143,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
+            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
 
             CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(recorder);
             MJPEGQuality quality = encoder.getMJPEGQuality();

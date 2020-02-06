@@ -1,5 +1,5 @@
 /*
- HostDeviceRecorder.java
+ HostMediaRecorder.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public interface HostDeviceRecorder {
+public interface HostMediaRecorder {
     /**
      * MediaRecorder で使用するデフォルトのマイムタイプ.
      */

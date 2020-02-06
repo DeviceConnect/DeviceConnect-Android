@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,7 +26,7 @@ import android.view.ViewGroup;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayManager;
 
@@ -146,35 +147,39 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     @Override
     protected Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            int iconType = R.drawable.dconnect_icon;
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
-            builder.setContentIntent(pendingIntent);
             builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
-            builder.setSmallIcon(R.drawable.dconnect_icon);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + name + ")");
-            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setSmallIcon(iconType);
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
+            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message2));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
-            builder.addAction(new NotificationCompat.Action.Builder(R.drawable.dconnect_icon,
+            builder.addAction(new NotificationCompat.Action.Builder(iconType,
                     mContext.getString(R.string.overlay_preview_show), createShowActionIntent(mRecorder.getId())).build());
-            builder.addAction(new NotificationCompat.Action.Builder(R.drawable.dconnect_icon,
+            builder.addAction(new NotificationCompat.Action.Builder(iconType,
                     mContext.getString(R.string.overlay_preview_hide), createHideActionIntent(mRecorder.getId())).build());
+            builder.addAction(new NotificationCompat.Action.Builder(iconType,
+                    mContext.getString(R.string.overlay_preview_stop), pendingIntent).build());
             return builder.build();
         } else {
-            Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
-            builder.setContentIntent(pendingIntent);
-            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
             int iconType = R.drawable.dconnect_icon_lollipop;
+            Icon icon = Icon.createWithResource(mContext, R.drawable.dconnect_icon_lollipop);
+            Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
+            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
             builder.setSmallIcon(iconType);
-            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title) + " (" + name + ")");
-            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+            builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
+            builder.setContentText(mContext.getString(R.string.overlay_preview_content_message2));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
-            builder.addAction(new Notification.Action.Builder(iconType,
-                    mContext.getString(R.string.overlay_preview_show), createShowActionIntent(mRecorder.getId())).build());
-            builder.addAction(new Notification.Action.Builder(iconType,
-                    mContext.getString(R.string.overlay_preview_hide), createHideActionIntent(mRecorder.getId())).build());
             builder.setOngoing(true);
+            builder.addAction(new Notification.Action.Builder(icon,
+                    mContext.getString(R.string.overlay_preview_show), createShowActionIntent(mRecorder.getId())).build());
+            builder.addAction(new Notification.Action.Builder(icon,
+                    mContext.getString(R.string.overlay_preview_hide), createHideActionIntent(mRecorder.getId())).build());
+            builder.addAction(new Notification.Action.Builder(icon,
+                    mContext.getString(R.string.overlay_preview_stop), pendingIntent).build());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId != null) {
                 builder.setChannelId(channelId);
             }
@@ -272,19 +277,20 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      * オーバーレイ上に表示しているプレビューを削除します.
      */
     private synchronized void hidePreviewOnOverlay() {
-        try {
-            mRecorder.setTargetSurface(null);
-            mRecorder.stopPreview();
-        } catch (CameraWrapperException e) {
-            // ignore.
-        }
-        mOverlayManager.removeAllViews();
-        mOverlayView = null;
+        if (mOverlayView != null) {
+            try {
+                mRecorder.setTargetSurface(null);
+                mRecorder.stopPreview();
+            } catch (CameraWrapperException e) {
+                // ignore.
+            }
+            mOverlayManager.removeAllViews();
+            mOverlayView = null;
 
-
-        // プレビュー配信中は、カメラを再開させます。
-        if (mCameraPreviewFlag) {
-            restartCamera();
+            // プレビュー配信中は、カメラを再開させます。
+            if (mCameraPreviewFlag) {
+                restartCamera();
+            }
         }
     }
 
@@ -299,7 +305,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         }
 
         mHandler.post(() -> {
-            HostDeviceRecorder.PictureSize previewSize = mRecorder.getPreviewSize();
+            HostMediaRecorder.PictureSize previewSize = mRecorder.getPreviewSize();
             int cameraWidth = previewSize.getWidth();
             int cameraHeight = previewSize.getHeight();
 

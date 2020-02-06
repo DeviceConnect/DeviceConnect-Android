@@ -22,11 +22,13 @@
     <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
     <string name="overlay_preview_channel_title">Device Connect Preview</string>
     <string name="overlay_preview_channel_message">DeviceConnectでのプレビュー</string>
-    <string name="overlay_preview_content_title">カメラ撮影中</string>
+    <string name="overlay_preview_content_title">プレビュー配信サーバ [ %1$s ]</string>
     <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
+    <string name="overlay_preview_content_message2">カメラの映像をキャプチャしています。</string>
 
-    <string name="overlay_preview_show">プレビューを画面に表示</string>
-    <string name="overlay_preview_hide">プレビューを画面から削除</string>
+    <string name="overlay_preview_show">画面に表示</string>
+    <string name="overlay_preview_hide">画面から削除</string>
+    <string name="overlay_preview_stop">停止</string>
 
     <string name="host_settings_title">Host設定</string>
     <string name="host_settings_item_gps">GPS</string>

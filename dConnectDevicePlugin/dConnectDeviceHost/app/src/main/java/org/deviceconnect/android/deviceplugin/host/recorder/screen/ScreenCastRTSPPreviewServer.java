@@ -7,7 +7,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
@@ -149,7 +149,7 @@ class ScreenCastRTSPPreviewServer extends AbstractPreviewServer {
             ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr);
             videoStream.setDestinationPort(5006);
 
-            HostDeviceRecorder.PictureSize size = recorder.getPreviewSize();
+            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
             videoQuality.setVideoWidth(size.getWidth());

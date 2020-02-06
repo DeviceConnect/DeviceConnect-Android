@@ -20,7 +20,7 @@ import android.provider.MediaStore;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.provider.FileManager;
@@ -40,7 +40,7 @@ import androidx.annotation.NonNull;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceAudioRecorder implements HostDeviceRecorder, HostDeviceStreamRecorder {
+public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStreamRecorder {
 
     private static final String ID = "audio";
 

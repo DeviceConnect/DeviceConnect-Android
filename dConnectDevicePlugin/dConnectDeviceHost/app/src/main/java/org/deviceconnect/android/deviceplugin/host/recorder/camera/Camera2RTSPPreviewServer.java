@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import androidx.annotation.RequiresApi;
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2RTSPPreviewServer extends Camera2PreviewServer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "CameraRTSP";
@@ -44,12 +44,6 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
      * RTSP 配信サーバ.
      */
     private RtspServer mRtspServer;
-
-    Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port) {
-        super(context, recorder);
-        mRecorder = recorder;
-        setPort(port);
-    }
 
     Camera2RTSPPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener onEventListener) {
         super(context, recorder);

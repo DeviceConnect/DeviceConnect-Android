@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -18,7 +17,7 @@ import android.view.WindowManager;
 
 import org.deviceconnect.android.util.NotificationUtils;
 
-@TargetApi(21)
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastManager {
 
     private static final String RESULT_DATA = "result_data";

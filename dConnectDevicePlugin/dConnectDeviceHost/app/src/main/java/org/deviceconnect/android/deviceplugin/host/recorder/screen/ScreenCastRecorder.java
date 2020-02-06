@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.ImageReader;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -45,7 +46,7 @@ import androidx.annotation.NonNull;
  *
  * @author NTT DOCOMO, INC.
  */
-@TargetApi(21)
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
     private final Logger mLogger = Logger.getLogger("host.dplugin");
 

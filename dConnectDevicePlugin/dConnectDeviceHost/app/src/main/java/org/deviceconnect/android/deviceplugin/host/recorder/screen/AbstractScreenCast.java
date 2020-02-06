@@ -1,11 +1,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjection;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -15,8 +15,7 @@ import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
-
-@TargetApi(21)
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public abstract class AbstractScreenCast implements ScreenCast {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "ScreenCast";

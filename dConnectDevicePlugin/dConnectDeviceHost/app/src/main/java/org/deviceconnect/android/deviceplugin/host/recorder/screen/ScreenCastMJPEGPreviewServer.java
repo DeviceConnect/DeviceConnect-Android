@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -13,7 +14,7 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 import java.io.IOException;
 import java.net.Socket;
 
-@TargetApi(21)
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * MJPEG のマイムタイプを定義します.

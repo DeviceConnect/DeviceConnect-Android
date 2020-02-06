@@ -24,7 +24,7 @@ import java.io.IOException;
  *
  * @author NTT DOCOMO, INC.
  */
-public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
+class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 

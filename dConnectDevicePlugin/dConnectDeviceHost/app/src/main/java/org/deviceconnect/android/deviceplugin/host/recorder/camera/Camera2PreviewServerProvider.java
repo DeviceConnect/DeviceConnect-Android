@@ -309,20 +309,13 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
             int cameraHeight = previewSize.getHeight();
 
             SurfaceView surfaceView = mOverlayView.findViewById(R.id.surface_view);
-            View root = mOverlayView.findViewById(R.id.root);
-
             Size changeSize;
-            Size viewSize = new Size(root.getWidth(), root.getHeight());
+            Size viewSize = new Size(mOverlayManager.getDisplayWidth(), mOverlayManager.getDisplayHeight());
             if (isSwappedDimensions) {
                 changeSize = calculateViewSize(cameraHeight, cameraWidth, viewSize);
             } else {
                 changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
             }
-
-//            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
-//            layoutParams.width = changeSize.getWidth();
-//            layoutParams.height = changeSize.getHeight();
-//            surfaceView.setLayoutParams(layoutParams);
 
             mOverlayManager.updateView(mOverlayView,
                     0,

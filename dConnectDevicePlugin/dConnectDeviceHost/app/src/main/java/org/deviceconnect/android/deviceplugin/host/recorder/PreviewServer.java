@@ -50,18 +50,6 @@ public interface PreviewServer {
     void stopWebServer();
 
     /**
-     * プレビューの品質を取得します.
-     * @return 1-100
-     */
-    int getQuality();
-
-    /**
-     * プレビューの品質を設定します.
-     * @param quality 1-100
-     */
-    void setQuality(int quality);
-
-    /**
      * 画面が回転されたことを通知します.
      */
     void onConfigChange();

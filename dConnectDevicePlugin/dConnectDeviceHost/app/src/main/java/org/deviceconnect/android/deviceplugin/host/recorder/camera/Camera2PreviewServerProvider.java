@@ -121,9 +121,9 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
 
     @Override
     public void stopServers() {
+        mCameraPreviewFlag = false;
         unregisterBroadcastReceiver();
         mHandler.post(this::hidePreviewOnOverlay);
-        mCameraPreviewFlag = false;
         super.stopServers();
     }
 
@@ -145,7 +145,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     }
 
     @Override
-    protected Notification createNotification(final PendingIntent pendingIntent, final String channelId, String name) {
+    protected Notification createNotification(PendingIntent pendingIntent, String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             int iconType = R.drawable.dconnect_icon;
             NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());

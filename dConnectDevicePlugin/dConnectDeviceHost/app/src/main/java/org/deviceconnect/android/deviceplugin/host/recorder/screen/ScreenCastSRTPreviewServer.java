@@ -12,6 +12,7 @@ import android.util.Log;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
@@ -39,7 +40,7 @@ public class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
     ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder, final int port) {
         super(context, recorder);
         mScreenCastMgr = recorder.getScreenCastMgr();
-        setPort(port);
+        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
 
     @Override

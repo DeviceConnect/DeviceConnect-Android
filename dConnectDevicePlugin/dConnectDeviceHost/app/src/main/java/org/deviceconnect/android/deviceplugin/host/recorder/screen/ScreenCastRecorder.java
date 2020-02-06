@@ -61,8 +61,6 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     private static final String NAME = "AndroidHost Screen";
 
-    private static final String MIME_TYPE = "video/x-mjpeg";
-
     private static final double DEFAULT_MAX_FPS = 30.0d;
 
     /** ファイル名に付けるプレフィックス. */
@@ -159,7 +157,8 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     @Override
     public String getMimeType() {
-        return MIME_TYPE;
+        // デフォルトのマイムタイプを返却
+        return MIME_TYPE_JPEG;
     }
 
     @Override

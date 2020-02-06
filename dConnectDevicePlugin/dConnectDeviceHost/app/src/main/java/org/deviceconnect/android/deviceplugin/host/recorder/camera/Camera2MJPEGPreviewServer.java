@@ -12,7 +12,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
@@ -46,21 +46,11 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
 
     Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener listener) {
         super(context, recorder);
-        setPort(port);
+        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
         setOnEventListener(listener);
     }
 
     // PreviewServer
-
-    @Override
-    public int getQuality() {
-        return RecorderSettingData.getInstance(getContext()).readPreviewQuality(getRecorder().getId());
-    }
-
-    @Override
-    public void setQuality(int quality) {
-        RecorderSettingData.getInstance(getContext()).storePreviewQuality(getRecorder().getId(), quality);
-    }
 
     @Override
     public String getUri() {
@@ -115,6 +105,15 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
         }
     }
 
+    /**
+     * JPEG のクオリティを取得します.
+     *
+     * @return JPEG のクオリティ
+     */
+    private int getQuality() {
+        return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
+    }
+
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
@@ -159,7 +158,6 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#releaseMJPEGEncoder: ");
             }
-
             postOnCameraStopped();
         }
     };

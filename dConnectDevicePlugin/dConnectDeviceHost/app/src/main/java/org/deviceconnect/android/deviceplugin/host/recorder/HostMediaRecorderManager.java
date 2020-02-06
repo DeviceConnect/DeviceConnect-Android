@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -21,7 +22,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
@@ -31,8 +32,6 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData.PREVIEW_JPEG_MIME_TYPE;
 
 /**
  * Host Device Recorder Manager.
@@ -113,7 +112,11 @@ public class HostMediaRecorderManager {
             createScreenCastRecorder(mFileManager);
         }
 
-        initRecorderSetting();
+        try {
+            initRecorderSetting();
+        } catch (Exception e) {
+            Log.e("ABC", "##", e);
+        }
     }
 
     private void createAudioRecorders() {
@@ -136,20 +139,12 @@ public class HostMediaRecorderManager {
     }
 
     private void initRecorderSetting() {
-        final RecorderSettingData setting = RecorderSettingData.getInstance(getContext().getApplicationContext());
-        List<String> targets = new ArrayList<>();
-
-        for (HostMediaRecorder recorder : getRecorders()) {
-            if (recorder instanceof AbstractPreviewServerProvider) {
-                PreviewServer server = ((AbstractPreviewServerProvider) recorder).getServerForMimeType(PREVIEW_JPEG_MIME_TYPE);
-                if (server != null) {
-                    targets.add(recorder.getId());
-                    setting.storePreviewQuality(recorder.getId(), server.getQuality());
-                    setting.storePreviewName(recorder.getId(), recorder.getName());
-                }
-            }
+        RecorderSetting setting = RecorderSetting.getInstance(getContext().getApplicationContext());
+        List<RecorderSetting.Target> targets = setting.getTargets();
+        for (HostMediaRecorder recorder : mRecorders) {
+            targets.add(new RecorderSetting.Target(recorder.getId(), recorder.getName(), recorder.getMimeType()));
         }
-        setting.saveTargets(targets.toArray(new String[targets.size()]));
+        setting.saveTargets(targets);
     }
 
     /**

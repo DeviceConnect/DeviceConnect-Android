@@ -59,15 +59,6 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     }
 
     @Override
-    public int getQuality() {
-        return 0;
-    }
-
-    @Override
-    public void setQuality(int quality) {
-    }
-
-    @Override
     public void mute() {
         mMute = true;
     }

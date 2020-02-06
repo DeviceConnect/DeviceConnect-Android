@@ -5,7 +5,7 @@ import android.content.Context;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
@@ -33,22 +33,12 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
         mScreenCastMgr = recorder.getScreenCastMgr();
-        setPort(port);
+        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
 
     @Override
     public String getUri() {
         return mMJPEGServer == null ? null : mMJPEGServer.getUri();
-    }
-
-    @Override
-    public int getQuality() {
-        return RecorderSettingData.getInstance(getContext()).readPreviewQuality(getRecorder().getId());
-    }
-
-    @Override
-    public void setQuality(int quality) {
-        RecorderSettingData.getInstance(getContext()).storePreviewQuality(getRecorder().getId(), quality);
     }
 
     @Override
@@ -90,6 +80,15 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                 }
             }).start();
         }
+    }
+
+    /**
+     * JPEG のクオリティを取得します.
+     *
+     * @return JPEG のクオリティ
+     */
+    private int getQuality() {
+        return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
     }
 
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {

@@ -270,10 +270,10 @@ public class SRTServer {
         public void run() {
             try {
                 synchronized (mSocketThreads) {
-                    mSocketThreads.add(this);
-                    if (mSocketThreads.size() == 1) {
+                    if (mSocketThreads.isEmpty()) {
                         createSRTSession();
                     }
+                    mSocketThreads.add(this);
                 }
 
                 mSRTSession.addSRTClientSocket(mClientSocket);

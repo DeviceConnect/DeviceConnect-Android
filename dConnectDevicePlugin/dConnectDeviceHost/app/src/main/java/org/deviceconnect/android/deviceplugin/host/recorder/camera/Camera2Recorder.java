@@ -659,7 +659,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      *
      * @param listener 録画開始結果を通知するリスナー
      */
-    private synchronized void startRecordingInternal(final RecordingListener listener) {
+    private void startRecordingInternal(final RecordingListener listener) {
         if (mSurfaceRecorder != null) {
             listener.onFailed(this, "Recording has started already.");
             return;

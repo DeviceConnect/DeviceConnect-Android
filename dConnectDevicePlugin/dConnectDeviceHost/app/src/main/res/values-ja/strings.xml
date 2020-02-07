@@ -27,7 +27,7 @@
     <string name="overlay_preview_content_message2">カメラの映像をキャプチャしています。</string>
 
     <string name="overlay_no_permission_title">パーミッション</string>
-    <string name="overlay_no_permission_message">オーバーレイの表示許可が下りていません。\n設定画面を開きますか？</string>
+    <string name="overlay_no_permission_message">オーバーレイの表示許可がありません。\n設定画面を開きますか？</string>
     <string name="overlay_no_permission_ok">はい</string>
     <string name="overlay_no_permission_no">いいえ</string>
 

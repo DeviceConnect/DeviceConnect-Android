@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -18,11 +17,16 @@ import androidx.annotation.Nullable;
 /**
  * オーバーレイの利用許可を求めるダイアログを表示するための Activity.
  */
-public class OverlayPermissionActivity extends Activity {
+public class OverlayPermissionActivity extends Activity implements SimpleDialogFragment.Callback {
     /**
      * オーバーレイ許可用のリクエストコードを定義.
      */
     private static final int REQUEST_CODE_OVERLAY = 1234;
+
+    /**
+     * オーバーレイ許可設定画面を表示して良いかの確認ダイアンログのタグを定義.
+     */
+    private static final String TAG_NO_PERMISSION_DIALOG = "overlay-permission";
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -53,6 +57,16 @@ public class OverlayPermissionActivity extends Activity {
         finish();
     }
 
+    @Override
+    public void onDialogPositiveButtonClicked(SimpleDialogFragment dialog) {
+        requestOverlayPermission();
+    }
+
+    @Override
+    public void onDialogNegativeButtonClicked(SimpleDialogFragment dialog) {
+        finish();
+    }
+
     /**
      * オーバーレイ表示のオーバーレイを送信します.
      */
@@ -67,15 +81,14 @@ public class OverlayPermissionActivity extends Activity {
      */
     private void showOverlayDisabled() {
         try {
-            AlertDialog dialog = new AlertDialog.Builder(OverlayPermissionActivity.this)
+            SimpleDialogFragment f = new SimpleDialogFragment.Builder()
                     .setTitle(getString(R.string.overlay_no_permission_title))
                     .setMessage(getString(R.string.overlay_no_permission_message))
-                    .setPositiveButton(getString(R.string.overlay_no_permission_ok),
-                            (dialogInterface, i) -> requestOverlayPermission())
-                    .setNegativeButton(getString(R.string.overlay_no_permission_no),
-                            (dialogInterface, i) -> finish())
+                    .setPositive(getString(R.string.overlay_no_permission_ok))
+                    .setNegative(getString(R.string.overlay_no_permission_no))
+                    .setCancelable(false)
                     .create();
-            dialog.show();
+            f.show(getFragmentManager(), TAG_NO_PERMISSION_DIALOG);
         } catch (Exception e) {
             finish();
         }

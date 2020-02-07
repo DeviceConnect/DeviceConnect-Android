@@ -79,7 +79,7 @@ android {
 task cleanDemo(type: Exec) {
     workingDir '../demo'
     if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        commandLine 'cmd', '/c', 'build.bat'
+        commandLine 'cmd', '/c', 'build.bat', 'clean'
     } else {
         commandLine 'sh', 'build.sh', 'clean'
     }
@@ -88,7 +88,7 @@ task cleanDemo(type: Exec) {
 task buildDemo(type: Exec) {
     workingDir '../demo'
     if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        commandLine 'cmd', '/c', 'build.bat'
+        commandLine 'cmd', '/c', 'build.bat', 'build'
     } else {
         commandLine 'sh', 'build.sh', 'build'
     }

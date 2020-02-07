@@ -89,7 +89,7 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
             videoQuality.setVideoHeight(size.getHeight());
             videoQuality.setBitRate(recorder.getPreviewBitRate());
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(2);
+            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
             session.setVideoEncoder(videoEncoder);
         }
 

@@ -153,6 +153,16 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
     }
 
     @Override
+    public int getIFrameInterval() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setIFrameInterval(int interval) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<PictureSize> getSupportedPreviewSizes() {
         throw new UnsupportedOperationException();
     }

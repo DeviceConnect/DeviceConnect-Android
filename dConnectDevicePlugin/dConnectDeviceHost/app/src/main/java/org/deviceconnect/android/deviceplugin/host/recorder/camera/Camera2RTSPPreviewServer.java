@@ -6,7 +6,6 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -154,17 +153,15 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
-
             CameraVideoStream videoStream = new CameraVideoStream(mRecorder);
             videoStream.setDestinationPort(5006);
 
             VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(size.getWidth());
-            videoQuality.setVideoHeight(size.getHeight());
+            videoQuality.setVideoWidth(recorder.getPreviewSize().getWidth());
+            videoQuality.setVideoHeight(recorder.getPreviewSize().getHeight());
             videoQuality.setBitRate(recorder.getPreviewBitRate());
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(2);
+            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
 
             session.setVideoMediaStream(videoStream);
 

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
@@ -97,15 +96,13 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
-
             CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
             VideoQuality videoQuality = encoder.getVideoQuality();
-            videoQuality.setVideoWidth(size.getWidth());
-            videoQuality.setVideoHeight(size.getHeight());
+            videoQuality.setVideoWidth(recorder.getPreviewSize().getWidth());
+            videoQuality.setVideoHeight(recorder.getPreviewSize().getHeight());
             videoQuality.setBitRate(recorder.getPreviewBitRate());
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(2);
+            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
             session.setVideoEncoder(encoder);
         }
 

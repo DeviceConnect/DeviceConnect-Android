@@ -20,8 +20,8 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.provider.FileManager;
@@ -37,6 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import androidx.annotation.NonNull;
@@ -84,6 +85,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private PictureSize mPictureSize;
     private int mPreviewBitRate = 1024 * 1024;
     private double mMaxFps = DEFAULT_MAX_FPS;
+    private int mIFrameInterval = 2;
     private RecorderState mState = RecorderState.INACTTIVE;
 
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
@@ -205,6 +207,19 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     @Override
     public void setPreviewBitRate(int bitRate) {
         mPreviewBitRate = bitRate;
+    }
+
+    @Override
+    public int getIFrameInterval() {
+        return mIFrameInterval;
+    }
+
+    @Override
+    public void setIFrameInterval(int interval) {
+        if (interval <= 0) {
+            throw new IllegalArgumentException("interval is invalid. interval=" + interval);
+        }
+        mIFrameInterval = interval;
     }
 
     @Override
@@ -362,31 +377,28 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
             int h = size.getHeight();
             ImageReader imageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
             final ImageScreenCast screenCast = mScreenCastMgr.createScreenCast(imageReader, size.getWidth(), size.getHeight());
-            final Bitmap[] screenshot = new Bitmap[1];
+            final AtomicReference<Bitmap> screenshot = new AtomicReference<>();
             final CountDownLatch mLatch = new CountDownLatch(1);
             imageReader.setOnImageAvailableListener((reader) -> {
-                if (BuildConfig.DEBUG) {
-                    mLogger.info("onImageAvailable");
-                }
-                screenshot[0] = screenCast.getScreenshot();
+                screenshot.set(screenCast.getScreenshot());
                 mLatch.countDown();
             }, mImageReaderHandler);
             screenCast.startCast();
             mLatch.await(5, TimeUnit.SECONDS);
             screenCast.stopCast();
 
-            Bitmap bitmap = screenshot[0];
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] media = baos.toByteArray();
-            if (media == null) {
+            Bitmap bitmap = screenshot.get();
+            if (bitmap == null) {
                 mState = RecorderState.INACTTIVE;
-                listener.onFailedTakePhoto("Failed to get Screenshot.");
+                listener.onFailedTakePhoto("Failed to take screenshot.");
                 return;
             }
 
-            // 常に新しいファイル名になるため重複はない。そのため、Overwriteフラグをtrueにする。
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] media = baos.toByteArray();
             String filename = createNewFileName();
+            // 常に新しいファイル名になるため重複はない。そのため、Overwrite フラグを true にする。
             mFileMgr.saveFile(filename, media, true, new FileManager.SaveFileCallback() {
                 @Override
                 public void onSuccess(@NonNull final String uri) {
@@ -404,7 +416,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         } catch (OutOfMemoryError e) {
             listener.onFailedTakePhoto("Out of memory.");
         } catch (Exception e) {
-            listener.onFailedTakePhoto("Taking photo is shutdown.");
+            listener.onFailedTakePhoto("Taking screenshot is shutdown.");
         }
     }
 
@@ -416,9 +428,9 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         Uri uri = mMediaSharing.sharePhoto(getContext(), photoFile);
         if (DEBUG) {
             if (uri != null) {
-                Log.d(TAG, "Registered photo: uri=" + uri.getPath());
+                Log.d(TAG, "Registered screen: uri=" + uri.getPath());
             } else {
-                Log.e(TAG, "Failed to register photo: file=" + photoFile.getAbsolutePath());
+                Log.e(TAG, "Failed to register screen: file=" + photoFile.getAbsolutePath());
             }
         }
     }

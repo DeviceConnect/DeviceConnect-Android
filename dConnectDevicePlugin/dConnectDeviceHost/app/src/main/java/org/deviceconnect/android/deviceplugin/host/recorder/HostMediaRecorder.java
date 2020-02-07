@@ -146,6 +146,20 @@ public interface HostMediaRecorder {
     void setPreviewBitRate(int bitRate);
 
     /**
+     * プレビューのフレームインターバルを取得します.
+     *
+     * @return フレームインターバル
+     */
+    int getIFrameInterval();
+
+    /**
+     * プレビューのフレームインターバルを設定します.
+     *
+     * @param interval フレームインターバル
+     */
+    void setIFrameInterval(int interval);
+
+    /**
      * サポートしている静止画のサイズを取得します.
      *
      * @return サポートしている静止画のサイズ

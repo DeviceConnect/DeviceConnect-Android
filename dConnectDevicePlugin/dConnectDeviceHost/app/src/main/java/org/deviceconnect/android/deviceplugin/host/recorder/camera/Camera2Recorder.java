@@ -155,6 +155,11 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     private int mCurrentRotation;
 
     /**
+     * フレームインターバル.
+     */
+    private int mIFrameInterval = 2;
+
+    /**
      * ファイルを Android 端末内で共有するためのクラス.
      */
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
@@ -389,6 +394,19 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     @Override
     public void setPreviewBitRate(final int bitRate) {
         mCameraWrapper.getOptions().setPreviewBitRate(bitRate);
+    }
+
+    @Override
+    public int getIFrameInterval() {
+        return mIFrameInterval;
+    }
+
+    @Override
+    public void setIFrameInterval(int interval) {
+        if (interval <= 0) {
+            throw new IllegalArgumentException("interval is invalid. interval=" + interval);
+        }
+        mIFrameInterval = interval;
     }
 
     @Override

@@ -289,9 +289,17 @@ public abstract class VideoEncoder extends MediaEncoder {
         format.setInteger(MediaFormat.KEY_BIT_RATE, videoQuality.getBitRate());
         format.setInteger(MediaFormat.KEY_FRAME_RATE, videoQuality.getFrameRate());
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, videoQuality.getIFrameInterval());
+
+        // Surface で映像を入力するので、Input size を 0 に設定しておきます。
         if (colorFormat == MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface) {
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
         }
+
+        // 一定期間 Surface に更新がなかった場合に前の映像をエンコードします.(単位: microseconds)
+        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000 * 1000);
+
+        // ビットレートモードに設定します。
+        // 機種ごとにサポートできるパラメータが異なるので、設定できない場合はデフォルトで動作します。
         if (videoQuality.getBitRateMode() != null) {
             switch (videoQuality.getBitRateMode()) {
                 case VBR:
@@ -312,13 +320,20 @@ public abstract class VideoEncoder extends MediaEncoder {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 0: realtime priority
+            // 1: non-realtime priority (best effort).
             format.setInteger(MediaFormat.KEY_PRIORITY, 0x00);
+
+            // H264 で High Profile をサポートしている場合は使用するようにします。
             if (configureH264HighProfile) {
                 format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
                 format.setInteger(MediaFormat.KEY_LEVEL,MediaCodecInfo.CodecProfileLevel.AVCLevel3);
             }
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // エンコーダのレイテンシーを設定します。
+            // 機種依存でサポートされていない場合には、この値は無視されます。
             format.setInteger(MediaFormat.KEY_LATENCY, 0);
         }
 

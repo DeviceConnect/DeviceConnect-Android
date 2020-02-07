@@ -95,7 +95,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
     }
 
     private String generateVideoFileName() {
-        return "video_" + DATE_FORMAT.format(new Date()) + ".mp4";
+        return "android_video_" + DATE_FORMAT.format(new Date()) + ".mp4";
     }
 
     private void setUpMediaRecorder(final File outputFile) throws IOException {
@@ -157,10 +157,7 @@ public class DefaultSurfaceRecorder implements SurfaceRecorder {
 
     @Override
     public Surface getInputSurface() {
-        if (mMediaRecorder == null) {
-            return null;
-        }
-        return mMediaRecorder.getSurface();
+        return mMediaRecorder == null ? null : mMediaRecorder.getSurface();
     }
 
     @Override

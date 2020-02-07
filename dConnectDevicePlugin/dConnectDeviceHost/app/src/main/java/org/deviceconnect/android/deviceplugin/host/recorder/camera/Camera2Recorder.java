@@ -235,12 +235,12 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     }
 
     @Override
-    public synchronized void startRecording(final RecordingListener listener) {
+    public void startRecording(final RecordingListener listener) {
         mRequestHandler.post(() -> startRecordingInternal(listener));
     }
 
     @Override
-    public synchronized void stopRecording(final StoppingListener listener) {
+    public void stopRecording(final StoppingListener listener) {
         mRequestHandler.post(() -> stopRecordingInternal(listener));
     }
 

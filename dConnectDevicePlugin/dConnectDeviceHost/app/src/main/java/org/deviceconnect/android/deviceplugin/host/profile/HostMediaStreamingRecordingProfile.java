@@ -13,8 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
+import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
@@ -66,11 +65,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private final FileManager mFileManager;
 
     /**
-     * ライト操作結果のリスナーを実行するハンドラー.
-     */
-    private final Handler mLightHandler;
-    /**
-     * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
+     * KeyEventProfileActivity からの KeyEvent を中継する Broadcast Receiver.
      */
     private BroadcastReceiver mAudioEventBR = new BroadcastReceiver() {
         @Override
@@ -87,6 +82,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
         }
     };
+
     private final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -617,8 +613,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (recorder.getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
-                MessageUtils.setIllegalDeviceStateError(response, recorder.getName()
-                        + " is already running.");
+                MessageUtils.setIllegalDeviceStateError(response,
+                        recorder.getName() + " is already running.");
                 return true;
             }
 
@@ -840,10 +836,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         mRecorderMgr = mgr;
         mFileManager = fileMgr;
 
-        HandlerThread thread = new HandlerThread("light");
-        thread.start();
-        mLightHandler = new Handler(thread.getLooper());
-
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);
@@ -863,7 +855,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     public void destroy() {
-        mLightHandler.getLooper().quit();
     }
 
     private void init(final PermissionUtility.PermissionRequestCallback callback) {
@@ -925,30 +916,5 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      */
     public static void setMIMEType(final Intent response, final List<String> mimeType) {
         response.putExtra(PARAM_MIME_TYPE, mimeType.toArray(new String[mimeType.size()]));
-    }
-
-    /**
-     * カメラライト点灯状態確認.
-     */
-    public void checkCameraLightState() {
-        // ライト点灯中なら消灯処理を実施.
-        if (mRecorderMgr.getCameraRecorder(null).isUseFlashLight()) {
-            mRecorderMgr.getCameraRecorder(null).turnOffFlashLight(new HostDevicePhotoRecorder.TurnOffFlashLightListener() {
-                @Override
-                public void onRequested() {
-                    // NOP.
-                }
-
-                @Override
-                public void onTurnOff() {
-                    // NOP.
-                }
-
-                @Override
-                public void onError(final HostDevicePhotoRecorder.Error error) {
-                    // NOP.
-                }
-            }, mLightHandler);
-        }
     }
 }

@@ -244,6 +244,7 @@ public class HostDevicePlugin extends DevicePluginContext {
         filter.addAction(DemoInstaller.Notification.ACTON_UPDATE_DEMO);
         getContext().registerReceiver(mDemoNotificationReceiver, filter);
     }
+
     private void updateDemoPageIfNeeded() {
         final Context context = getContext();
         if (mDemoInstaller.isUpdateNeeded()) {

@@ -6,12 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
-
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
@@ -20,8 +18,8 @@ import android.provider.MediaStore;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -52,10 +50,14 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
 
     private final Context mContext;
 
-    /** MediaRecoder. */
+    /**
+     * MediaRecoder.
+     */
     private MediaRecorder mMediaRecorder;
 
-    /** フォルダURI. */
+    /**
+     * フォルダURI.
+     */
     private File mFile;
 
     /**
@@ -67,6 +69,7 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
         }
     };
     private RecorderState mState;
+
     public HostDeviceAudioRecorder(final Context context) {
         mContext = context;
         mState = RecorderState.INACTTIVE;
@@ -174,25 +177,31 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
 
     @Override
     public boolean isSupportedPictureSize(int width, int height) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isSupportedPreviewSize(int width, int height) {
-        return false;
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void onDisplayRotation(final int degree) {
     }
 
     @Override
     public void muteTrack() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void unMuteTrack() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isMutedTrack() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -202,7 +211,6 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
 
     @Override
     public void requestPermission(PermissionCallback callback) {
-
     }
 
     @Override
@@ -211,57 +219,79 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
     }
 
     @Override
-    public boolean canPauseRecording() {
-        return true;
-    }
-
-    @Override
     public synchronized void startRecording(final RecordingListener listener) {
         if (getState() == RecorderState.RECORDING) {
-            throw new IllegalStateException();
+            listener.onFailed(this, "MediaRecorder is already recording.");
+        } else {
+            requestPermissions(generateAudioFileName(), listener);
         }
-        requestPermissions(generateAudioFileName(), listener);
     }
 
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
         if (getState() == RecorderState.INACTTIVE) {
-            throw new IllegalStateException();
-        }
-        mState = RecorderState.INACTTIVE;
-        if (listener != null) {
-            if (mMediaRecorder != null) {
-                releaseMediaRecorder();
-                listener.onStopped(this, mFile.getName());
-            } else {
-                listener.onFailed(this, "Failed to Stop recording.");
+            listener.onFailed(this, "MediaRecorder is not running.");
+        } else {
+            mState = RecorderState.INACTTIVE;
+            if (listener != null) {
+                if (mMediaRecorder != null) {
+                    releaseMediaRecorder();
+                    listener.onStopped(this, mFile.getName());
+                } else {
+                    listener.onFailed(this, "Failed to Stop recording.");
+                }
             }
-        }
-        if (mFile != null) {
             mFile = null;
         }
     }
 
     @Override
+    public boolean canPauseRecording() {
+        return Build.VERSION_CODES.N <= Build.VERSION.SDK_INT;
+    }
+
+    @Override
     public void pauseRecording() {
-        Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-        intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_PAUSE);
-        mContext.sendBroadcast(intent);
+        if (mMediaRecorder == null) {
+            return;
+        }
+
+        if (getState() != RecorderState.RECORDING) {
+            return;
+        }
+
+        if (canPauseRecording()) {
+            try {
+                mMediaRecorder.pause();
+                mState = RecorderState.PAUSED;
+            } catch (IllegalStateException e) {
+                // ignore.
+            }
+        }
     }
 
     @Override
     public void resumeRecording() {
-        Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-        intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
-        mContext.sendBroadcast(intent);
-    }
+        if (mMediaRecorder == null) {
+            return;
+        }
 
-    @Override
-    public void onDisplayRotation(final int degree) {
+        if (getState() != RecorderState.PAUSED) {
+            return;
+        }
+
+        if (canPauseRecording()) {
+            try {
+                mMediaRecorder.resume();
+                mState = RecorderState.RECORDING;
+            } catch (IllegalStateException e) {
+                // ignore.
+            }
+        }
     }
 
     private String generateAudioFileName() {
-        return "audio" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
+        return "android_audio_" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
     }
 
     private void requestPermissions(final String fileName, final RecordingListener listener) {
@@ -289,35 +319,28 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
     private void startRecordingInternal(final String fileName, final RecordingListener listener) {
         try {
             initAudioContext(fileName, listener);
+            mState = RecorderState.RECORDING;
+            listener.onRecorded(this, fileName);
         } catch (Exception e) {
             releaseMediaRecorder();
             mState = RecorderState.ERROR;
-            listener.onFailed(HostDeviceAudioRecorder.this,
-                    e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
-            return;
+            listener.onFailed(this, e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
         }
-        mState = RecorderState.RECORDING;
-        listener.onRecorded(HostDeviceAudioRecorder.this, fileName);
     }
 
     private void initAudioContext(final String fileName, final RecordingListener listener) throws IOException {
         FileManager fileMgr = new FileManager(mContext, HostFileProvider.class.getName());
+        mFile = new File(fileMgr.getBasePath(), fileName);
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-
-        if (fileName != null) {
-            mFile = new File(fileMgr.getBasePath(), fileName);
-            mMediaRecorder.setOutputFile(mFile.toString());
-            mMediaRecorder.prepare();
-            mMediaRecorder.start();
-        } else {
-            mState = RecorderState.ERROR;
-            listener.onFailed(HostDeviceAudioRecorder.this, "File name must be specified.");
-        }
+        mMediaRecorder.setOutputFile(mFile.toString());
+        mMediaRecorder.prepare();
+        mMediaRecorder.start();
     }
+
     /**
      * Check the existence of file.
      *

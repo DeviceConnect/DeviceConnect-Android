@@ -177,6 +177,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
                            final @NonNull CameraWrapper camera,
                            final @NonNull FileManager fileManager) {
         mContext = context;
+        mFileManager = fileManager;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mCameraWrapper = camera;
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
@@ -190,8 +191,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         HandlerThread requestThread = new HandlerThread("host-camera-request");
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
-
-        mFileManager = fileManager;
 
         mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
     }

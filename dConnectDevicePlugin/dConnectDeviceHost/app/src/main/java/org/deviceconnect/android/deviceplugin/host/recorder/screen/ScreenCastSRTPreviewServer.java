@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
@@ -56,16 +55,14 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
-            mSRTServer = new SRTServer(getPort());
-            mSRTServer.setCallback(mCallback);
             try {
+                mSRTServer = new SRTServer(getPort());
+                mSRTServer.setShowStats(DEBUG);
+                mSRTServer.setCallback(mCallback);
                 mSRTServer.start();
-                mSRTServer.startStatsTimer();
             } catch (IOException e) {
-                if (DEBUG) {
-                    Log.d(TAG, "Failed to start SRT server.", e);
-                }
                 callback.onFail();
+                return;
             }
         }
         callback.onStart(getUri());
@@ -74,7 +71,6 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
     @Override
     public void stopWebServer() {
         if (mSRTServer != null) {
-            mSRTServer.stopStatsTimer();
             mSRTServer.stop();
             mSRTServer = null;
         }

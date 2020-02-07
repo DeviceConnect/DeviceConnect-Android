@@ -44,16 +44,14 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mSRTServer == null) {
-            mSRTServer = new SRTServer(getPort());
-            mSRTServer.setCallback(mCallback);
             try {
+                mSRTServer = new SRTServer(getPort());
+                mSRTServer.setShowStats(DEBUG);
+                mSRTServer.setCallback(mCallback);
                 mSRTServer.start();
-                mSRTServer.startStatsTimer();
             } catch (IOException e) {
-                if (DEBUG) {
-                    Log.d(TAG, "Failed to start SRT server.", e);
-                }
                 callback.onFail();
+                return;
             }
         }
         callback.onStart(getUri());
@@ -62,7 +60,6 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
     @Override
     public void stopWebServer() {
         if (mSRTServer != null) {
-            mSRTServer.stopStatsTimer();
             mSRTServer.stop();
             mSRTServer = null;
         }

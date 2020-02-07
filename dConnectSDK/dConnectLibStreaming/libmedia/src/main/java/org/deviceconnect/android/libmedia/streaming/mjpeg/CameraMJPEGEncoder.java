@@ -3,7 +3,6 @@ package org.deviceconnect.android.libmedia.streaming.mjpeg;
 import android.content.Context;
 import android.util.Size;
 import android.view.Surface;
-import android.view.WindowManager;
 
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
@@ -25,11 +24,6 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     private Context mContext;
 
     /**
-     * ウィンドウ管理クラス.
-     */
-    private WindowManager mWindowManager;
-
-    /**
      * カメラの映像描画用の Surface のリスト.
      */
     private List<Surface> mSurfaces = new ArrayList<>();
@@ -40,7 +34,6 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
      */
     public CameraMJPEGEncoder(Context context) {
         mContext = context;
-        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
     }
 
     @Override
@@ -88,6 +81,11 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
             mCamera2.close();
             mCamera2 = null;
         }
+    }
+
+    @Override
+    public boolean isSwappedDimensions() {
+        return mCamera2 != null && mCamera2.isSwappedDimensions();
     }
 
     @Override

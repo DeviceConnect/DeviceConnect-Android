@@ -31,8 +31,17 @@ public class SRTServer {
      */
     private final List<SocketThread> mSocketThreads = new ArrayList<>();
 
+    /**
+     * 接続できる最大クライアント数.
+     */
     private int mMaxClientNum = DEFAULT_MAX_CLIENT_NUM;
 
+    /**
+     * SRTServer の開始フラグ.
+     * <p>
+     * このフラグが true の場合は、SRTServer は動作中になります。
+     * </p>
+     */
     private boolean mIsStarted;
 
     /**
@@ -51,12 +60,35 @@ public class SRTServer {
     private Timer mStatsTimer;
 
     /**
+     * 統計データをログに出力フラグ.
+     */
+    private boolean mShowStats;
+
+    /**
      * コンストラクタ.
      *
      * @param port サーバーのソケットにバインドするローカルのポート番号.
      */
     public SRTServer(final int port) {
         mServerSocket = new SRTServerSocket(port);
+    }
+
+    /**
+     * SRT 統計データの LogCat への表示設定を行います.
+     *
+     * @param showStats LogCat に表示する場合はtrue、それ以外はfalse
+     */
+    public synchronized void setShowStats(boolean showStats) {
+        mShowStats = showStats;
+
+        // 既にサーバが開始されている場合は、タイマーの設定を行います。
+        if (mIsStarted) {
+            if (showStats) {
+                startStatsTimer();
+            } else {
+                stopStatsTimer();
+            }
+        }
     }
 
     /**
@@ -93,9 +125,20 @@ public class SRTServer {
         mServerSocket.open();
         mIsStarted = true;
         startServerThread();
+
+        if (mShowStats) {
+            startStatsTimer();
+        }
     }
 
     private void startServerThread() {
+        if (mServerThread != null) {
+            if (DEBUG) {
+                Log.d(TAG, "ServerThread is already running.");
+            }
+            return;
+        }
+
         mServerThread = new Thread(() -> {
             try {
                 while (!Thread.interrupted()) {
@@ -131,13 +174,16 @@ public class SRTServer {
         }
         mIsStarted = false;
 
-        mServerSocket.close();
+        stopStatsTimer();
+
         synchronized (mSocketThreads) {
             for (SocketThread t : mSocketThreads) {
                 t.terminate();
             }
             mSocketThreads.clear();
         }
+
+        mServerSocket.close();
 
         mServerThread.interrupt();
         try {
@@ -148,7 +194,7 @@ public class SRTServer {
         mServerThread = null;
     }
 
-    public synchronized void startStatsTimer() {
+    private synchronized void startStatsTimer() {
         if (mStatsTimer == null) {
             mStatsTimer = new Timer();
             mStatsTimer.schedule(new TimerTask() {
@@ -162,7 +208,7 @@ public class SRTServer {
         }
     }
 
-    public synchronized void stopStatsTimer() {
+    private synchronized void stopStatsTimer() {
         if (mStatsTimer != null) {
             mStatsTimer.cancel();
             mStatsTimer = null;

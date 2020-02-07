@@ -4,28 +4,13 @@ import com.google.common.primitives.Bytes;
 
 import java.nio.ByteBuffer;
 
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_AUDIO_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_HEADER_SIZE;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PACKET_SIZE;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PAYLOAD_SIZE;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_VIDEO_PID;
+
 class H264TransportPacketWriter {
-
-    // Transport Stream packets are 188 bytes in length
-    private static final int TS_PACKET_SIZE 			= 188;
-    private static final int TS_HEADER_SIZE				= 4;
-    private static final int TS_PAYLOAD_SIZE 			= TS_PACKET_SIZE - TS_HEADER_SIZE;
-
-    // Table 2-29 – Stream type assignments. page 66
-    private static final byte STREAM_TYPE_AUDIO_AAC 	= 0x0f;
-    private static final byte STREAM_TYPE_AUDIO_MP3 	= 0x03;
-    private static final byte STREAM_TYPE_VIDEO_H264 	= 0x1b;
-
-
-    private static final int TS_PAT_PID 				= 0x0000;	// 0
-    private static final int TS_PMT_PID 				= 0x1000;	// 4096
-    private static final int TS_AUDIO_PID 				= 0x101;	// 257
-    private static final int TS_VIDEO_PID 				= 0x100;	// 256
-
-    // Transport Stream Description Table
-    private static final int TS_PAT_TABLE_ID 			= 0x00;
-    private static final int TS_PMT_TABLE_ID 			= 0x02;
-
 
     // H264 Nalu
     private static byte[] H264_NAL = { 0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0 };
@@ -33,32 +18,8 @@ class H264TransportPacketWriter {
     // ContinuityCounter
     private byte mAudioContinuityCounter = 0;
     private byte mVideoContinuityCounter = 0;
-    private int mPatContinuityCounter = 0;
-    private int mPmtContinuityCounter = 0;
 
-    private Packet mPacket = new Packet();
-
-    private static class Packet {
-        private final byte[] mData = new byte[TS_PACKET_SIZE];
-        private int mOffset = 0;
-
-        void add(byte b) {
-            mData[mOffset++] = b;
-        }
-
-        void add(ByteBuffer buffer, int len) {
-            for (int i = 0; i < len; i++) {
-                add(buffer.get());
-            }
-        }
-
-        void reset(final byte b) {
-            for (int i = 0; i < TS_PACKET_SIZE; i++) {
-                mData[i] = b;
-            }
-            mOffset = 0;
-        }
-    }
+    private TransportPacket mPacket = new TransportPacket();
 
     public interface Callback {
         void onPacket(final byte[] packet);
@@ -85,150 +46,13 @@ class H264TransportPacketWriter {
     }
 
     private void notifyPacket() {
+        notifyPacket(mPacket);
+    }
+
+    private void notifyPacket(final TransportPacket p) {
         if (mCallback != null) {
-            mCallback.onPacket(mPacket.mData);
+            mCallback.onPacket(p.mData);
         }
-    }
-
-    private void write_ts_header(int pid, int continuity_counter) {
-        byte sync_byte = 0x47;
-        int transport_error_indicator = 0;
-        int payload_unit_start_indicator = 1;
-        int transport_priority = 0;
-        int transport_scrambling_control = 0;
-        int adaptation_field_control = 1;
-
-        writePacket(sync_byte);
-        writePacket((byte) ((transport_error_indicator << 7) | (payload_unit_start_indicator << 6) | (transport_priority << 5) | ((pid >> 8) & 0x1F)));
-        writePacket((byte) (pid & 0xff));
-        writePacket((byte) ((transport_scrambling_control << 6) | (adaptation_field_control << 4) | (continuity_counter & 0x0F)));
-        writePacket((byte) 0x00);	// adaptation field length
-    }
-
-    private void write_pat() {
-        resetPacket((byte) 0xFF);
-
-        // header
-        write_ts_header(TS_PAT_PID, mPatContinuityCounter);
-        mPatContinuityCounter = (mPatContinuityCounter + 1) & 0x0F;
-
-        // PAT body
-        int section_syntax_indicator = 1;
-        int zero = 0;
-        int reserved_1 = 3;
-        int section_length = 13;
-        int transport_stream_id = 1;
-        int reserved_2 = 3;
-        int version_number = 0;
-        int current_next_indicator = 1;
-        int section_number = 0;
-        int last_section_number = 0;
-        int program_number = 1;
-        int reserved_3 = 7;
-        int program_id = TS_PMT_PID;
-
-        writePacket((byte) TS_PAT_TABLE_ID);
-        writePacket((byte) ((section_syntax_indicator << 7) | (zero << 6) | (reserved_1 << 4) | ((section_length >> 8) & 0x0F)));
-        writePacket((byte) (section_length & 0xFF));
-        writePacket((byte) ((transport_stream_id >> 8) & 0xFF));
-        writePacket((byte) (transport_stream_id & 0xFF));
-        writePacket((byte) ((reserved_2 << 6) | (version_number << 1) | (current_next_indicator & 0x01)));
-        writePacket((byte) (section_number & 0xFF));
-        writePacket((byte) (last_section_number & 0xFF));
-        writePacket((byte) ((program_number >> 8) & 0xFF));
-
-        writePacket((byte) (program_number & 0xFF));
-        writePacket((byte) ((reserved_3 << 5) | ((program_id >> 8) & 0x1F)));
-        writePacket((byte) (program_id & 0xFF));
-
-        // set crc32
-        long crc = CrcUtil.mpegts_crc32(mPacket.mData, 5, 12);
-        writePacket((byte) ((crc >> 24) & 0xFF));
-        writePacket((byte) ((crc >> 16) & 0xFF));
-        writePacket((byte) ((crc >> 8) & 0xFF));
-        writePacket((byte) ((crc) & 0xFF));
-    }
-
-    /*
-      only audio , section_length = 18
-      audio & video mix, section_length = 23
-     */
-    private void write_pmt(FrameDataType fType) {
-        resetPacket((byte) 0xFF);
-
-        // header
-        write_ts_header(TS_PMT_PID, mPmtContinuityCounter);
-        mPmtContinuityCounter = (mPmtContinuityCounter + 1) & 0x0F;
-
-         // PMT body
-        int section_syntax_indicator = 1;
-        int zero = 0;
-        int reserved_1 = 3;
-        int section_length = (fType == FrameDataType.MIXED) ? 23 : 18;
-        int program_number = 1;
-        int reserved_2 = 3;
-        int version_number = 0;
-        int current_next_indicator = 1;
-        int section_number = 0;
-        int last_section_number = 0;
-        int reserved_3 = 7;
-        int pcr_pid = (fType == FrameDataType.AUDIO) ? TS_AUDIO_PID : TS_VIDEO_PID;
-        int reserved_4 = 15;
-        int program_info_length = 0;
-
-        writePacket((byte) TS_PMT_TABLE_ID);
-        writePacket((byte) ((section_syntax_indicator << 7) | (zero << 6) | (reserved_1 << 4) | ((section_length >> 8) & 0x0F)));
-        writePacket((byte) (section_length & 0xFF));
-        writePacket((byte) ((program_number >> 8) & 0xFF));
-        writePacket((byte) (program_number & 0xFF));
-        writePacket((byte) ((reserved_2 << 6) | (version_number << 1) | (current_next_indicator & 0x01)));
-        writePacket((byte) section_number);
-        writePacket((byte) last_section_number);
-        writePacket((byte) ((reserved_3 << 5) | ((pcr_pid >> 8) & 0xFF)));
-        writePacket((byte) (pcr_pid & 0xFF));
-        writePacket((byte) ((reserved_4 << 4) | ((program_info_length >> 8) & 0xFF)));
-        writePacket((byte) (program_info_length & 0xFF));
-
-
-        // set video stream info
-        if ( fType == FrameDataType.VIDEO || fType == FrameDataType.MIXED ) {
-             int stream_type = 0x1b;
-             int reserved_5 = 7;
-             int elementary_pid = TS_VIDEO_PID;
-             int reserved_6 = 15;
-             int ES_info_length = 0;
-
-             writePacket((byte) stream_type);
-             writePacket((byte) ((reserved_5 << 5) | ((elementary_pid >> 8) & 0x1F)));
-             writePacket((byte) (elementary_pid & 0xFF));
-             writePacket((byte) ((reserved_6 << 4) | ((ES_info_length >> 4) & 0x0F)));
-             writePacket((byte) (ES_info_length & 0xFF));
-        }
-
-
-        // set audio stream info
-        if ( fType == FrameDataType.AUDIO || fType == FrameDataType.MIXED ) {
-
-            int stream_type = 0x0f;
-            int reserved_5 = 7;
-            int elementary_pid = TS_AUDIO_PID;
-            int reserved_6 = 15;
-            int ES_info_length = 0;
-
-            writePacket((byte) stream_type);
-            writePacket((byte) ((reserved_5 << 5) | ((elementary_pid >> 8) & 0x1F)));
-            writePacket((byte) (elementary_pid & 0xFF));
-            writePacket((byte) ((reserved_6 << 4) | ((ES_info_length >> 4) & 0x0F)));
-            writePacket((byte) (ES_info_length & 0xFF));
-        }
-
-
-        // set crc32
-        long crc =  CrcUtil.mpegts_crc32(mPacket.mData, 5,  (fType == FrameDataType.MIXED) ? 22: 17);
-        writePacket((byte) ((crc >> 24) & 0xFF));
-        writePacket((byte) ((crc >> 16) & 0xFF));
-        writePacket((byte) ((crc >> 8) & 0xFF));
-        writePacket((byte) ((crc) & 0xFF));
     }
 
     private void write_pts_dts(int guard_bits, long value) {
@@ -252,14 +76,6 @@ class H264TransportPacketWriter {
     }
 
     private void writeBuffer(FrameDataType frameDataType, boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame, boolean isAudio) {
-        // write pat table
-        write_pat();
-        notifyPacket();
-
-        // write pmt table
-        write_pmt( frameDataType );
-        notifyPacket();
-
         boolean isFirstTs = true;
         byte[] frameBuf = new byte[length];
         buffer.get(frameBuf);
@@ -407,11 +223,5 @@ class H264TransportPacketWriter {
             isFirstTs = false;
             notifyPacket();
         }
-    }
-
-    public enum FrameDataType {
-        AUDIO,
-        VIDEO,
-        MIXED
     }
 }

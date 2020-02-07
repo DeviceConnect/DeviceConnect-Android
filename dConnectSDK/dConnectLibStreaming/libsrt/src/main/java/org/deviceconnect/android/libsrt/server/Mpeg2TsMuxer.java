@@ -51,12 +51,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     /**
      * H264 のセグメントに分割するクラス.
      */
-    private H264TransportStreamWriter mH264TsSegmenter;
-
-    /**
-     * 映像と音声の両方を送信するフラグ.
-     */
-    private boolean mMixed;
+    private H264TransportStreamWriter mH264TsWriter;
 
     /**
      * ADTS ヘッダーに格納するサンプリングレートのインデックス.
@@ -131,11 +126,11 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             channels = audioQuality.getChannelCount();
         }
 
-        mMixed = videoQuality != null && audioQuality != null;
-
-        mH264TsSegmenter = new H264TransportStreamWriter();
-        mH264TsSegmenter.setBufferListener(mBufferListener);
-        mH264TsSegmenter.initialize(sampleRate, sampleSizeInBits, channels, fps);
+        mH264TsWriter = new H264TransportStreamWriter();
+        mH264TsWriter.setStreamEnabled(videoQuality != null, audioQuality != null);
+        mH264TsWriter.setBufferListener(mBufferListener);
+        mH264TsWriter.initialize(sampleRate, sampleSizeInBits, channels, fps);
+        mH264TsWriter.start();
         return true;
     }
 
@@ -152,9 +147,9 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             storeConfig(encodedData, bufferInfo);
         } else {
             if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
-                mH264TsSegmenter.pushVideoBuffer(mConfigBuffer, mMixed);
+                mH264TsWriter.pushVideoBuffer(mConfigBuffer);
             }
-            mH264TsSegmenter.pushVideoBuffer(encodedData, mMixed);
+            mH264TsWriter.pushVideoBuffer(encodedData);
         }
     }
 
@@ -175,11 +170,12 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
         mADTSBuffer.limit(outPacketSize);
         mADTSBuffer.position(0);
-        mH264TsSegmenter.pushAudioBuffer(mADTSBuffer, outPacketSize, mMixed);
+        mH264TsWriter.pushAudioBuffer(mADTSBuffer, outPacketSize);
     }
 
     @Override
     public void onReleased() {
+        mH264TsWriter.stop();
     }
 
     private int getFreqIdx(int sampleRate) {

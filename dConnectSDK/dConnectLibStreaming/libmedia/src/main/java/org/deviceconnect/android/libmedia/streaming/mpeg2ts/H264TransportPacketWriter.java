@@ -102,7 +102,7 @@ class H264TransportPacketWriter {
         writePacket((byte) ((transport_error_indicator << 7) | (payload_unit_start_indicator << 6) | (transport_priority << 5) | ((pid >> 8) & 0x1F)));
         writePacket((byte) (pid & 0xff));
         writePacket((byte) ((transport_scrambling_control << 6) | (adaptation_field_control << 4) | (continuity_counter & 0x0F)));
-        writePacket((byte) 0x00);	//開始インジケータ
+        writePacket((byte) 0x00);	// adaptation field length
     }
 
     private void write_pat() {
@@ -157,7 +157,7 @@ class H264TransportPacketWriter {
         resetPacket((byte) 0xFF);
 
         // header
-        write_ts_header(TS_PMT_PID, mPmtContinuityCounter );
+        write_ts_header(TS_PMT_PID, mPmtContinuityCounter);
         mPmtContinuityCounter = (mPmtContinuityCounter + 1) & 0x0F;
 
          // PMT body
@@ -280,7 +280,7 @@ class H264TransportPacketWriter {
             writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((isAudio ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
 
             if (isFirstTs) {
-                if (isFrame) {
+                if (!isAudio && isFrame) {
                     writePacket((byte) 0x07); // adaptation_field_length
                     writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
 

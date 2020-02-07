@@ -11,8 +11,6 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
 
-import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
-
 
 public class Mpeg2TsMuxer extends SRTMuxer {
 
@@ -100,11 +98,14 @@ public class Mpeg2TsMuxer extends SRTMuxer {
      */
     private final H264TransportStreamWriter.PacketListener mBufferListener = (packet) -> {
         try {
-            mPacketBuffer.put(packet);
-            if (!mPacketBuffer.hasRemaining()) {
-                sendPacket(mPayload);
-                mPacketBuffer.clear();
+            synchronized (mPacketBuffer) {
+                mPacketBuffer.put(packet);
+                if (!mPacketBuffer.hasRemaining()) {
+                    sendPacket(mPayload);
+                    mPacketBuffer.clear();
+                }
             }
+
         } catch (Exception e) {
             Log.e(TAG, "Failed to send packet", e);
         }
@@ -171,10 +172,6 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         }
         addADTStoPacket(mADTS, outPacketSize);
         encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
-
-        if (DEBUG) {
-            Log.d("AAA", "onWriteAudioData: outPacketSize = " + outPacketSize);
-        }
 
         mADTSBuffer.limit(outPacketSize);
         mADTSBuffer.position(0);

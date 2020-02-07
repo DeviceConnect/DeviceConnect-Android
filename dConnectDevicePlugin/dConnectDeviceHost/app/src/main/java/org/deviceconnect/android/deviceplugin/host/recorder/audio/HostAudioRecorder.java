@@ -1,5 +1,5 @@
 /*
- HostDeviceAudioRecorder.java
+ HostAudioRecorder.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -38,7 +38,7 @@ import androidx.annotation.NonNull;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStreamRecorder {
+public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRecorder {
 
     private static final String ID = "audio";
 
@@ -70,7 +70,7 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
     };
     private RecorderState mState;
 
-    public HostDeviceAudioRecorder(final Context context) {
+    public HostAudioRecorder(final Context context) {
         mContext = context;
         mState = RecorderState.INACTTIVE;
     }
@@ -307,7 +307,7 @@ public class HostDeviceAudioRecorder implements HostMediaRecorder, HostDeviceStr
                         @Override
                         public void onFail(@NonNull String deniedPermission) {
                             mState = RecorderState.ERROR;
-                            listener.onFailed(HostDeviceAudioRecorder.this,
+                            listener.onFailed(HostAudioRecorder.this,
                                     "Permission " + deniedPermission + " not granted.");
                         }
                     });

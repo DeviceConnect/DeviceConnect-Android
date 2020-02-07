@@ -18,7 +18,7 @@ import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostDeviceAudioRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.audio.HostAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
@@ -119,7 +119,7 @@ public class HostMediaRecorderManager {
     }
 
     private void createAudioRecorders() {
-        mRecorders.add(new HostDeviceAudioRecorder(getContext()));
+        mRecorders.add(new HostAudioRecorder(getContext()));
     }
 
     private void createScreenCastRecorder(final FileManager fileMgr) {

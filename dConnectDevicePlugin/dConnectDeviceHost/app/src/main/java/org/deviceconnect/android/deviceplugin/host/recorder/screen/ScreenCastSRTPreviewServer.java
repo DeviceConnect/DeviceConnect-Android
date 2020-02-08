@@ -7,11 +7,16 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.content.Context;
+import android.media.AudioFormat;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
@@ -76,6 +81,58 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
         }
     }
 
+    @Override
+    public void onConfigChange() {
+        if (DEBUG) {
+            Log.d(TAG, "ScreenCastRTSPPreviewServer#onConfigChange");
+        }
+
+        if (mSRTServer != null) {
+            new Thread(() -> {
+                if (mSRTServer != null) {
+                    SRTSession session = mSRTServer.getSRTSession();
+                    if (session != null) {
+                        session.restartVideoEncoder();
+                    }
+                }
+            }).start();
+        }
+    }
+
+
+    @Override
+    public void mute() {
+        super.mute();
+        setMute(true);
+    }
+
+    @Override
+    public void unMute() {
+        super.unMute();
+        setMute(false);
+    }
+
+    /**
+     * AudioEncoder にミュート設定を行います.
+     *
+     * @param mute ミュート設定
+     */
+    private void setMute(boolean mute) {
+        if (mSRTServer != null) {
+            new Thread(() -> {
+                if (mSRTServer != null) {
+                    SRTSession session = mSRTServer.getSRTSession();
+                    if (session != null) {
+                        AudioEncoder audioEncoder = session.getAudioEncoder();
+                        if (audioEncoder  != null) {
+                            audioEncoder.setMute(mute);
+                        }
+                    }
+                }
+            }).start();
+        }
+    }
+
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
@@ -91,6 +148,19 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(recorder.getIFrameInterval());
             session.setVideoEncoder(videoEncoder);
+
+            // TODO 音声の設定を外部から設定できるようにすること。
+
+            AudioEncoder audioEncoder = new MicAACLATMEncoder();
+            audioEncoder.setMute(isMuted());
+
+            AudioQuality audioQuality = audioEncoder.getAudioQuality();
+            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+            audioQuality.setSamplingRate(8000);
+            audioQuality.setBitRate(64 * 1024);
+            audioQuality.setUseAEC(true);
+
+            session.setAudioEncoder(audioEncoder);
         }
 
         @Override

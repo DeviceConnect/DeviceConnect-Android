@@ -142,4 +142,30 @@ public class SRTSession {
     public void removeSRTClientSocket(SRTSocket socket) {
         mSRTMuxer.removeSRTClientSocket(socket);
     }
+
+    /**
+     * VideoEncoder を再リスタートします.
+     * <p>
+     * VideoEncoder が設定されていない場合には何もしません。
+     * </p>
+     */
+    public void restartVideoEncoder() {
+        VideoEncoder videoEncoder = mMediaStreamer.getVideoEncoder();
+        if (videoEncoder != null) {
+            videoEncoder.restart();
+        }
+    }
+
+    /**
+     * AudioEncoder を再リスタートします.
+     * <p>
+     * AudioEncoder が設定されていない場合には何もしません。
+     * </p>
+     */
+    public void retstartAudioEncoder() {
+        AudioEncoder audioEncoder = mMediaStreamer.getAudioEncoder();
+        if (audioEncoder != null) {
+            audioEncoder.restart();
+        }
+    }
 }

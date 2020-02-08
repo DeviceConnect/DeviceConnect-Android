@@ -1,10 +1,14 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
+import android.media.AudioFormat;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
@@ -69,6 +73,18 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
         restartCamera();
     }
 
+    @Override
+    public void mute() {
+        super.mute();
+        setMute(true);
+    }
+
+    @Override
+    public void unMute() {
+        super.unMute();
+        setMute(false);
+    }
+
     // Camera2PreviewServer
 
     @Override
@@ -79,6 +95,27 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                     SRTSession session = mSRTServer.getSRTSession();
                     if (session != null) {
                         session.getVideoEncoder().restart();
+                    }
+                }
+            }).start();
+        }
+    }
+
+    /**
+     * AudioEncoder にミュート設定を行います.
+     *
+     * @param mute ミュート設定
+     */
+    private void setMute(boolean mute) {
+        if (mSRTServer != null) {
+            new Thread(() -> {
+                if (mSRTServer != null) {
+                    SRTSession session = mSRTServer.getSRTSession();
+                    if (session != null) {
+                        AudioEncoder audioEncoder = session.getAudioEncoder();
+                        if (audioEncoder  != null) {
+                            audioEncoder.setMute(mute);
+                        }
                     }
                 }
             }).start();
@@ -104,6 +141,19 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
             videoQuality.setIFrameInterval(recorder.getIFrameInterval());
             session.setVideoEncoder(encoder);
+
+            // TODO 音声の設定を外部から設定できるようにすること。
+
+            AudioEncoder audioEncoder = new MicAACLATMEncoder();
+            audioEncoder.setMute(isMuted());
+
+            AudioQuality audioQuality = audioEncoder.getAudioQuality();
+            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+            audioQuality.setSamplingRate(8000);
+            audioQuality.setBitRate(64 * 1024);
+            audioQuality.setUseAEC(true);
+
+            session.setAudioEncoder(audioEncoder);
         }
 
         @Override

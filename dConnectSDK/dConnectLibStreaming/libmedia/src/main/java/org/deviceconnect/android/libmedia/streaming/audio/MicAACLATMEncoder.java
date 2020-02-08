@@ -70,7 +70,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     /**
      * 録音を行うスレッド.
      */
-    private AudioThread mAudioThread;
+    private AudioRecordThread mAudioThread;
 
     @Override
     public AudioQuality getAudioQuality() {
@@ -132,7 +132,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
     /**
      * 音声を録音するためのスレッド.
      */
-    private class AudioThread extends QueueThread<Runnable> {
+    private class AudioRecordThread extends QueueThread<Runnable> {
         /**
          * スレッドを終了します.
          */
@@ -197,7 +197,9 @@ public class MicAACLATMEncoder extends AudioEncoder {
 
         mAudioRecord.startRecording();
 
-        mAudioThread = new AudioThread();
+        mAudioThread = new AudioRecordThread();
+        mAudioThread.setName("MicAACLATMEncoder");
+        mAudioThread.setPriority(Thread.MAX_PRIORITY);
         mAudioThread.start();
     }
 

@@ -3,6 +3,7 @@ package org.deviceconnect.android.libmedia.streaming.audio;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.os.Build;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 
@@ -31,7 +32,14 @@ public abstract class AudioEncoder extends MediaEncoder {
         format.setInteger(MediaFormat.KEY_SAMPLE_RATE, audioQuality.getSamplingRate());
         format.setInteger(MediaFormat.KEY_BIT_RATE, audioQuality.getBitRate());
         format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, audioQuality.getChannelCount());
+        format.setInteger(MediaFormat.KEY_CHANNEL_MASK, audioQuality.getChannel());
         format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 0: realtime priority
+            // 1: non-realtime priority (best effort).
+            format.setInteger(MediaFormat.KEY_PRIORITY, 0x00);
+        }
 
         mMediaCodec = MediaCodec.createEncoderByType(audioQuality.getMimeType());
         mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);

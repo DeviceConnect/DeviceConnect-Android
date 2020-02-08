@@ -8,6 +8,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -66,6 +67,11 @@ public class MicAACLATMEncoder extends AudioEncoder {
      */
     private int mBufferSize;
 
+    /**
+     * 録音を行うスレッド.
+     */
+    private AudioThread mAudioThread;
+
     @Override
     public AudioQuality getAudioQuality() {
         return mAudioQuality;
@@ -105,19 +111,51 @@ public class MicAACLATMEncoder extends AudioEncoder {
     @Override
     protected void onInputData(ByteBuffer inputData, int index) {
         inputData.clear();
-        int len = 0;
 
         // ミュート設定の場合には、AudioRecord からデータを取得しない
-        if (!isMute() && mAudioRecord != null) {
-            len = mAudioRecord.read(inputData, mBufferSize);
-            if (len < 0) {
-                if (DEBUG) {
-                    Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
+        if (!isMute() && mAudioRecord != null && mAudioThread != null) {
+            mAudioThread.add(() -> {
+                int len = mAudioRecord.read(inputData, mBufferSize);
+                if (len < 0) {
+                    if (DEBUG) {
+                        Log.e(TAG, "An error occurred with the AudioRecord API ! len=" + len);
+                    }
                 }
-            }
-            inputData.flip();
+                inputData.flip();
+                mMediaCodec.queueInputBuffer(index, 0, len, System.nanoTime() / 1000, 0);
+            });
+        } else {
+            mMediaCodec.queueInputBuffer(index, 0, 0, System.nanoTime() / 1000, 0);
         }
-        mMediaCodec.queueInputBuffer(index, 0, len, System.nanoTime() / 1000, 0);
+    }
+
+    /**
+     * 音声を録音するためのスレッド.
+     */
+    private class AudioThread extends QueueThread<Runnable> {
+        /**
+         * スレッドを終了します.
+         */
+        void terminate() {
+            interrupt();
+
+            try {
+                join(200);
+            } catch (InterruptedException e) {
+                // ignore.
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!isInterrupted()) {
+                    get().run();
+                }
+            } catch (InterruptedException e) {
+                // ignore.
+            }
+        }
     }
 
     /**
@@ -158,12 +196,20 @@ public class MicAACLATMEncoder extends AudioEncoder {
         }
 
         mAudioRecord.startRecording();
+
+        mAudioThread = new AudioThread();
+        mAudioThread.start();
     }
 
     /**
      * AudioRecord を停止します.
      */
     private void stopAudioRecord() {
+        if (mAudioThread != null) {
+            mAudioThread.terminate();
+            mAudioThread = null;
+        }
+
         if (mAudioRecord != null) {
             try {
                 mAudioRecord.stop();

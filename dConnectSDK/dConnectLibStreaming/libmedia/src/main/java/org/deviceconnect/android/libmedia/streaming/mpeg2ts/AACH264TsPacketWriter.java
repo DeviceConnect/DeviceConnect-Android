@@ -231,6 +231,10 @@ public class AACH264TsPacketWriter {
         /**
          * TS パケットを通知します.
          *
+         * <p>
+         * packet が null の場合には、データが終了しているので、強制的に TSパケットを送信してください。
+         * </p>
+         *
          * @param packet TSパケット
          */
         void onPacketAvailable(byte[] packet);

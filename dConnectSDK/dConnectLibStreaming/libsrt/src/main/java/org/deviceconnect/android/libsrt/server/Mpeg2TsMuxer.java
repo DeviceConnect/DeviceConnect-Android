@@ -104,12 +104,19 @@ public class Mpeg2TsMuxer extends SRTMuxer {
      */
     private final AACH264TsPacketWriter.PacketListener mPacketListener = (packet) -> {
         try {
-            System.arraycopy(packet, 0, mPayload, mPayloadPosition, TS_PACKET_SIZE);
-            mPayloadPosition += TS_PACKET_SIZE;
-
-            if (mPayloadPosition == PAYLOAD_SIZE) {
+            if (packet == null) {
+                if (mPayloadPosition > 0) {
+                    sendPacket(mPayload, 0, mPayloadPosition);
+                }
                 mPayloadPosition = 0;
-                sendPacket(mPayload);
+            } else {
+                System.arraycopy(packet, 0, mPayload, mPayloadPosition, TS_PACKET_SIZE);
+                mPayloadPosition += TS_PACKET_SIZE;
+
+                if (mPayloadPosition == PAYLOAD_SIZE) {
+                    mPayloadPosition = 0;
+                    sendPacket(mPayload);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to send packet", e);

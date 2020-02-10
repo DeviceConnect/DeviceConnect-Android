@@ -50,6 +50,11 @@ public class TsPacketWriter {
     private TsPacket mPacket = new TsPacket();
 
     public interface Callback {
+        /**
+         * TS パケットを通知します.
+         *
+         * @param packet パケット
+         */
         void onPacket(final byte[] packet);
     }
 
@@ -59,21 +64,45 @@ public class TsPacketWriter {
         mCallback = callback;
     }
 
+    /**
+     * TS パケットに指定された値を書き込みます.
+     *
+     * @param b 書き込む値
+     */
     private void writePacket(byte b) {
         mPacket.add(b);
     }
 
+    /**
+     * TS パケットに指定されたバッファを書き込みます.
+     * @param buffer 書き込むバッファ
+     * @param offset 書き込むバッファのオフセット
+     * @param length 書き込むバッファのサイズ
+     */
     private void writePacket(byte[] buffer, int offset, int length) {
         mPacket.add(buffer, offset, length);
     }
 
+    /**
+     * TS パケットのデータを指定されたパケットで初期化します.
+     *
+     * @param b 初期化する値
+     */
     private void resetPacket(final byte b) {
         mPacket.reset(b);
     }
 
-    private void notifyPacket() {
+    /**
+     * TS パケットを送信します.
+     *
+     * @param flush パケットを強制送信する場合はtrue、それ以外はfalse
+     */
+    private void notifyPacket(boolean flush) {
         if (mCallback != null) {
             mCallback.onPacket(mPacket.mData);
+            if (flush) {
+                mCallback.onPacket(null);
+            }
         }
     }
 
@@ -143,7 +172,7 @@ public class TsPacketWriter {
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
 
-        notifyPacket();
+        notifyPacket(true);
     }
 
     /**
@@ -229,7 +258,7 @@ public class TsPacketWriter {
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
 
-        notifyPacket();
+        notifyPacket(true);
     }
 
     /**
@@ -384,7 +413,8 @@ public class TsPacketWriter {
             }
 
             isFirstTs = false;
-            notifyPacket();
+
+            notifyPacket(frameBufPtr >= frameBufSize);
         }
     }
 

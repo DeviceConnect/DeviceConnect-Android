@@ -131,8 +131,8 @@ JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
         return -1;
     }
 
-    int result = srt_sendmsg2((int) ptr, (const char *) &data[offset], length, nullptr);
-    if (result == SRT_ERROR) {
+    int result = srt_sendmsg((int) ptr, (const char *) &data[offset], length, -1, 0);
+    if (result < SRT_ERROR) {
         LOGE("srt_send: %s\n", srt_getlasterror_str());
     }
     env->ReleaseByteArrayElements(byteArray, data, 0);
@@ -149,7 +149,7 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
     }
 
     int result = srt_recvmsg((int) ptr, (char *) data, length);
-    if (result == SRT_ERROR) {
+    if (result < SRT_ERROR) {
         LOGE("srt_send: %s\n", srt_getlasterror_str());
     }
     env->ReleaseByteArrayElements(byteArray, data, 0);

@@ -5,6 +5,11 @@ import java.util.List;
 
 public class AACH264TsPacketWriter {
     /**
+     * PAT、PMT の送信周期を定義.
+     */
+    private static final int PAT_PMT_SEND_INTERVAL = 2000;
+
+    /**
      * P フレーム（差分)のタイプを定義.
      */
     private static final int H264NT_SLICE  = 1;
@@ -74,6 +79,11 @@ public class AACH264TsPacketWriter {
      */
     private byte[] mFrameBuffer = new byte[4096];
 
+    /**
+     * PAT、PMT 送信時間.
+     */
+    private long mPatPmtSendTime;
+
 
     public AACH264TsPacketWriter() {
         mTsWriter = new TsPacketWriter();
@@ -114,6 +124,8 @@ public class AACH264TsPacketWriter {
 
         // 初期化フラグ
         mFirstPes = true;
+
+        mPatPmtSendTime = 0;
     }
 
     /**
@@ -156,12 +168,15 @@ public class AACH264TsPacketWriter {
      * @param pts プレゼンテーションタイム
      */
     public synchronized void writeNALU(final ByteBuffer buffer, final long pts) {
+        writePatPmt(FrameType.VIDEO);
+
         int offset = buffer.position();
         int length = buffer.limit() - offset;
         int type = buffer.get(H264_START_CODE.length) & 0x1F;
         boolean isFrame = type == H264NT_SLICE || type == H264NT_SLICE_IDR;
         buffer.position(offset);
         mTsWriter.writeVideoBuffer(mFirstPes, put(buffer, length), length, pts, pts, isFrame, mMixed);
+        mFirstPes = false;
     }
 
     /**
@@ -170,10 +185,25 @@ public class AACH264TsPacketWriter {
      * @param buffer ADTS のフレームが格納されたバッファ
      * @param pts プレゼンテーションタイム
      */
-    public synchronized void writeADTS(final ByteBuffer buffer, long pts) {
+    public synchronized void writeADTS(final ByteBuffer buffer, final long pts) {
+        writePatPmt(FrameType.AUDIO);
+
         int length = buffer.limit() - buffer.position();
         mTsWriter.writeAudioBuffer(mFirstPes, put(buffer, length), length, pts, pts, mMixed);
         mFirstPes = false;
+    }
+
+    /**
+     * PAT、PMT を一定時間で送信します.
+     *
+     * @param frameType フレームタイプ
+     */
+    private void writePatPmt(FrameType frameType) {
+        if (System.currentTimeMillis() - mPatPmtSendTime > PAT_PMT_SEND_INTERVAL) {
+            mPatPmtSendTime = System.currentTimeMillis();
+            mTsWriter.writePAT();
+            mTsWriter.writePMT(mMixed ? FrameType.MIXED : frameType);
+        }
     }
 
     /**

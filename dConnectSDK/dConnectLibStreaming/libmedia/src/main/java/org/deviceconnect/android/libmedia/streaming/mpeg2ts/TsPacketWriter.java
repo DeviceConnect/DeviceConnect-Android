@@ -101,7 +101,7 @@ public class TsPacketWriter {
     /**
      * PAT を作成します.
      */
-    private void writePAT() {
+    void writePAT() {
         resetPacket((byte) 0xFF);
 
         // header
@@ -142,6 +142,8 @@ public class TsPacketWriter {
         writePacket((byte) ((crc >> 16) & 0xFF));
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
+
+        notifyPacket();
     }
 
     /**
@@ -154,7 +156,7 @@ public class TsPacketWriter {
      *
      * @param fType フレームタイプ
      */
-    private void writePMT(FrameType fType) {
+    void writePMT(FrameType fType) {
         resetPacket((byte) 0xFF);
 
         // header
@@ -226,6 +228,8 @@ public class TsPacketWriter {
         writePacket((byte) ((crc >> 16) & 0xFF));
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
+
+        notifyPacket();
     }
 
     /**
@@ -247,14 +251,6 @@ public class TsPacketWriter {
     }
 
     private void writeBuffer(FrameType frameType, boolean isFirstPes, byte[] frameBuf, int frameBufSize, long pts, long dts, boolean isFrame, boolean isAudio) {
-        // write pat table
-        writePAT();
-        notifyPacket();
-
-        // write pmt table
-        writePMT(frameType);
-        notifyPacket();
-
         boolean isFirstTs = true;
         int frameBufPtr = 0;
         int pid = isAudio ? TS_AUDIO_PID : TS_VIDEO_PID;

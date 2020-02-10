@@ -16,6 +16,9 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     private static final String TAG = "Mpeg2Ts";
 
+    private static final int TS_PACKET_SIZE = 188;
+    private static final int PAYLOAD_SIZE = TS_PACKET_SIZE * 7;
+
     /**
      * 使用できるサンプリングレートを定義します.
      */
@@ -79,14 +82,17 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     private ByteBuffer mADTSBuffer = null;
 
     /**
-     * SRT パケットのペイロード. SRT パケットのデフォルトの最大サイズに合わせる.
+     * SRT パケットのペイロード.
+     * <p>
+     * SRT パケットのデフォルトの最大サイズに合わせる.
+     * </p>
      */
-    private final byte[] mPayload = new byte[188 * 7];
+    private final byte[] mPayload = new byte[PAYLOAD_SIZE];
 
     /**
-     * SRT パケットのペイロードを格納するためのバッファ.
+     * SRT パケットのペイロード位置.
      */
-    private final ByteBuffer mPacketBuffer = ByteBuffer.wrap(mPayload);
+    private int mPayloadPosition;
 
     /**
      * エンコードを開始したプレゼンテーションタイム.
@@ -98,11 +104,12 @@ public class Mpeg2TsMuxer extends SRTMuxer {
      */
     private final AACH264TsPacketWriter.PacketListener mPacketListener = (packet) -> {
         try {
-            mPacketBuffer.put(packet);
+            System.arraycopy(packet, 0, mPayload, mPayloadPosition, TS_PACKET_SIZE);
+            mPayloadPosition += TS_PACKET_SIZE;
 
-            if (!mPacketBuffer.hasRemaining()) {
+            if (mPayloadPosition == PAYLOAD_SIZE) {
+                mPayloadPosition = 0;
                 sendPacket(mPayload);
-                mPacketBuffer.clear();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to send packet", e);
@@ -114,7 +121,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         float sampleRate = 0;
         int sampleSizeInBits = 0;
         int channels = 0;
-        int fps = 30;
+        int fps = 0;
 
         if (videoQuality != null) {
             fps = videoQuality.getFrameRate();
@@ -133,6 +140,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         mH264TsWriter.initialize(sampleRate, sampleSizeInBits, channels, fps);
         mH264TsWriter.setPacketListener(mPacketListener);
         mPresentationTime = 0;
+        mPayloadPosition = 0;
         return true;
     }
 
@@ -145,19 +153,14 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         encodedData.position(bufferInfo.offset);
         encodedData.limit(bufferInfo.offset + bufferInfo.size);
 
-        if (mPresentationTime == 0) {
-            mPresentationTime = bufferInfo.presentationTimeUs;
-        }
-        long pts = ((bufferInfo.presentationTimeUs - mPresentationTime) / 1000) * 90;
-
         if (isConfigFrame(bufferInfo)) {
             storeConfig(encodedData, bufferInfo);
         } else {
             if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
                 mConfigBuffer.position(0);
-                mH264TsWriter.writeNALU(mConfigBuffer, pts);
+                mH264TsWriter.writeNALU(mConfigBuffer, getPts(bufferInfo));
             }
-            mH264TsWriter.writeNALU(encodedData, pts);
+            mH264TsWriter.writeNALU(encodedData, getPts(bufferInfo));
         }
     }
 
@@ -176,20 +179,26 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         addADTStoPacket(mADTS, outPacketSize);
         encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
 
-
-        if (mPresentationTime == 0) {
-            mPresentationTime = bufferInfo.presentationTimeUs;
-        }
-        long pts = ((bufferInfo.presentationTimeUs - mPresentationTime) / 1000) * 90;
-
         mADTSBuffer.position(0);
         mADTSBuffer.limit(outPacketSize);
-        mADTSBuffer.position(0);
-        mH264TsWriter.writeADTS(mADTSBuffer, pts);
+        mH264TsWriter.writeADTS(mADTSBuffer, getPts(bufferInfo));
     }
 
     @Override
     public void onReleased() {
+    }
+
+    /**
+     * MPEG-TS 用の PTS に変換します.
+     *
+     * @param bufferInfo MediaCodec のバッファ情報
+     * @return PTS
+     */
+    private long getPts(MediaCodec.BufferInfo bufferInfo) {
+        if (mPresentationTime == 0) {
+            mPresentationTime = bufferInfo.presentationTimeUs;
+        }
+        return ((bufferInfo.presentationTimeUs - mPresentationTime) / 1000) * 90;
     }
 
     /**

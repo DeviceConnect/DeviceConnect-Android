@@ -91,7 +91,7 @@ public class AACH264TsPacketWriter {
     }
 
     public void setPacketListener(PacketListener packetListener) {
-        this.mPacketListener = packetListener;
+        mPacketListener = packetListener;
     }
 
     /**
@@ -111,20 +111,19 @@ public class AACH264TsPacketWriter {
         if (fps > 0) {
             // PTS ステップサイズ.
             // ・映像：1000 / fps（単位：ms）
-            // ・ミリ秒への変換：h264の設定によると90HZであるため、PTS/DTSのミリ秒への変換式は次のとおり。ms = pts / 90
+            // ・ミリ秒への変換：h264の設定によると90HZであるため、PTS/DTSのミリ秒への変換式は次のとおり。
+            //   ms = pts / 90
             mIncVideoPts = (long) (1000 / fps) * 90;
         }
 
         if (sampleRate > 0) {
             // ・音声: 1つのAACフレームに対応するサンプリングサンプル数/サンプリング周波数（単位: s)
+            //        AAC-LC の 1 frame は 1024 samples
             mIncAudioPts = (long) (1024 * (1000 / sampleRate)) * 90;
         }
 
         mMixed = (fps > 0 && sampleRate > 0);
-
-        // 初期化フラグ
         mFirstPes = true;
-
         mPatPmtSendTime = 0;
     }
 

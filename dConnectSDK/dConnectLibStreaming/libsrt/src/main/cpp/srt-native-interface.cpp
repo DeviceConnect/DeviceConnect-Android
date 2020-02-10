@@ -32,9 +32,8 @@ extern "C" {
 
 JNIEXPORT void JNICALL
 JNI_METHOD_NAME(startup)(JNIEnv *env, jclass clazz) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_startup(): start");
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_startup()");
     srt_startup();
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_startup(): end");
 }
 
 

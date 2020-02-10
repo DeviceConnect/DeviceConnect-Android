@@ -55,7 +55,7 @@ final class CrcUtil {
             0x97ffad0c, 0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
             0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4 };
 
-    public static long mpegts_crc32(byte[] data, int offset, int len) {
+    static long crc32(byte[] data, int offset, int len) {
         long crc = 0xffffffff;
         for (int i = 0; i < len; i++) {
             int pos = (int) ((crc >> 24) ^ data[i + offset]) & 0xff;

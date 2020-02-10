@@ -7,12 +7,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_AUDIO_PID;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PAT_PID;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PAT_TABLE_ID;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PMT_PID;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PMT_TABLE_ID;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_VIDEO_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_AUDIO_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_PAT_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_PAT_TABLE_ID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_PMT_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_PMT_TABLE_ID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_VIDEO_PID;
 
 
 /**
@@ -82,12 +82,12 @@ public class H264TransportStreamWriter {
     /**
      * PAT パケット.
      */
-    private final TransportPacket mPAT = new TransportPacket();
+    private final TsPacket mPAT = new TsPacket();
 
     /**
      * PMT パケット.
      */
-    private final TransportPacket mPMT = new TransportPacket();
+    private final TsPacket mPMT = new TsPacket();
 
     /**
      * PAT パケットのカウンター.
@@ -121,7 +121,7 @@ public class H264TransportStreamWriter {
         return mFrameDataType == FrameDataType.MIXED;
     }
 
-    private void notifyPacket(TransportPacket packet) {
+    private void notifyPacket(TsPacket packet) {
         notifyPacket(packet.mData);
     }
 
@@ -129,7 +129,7 @@ public class H264TransportStreamWriter {
         bufferListener.onPacketAvailable(packet);
     }
 
-    private void createPAT(final TransportPacket p) {
+    private void createPAT(final TsPacket p) {
         p.reset((byte) 0xFF);
 
         // header
@@ -166,14 +166,14 @@ public class H264TransportStreamWriter {
         p.add((byte) (program_id & 0xFF));
 
         // set crc32
-        long crc = CrcUtil.mpegts_crc32(p.mData, 5, 12);
+        long crc = CrcUtil.crc32(p.mData, 5, 12);
         p.add((byte) ((crc >> 24) & 0xFF));
         p.add((byte) ((crc >> 16) & 0xFF));
         p.add((byte) ((crc >> 8) & 0xFF));
         p.add((byte) ((crc) & 0xFF));
     }
 
-    private void createPMT(final TransportPacket p, final FrameDataType fType) {
+    private void createPMT(final TsPacket p, final FrameDataType fType) {
         p.reset((byte) 0xFF);
 
         // header
@@ -244,7 +244,7 @@ public class H264TransportStreamWriter {
 
 
         // set crc32
-        long crc =  CrcUtil.mpegts_crc32(p.mData, 5,  (fType == FrameDataType.MIXED) ? 22: 17);
+        long crc =  CrcUtil.crc32(p.mData, 5,  (fType == FrameDataType.MIXED) ? 22: 17);
         p.add((byte) ((crc >> 24) & 0xFF));
         p.add((byte) ((crc >> 16) & 0xFF));
         p.add((byte) ((crc >> 8) & 0xFF));

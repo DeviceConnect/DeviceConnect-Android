@@ -6,7 +6,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.H264TransportStreamWriter;
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.AACH264TsPacketWriter;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
@@ -51,7 +51,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     /**
      * H264 のセグメントに分割するクラス.
      */
-    private H264TransportStreamWriter mH264TsWriter;
+    private AACH264TsPacketWriter mH264TsWriter;
 
     /**
      * ADTS ヘッダーに格納するサンプリングレートのインデックス.
@@ -89,18 +89,21 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     private final ByteBuffer mPacketBuffer = ByteBuffer.wrap(mPayload);
 
     /**
+     * エンコードを開始したプレゼンテーションタイム.
+     */
+    private long mPresentationTime;
+
+    /**
      * mpeg2ts に変換されたデータを受信するリスナー.
      */
-    private final H264TransportStreamWriter.PacketListener mBufferListener = (packet) -> {
+    private final AACH264TsPacketWriter.PacketListener mPacketListener = (packet) -> {
         try {
-            synchronized (mPacketBuffer) {
-                mPacketBuffer.put(packet);
-                if (!mPacketBuffer.hasRemaining()) {
-                    sendPacket(mPayload);
-                    mPacketBuffer.clear();
-                }
-            }
+            mPacketBuffer.put(packet);
 
+            if (!mPacketBuffer.hasRemaining()) {
+                sendPacket(mPayload);
+                mPacketBuffer.clear();
+            }
         } catch (Exception e) {
             Log.e(TAG, "Failed to send packet", e);
         }
@@ -126,11 +129,10 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             channels = audioQuality.getChannelCount();
         }
 
-        mH264TsWriter = new H264TransportStreamWriter();
-        mH264TsWriter.setStreamEnabled(videoQuality != null, audioQuality != null);
-        mH264TsWriter.setBufferListener(mBufferListener);
+        mH264TsWriter = new AACH264TsPacketWriter();
         mH264TsWriter.initialize(sampleRate, sampleSizeInBits, channels, fps);
-        mH264TsWriter.start();
+        mH264TsWriter.setPacketListener(mPacketListener);
+        mPresentationTime = 0;
         return true;
     }
 
@@ -143,13 +145,19 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         encodedData.position(bufferInfo.offset);
         encodedData.limit(bufferInfo.offset + bufferInfo.size);
 
+        if (mPresentationTime == 0) {
+            mPresentationTime = bufferInfo.presentationTimeUs;
+        }
+        long pts = ((bufferInfo.presentationTimeUs - mPresentationTime) / 1000) * 90;
+
         if (isConfigFrame(bufferInfo)) {
             storeConfig(encodedData, bufferInfo);
         } else {
             if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
-                mH264TsWriter.pushVideoBuffer(mConfigBuffer);
+                mConfigBuffer.position(0);
+                mH264TsWriter.writeNALU(mConfigBuffer, pts);
             }
-            mH264TsWriter.pushVideoBuffer(encodedData);
+            mH264TsWriter.writeNALU(encodedData, pts);
         }
     }
 
@@ -168,14 +176,20 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         addADTStoPacket(mADTS, outPacketSize);
         encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
 
+
+        if (mPresentationTime == 0) {
+            mPresentationTime = bufferInfo.presentationTimeUs;
+        }
+        long pts = ((bufferInfo.presentationTimeUs - mPresentationTime) / 1000) * 90;
+
+        mADTSBuffer.position(0);
         mADTSBuffer.limit(outPacketSize);
         mADTSBuffer.position(0);
-        mH264TsWriter.pushAudioBuffer(mADTSBuffer, outPacketSize);
+        mH264TsWriter.writeADTS(mADTSBuffer, pts);
     }
 
     @Override
     public void onReleased() {
-        mH264TsWriter.stop();
     }
 
     private int getFreqIdx(int sampleRate) {
@@ -187,6 +201,12 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         return -1;
     }
 
+    /**
+     * ADTS ヘッダーを追加します.
+     *
+     * @param packet パケット
+     * @param packetLen パケットサイズ
+     */
     private void addADTStoPacket(byte[] packet, int packetLen) {
         packet[0] = (byte) 0xFF;
         packet[1] = (byte) 0xF9;

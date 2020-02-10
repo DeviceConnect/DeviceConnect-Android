@@ -4,11 +4,11 @@ import com.google.common.primitives.Bytes;
 
 import java.nio.ByteBuffer;
 
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_AUDIO_PID;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_HEADER_SIZE;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PACKET_SIZE;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_PAYLOAD_SIZE;
-import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TransportPacket.TS_VIDEO_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_AUDIO_PID;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_HEADER_SIZE;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_PACKET_SIZE;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_PAYLOAD_SIZE;
+import static org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacket.TS_VIDEO_PID;
 
 class H264TransportPacketWriter {
 
@@ -19,7 +19,7 @@ class H264TransportPacketWriter {
     private byte mAudioContinuityCounter = 0;
     private byte mVideoContinuityCounter = 0;
 
-    private TransportPacket mPacket = new TransportPacket();
+    private TsPacket mPacket = new TsPacket();
 
     public interface Callback {
         void onPacket(final byte[] packet);
@@ -49,7 +49,7 @@ class H264TransportPacketWriter {
         notifyPacket(mPacket);
     }
 
-    private void notifyPacket(final TransportPacket p) {
+    private void notifyPacket(final TsPacket p) {
         if (mCallback != null) {
             mCallback.onPacket(p.mData);
         }

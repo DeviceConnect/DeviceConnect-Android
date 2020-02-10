@@ -154,6 +154,10 @@ public class MicAACLATMEncoder extends AudioEncoder {
                 }
             } catch (InterruptedException e) {
                 // ignore.
+            } catch (Exception e) {
+                if (DEBUG) {
+                    Log.w(TAG, "", e);
+                }
             }
         }
     }

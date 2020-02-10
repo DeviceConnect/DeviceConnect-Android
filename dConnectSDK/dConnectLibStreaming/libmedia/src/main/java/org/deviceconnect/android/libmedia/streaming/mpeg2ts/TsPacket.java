@@ -1,25 +1,26 @@
 package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
-class TransportPacket {
+class TsPacket {
 
-    static final int TS_PACKET_SIZE 			= 188;
-    static final int TS_HEADER_SIZE				= 4;
-    static final int TS_PAYLOAD_SIZE 			= TS_PACKET_SIZE - TS_HEADER_SIZE;
+    static final int TS_PACKET_SIZE = 188;
+    static final int TS_HEADER_SIZE = 4;
+    static final int TS_PAYLOAD_SIZE = TS_PACKET_SIZE - TS_HEADER_SIZE;
 
-    static final int TS_PAT_PID 				= 0x0000;	// 0
-    static final int TS_PMT_PID 				= 0x1000;	// 4096
-    static final int TS_AUDIO_PID 				= 0x101;	// 257
-    static final int TS_VIDEO_PID 				= 0x100;	// 256
+    static final int TS_PAT_PID = 0x0000;    // 0
+    static final int TS_PMT_PID = 0x1000;    // 4096
+    static final int TS_AUDIO_PID = 0x101;    // 257
+    static final int TS_VIDEO_PID = 0x100;    // 256
 
-    static final int TS_PAT_TABLE_ID 			= 0x00;
-    static final int TS_PMT_TABLE_ID 			= 0x02;
+    static final int TS_PAT_TABLE_ID = 0x00;
+    static final int TS_PMT_TABLE_ID = 0x02;
 
     // Table 2-29 – Stream type assignments. page 66
-    private static final byte STREAM_TYPE_AUDIO_AAC 	= 0x0f;
-    private static final byte STREAM_TYPE_AUDIO_MP3 	= 0x03;
-    private static final byte STREAM_TYPE_VIDEO_H264 	= 0x1b;
+    private static final byte STREAM_TYPE_AUDIO_AAC = 0x0f;
+    private static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
+    private static final byte STREAM_TYPE_VIDEO_H264 = 0x1b;
 
     final byte[] mData = new byte[TS_PACKET_SIZE];
     int mOffset = 0;
@@ -41,9 +42,7 @@ class TransportPacket {
     }
 
     void reset(final byte b) {
-        for (int i = 0; i < TS_PACKET_SIZE; i++) {
-            mData[i] = b;
-        }
+        Arrays.fill(mData, b);
         mOffset = 0;
     }
 
@@ -59,6 +58,6 @@ class TransportPacket {
         add((byte) ((transport_error_indicator << 7) | (payload_unit_start_indicator << 6) | (transport_priority << 5) | ((pid >> 8) & 0x1F)));
         add((byte) (pid & 0xff));
         add((byte) ((transport_scrambling_control << 6) | (adaptation_field_control << 4) | (continuity_counter & 0x0F)));
-        add((byte) 0x00);	// adaptation field length
+        add((byte) 0x00);    // adaptation field length
     }
 }

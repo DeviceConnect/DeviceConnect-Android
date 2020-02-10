@@ -95,7 +95,7 @@ JNI_METHOD_NAME(closeSrtSocket)(JNIEnv *env, jclass clazz, jlong ptr) {
     }
 }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT void JNICALL
 JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_accept()");
 
@@ -104,7 +104,7 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
     int st = srt_accept((int) ptr, &addr, &addrlen);
     if (st == SRT_ERROR) {
         LOGE("srt_accept: %s\n", srt_getlasterror_str());
-        return -1;
+        return;
     }
 
     // クライアント側のソケットへのポインタ
@@ -119,8 +119,6 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
     jstring address = env->NewStringUTF(buf);
     jfieldID addressField = env->GetFieldID(socketCls, "mSocketAddress", "Ljava/lang/String;");
     env->SetObjectField(socket, addressField, address);
-
-    return st;
 }
 
 JNIEXPORT int JNICALL

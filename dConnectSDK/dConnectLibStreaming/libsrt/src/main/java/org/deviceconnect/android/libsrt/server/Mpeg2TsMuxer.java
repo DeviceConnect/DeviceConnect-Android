@@ -192,6 +192,12 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     public void onReleased() {
     }
 
+    /**
+     * ADTS に指定するサンプルレートに対応するインデックスを取得します.
+     *
+     * @param sampleRate サンプルレート
+     * @return サンプルレートに対応するインデックス
+     */
     private int getFreqIdx(int sampleRate) {
         for (int i = 0; i < SUPPORT_AUDIO_SAMPLING_RATES.length; i++) {
             if (sampleRate == SUPPORT_AUDIO_SAMPLING_RATES[i]) {

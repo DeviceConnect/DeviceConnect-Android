@@ -2,8 +2,6 @@ package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
 import com.google.common.primitives.Bytes;
 
-import java.nio.ByteBuffer;
-
 public class TsPacketWriter {
 
     // Transport Stream packets are 188 bytes in length
@@ -16,10 +14,24 @@ public class TsPacketWriter {
     private static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
     private static final byte STREAM_TYPE_VIDEO_H264 = 0x1b;
 
-
+    /**
+     * PAT の PID を定義.
+     */
     private static final int TS_PAT_PID = 0x0000;    // 0
+
+    /**
+     * PMT の PID を定義.
+     */
     private static final int TS_PMT_PID = 0x1000;    // 4096
+
+    /**
+     * 音声の PID を定義.
+     */
     private static final int TS_AUDIO_PID = 0x101;    // 257
+
+    /**
+     * 映像の PID を定義.
+     */
     private static final int TS_VIDEO_PID = 0x100;    // 256
 
     // Transport Stream Description Table
@@ -65,6 +77,12 @@ public class TsPacketWriter {
         }
     }
 
+    /**
+     * TS パケットのヘッダーを作成します.
+     *
+     * @param pid PID
+     * @param continuity_counter カウンター
+     */
     private void writeTsHeader(int pid, int continuity_counter) {
         byte sync_byte = 0x47;
         int transport_error_indicator = 0;
@@ -80,6 +98,9 @@ public class TsPacketWriter {
         writePacket((byte) 0x00);    //開始インジケータ
     }
 
+    /**
+     * PAT を作成します.
+     */
     private void writePAT() {
         resetPacket((byte) 0xFF);
 
@@ -123,12 +144,17 @@ public class TsPacketWriter {
         writePacket((byte) ((crc) & 0xFF));
     }
 
-
-    /*
-      only audio , section_length = 18
-      audio & video mix, section_length = 23
+    /**
+     * PMT を作成します.
+     *
+     * <p>
+     *     only audio , section_length = 18
+     *     audio & video mix, section_length = 23
+     * </p>
+     *
+     * @param fType フレームタイプ
      */
-    private void writePMT(FrameDataType fType) {
+    private void writePMT(FrameType fType) {
         resetPacket((byte) 0xFF);
 
         // header
@@ -139,7 +165,7 @@ public class TsPacketWriter {
         int section_syntax_indicator = 1;
         int zero = 0;
         int reserved_1 = 3;
-        int section_length = (fType == FrameDataType.MIXED) ? 23 : 18;
+        int section_length = (fType == FrameType.MIXED) ? 23 : 18;
         int program_number = 1;
         int reserved_2 = 3;
         int version_number = 0;
@@ -147,7 +173,7 @@ public class TsPacketWriter {
         int section_number = 0;
         int last_section_number = 0;
         int reserved_3 = 7;
-        int pcr_pid = (fType == FrameDataType.AUDIO) ? TS_AUDIO_PID : TS_VIDEO_PID;
+        int pcr_pid = (fType == FrameType.AUDIO) ? TS_AUDIO_PID : TS_VIDEO_PID;
         int reserved_4 = 15;
         int program_info_length = 0;
 
@@ -165,7 +191,7 @@ public class TsPacketWriter {
         writePacket((byte) (program_info_length & 0xFF));
 
         // set video stream info
-        if (fType == FrameDataType.VIDEO || fType == FrameDataType.MIXED) {
+        if (fType == FrameType.VIDEO || fType == FrameType.MIXED) {
             int stream_type = 0x1b;
             int reserved_5 = 7;
             int elementary_pid = TS_VIDEO_PID;
@@ -180,8 +206,7 @@ public class TsPacketWriter {
         }
 
         // set audio stream info
-        if (fType == FrameDataType.AUDIO || fType == FrameDataType.MIXED) {
-
+        if (fType == FrameType.AUDIO || fType == FrameType.MIXED) {
             int stream_type = 0x0f;
             int reserved_5 = 7;
             int elementary_pid = TS_AUDIO_PID;
@@ -196,13 +221,19 @@ public class TsPacketWriter {
         }
 
         // set crc32
-        long crc = CrcUtil.crc32(mPacket.mData, 5, (fType == FrameDataType.MIXED) ? 22 : 17);
+        long crc = CrcUtil.crc32(mPacket.mData, 5, (fType == FrameType.MIXED) ? 22 : 17);
         writePacket((byte) ((crc >> 24) & 0xFF));
         writePacket((byte) ((crc >> 16) & 0xFF));
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
     }
 
+    /**
+     * PTS、DTS のデータを書き込みます.
+     *
+     * @param guard_bits
+     * @param value PTS、DTS の値
+     */
     private void writePtsDts(int guard_bits, long value) {
         int pts1 = (int) ((value >> 30) & 0x07);
         int pts2 = (int) ((value >> 15) & 0x7FFF);
@@ -215,27 +246,16 @@ public class TsPacketWriter {
         writePacket((byte) (((pts3 & 0x007F) << 1) | 0x01));
     }
 
-    void writeVideoBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame, boolean mixed) {
-        writeBuffer(mixed ? FrameDataType.MIXED : FrameDataType.VIDEO, isFirstPes, buffer, length, pts, dts, isFrame, false);
-    }
-
-    void writeAudioBuffer(boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean mixed) {
-        writeBuffer(mixed ? FrameDataType.MIXED : FrameDataType.AUDIO, isFirstPes, buffer, length, pts, dts, true, true);
-    }
-
-    private void writeBuffer(FrameDataType frameDataType, boolean isFirstPes, ByteBuffer buffer, int length, long pts, long dts, boolean isFrame, boolean isAudio) {
+    private void writeBuffer(FrameType frameType, boolean isFirstPes, byte[] frameBuf, int frameBufSize, long pts, long dts, boolean isFrame, boolean isAudio) {
         // write pat table
         writePAT();
         notifyPacket();
 
         // write pmt table
-        writePMT(frameDataType);
+        writePMT(frameType);
         notifyPacket();
 
         boolean isFirstTs = true;
-        byte[] frameBuf = new byte[length];
-        buffer.get(frameBuf);
-        int frameBufSize = frameBuf.length;
         int frameBufPtr = 0;
         int pid = isAudio ? TS_AUDIO_PID : TS_VIDEO_PID;
 
@@ -254,9 +274,9 @@ public class TsPacketWriter {
             if (isFirstTs) {
                 if (isFrame) {
                     writePacket((byte) 0x07); // adaptation_field_length
-                    writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x50 : 0x10)));
+                    writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameType == FrameType.MIXED ? 0x50 : 0x10)));
 
-                    /* write PCR */
+                    // write PCR
                     long pcr = pts;
                     writePacket((byte) ((pcr >> 25) & 0xFF));
                     writePacket((byte) ((pcr >> 17) & 0xFF));
@@ -266,10 +286,10 @@ public class TsPacketWriter {
                     writePacket((byte) 0x00);
                 } else {
                     writePacket((byte) 0x01); // adaptation_field_length
-                    writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameDataType == FrameDataType.MIXED ? 0x40 : 0x00)));
+                    writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameType == FrameType.MIXED ? 0x40 : 0x00)));
                 }
 
-                /* write PES HEADER */
+                // write PES HEADER
                 writePacket((byte) 0x00);
                 writePacket((byte) 0x00);
                 writePacket((byte) 0x01);
@@ -289,7 +309,7 @@ public class TsPacketWriter {
 
                 // PES ヘッダーの識別
                 byte PTS_DTS_flags = isFrame ? (byte) 0xc0 : (byte) 0x00;
-                writePacket((byte) 0x80);            // 0x80 no flags set,  0x84 just data alignment indicator flag set
+                writePacket((byte) 0x80);          // 0x80 no flags set,  0x84 just data alignment indicator flag set
                 writePacket(PTS_DTS_flags);        // 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
 
                 // write pts & dts
@@ -314,7 +334,6 @@ public class TsPacketWriter {
                 if (isAdaptationField) {
                     writePacket((byte) 1);
                     writePacket((byte) 0x00);
-
                 } else {
                     // no adaptation
                     // ts_header + ts_payload
@@ -328,7 +347,6 @@ public class TsPacketWriter {
                 writePacket(frameBuf, frameBufPtr, tsBufRemaining);
                 frameBufPtr += tsBufRemaining;
             } else {
-
                 int paddingSize = tsBufRemaining - frameBufRemaining;
                 byte[] tsBuf = mPacket.mData;
                 int offset = mPacket.mOffset;
@@ -337,7 +355,6 @@ public class TsPacketWriter {
                 // 0x10  0001 0000
                 // has adaptation
                 if (isAdaptationField) {
-
                     int adaptationFieldLength = (tsBuf[4] & 0xFF);
                     int start = TS_HEADER_SIZE + adaptationFieldLength + 1;
                     int end = offset - 1;
@@ -356,7 +373,6 @@ public class TsPacketWriter {
 
                     // no adaptation
                 } else {
-
                     // set adaptation
                     tsBuf[3] |= 0x20;
                     tsBuf[4] = (byte) paddingSize;
@@ -369,11 +385,39 @@ public class TsPacketWriter {
 
                 System.arraycopy(frameBuf, frameBufPtr, tsBuf, offset + paddingSize, frameBufRemaining);
                 frameBufPtr += frameBufRemaining;
-
             }
 
             isFirstTs = false;
             notifyPacket();
         }
+    }
+
+    /**
+     * 映像のデータを書き込みます.
+     *
+     * @param isFirstPes 最初のパケットフラグ
+     * @param buffer 映像データのバッファ
+     * @param length 映像データのバッファサイズ
+     * @param pts PTS
+     * @param dts DTS
+     * @param isFrame フレームフラグ
+     * @param mixed 映像、音声が混合の場合はtrue、それ以外はfalse
+     */
+    void writeVideoBuffer(boolean isFirstPes, byte[] buffer, int length, long pts, long dts, boolean isFrame, boolean mixed) {
+        writeBuffer(mixed ? FrameType.MIXED : FrameType.VIDEO, isFirstPes, buffer, length, pts, dts, isFrame, false);
+    }
+
+    /**
+     * 音声のデータを書き込みます.
+     *
+     * @param isFirstPes 最初のパケットフラグ
+     * @param buffer 音声データのバッファ
+     * @param length 音声データのバッファサイズ
+     * @param pts PTS
+     * @param dts DTS
+     * @param mixed 映像、音声が混合の場合はtrue、それ以外はfalse
+     */
+    void writeAudioBuffer(boolean isFirstPes, byte[] buffer, int length, long pts, long dts, boolean mixed) {
+        writeBuffer(mixed ? FrameType.MIXED : FrameType.AUDIO, isFirstPes, buffer, length, pts, dts, true, true);
     }
 }

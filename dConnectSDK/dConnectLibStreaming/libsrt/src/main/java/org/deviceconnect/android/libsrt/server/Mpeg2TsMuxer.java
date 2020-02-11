@@ -177,6 +177,10 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
     @Override
     public void onWriteAudioData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
+        if (isConfigFrame(bufferInfo)) {
+            return;
+        }
+
         int outBitsSize = bufferInfo.size;
         int outPacketSize = outBitsSize + ADTS_LENGTH;
         if (mADTS == null || mADTS.length != outPacketSize) {

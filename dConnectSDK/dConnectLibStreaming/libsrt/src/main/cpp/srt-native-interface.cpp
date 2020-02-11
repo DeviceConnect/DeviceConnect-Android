@@ -95,30 +95,17 @@ JNI_METHOD_NAME(closeSrtSocket)(JNIEnv *env, jclass clazz, jlong ptr) {
     }
 }
 
-JNIEXPORT void JNICALL
-JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr, jobject socket) {
+JNIEXPORT long JNICALL
+JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_accept()");
 
-    struct sockaddr addr;
-    int addrlen;
-    int st = srt_accept((int) ptr, &addr, &addrlen);
+    int st = srt_accept((int) ptr, nullptr, nullptr);
     if (st == SRT_ERROR) {
         LOGE("srt_accept: %s\n", srt_getlasterror_str());
-        return;
+        return -1;
     }
 
-    // クライアント側のソケットへのポインタ
-    jclass socketCls = env->FindClass("org/deviceconnect/android/libsrt/SRTSocket");
-    jfieldID socketPtr = env->GetFieldID(socketCls, "mNativePtr", "J");
-    env->SetLongField(socket, socketPtr, st);
-
-    // クライアントのIPアドレス
-    char format[] = "%d.%d.%d.%d";
-    char buf[15];
-    sprintf(buf, format, addr.sa_data[2], addr.sa_data[3], addr.sa_data[4], addr.sa_data[5]);
-    jstring address = env->NewStringUTF(buf);
-    jfieldID addressField = env->GetFieldID(socketCls, "mSocketAddress", "Ljava/lang/String;");
-    env->SetObjectField(socket, addressField, address);
+    return st;
 }
 
 JNIEXPORT int JNICALL
@@ -165,6 +152,28 @@ JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
     }
     LOGD("dumpStats: pktSentTotal=%ld, pktRetransTotal=%d, pktSndLossTotal=%d", stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal);
     LOGD("dumpStats: mbpsBandwidth=%f, mbpsMaxBW=%f, byteAvailSndBuf=%d", stats.mbpsBandwidth, stats.mbpsMaxBW, stats.byteAvailSndBuf);
+}
+
+JNIEXPORT jobject JNICALL
+JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_getPeerName()");
+    struct sockaddr addr;
+    int addrlen;
+    int ret;
+
+    ret = srt_getpeername((SRTSOCKET) nativeSocket, &addr, &addrlen);
+    if (ret == SRT_ERROR) {
+        LOGE("getPeerName: srt_getpeername: %s\n", srt_getlasterror_str());
+        return nullptr;
+    }
+
+    // クライアントのIPアドレス
+    char format[] = "%d.%d.%d.%d";
+    char buf[15];
+    sprintf(buf, format, addr.sa_data[2], addr.sa_data[3], addr.sa_data[4], addr.sa_data[5]);
+    jstring address = env->NewStringUTF(buf);
+
+    return address;
 }
 
 #ifdef __cplusplus

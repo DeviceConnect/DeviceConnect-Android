@@ -1,18 +1,38 @@
 package org.deviceconnect.android.libsrt;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
  * SRTソケット.
  */
 public class SRTSocket {
 
-    private long mNativePtr = -1;
+    /**
+     * JNI 側のソケット.
+     */
+    private long mNativePtr;
 
+    /**
+     * ソケットの IPv4 アドレス.
+     *
+     * 例) "192.168.1.2"
+     */
     private String mSocketAddress;
 
+    /**
+     * ソケットが閉じているかどうかのフラグ
+     */
     private boolean mClosed;
+
+    /**
+     * コンストラクタ.
+     *
+     * @param nativePtr JNI 側のソケット
+     * @param socketAddress ソケットの IPv4 アドレス
+     */
+    SRTSocket(final long nativePtr,
+              final String socketAddress) {
+        mNativePtr = nativePtr;
+        mSocketAddress = socketAddress;
+    }
 
     @Override
     protected void finalize() throws Throwable {
@@ -23,63 +43,66 @@ public class SRTSocket {
         }
     }
 
-    public String getSocketAddress() {
+    /**
+     * ソケットの IPv4 アドレスを返します.
+     *
+     * @return ソケットの IPv4 アドレス
+     */
+    public String getRemoteSocketAddress() {
         return mSocketAddress;
     }
 
+    /**
+     * 通信に関する統計情報をログ出力します.
+     */
     public void dumpStats() {
         NdkHelper.dumpStats(mNativePtr);
     }
 
-    public int getLocalPort() {
-        // TODO 実装
-        return -1;
-    }
-
-    public String getLocalSocketAddress() {
-        // TODO 実装
-        return null;
-    }
-
-    public String getRemoteSocketAddress() {
-        // TODO 実装
-        return null;
-    }
-
-    public int getPort() {
-        // TODO 実装
-        return -1;
-    }
-
-    public boolean isBound() {
-        // TODO 実装
-        return true;
-    }
-
+    /**
+     * ソケットが閉じているかどうかを返します.
+     *
+     * @return ソケットが閉じている場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
     public boolean isClosed() {
         return mClosed;
     }
 
-    public OutputStream getOutputStream() {
-        // TODO 実装
-        // Socket に合わせて、OutputStream を実装するべきか検討
-        return null;
-    }
-
-    public InputStream getInputStream() {
-        // TODO 実装
-        // Socket に合わせて、InputStream を実装するべきか検討
-        return null;
-    }
-
+    /**
+     * SRTパケットを送信します.
+     *
+     * 指定したバイト配列のすべてのデータがペイロードとして格納されます.
+     *
+     * @param data ペイロード
+     * @throws SRTSocketException 送信に失敗した場合
+     */
     public synchronized void send(byte[] data) throws SRTSocketException {
         send(data, 0, data.length);
     }
 
-    public synchronized void send(byte[] data, int dataLength) throws SRTSocketException {
-        send(data, 0, dataLength);
+    /**
+     * SRTパケットを送信します.
+     *
+     * 指定したバイト配列の先頭から長さ dataLength のデータがペイロードとして格納されます.
+     *
+     * @param data ペイロード
+     * @param length データ長
+     * @throws SRTSocketException 送信に失敗した場合
+     */
+    public synchronized void send(byte[] data, int length) throws SRTSocketException {
+        send(data, 0, length);
     }
 
+    /**
+     * SRTパケットを送信します.
+     *
+     * 指定したバイト配列のうち、offset 番目から長さ dataLength のデータがペイロードとして格納されます.
+     *
+     * @param data ペイロード
+     * @param offset オフセット
+     * @param length データ長
+     * @throws SRTSocketException 送信に失敗した場合
+     */
     public synchronized void send(final byte[] data, final int offset, final int length) throws SRTSocketException {
         if (mClosed) {
             throw new SRTSocketException(0);
@@ -90,6 +113,14 @@ public class SRTSocket {
         }
     }
 
+    /**
+     * SRTパケットを受信します.
+     *
+     * @param data 受信するためのバッファ
+     * @param dataLength 受信するデータ長
+     * @return 受信したデータ長
+     * @throws SRTSocketException 受信に失敗した場合
+     */
     public synchronized int recv(byte[] data, int dataLength) throws SRTSocketException {
         if (mClosed) {
             throw new SRTSocketException("SRTSocket is already closed.", -1);
@@ -110,6 +141,11 @@ public class SRTSocket {
         return result;
     }
 
+    /**
+     * ソケットを閉じます.
+     *
+     * すでに閉じている場合は何もせずに即座に処理を返します.
+     */
     public synchronized void close() {
         if (mClosed) {
             return;
@@ -117,9 +153,5 @@ public class SRTSocket {
         mClosed = true;
 
         NdkHelper.closeSrtSocket(mNativePtr);
-    }
-
-    boolean isAvailable() {
-        return mNativePtr >= 0;
     }
 }

@@ -145,8 +145,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             // TODO 音声の設定を外部から設定できるようにすること。
 
             AudioEncoder audioEncoder = new MicAACLATMEncoder();
-//            audioEncoder.setMute(isMuted());
-            audioEncoder.setMute(false);
+            audioEncoder.setMute(isMuted());
 
             AudioQuality audioQuality = audioEncoder.getAudioQuality();
             audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);

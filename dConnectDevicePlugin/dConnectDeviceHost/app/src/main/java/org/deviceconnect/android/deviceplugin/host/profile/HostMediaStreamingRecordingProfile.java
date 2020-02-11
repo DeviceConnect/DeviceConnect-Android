@@ -546,7 +546,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      */
     private boolean setMute(final boolean muted, final Intent request, final Intent response) {
         String target = getTarget(request);
-
         final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
 
         if (recorder == null) {
@@ -557,18 +556,20 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
             @Override
             public void onAllowed() {
-                PreviewServer server = recorder.getServerProvider().getServerForMimeType("video/x-rtp");
-                if (server != null) {
-                    if (muted) {
-                        server.mute();
-                    } else {
-                        server.unMute();
+                PreviewServerProvider provider = recorder.getServerProvider();
+                if (provider != null) {
+                    for (PreviewServer server : provider.getServers()) {
+                        if (muted) {
+                            server.mute();
+                        } else {
+                            server.unMute();
+                        }
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
                 } else {
                     // RecorderがRTSPをサポートしていない場合はエラーを返す。
-                    MessageUtils.setIllegalDeviceStateError(response, "Unsupported RTSP.");
+                    MessageUtils.setIllegalDeviceStateError(response, "Unsupported.");
                     sendResponse(response);
                 }
             }

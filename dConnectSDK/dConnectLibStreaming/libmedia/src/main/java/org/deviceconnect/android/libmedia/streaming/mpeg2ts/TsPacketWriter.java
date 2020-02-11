@@ -172,7 +172,7 @@ public class TsPacketWriter {
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
 
-        notifyPacket(true);
+        notifyPacket(false);
     }
 
     /**
@@ -258,7 +258,7 @@ public class TsPacketWriter {
         writePacket((byte) ((crc >> 8) & 0xFF));
         writePacket((byte) ((crc) & 0xFF));
 
-        notifyPacket(true);
+        notifyPacket(false);
     }
 
     /**
@@ -279,7 +279,7 @@ public class TsPacketWriter {
         writePacket((byte) (((pts3 & 0x007F) << 1) | 0x01));
     }
 
-    private void writeBuffer(FrameType frameType, boolean isFirstPes, byte[] frameBuf, int frameBufSize, long pts, long dts, boolean isFrame, boolean isAudio) {
+    private void writeBuffer(FrameType frameType, boolean isFirstPes, byte[] frameBuf, int frameBufSize, long pcr, long pts, long dts, boolean isFrame, boolean isAudio) {
         boolean isFirstTs = true;
         int frameBufPtr = 0;
         int pid = isAudio ? TS_AUDIO_PID : TS_VIDEO_PID;
@@ -288,6 +288,7 @@ public class TsPacketWriter {
             int frameBufRemaining = frameBufSize - frameBufPtr;
             boolean isAdaptationField = (isFirstTs || (frameBufRemaining < TS_PAYLOAD_SIZE));
 
+            // TS パケットを 0x00 で初期化しておく
             resetPacket((byte) 0x00);
 
             // write ts header
@@ -302,7 +303,6 @@ public class TsPacketWriter {
                     writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameType == FrameType.MIXED ? 0x50 : 0x10)));
 
                     // write PCR
-                    long pcr = pts;
                     writePacket((byte) ((pcr >> 25) & 0xFF));
                     writePacket((byte) ((pcr >> 17) & 0xFF));
                     writePacket((byte) ((pcr >> 9) & 0xFF));
@@ -320,7 +320,8 @@ public class TsPacketWriter {
                 writePacket((byte) 0x01);
                 writePacket(isAudio ? (byte) 0xc0 : (byte) 0xe0);
 
-                int header_size = 5 + 5;
+                boolean hasDts = dts > 0;
+                int header_size = hasDts ? 10 : 5;
 
                 // PES パケット長
                 if (isAudio) {
@@ -333,14 +334,13 @@ public class TsPacketWriter {
                 }
 
                 // PES ヘッダーの識別
-                byte PTS_DTS_flags = isFrame ? (byte) 0xc0 : (byte) 0x00;
+                byte PTS_DTS_flags = isFrame ? (byte) (hasDts ? 0xc0 : 0x80) : (byte) 0x00;
                 writePacket((byte) 0x80);          // 0x80 no flags set,  0x84 just data alignment indicator flag set
                 writePacket(PTS_DTS_flags);        // 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
 
                 // write pts & dts
                 if (PTS_DTS_flags == (byte) 0xc0) {
                     writePacket((byte) 0x0A);
-
                     writePtsDts(3, pts);
                     writePtsDts(1, dts);
                 } else if (PTS_DTS_flags == (byte) 0x80) {
@@ -364,7 +364,6 @@ public class TsPacketWriter {
                     // ts_header + ts_payload
                 }
             }
-
 
             // fill data
             int tsBufRemaining = TS_PACKET_SIZE - mPacket.mOffset;
@@ -424,13 +423,14 @@ public class TsPacketWriter {
      * @param isFirstPes 最初のパケットフラグ
      * @param buffer 映像データのバッファ
      * @param length 映像データのバッファサイズ
+     * @param pcr PCR
      * @param pts PTS
      * @param dts DTS
      * @param isFrame フレームフラグ
      * @param mixed 映像、音声が混合の場合はtrue、それ以外はfalse
      */
-    void writeVideoBuffer(boolean isFirstPes, byte[] buffer, int length, long pts, long dts, boolean isFrame, boolean mixed) {
-        writeBuffer(mixed ? FrameType.MIXED : FrameType.VIDEO, isFirstPes, buffer, length, pts, dts, isFrame, false);
+    void writeVideoBuffer(boolean isFirstPes, byte[] buffer, int length, long pcr, long pts, long dts, boolean isFrame, boolean mixed) {
+        writeBuffer(mixed ? FrameType.MIXED : FrameType.VIDEO, isFirstPes, buffer, length, pcr, pts, dts, isFrame, false);
     }
 
     /**
@@ -439,11 +439,12 @@ public class TsPacketWriter {
      * @param isFirstPes 最初のパケットフラグ
      * @param buffer 音声データのバッファ
      * @param length 音声データのバッファサイズ
+     * @param pcr PCR
      * @param pts PTS
      * @param dts DTS
      * @param mixed 映像、音声が混合の場合はtrue、それ以外はfalse
      */
-    void writeAudioBuffer(boolean isFirstPes, byte[] buffer, int length, long pts, long dts, boolean mixed) {
-        writeBuffer(mixed ? FrameType.MIXED : FrameType.AUDIO, isFirstPes, buffer, length, pts, dts, true, true);
+    void writeAudioBuffer(boolean isFirstPes, byte[] buffer, int length, long pcr, long pts, long dts, boolean mixed) {
+        writeBuffer(mixed ? FrameType.MIXED : FrameType.AUDIO, isFirstPes, buffer, length, pcr, pts, dts, true, true);
     }
 }

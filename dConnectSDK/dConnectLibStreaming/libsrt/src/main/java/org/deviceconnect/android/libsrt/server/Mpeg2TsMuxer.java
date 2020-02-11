@@ -100,7 +100,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     private long mPresentationTime;
 
     /**
-     * mpeg2ts に変換されたデータを受信するリスナー.
+     * TS パケットに変換されたデータを受信するリスナー.
      */
     private final AACH264TsPacketWriter.PacketListener mPacketListener = (packet) -> {
         try {

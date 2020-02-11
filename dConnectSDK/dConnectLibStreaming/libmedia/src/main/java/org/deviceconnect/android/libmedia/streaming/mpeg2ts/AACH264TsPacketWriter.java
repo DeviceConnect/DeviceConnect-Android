@@ -7,7 +7,7 @@ public class AACH264TsPacketWriter {
     /**
      * PAT、PMT の送信周期を定義.
      */
-    private static final int PAT_PMT_SEND_INTERVAL = 2000;
+    private static final int PAT_PMT_SEND_INTERVAL = 10 * 1000;
 
     /**
      * P フレーム（差分)のタイプを定義.
@@ -83,7 +83,6 @@ public class AACH264TsPacketWriter {
      * PAT、PMT 送信時間.
      */
     private long mPatPmtSendTime;
-
 
     public AACH264TsPacketWriter() {
         mTsWriter = new TsPacketWriter();
@@ -174,7 +173,7 @@ public class AACH264TsPacketWriter {
         int type = buffer.get(H264_START_CODE.length) & 0x1F;
         boolean isFrame = type == H264NT_SLICE || type == H264NT_SLICE_IDR;
         buffer.position(offset);
-        mTsWriter.writeVideoBuffer(mFirstPes, put(buffer, length), length, pts, pts, isFrame, mMixed);
+        mTsWriter.writeVideoBuffer(mFirstPes, put(buffer, length), length, pts, pts, 0, isFrame, mMixed);
         mFirstPes = false;
     }
 
@@ -188,7 +187,7 @@ public class AACH264TsPacketWriter {
         writePatPmt(FrameType.AUDIO);
 
         int length = buffer.limit() - buffer.position();
-        mTsWriter.writeAudioBuffer(mFirstPes, put(buffer, length), length, pts, pts, mMixed);
+        mTsWriter.writeAudioBuffer(mFirstPes, put(buffer, length), length, pts, pts, 0, mMixed);
         mFirstPes = false;
     }
 

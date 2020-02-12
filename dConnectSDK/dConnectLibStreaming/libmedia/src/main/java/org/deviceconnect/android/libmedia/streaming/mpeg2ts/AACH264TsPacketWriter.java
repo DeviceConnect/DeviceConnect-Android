@@ -84,6 +84,11 @@ public class AACH264TsPacketWriter {
      */
     private long mPatPmtSendTime;
 
+    /**
+     * PCR の起点となる時間.
+     */
+    private long mPcrStartTime;
+
     public AACH264TsPacketWriter() {
         mTsWriter = new TsPacketWriter();
         mTsWriter.setCallback(packet -> mPacketListener.onPacketAvailable(packet));
@@ -124,6 +129,7 @@ public class AACH264TsPacketWriter {
         mMixed = (fps > 0 && sampleRate > 0);
         mFirstPes = true;
         mPatPmtSendTime = 0;
+        mPcrStartTime = System.currentTimeMillis();
     }
 
     /**
@@ -173,7 +179,7 @@ public class AACH264TsPacketWriter {
         int type = buffer.get(H264_START_CODE.length) & 0x1F;
         boolean isFrame = type == H264NT_SLICE || type == H264NT_SLICE_IDR;
         buffer.position(offset);
-        mTsWriter.writeVideoBuffer(mFirstPes, put(buffer, length), length, pts, pts, 0, isFrame, mMixed);
+        mTsWriter.writeVideoBuffer(mFirstPes, put(buffer, length), length, getPcr(), pts, 0, isFrame, mMixed);
         mFirstPes = false;
     }
 
@@ -187,8 +193,17 @@ public class AACH264TsPacketWriter {
         writePatPmt(FrameType.AUDIO);
 
         int length = buffer.limit() - buffer.position();
-        mTsWriter.writeAudioBuffer(mFirstPes, put(buffer, length), length, pts, pts, 0, mMixed);
+        mTsWriter.writeAudioBuffer(mFirstPes, put(buffer, length), length, getPcr(), pts, 0, mMixed);
         mFirstPes = false;
+    }
+
+    /**
+     * PCR の時間を計算します.
+     *
+     * @return PCR の時間
+     */
+    private long getPcr() {
+        return (System.currentTimeMillis() - mPcrStartTime) * 90;
     }
 
     /**

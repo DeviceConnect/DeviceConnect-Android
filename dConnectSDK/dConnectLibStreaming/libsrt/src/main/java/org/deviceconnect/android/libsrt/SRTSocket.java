@@ -142,6 +142,20 @@ public class SRTSocket {
     }
 
     /**
+     * SRT ソケットにオプションを設定します.
+     *
+     * @param inputBW 入力ビットレート
+     * @param oheaBW bandwidth overhead above input rate
+     * @throws SRTSocketException
+     */
+    public void setOptions(long inputBW, int oheaBW) throws SRTSocketException {
+        if (mClosed) {
+            throw new SRTSocketException(0);
+        }
+        NdkHelper.setSrtOptions(mNativePtr, inputBW, oheaBW);
+    }
+
+    /**
      * ソケットを閉じます.
      *
      * すでに閉じている場合は何もせずに即座に処理を返します.

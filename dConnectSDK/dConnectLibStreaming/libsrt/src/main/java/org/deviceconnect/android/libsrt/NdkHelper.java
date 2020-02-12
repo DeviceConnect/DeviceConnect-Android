@@ -22,4 +22,6 @@ class NdkHelper {
     public static native void dumpStats(long nativePtr);
 
     public static native String getPeerName(long nativeSocket);
+
+    public static native void setSrtOptions(long nativeSocket, long inputBW, int oheaBW);
 }

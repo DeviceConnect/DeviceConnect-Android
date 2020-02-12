@@ -9,13 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
@@ -31,6 +24,13 @@ import org.deviceconnect.android.libsrt.server.SRTSession;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 
 /**
  * SRTサーバからAndroid端末のカメラ映像を配信する画面.
@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity
     private void startStreaming() {
         try {
             mSRTServer = new SRTServer(12345);
+            mSRTServer.setShowStats(true);
             mSRTServer.setCallback(new SRTServer.Callback() {
                 @Override
                 public void createSession(final SRTSession session) {

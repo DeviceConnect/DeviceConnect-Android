@@ -269,6 +269,8 @@ public class SRTServer {
         @Override
         public void run() {
             try {
+                mClientSocket.setOptions(512 * 1024, 50);
+
                 synchronized (mSocketThreads) {
                     if (mSocketThreads.isEmpty()) {
                         createSRTSession();

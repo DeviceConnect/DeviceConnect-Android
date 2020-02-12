@@ -67,15 +67,18 @@ public class SRTServerSocket {
     }
 
     public SRTSocket accept() throws IOException {
-        SRTSocket socket = new SRTSocket();
-        NdkHelper.accept(mNativeSocket, socket);
         if (!mIsOpen) {
             throw new IOException("already closed");
         }
-        if (!socket.isAvailable()) {
-            throw new IOException("Failed to accept client.");
+        long ptr = NdkHelper.accept(mNativeSocket);
+        if (ptr <= 0) {
+            throw new IOException("Failed to accept a client.");
         }
-        return socket;
+        String address = NdkHelper.getPeerName(ptr);
+        if (address == null) {
+            throw new IOException("Failed to get client address");
+        }
+        return new SRTSocket(ptr, address);
     }
 
     public void close() {

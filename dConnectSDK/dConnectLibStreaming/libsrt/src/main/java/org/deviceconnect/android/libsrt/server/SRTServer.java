@@ -2,8 +2,10 @@ package org.deviceconnect.android.libsrt.server;
 
 import android.util.Log;
 
-import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
+import org.deviceconnect.android.libsrt.SRTSocket;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -244,6 +246,27 @@ public class SRTServer {
     }
 
     /**
+     * VideoEncoder と AudioEncoder からビットレートの最大値を計算します.
+     *
+     * @return ビットレートの最大値
+     */
+    private long calcMaxBitRate() {
+        long inputBW = 0;
+
+        VideoEncoder videoEncoder = mSRTSession.getVideoEncoder();
+        if (videoEncoder != null) {
+            inputBW += videoEncoder.getVideoQuality().getBitRate();
+        }
+
+        AudioEncoder audioEncoder = mSRTSession.getAudioEncoder();
+        if (audioEncoder != null) {
+            inputBW += audioEncoder.getAudioQuality().getBitRate();
+        }
+
+        return inputBW;
+    }
+
+    /**
      * SRT クライアントソケットの生存確認を行うスレッド.
      */
     private class SocketThread extends Thread {
@@ -269,8 +292,6 @@ public class SRTServer {
         @Override
         public void run() {
             try {
-                mClientSocket.setOptions(512 * 1024, 50);
-
                 synchronized (mSocketThreads) {
                     if (mSocketThreads.isEmpty()) {
                         createSRTSession();
@@ -279,6 +300,9 @@ public class SRTServer {
                 }
 
                 mSRTSession.addSRTClientSocket(mClientSocket);
+
+                // ソケットにビットレートの最大値を設定
+                mClientSocket.setOptions(calcMaxBitRate(), 50);
 
                 while (!isInterrupted()) {
                     if (mClientSocket.isClosed()) {

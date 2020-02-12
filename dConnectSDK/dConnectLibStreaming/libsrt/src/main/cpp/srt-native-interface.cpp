@@ -115,7 +115,7 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
     srt_setsockflag(accept_socket, SRTO_RCVSYN, &no, sizeof no);
     srt_setsockflag(accept_socket, SRTO_SNDSYN, &no, sizeof no);
 
-    int64_t srtInputBW = 4 * 1024 * 1024;
+    int64_t srtInputBW = 1024 * 1024;
     int srtOheaBW = 25;
     srt_setsockflag(accept_socket, SRTO_INPUTBW, &srtInputBW, sizeof srtInputBW);
     srt_setsockflag(accept_socket, SRTO_OHEADBW, &srtOheaBW, sizeof srtOheaBW);

@@ -22,10 +22,16 @@ public class SRTServer {
 
     private static final String TAG = "SRT";
 
+    /**
+     * 接続できるクライアントの最大数を定義.
+     */
     private static final int DEFAULT_MAX_CLIENT_NUM = 10;
 
     private final SRTServerSocket mServerSocket;
 
+    /**
+     * SRTServerSocket への接続を監視するスレッド.
+     */
     private Thread mServerThread;
 
     /**
@@ -44,7 +50,7 @@ public class SRTServer {
      * このフラグが true の場合は、SRTServer は動作中になります。
      * </p>
      */
-    private boolean mIsStarted;
+    private boolean mServerStarted;
 
     /**
      * SRT の処理を行うセッション.
@@ -63,6 +69,10 @@ public class SRTServer {
 
     /**
      * 統計データをログに出力フラグ.
+     *
+     * <p>
+     * trueの場合は、ログを出力します。
+     * </p>
      */
     private boolean mShowStats;
 
@@ -84,7 +94,7 @@ public class SRTServer {
         mShowStats = showStats;
 
         // 既にサーバが開始されている場合は、タイマーの設定を行います。
-        if (mIsStarted) {
+        if (mServerStarted) {
             if (showStats) {
                 startStatsTimer();
             } else {
@@ -104,14 +114,34 @@ public class SRTServer {
         mMaxClientNum = maxClientNum;
     }
 
+    /**
+     * SRTServer のイベントを通知するコールバックを設定します.
+     *
+     * クライアントから接続があった時に、{@link Callback#createSession(SRTSession)} が呼び出され
+     * SRTSession を初期化します。
+     *
+     * SRTSession に設定された VideoEncoder、AudioEncoder によって、映像と音声を配信します。
+     *
+     * @param callback コールバック
+     */
     public void setCallback(final Callback callback) {
         mCallback = callback;
     }
 
+    /**
+     * サーバの IP アドレスを取得します.
+     *
+     * @return IP アドレス
+     */
     public String getServerAddress() {
         return mServerSocket.getServerAddress();
     }
 
+    /**
+     * サーバーのポート番号を取得します.
+     *
+     * @return ポート番号
+     */
     public int getServerPort() {
         return mServerSocket.getServerPort();
     }
@@ -120,12 +150,18 @@ public class SRTServer {
         return mSRTSession;
     }
 
+    /**
+     * SRTServer を開始します.
+     *
+     * @throws IOException SRTServer の開始に失敗した場合に発生
+     */
     public synchronized void start() throws IOException {
-        if (mIsStarted) {
+        if (mServerStarted) {
             return;
         }
         mServerSocket.open();
-        mIsStarted = true;
+        mServerStarted = true;
+
         startServerThread();
 
         if (mShowStats) {
@@ -151,13 +187,14 @@ public class SRTServer {
                     SRTSocket socket = mServerSocket.accept();
 
                     if (isMaxClientNum()) {
+                        // 接続の上限を超えている場合は新規ソケットは閉じます。
                         socket.close();
                     } else {
                         new SocketThread(socket).start();
                     }
                 }
             } catch (Throwable e) {
-                e.printStackTrace();
+                // ignore.
             } finally {
                 stop();
             }
@@ -170,11 +207,16 @@ public class SRTServer {
         return mSocketThreads.size() >= mMaxClientNum;
     }
 
+    /**
+     * SRTServer を停止します.
+     *
+     * 接続されていた SRTSocket も全て閉じます。
+     */
     public synchronized void stop() {
-        if (!mIsStarted) {
+        if (!mServerStarted) {
             return;
         }
-        mIsStarted = false;
+        mServerStarted = false;
 
         stopStatsTimer();
 

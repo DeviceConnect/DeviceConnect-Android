@@ -101,6 +101,7 @@ JNI_METHOD_NAME(closeSrtSocket)(JNIEnv *env, jclass clazz, jlong ptr) {
     }
 }
 
+
 JNIEXPORT long JNICALL
 JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_accept()");
@@ -122,6 +123,7 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
 
     return accept_socket;
 }
+
 
 JNIEXPORT int JNICALL
 JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint offset, jint length) {
@@ -156,6 +158,7 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
     return result;
 }
 
+
 JNIEXPORT void JNICALL
 JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_dumpStats(): ptr=%d", ptr);
@@ -168,6 +171,7 @@ JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
     LOGD("dumpStats: pktSentTotal=%ld, pktRetransTotal=%d, pktSndLossTotal=%d", stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal);
     LOGD("dumpStats: mbpsBandwidth=%f, mbpsMaxBW=%f, byteAvailSndBuf=%d", stats.mbpsBandwidth, stats.mbpsMaxBW, stats.byteAvailSndBuf);
 }
+
 
 JNIEXPORT jobject JNICALL
 JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
@@ -187,8 +191,6 @@ JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
     jstring address = env->NewStringUTF(buf);
     return address;
 }
-
-
 
 
 JNIEXPORT void JNICALL

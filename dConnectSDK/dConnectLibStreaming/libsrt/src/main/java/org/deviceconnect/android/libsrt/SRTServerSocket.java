@@ -11,6 +11,9 @@ public class SRTServerSocket {
 
     private static final int DEFAULT_BACKLOG = 5;
 
+    /**
+     * NDK 側で確保した SRTSOCKET の値.
+     */
     private long mNativeSocket;
 
     private final String mServerAddress;
@@ -19,7 +22,7 @@ public class SRTServerSocket {
 
     private final int mBacklog;
 
-    private boolean mIsOpen;
+    private boolean mOpened;
 
     public SRTServerSocket(final String serverAddress,
                            final int serverPort,
@@ -47,33 +50,59 @@ public class SRTServerSocket {
         }
     }
 
+    /**
+     * サーバの IP アドレスを取得します.
+     *
+     * @return サーバの IP アドレス
+     */
     public String getServerAddress() {
         return mServerAddress;
     }
 
+    /**
+     * サーバのポート番号を取得します.
+     *
+     * @return ポート番号
+     */
     public int getServerPort() {
         return mServerPort;
     }
 
+    /**
+     * SRTServerSocket を開きます.
+     *
+     * @throws IOException SRTServerSocket を開くのに失敗した場合に発生
+     */
     public void open() throws IOException {
-        if (!mIsOpen) {
+        if (!mOpened) {
             mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
             if (mNativeSocket < 0) {
                 throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
             }
-
-            mIsOpen = true;
+            mOpened = true;
         }
     }
 
+    /**
+     * SRT クライアントからの接続を待ちます
+     *
+     * <p>
+     * クライアントからの接続があるまで、スレッドをブロッキングします。
+     * </p>
+     *
+     * @return SRTServerSocket に接続された SRTSocket のクライアント
+     * @throws IOException SRTServerSocket の接続が切断されたり、クライアントの接続に失敗した場合に発生
+     */
     public SRTSocket accept() throws IOException {
-        if (!mIsOpen) {
+        if (!mOpened) {
             throw new IOException("already closed");
         }
+
         long ptr = NdkHelper.accept(mNativeSocket);
         if (ptr <= 0) {
             throw new IOException("Failed to accept a client.");
         }
+
         String address = NdkHelper.getPeerName(ptr);
         if (address == null) {
             throw new IOException("Failed to get client address");
@@ -81,9 +110,12 @@ public class SRTServerSocket {
         return new SRTSocket(ptr, address);
     }
 
+    /**
+     * SRTSocketServer を閉じます.
+     */
     public void close() {
-        if (mIsOpen) {
-            mIsOpen = false;
+        if (mOpened) {
+            mOpened = false;
             NdkHelper.closeSrtSocket(mNativeSocket);
         }
     }

@@ -4,15 +4,15 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 
-import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class MediaStreamer {
     /**
@@ -23,7 +23,7 @@ public class MediaStreamer {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "STREAMING";
+    private static final String TAG = "MEDIA-STREAMER";
 
     /**
      * マルチプレクサ.

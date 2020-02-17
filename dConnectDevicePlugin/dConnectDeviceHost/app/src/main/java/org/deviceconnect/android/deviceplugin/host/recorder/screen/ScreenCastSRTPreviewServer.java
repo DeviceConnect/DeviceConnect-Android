@@ -149,18 +149,19 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
             videoQuality.setIFrameInterval(recorder.getIFrameInterval());
             session.setVideoEncoder(videoEncoder);
 
-            // TODO 音声の設定を外部から設定できるようにすること。
+            if (recorder.isAudioEnabled()) {
+                AudioEncoder audioEncoder = new MicAACLATMEncoder();
+                audioEncoder.setMute(isMuted());
 
-            AudioEncoder audioEncoder = new MicAACLATMEncoder();
-            audioEncoder.setMute(isMuted());
+                AudioQuality audioQuality = audioEncoder.getAudioQuality();
+                audioQuality.setChannel(recorder.getPreviewChannel() == 1 ?
+                        AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
+                audioQuality.setSamplingRate(recorder.getPreviewSampleRate());
+                audioQuality.setBitRate(recorder.getPreviewAudioBitRate());
+                audioQuality.setUseAEC(recorder.isUseAEC());
 
-            AudioQuality audioQuality = audioEncoder.getAudioQuality();
-            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-            audioQuality.setSamplingRate(8000);
-            audioQuality.setBitRate(64 * 1024);
-            audioQuality.setUseAEC(true);
-
-            session.setAudioEncoder(audioEncoder);
+                session.setAudioEncoder(audioEncoder);
+            }
         }
 
         @Override

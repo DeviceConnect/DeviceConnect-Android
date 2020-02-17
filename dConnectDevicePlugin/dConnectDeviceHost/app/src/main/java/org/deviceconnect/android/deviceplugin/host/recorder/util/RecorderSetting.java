@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.deviceconnect.android.deviceplugin.host.R;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,12 +27,18 @@ public class RecorderSetting {
     private SharedPreferences mSharedPreferences;
 
     /**
+     * コンテキスト.
+     */
+    private Context mContext;
+
+    /**
      * コンストラクタ.
      * シングルトンにするためにprivateとしてある.
      *
      * @param context Context
      */
     private RecorderSetting(Context context) {
+        mContext = context;
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
@@ -45,6 +53,67 @@ public class RecorderSetting {
             mInstance = new RecorderSetting(context);
         }
         return mInstance;
+    }
+
+    /**
+     * 指定されたキーの値を整数にして取得します.
+     *
+     * @param key 格納されているキー
+     * @param defaultValue 値が格納されていない場合に返却する値
+     * @return 整数値
+     */
+    private int getInt(String key, int defaultValue) {
+        String value = mSharedPreferences.getString(key, String.valueOf(defaultValue));
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * MediaRecorder プレビューの音声が有効か確認します.
+     *
+     * @return 有効の場合はtrue、それ以外はfalse
+     */
+    public boolean isAudioEnabled() {
+        return mSharedPreferences.getBoolean(mContext.getString(R.string.pref_key_settings_audio_enabled), false);
+    }
+
+    /**
+     * プレビュー音声のビットレートを取得します.
+     *
+     * @return プレビュー音声のビットレート
+     */
+    public int getPreviewAudioBitRate() {
+        return getInt(mContext.getString(R.string.pref_key_settings_audio_bit_rate), 64 * 1000);
+    }
+
+    /**
+     * プレビュー音声のサンプルレートを取得します.
+     *
+     * @return プレビュー音声のサンプルレート
+     */
+    public int getPreviewSampleRate() {
+        return getInt(mContext.getString(R.string.pref_key_settings_audio_sample_rate), 8000);
+    }
+
+    /**
+     * プレビュー音声のチャンネル数を取得します.
+     *
+     * @return プレビュー音声のチャンネル数
+     */
+    public int getPreviewChannel() {
+        return getInt(mContext.getString(R.string.pref_key_settings_audio_channel), 1);
+    }
+
+    /**
+     * プレビュー音声のエコーキャンセラー設定を取得します.
+     *
+     * @return プレビュー音声のエコーキャンセラーが有効の場合はtrue、それ以外はfalse
+     */
+    public boolean isUseAEC() {
+        return mSharedPreferences.getBoolean(mContext.getString(R.string.pref_key_settings_audio_use_aec), true);
     }
 
     /**
@@ -127,9 +196,27 @@ public class RecorderSetting {
         return mSharedPreferences.getInt(target + "-jpeg-quality", defaultQuality);
     }
 
+    /**
+     * カメラのターゲット.
+     */
     public static class Target {
+        /**
+         * ターゲットの ID.
+         */
         private String mTarget;
+
+        /**
+         * ターゲットの名前.
+         */
         private String mName;
+
+        /**
+         * ターゲットのマイムタイプ.
+         *
+         * <p>
+         * 音声と映像を区別するのに使用します。
+         * </p>
+         */
         private String mMimeType;
 
         public Target(String target, String name, String mimeType) {

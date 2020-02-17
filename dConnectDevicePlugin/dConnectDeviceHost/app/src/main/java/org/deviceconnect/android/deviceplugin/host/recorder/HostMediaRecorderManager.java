@@ -63,6 +63,9 @@ public class HostMediaRecorderManager {
      */
     private CameraWrapperManager mCameraWrapperManager;
 
+    /**
+     * ファイル管理クラス.
+     */
     private FileManager mFileManager;
 
     /**

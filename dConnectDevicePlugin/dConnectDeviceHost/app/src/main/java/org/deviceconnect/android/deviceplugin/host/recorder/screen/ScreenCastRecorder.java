@@ -22,8 +22,10 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -38,7 +40,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
 
 import androidx.annotation.NonNull;
 
@@ -49,11 +50,6 @@ import androidx.annotation.NonNull;
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
-    private final Logger mLogger = Logger.getLogger("host.dplugin");
-
-    static final String RESULT_DATA = "result_data";
-
-    static final String EXTRA_CALLBACK = "callback";
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
@@ -146,6 +142,10 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     public void clean() {
         mScreenCastPreviewServerProvider.stopServers();
         mScreenCastMgr.clean();
+    }
+
+    @Override
+    public void destroy() {
     }
 
     @Override
@@ -338,10 +338,6 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     }
 
     @Override
-    public void destroy() {
-    }
-
-    @Override
     public void muteTrack() {
     }
 
@@ -357,6 +353,41 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     @Override
     public PreviewServerProvider getServerProvider() {
         return mScreenCastPreviewServerProvider;
+    }
+
+    @Override
+    public List<PreviewServer> startPreviews() {
+        return mScreenCastPreviewServerProvider.startServers();
+    }
+
+    @Override
+    public void stopPreviews() {
+        mScreenCastPreviewServerProvider.stopServers();
+    }
+
+    @Override
+    public boolean isAudioEnabled() {
+        return RecorderSetting.getInstance(mContext).isAudioEnabled();
+    }
+
+    @Override
+    public int getPreviewAudioBitRate() {
+        return RecorderSetting.getInstance(mContext).getPreviewAudioBitRate();
+    }
+
+    @Override
+    public int getPreviewSampleRate() {
+        return RecorderSetting.getInstance(mContext).getPreviewSampleRate();
+    }
+
+    @Override
+    public int getPreviewChannel() {
+        return RecorderSetting.getInstance(mContext).getPreviewChannel();
+    }
+
+    @Override
+    public boolean isUseAEC() {
+        return RecorderSetting.getInstance(mContext).isUseAEC();
     }
 
     @Override

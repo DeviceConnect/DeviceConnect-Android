@@ -206,6 +206,53 @@ public interface HostMediaRecorder {
     PreviewServerProvider getServerProvider();
 
     /**
+     * プレビュー配信サーバを起動します.
+     *
+     * @return 起動したプレビュー配信サーバのリスト
+     */
+    List<PreviewServer> startPreviews();
+
+    /**
+     * プレビュー配信サーバを停止します.
+     */
+    void stopPreviews();
+
+    /**
+     * プレビュー音声が有効化確認します.
+     *
+     * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
+     */
+    boolean isAudioEnabled();
+
+    /**
+     * プレビュー音声のビットレートを取得します.
+     *
+     * @return プレビュー音声のビットレート
+     */
+    int getPreviewAudioBitRate();
+
+    /**
+     * プレビュー音声のサンプルレートを取得します.
+     *
+     * @return プレビュー音声のサンプルレート
+     */
+    int getPreviewSampleRate();
+
+    /**
+     * プレビュー音声のチャンネル数を取得します.
+     *
+     * @return プレビュー音声のチャンネル数
+     */
+    int getPreviewChannel();
+
+    /**
+     * プレビュー配信のエコーキャンセラーを取得します.
+     *
+     * @return プレビュー配信のエコーキャンセラー
+     */
+    boolean isUseAEC();
+
+    /**
      * 端末の画面が回転したタイミングで実行されるメソッド.
      * @param degree 角度を示す定数
      */

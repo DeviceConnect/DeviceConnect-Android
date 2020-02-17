@@ -20,6 +20,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -207,6 +208,40 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     @Override
     public PreviewServerProvider getServerProvider() {
         return null;
+    }
+
+    @Override
+    public List<PreviewServer> startPreviews() {
+        return null;
+    }
+
+    @Override
+    public void stopPreviews() {
+    }
+
+    @Override
+    public boolean isAudioEnabled() {
+        return false;
+    }
+
+    @Override
+    public int getPreviewAudioBitRate() {
+        return 0;
+    }
+
+    @Override
+    public int getPreviewSampleRate() {
+        return 0;
+    }
+
+    @Override
+    public int getPreviewChannel() {
+        return 0;
+    }
+
+    @Override
+    public boolean isUseAEC() {
+        return false;
     }
 
     @Override

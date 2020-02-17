@@ -20,10 +20,6 @@ import org.deviceconnect.android.util.NotificationUtils;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastManager {
 
-    private static final String RESULT_DATA = "result_data";
-
-    private static final String EXTRA_CALLBACK = "callback";
-
     private final Context mContext;
 
     private final MediaProjectionManager mMediaProjectionMgr;
@@ -103,11 +99,11 @@ class ScreenCastManager {
         Intent intent = new Intent();
         intent.setClass(mContext, PermissionReceiverActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(EXTRA_CALLBACK, new ResultReceiver(mCallbackHandler) {
+        intent.putExtra(PermissionReceiverActivity.EXTRA_CALLBACK, new ResultReceiver(mCallbackHandler) {
             @Override
             protected void onReceiveResult(final int resultCode, final Bundle resultData) {
                 if (resultCode == Activity.RESULT_OK) {
-                    Intent data = resultData.getParcelable(RESULT_DATA);
+                    Intent data = resultData.getParcelable(PermissionReceiverActivity.RESULT_DATA);
                     if (data != null) {
                         mMediaProjection = mMediaProjectionMgr.getMediaProjection(resultCode, data);
                         mMediaProjection.registerCallback(new MediaProjection.Callback() {

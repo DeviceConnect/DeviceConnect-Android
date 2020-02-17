@@ -12,7 +12,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
@@ -147,9 +147,8 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     @Override
     protected Notification createNotification(PendingIntent pendingIntent, String channelId, String name) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            int iconType = R.drawable.dconnect_icon;
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
-            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+            int iconType = R.drawable.dconnect_icon_lollipop;
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext(), channelId);
             builder.setSmallIcon(iconType);
             builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message2));
@@ -165,20 +164,18 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
             return builder.build();
         } else {
             int iconType = R.drawable.dconnect_icon_lollipop;
-            Icon icon = Icon.createWithResource(mContext, R.drawable.dconnect_icon_lollipop);
             Notification.Builder builder = new Notification.Builder(mContext.getApplicationContext());
-            builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
             builder.setSmallIcon(iconType);
             builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title, name));
             builder.setContentText(mContext.getString(R.string.overlay_preview_content_message2));
             builder.setWhen(System.currentTimeMillis());
             builder.setAutoCancel(true);
             builder.setOngoing(true);
-            builder.addAction(new Notification.Action.Builder(icon,
+            builder.addAction(new Notification.Action.Builder(null,
                     mContext.getString(R.string.overlay_preview_show), createShowActionIntent(mRecorder.getId())).build());
-            builder.addAction(new Notification.Action.Builder(icon,
+            builder.addAction(new Notification.Action.Builder(null,
                     mContext.getString(R.string.overlay_preview_hide), createHideActionIntent(mRecorder.getId())).build());
-            builder.addAction(new Notification.Action.Builder(icon,
+            builder.addAction(new Notification.Action.Builder(null,
                     mContext.getString(R.string.overlay_preview_stop), pendingIntent).build());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId != null) {
                 builder.setChannelId(channelId);
@@ -343,6 +340,9 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
                     changeSize.getHeight());
 
             surfaceView.getHolder().setFixedSize(previewSize.getWidth(), previewSize.getHeight());
+
+            TextView textView = mOverlayView.findViewById(R.id.text_view);
+            textView.setVisibility(mCameraPreviewFlag ? View.VISIBLE : View.GONE);
         });
     }
 

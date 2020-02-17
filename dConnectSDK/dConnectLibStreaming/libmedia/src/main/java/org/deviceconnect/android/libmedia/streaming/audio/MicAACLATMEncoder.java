@@ -10,7 +10,6 @@ import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -18,7 +17,7 @@ import java.nio.ByteBuffer;
  */
 public class MicAACLATMEncoder extends AudioEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "MIC-ENCODER";
+    private static final String TAG = "MIC-AAC-ENCODER";
 
     /**
      * AAC で使用できるサンプリングレートを定義します.
@@ -72,26 +71,18 @@ public class MicAACLATMEncoder extends AudioEncoder {
      */
     private AudioRecordThread mAudioThread;
 
+    /**
+     * ミュート用の音声データを確保するバッファ.
+     */
+    private byte[] mMuteBuffer;
+
     @Override
     public AudioQuality getAudioQuality() {
         return mAudioQuality;
     }
 
     @Override
-    protected void prepare() throws IOException {
-        if (isMute()) {
-            // ミュートの場合には、MediaCodec を作成させないようにします。
-            return;
-        }
-        super.prepare();
-    }
-
-    @Override
     protected synchronized void startRecording() {
-        if (isMute()) {
-            // ミュートの場合には、AudioCodec を作成させないようにします。
-            return;
-        }
         super.startRecording();
 
         try {
@@ -112,8 +103,13 @@ public class MicAACLATMEncoder extends AudioEncoder {
     protected void onInputData(ByteBuffer inputData, int index) {
         inputData.clear();
 
-        // ミュート設定の場合には、AudioRecord からデータを取得しない
-        if (!isMute() && mAudioRecord != null && mAudioThread != null) {
+        if (mAudioRecord == null || mAudioThread == null || mMuteBuffer == null) {
+            mMediaCodec.queueInputBuffer(index, 0, 0, System.nanoTime() / 1000, 0);
+        } else if (isMute()) {
+            // ミュート設定の場合には、AudioRecord からデータを取得しない
+            inputData.put(mMuteBuffer);
+            mMediaCodec.queueInputBuffer(index, 0, mBufferSize, System.nanoTime() / 1000, 0);
+        } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);
                 if (len < 0) {
@@ -124,8 +120,6 @@ public class MicAACLATMEncoder extends AudioEncoder {
                 inputData.flip();
                 mMediaCodec.queueInputBuffer(index, 0, len, System.nanoTime() / 1000, 0);
             });
-        } else {
-            mMediaCodec.queueInputBuffer(index, 0, 0, System.nanoTime() / 1000, 0);
         }
     }
 
@@ -174,6 +168,8 @@ public class MicAACLATMEncoder extends AudioEncoder {
         if (DEBUG) {
             Log.d(TAG, "AudioQuality: " + audioQuality);
         }
+
+        mMuteBuffer = new byte[mBufferSize];
 
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
                 audioQuality.getSamplingRate(),

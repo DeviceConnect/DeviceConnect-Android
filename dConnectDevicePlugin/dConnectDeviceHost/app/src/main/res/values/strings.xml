@@ -31,17 +31,52 @@
     <string name="overlay_no_permission_ok">Yes</string>
     <string name="overlay_no_permission_no">No</string>
 
+    <string name="overlay_preview_delivery">Preview</string>
+
     <string name="overlay_preview_show">Show preview on screen</string>
     <string name="overlay_preview_hide">Hide preview on screen</string>
     <string name="overlay_preview_stop">Stop preview</string>
 
     <string name="host_settings_title">Host Settings</string>
     <string name="host_settings_item_gps">GPS</string>
-    <string name="host_settings_item_jpeg_quality_preview">JPEG Quality - Preview</string>
+    <string name="host_settings_item_jpeg_quality_preview">JPEG Quality</string>
+    <string name="host_settings_item_audio_preview">Audio</string>
     <string name="host_settings_item_demo_page">Demo Page</string>
+    <string name="host_settings_item_audio_enabled">Audio</string>
+    <string name="host_settings_item_audio_enabled_summary">Set whether to enable preview audio.</string>
+    <string name="host_settings_item_audio_bit_rate">BitRate</string>
+    <string name="host_settings_item_audio_sample_rate">SampleRate</string>
+    <string name="host_settings_item_audio_channel">Channel</string>
+    <string name="host_settings_item_audio_use_aec">Echo Canceller</string>
+    <string name="host_settings_item_audio_use_aec_summary">Set whether to enable the echo canceller.</string>
     <string name="pref_key_settings_gps">pref_key_settings_gps</string>
     <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
+    <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
     <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
+    <string name="pref_key_settings_audio_enabled">pref_key_settings_audio_enabled</string>
+    <string name="pref_key_settings_audio_bit_rate">pref_key_settings_audio_bit_rate</string>
+    <string name="pref_key_settings_audio_sample_rate">pref_key_settings_audio_sample_rate</string>
+    <string name="pref_key_settings_audio_channel">pref_key_settings_audio_channel</string>
+    <string name="pref_key_settings_audio_use_aec">pref_key_settings_audio_use_aec</string>
+    <string-array name="host_settings_item_audio_sample_rate_list">
+        <item>96000</item>
+        <item>88200</item>
+        <item>64000</item>
+        <item>48000</item>
+        <item>44100</item>
+        <item>32000</item>
+        <item>24000</item>
+        <item>22050</item>
+        <item>16000</item>
+        <item>12000</item>
+        <item>11025</item>
+        <item>8000</item>
+        <item>7350</item>
+    </string-array>
+    <string-array name="host_settings_item_audio_channel_list">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
 
     <string name="gps_settings_title">GPS setting</string>
     <string name="gps_settings_body">Since this device plug-in uses the GPS function, please turn on the setting from the GPS setting screen of the terminal.</string>

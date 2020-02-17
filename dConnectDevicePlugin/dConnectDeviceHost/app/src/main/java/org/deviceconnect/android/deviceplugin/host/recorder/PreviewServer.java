@@ -40,6 +40,7 @@ public interface PreviewServer {
 
     /**
      * サーバを開始します.
+     *
      * @param callback 開始結果を通知するコールバック
      */
     void startWebServer(OnWebServerStartCallback callback);
@@ -55,17 +56,17 @@ public interface PreviewServer {
     void onConfigChange();
 
     /**
-     * Recorderをmute状態にする.
+     * Recorder をミュート状態にする.
      */
     void mute();
 
     /**
-     * Recorderのmute状態を解除する.
+     * Recorder のミュート状態を解除する.
      */
     void unMute();
 
     /**
-     * Recorderのmute状態を返す.
+     * Recorder のミュート状態を返す.
      * @return mute状態
      */
     boolean isMuted();

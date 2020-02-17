@@ -134,7 +134,6 @@ public class MicAACLATMStream extends AudioStream {
         AudioEncoder audioEncoder = getAudioEncoder();
         if (audioEncoder != null) {
             audioEncoder.setMute(mute);
-            audioEncoder.restart();
         }
     }
 

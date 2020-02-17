@@ -102,7 +102,7 @@ JNI_METHOD_NAME(closeSrtSocket)(JNIEnv *env, jclass clazz, jlong ptr) {
 }
 
 
-JNIEXPORT long JNICALL
+JNIEXPORT jlong JNICALL
 JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_accept()");
 
@@ -125,7 +125,7 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
 }
 
 
-JNIEXPORT int JNICALL
+JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint offset, jint length) {
     jboolean isCopy;
     jbyte* data = env->GetByteArrayElements(byteArray, &isCopy);
@@ -142,7 +142,7 @@ JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
 }
 
 
-JNIEXPORT int JNICALL
+JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint length) {
     jboolean isCopy;
     jbyte* data = env->GetByteArrayElements(byteArray, &isCopy);

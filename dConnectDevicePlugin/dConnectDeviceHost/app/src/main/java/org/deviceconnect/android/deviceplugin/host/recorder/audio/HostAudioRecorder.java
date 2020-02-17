@@ -22,6 +22,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamReco
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -246,6 +247,17 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     @Override
     public void requestPermission(PermissionCallback callback) {
+        CapabilityUtil.requestPermissions(mContext, new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onAllowed();
+            }
+
+            @Override
+            public void onFail(final @NonNull String deniedPermission) {
+                callback.onDisallowed();
+            }
+        });
     }
 
     @Override

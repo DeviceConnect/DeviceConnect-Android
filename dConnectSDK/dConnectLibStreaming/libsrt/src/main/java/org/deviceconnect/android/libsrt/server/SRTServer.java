@@ -4,6 +4,7 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
 import org.deviceconnect.android.libsrt.SRTSocket;
 
@@ -376,8 +377,13 @@ public class SRTServer {
 
                 mSRTSession.addSRTClientSocket(mClientSocket);
 
+                // ソケットの通信を非同期に設定
+                mClientSocket.setOption(SRT.SRTO_RCVSYN, Boolean.FALSE);
+                mClientSocket.setOption(SRT.SRTO_SNDSYN, Boolean.FALSE);
+
                 // ソケットにビットレートの最大値を設定
-                mClientSocket.setOptions(calcMaxBitRate(), 50);
+                mClientSocket.setOption(SRT.SRTO_INPUTBW, calcMaxBitRate());
+                mClientSocket.setOption(SRT.SRTO_OHEADBW, 50);
 
                 while (!isInterrupted()) {
                     if (mClientSocket.isClosed()) {

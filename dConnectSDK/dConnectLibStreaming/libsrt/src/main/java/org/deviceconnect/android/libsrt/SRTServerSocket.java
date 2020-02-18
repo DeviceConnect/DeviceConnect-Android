@@ -27,21 +27,18 @@ public class SRTServerSocket {
      */
     private boolean mOpened;
 
-    public SRTServerSocket(final String serverAddress,
-                           final int serverPort,
-                           final int backlog) {
-        mServerAddress = serverAddress;
-        mServerPort = serverPort;
-        mBacklog = backlog;
+    public SRTServerSocket(final int serverPort) {
+        this("0.0.0.0", serverPort);
     }
 
-    public SRTServerSocket(final String serverAddress,
-                           final int serverPort) {
+    public SRTServerSocket(final String serverAddress, final int serverPort) {
         this(serverAddress, serverPort, DEFAULT_BACKLOG);
     }
 
-    public SRTServerSocket(final int serverPort) {
-        this("0.0.0.0", serverPort);
+    public SRTServerSocket(final String serverAddress, final int serverPort, final int backlog) {
+        mServerAddress = serverAddress;
+        mServerPort = serverPort;
+        mBacklog = backlog;
     }
 
     @Override
@@ -78,10 +75,28 @@ public class SRTServerSocket {
      */
     public synchronized void open() throws IOException {
         if (!mOpened) {
-            mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
+            mNativeSocket = NdkHelper.createSrtSocket();
             if (mNativeSocket < 0) {
                 throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
             }
+
+            // TODO pre オプション は、listen する前に設定する必要があります。
+            //      ここだと設定ができないので、場所を変えた方が良いかもしれない。
+            NdkHelper.setSockFlag(mNativeSocket, SRT.SRTO_SENDER, 1);
+            NdkHelper.setSockFlag(mNativeSocket, SRT.SRTO_MAXBW, 0L);
+
+            int result = NdkHelper.bind(mNativeSocket, mServerAddress, mServerPort);
+            if (result < 0) {
+                NdkHelper.closeSrtSocket(mNativeSocket);
+                throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
+            }
+
+            result = NdkHelper.listen(mNativeSocket, mBacklog);
+            if (result < 0) {
+                NdkHelper.closeSrtSocket(mNativeSocket);
+                throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
+            }
+
             mOpened = true;
         }
     }
@@ -111,6 +126,24 @@ public class SRTServerSocket {
             throw new IOException("Failed to get client address");
         }
         return new SRTSocket(ptr, address);
+    }
+
+    /**
+     * SRT サーバーソケットにオプションを設定します.
+     *
+     * @param option オプションのタイプ
+     * @param value オプションの値
+     * @throws IOException 設定に失敗した場合に発生
+     */
+    public void setOption(int option, Object value) throws IOException {
+        if (!mOpened) {
+            throw new IOException("already closed");
+        }
+
+        int result = NdkHelper.setSockFlag(mNativeSocket, option, value);
+        if (result < 0) {
+            throw new IOException("Failed to set a socket flag.");
+        }
     }
 
     /**

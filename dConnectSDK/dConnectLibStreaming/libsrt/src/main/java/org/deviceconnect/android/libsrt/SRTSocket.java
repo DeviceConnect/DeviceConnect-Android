@@ -1,5 +1,7 @@
 package org.deviceconnect.android.libsrt;
 
+import java.io.IOException;
+
 /**
  * SRTソケット.
  */
@@ -23,13 +25,38 @@ public class SRTSocket {
     private boolean mClosed;
 
     /**
+     * SRT ソケットを指定されたアドレスとポート番号に接続します.
+     *
+     * @param address アドレス
+     * @param port ポート番号
+     * @throws IOException 接続に失敗した場合に発生
+     */
+    public SRTSocket(String address, int port) throws IOException {
+        mSocketAddress = address;
+
+        mNativePtr = NdkHelper.createSrtSocket();
+        if (mNativePtr < 0) {
+            throw new IOException("Failed to create a socket: " + address + ":" + port);
+        }
+
+        int result = NdkHelper.connect(mNativePtr, address, port);
+        if (result < 0) {
+            NdkHelper.closeSrtSocket(mNativePtr);
+            throw new IOException("Failed to create a socket: " + address + ":" + port);
+        }
+    }
+
+    /**
      * コンストラクタ.
+     *
+     * <p>
+     * このコンストラクタは、 SRTServerSocket からのみ呼び出されます。
+     * </p>
      *
      * @param nativePtr JNI 側のソケット
      * @param socketAddress ソケットの IPv4 アドレス
      */
-    SRTSocket(final long nativePtr,
-              final String socketAddress) {
+    SRTSocket(final long nativePtr, final String socketAddress) {
         mNativePtr = nativePtr;
         mSocketAddress = socketAddress;
     }
@@ -54,6 +81,10 @@ public class SRTSocket {
 
     /**
      * 通信に関する統計情報をログ出力します.
+     *
+     * <p>
+     * デバッグ機能。
+     * </p>
      */
     public void dumpStats() {
         NdkHelper.dumpStats(mNativePtr);
@@ -105,8 +136,21 @@ public class SRTSocket {
      */
     public synchronized void send(final byte[] data, final int offset, final int length) throws SRTSocketException {
         if (mClosed) {
-            throw new SRTSocketException(0);
+            throw new SRTSocketException("SRTSocket is already closed.", -1);
         }
+
+        if (data == null) {
+            throw new IllegalArgumentException("data is null.");
+        }
+
+        if (offset < 0 || length < offset) {
+            throw new IllegalArgumentException("offset is invalid.");
+        }
+
+        if (data.length < offset + length) {
+            throw new IllegalArgumentException("length is invalid.");
+        }
+
         int result = NdkHelper.sendMessage(mNativePtr, data, offset, length);
         if (result < 0) {
             throw new SRTSocketException(result);
@@ -144,15 +188,18 @@ public class SRTSocket {
     /**
      * SRT ソケットにオプションを設定します.
      *
-     * @param inputBW 入力ビットレート
-     * @param oheaBW bandwidth overhead above input rate
-     * @throws SRTSocketException
+     * @param option オプションのタイプ
+     * @param value オプションの値
+     * @throws SRTSocketException オプションの設定に失敗した場合に発生
      */
-    public void setOptions(long inputBW, int oheaBW) throws SRTSocketException {
+    public void setOption(int option, Object value) throws SRTSocketException {
         if (mClosed) {
             throw new SRTSocketException(0);
         }
-        NdkHelper.setSrtOptions(mNativePtr, inputBW, oheaBW);
+        int result = NdkHelper.setSockFlag(mNativePtr, option, value);
+        if (result < 0) {
+            throw new SRTSocketException(result);
+        }
     }
 
     /**

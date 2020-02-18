@@ -17,11 +17,14 @@ public class SRTServerSocket {
     private long mNativeSocket;
 
     private final String mServerAddress;
-
     private final int mServerPort;
-
     private final int mBacklog;
 
+    /**
+     * サーバーソケットのオープン状態を表すフラグ.
+     *
+     * サーバーソケットがオープンしている場合は true、それ以外は false。
+     */
     private boolean mOpened;
 
     public SRTServerSocket(final String serverAddress,
@@ -73,7 +76,7 @@ public class SRTServerSocket {
      *
      * @throws IOException SRTServerSocket を開くのに失敗した場合に発生
      */
-    public void open() throws IOException {
+    public synchronized void open() throws IOException {
         if (!mOpened) {
             mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
             if (mNativeSocket < 0) {
@@ -113,7 +116,7 @@ public class SRTServerSocket {
     /**
      * SRTSocketServer を閉じます.
      */
-    public void close() {
+    public synchronized void close() {
         if (mOpened) {
             mOpened = false;
             NdkHelper.closeSrtSocket(mNativeSocket);

@@ -2,6 +2,12 @@ package org.deviceconnect.android.libmedia.streaming.rtsp;
 
 import android.util.Log;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.rtp.RtpSocket;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.MediaStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
+import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,12 +21,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.deviceconnect.android.libmedia.BuildConfig;
-import org.deviceconnect.android.libmedia.streaming.rtp.RtpSocket;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.MediaStream;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
-import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 
 public class RtspServer {
     /**
@@ -151,13 +151,6 @@ public class RtspServer {
          * サーバソケットの処理を停止します.
          */
         void terminate() {
-            synchronized (mClientSocketThreads) {
-                for (ClientSocketThread thread : mClientSocketThreads) {
-                    thread.terminate();
-                }
-                mClientSocketThreads.clear();
-            }
-
             if (mServerSocket != null) {
                 try {
                     mServerSocket.close();
@@ -170,9 +163,16 @@ public class RtspServer {
             interrupt();
 
             try {
-                join(500);
+                join(200);
             } catch (InterruptedException e) {
                 // ignore.
+            }
+
+            synchronized (mClientSocketThreads) {
+                for (ClientSocketThread thread : mClientSocketThreads) {
+                    thread.terminate();
+                }
+                mClientSocketThreads.clear();
             }
         }
 
@@ -187,15 +187,15 @@ public class RtspServer {
                 Log.d(TAG, "  PORT: " + mServerPort);
             }
 
-            while (!Thread.interrupted()) {
-                try {
+            try {
+                while (!isInterrupted()) {
                     new ClientSocketThread(mServerSocket.accept()).start();
-                } catch (SocketException e) {
-                    break;
-                } catch (Exception e) {
-                    if (DEBUG) {
-                        Log.e(TAG, "", e);
-                    }
+                }
+            } catch (SocketException e) {
+                // ignore.
+            } catch (Exception e) {
+                if (DEBUG) {
+                    Log.e(TAG, "", e);
                 }
             }
 
@@ -324,14 +324,12 @@ public class RtspServer {
             try {
                 addClientSocketThread(this);
 
-                while (!Thread.interrupted()) {
+                while (!isInterrupted()) {
                     RtspRequest request = null;
                     RtspResponse response = null;
 
                     try {
                         request = RtspRequestParser.parse(mInput);
-                    } catch (IOException e) {
-                        break;
                     } catch (RtspRequestParserException e) {
                         if (DEBUG) {
                             Log.w(TAG, "RTSP Request is error.", e);

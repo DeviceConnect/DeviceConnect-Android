@@ -27,12 +27,15 @@ public class SRTServer {
      */
     private static final int DEFAULT_MAX_CLIENT_NUM = 10;
 
+    /**
+     * SRT サーバ.
+     */
     private final SRTServerSocket mServerSocket;
 
     /**
      * SRTServerSocket への接続を監視するスレッド.
      */
-    private Thread mServerThread;
+    private ServerSocketThread mServerSocketThread;
 
     /**
      * SRT サーバに接続されているクライアントを確認するスレッドのリスト.
@@ -146,6 +149,15 @@ public class SRTServer {
         return mServerSocket.getServerPort();
     }
 
+    /**
+     * SRTSession を取得します.
+     *
+     * <p>
+     * クライアントが接続されていない場合には SRTSession は開始されてないので null を返却します。
+     * </p>
+     *
+     * @return SRTSession のインスタンス
+     */
     public SRTSession getSRTSession() {
         return mSRTSession;
     }
@@ -162,24 +174,72 @@ public class SRTServer {
         mServerSocket.open();
         mServerStarted = true;
 
-        startServerThread();
+        mServerSocketThread = new ServerSocketThread();
+        mServerSocketThread.setName("SRTServerThread");
+        mServerSocketThread.start();
 
         if (mShowStats) {
             startStatsTimer();
         }
     }
 
-    private void startServerThread() {
-        if (mServerThread != null) {
-            if (DEBUG) {
-                Log.d(TAG, "ServerThread is already running.");
-            }
+    /**
+     * SRTServer を停止します.
+     *
+     * 接続されていた SRTSocket も全て閉じます。
+     */
+    public synchronized void stop() {
+        if (!mServerStarted) {
             return;
         }
+        mServerStarted = false;
 
-        mServerThread = new Thread(() -> {
+        stopStatsTimer();
+
+        mServerSocketThread.terminate();
+        mServerSocketThread = null;
+
+        synchronized (mSocketThreads) {
+            for (SocketThread t : mSocketThreads) {
+                t.terminate();
+            }
+            mSocketThreads.clear();
+        }
+    }
+
+    /**
+     * 接続されたクライアント数が最大値を超えているか確認します.
+     *
+     * @return 最大値を超えている場合はtrue、それ以外はfalse
+     */
+    private boolean isMaxClientNum() {
+        return mSocketThreads.size() >= mMaxClientNum;
+    }
+
+    /**
+     * サーバソケットを監視するためのスレッド.
+     */
+    private class ServerSocketThread extends Thread {
+        void terminate() {
             try {
-                while (!Thread.interrupted()) {
+                mServerSocket.close();
+            } catch (Exception e) {
+                // ignore.
+            }
+
+            interrupt();
+
+            try {
+                join(200);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!isInterrupted()) {
                     if (DEBUG) {
                         Log.d(TAG, "Waiting for SRT client...");
                     }
@@ -196,48 +256,18 @@ public class SRTServer {
             } catch (Throwable e) {
                 // ignore.
             } finally {
-                stop();
+                try {
+                    mServerSocket.close();
+                } catch (Exception e) {
+                    // ignore.
+                }
             }
-        });
-        mServerThread.setName("SRTServerThread");
-        mServerThread.start();
-    }
-
-    private boolean isMaxClientNum() {
-        return mSocketThreads.size() >= mMaxClientNum;
+        }
     }
 
     /**
-     * SRTServer を停止します.
-     *
-     * 接続されていた SRTSocket も全て閉じます。
+     * SRT 統計データを定期的に表示するためのタイマーを開始します.
      */
-    public synchronized void stop() {
-        if (!mServerStarted) {
-            return;
-        }
-        mServerStarted = false;
-
-        stopStatsTimer();
-
-        synchronized (mSocketThreads) {
-            for (SocketThread t : mSocketThreads) {
-                t.terminate();
-            }
-            mSocketThreads.clear();
-        }
-
-        mServerSocket.close();
-
-        mServerThread.interrupt();
-        try {
-            mServerThread.join(100);
-        } catch (InterruptedException e) {
-            // ignore
-        }
-        mServerThread = null;
-    }
-
     private synchronized void startStatsTimer() {
         if (mStatsTimer == null) {
             mStatsTimer = new Timer();
@@ -252,6 +282,9 @@ public class SRTServer {
         }
     }
 
+    /**
+     * SRT 統計データを定期的に表示するためのタイマーを停止します.
+     */
     private synchronized void stopStatsTimer() {
         if (mStatsTimer != null) {
             mStatsTimer.cancel();
@@ -384,7 +417,7 @@ public class SRTServer {
          * SRTSession を作成時に呼び出します.
          *
          * <p>
-         * この SRTSession にエンコーダを設定します。
+         * 渡された SRTSession にエンコーダを設定します。
          * </p>
          *
          * @param session セッション

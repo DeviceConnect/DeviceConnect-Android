@@ -7,6 +7,7 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
 import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.SRTSocketException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class SRTServer {
     /**
      * SRT サーバ.
      */
-    private final SRTServerSocket mServerSocket;
+    private SRTServerSocket mServerSocket;
 
     /**
      * SRTServerSocket への接続を監視するスレッド.
@@ -81,12 +82,17 @@ public class SRTServer {
     private boolean mShowStats;
 
     /**
+     * SRTサーバに設定するポート番号.
+     */
+    private int mPort;
+
+    /**
      * コンストラクタ.
      *
      * @param port サーバーのソケットにバインドするローカルのポート番号.
      */
     public SRTServer(final int port) {
-        mServerSocket = new SRTServerSocket(port);
+        mPort = port;
     }
 
     /**
@@ -172,7 +178,18 @@ public class SRTServer {
         if (mServerStarted) {
             return;
         }
-        mServerSocket.open();
+
+        mServerSocket = new SRTServerSocket(mPort);
+        try {
+            // TODO 他に設定する項目がないか検討
+            mServerSocket.setOption(SRT.SRTO_SENDER, 1);
+            mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
+            mServerSocket.open();
+        } catch (SRTSocketException e) {
+            // SRT サーバの srt_bind と srt_listen に失敗した場合はサーバを閉じておく。
+            mServerSocket.close();
+            throw new IOException(e);
+        }
         mServerStarted = true;
 
         mServerSocketThread = new ServerSocketThread();
@@ -221,11 +238,16 @@ public class SRTServer {
      * サーバソケットを監視するためのスレッド.
      */
     private class ServerSocketThread extends Thread {
+        /**
+         * スレッドの停止処理を行います.
+         */
         void terminate() {
-            try {
-                mServerSocket.close();
-            } catch (Exception e) {
-                // ignore.
+            if (mServerSocket != null) {
+                try {
+                    mServerSocket.close();
+                } catch (Exception e) {
+                    // ignore.
+                }
             }
 
             interrupt();
@@ -257,10 +279,12 @@ public class SRTServer {
             } catch (Throwable e) {
                 // ignore.
             } finally {
-                try {
-                    mServerSocket.close();
-                } catch (Exception e) {
-                    // ignore.
+                if (mServerSocket != null) {
+                    try {
+                        mServerSocket.close();
+                    } catch (Exception e) {
+                        // ignore.
+                    }
                 }
             }
         }
@@ -376,6 +400,8 @@ public class SRTServer {
                 }
 
                 mSRTSession.addSRTClientSocket(mClientSocket);
+
+                // TODO 他に設定するオプションがないか検討
 
                 // ソケットの通信を非同期に設定
                 mClientSocket.setOption(SRT.SRTO_RCVSYN, Boolean.FALSE);

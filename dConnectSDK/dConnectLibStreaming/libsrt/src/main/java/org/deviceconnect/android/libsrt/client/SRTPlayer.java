@@ -103,7 +103,6 @@ public class SRTPlayer {
 
     /**
      * SRT プレイヤーを開始します.
-
      */
     public void start() {
         if (mSRTClient != null) {
@@ -157,7 +156,7 @@ public class SRTPlayer {
 
     private final SRTClient.OnEventListener mOnClientEventListener = new SRTClient.OnEventListener() {
         @Override
-        public void onRead(byte[] data, int dataLength) {
+        public void onReceived(byte[] data, int dataLength) {
             if (mPacketExtractor != null) {
                 mPacketExtractor.add(data, dataLength);
             }

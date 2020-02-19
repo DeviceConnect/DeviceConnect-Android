@@ -146,7 +146,6 @@ public class TsPacketReader {
         // TS パケットのヘッダー解析
         int syncByte = mTsPacketHeader[0];
         if (syncByte != SYNC_BYTE) {
-            Log.e("ABC", "     syncByte invalid. " + syncByte);
             return;
         }
 

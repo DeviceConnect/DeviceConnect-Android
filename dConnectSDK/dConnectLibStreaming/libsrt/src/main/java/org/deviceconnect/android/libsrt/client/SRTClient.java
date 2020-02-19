@@ -147,7 +147,7 @@ public class SRTClient {
 
     private void postOnRead(byte[] data, int dataLength) {
         if (mOnEventListener != null) {
-            mOnEventListener.onRead(data, dataLength);
+            mOnEventListener.onReceived(data, dataLength);
         }
     }
 
@@ -170,9 +170,34 @@ public class SRTClient {
     }
 
     public interface OnEventListener {
+        /**
+         * SRT サーバに接続されたことを通知します.
+         */
         void onConnected();
+
+        /**
+         * SRT サーバから切断されたことを通知します.
+         */
         void onDisconnected();
-        void onRead(byte[] data, int dataLength);
+
+        /**
+         * SRT サーバから送られ的たデータを受け取ります.
+         *
+         * <p>
+         * 引数に渡されるデータは、同じ変数を使い回すので、
+         * リスナーで受け取った先でコピーして使用するようにしてください。
+         * </p>
+         *
+         * @param data 受信したデータ
+         * @param dataLength 受信したデータサイズ
+         */
+        void onReceived(byte[] data, int dataLength);
+
+        /**
+         * SRT サーバへの接続に失敗したことを通知します.
+         *
+         * @param e 失敗原因の例外
+         */
         void onError(IOException e);
     }
 }

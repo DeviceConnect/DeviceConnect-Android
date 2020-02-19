@@ -418,6 +418,8 @@ public class H264Decoder extends VideoDecoder {
                 if (DEBUG) {
                     Log.w(TAG, "Out of memory.", e);
                 }
+            } catch (InterruptedException e) {
+                // ignore.
             } catch (Exception e) {
                 if (DEBUG) {
                     Log.w(TAG, "H264 encode occurred an exception.", e);

@@ -6,7 +6,6 @@ import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
  * TS パケットからストリームを取り出すためのクラス.
  */
 public class TsPacketExtractor extends QueueThread<Buffer> {
-
     /**
      * TS パケットから取得したストリームを通知するコールバック.
      */
@@ -35,6 +34,8 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
      * @param dataLength データサイズ
      */
     public void add(byte[] data, int dataLength) {
+        // TODO 常に new しているので、GC が発生しやすい。
+        //      オブジェクトを使い回すようにすること。
         add(new Buffer(data, dataLength));
     }
 

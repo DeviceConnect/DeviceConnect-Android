@@ -65,6 +65,13 @@ class Buffer {
     }
 
     /**
+     * 読み込み位置を先頭に戻します.
+     */
+    void reset() {
+        mPosition = 0;
+    }
+
+    /**
      * 残りバイト数を取得します.
      *
      * @return 残りバイト数

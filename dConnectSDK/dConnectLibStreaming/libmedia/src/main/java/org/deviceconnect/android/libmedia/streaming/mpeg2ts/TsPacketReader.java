@@ -118,7 +118,7 @@ public class TsPacketReader {
      */
     void readPacket(Buffer buffer) {
         while (buffer.remaining() - TS_PACKET_SIZE >= 0) {
-            mPacketData.mPosition = 0;
+            mPacketData.reset();
             int size = buffer.read(mPacketData.mData, 0, TS_PACKET_SIZE);
             if (size == TS_PACKET_SIZE && mPacketData.mData[0] == SYNC_BYTE) {
                 parseTS(mPacketData);

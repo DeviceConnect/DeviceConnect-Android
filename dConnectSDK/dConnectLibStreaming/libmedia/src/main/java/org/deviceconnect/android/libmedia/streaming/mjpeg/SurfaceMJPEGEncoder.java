@@ -99,6 +99,18 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     protected abstract void prepare() throws IOException;
 
     /**
+     * エンコードを開始します.
+     *
+     * @throws IOException 開始に失敗した場合に発生
+     */
+    protected abstract void startRecording() throws IOException;
+
+    /**
+     * エンコードを停止します.
+     */
+    protected abstract void stopRecording();
+
+    /**
      * エンコーダーの破棄処理を行います.
      */
     protected abstract void release();
@@ -181,6 +193,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         @Override
         public void run() {
             try {
+                prepare();
+
                 int interval = 1000 / getMJPEGQuality().getFrameRate();
 
                 mOffscreenSurface = createOffscreenSurface();
@@ -192,7 +206,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
                 SurfaceTexture st = mStManager.getSurfaceTexture();
                 st.setDefaultBufferSize(quality.getWidth(), quality.getHeight());
 
-                prepare();
+                startRecording();
 
                 while (!mStopFlag) {
                     long startTime = System.currentTimeMillis();
@@ -211,6 +225,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             } catch (Exception e) {
                 // ignore.
             } finally {
+                stopRecording();
+
                 release();
 
                 if (mOffscreenSurface != null) {

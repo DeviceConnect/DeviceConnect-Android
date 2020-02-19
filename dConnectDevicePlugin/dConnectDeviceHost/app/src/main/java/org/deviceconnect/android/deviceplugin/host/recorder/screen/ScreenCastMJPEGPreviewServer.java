@@ -92,6 +92,17 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
         return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
     }
 
+    private void setMJPEGQuality(MJPEGQuality quality) {
+        ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+
+        HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
+
+        quality.setWidth(size.getWidth());
+        quality.setHeight(size.getHeight());
+        quality.setQuality(getQuality());
+        quality.setFrameRate((int) recorder.getMaxFrameRate());
+    }
+
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
@@ -104,16 +115,16 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
         @Override
         public MJPEGEncoder createMJPEGEncoder() {
-            ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
-
-            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
-
-            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
-            MJPEGQuality quality = encoder.getMJPEGQuality();
-            quality.setWidth(size.getWidth());
-            quality.setHeight(size.getHeight());
-            quality.setQuality(getQuality());
-            quality.setFrameRate((int) recorder.getMaxFrameRate());
+            // スクリーンキャストの設定が変更されて再開される場合が存在するので、
+            // ここで、prepare を override しておき、スクリーンキャストの設定を反映させます。
+            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr) {
+                @Override
+                void prepare() {
+                    setMJPEGQuality(getMJPEGQuality());
+                    super.prepare();
+                }
+            };
+            setMJPEGQuality(encoder.getMJPEGQuality());
             return encoder;
         }
 

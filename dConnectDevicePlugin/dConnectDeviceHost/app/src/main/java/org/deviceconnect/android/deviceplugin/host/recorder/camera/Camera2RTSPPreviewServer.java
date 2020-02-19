@@ -1,19 +1,16 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
-import android.media.AudioFormat;
 import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.io.IOException;
 
@@ -150,35 +147,24 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             // カメラを開始することを通知
             postOnCameraStarted();
 
-
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            CameraVideoStream videoStream = new CameraVideoStream(mRecorder);
-            videoStream.setDestinationPort(5006);
-
-            VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(recorder.getPreviewSize().getWidth());
-            videoQuality.setVideoHeight(recorder.getPreviewSize().getHeight());
-            videoQuality.setBitRate(recorder.getPreviewBitRate());
-            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
-
+            // カメラの設定が変更されて再開される場合が存在するので、
+            // ここで、prepare を override しておき、カメラの設定を反映させます。
+            CameraVideoStream videoStream = new CameraVideoStream(mRecorder, 5006) {
+                @Override
+                void prepareVideoEncoder() {
+                    setVideoQuality(getVideoEncoder().getVideoQuality());
+                }
+            };
+            setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 
             if (recorder.isAudioEnabled()) {
-                AudioStream audioStream = new MicAACLATMStream();
-                audioStream.setDestinationPort(5004);
-
+                AudioStream audioStream = new MicAACLATMStream(5004);
                 AudioEncoder audioEncoder = audioStream.getAudioEncoder();
                 audioEncoder.setMute(isMuted());
-
-                AudioQuality audioQuality = audioEncoder.getAudioQuality();
-                audioQuality.setChannel(recorder.getPreviewChannel() == 1 ?
-                        AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
-                audioQuality.setSamplingRate(recorder.getPreviewSampleRate());
-                audioQuality.setBitRate(recorder.getPreviewAudioBitRate());
-                audioQuality.setUseAEC(recorder.isUseAEC());
-
+                setAudioQuality(audioEncoder.getAudioQuality());
                 session.setAudioMediaStream(audioStream);
             }
         }

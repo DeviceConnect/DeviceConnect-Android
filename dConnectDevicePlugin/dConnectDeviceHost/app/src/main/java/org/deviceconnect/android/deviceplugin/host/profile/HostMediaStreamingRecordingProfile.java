@@ -237,6 +237,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             + previewWidth + ", previewHeight = " + previewHeight);
                     return;
                 }
+
                 HostMediaRecorder.PictureSize newSize = new HostMediaRecorder.PictureSize(previewWidth, previewHeight);
                 recorder.setPreviewSize(newSize);
             }
@@ -247,6 +248,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             if (previewBitRate != null) {
                 recorder.setPreviewBitRate(previewBitRate * 1024);
+            }
+
+
+            // 設定をプレビューサーバに反映
+            PreviewServerProvider provider = recorder.getServerProvider();
+            if (provider != null) {
+                provider.onConfigChange();
             }
 
             setResult(response, DConnectMessage.RESULT_OK);

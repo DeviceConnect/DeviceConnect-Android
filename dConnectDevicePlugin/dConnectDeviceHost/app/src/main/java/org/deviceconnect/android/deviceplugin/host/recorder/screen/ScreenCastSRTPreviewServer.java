@@ -7,17 +7,12 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.content.Context;
-import android.media.AudioFormat;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -28,17 +23,27 @@ import java.io.IOException;
  *
  * @author NTT DOCOMO, INC.
  */
-class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
+class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
     private static final String TAG = "CameraSRT";
 
-    // 参照: https://www.iana.org/assignments/media-types/video/MP2T
+    /**
+     * プレビュー配信サーバのマイムタイプを定義.
+     *
+     * 参照: https://www.iana.org/assignments/media-types/video/MP2T
+     */
     public static final String MIME_TYPE = "video/MP2T";
 
+    /**
+     * スクリーンキャストを管理するクラス.
+     */
     private ScreenCastManager mScreenCastMgr;
 
+    /**
+     * SRT サーバ。
+     */
     private SRTServer mSRTServer;
 
     ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder, final int port) {
@@ -138,28 +143,22 @@ class ScreenCastSRTPreviewServer extends AbstractPreviewServer {
         public void createSession(final SRTSession session) {
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
-            HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
-
-            ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr);
-            VideoQuality videoQuality = videoEncoder.getVideoQuality();
-            videoQuality.setVideoWidth(size.getWidth());
-            videoQuality.setVideoHeight(size.getHeight());
-            videoQuality.setBitRate(recorder.getPreviewBitRate());
-            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
+            // スクリーンキャストの設定が変更されて再開される場合が存在するので、
+            // ここで、prepare を override しておき、スクリーンキャストの設定を反映させます。
+            ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr) {
+                @Override
+                protected void prepare() throws IOException {
+                    setVideoQuality(getVideoQuality());
+                    super.prepare();
+                }
+            };
+            setVideoQuality(videoEncoder.getVideoQuality());
             session.setVideoEncoder(videoEncoder);
 
             if (recorder.isAudioEnabled()) {
                 AudioEncoder audioEncoder = new MicAACLATMEncoder();
                 audioEncoder.setMute(isMuted());
-
-                AudioQuality audioQuality = audioEncoder.getAudioQuality();
-                audioQuality.setChannel(recorder.getPreviewChannel() == 1 ?
-                        AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
-                audioQuality.setSamplingRate(recorder.getPreviewSampleRate());
-                audioQuality.setBitRate(recorder.getPreviewAudioBitRate());
-                audioQuality.setUseAEC(recorder.isUseAEC());
-
+                setAudioQuality(audioEncoder.getAudioQuality());
                 session.setAudioEncoder(audioEncoder);
             }
         }

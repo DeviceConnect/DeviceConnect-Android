@@ -39,6 +39,14 @@ public class ScreenCastMJPEGEncoder extends MJPEGEncoder {
         }
     }
 
+    void prepare() {
+
+    }
+
+    void release() {
+
+    }
+
     /**
      * MJPEG のエンコード処理を行うスレッド.
      */
@@ -66,6 +74,8 @@ public class ScreenCastMJPEGEncoder extends MJPEGEncoder {
 
         @Override
         public void run() {
+            prepare();
+
             int w = getMJPEGQuality().getWidth();
             int h = getMJPEGQuality().getHeight();
             if (mScreenCastMgr.isSwappedDimensions()) {
@@ -79,7 +89,7 @@ public class ScreenCastMJPEGEncoder extends MJPEGEncoder {
                 mScreenCast = mScreenCastMgr.createScreenCast(mImageReader, w, h);
                 mScreenCast.startCast();
 
-                while (!interrupted()) {
+                while (!isInterrupted()) {
                     long start = System.currentTimeMillis();
 
                     Bitmap bitmap = mScreenCast.getScreenshot();
@@ -103,6 +113,8 @@ public class ScreenCastMJPEGEncoder extends MJPEGEncoder {
             } catch (Exception e) {
                 // ignore.
             } finally {
+                release();
+
                 if (mScreenCast != null) {
                     mScreenCast.stopCast();
                 }

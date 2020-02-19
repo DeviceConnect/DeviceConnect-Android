@@ -113,6 +113,16 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
         return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
     }
 
+
+    private void setMJPEGQuality(MJPEGQuality quality) {
+        Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+
+        quality.setWidth(recorder.getPreviewSize().getWidth());
+        quality.setHeight(recorder.getPreviewSize().getHeight());
+        quality.setQuality(getQuality());
+        quality.setFrameRate((int) recorder.getMaxFrameRate());
+    }
+
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
@@ -141,12 +151,16 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(recorder);
-            MJPEGQuality quality = encoder.getMJPEGQuality();
-            quality.setWidth(recorder.getPreviewSize().getWidth());
-            quality.setHeight(recorder.getPreviewSize().getHeight());
-            quality.setQuality(getQuality());
-            quality.setFrameRate((int) recorder.getMaxFrameRate());
+            // カメラの設定が変更されて再開される場合が存在するので、
+            // ここで、prepare を override しておき、カメラの設定を反映させます。
+            MJPEGEncoder encoder = new CameraMJPEGEncoder(recorder) {
+                @Override
+                protected void prepare() throws IOException {
+                    setMJPEGQuality(getMJPEGQuality());
+                    super.prepare();
+                }
+            };
+            setMJPEGQuality(encoder.getMJPEGQuality());
             return encoder;
         }
 

@@ -76,6 +76,14 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     }
 
     @Override
+    protected void startRecording() {
+    }
+
+    @Override
+    protected void stopRecording() {
+    }
+
+    @Override
     protected void release() {
         if (mCamera2 != null) {
             mCamera2.close();

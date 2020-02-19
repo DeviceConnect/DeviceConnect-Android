@@ -45,6 +45,16 @@ public class MicAACLATMStream extends AudioStream {
     }
 
     /**
+     * コンストラクタ.
+     *
+     * @param port 送信先のポート番号
+     */
+    public MicAACLATMStream(int port) {
+        this();
+        setDestinationPort(port);
+    }
+
+    /**
      * サンプリングレートのインデックスを取得します.
      *
      * @return サンプリングレートのインデックス

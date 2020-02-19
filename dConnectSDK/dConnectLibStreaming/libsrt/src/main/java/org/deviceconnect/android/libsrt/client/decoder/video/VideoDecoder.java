@@ -5,6 +5,10 @@ import android.view.Surface;
 import org.deviceconnect.android.libsrt.client.decoder.Decoder;
 
 public abstract class VideoDecoder implements Decoder {
+    /**
+     * エラー通知用のリスナー.
+     */
+    private ErrorCallback mErrorCallback;
 
     /**
      * イベント通知用のリスナー.
@@ -34,6 +38,11 @@ public abstract class VideoDecoder implements Decoder {
         return mSurface;
     }
 
+    @Override
+    public void setErrorCallback(ErrorCallback callback) {
+        mErrorCallback = callback;
+    }
+
     /**
      * イベント通知用のコールバックを設定します.
      *
@@ -41,6 +50,17 @@ public abstract class VideoDecoder implements Decoder {
      */
     public void setEventCallback(EventCallback eventCallback) {
         mEventCallback = eventCallback;
+    }
+
+    /**
+     * エラー通知を行う.
+     *
+     * @param e 例外
+     */
+    void postError(final Exception e) {
+        if (mErrorCallback != null) {
+            mErrorCallback.onError(e);
+        }
     }
 
     /**

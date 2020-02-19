@@ -1,38 +1,46 @@
 package org.deviceconnect.android.srt_player_app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceView;
-import android.view.View;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import org.deviceconnect.android.libsrt.client.SRTPlayer;
+import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SRTPlayer mSRTPlayer;
+    private SRTSetting mSRTSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+        findViewById(R.id.btn_srt_play).setOnClickListener((v) -> {
+            EditText et = findViewById(R.id.edittext_srt_server_url);
+            String uri = et.getText().toString();
+
+            if (uri.isEmpty()) {
+                return;
             }
+
+            if (!uri.startsWith("srt://")) {
+                return;
+            }
+
+            mSRTSetting.setServerUrl(uri);
+
+            gotoSRTPlayer(uri);
         });
+
+        mSRTSetting = new SRTSetting(this);
+
+        String srtUrl = mSRTSetting.getServerUrl();
+        if (srtUrl != null && !srtUrl.isEmpty()) {
+            EditText et = findViewById(R.id.edittext_srt_server_url);
+            et.setText(srtUrl);
+        }
     }
 
     @Override
@@ -57,45 +65,11 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onPause() {
-        stopSRTPlayer();
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        startSRTPlayer();
-    }
-
-    private void startSRTPlayer() {
-        if (mSRTPlayer != null) {
-            return;
-        }
-
-        SurfaceView surfaceView = findViewById(R.id.surface_view);
-
-        mSRTPlayer = new SRTPlayer();
-        mSRTPlayer.setSurface(surfaceView.getHolder().getSurface());
-        mSRTPlayer.setOnEventListener(new SRTPlayer.OnEventListener() {
-            @Override
-            public void onSizeChanged(int width, int height) {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-        });
-        mSRTPlayer.start("192.168.1.79", 23456);
-    }
-
-    private void stopSRTPlayer() {
-        if (mSRTPlayer != null) {
-            mSRTPlayer.stop();
-            mSRTPlayer = null;
-        }
+    private void gotoSRTPlayer(String uri) {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), SRTPlayerActivity.class);
+        intent.putExtra(SRTPlayerActivity.EXTRA_URI, uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

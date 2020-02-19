@@ -38,7 +38,7 @@ public class FrameCache {
             return null;
         }
         frame.setData(data, dataLength);
-//            frame.setPTS(pts);
+        frame.setPTS(pts);
         return frame;
     }
 

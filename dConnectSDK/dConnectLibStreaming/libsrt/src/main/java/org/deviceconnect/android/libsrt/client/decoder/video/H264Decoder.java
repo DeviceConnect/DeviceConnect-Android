@@ -63,16 +63,20 @@ public class H264Decoder extends VideoDecoder {
     private FrameCache mFrameCache;
 
     @Override
+    public void onInit() {
+    }
+
+    @Override
     public void onReceived(byte[] data, int dataLength, long pts) {
         if (isRunningWorkThread()) {
-            Frame frame = mFrameCache.getFrame(data, dataLength, pts);
+            Frame frame = mFrameCache.getFrame(data, dataLength, (pts / 90000) * 1000 * 1000);
             if (frame == null) {
                 if (DEBUG) {
                     Log.e(TAG, "No free frame.");
                 }
                 return;
             }
-            mWorkThread.notifyFrame(frame);
+            mWorkThread.add(frame);
         } else if (searchSPSandPPS(data, dataLength)) {
             createWorkThread();
         }
@@ -235,7 +239,7 @@ public class H264Decoder extends VideoDecoder {
          *
          * @param frame フレームバッファ
          */
-        synchronized void notifyFrame(final Frame frame) {
+        synchronized void add(Frame frame) {
             mFrames.offer(frame);
             notifyAll();
         }
@@ -383,6 +387,10 @@ public class H264Decoder extends VideoDecoder {
                                     Log.d(TAG, "INFO_OUTPUT_FORMAT_CHANGED");
                                     Log.d(TAG, "New format " + mMediaCodec.getOutputFormat());
                                 }
+                                MediaFormat mf = mMediaCodec.getOutputFormat();
+                                int w = mf.getInteger(MediaFormat.KEY_WIDTH);
+                                int h = mf.getInteger(MediaFormat.KEY_HEIGHT);
+                                postSizeChanged(w, h);
                                 break;
 
                             case MediaCodec.INFO_TRY_AGAIN_LATER:
@@ -412,8 +420,9 @@ public class H264Decoder extends VideoDecoder {
                 }
             } catch (Exception e) {
                 if (DEBUG) {
-                    Log.w(TAG, "H264 encode occurred an exception.");
+                    Log.w(TAG, "H264 encode occurred an exception.", e);
                 }
+                postError(e);
             } finally {
                 releaseMediaCodec();
             }

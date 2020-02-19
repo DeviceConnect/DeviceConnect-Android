@@ -8,13 +8,39 @@
     tools:context=".MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <SurfaceView
-        android:id="@+id/surface_view"
+    <LinearLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            app:errorEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edittext_srt_server_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="RTMP サーバーURL"
+                android:inputType="textUri" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/btn_srt_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="再生" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

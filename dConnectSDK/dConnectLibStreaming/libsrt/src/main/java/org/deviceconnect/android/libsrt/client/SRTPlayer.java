@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libsrt.client;
 
+import android.net.Uri;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketExtractor;
@@ -41,6 +42,11 @@ public class SRTPlayer {
     private SRTClient mSRTClient;
 
     /**
+     * 接続先の URI.
+     */
+    private String mUri;
+
+    /**
      * TS パケットからストリームデータを抽出するクラス.
      */
     private TsPacketExtractor mPacketExtractor;
@@ -75,6 +81,18 @@ public class SRTPlayer {
     }
 
     /**
+     * 接続先の URI を設定します.
+     *
+     * @param uri URI
+     */
+    public void setUri(String uri) {
+        if (uri == null) {
+            throw new IllegalArgumentException("uri is null.");
+        }
+        mUri = uri;
+    }
+
+    /**
      * 描画先の Surface を設定します.
      *
      * @param surface 描画先の Surface
@@ -85,29 +103,27 @@ public class SRTPlayer {
 
     /**
      * SRT プレイヤーを開始します.
-     *
-     * @param address アドレス
-     * @param port ポート番号
+
      */
-    public void start(String address, int port) {
+    public void start() {
         if (mSRTClient != null) {
             return;
         }
 
-        mVideoDecoder = new H264Decoder();
-        mVideoDecoder.setSurface(mSurface);
-        mVideoDecoder.setEventCallback(new VideoDecoder.EventCallback() {
-            @Override
-            public void onSizeChanged(int width, int height) {
-                postOnSizeChanged(width, height);
-            }
-        });
+        if (mUri == null) {
+            throw new IllegalArgumentException("uri is not set.");
+        }
+
+        Uri uri = Uri.parse(mUri);
+        if (!"srt".equals(uri.getScheme())) {
+            throw new IllegalArgumentException("uri scheme is not srt.");
+        }
 
         mPacketExtractor = new TsPacketExtractor();
         mPacketExtractor.setCallback(mCallback);
         mPacketExtractor.start();
 
-        mSRTClient = new SRTClient(address, port);
+        mSRTClient = new SRTClient(uri.getHost(), uri.getPort());
         mSRTClient.setOnEventListener(mOnClientEventListener);
         mSRTClient.start();
     }
@@ -116,11 +132,6 @@ public class SRTPlayer {
      * SRT プレイヤーを停止します.
      */
     public void stop() {
-        if (mVideoDecoder != null) {
-            mVideoDecoder.onReleased();
-            mVideoDecoder = null;
-        }
-
         if (mPacketExtractor != null) {
             mPacketExtractor.terminate();
             mPacketExtractor = null;
@@ -154,10 +165,19 @@ public class SRTPlayer {
 
         @Override
         public void onConnected() {
+            mVideoDecoder = new H264Decoder();
+            mVideoDecoder.setSurface(mSurface);
+            mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+            mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
+            mVideoDecoder.onInit();
         }
 
         @Override
         public void onDisconnected() {
+            if (mVideoDecoder != null) {
+                mVideoDecoder.onReleased();
+                mVideoDecoder = null;
+            }
         }
 
         @Override

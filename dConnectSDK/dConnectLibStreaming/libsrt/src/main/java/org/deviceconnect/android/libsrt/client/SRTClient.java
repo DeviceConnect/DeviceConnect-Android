@@ -129,7 +129,7 @@ public class SRTClient {
                         postOnRead(buffer, len);
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // ignore.
             } finally {
                 if (mSRTSocket != null) {

@@ -3,11 +3,18 @@ package org.deviceconnect.android.libsrt.client;
 import org.deviceconnect.android.libsrt.SRTSocket;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * SRT サーバと通信するクラス.
  */
 public class SRTClient {
+
+    /**
+     * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
+     */
+    static final long DEFAULT_STATS_INTERVAL = 5000;
 
     /**
      * SRT ソケット.
@@ -33,6 +40,25 @@ public class SRTClient {
      * SRT クライアントのイベントを通知するリスナー.
      */
     private OnEventListener mOnEventListener;
+
+    /**
+     * 定期的に統計情報をログ出力するタイマー.
+     */
+    private Timer mStatsTimer;
+
+    /**
+     * 統計データをログ出力するインターバル. 単位はミリ秒.
+     */
+    private long mStatsInterval = DEFAULT_STATS_INTERVAL;
+
+    /**
+     * 統計データをログに出力フラグ.
+     *
+     * <p>
+     * trueの場合は、ログを出力します。
+     * </p>
+     */
+    private boolean mShowStats;
 
     /**
      * コンストラクタ.
@@ -71,6 +97,66 @@ public class SRTClient {
         if (mSRTSessionThread != null) {
             mSRTSessionThread.terminate();
             mSRTSessionThread = null;
+        }
+    }
+
+    /**
+     * SRT 統計データの LogCat への表示設定を行います.
+     *
+     * @param showStats LogCat に表示する場合はtrue、それ以外はfalse
+     */
+    public synchronized void setShowStats(boolean showStats) {
+        mShowStats = showStats;
+
+        // 既にクライアントが開始されている場合は、タイマーの設定を行います。
+        if (mSRTSessionThread != null) {
+            if (showStats) {
+                startStatsTimer();
+            } else {
+                stopStatsTimer();
+            }
+        }
+    }
+
+    /**
+     * SRT 統計データの LogCat へ表示するインターバルを設定します.
+     *
+     * <p>
+     * {@link #setShowStats(boolean)} の前に実行すること.
+     * </p>
+     *
+     * @param interval インターバル. 単位はミリ秒
+     */
+    public void setStatsInterval(long interval) {
+        mStatsInterval = interval;
+    }
+
+    /**
+     * 統計情報のログ出力を開始します.
+     */
+    private void startStatsTimer() {
+        if (mStatsTimer != null) {
+            return;
+        }
+        mStatsTimer = new Timer();
+        mStatsTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                SRTSocket socket = mSRTSocket;
+                if (socket != null) {
+                    socket.dumpStats();
+                }
+            }
+        }, 0, 5000);
+    }
+
+    /**
+     * 統計情報のログ出力を停止します.
+     */
+    private void stopStatsTimer() {
+        if (mStatsTimer != null) {
+            mStatsTimer.cancel();
+            mStatsTimer = null;
         }
     }
 
@@ -116,6 +202,9 @@ public class SRTClient {
                 postOnError(e);
                 return;
             }
+            if (mShowStats) {
+                startStatsTimer();
+            }
 
             postOnConnected();
 
@@ -132,6 +221,8 @@ public class SRTClient {
             } catch (Exception e) {
                 // ignore.
             } finally {
+                stopStatsTimer();
+
                 if (mSRTSocket != null) {
                     try {
                         mSRTSocket.close();

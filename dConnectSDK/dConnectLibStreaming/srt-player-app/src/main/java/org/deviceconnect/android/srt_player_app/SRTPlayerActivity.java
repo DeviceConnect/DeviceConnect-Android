@@ -11,6 +11,8 @@ import org.deviceconnect.android.libsrt.client.SRTPlayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import static org.deviceconnect.android.srt_player_app.BuildConfig.DEBUG;
+
 public class SRTPlayerActivity extends AppCompatActivity {
 
     static final String EXTRA_URI = "_extra_uri";
@@ -58,6 +60,8 @@ public class SRTPlayerActivity extends AppCompatActivity {
         mSRTPlayer = new SRTPlayer();
         mSRTPlayer.setUri(uri);
         mSRTPlayer.setSurface(surfaceView.getHolder().getSurface());
+        mSRTPlayer.setStatsInterval(BuildConfig.STATS_INTERVAL);
+        mSRTPlayer.setShowStats(DEBUG);
         mSRTPlayer.setOnEventListener(new SRTPlayer.OnEventListener() {
             @Override
             public void onSizeChanged(int width, int height) {

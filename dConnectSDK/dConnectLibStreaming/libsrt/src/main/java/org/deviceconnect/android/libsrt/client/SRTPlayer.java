@@ -27,6 +27,11 @@ public class SRTPlayer {
     private static final String TAG = "SRT-PLAYER";
 
     /**
+     * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
+     */
+    private static final long DEFAULT_STATS_INTERVAL = SRTClient.DEFAULT_STATS_INTERVAL;
+
+    /**
      * 動画のストリームタイプを定義.
      */
     private static final int STREAM_TYPE_VIDEO = 0xE0;
@@ -65,6 +70,20 @@ public class SRTPlayer {
      * 音声をデコードするクラス.
      */
     private AudioDecoder mAudioDecoder;
+
+    /**
+     * 統計データをログ出力するインターバル. 単位はミリ秒.
+     */
+    private long mStatsInterval = DEFAULT_STATS_INTERVAL;
+
+    /**
+     * 統計データをログに出力フラグ.
+     *
+     * <p>
+     * trueの場合は、ログを出力します。
+     * </p>
+     */
+    private boolean mShowStats;
 
     /**
      * SRT プレイヤーのイベントを通知するリスナー.
@@ -124,6 +143,8 @@ public class SRTPlayer {
 
         mSRTClient = new SRTClient(uri.getHost(), uri.getPort());
         mSRTClient.setOnEventListener(mOnClientEventListener);
+        mSRTClient.setStatsInterval(mStatsInterval);
+        mSRTClient.setShowStats(mShowStats);
         mSRTClient.start();
     }
 
@@ -140,6 +161,34 @@ public class SRTPlayer {
             mSRTClient.stop();
             mSRTClient = null;
         }
+    }
+
+    /**
+     * SRT 統計データの LogCat への表示設定を行います.
+     *
+     * @param showStats LogCat に表示する場合はtrue、それ以外はfalse
+     */
+    public synchronized void setShowStats(boolean showStats) {
+        mShowStats = showStats;
+
+        // 既にクライアントが開始されている場合は、タイマーの設定を行います。
+        if (mSRTClient != null) {
+            mSRTClient.setStatsInterval(mStatsInterval);
+            mSRTClient.setShowStats(showStats);
+        }
+    }
+
+    /**
+     * SRT 統計データの LogCat へ表示するインターバルを設定します.
+     *
+     * <p>
+     * {@link #setShowStats(boolean)} の前に実行すること.
+     * </p>
+     *
+     * @param interval インターバル. 単位はミリ秒
+     */
+    public void setStatsInterval(long interval) {
+        mStatsInterval = interval;
     }
 
     private void postOnSizeChanged(int width, int height) {

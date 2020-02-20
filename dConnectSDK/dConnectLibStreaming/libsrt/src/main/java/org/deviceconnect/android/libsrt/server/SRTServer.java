@@ -30,6 +30,11 @@ public class SRTServer {
     private static final int DEFAULT_MAX_CLIENT_NUM = 10;
 
     /**
+     * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
+     */
+    private static final long DEFAULT_STATS_INTERVAL = 5000;
+
+    /**
      * SRT サーバ.
      */
     private SRTServerSocket mServerSocket;
@@ -73,6 +78,11 @@ public class SRTServer {
     private Timer mStatsTimer;
 
     /**
+     * 統計データをログ出力するインターバル. 単位はミリ秒.
+     */
+    private long mStatsInterval = DEFAULT_STATS_INTERVAL;
+
+    /**
      * 統計データをログに出力フラグ.
      *
      * <p>
@@ -111,6 +121,19 @@ public class SRTServer {
                 stopStatsTimer();
             }
         }
+    }
+
+    /**
+     * SRT 統計データの LogCat へ表示するインターバルを設定します.
+     *
+     * <p>
+     * {@link #setShowStats(boolean)} の前に実行すること.
+     * </p>
+     *
+     * @param interval インターバル. 単位はミリ秒
+     */
+    public void setStatsInterval(long interval) {
+        mStatsInterval = interval;
     }
 
     /**
@@ -303,7 +326,7 @@ public class SRTServer {
                         thread.mClientSocket.dumpStats();
                     }
                 }
-            }, 0, 5 * 1000);
+            }, 0, mStatsInterval);
         }
     }
 

@@ -24,6 +24,7 @@ android {
         buildConfigField "String", "PACKAGE_NAME", "\"org.deviceconnect.android.deviceplugin.host\""
         buildConfigField "String", "DEMO_DIR", "\"demo\""
         buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
+        buildConfigField "long", "STATS_INTERVAL", "5000L"
     }
 
     signingConfigs {

@@ -55,6 +55,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
         if (mSRTServer == null) {
             try {
                 mSRTServer = new SRTServer(getPort());
+                mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
                 mSRTServer.start();

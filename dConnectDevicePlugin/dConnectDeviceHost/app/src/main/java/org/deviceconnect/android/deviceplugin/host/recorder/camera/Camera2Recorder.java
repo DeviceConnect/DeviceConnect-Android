@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraManager;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -30,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -39,6 +41,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceR
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
+import org.deviceconnect.android.livestreaming.LiveStreamingClient;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -50,7 +53,7 @@ import java.util.Locale;
 
 import androidx.annotation.NonNull;
 
-public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder, HostDeviceLiveStreamRecorder {
     /**
      * ログ出力用タグ.
      */
@@ -820,5 +823,27 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         public String getName() {
             return mName;
         }
+    }
+
+    private LiveStreamingClient mLiveStreamingClient;
+
+    @Override
+    public void createLiveStreamingClient(String broadcastURI) {
+        mLiveStreamingClient = new LiveStreamingClient(broadcastURI);
+    }
+
+    /**
+     * Live Streaming開始
+     */
+    @Override
+    public void liveStreamingStart() {
+    }
+
+    /**
+     * Live Streaming停止
+     */
+    @Override
+    public void liveStreamingStop() {
+
     }
 }

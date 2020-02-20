@@ -32,6 +32,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientation
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostGeolocationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostLiveStreamingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostLightProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
@@ -216,6 +217,7 @@ public class HostDevicePlugin extends DevicePluginContext {
             if (defaultRecorder instanceof HostDevicePhotoRecorder) {
                 hostService.addProfile(new HostLightProfile(context, mRecorderMgr));
             }
+            hostService.addProfile(new HostLiveStreamingProfile(context, mRecorderMgr));
         }
 
         if (checkLocationHardware()) {

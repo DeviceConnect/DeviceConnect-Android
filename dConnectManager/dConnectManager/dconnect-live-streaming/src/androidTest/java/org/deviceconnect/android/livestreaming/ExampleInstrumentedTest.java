@@ -1,4 +1,4 @@
-package org.deviceconnect.android.libstreaming;
+package org.deviceconnect.android.livestreaming;
 
 import android.content.Context;
 

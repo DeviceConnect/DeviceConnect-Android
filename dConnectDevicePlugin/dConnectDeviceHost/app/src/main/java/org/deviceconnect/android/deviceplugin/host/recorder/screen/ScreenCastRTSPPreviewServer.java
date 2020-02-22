@@ -11,6 +11,7 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 
 import java.io.IOException;
 
@@ -84,9 +85,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
 
     @Override
     public void onConfigChange() {
-        if (DEBUG) {
-            Log.d(TAG, "ScreenCastRTSPPreviewServer#onConfigChange");
-        }
+        setEncoderQuality();
 
         if (mRtspServer != null) {
             new Thread(() -> {
@@ -133,6 +132,29 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
         }
     }
 
+    /**
+     * エンコーダの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mRtspServer != null) {
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                VideoStream videoStream = session.getVideoStream();
+                if (videoStream != null) {
+                    setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
+                }
+
+                AudioStream audioStream = session.getAudioStream();
+                if (audioStream != null) {
+                    setAudioQuality(audioStream.getAudioEncoder().getAudioQuality());
+                }
+            }
+        }
+    }
+
+    /**
+     * RtspServer からのイベントを受け取るためのコールバック.
+     */
     private final RtspServer.Callback mCallback = new RtspServer.Callback() {
         @Override
         public void createSession(RtspSession session) {
@@ -142,14 +164,7 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
 
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
-            // スクリーンキャストの設定が変更されて再開される場合が存在するので、
-            // ここで、prepare を override しておき、スクリーンキャストの設定を反映させます。
-            ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr, 5006) {
-                @Override
-                void prepareVideoEncoder() {
-                    setVideoQuality(getVideoEncoder().getVideoQuality());
-                }
-            };
+            ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr, 5006);
             setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 

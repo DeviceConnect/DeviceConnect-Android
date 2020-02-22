@@ -3,6 +3,11 @@ package org.deviceconnect.android.libmedia.streaming.rtp.packet;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpPacket;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpPacketize;
 
+/**
+ * H265 を RTP のパケットに変換するクラス.
+ *
+ * 参考: https://tools.ietf.org/html/rfc7798
+ */
 public class H265Packetize extends RtpPacketize {
     /**
      * RTP と FU header を足し合わせたサイズを定義します.

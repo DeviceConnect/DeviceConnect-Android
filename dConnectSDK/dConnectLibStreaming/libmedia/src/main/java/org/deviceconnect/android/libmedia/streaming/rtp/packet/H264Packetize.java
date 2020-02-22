@@ -5,6 +5,8 @@ import org.deviceconnect.android.libmedia.streaming.rtp.RtpPacketize;
 
 /**
  * H264 Annex B Format を RTP のパケットに変換するクラス.
+ *
+ * 参考: https://tools.ietf.org/html/rfc3984
  */
 public class H264Packetize extends RtpPacketize {
     /**

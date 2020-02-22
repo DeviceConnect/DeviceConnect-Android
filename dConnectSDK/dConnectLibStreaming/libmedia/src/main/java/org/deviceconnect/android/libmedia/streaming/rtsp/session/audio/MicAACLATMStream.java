@@ -22,7 +22,7 @@ public class MicAACLATMStream extends AudioStream {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "RTSP-AUDIO";
+    private static final String TAG = "MIC-AAC-STREAM";
 
     /**
      * ペイロードタイプ.

@@ -74,6 +74,8 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
     @Override
     public void onConfigChange() {
+        setEncoderQuality();
+
         if (mMJPEGServer != null) {
             new Thread(() -> {
                 if (mMJPEGServer != null) {
@@ -88,10 +90,27 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      *
      * @return JPEG のクオリティ
      */
-    private int getQuality() {
+    private int getJpegQuality() {
         return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
     }
 
+    /**
+     * エンコーダーの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mMJPEGServer != null) {
+            MJPEGEncoder encoder = mMJPEGServer.getMJPEGEncoder();
+            if (encoder != null) {
+                setMJPEGQuality(encoder.getMJPEGQuality());
+            }
+        }
+    }
+
+    /**
+     * MJPEG エンコーダの設定を行います.
+     *
+     * @param quality 設定を反映する MJPEGQuality
+     */
     private void setMJPEGQuality(MJPEGQuality quality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
@@ -99,10 +118,13 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
         quality.setWidth(size.getWidth());
         quality.setHeight(size.getHeight());
-        quality.setQuality(getQuality());
+        quality.setQuality(getJpegQuality());
         quality.setFrameRate((int) recorder.getMaxFrameRate());
     }
 
+    /**
+     * MJPEGServerからのイベントを受け取るためのコールバック.
+     */
     private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
@@ -115,15 +137,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
         @Override
         public MJPEGEncoder createMJPEGEncoder() {
-            // スクリーンキャストの設定が変更されて再開される場合が存在するので、
-            // ここで、prepare を override しておき、スクリーンキャストの設定を反映させます。
-            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr) {
-                @Override
-                void prepare() {
-                    setMJPEGQuality(getMJPEGQuality());
-                    super.prepare();
-                }
-            };
+            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
             setMJPEGQuality(encoder.getMJPEGQuality());
             return encoder;
         }

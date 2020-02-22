@@ -7,6 +7,7 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -77,6 +78,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
+        setEncoderQuality();
         restartCamera();
     }
 
@@ -129,26 +131,41 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
         }
     }
 
+    /**
+     * エンコーダの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                VideoEncoder videoEncoder = session.getVideoEncoder();
+                if (videoEncoder != null) {
+                    setVideoQuality(videoEncoder.getVideoQuality());
+                }
+
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder != null) {
+                    setAudioQuality(audioEncoder.getAudioQuality());
+                }
+            }
+        }
+    }
+
+    /**
+     * SRTServer からのイベントを受け取るためのコールバック.
+     */
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
             if (DEBUG) {
-                Log.d(TAG, "RtspServer.Callback#createSession()");
+                Log.d(TAG, "SRTServer.Callback#createSession()");
             }
 
             postOnCameraStarted();
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            // カメラの設定が変更されて再開される場合が存在するので、
-            // ここで、prepare を override しておき、カメラの設定を反映させます。
-            CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder) {
-                @Override
-                protected void prepare() throws IOException {
-                    setVideoQuality(getVideoQuality());
-                    super.prepare();
-                }
-            };
+            CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
             setVideoQuality(encoder.getVideoQuality());
             session.setVideoEncoder(encoder);
 
@@ -163,7 +180,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
         @Override
         public void releaseSession(final SRTSession session) {
             if (DEBUG) {
-                Log.d(TAG, "RtspServer.Callback#releaseSession()");
+                Log.d(TAG, "SRTServer.Callback#releaseSession()");
             }
 
             postOnCameraStopped();

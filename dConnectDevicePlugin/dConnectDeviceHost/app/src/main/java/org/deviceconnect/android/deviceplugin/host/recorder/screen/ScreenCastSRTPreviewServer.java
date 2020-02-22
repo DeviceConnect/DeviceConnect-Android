@@ -13,6 +13,7 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -88,9 +89,7 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
 
     @Override
     public void onConfigChange() {
-        if (DEBUG) {
-            Log.d(TAG, "ScreenCastRTSPPreviewServer#onConfigChange");
-        }
+        setEncoderQuality();
 
         if (mSRTServer != null) {
             new Thread(() -> {
@@ -138,20 +137,39 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
         }
     }
 
+    /**
+     * SRTServer に設定されているエンコーダの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                VideoEncoder videoEncoder = session.getVideoEncoder();
+                if (videoEncoder != null) {
+                    setVideoQuality(videoEncoder.getVideoQuality());
+                }
+
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder != null) {
+                    setAudioQuality(audioEncoder.getAudioQuality());
+                }
+            }
+        }
+    }
+
+    /**
+     * SRTServer からのイベントを受け取るためのコールバック.
+     */
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
+            if (DEBUG) {
+                Log.d(TAG, "SRTServer.Callback#createSession()");
+            }
+
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
-            // スクリーンキャストの設定が変更されて再開される場合が存在するので、
-            // ここで、prepare を override しておき、スクリーンキャストの設定を反映させます。
-            ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr) {
-                @Override
-                protected void prepare() throws IOException {
-                    setVideoQuality(getVideoQuality());
-                    super.prepare();
-                }
-            };
+            ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr);
             setVideoQuality(videoEncoder.getVideoQuality());
             session.setVideoEncoder(videoEncoder);
 
@@ -165,6 +183,9 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
 
         @Override
         public void releaseSession(final SRTSession session) {
+            if (DEBUG) {
+                Log.d(TAG, "SRTServer.Callback#releaseSession()");
+            }
         }
     };
 }

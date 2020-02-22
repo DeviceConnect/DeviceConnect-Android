@@ -11,6 +11,7 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 
 import java.io.IOException;
 
@@ -85,6 +86,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
+        setEncoderQuality();
         restartCamera();
     }
 
@@ -137,6 +139,33 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
         }
     }
 
+    /**
+     * エンコーダーの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mRtspServer != null) {
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                VideoStream videoStream = session.getVideoStream();
+                if (videoStream != null) {
+                    setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
+                }
+
+                AudioStream audioStream = session.getAudioStream();
+                if (audioStream != null) {
+                    setAudioQuality(audioStream.getAudioEncoder().getAudioQuality());
+                }
+            }
+        }
+    }
+
+    /**
+     * RtspServer からのイベントを受け取るためのコールバック.
+     *
+     * <p>
+     * RTSP 配信の開始時と停止時に呼び出されます。
+     * </p>
+     */
     private final RtspServer.Callback mCallback = new RtspServer.Callback() {
         @Override
         public void createSession(RtspSession session) {
@@ -149,14 +178,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            // カメラの設定が変更されて再開される場合が存在するので、
-            // ここで、prepare を override しておき、カメラの設定を反映させます。
-            CameraVideoStream videoStream = new CameraVideoStream(mRecorder, 5006) {
-                @Override
-                void prepareVideoEncoder() {
-                    setVideoQuality(getVideoEncoder().getVideoQuality());
-                }
-            };
+            CameraVideoStream videoStream = new CameraVideoStream(mRecorder, 5006);
             setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 

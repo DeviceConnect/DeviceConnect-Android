@@ -107,8 +107,12 @@ public class MicAACLATMEncoder extends AudioEncoder {
             mMediaCodec.queueInputBuffer(index, 0, 0, System.nanoTime() / 1000, 0);
         } else if (isMute()) {
             // ミュート設定の場合には、AudioRecord からデータを取得しない
-            inputData.put(mMuteBuffer);
-            mMediaCodec.queueInputBuffer(index, 0, mBufferSize, System.nanoTime() / 1000, 0);
+            int length = mMuteBuffer.length;
+            if (inputData.remaining() < length) {
+                length = inputData.remaining();
+            }
+            inputData.put(mMuteBuffer, 0, length);
+            mMediaCodec.queueInputBuffer(index, 0, length, System.nanoTime() / 1000, 0);
         } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.libsrt;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * SRTソケット.
@@ -32,6 +33,7 @@ public class SRTSocket {
      * @throws IOException 接続に失敗した場合に発生
      */
     public SRTSocket(String address, int port) throws IOException {
+        InetAddress inetAddress = InetAddress.getByName(address);
         mSocketAddress = address;
 
         mNativePtr = NdkHelper.createSrtSocket();
@@ -39,7 +41,7 @@ public class SRTSocket {
             throw new IOException("Failed to create a socket: " + address + ":" + port);
         }
 
-        int result = NdkHelper.connect(mNativePtr, address, port);
+        int result = NdkHelper.connect(mNativePtr, inetAddress.getHostAddress(), port);
         if (result < 0) {
             NdkHelper.closeSrtSocket(mNativePtr);
             throw new IOException("Failed to create a socket: " + address + ":" + port);

@@ -4,6 +4,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.AudioEffect;
+import android.os.Process;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
@@ -146,6 +147,8 @@ public class MicAACLATMEncoder extends AudioEncoder {
 
         @Override
         public void run() {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
+
             try {
                 while (!isInterrupted()) {
                     get().run();
@@ -167,7 +170,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
         AudioQuality audioQuality = getAudioQuality();
 
         mBufferSize = AudioRecord.getMinBufferSize(audioQuality.getSamplingRate(),
-                audioQuality.getChannel(), audioQuality.getFormat()) * 4;
+                audioQuality.getChannel(), audioQuality.getFormat()) * 2;
 
         if (DEBUG) {
             Log.d(TAG, "AudioQuality: " + audioQuality);
@@ -203,7 +206,6 @@ public class MicAACLATMEncoder extends AudioEncoder {
 
         mAudioThread = new AudioRecordThread();
         mAudioThread.setName("MicAACLATMEncoder");
-        mAudioThread.setPriority(Thread.MAX_PRIORITY);
         mAudioThread.start();
     }
 

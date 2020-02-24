@@ -13,6 +13,7 @@ public abstract class AudioQuality {
     private int mBitRate = DEFAULT_BIT_RATE;
     private int mChannel = DEFAULT_CHANNEL;
     private int mFormat = DEFAULT_FORMAT;
+    private int mMaxInputSize = 0;
 
     /**
      * エコーキャンセラーの使用フラグ.
@@ -172,12 +173,22 @@ public abstract class AudioQuality {
         return mChannel == AudioFormat.CHANNEL_IN_STEREO ? 2 : 1;
     }
 
-    public void set(AudioQuality quality) {
-        mMimeType = quality.getMimeType();
-        mSamplingRate = quality.getSamplingRate();
-        mBitRate = quality.getBitRate();
-        mChannel = quality.getChannel();
-        mFormat = quality.getFormat();
+    /**
+     * MediaCodec の InputBuffer の最大値を取得します.
+     *
+     * @return MediaCodec の InputBuffer の最大値
+     */
+    public int getMaxInputSize() {
+        return mMaxInputSize;
+    }
+
+    /**
+     * MediaCodec の InputBuffer の最大値を設定します.
+     *
+     * @param maxInputSize MediaCodec の InputBuffer の最大値
+     */
+    public void setMaxInputSize(int maxInputSize) {
+        mMaxInputSize = maxInputSize;
     }
 
     @Override

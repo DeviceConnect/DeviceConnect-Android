@@ -48,12 +48,13 @@
             app:useSimpleSummaryProvider="true" />
 
         <DropDownPreference
-            android:defaultValue="@string/settings_video_rotation"
-            android:entries="@array/setting_video_rotation_labels"
-            android:entryValues="@array/setting_video_rotation_values"
-            android:key="@string/key_video_rotation"
+            android:defaultValue="@string/settings_video_camera_id"
+            android:entries="@array/settings_video_camera_names"
+            android:entryValues="@array/settings_video_camera_values"
+            android:key="@string/key_video_camera_id"
             android:title="カメラの向き"
             app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="音声設定">

@@ -36,6 +36,17 @@
         <item>-1</item>
     </string-array>
 
+    <string name="key_video_camera_id" translatable="false">videoCameraId</string>
+    <string name="settings_video_camera_id">1</string>
+    <string-array name="settings_video_camera_names">
+        <item>フロント</item>
+        <item>バック</item>
+    </string-array>
+    <string-array name="settings_video_camera_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
     <string name="key_audio_enabled" translatable="false">audioEnabled</string>
     <bool name="settings_audio_enabled">true</bool>
 

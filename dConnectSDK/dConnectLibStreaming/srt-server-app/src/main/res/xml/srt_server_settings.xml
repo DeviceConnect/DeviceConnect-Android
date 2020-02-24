@@ -1,34 +1,56 @@
-<androidx.preference.PreferenceScreen
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ListPreference
-        app:key="camera_facing"
-        app:title="カメラの向き"
-        app:entries="@array/camera_facing_names"
-        app:entryValues="@array/camera_facing_values"
-        app:useSimpleSummaryProvider="true"
-        />
+    <PreferenceCategory
+        android:title="サーバ"
+        app:iconSpaceReserved="false">
 
-    <ListPreference
-        app:key="camera_preview_size_0"
-        app:title="映像の解像度 (フロント)"
-        app:useSimpleSummaryProvider="true"
-        />
-    <ListPreference
-        app:key="camera_preview_size_1"
-        app:title="映像の解像度 (バック)"
-        app:useSimpleSummaryProvider="true"
-        />
+        <EditTextPreference
+            android:defaultValue="srt://localhost:12345"
+            android:singleLine="true"
+            app:key="server_url"
+            android:title="URL"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
 
-    <EditTextPreference
-        app:key="encoder_frame_rate"
-        app:title="映像のフレームレート (fps)"
-        app:useSimpleSummaryProvider="true"
-        />
+    </PreferenceCategory>
 
-    <EditTextPreference
-        app:key="encoder_bit_rate"
-        app:title="映像のビットレート (Mbps / 目安)"
-        app:useSimpleSummaryProvider="true"
-        />
+    <PreferenceCategory
+        android:title="映像設定"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:entries="@array/camera_facing_names"
+            app:entryValues="@array/camera_facing_values"
+            app:key="camera_facing"
+            app:title="カメラの向き"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size_0"
+            app:title="映像の解像度 (フロント)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size_1"
+            app:title="映像の解像度 (バック)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="encoder_frame_rate"
+            app:title="映像のフレームレート (fps)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="encoder_bit_rate"
+            app:title="映像のビットレート (Mbps / 目安)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

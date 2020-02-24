@@ -57,6 +57,6 @@ class Settings {
     int getEncoderBitRate() {
         String value = mSharedPreferences.getString("encoder_bit_rate", DEFAULT_ENCODER_BITRATE_BASE);
         float base = Float.parseFloat(value);
-        return (int) (base * 1024 * 1024);
+        return (int) base * 1024 * 1024;
     }
 }

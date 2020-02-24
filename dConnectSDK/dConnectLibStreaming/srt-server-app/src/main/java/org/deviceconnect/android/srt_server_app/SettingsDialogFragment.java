@@ -21,7 +21,6 @@ public class SettingsDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(getContext());
-        dialog.setTitle("設定");
         dialog.setView(R.layout.activity_settings);
         dialog.setOnCancelListener((DialogInterface di) -> {
             Log.d("SRTServer", "OnCancelListener");

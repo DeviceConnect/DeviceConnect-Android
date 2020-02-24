@@ -6,6 +6,10 @@ import android.text.InputType;
 import android.util.Size;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
+
 import java.net.InetAddress;
 import java.util.List;
 
@@ -15,10 +19,6 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
-
 
 public class RtspPreferenceActivity extends AppCompatActivity {
 

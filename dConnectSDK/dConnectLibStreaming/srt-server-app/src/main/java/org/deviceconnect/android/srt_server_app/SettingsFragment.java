@@ -11,17 +11,20 @@ import android.text.InputType;
 import android.util.Size;
 import android.widget.EditText;
 
-import androidx.annotation.NonNull;
-import androidx.preference.EditTextPreference;
-import androidx.preference.ListPreference;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
+import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
 
 /**
  * 設定用フラグメント.
@@ -39,9 +42,36 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Context context = getContext();
         if (context != null) {
             mSettings = new Settings(context);
+            createSrtServerPreference();
             createCameraSettingsPreference(context);
             createEncoderFrameRatePreference();
             createEncoderBitRatePreference();
+        }
+    }
+
+    private String getIpAddress() {
+        IpAddressManager addressManager = new IpAddressManager();
+        addressManager.storeIPAddress();
+        InetAddress address = addressManager.getIPv4Address();
+        if (address == null) {
+            address = addressManager.getWifiIPv4Address();
+        }
+        if (address == null) {
+            address = addressManager.getVpnIPv4Address();
+        }
+        if (address == null) {
+            address = addressManager.getBluetoothIPv4Address();
+        }
+        if (address != null) {
+            return address.getHostAddress();
+        }
+        return null;
+    }
+
+    private void createSrtServerPreference() {
+        EditTextPreference pref = findPreference("server_url");
+        if (pref != null) {
+            pref.setText("srt://" + getIpAddress() + ":12345");
         }
     }
 

@@ -279,6 +279,7 @@ public abstract class VideoEncoder extends MediaEncoder {
             Log.i(TAG, "BIT_RATE: " + videoQuality.getBitRate());
             Log.i(TAG, "FRAME_RATE: " + videoQuality.getFrameRate());
             Log.i(TAG, "I_FRAME_INTERVAL: " + videoQuality.getIFrameInterval());
+            Log.i(TAG, "---");
         }
 
         MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(videoQuality.getMimeType());

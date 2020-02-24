@@ -61,38 +61,43 @@ JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint opt, jobject value) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_setSockFlag()");
 
-    // TODO 値のクラス名から値のタイプを判断しているが、これで良いか検討が必要
-    //      opt の値によって、switch 文で分けた方が良いかもしれない。
-
     jclass valueClass = env->GetObjectClass(value);
-    jmethodID classMethodId = env->GetMethodID(valueClass, "getClass", "()Ljava/lang/Class;");
-    jobject classObject = env->CallObjectMethod(value, classMethodId);
-    jclass classClass = env->GetObjectClass(classObject);
-    jmethodID methodId = env->GetMethodID(classClass, "getSimpleName", "()Ljava/lang/String;");
-    jstring className = (jstring) env->CallObjectMethod(classObject, methodId);
-    const char* classNameString = env->GetStringUTFChars(className, nullptr);
 
     int result = -1;
 
-    if (strstr(classNameString, "Integer") != nullptr) {
-        jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
-        int32_t data = env->CallIntMethod(value, intValueMethodId);
-        result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
-    } else if (strstr(classNameString, "Long") != nullptr) {
-        jmethodID longValueMethodId = env->GetMethodID(valueClass, "longValue", "()J");
-        int64_t data = env->CallLongMethod(value, longValueMethodId);
-        result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
-    } else if (strstr(classNameString, "Boolean") != nullptr) {
-        jmethodID boolValueMethodId = env->GetMethodID(valueClass, "booleanValue", "()Z");
-        bool data = env->CallBooleanMethod(value, boolValueMethodId);
-        result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
-    } else if (strstr(classNameString, "Double") != nullptr) {
-        jmethodID doubleValueMethodId = env->GetMethodID(valueClass, "doubleValue", "()D");
-        double data = env->CallFloatMethod(value, doubleValueMethodId);
-        result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+    switch (opt) {
+        case SRTO_SNDSYN:
+        case SRTO_RCVSYN:
+        case SRTO_SENDER: // RTO_SENDER	1.0.4	pre	int32_t bool?
+        {
+            jmethodID boolValueMethodId = env->GetMethodID(valueClass, "booleanValue", "()Z");
+            bool data = env->CallBooleanMethod(value, boolValueMethodId);
+            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+        }
+            break;
+        case SRTO_MAXBW:
+        case SRTO_INPUTBW:
+        {
+            jmethodID longValueMethodId = env->GetMethodID(valueClass, "longValue", "()J");
+            int64_t data = env->CallLongMethod(value, longValueMethodId);
+            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+        }
+            break;
+        case SRTO_LATENCY:
+        case SRTO_RCVLATENCY:
+        case SRTO_PEERLATENCY:
+        case SRTO_OHEADBW:
+        {
+            jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
+            int32_t data = env->CallIntMethod(value, intValueMethodId);
+            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+        }
+            break;
+
+        default:
+            break;
     }
 
-    env->ReleaseStringUTFChars(className, classNameString);
     env->DeleteLocalRef(valueClass);
     return result;
 }

@@ -205,7 +205,7 @@ public class SRTServer {
         mServerSocket = new SRTServerSocket(mPort);
         try {
             // TODO 他に設定する項目がないか検討
-            mServerSocket.setOption(SRT.SRTO_SENDER, 1);
+            mServerSocket.setOption(SRT.SRTO_SENDER, true);
             mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
             mServerSocket.open();
         } catch (SRTSocketException e) {

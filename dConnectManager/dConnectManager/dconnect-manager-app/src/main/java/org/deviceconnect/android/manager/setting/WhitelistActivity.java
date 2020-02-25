@@ -6,11 +6,12 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import org.deviceconnect.android.manager.R;
 
@@ -29,7 +30,7 @@ public class WhitelistActivity extends AppCompatActivity {
         
         if (savedInstanceState == null) {
             Fragment f = new WhitelistFragment();
-            FragmentManager fm = getFragmentManager();
+            FragmentManager fm = getSupportFragmentManager();
             FragmentTransaction t = fm.beginTransaction();
             t.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             t.add(android.R.id.content, f, "continar");

@@ -245,8 +245,14 @@ public class RtspSession {
          */
         private int mConfigLength;
 
+        /**
+         * エンコード開始時間.
+         */
+        private long mPresentationTimeUs;
+
         @Override
         public boolean onPrepare(VideoQuality videoQuality, AudioQuality audioQuality) {
+            mPresentationTimeUs = 0;
             return true;
         }
 
@@ -261,6 +267,8 @@ public class RtspSession {
         public void onWriteVideoData(ByteBuffer encodedData, MediaCodec.BufferInfo bufferInfo) {
             VideoStream videoStream = getVideoStream();
             if (videoStream != null) {
+                long pts = getPresentationTime(bufferInfo);
+
                 boolean isConfigFrame = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0;
                 if (isConfigFrame) {
                     if (mConfigData == null || mConfigData.length < bufferInfo.size) {
@@ -275,7 +283,7 @@ public class RtspSession {
                 boolean isKeyFrame = (bufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
                 if (isKeyFrame && mConfigData != null) {
                     // H264 の SPS、PPS はキーフレームごとに送信するようにする。
-                    videoStream.writePacket(mConfigData, mConfigLength, bufferInfo.presentationTimeUs);
+                    videoStream.writePacket(mConfigData, mConfigLength, pts);
                 }
 
                 if (mVideoBuffer.length < bufferInfo.size) {
@@ -285,7 +293,7 @@ public class RtspSession {
                 encodedData.limit(bufferInfo.offset + bufferInfo.size);
                 encodedData.get(mVideoBuffer, 0, bufferInfo.size);
 
-                videoStream.writePacket(mVideoBuffer, bufferInfo.size, bufferInfo.presentationTimeUs);
+                videoStream.writePacket(mVideoBuffer, bufferInfo.size, pts);
             }
         }
 
@@ -305,7 +313,7 @@ public class RtspSession {
                 }
                 encodedData.get(mAudioBuffer, 0, bufferInfo.size);
 
-                audioStream.writePacket(mAudioBuffer, bufferInfo.size, bufferInfo.presentationTimeUs);
+                audioStream.writePacket(mAudioBuffer, bufferInfo.size, getPresentationTime(bufferInfo));
             }
         }
 
@@ -314,6 +322,13 @@ public class RtspSession {
             for (MediaStream mediaStream : mStreamMap.values()) {
                 mediaStream.release();
             }
+        }
+
+        private long getPresentationTime(MediaCodec.BufferInfo bufferInfo) {
+            if (mPresentationTimeUs == 0) {
+                mPresentationTimeUs = bufferInfo.presentationTimeUs;
+            }
+            return bufferInfo.presentationTimeUs - mPresentationTimeUs;
         }
     };
 }

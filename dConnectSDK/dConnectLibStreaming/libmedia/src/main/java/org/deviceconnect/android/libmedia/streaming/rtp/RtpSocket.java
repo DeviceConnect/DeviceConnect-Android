@@ -263,8 +263,8 @@ public class RtpSocket implements RtpPacketize.Callback {
             try {
                 mDatagramPacket.setData(packet.getBuffer());
                 mDatagramPacket.setLength(packet.getLength());
-                mRtcpSocket.update(packet.getLength(), packet.getTimeStamp());
                 mSocket.send(mDatagramPacket);
+                mRtcpSocket.update(packet.getLength(), packet.getTimeStamp());
             } catch (IOException e) {
                 // ignore
             } finally {

@@ -124,6 +124,7 @@ public abstract class MediaStream {
         packet.setCallback(socket);
         packet.setSsrc(socket.getSsrc());
 
+        socket.setThreadHighPriority(isHighPriority());
         socket.open();
 
         synchronized (mRtpPacketizes) {
@@ -142,6 +143,15 @@ public abstract class MediaStream {
         synchronized (mRtpPacketizes) {
             mRtpPacketizes.remove(socket);
         }
+    }
+
+    /**
+     * 送信先の RtpSocket のプライオリティを High にするか確認します.
+     *
+     * @return High にする場合は true、それ以外は false
+     */
+    public boolean isHighPriority() {
+        return false;
     }
 
     /**

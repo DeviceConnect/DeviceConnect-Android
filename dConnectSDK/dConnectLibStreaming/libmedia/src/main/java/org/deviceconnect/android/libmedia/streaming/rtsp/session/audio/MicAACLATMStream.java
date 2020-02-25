@@ -101,6 +101,7 @@ public class MicAACLATMStream extends AudioStream {
         AudioQuality quality = mAudioEncoder.getAudioQuality();
 
         // https://tools.ietf.org/html/rfc5691
+        // https://tools.ietf.org/html/rfc6416
 
         // streamType:
         //  The integer value that indicates the type of MPEG-4 stream that is
@@ -119,6 +120,15 @@ public class MicAACLATMStream extends AudioStream {
         //  This parameter MUST be used in the capability exchange or session
         //  set-up procedure to indicate the MPEG-4 Profile and Level
         //  combination of which the relevant MPEG-4 media codec is capable.
+        //
+        // The following are some examples of the "profile-level-id" value:
+        //  1 : Main Audio Profile Level 1
+        //  9 : Speech Audio Profile Level 1
+        //  15: High Quality Audio Profile Level 2
+        //  30: Natural Audio Profile Level 1
+        //  44: High Efficiency AAC Profile Level 2
+        //  48: High Efficiency AAC v2 Profile Level 2
+        //  55: Baseline MPEG Surround Profile (see ISO/IEC 23003-1) Level 3
 
         FormatAttribute fmt = new FormatAttribute(PAYLOAD_TYPE);
         fmt.addParameter("streamtype", "5");
@@ -130,7 +140,7 @@ public class MicAACLATMStream extends AudioStream {
         fmt.addParameter("IndexDeltaLength", "3");
 
         MediaDescription mediaDescription = new MediaDescription("audio", getDestinationPort(), "RTP/AVP", PAYLOAD_TYPE);
-        mediaDescription.addAttribute(new RtpMapAttribute(PAYLOAD_TYPE, "mpeg4-generic", quality.getSamplingRate()));
+        mediaDescription.addAttribute(new RtpMapAttribute(PAYLOAD_TYPE, "mpeg4-generic", quality.getSamplingRate(), quality.getChannelCount()));
         mediaDescription.addAttribute(fmt);
         mediaDescription.addAttribute(new ControlAttribute("trackID=" + getTrackId()));
         return mediaDescription;

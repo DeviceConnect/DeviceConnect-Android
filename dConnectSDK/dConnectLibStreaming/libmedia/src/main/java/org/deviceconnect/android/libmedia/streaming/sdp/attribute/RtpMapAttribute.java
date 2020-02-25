@@ -15,6 +15,14 @@ public class RtpMapAttribute extends Attribute {
         mRate = rate;
     }
 
+
+    public RtpMapAttribute(Integer format, String encodingName, Integer rate, Integer channel) {
+        mFormat = format;
+        mEncodingName = encodingName;
+        mRate = rate;
+        mParameters = String.valueOf(channel);
+    }
+
     public RtpMapAttribute(Integer format, String encodingName, Integer rate, String parameters) {
         mFormat = format;
         mEncodingName = encodingName;

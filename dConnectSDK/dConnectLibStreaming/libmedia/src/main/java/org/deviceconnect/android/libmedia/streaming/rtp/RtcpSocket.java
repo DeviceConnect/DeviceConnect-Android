@@ -59,7 +59,6 @@ public class RtcpSocket {
      */
     public RtcpSocket() throws IOException {
         mSocket = new MulticastSocket();
-        mSocket.setTimeToLive(64);
         mPacket = new DatagramPacket(mBuffer, 1);
     }
 
@@ -70,6 +69,12 @@ public class RtcpSocket {
         } finally {
             super.finalize();
         }
+    }
+
+    /**
+     * RTCP 送信用のソケットを開きます.
+     */
+    public void open() {
     }
 
     /**

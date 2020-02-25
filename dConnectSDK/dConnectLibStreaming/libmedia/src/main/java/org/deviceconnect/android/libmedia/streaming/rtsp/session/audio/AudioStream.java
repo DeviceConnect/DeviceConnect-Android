@@ -26,4 +26,10 @@ public abstract class AudioStream extends MediaStream {
      * @return 音声用のエンコーダ
      */
     public abstract AudioEncoder getAudioEncoder();
+
+    @Override
+    public boolean isHighPriority() {
+        // Audio の場合は、スレッドを High にするので、trueを返却
+        return true;
+    }
 }

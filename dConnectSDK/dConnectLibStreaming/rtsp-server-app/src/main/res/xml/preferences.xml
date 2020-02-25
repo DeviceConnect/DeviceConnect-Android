@@ -71,12 +71,15 @@
             android:title="ビットレート (KB)"
             app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
+
+        <DropDownPreference
             android:defaultValue="@string/settings_audio_sampling_rate"
+            android:entries="@array/settings_audio_sampling_rates"
+            android:entryValues="@array/settings_audio_sampling_rates"
             android:key="@string/key_audio_sampling_rate"
-            android:singleLine="true"
             android:title="サンプリングレート"
             app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="録画設定">

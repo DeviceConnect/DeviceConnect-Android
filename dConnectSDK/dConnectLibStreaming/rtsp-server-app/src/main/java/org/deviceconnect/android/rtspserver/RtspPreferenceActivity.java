@@ -73,7 +73,6 @@ public class RtspPreferenceActivity extends AppCompatActivity {
             setInputTypeNumber(R.string.key_video_frame_rate);
             setInputTypeNumber(R.string.key_video_iframe_interval);
             setInputTypeNumber(R.string.key_audio_bit_rate);
-            setInputTypeNumber(R.string.key_audio_sampling_rate);
         }
 
         private String[] createCameraResolutions(Context context) {

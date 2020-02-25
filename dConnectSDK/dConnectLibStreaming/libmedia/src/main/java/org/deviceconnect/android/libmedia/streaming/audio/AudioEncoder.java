@@ -2,14 +2,22 @@ package org.deviceconnect.android.libmedia.streaming.audio;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.util.Log;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AudioEncoder extends MediaEncoder {
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "AUDIO-ENCODER";
+
     /**
      * ミュート設定.
      */
@@ -25,6 +33,13 @@ public abstract class AudioEncoder extends MediaEncoder {
     @Override
     protected void prepare() throws IOException {
         AudioQuality audioQuality = getAudioQuality();
+
+        String mimeType = audioQuality.getMimeType();
+
+        List<MediaCodecInfo> infoList = getMediaCodecInfo(mimeType);
+        if (infoList.isEmpty()) {
+            throw new IOException(mimeType + " not supported.");
+        }
 
         MediaFormat format = MediaFormat.createAudioFormat(audioQuality.getMimeType(),
                 audioQuality.getSamplingRate(), audioQuality.getChannelCount());
@@ -42,6 +57,20 @@ public abstract class AudioEncoder extends MediaEncoder {
             // 0: realtime priority
             // 1: non-realtime priority (best effort).
             format.setInteger(MediaFormat.KEY_PRIORITY, 0x00);
+        }
+
+        if (DEBUG) {
+            Log.d(TAG, "List of MediaCodeInfo supported by MediaCodec.");
+            for (MediaCodecInfo info : infoList) {
+                Log.d(TAG, "  " + info.getName());
+            }
+            Log.i(TAG, "---");
+            Log.i(TAG, "MIME_TYPE: " + audioQuality.getMimeType());
+            Log.i(TAG, "SAMPLE_RATE: " + audioQuality.getSamplingRate());
+            Log.i(TAG, "CHANNEL: " + audioQuality.getChannelCount());
+            Log.i(TAG, "FORMAT: " + audioQuality.getFormat());
+            Log.i(TAG, "BIT_RATE: " + audioQuality.getBitRate());
+            Log.i(TAG, "---");
         }
 
         mMediaCodec = MediaCodec.createEncoderByType(audioQuality.getMimeType());
@@ -84,5 +113,58 @@ public abstract class AudioEncoder extends MediaEncoder {
      */
     public void setMute(boolean mute) {
         mMute = mute;
+    }
+
+
+    /**
+     * 指定された MediaCodecInfo のマイムタイプとカラーフォーマットが一致するか確認します.
+     *
+     * @param codecInfo 確認する MediaCodecInfo
+     * @param mimeType マイムタイプ
+     * @return 一致する場合はtrue、それ以外はfalse
+     */
+    private boolean isMediaCodecInfo(MediaCodecInfo codecInfo, String mimeType) {
+        if (!codecInfo.isEncoder()) {
+            return false;
+        }
+
+        String[] types = codecInfo.getSupportedTypes();
+        for (String type : types) {
+            if (type.equalsIgnoreCase(mimeType)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 指定されたマイムタイプに対応した MediaCodecInfo のリストを取得します.
+     *
+     * <p>
+     * 対応した MediaCodecInfo が存在しない場合には空のリストを返却します。
+     * </p>
+     *
+     * @param mimeType マイムタイプ
+     * @return MediaCodecInfo のリスト
+     */
+    private List<MediaCodecInfo> getMediaCodecInfo(String mimeType) {
+        List<MediaCodecInfo> infoList = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecList list = new MediaCodecList(MediaCodecList.ALL_CODECS);
+            for (MediaCodecInfo codecInfo : list.getCodecInfos()) {
+                if (isMediaCodecInfo(codecInfo, mimeType)) {
+                    infoList.add(codecInfo);
+                }
+            }
+        } else {
+            for (int i = MediaCodecList.getCodecCount() - 1; i >= 0; i--) {
+                MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+                if (isMediaCodecInfo(codecInfo, mimeType)) {
+                    infoList.add(codecInfo);
+                }
+            }
+        }
+        return infoList;
     }
 }

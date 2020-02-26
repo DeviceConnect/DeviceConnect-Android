@@ -116,21 +116,9 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     //映像無し以外の場合はエンコーダーとパラメーターをセット
                     if (!mVideoURI.equals("false")) {
                         Integer width = (Integer) extras.get(PARAM_KEY_WIDTH);
-                        if (width == null) {
-                            width = 0;
-                        }
                         Integer height = (Integer) extras.get(PARAM_KEY_HEIGHT);
-                        if (height == null) {
-                            height = 0;
-                        }
                         Integer bitrate = (Integer) extras.get(PARAM_KEY_BITRATE);
-                        if (bitrate == null) {
-                            bitrate = 0;
-                        }
                         Integer framerate = (Integer) extras.get(PARAM_KEY_FRAME_RATE);
-                        if (framerate == null) {
-                            framerate = 0;
-                        }
                         if (DEBUG) {
                             Log.d(TAG, "width : " + width);
                             Log.d(TAG, "height : " + height);

@@ -11,10 +11,10 @@ import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
+import android.media.AudioFormat;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -41,6 +41,9 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceR
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.livestreaming.LiveStreamingClient;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -832,11 +835,23 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mLiveStreamingClient = new LiveStreamingClient(broadcastURI);
     }
 
+    @Override
+    public void createLiveStreamingClient(String broadcastURI, LiveStreamingClient.EventListener eventListener) {
+        mLiveStreamingClient = new LiveStreamingClient(broadcastURI, eventListener);
+    }
+
     /**
      * Live Streaming開始
      */
     @Override
     public void liveStreamingStart() {
+        if (DEBUG) {
+            Log.d(TAG, "liveStreamingStart()");
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.start();
+        }
     }
 
     /**
@@ -844,6 +859,121 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      */
     @Override
     public void liveStreamingStop() {
+        if (DEBUG) {
+            Log.d(TAG, "liveStreamingStop()");
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.stop();
+        }
+    }
 
+    @Override
+    public void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer framerate) {
+        if (DEBUG) {
+            Log.d(TAG, "setVideoEncoder()");
+            Log.d(TAG, "width : " + width);
+            Log.d(TAG, "height : " + height);
+            Log.d(TAG, "bitrate : " + bitrate);
+            Log.d(TAG, "framerate : " + framerate);
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.setVideoEncoder(new CameraVideoEncoder(this), width, height, bitrate, framerate);
+        }
+    }
+
+    @Override
+    public void setAudioEncoder() {
+        if (DEBUG) {
+            Log.d(TAG, "setAudioEncoder()");
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            AudioEncoder audioEncoder = new MicAACLATMEncoder();
+            AudioQuality audioQuality = audioEncoder.getAudioQuality();
+            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+            audioQuality.setSamplingRate(44100);
+            mLiveStreamingClient.setAudioEncoder(audioEncoder);
+        }
+    }
+
+    @Override
+    public boolean isStreaming() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.isStreaming();
+        }
+        return false;
+    }
+
+    @Override
+    public void setMute(boolean mute) {
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.setMute(mute);
+        }
+    }
+
+    @Override
+    public boolean isMute() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.isMute();
+        }
+        return false;
+    }
+
+    @Override
+    public int getVideoWidth() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getVideoWidth();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getVideoHeight() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getVideoHeight();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getBitrate() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getBitrate();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getFrameRate() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getFrameRate();
+        }
+        return 0;
+    }
+
+    @Override
+    public String getLiveStreamingMimeType() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getMimeType();
+        }
+        return MIME_TYPE_JPEG;
+    }
+
+    @Override
+    public String getBroadcastURI() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getBroadcastURI();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isError() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.isError();
+        }
+        return false;
     }
 }

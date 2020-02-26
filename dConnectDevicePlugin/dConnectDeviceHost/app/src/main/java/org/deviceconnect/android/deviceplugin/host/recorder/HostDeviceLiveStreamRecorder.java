@@ -1,13 +1,36 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import android.os.Bundle;
+import org.deviceconnect.android.livestreaming.LiveStreamingClient;
 
 /**
  * デバイスのカメラを使用したLive Streaming用のインターフェース
  */
+@SuppressWarnings("unused")
 public interface HostDeviceLiveStreamRecorder {
+    //クライアントの生成
     void createLiveStreamingClient(final String broadcastURI);
-    void setVideoParams(int width, int height, int bitrate, int framerate);
+    void createLiveStreamingClient(final String broadcastURI, LiveStreamingClient.EventListener eventListener);
+
+    //ビデオエンコーダーの設定
+    void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer frameRate);
+
+    //オーディオエンコーダーの設定
+    void setAudioEncoder();
+
+    //ストリーミング開始
     void liveStreamingStart();
+
+    //ストリーミング停止
     void liveStreamingStop();
+
+    boolean isStreaming();
+    void setMute(boolean mute);
+    boolean isMute();
+    boolean isError();
+    int getVideoWidth();
+    int getVideoHeight();
+    int getBitrate();
+    int getFrameRate();
+    String getLiveStreamingMimeType();
+    String getBroadcastURI();
 }

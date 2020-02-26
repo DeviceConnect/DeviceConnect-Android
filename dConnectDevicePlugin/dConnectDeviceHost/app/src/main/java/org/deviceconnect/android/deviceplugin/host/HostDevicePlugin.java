@@ -217,7 +217,7 @@ public class HostDevicePlugin extends DevicePluginContext {
             if (defaultRecorder instanceof HostDevicePhotoRecorder) {
                 hostService.addProfile(new HostLightProfile(context, mRecorderMgr));
             }
-            hostService.addProfile(new HostLiveStreamingProfile(context, mRecorderMgr));
+            hostService.addProfile(new HostLiveStreamingProfile(mRecorderMgr));
         }
 
         if (checkLocationHardware()) {

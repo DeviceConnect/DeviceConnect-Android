@@ -2,44 +2,67 @@ package org.deviceconnect.android.livestreaming;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.muxer.RtmpMuxer;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
-@SuppressWarnings("unused WeakerAccess")
+@SuppressWarnings("unused")
 public class LiveStreamingClient implements MediaStreamer.OnEventListener {
-    private static final String TAG = "dConnectLibStreaming";
+    private static final String TAG = "LiveStreamingClient";
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private MediaStreamer mMediaStreamer;
     private EventListener mEventListener;
     private boolean mStreaming = false;
+    private boolean mError = false;
+    private final String mBroadcastURI;
 
-    public LiveStreamingClient(final String url) {
+    public LiveStreamingClient(final String broadcastURI) {
         if (DEBUG) {
             Log.d(TAG, "LiveStreamingClient()");
-            Log.d(TAG, "url : " + url);
+            Log.d(TAG, "broadcastURI : " + broadcastURI);
         }
-        IMediaMuxer muxer = new RtmpMuxer(url);
+        IMediaMuxer muxer = new RtmpMuxer(broadcastURI);
         mMediaStreamer = new MediaStreamer(muxer);
         mEventListener = null;
         mMediaStreamer.setOnEventListener(this);
+        mBroadcastURI = broadcastURI;
     }
 
-    public LiveStreamingClient(final String url, EventListener eventListener) {
-        this(url);
+    public LiveStreamingClient(final String broadcastURI, EventListener eventListener) {
+        this(broadcastURI);
         mEventListener = eventListener;
     }
 
-    public void setVideoEncoder(final VideoEncoder videoEncoder) {
+    public void setVideoEncoder(final @NonNull VideoEncoder videoEncoder, Integer width, Integer height, Integer bitrate, Integer frameRate) {
         if (DEBUG) {
             Log.d(TAG, "setVideoEncoder()");
             Log.d(TAG, "videoEncoder : " + videoEncoder);
+            Log.d(TAG, "width : " + width);
+            Log.d(TAG, "height : " + height);
+            Log.d(TAG, "bitrate : " + bitrate);
+            Log.d(TAG, "frameRate : " + frameRate);
             Log.d(TAG, "mMediaStreamer : " + mMediaStreamer);
         }
         if (mMediaStreamer != null) {
+            VideoQuality videoQuality = videoEncoder.getVideoQuality();
+            if (width != null) {
+                videoQuality.setVideoWidth(width);
+            }
+            if (height != null) {
+                videoQuality.setVideoHeight(height);
+            }
+            if (width != null) {
+                videoQuality.setBitRate(bitrate);
+            }
+            if (width != null) {
+                videoQuality.setFrameRate(frameRate);
+            }
             mMediaStreamer.setVideoEncoder(videoEncoder);
         }
     }
@@ -123,6 +146,79 @@ public class LiveStreamingClient implements MediaStreamer.OnEventListener {
         return false;
     }
 
+    public String getBroadcastURI() {
+        return mBroadcastURI;
+    }
+
+    public int getVideoWidth() {
+        if (mMediaStreamer != null) {
+            VideoEncoder videoEncoder = mMediaStreamer.getVideoEncoder();
+            if (videoEncoder != null) {
+                VideoQuality videoQuality = videoEncoder.getVideoQuality();
+                if (videoQuality != null) {
+                    return videoQuality.getVideoWidth();
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int getVideoHeight() {
+        if (mMediaStreamer != null) {
+            VideoEncoder videoEncoder = mMediaStreamer.getVideoEncoder();
+            if (videoEncoder != null) {
+                VideoQuality videoQuality = videoEncoder.getVideoQuality();
+                if (videoQuality != null) {
+                    return videoQuality.getVideoHeight();
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int getBitrate() {
+        if (mMediaStreamer != null) {
+            VideoEncoder videoEncoder = mMediaStreamer.getVideoEncoder();
+            if (videoEncoder != null) {
+                VideoQuality videoQuality = videoEncoder.getVideoQuality();
+                if (videoQuality != null) {
+                    return videoQuality.getBitRate();
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int getFrameRate() {
+        if (mMediaStreamer != null) {
+            VideoEncoder videoEncoder = mMediaStreamer.getVideoEncoder();
+            if (videoEncoder != null) {
+                VideoQuality videoQuality = videoEncoder.getVideoQuality();
+                if (videoQuality != null) {
+                    return videoQuality.getFrameRate();
+                }
+            }
+        }
+        return 0;
+    }
+
+    public String getMimeType() {
+        if (mMediaStreamer != null) {
+            VideoEncoder videoEncoder = mMediaStreamer.getVideoEncoder();
+            if (videoEncoder != null) {
+                VideoQuality videoQuality = videoEncoder.getVideoQuality();
+                if (videoQuality != null) {
+                    return videoQuality.getMimeType();
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean isError() {
+        return mError;
+    }
+
     @Override
     public void onStarted() {
         if (DEBUG) {
@@ -151,6 +247,7 @@ public class LiveStreamingClient implements MediaStreamer.OnEventListener {
             Log.d(TAG, "onError()");
         }
         e.printStackTrace();
+        mError = true;
         if (mEventListener != null) {
             mEventListener.onError(e);
         }

@@ -115,17 +115,17 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
 
                     //映像無し以外の場合はエンコーダーとパラメーターをセット
                     if (!mVideoURI.equals("false")) {
-                        Integer width = (Integer) extras.get(PARAM_KEY_WIDTH);
-                        Integer height = (Integer) extras.get(PARAM_KEY_HEIGHT);
-                        Integer bitrate = (Integer) extras.get(PARAM_KEY_BITRATE);
-                        Integer framerate = (Integer) extras.get(PARAM_KEY_FRAME_RATE);
+                        Integer width = parseInteger(request, PARAM_KEY_WIDTH);
+                        Integer height = parseInteger(request, PARAM_KEY_HEIGHT);
+                        Integer bitrate = parseInteger(request, PARAM_KEY_BITRATE);
+                        Integer frameRate = parseInteger(request, PARAM_KEY_FRAME_RATE);
                         if (DEBUG) {
                             Log.d(TAG, "width : " + width);
                             Log.d(TAG, "height : " + height);
                             Log.d(TAG, "bitrate : " + bitrate);
-                            Log.d(TAG, "framerate : " + framerate);
+                            Log.d(TAG, "frameRate : " + frameRate);
                         }
-                        mHostDeviceLiveStreamRecorder.setVideoEncoder(width, height, bitrate, framerate);
+                        mHostDeviceLiveStreamRecorder.setVideoEncoder(width, height, bitrate, frameRate);
                     }
 
                     //音声リソースURIの取得

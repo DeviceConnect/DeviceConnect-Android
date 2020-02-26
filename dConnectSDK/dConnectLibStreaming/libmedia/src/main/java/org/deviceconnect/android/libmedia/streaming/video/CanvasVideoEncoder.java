@@ -23,9 +23,20 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
 
     /**
      * コンストラクタ.
+     * <p>
+     * デフォルトの場合はマイムタイプに video/avc を設定します。
+     * </p>
      */
     public CanvasVideoEncoder() {
-        this(new VideoQuality("video/avc"));
+        this("video/avc");
+    }
+
+    /**
+     * コンストラクタ.
+     * @param mimeType MediaCodec に渡すマイムタイプ
+     */
+    public CanvasVideoEncoder(String mimeType) {
+        this(new VideoQuality(mimeType));
     }
 
     /**

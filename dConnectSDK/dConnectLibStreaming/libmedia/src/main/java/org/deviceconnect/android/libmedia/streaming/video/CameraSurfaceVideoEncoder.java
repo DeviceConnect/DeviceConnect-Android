@@ -49,7 +49,17 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
      * @param context コンテキスト
      */
     public CameraSurfaceVideoEncoder(Context context) {
-        this(context, new CameraVideoQuality("video/avc"));
+        this(context, "video/avc");
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     * @param mimeType MediaCodec に渡すマイムタイプ
+     */
+    public CameraSurfaceVideoEncoder(Context context, String mimeType) {
+        this(context, new CameraVideoQuality(mimeType));
     }
 
     /**

@@ -8,7 +8,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingCl
 @SuppressWarnings("unused")
 public interface HostDeviceLiveStreamRecorder {
     //クライアントの生成
-    void createLiveStreamingClient(final String broadcastURI);
     void createLiveStreamingClient(final String broadcastURI, LiveStreamingClient.EventListener eventListener);
 
     //ビデオエンコーダーの設定
@@ -18,10 +17,10 @@ public interface HostDeviceLiveStreamRecorder {
     void setAudioEncoder();
 
     //ストリーミング開始
-    void liveStreamingStart();
+    void startLiveStreaming();
 
     //ストリーミング停止
-    void liveStreamingStop();
+    void stopLiveStreaming();
 
     boolean isStreaming();
     void setMute(boolean mute);

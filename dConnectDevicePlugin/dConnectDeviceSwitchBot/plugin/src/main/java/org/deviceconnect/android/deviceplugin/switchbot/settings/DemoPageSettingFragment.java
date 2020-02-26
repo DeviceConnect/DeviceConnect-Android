@@ -18,7 +18,7 @@ import org.deviceconnect.android.deviceplugin.switchbot.BuildConfig;
 import org.deviceconnect.android.deviceplugin.switchbot.R;
 import org.deviceconnect.android.deviceplugin.switchbot.demo.SwitchBotDemoInstaller;
 
-public class SwitchBotDemoSettingFragment extends DemoSettingFragment {
+public class DemoPageSettingFragment extends DemoSettingFragment {
     private static final String TAG = "SwitchBotDemoSetting";
     private static final Boolean DEBUG = BuildConfig.DEBUG;
 

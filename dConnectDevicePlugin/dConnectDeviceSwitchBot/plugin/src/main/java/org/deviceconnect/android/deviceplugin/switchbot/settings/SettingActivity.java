@@ -75,8 +75,8 @@ public class SettingActivity extends BaseSettingActivity {
         });
 
         findViewById(R.id.text_title_demo_app).setOnClickListener((view) -> {
-            Intent demoSettingActivity = new Intent(this, DemoSettingActivity.class);
-            startActivity(demoSettingActivity);
+            Intent demoPageSettingActivity = new Intent(this, DemoPageSettingActivity.class);
+            startActivity(demoPageSettingActivity);
         });
     }
 

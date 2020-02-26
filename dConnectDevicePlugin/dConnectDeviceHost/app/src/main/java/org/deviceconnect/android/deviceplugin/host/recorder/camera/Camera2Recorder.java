@@ -44,7 +44,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
-import org.deviceconnect.android.livestreaming.LiveStreamingClient;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;

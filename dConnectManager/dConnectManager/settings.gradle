@@ -1,4 +1,4 @@
-include ':dconnect-manager-core', ':dconnect-manager-app', ':dconnect-manager-app-things', ':dconnect-live-streaming'
+include ':dconnect-manager-core', ':dconnect-manager-app', ':dconnect-manager-app-things'
 include 'dconnect-server'
 project(':dconnect-server').projectDir = new File('../dConnectServer')
 include 'dconnect-server-nano-httpd'

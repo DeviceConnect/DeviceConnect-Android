@@ -1,9 +1,10 @@
-package org.deviceconnect.android.livestreaming;
+package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;

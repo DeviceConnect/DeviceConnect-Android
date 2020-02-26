@@ -77,7 +77,6 @@ dependencies {
     implementation project(':libstreaming')
     implementation project(':libmedia')
     implementation 'com.serenegiant:common:2.12.5'
-    implementation project(':dconnect-live-streaming')
 }
 
 task zipDemo(type:Zip) {

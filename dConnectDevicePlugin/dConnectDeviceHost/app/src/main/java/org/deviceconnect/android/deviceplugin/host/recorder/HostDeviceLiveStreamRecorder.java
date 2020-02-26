@@ -1,6 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import org.deviceconnect.android.livestreaming.LiveStreamingClient;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 
 /**
  * デバイスのカメラを使用したLive Streaming用のインターフェース

@@ -15,7 +15,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
-import org.deviceconnect.android.livestreaming.LiveStreamingClient;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -47,7 +47,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
     private String mAudioURI = null;
 
     public String getProfileName() {
-        return "libstreaming";
+        return "liveStreaming";
     }
 
     public HostLiveStreamingProfile(final HostMediaRecorderManager hostMediaRecorderManager) {

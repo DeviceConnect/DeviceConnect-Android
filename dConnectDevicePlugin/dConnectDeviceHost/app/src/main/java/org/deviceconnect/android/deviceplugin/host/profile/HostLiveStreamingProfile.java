@@ -143,7 +143,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     }
 
                     //ストリーミング開始
-                    mHostDeviceLiveStreamRecorder.liveStreamingStart();
+                    mHostDeviceLiveStreamRecorder.startLiveStreaming();
 
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
@@ -171,7 +171,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                         return true;
                     }
-                    mHostDeviceLiveStreamRecorder.liveStreamingStop();
+                    mHostDeviceLiveStreamRecorder.stopLiveStreaming();
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;

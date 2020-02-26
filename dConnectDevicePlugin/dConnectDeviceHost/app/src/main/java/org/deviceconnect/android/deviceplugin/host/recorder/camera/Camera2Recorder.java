@@ -831,11 +831,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     private LiveStreamingClient mLiveStreamingClient;
 
     @Override
-    public void createLiveStreamingClient(String broadcastURI) {
-        mLiveStreamingClient = new LiveStreamingClient(broadcastURI);
-    }
-
-    @Override
     public void createLiveStreamingClient(String broadcastURI, LiveStreamingClient.EventListener eventListener) {
         mLiveStreamingClient = new LiveStreamingClient(broadcastURI, eventListener);
     }
@@ -844,7 +839,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      * Live Streaming開始
      */
     @Override
-    public void liveStreamingStart() {
+    public void startLiveStreaming() {
         if (DEBUG) {
             Log.d(TAG, "liveStreamingStart()");
             Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
@@ -858,7 +853,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      * Live Streaming停止
      */
     @Override
-    public void liveStreamingStop() {
+    public void stopLiveStreaming() {
         if (DEBUG) {
             Log.d(TAG, "liveStreamingStop()");
             Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);

@@ -23,7 +23,7 @@ public class LiveStreamingClient implements MediaStreamer.OnEventListener {
     private boolean mError = false;
     private final String mBroadcastURI;
 
-    public LiveStreamingClient(final String broadcastURI) {
+    public LiveStreamingClient(final String broadcastURI, EventListener eventListener) {
         if (DEBUG) {
             Log.d(TAG, "LiveStreamingClient()");
             Log.d(TAG, "broadcastURI : " + broadcastURI);
@@ -33,10 +33,6 @@ public class LiveStreamingClient implements MediaStreamer.OnEventListener {
         mEventListener = null;
         mMediaStreamer.setOnEventListener(this);
         mBroadcastURI = broadcastURI;
-    }
-
-    public LiveStreamingClient(final String broadcastURI, EventListener eventListener) {
-        this(broadcastURI);
         mEventListener = eventListener;
     }
 

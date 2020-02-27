@@ -3,6 +3,9 @@ package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 import java.util.Arrays;
 
 class TsPacket {
+    /**
+     * TP パケットのサイズを定義します.
+     */
     private static final int TS_PACKET_SIZE = 188;
 
     /**

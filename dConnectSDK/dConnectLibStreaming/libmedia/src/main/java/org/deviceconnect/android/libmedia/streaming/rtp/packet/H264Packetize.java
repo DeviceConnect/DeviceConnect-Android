@@ -57,9 +57,9 @@ public class H264Packetize extends RtpPacketize {
         pts = updateTimestamp(pts * 1000L);
 
         if (dataLength <= MAX_PACKET_SIZE - HEADER_LEN) {
-            sendSingleNALUnit(data, dataLength, pts);
+            writeSingleNALUnit(data, dataLength, pts);
         } else {
-            sendFragmentationUnits(data, dataLength, pts);
+            writeFragmentationUnits(data, dataLength, pts);
         }
     }
 
@@ -76,7 +76,7 @@ public class H264Packetize extends RtpPacketize {
     // |                               :...OPTIONAL RTP padding        |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    private void sendSingleNALUnit(byte[] data, int dataLength, long pts) {
+    private void writeSingleNALUnit(byte[] data, int dataLength, long pts) {
         RtpPacket rtpPacket = getRtpPacket();
         byte[] dest = rtpPacket.getBuffer();
 
@@ -122,7 +122,7 @@ public class H264Packetize extends RtpPacketize {
     //|S|E|R|  Type   |
     //+---------------+
 
-    private void sendFragmentationUnits(byte[] data, int dataLength, long pts) {
+    private void writeFragmentationUnits(byte[] data, int dataLength, long pts) {
         dataLength -= 5;
 
         int offset = 5;

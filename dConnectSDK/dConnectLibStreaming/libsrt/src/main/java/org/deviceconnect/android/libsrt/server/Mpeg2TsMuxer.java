@@ -6,7 +6,9 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.AACH264TsPacketWriter;
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.AacH264TsPacketWriter;
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.AacH265TsPacketWriter;
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.AacH26xTsPacketWriter;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.nio.ByteBuffer;
@@ -54,7 +56,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     /**
      * H264 のセグメントに分割するクラス.
      */
-    private AACH264TsPacketWriter mH264TsWriter;
+    private AacH26xTsPacketWriter mTsWriter;
 
     /**
      * ADTS ヘッダーに格納するサンプリングレートのインデックス.
@@ -102,7 +104,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
     /**
      * TS パケットに変換されたデータを受信するリスナー.
      */
-    private final AACH264TsPacketWriter.PacketListener mPacketListener = (packet) -> {
+    private final AacH26xTsPacketWriter.PacketListener mPacketListener = (packet) -> {
         try {
             if (packet == null) {
                 if (mPayloadPosition > 0) {
@@ -129,9 +131,11 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         int sampleSizeInBits = 0;
         int channels = 0;
         int fps = 0;
+        boolean h265 = false;
 
         if (videoQuality != null) {
             fps = videoQuality.getFrameRate();
+            h265 = "video/hevc".equalsIgnoreCase(videoQuality.getMimeType());
         }
 
         if (audioQuality != null) {
@@ -143,9 +147,13 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             channels = audioQuality.getChannelCount();
         }
 
-        mH264TsWriter = new AACH264TsPacketWriter();
-        mH264TsWriter.initialize(sampleRate, sampleSizeInBits, channels, fps);
-        mH264TsWriter.setPacketListener(mPacketListener);
+        if (h265) {
+            mTsWriter = new AacH265TsPacketWriter();
+        } else {
+            mTsWriter = new AacH264TsPacketWriter();
+        }
+        mTsWriter.initialize(sampleRate, sampleSizeInBits, channels, fps);
+        mTsWriter.setPacketListener(mPacketListener);
         mPresentationTime = 0;
         mPayloadPosition = 0;
         return true;
@@ -165,9 +173,9 @@ public class Mpeg2TsMuxer extends SRTMuxer {
         } else {
             if (isKeyFrame(bufferInfo) && mConfigBuffer.limit() > 0) {
                 mConfigBuffer.position(0);
-                mH264TsWriter.writeNALU(mConfigBuffer, getPts(bufferInfo));
+                mTsWriter.writeNALU(mConfigBuffer, getPts(bufferInfo));
             }
-            mH264TsWriter.writeNALU(encodedData, getPts(bufferInfo));
+            mTsWriter.writeNALU(encodedData, getPts(bufferInfo));
         }
     }
 
@@ -192,7 +200,7 @@ public class Mpeg2TsMuxer extends SRTMuxer {
 
         mADTSBuffer.position(0);
         mADTSBuffer.limit(outPacketSize);
-        mH264TsWriter.writeADTS(mADTSBuffer, getPts(bufferInfo));
+        mTsWriter.writeADTS(mADTSBuffer, getPts(bufferInfo));
     }
 
     @Override

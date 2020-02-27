@@ -154,7 +154,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
                 onStartSurfaceDrawing();
 
+                int fps = 1000 / getVideoQuality().getFrameRate();
+
                 while (!isInterrupted()) {
+                    long startTime = System.currentTimeMillis();
+
                     executeRequest();
 
                     SurfaceTexture st = mStManager.getSurfaceTexture();
@@ -163,6 +167,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
                     mStManager.drawImage(getDisplayRotation());
                     mInputSurface.setPresentationTime(st.getTimestamp());
                     mInputSurface.swapBuffers();
+
+                    long drawTime = System.currentTimeMillis() - startTime;
+                    if (drawTime < fps) {
+                        Thread.sleep(fps - drawTime);
+                    }
                 }
             } catch (Exception e) {
                 // ignore.

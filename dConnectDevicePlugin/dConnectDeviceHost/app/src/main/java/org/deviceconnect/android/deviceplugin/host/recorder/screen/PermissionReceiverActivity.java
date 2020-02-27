@@ -19,14 +19,18 @@ import android.view.Window;
 import android.view.WindowManager;
 
 /**
- * Permission Receiver Activity.
+ * スクリーンキャプチャの許可を受け取るための Activity.
  *
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class PermissionReceiverActivity extends Activity {
 
-    private static final int REQUEST_CODE = 1;
+    static final String RESULT_DATA = "result_data";
+
+    static final String EXTRA_CALLBACK = "callback";
+
+    private static final int REQUEST_CODE = 1234567;
 
     private MediaProjectionManager mManager;
 
@@ -47,7 +51,6 @@ public class PermissionReceiverActivity extends Activity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        // Hide UI first
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.hide();
@@ -58,6 +61,7 @@ public class PermissionReceiverActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        // スクリーンのキャプチャ許可を行う画面を呼び出します。
         Intent intent = mManager.createScreenCaptureIntent();
         startActivityForResult(intent, REQUEST_CODE);
     }
@@ -69,9 +73,9 @@ public class PermissionReceiverActivity extends Activity {
         }
 
         Bundle response = new Bundle();
-        response.putParcelable(ScreenCastRecorder.RESULT_DATA, data);
+        response.putParcelable(RESULT_DATA, data);
 
-        ResultReceiver callback = getIntent().getParcelableExtra(ScreenCastRecorder.EXTRA_CALLBACK);
+        ResultReceiver callback = getIntent().getParcelableExtra(EXTRA_CALLBACK);
         if (callback != null) {
             callback.send(Activity.RESULT_OK, response);
         }

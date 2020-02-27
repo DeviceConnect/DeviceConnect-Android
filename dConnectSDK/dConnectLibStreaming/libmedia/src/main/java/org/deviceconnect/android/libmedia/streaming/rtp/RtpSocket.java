@@ -40,11 +40,6 @@ public class RtpSocket implements RtpPacketize.Callback {
     private MulticastSocket mSocket;
 
     /**
-     * RTP データ送信用のスレッド.
-     */
-    private SenderThread mSenderThread;
-
-    /**
      * 送信用の UDP パケット.
      */
     private DatagramPacket mDatagramPacket;
@@ -55,13 +50,21 @@ public class RtpSocket implements RtpPacketize.Callback {
     private RtcpSocket mRtcpSocket;
 
     /**
+     * RTP データ送信用のスレッド.
+     */
+    private SenderThread mSenderThread;
+
+    /**
+     * スレッドのプライオリティを High にするフラグ.
+     */
+    private boolean mThreadHighPriority;
+
+    /**
      * コンストラクタ.
      * @throws IOException ソケットの作成に失敗した場合に発生
      */
     public RtpSocket() throws IOException {
         mSocket = new MulticastSocket();
-        mSocket.setTimeToLive(64);
-        mSocket.setSoTimeout(5000);
         for (int i = 0; i < MAX_BUF_SIZE; i++) {
             mRtpPackets[i] = new RtpPacket();
         }
@@ -94,33 +97,12 @@ public class RtpSocket implements RtpPacketize.Callback {
     }
 
     /**
-     * データが破棄されるまでの時間を設定します.
+     * 送信するスレッドのプライオリティを設定します.
      *
-     * TTLのいくつかのデフォルト値
-     * <ul>
-     * <li>0 は同じホストに制限される。</li>
-     * <li>1 は同じサブネットに制限される。</li>
-     * <li>32 は同じサイトに制限される。</li>
-     * <li>64 は同じ地域に制限される。</li>
-     * <li>128 は同じ大陸に制限される。</li>
-     * <li>255 は無制限である。</li>
-     * </ul>
-     *
-     * @param ttl time to live
-     * @throws IOException 設定に失敗した場合に発生
+     * @param threadHighPriority プライオリティを High にする場合は true、それ以外は false
      */
-    public void setTimeToLive(int ttl) throws IOException {
-        mSocket.setTimeToLive(ttl);
-    }
-
-    /**
-     * Socket のタイムアウト時間を設定します.
-     *
-     * @param timeout タイムアウト時間(ms)
-     * @throws IOException 設定に失敗した場合に発生
-     */
-    public void setSoTimeout(int timeout) throws IOException {
-        mSocket.setSoTimeout(timeout);
+    public void setThreadHighPriority(boolean threadHighPriority) {
+        mThreadHighPriority = threadHighPriority;
     }
 
     /**
@@ -131,9 +113,13 @@ public class RtpSocket implements RtpPacketize.Callback {
             return;
         }
 
+        mRtcpSocket.open();
+
         mSenderThread = new SenderThread();
         mSenderThread.setName("RTP-SENDER");
-        mSenderThread.setPriority(Thread.MAX_PRIORITY);
+        if (mThreadHighPriority) {
+            mSenderThread.setPriority(Thread.MAX_PRIORITY);
+        }
         mSenderThread.start();
     }
 
@@ -236,16 +222,9 @@ public class RtpSocket implements RtpPacketize.Callback {
      */
     private class SenderThread extends QueueThread<RtpPacket> {
         /**
-         * 停止フラグ.
-         */
-        private boolean mStopFlag;
-
-        /**
          * RTP送信用スレッドを停止します.
          */
         private void terminate() {
-            mStopFlag = true;
-
             interrupt();
 
             try {
@@ -263,8 +242,8 @@ public class RtpSocket implements RtpPacketize.Callback {
             try {
                 mDatagramPacket.setData(packet.getBuffer());
                 mDatagramPacket.setLength(packet.getLength());
-                mRtcpSocket.update(packet.getLength(), packet.getTimeStamp());
                 mSocket.send(mDatagramPacket);
+                mRtcpSocket.update(packet.getLength(), packet.getTimeStamp());
             } catch (IOException e) {
                 // ignore
             } finally {
@@ -275,24 +254,22 @@ public class RtpSocket implements RtpPacketize.Callback {
         @Override
         public void run() {
             try {
-                mSocket.joinGroup(mRemoteAddress);
+                // IPTOS_LOWCOST (0x02)
+                // IPTOS_RELIABILITY (0x04)
+                // IPTOS_THROUGHPUT (0x08)
+                // IPTOS_LOWDELAY (0x10)
+                mSocket.setTrafficClass(0xB8);
+                mSocket.setSoTimeout(5000);
+                mSocket.setSendBufferSize(2 * 1024 * 1024);
             } catch (IOException e) {
                 // ignore.
             }
 
-            while (!mStopFlag) {
-                try {
-                    send();
-                } catch (InterruptedException e) {
-                    break;
-                } catch (Exception e) {
-                    // ignore.
-                }
-            }
-
             try {
-                mSocket.leaveGroup(mRemoteAddress);
-            } catch (IOException e) {
+                while (!isInterrupted()) {
+                    send();
+                }
+            } catch (Exception e) {
                 // ignore.
             }
         }

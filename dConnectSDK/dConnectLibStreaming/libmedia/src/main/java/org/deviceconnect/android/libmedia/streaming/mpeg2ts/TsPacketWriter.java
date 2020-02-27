@@ -2,7 +2,9 @@ package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
 import com.google.common.primitives.Bytes;
 
-public class TsPacketWriter {
+import org.deviceconnect.android.libmedia.streaming.util.CrcUtil;
+
+class TsPacketWriter {
 
     // Transport Stream packets are 188 bytes in length
     private static final int TS_PACKET_SIZE = 188;
@@ -10,29 +12,18 @@ public class TsPacketWriter {
     private static final int TS_PAYLOAD_SIZE = TS_PACKET_SIZE - TS_HEADER_SIZE;
 
     // Table 2-29 – Stream type assignments. page 66
-    private static final byte STREAM_TYPE_AUDIO_AAC = 0x0f;
-    private static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
-    private static final byte STREAM_TYPE_VIDEO_H264 = 0x1b;
+    public static final byte STREAM_TYPE_AUDIO_AAC = 0x0F;
+    public static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
+    public static final byte STREAM_TYPE_VIDEO_H264 = 0x1B;
+    public static final byte STREAM_TYPE_VIDEO_H265 = 0x24;
 
-    /**
-     * PAT の PID を定義.
-     */
+    private static final byte STREAM_ID_VIDEO = (byte) 0xE0;
+    private static final byte STREAM_ID_AUDIO = (byte) 0xC0;
+
     private static final int TS_PAT_PID = 0x0000;    // 0
-
-    /**
-     * PMT の PID を定義.
-     */
     private static final int TS_PMT_PID = 0x1000;    // 4096
-
-    /**
-     * 音声の PID を定義.
-     */
-    private static final int TS_AUDIO_PID = 0x101;    // 257
-
-    /**
-     * 映像の PID を定義.
-     */
-    private static final int TS_VIDEO_PID = 0x100;    // 256
+    private static final int TS_AUDIO_PID = 0x101;   // 257
+    private static final int TS_VIDEO_PID = 0x100;   // 256
 
     // Transport Stream Description Table
     private static final int TS_PAT_TABLE_ID = 0x00;
@@ -58,8 +49,16 @@ public class TsPacketWriter {
         void onPacket(final byte[] packet);
     }
 
+    /**
+     * 書き込みが完了した TS パケットを通知するコールバック.
+     */
     private Callback mCallback;
 
+    /**
+     * 書き込みが完了した TS パケットを通知するコールバックを設定します.
+     *
+     * @param callback コールバック
+     */
     public void setCallback(final Callback callback) {
         mCallback = callback;
     }
@@ -133,7 +132,7 @@ public class TsPacketWriter {
     void writePAT() {
         resetPacket((byte) 0xFF);
 
-        // header
+        // TS Header
         writeTsHeader(TS_PAT_PID, mPatContinuityCounter);
         mPatContinuityCounter = (mPatContinuityCounter + 1) & 0x0F;
 
@@ -184,11 +183,13 @@ public class TsPacketWriter {
      * </p>
      *
      * @param fType フレームタイプ
+     * @param videoStreamType 映像ストリームのタイプ
+     * @param audioStreamType 音声ストリームのタイプ
      */
-    void writePMT(FrameType fType) {
+    void writePMT(FrameType fType, int videoStreamType, int audioStreamType) {
         resetPacket((byte) 0xFF);
 
-        // header
+        // TS Header
         writeTsHeader(TS_PMT_PID, mPmtContinuityCounter);
         mPmtContinuityCounter = (mPmtContinuityCounter + 1) & 0x0F;
 
@@ -223,7 +224,7 @@ public class TsPacketWriter {
 
         // set video stream info
         if (fType == FrameType.VIDEO || fType == FrameType.MIXED) {
-            int stream_type = 0x1b;
+            int stream_type = videoStreamType;
             int reserved_5 = 7;
             int elementary_pid = TS_VIDEO_PID;
             int reserved_6 = 15;
@@ -238,7 +239,7 @@ public class TsPacketWriter {
 
         // set audio stream info
         if (fType == FrameType.AUDIO || fType == FrameType.MIXED) {
-            int stream_type = 0x0f;
+            int stream_type = audioStreamType;
             int reserved_5 = 7;
             int elementary_pid = TS_AUDIO_PID;
             int reserved_6 = 15;
@@ -293,8 +294,8 @@ public class TsPacketWriter {
 
             // write ts header
             writePacket((byte) 0x47); // sync_byte
-            writePacket((byte) ((isFirstTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1f)));
-            writePacket((byte) (pid & 0xff));
+            writePacket((byte) ((isFirstTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1F)));
+            writePacket((byte) (pid & 0xFF));
             writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((isAudio ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
 
             if (isFirstTs) {
@@ -318,7 +319,7 @@ public class TsPacketWriter {
                 writePacket((byte) 0x00);
                 writePacket((byte) 0x00);
                 writePacket((byte) 0x01);
-                writePacket(isAudio ? (byte) 0xc0 : (byte) 0xe0);
+                writePacket(isAudio ? STREAM_ID_AUDIO : STREAM_ID_VIDEO);
 
                 boolean hasDts = dts > 0;
                 int header_size = hasDts ? 10 : 5;
@@ -339,7 +340,7 @@ public class TsPacketWriter {
                 writePacket(PTS_DTS_flags);        // 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
 
                 // write pts & dts
-                if (PTS_DTS_flags == (byte) 0xc0) {
+                if (PTS_DTS_flags == (byte) 0xC0) {
                     writePacket((byte) 0x0A);
                     writePtsDts(3, pts);
                     writePtsDts(1, dts);
@@ -350,9 +351,12 @@ public class TsPacketWriter {
                     writePacket((byte) 0x00);
                 }
 
+                // TODO 仕様を確認
                 // H264 NAL
-                if (!isAudio && Bytes.indexOf(frameBuf, H264_NAL) == -1) {
-                    writePacket(H264_NAL, 0, H264_NAL.length);
+                if (!isAudio) {
+                    if (Bytes.indexOf(frameBuf, H264_NAL) == -1) {
+                        writePacket(H264_NAL, 0, H264_NAL.length);
+                    }
                 }
             } else {
                 // has adaptation
@@ -390,7 +394,7 @@ public class TsPacketWriter {
 
                     // fill data, 0xff
                     for (int i = 0; i < paddingSize; i++) {
-                        tsBuf[start + i] = (byte) 0xff;
+                        tsBuf[start + i] = (byte) 0xFF;
                     }
 
                     tsBuf[4] += paddingSize;

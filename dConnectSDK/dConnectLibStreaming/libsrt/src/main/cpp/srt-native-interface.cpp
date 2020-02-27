@@ -45,15 +45,67 @@ JNI_METHOD_NAME(cleanup)(JNIEnv *env, jclass clazz) {
 
 
 JNIEXPORT jlong JNICALL
-JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jint port, jint backlog) {
+JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_createSrtSocket()");
 
-    int st;
     int server_socket = srt_create_socket();
     if (server_socket == SRT_INVALID_SOCK) {
         LOGE("srt_socket: %s", srt_getlasterror_str());
         return -1;
     }
+    return server_socket;
+}
+
+
+JNIEXPORT jint JNICALL
+JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint opt, jobject value) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_setSockFlag()");
+
+    jclass valueClass = env->GetObjectClass(value);
+
+    int result = -1;
+
+    switch (opt) {
+        case SRTO_SNDSYN:
+        case SRTO_RCVSYN:
+        case SRTO_SENDER: // RTO_SENDER	1.0.4	pre	int32_t bool?
+        {
+            jmethodID boolValueMethodId = env->GetMethodID(valueClass, "booleanValue", "()Z");
+            bool data = env->CallBooleanMethod(value, boolValueMethodId);
+            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+        }
+            break;
+        case SRTO_MAXBW:
+        case SRTO_INPUTBW:
+        {
+            jmethodID longValueMethodId = env->GetMethodID(valueClass, "longValue", "()J");
+            int64_t data = env->CallLongMethod(value, longValueMethodId);
+            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+        }
+            break;
+        case SRTO_LATENCY:
+        case SRTO_RCVLATENCY:
+        case SRTO_PEERLATENCY:
+        case SRTO_OHEADBW:
+        {
+            jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
+            int32_t data = env->CallIntMethod(value, intValueMethodId);
+            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+        }
+            break;
+
+        default:
+            break;
+    }
+
+    env->DeleteLocalRef(valueClass);
+    return result;
+}
+
+
+JNIEXPORT jlong JNICALL
+JNI_METHOD_NAME(bind)(JNIEnv *env, jclass clazz, jlong ptr, jstring address, jint port) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_bind()");
 
     const char *addressString = env->GetStringUTFChars(address, nullptr);
     struct sockaddr_in sa;
@@ -62,33 +114,53 @@ JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz, jstring address, jin
     if (inet_pton(AF_INET, addressString, &sa.sin_addr) != 1) {
         LOGE("inet_pton error.");
         env->ReleaseStringUTFChars(address, addressString);
-        srt_close(server_socket);
         return -1;
     }
     env->ReleaseStringUTFChars(address, addressString);
 
-    int32_t yes = 1;
-    srt_setsockflag(server_socket, SRTO_SENDER, &yes, sizeof yes);
-
-    int64_t maxBW = 0;
-    srt_setsockflag(server_socket, SRTO_MAXBW, &maxBW, sizeof maxBW);
-
-    st = srt_bind(server_socket, (struct sockaddr*)&sa, sizeof sa);
-    if (st == SRT_ERROR) {
+    int result = srt_bind((int) ptr, (struct sockaddr*)&sa, sizeof sa);
+    if (result == SRT_ERROR) {
         LOGE("srt_bind: %s", srt_getlasterror_str());
-        srt_close(server_socket);
-        return -1;
     }
-
-    st = srt_listen(server_socket, backlog);
-    if (st == SRT_ERROR) {
-        LOGE("srt_listen: %s\n", srt_getlasterror_str());
-        srt_close(server_socket);
-        return -1;
-    }
-
-    return server_socket;
+    return result;
 }
+
+
+JNIEXPORT jlong JNICALL
+JNI_METHOD_NAME(listen)(JNIEnv *env, jclass clazz, jlong ptr, jint backlog) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_listen()");
+
+    int result = srt_listen((int) ptr, backlog);
+    if (result == SRT_ERROR) {
+        LOGE("srt_listen: %s\n", srt_getlasterror_str());
+    }
+    return result;
+}
+
+
+
+JNIEXPORT jlong JNICALL
+JNI_METHOD_NAME(connect)(JNIEnv *env, jclass clazz, jlong ptr, jstring address, jint port) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_connect()");
+
+    const char *addressString = env->GetStringUTFChars(address, nullptr);
+    struct sockaddr_in sa;
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(port);
+    if (inet_pton(AF_INET, addressString, &sa.sin_addr) != 1) {
+        LOGE("inet_pton error.");
+        env->ReleaseStringUTFChars(address, addressString);
+        return -1;
+    }
+    env->ReleaseStringUTFChars(address, addressString);
+
+    int result = srt_connect((int) ptr, (struct sockaddr*)&sa, sizeof sa);
+    if (result == SRT_ERROR) {
+        LOGE("srt_connect: %s", srt_getlasterror_str());
+    }
+    return result;
+}
+
 
 
 JNIEXPORT void JNICALL
@@ -102,7 +174,7 @@ JNI_METHOD_NAME(closeSrtSocket)(JNIEnv *env, jclass clazz, jlong ptr) {
 }
 
 
-JNIEXPORT long JNICALL
+JNIEXPORT jlong JNICALL
 JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_accept()");
 
@@ -111,21 +183,11 @@ JNI_METHOD_NAME(accept)(JNIEnv *env, jclass clazz, jlong ptr) {
         LOGE("srt_accept: %s\n", srt_getlasterror_str());
         return -1;
     }
-
-    bool no = false;
-    srt_setsockflag(accept_socket, SRTO_RCVSYN, &no, sizeof no);
-    srt_setsockflag(accept_socket, SRTO_SNDSYN, &no, sizeof no);
-
-    int64_t srtInputBW = 1024 * 1024;
-    int srtOheaBW = 25;
-    srt_setsockflag(accept_socket, SRTO_INPUTBW, &srtInputBW, sizeof srtInputBW);
-    srt_setsockflag(accept_socket, SRTO_OHEADBW, &srtOheaBW, sizeof srtOheaBW);
-
     return accept_socket;
 }
 
 
-JNIEXPORT int JNICALL
+JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint offset, jint length) {
     jboolean isCopy;
     jbyte* data = env->GetByteArrayElements(byteArray, &isCopy);
@@ -134,7 +196,7 @@ JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
     }
 
     int result = srt_sendmsg((int) ptr, (const char *) &data[offset], length, -1, 0);
-    if (result < SRT_ERROR) {
+    if (result == SRT_ERROR) {
         LOGE("srt_send: %s\n", srt_getlasterror_str());
     }
     env->ReleaseByteArrayElements(byteArray, data, 0);
@@ -142,7 +204,7 @@ JNI_METHOD_NAME(sendMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
 }
 
 
-JNIEXPORT int JNICALL
+JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray byteArray, jint length) {
     jboolean isCopy;
     jbyte* data = env->GetByteArrayElements(byteArray, &isCopy);
@@ -151,7 +213,7 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
     }
 
     int result = srt_recvmsg((int) ptr, (char *) data, length);
-    if (result < SRT_ERROR) {
+    if (result == SRT_ERROR) {
         LOGE("srt_send: %s\n", srt_getlasterror_str());
     }
     env->ReleaseByteArrayElements(byteArray, data, 0);
@@ -190,19 +252,6 @@ JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
     sprintf(buf, "%d.%d.%d.%d", addr.sa_data[2], addr.sa_data[3], addr.sa_data[4], addr.sa_data[5]);
     jstring address = env->NewStringUTF(buf);
     return address;
-}
-
-
-JNIEXPORT void JNICALL
-JNI_METHOD_NAME(setSrtOptions)(JNIEnv *env, jclass clazz, jlong nativeSocket, jlong inputBW, jint oheaBW) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_getPeerName()");
-
-    //  It controls the maximum bandwidth together with SRTO_OHEADBW option according to the formula:
-    //  MAXBW = INPUTBW * (100 + OHEADBW) / 100.
-    int64_t srtInputBW = inputBW;
-    int srtOheaBW = oheaBW;
-    srt_setsockflag((SRTSOCKET) nativeSocket, SRTO_INPUTBW, &srtInputBW, sizeof srtInputBW);
-    srt_setsockflag((SRTSOCKET) nativeSocket, SRTO_OHEADBW, &srtOheaBW, sizeof srtOheaBW);
 }
 
 

@@ -20,7 +20,9 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -210,7 +212,52 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     }
 
     @Override
+    public List<PreviewServer> startPreviews() {
+        return null;
+    }
+
+    @Override
+    public void stopPreviews() {
+    }
+
+    @Override
+    public boolean isAudioEnabled() {
+        return false;
+    }
+
+    @Override
+    public int getPreviewAudioBitRate() {
+        return 0;
+    }
+
+    @Override
+    public int getPreviewSampleRate() {
+        return 0;
+    }
+
+    @Override
+    public int getPreviewChannel() {
+        return 0;
+    }
+
+    @Override
+    public boolean isUseAEC() {
+        return false;
+    }
+
+    @Override
     public void requestPermission(PermissionCallback callback) {
+        CapabilityUtil.requestPermissions(mContext, new PermissionUtility.PermissionRequestCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onAllowed();
+            }
+
+            @Override
+            public void onFail(final @NonNull String deniedPermission) {
+                callback.onDisallowed();
+            }
+        });
     }
 
     @Override

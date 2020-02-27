@@ -6,6 +6,10 @@ import android.text.InputType;
 import android.util.Size;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
+
 import java.net.InetAddress;
 import java.util.List;
 
@@ -15,10 +19,6 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
-
 
 public class RtspPreferenceActivity extends AppCompatActivity {
 
@@ -73,7 +73,6 @@ public class RtspPreferenceActivity extends AppCompatActivity {
             setInputTypeNumber(R.string.key_video_frame_rate);
             setInputTypeNumber(R.string.key_video_iframe_interval);
             setInputTypeNumber(R.string.key_audio_bit_rate);
-            setInputTypeNumber(R.string.key_audio_sampling_rate);
         }
 
         private String[] createCameraResolutions(Context context) {

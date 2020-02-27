@@ -3,27 +3,28 @@ package org.deviceconnect.android.rtspserver;
 import android.Manifest;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.hardware.camera2.CameraCharacteristics;
 import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
@@ -31,10 +32,18 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLAT
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraVideoStream;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.util.StreamingRecorder;
+import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
-import org.deviceconnect.android.rtspserver.ui.AutoFitSurfaceView;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
     /**
@@ -65,6 +74,16 @@ public class MainActivity extends AppCompatActivity {
      * RTSP サーバの設定.
      */
     private RtspPreferences mPreferences;
+
+    /**
+     * カメラを操作するためのクラス.
+     */
+    private Camera2Wrapper mCamera2;
+
+    /**
+     * ハンドラ.
+     */
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,12 +131,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        stopRtspServer();
+        super.onPause();
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             List<String> denies = PermissionUtil.checkRequestPermissionsResult(permissions, grantResults);
             if (!denies.isEmpty()) {
                 Toast.makeText(this, "Denied a camera permission.", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (mRtspServer == null || mRtspServer.getRtspSession() == null) {
+            mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
+        } else {
+            RtspSession session = mRtspServer.getRtspSession();
+            CameraVideoStream videoStream = (CameraVideoStream) session.getVideoStream();
+            CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) videoStream.getVideoEncoder();
+            mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);
         }
     }
 
@@ -151,15 +189,20 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        AutoFitSurfaceView surfaceView = findViewById(R.id.surface_view);
-        Surface surface = surfaceView.getHolder().getSurface();
-
         mRtspServer = new RtspServer();
         mRtspServer.setServerName(mPreferences.getServerName());
         mRtspServer.setServerPort(mPreferences.getServerPort());
         mRtspServer.setCallback(new RtspServer.Callback() {
             @Override
             public void createSession(RtspSession session) {
+                stopCamera();
+
+                SurfaceView surfaceView = findViewById(R.id.surface_view);
+                Surface surface = surfaceView.getHolder().getSurface();
+
+//                ScreenCastVideoStream videoStream = new ScreenCastVideoStream(getApplicationContext());
+//                videoStream.setDestinationPort(5006);
+
                 startStreamingRecorder();
 
                 CameraVideoStream videoStream = new CameraVideoStream(getApplicationContext());
@@ -171,13 +214,13 @@ public class MainActivity extends AppCompatActivity {
 
                 VideoEncoder videoEncoder = videoStream.getVideoEncoder();
                 CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
+                videoQuality.setFacing(mPreferences.getFacing());
                 videoQuality.setVideoWidth(mPreferences.getVideoWidth());
                 videoQuality.setVideoHeight(mPreferences.getVideoHeight());
                 videoQuality.setIFrameInterval(mPreferences.getIFrameInterval());
                 videoQuality.setFrameRate(mPreferences.getFrameRate());
                 videoQuality.setBitRate(mPreferences.getVideoBitRate() * 1024);
-                videoQuality.setFacing(CameraCharacteristics.LENS_FACING_BACK);
-                videoQuality.setRotation(mPreferences.getVideoRotation());
+                videoQuality.setFacing(mPreferences.getFacing());
 
                 session.setVideoMediaStream(videoStream);
 
@@ -187,6 +230,8 @@ public class MainActivity extends AppCompatActivity {
                     audioStream.setDestinationPort(5004);
 
                     AudioEncoder audioEncoder = audioStream.getAudioEncoder();
+                    audioEncoder.setMute(false);
+
                     AudioQuality audioQuality = audioEncoder.getAudioQuality();
                     audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
                     audioQuality.setSamplingRate(mPreferences.getSamplingRate());
@@ -196,27 +241,30 @@ public class MainActivity extends AppCompatActivity {
                     session.setAudioMediaStream(audioStream);
                 }
 
-                runOnUiThread(() -> {
-                    boolean isSwapped = videoQuality.isSwappedDimensions(getApplicationContext());
-                    int w = isSwapped ? videoQuality.getVideoHeight() : videoQuality.getVideoWidth();
-                    int h = isSwapped ? videoQuality.getVideoWidth() : videoQuality.getVideoHeight();
-                    surfaceView.setVisibility(View.VISIBLE);
-                    surfaceView.setAspectRatio(w, h);
-                });
+                runOnUiThread(() -> findViewById(R.id.text_view).setVisibility(View.VISIBLE));
             }
 
             @Override
             public void releaseSession(RtspSession session) {
-                runOnUiThread(() -> surfaceView.setVisibility(View.INVISIBLE));
+                runOnUiThread(() -> findViewById(R.id.text_view).setVisibility(View.INVISIBLE));
                 releaseStreamingRecorder();
+
+                if (mRtspServer != null) {
+                    mHandler.postDelayed(() -> startCamera(), 500);
+                }
             }
         });
 
         try {
             mRtspServer.start();
         } catch (IOException e) {
-            showFaileToStartServer();
+            showFailToStartServer();
         }
+
+        runOnUiThread(() -> {
+            findViewById(R.id.surface_view).setVisibility(View.VISIBLE);
+            startCamera();
+        });
     }
 
     private void stopRtspServer() {
@@ -224,6 +272,8 @@ public class MainActivity extends AppCompatActivity {
             mRtspServer.stop();
             mRtspServer = null;
         }
+        stopCamera();
+        runOnUiThread(() -> findViewById(R.id.surface_view).setVisibility(View.GONE));
     }
 
     private void startStreamingRecorder() {
@@ -255,10 +305,98 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showNoPermission() {
-
     }
 
-    private void showFaileToStartServer() {
+    private void showFailToStartServer() {
+    }
 
+    private synchronized void startCamera() {
+        if (mCamera2 != null) {
+            return;
+        }
+
+        if (mRtspServer == null) {
+            return;
+        }
+
+        int cameraWidth = mPreferences.getVideoWidth();
+        int cameraHeight = mPreferences.getVideoHeight();
+        int facing = mPreferences.getFacing();
+
+        SurfaceView surfaceView = findViewById(R.id.surface_view);
+
+        mCamera2 = Camera2WrapperManager.createCamera(getApplicationContext(), facing);
+        mCamera2.setCameraEventListener(new Camera2Wrapper.CameraEventListener() {
+            @Override
+            public void onOpen() {
+                if (mCamera2 != null) {
+                    try {
+                        mCamera2.startPreview();
+                    } catch (Exception e) {
+                        // ignore.
+                    }
+                }
+            }
+
+            @Override
+            public void onStartPreview() {
+            }
+
+            @Override
+            public void onStopPreview() {
+            }
+
+            @Override
+            public void onError(Camera2WrapperException e) {
+            }
+        });
+        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
+        mCamera2.open(Collections.singletonList(surfaceView.getHolder().getSurface()));
+
+        // SurfaceView のサイズを調整
+        adjustSurfaceView(mCamera2.isSwappedDimensions());
+    }
+
+    private synchronized void stopCamera() {
+        if (mCamera2 != null) {
+            mCamera2.close();
+            mCamera2 = null;
+        }
+    }
+
+    private void adjustSurfaceView(boolean isSwappedDimensions) {
+        runOnUiThread(() -> {
+            int cameraWidth = mPreferences.getVideoWidth();
+            int cameraHeight = mPreferences.getVideoHeight();
+
+            SurfaceView surfaceView = findViewById(R.id.surface_view);
+            View root = findViewById(R.id.root);
+
+            Size changeSize;
+            Size viewSize = new Size(root.getWidth(), root.getHeight());
+            if (isSwappedDimensions) {
+                changeSize = calculateViewSize(cameraHeight, cameraWidth, viewSize);
+            } else {
+                changeSize = calculateViewSize(cameraWidth, cameraHeight, viewSize);
+            }
+            ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
+            layoutParams.width = changeSize.getWidth();
+            layoutParams.height = changeSize.getHeight();
+            surfaceView.setLayoutParams(layoutParams);
+
+            surfaceView.getHolder().setFixedSize(cameraWidth, cameraHeight);
+        });
+    }
+
+    private Size calculateViewSize(int width, int height, Size viewSize) {
+        int h = viewSize.getWidth() * height / width;
+        if (viewSize.getHeight() < h) {
+            int w = viewSize.getHeight() * width / height;
+            if (w % 2 != 0) {
+                w--;
+            }
+            return new Size(w, viewSize.getHeight());
+        }
+        return new Size(viewSize.getWidth(), h);
     }
 }

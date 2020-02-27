@@ -1,6 +1,6 @@
-package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
+package org.deviceconnect.android.libmedia.streaming.util;
 
-final class CrcUtil {
+public final class CrcUtil {
 
     private static final long[] crc_table = new long[] { 0x00000000, 0x04c11db7,
             0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b, 0x1a864db2,
@@ -55,7 +55,7 @@ final class CrcUtil {
             0x97ffad0c, 0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
             0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4 };
 
-    static long crc32(byte[] data, int offset, int len) {
+    public static long crc32(byte[] data, int offset, int len) {
         long crc = 0xffffffff;
         for (int i = 0; i < len; i++) {
             int pos = (int) ((crc >> 24) ^ data[i + offset]) & 0xff;

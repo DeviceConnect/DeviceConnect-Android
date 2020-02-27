@@ -1,19 +1,17 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
-import android.media.AudioFormat;
 import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 
 import java.io.IOException;
 
@@ -88,6 +86,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
+        setEncoderQuality();
         restartCamera();
     }
 
@@ -140,6 +139,33 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
         }
     }
 
+    /**
+     * エンコーダーの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mRtspServer != null) {
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                VideoStream videoStream = session.getVideoStream();
+                if (videoStream != null) {
+                    setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
+                }
+
+                AudioStream audioStream = session.getAudioStream();
+                if (audioStream != null) {
+                    setAudioQuality(audioStream.getAudioEncoder().getAudioQuality());
+                }
+            }
+        }
+    }
+
+    /**
+     * RtspServer からのイベントを受け取るためのコールバック.
+     *
+     * <p>
+     * RTSP 配信の開始時と停止時に呼び出されます。
+     * </p>
+     */
     private final RtspServer.Callback mCallback = new RtspServer.Callback() {
         @Override
         public void createSession(RtspSession session) {
@@ -150,36 +176,19 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             // カメラを開始することを通知
             postOnCameraStarted();
 
-
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            CameraVideoStream videoStream = new CameraVideoStream(mRecorder);
-            videoStream.setDestinationPort(5006);
-
-            VideoQuality videoQuality = videoStream.getVideoEncoder().getVideoQuality();
-            videoQuality.setVideoWidth(recorder.getPreviewSize().getWidth());
-            videoQuality.setVideoHeight(recorder.getPreviewSize().getHeight());
-            videoQuality.setBitRate(recorder.getPreviewBitRate());
-            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
-
+            CameraVideoStream videoStream = new CameraVideoStream(mRecorder, 5006);
+            setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 
-            // TODO 音声の設定を外部から設定できるようにすること。
-
-            AudioStream audioStream = new MicAACLATMStream();
-            audioStream.setDestinationPort(5004);
-
-            AudioEncoder audioEncoder = audioStream.getAudioEncoder();
-            audioEncoder.setMute(isMuted());
-
-            AudioQuality audioQuality = audioEncoder.getAudioQuality();
-            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-            audioQuality.setSamplingRate(8000);
-            audioQuality.setBitRate(64 * 1024);
-            audioQuality.setUseAEC(true);
-
-            session.setAudioMediaStream(audioStream);
+            if (recorder.isAudioEnabled()) {
+                AudioStream audioStream = new MicAACLATMStream(5004);
+                AudioEncoder audioEncoder = audioStream.getAudioEncoder();
+                audioEncoder.setMute(isMuted());
+                setAudioQuality(audioEncoder.getAudioQuality());
+                session.setAudioMediaStream(audioStream);
+            }
         }
 
         @Override

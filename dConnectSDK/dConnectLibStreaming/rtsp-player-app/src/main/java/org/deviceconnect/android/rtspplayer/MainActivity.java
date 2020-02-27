@@ -3,7 +3,6 @@ package org.deviceconnect.android.rtspplayer;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,9 +15,10 @@ import android.widget.EditText;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -111,20 +111,15 @@ public class MainActivity extends AppCompatActivity {
         mRtspPlayer.setOnEventListener(new RtspPlayer.OnEventListener() {
             @Override
             public void onError(Exception e) {
-                Log.e("ABC", "###", e);
             }
 
             @Override
             public void onOpened() {
-                Log.i("ABC", "### OPENED");
             }
 
             @Override
             public void onSizeChanged(int width, int height) {
-                Log.e("ABC", "onSizeChanged: " + width + "x" + height);
-                runOnUiThread(() -> {
-                    changePlayerSize(width, height);
-                });
+                runOnUiThread(() -> changePlayerSize(width, height));
             }
         });
         mRtspPlayer.start();

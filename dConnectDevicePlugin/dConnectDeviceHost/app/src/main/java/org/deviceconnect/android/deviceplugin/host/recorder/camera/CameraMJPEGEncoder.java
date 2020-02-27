@@ -33,6 +33,10 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
     @Override
     protected void prepare() throws IOException {
+    }
+
+    @Override
+    protected void startRecording() throws IOException {
         try {
             mCamera2Recorder.startPreview(new Surface(getSurfaceTexture()));
         } catch (CameraWrapperException e) {
@@ -41,11 +45,15 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     }
 
     @Override
-    protected void release() {
+    protected void stopRecording() {
         try {
             mCamera2Recorder.stopPreview();
         } catch (CameraWrapperException e) {
             // ignore
         }
+    }
+
+    @Override
+    protected void release() {
     }
 }

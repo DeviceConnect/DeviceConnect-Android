@@ -1,5 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.rtp;
 
+import org.deviceconnect.android.libmedia.streaming.util.TimeStamp;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -49,7 +51,7 @@ public class RtcpSocket {
     /**
      * RTCP 送信インターバル.
      */
-    private int mInterval = 3000;
+    private int mInterval = 5000;
 
     /**
      * コンストラクタ.
@@ -57,7 +59,6 @@ public class RtcpSocket {
      */
     public RtcpSocket() throws IOException {
         mSocket = new MulticastSocket();
-        mSocket.setTimeToLive(64);
         mPacket = new DatagramPacket(mBuffer, 1);
     }
 
@@ -68,6 +69,12 @@ public class RtcpSocket {
         } finally {
             super.finalize();
         }
+    }
+
+    /**
+     * RTCP 送信用のソケットを開きます.
+     */
+    public void open() {
     }
 
     /**
@@ -155,9 +162,9 @@ public class RtcpSocket {
     private void send(long timestamp) {
         int packetLen = PACKET_LENGTH / 4 - 1;
 
-        long ntpts = System.nanoTime();
-        long hb = ntpts / 1000000000;
-        long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
+        TimeStamp timeStamp = TimeStamp.getCurrentTime();
+        long hb = timeStamp.getSeconds();
+        long lb = timeStamp.getFraction();
 
         mBuffer[0] = (byte) (2 << 6);
         mBuffer[1] = (byte) 200;

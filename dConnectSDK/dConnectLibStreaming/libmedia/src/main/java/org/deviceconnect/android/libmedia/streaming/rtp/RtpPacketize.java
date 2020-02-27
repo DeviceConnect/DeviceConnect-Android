@@ -158,7 +158,7 @@ public abstract class RtpPacketize {
      * @return 更新されたタイムスタンプ
      */
     protected int updateTimestamp(long timestamp) {
-        return (int) ((timestamp / 100L) * (mClock / 1000L) / 10000L);
+        return (int) (timestamp * mClock / 1000000000L);
     }
 
     /**

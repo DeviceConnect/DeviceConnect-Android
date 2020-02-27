@@ -9,8 +9,15 @@ public class CameraVideoStream extends H264VideoStream {
      */
     private VideoEncoder mVideoEncoder;
 
-    CameraVideoStream(Camera2Recorder camera2Recorder) {
+    /**
+     * コンストラクタ.
+     *
+     * @param camera2Recorder 操作するカメラのレコーダ.
+     * @param port 送信先のポート番号
+     */
+    CameraVideoStream(Camera2Recorder camera2Recorder, int port) {
         mVideoEncoder = new CameraVideoEncoder(camera2Recorder);
+        setDestinationPort(port);
     }
 
     @Override

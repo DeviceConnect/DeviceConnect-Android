@@ -20,7 +20,7 @@
     <string name="settings_video_iframe_interval">1</string>
 
     <string name="key_video_rotation" translatable="false">videoRotation</string>
-    <string name="settings_video_rotation">0</string>
+    <string name="settings_video_rotation" translatable="false">0</string>
     <string-array name="setting_video_rotation_labels">
         <item>ROTATION 0</item>
         <item>ROTATION 90</item>
@@ -36,6 +36,17 @@
         <item>-1</item>
     </string-array>
 
+    <string name="key_video_camera_id" translatable="false">videoCameraId</string>
+    <string name="settings_video_camera_id" translatable="false">1</string>
+    <string-array name="settings_video_camera_names">
+        <item>フロント</item>
+        <item>バック</item>
+    </string-array>
+    <string-array name="settings_video_camera_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
     <string name="key_audio_enabled" translatable="false">audioEnabled</string>
     <bool name="settings_audio_enabled">true</bool>
 
@@ -44,6 +55,21 @@
 
     <string name="key_audio_sampling_rate" translatable="false">audioSamplingRate</string>
     <string name="settings_audio_sampling_rate">8000</string>
+    <string-array name="settings_audio_sampling_rates">
+        <item>96000</item>
+        <item>88200</item>
+        <item>64000</item>
+        <item>48000</item>
+        <item>44100</item>
+        <item>32000</item>
+        <item>24000</item>
+        <item>22050</item>
+        <item>16000</item>
+        <item>12000</item>
+        <item>11025</item>
+        <item>8000</item>
+        <item>7350</item>
+    </string-array>
 
     <string name="key_recorder_enabled" translatable="false">recorderEnabled</string>
     <bool name="settings_recorder_enabled">false</bool>

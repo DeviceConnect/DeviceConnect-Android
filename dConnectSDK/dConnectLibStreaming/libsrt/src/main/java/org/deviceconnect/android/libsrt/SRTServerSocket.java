@@ -1,7 +1,5 @@
 package org.deviceconnect.android.libsrt;
 
-import java.io.IOException;
-
 /**
  * SRTサーバーのソケット.
  *
@@ -17,28 +15,70 @@ public class SRTServerSocket {
     private long mNativeSocket;
 
     private final String mServerAddress;
-
     private final int mServerPort;
-
     private final int mBacklog;
 
-    private boolean mOpened;
+    /**
+     * 未オープンされた状態を定義.
+     */
+    private static final int STATE_NOT_OPEN = 1;
 
-    public SRTServerSocket(final String serverAddress,
-                           final int serverPort,
-                           final int backlog) {
-        mServerAddress = serverAddress;
-        mServerPort = serverPort;
-        mBacklog = backlog;
+    /**
+     * オープンされた状態を定義.
+     */
+    private static final int STATE_OPEN = 2;
+
+    /**
+     * クローズされた状態を定義.
+     */
+    private static final int STATE_CLOSED = 3;
+
+    /**
+     * SRT サーバソケットの状態.
+     */
+    private int mState = STATE_NOT_OPEN;
+
+    /**
+     * コンストラクタ.
+     *
+     * @param serverPort サーバのポート番号
+     * @throws SRTSocketException ソケットの作成に失敗した場合に発生
+     */
+    public SRTServerSocket(final int serverPort) throws SRTSocketException {
+        this("0.0.0.0", serverPort);
     }
 
-    public SRTServerSocket(final String serverAddress,
-                           final int serverPort) {
+    /**
+     * コンストラクタ.
+     *
+     * <p>
+     * backlog はデフォルトで、5 を設定します。
+     * </p>
+     *
+     * @param serverAddress サーバのアドレス
+     * @param serverPort サーバのポート番号
+     * @throws SRTSocketException ソケットの作成に失敗した場合に発生
+     */
+    public SRTServerSocket(final String serverAddress, final int serverPort) throws SRTSocketException {
         this(serverAddress, serverPort, DEFAULT_BACKLOG);
     }
 
-    public SRTServerSocket(final int serverPort) {
-        this("0.0.0.0", serverPort);
+    /**
+     * コンストラクタ.
+     *
+     * @param serverAddress サーバのアドレス
+     * @param serverPort サーバのポート番号
+     * @param backlog サーバにacceptされていないクライアントからの接続要求を保持しておくキューの最大値
+     * @throws SRTSocketException ソケットの作成に失敗した場合に発生
+     */
+    public SRTServerSocket(final String serverAddress, final int serverPort, final int backlog) throws SRTSocketException {
+        mServerAddress = serverAddress;
+        mServerPort = serverPort;
+        mBacklog = backlog;
+        mNativeSocket = NdkHelper.createSrtSocket();
+        if (mNativeSocket < 0) {
+            throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, -1);
+        }
     }
 
     @Override
@@ -71,15 +111,28 @@ public class SRTServerSocket {
     /**
      * SRTServerSocket を開きます.
      *
-     * @throws IOException SRTServerSocket を開くのに失敗した場合に発生
+     * <p>
+     * 内部では、srt_bind と srt_listen の処理が行われます。
+     * </p>
+     *
+     * @throws SRTSocketException SRTServerSocket を開くのに失敗した場合に発生
      */
-    public void open() throws IOException {
-        if (!mOpened) {
-            mNativeSocket = NdkHelper.createSrtSocket(mServerAddress, mServerPort, mBacklog);
-            if (mNativeSocket < 0) {
-                throw new IOException("Failed to create server socket: " + mServerAddress + ":" + mServerPort);
+    public synchronized void open() throws SRTSocketException {
+        if (mState == STATE_NOT_OPEN) {
+            int result = NdkHelper.bind(mNativeSocket, mServerAddress, mServerPort);
+            if (result < 0) {
+                throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, result);
             }
-            mOpened = true;
+
+            result = NdkHelper.listen(mNativeSocket, mBacklog);
+            if (result < 0) {
+                throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, result);
+            }
+            mState = STATE_OPEN;
+        } else if (mState == STATE_OPEN) {
+            throw new SRTSocketException("SRTServerSocket is already opened.", -1);
+        } else if (mState == STATE_CLOSED) {
+            throw new SRTSocketException("SRTServerSocket is already closed.", -1);
         }
     }
 
@@ -91,31 +144,51 @@ public class SRTServerSocket {
      * </p>
      *
      * @return SRTServerSocket に接続された SRTSocket のクライアント
-     * @throws IOException SRTServerSocket の接続が切断されたり、クライアントの接続に失敗した場合に発生
+     * @throws SRTSocketException SRTServerSocket の接続が切断されたり、クライアントの接続に失敗した場合に発生
      */
-    public SRTSocket accept() throws IOException {
-        if (!mOpened) {
-            throw new IOException("already closed");
+    public SRTSocket accept() throws SRTSocketException {
+        if (mState == STATE_CLOSED) {
+            throw new SRTSocketException("SRTServerSocket is already closed.", -1);
+        } else if (mState == STATE_NOT_OPEN) {
+            throw new SRTSocketException("SRTServerSocket has not been opened yet.", -1);
         }
 
         long ptr = NdkHelper.accept(mNativeSocket);
         if (ptr <= 0) {
-            throw new IOException("Failed to accept a client.");
+            throw new SRTSocketException("Failed to accept a client.", -1);
         }
 
         String address = NdkHelper.getPeerName(ptr);
         if (address == null) {
-            throw new IOException("Failed to get client address");
+            throw new SRTSocketException("Failed to get client address", -1);
         }
         return new SRTSocket(ptr, address);
     }
 
     /**
+     * SRT サーバーソケットにオプションを設定します.
+     *
+     * @param option オプションのタイプ
+     * @param value オプションの値
+     * @throws SRTSocketException 設定に失敗した場合に発生
+     */
+    public void setOption(int option, Object value) throws SRTSocketException {
+        if (mState == STATE_CLOSED) {
+            throw new SRTSocketException("already closed", -1);
+        }
+
+        int result = NdkHelper.setSockFlag(mNativeSocket, option, value);
+        if (result < 0) {
+            throw new SRTSocketException("Failed to set a socket flag.", result);
+        }
+    }
+
+    /**
      * SRTSocketServer を閉じます.
      */
-    public void close() {
-        if (mOpened) {
-            mOpened = false;
+    public synchronized void close() {
+        if (mState != STATE_CLOSED) {
+            mState = STATE_CLOSED;
             NdkHelper.closeSrtSocket(mNativeSocket);
         }
     }

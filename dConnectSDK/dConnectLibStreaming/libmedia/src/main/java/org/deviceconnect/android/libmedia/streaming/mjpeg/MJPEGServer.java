@@ -100,6 +100,15 @@ public class MJPEGServer {
     }
 
     /**
+     * MJPEG のエンコーダを取得します.
+     *
+     * @return MJPEG のエンコーダ
+     */
+    public MJPEGEncoder getMJPEGEncoder() {
+        return mMJPEGEncoder;
+    }
+
+    /**
      * MJPEG のエンコーダを再起動します.
      *
      * <p>

@@ -1,15 +1,13 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
-import android.media.AudioFormat;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
-import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -21,10 +19,19 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
 
     private static final String TAG = "CameraSRT";
 
+    /**
+     * プレビュー配信サーバのマイムタイプを定義.
+     */
     private static final String MIME_TYPE = "video/MP2T";
 
+    /**
+     * プレビュー配信を行うレコーダ.
+     */
     private Camera2Recorder mRecorder;
 
+    /**
+     * SRT サーバ.
+     */
     private SRTServer mSRTServer;
 
     Camera2SRTPreviewServer(final Context context, final Camera2Recorder recorder, final int port, final OnEventListener listener) {
@@ -49,6 +56,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
         if (mSRTServer == null) {
             try {
                 mSRTServer = new SRTServer(getPort());
+                mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
                 mSRTServer.start();
@@ -70,6 +78,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
 
     @Override
     public void onConfigChange() {
+        setEncoderQuality();
         restartCamera();
     }
 
@@ -94,7 +103,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                 if (mSRTServer != null) {
                     SRTSession session = mSRTServer.getSRTSession();
                     if (session != null) {
-                        session.getVideoEncoder().restart();
+                        session.restartVideoEncoder();
                     }
                 }
             }).start();
@@ -122,11 +131,34 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
         }
     }
 
+    /**
+     * エンコーダの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mSRTServer != null) {
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                VideoEncoder videoEncoder = session.getVideoEncoder();
+                if (videoEncoder != null) {
+                    setVideoQuality(videoEncoder.getVideoQuality());
+                }
+
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder != null) {
+                    setAudioQuality(audioEncoder.getAudioQuality());
+                }
+            }
+        }
+    }
+
+    /**
+     * SRTServer からのイベントを受け取るためのコールバック.
+     */
     private final SRTServer.Callback mCallback = new SRTServer.Callback() {
         @Override
         public void createSession(final SRTSession session) {
             if (DEBUG) {
-                Log.d(TAG, "RtspServer.Callback#createSession()");
+                Log.d(TAG, "SRTServer.Callback#createSession()");
             }
 
             postOnCameraStarted();
@@ -134,32 +166,21 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
             CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
-            VideoQuality videoQuality = encoder.getVideoQuality();
-            videoQuality.setVideoWidth(recorder.getPreviewSize().getWidth());
-            videoQuality.setVideoHeight(recorder.getPreviewSize().getHeight());
-            videoQuality.setBitRate(recorder.getPreviewBitRate());
-            videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-            videoQuality.setIFrameInterval(recorder.getIFrameInterval());
+            setVideoQuality(encoder.getVideoQuality());
             session.setVideoEncoder(encoder);
 
-            // TODO 音声の設定を外部から設定できるようにすること。
-
-            AudioEncoder audioEncoder = new MicAACLATMEncoder();
-            audioEncoder.setMute(isMuted());
-
-            AudioQuality audioQuality = audioEncoder.getAudioQuality();
-            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-            audioQuality.setSamplingRate(8000);
-            audioQuality.setBitRate(64 * 1024);
-            audioQuality.setUseAEC(true);
-
-            session.setAudioEncoder(audioEncoder);
+            if (recorder.isAudioEnabled()) {
+                AudioEncoder audioEncoder = new MicAACLATMEncoder();
+                audioEncoder.setMute(isMuted());
+                setAudioQuality(audioEncoder.getAudioQuality());
+                session.setAudioEncoder(audioEncoder);
+            }
         }
 
         @Override
         public void releaseSession(final SRTSession session) {
             if (DEBUG) {
-                Log.d(TAG, "RtspServer.Callback#releaseSession()");
+                Log.d(TAG, "SRTServer.Callback#releaseSession()");
             }
 
             postOnCameraStopped();

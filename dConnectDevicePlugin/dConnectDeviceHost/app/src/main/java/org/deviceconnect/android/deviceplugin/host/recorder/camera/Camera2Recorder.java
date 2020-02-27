@@ -33,13 +33,15 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -175,6 +177,9 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      */
     private Camera2PreviewServerProvider mCamera2PreviewServerProvider;
 
+    /**
+     * コンテキスト.
+     */
     private Context mContext;
 
     /**
@@ -204,116 +209,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mRequestHandler = new Handler(requestThread.getLooper());
 
         mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
-    }
-
-    /**
-     * トーストでカメラ操作のイベントをユーザに通知します.
-     *
-     * @param event カメラ操作のイベント
-     */
-    private void notifyEventToUser(final CameraWrapper.CameraEvent event) {
-        switch (event) {
-            case SHUTTERED:
-                showToast(getString(R.string.shuttered));
-                break;
-            case STARTED_VIDEO_RECORDING:
-                showToast(getString(R.string.started_video_recording));
-                break;
-            case STOPPED_VIDEO_RECORDING:
-                showToast(getString(R.string.stopped_video_recording));
-                break;
-            default:
-                break;
-        }
-    }
-
-    private String getString(final int stringId) {
-        return mContext.getString(stringId);
-    }
-
-    private void showToast(final String message) {
-        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void takePhoto(final @NonNull OnPhotoEventListener listener) {
-        mRequestHandler.post(() -> takePhotoInternal(listener));
-    }
-
-    @Override
-    public void startRecording(final RecordingListener listener) {
-        mRequestHandler.post(() -> startRecordingInternal(listener));
-    }
-
-    @Override
-    public void stopRecording(final StoppingListener listener) {
-        mRequestHandler.post(() -> stopRecordingInternal(listener));
-    }
-
-    @Override
-    public boolean canPauseRecording() {
-        // 録画の一時停止はサポートしない
-        return false;
-    }
-
-    @Override
-    public void pauseRecording() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void resumeRecording() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void muteTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void unMuteTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isMutedTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
-                                 final @NonNull Handler handler) {
-        mRequestHandler.post(() -> {
-            try {
-                mCameraWrapper.turnOnTorch(listener::onTurnOn, handler);
-                handler.post(listener::onRequested);
-            } catch (CameraWrapperException e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Failed to turn on flash light.", e);
-                }
-                handler.post(() -> listener.onError(Error.FATAL_ERROR));
-            }
-        });
-    }
-
-    @Override
-    public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
-                                  final @NonNull Handler handler) {
-        mRequestHandler.post(() -> {
-            mCameraWrapper.turnOffTorch(listener::onTurnOff, handler);
-            handler.post(listener::onRequested);
-        });
-    }
-
-    @Override
-    public boolean isFlashLightState() {
-        return mCameraWrapper.isTorchOn();
-    }
-
-    @Override
-    public boolean isUseFlashLight() {
-        return mCameraWrapper.isUseTorch();
     }
 
     @Override
@@ -481,15 +376,175 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     }
 
     @Override
+    public List<PreviewServer> startPreviews() {
+        return mCamera2PreviewServerProvider.startServers();
+    }
+
+    @Override
+    public void stopPreviews() {
+        mCamera2PreviewServerProvider.stopServers();
+    }
+
+    @Override
+    public boolean isAudioEnabled() {
+        return RecorderSetting.getInstance(mContext).isAudioEnabled();
+    }
+
+    @Override
+    public int getPreviewAudioBitRate() {
+        return RecorderSetting.getInstance(mContext).getPreviewAudioBitRate();
+    }
+
+    @Override
+    public int getPreviewSampleRate() {
+        return RecorderSetting.getInstance(mContext).getPreviewSampleRate();
+    }
+
+    @Override
+    public int getPreviewChannel() {
+        return RecorderSetting.getInstance(mContext).getPreviewChannel();
+    }
+
+    @Override
+    public boolean isUseAEC() {
+        return RecorderSetting.getInstance(mContext).isUseAEC();
+    }
+
+    @Override
     public void onDisplayRotation(final int degree) {
         mCurrentRotation = degree;
         mCamera2PreviewServerProvider.onConfigChange();
     }
 
+    @Override
+    public void takePhoto(final @NonNull OnPhotoEventListener listener) {
+        mRequestHandler.post(() -> takePhotoInternal(listener));
+    }
+
+    @Override
+    public void startRecording(final RecordingListener listener) {
+        mRequestHandler.post(() -> startRecordingInternal(listener));
+    }
+
+    @Override
+    public void stopRecording(final StoppingListener listener) {
+        mRequestHandler.post(() -> stopRecordingInternal(listener));
+    }
+
+    @Override
+    public boolean canPauseRecording() {
+        // 録画の一時停止はサポートしない
+        return false;
+    }
+
+    @Override
+    public void pauseRecording() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void resumeRecording() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void muteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void unMuteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isMutedTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void turnOnFlashLight(final @NonNull TurnOnFlashLightListener listener,
+                                 final @NonNull Handler handler) {
+        mRequestHandler.post(() -> {
+            try {
+                mCameraWrapper.turnOnTorch(listener::onTurnOn, handler);
+                handler.post(listener::onRequested);
+            } catch (CameraWrapperException e) {
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to turn on flash light.", e);
+                }
+                handler.post(() -> listener.onError(Error.FATAL_ERROR));
+            }
+        });
+    }
+
+    @Override
+    public void turnOffFlashLight(final @NonNull TurnOffFlashLightListener listener,
+                                  final @NonNull Handler handler) {
+        mRequestHandler.post(() -> {
+            mCameraWrapper.turnOffTorch(listener::onTurnOff, handler);
+            handler.post(listener::onRequested);
+        });
+    }
+
+    @Override
+    public boolean isFlashLightState() {
+        return mCameraWrapper.isTorchOn();
+    }
+
+    @Override
+    public boolean isUseFlashLight() {
+        return mCameraWrapper.isUseTorch();
+    }
+
+    /**
+     * トーストでカメラ操作のイベントをユーザに通知します.
+     *
+     * @param event カメラ操作のイベント
+     */
+    private void notifyEventToUser(final CameraWrapper.CameraEvent event) {
+        switch (event) {
+            case SHUTTERED:
+                showToast(getString(R.string.shuttered));
+                break;
+            case STARTED_VIDEO_RECORDING:
+                showToast(getString(R.string.started_video_recording));
+                break;
+            case STOPPED_VIDEO_RECORDING:
+                showToast(getString(R.string.stopped_video_recording));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private String getString(final int stringId) {
+        return mContext.getString(stringId);
+    }
+
+    /**
+     * トーストを画面に表示します.
+     *
+     * @param message トーストに表示する文字列
+     */
+    private void showToast(final String message) {
+        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * ホワイトバランスを設定します.
+     *
+     * @param whiteBalance ホワイトバランス
+     */
     public void setWhiteBalance(final String whiteBalance) {
         mCameraWrapper.getOptions().setWhiteBalance(whiteBalance);
     }
 
+    /**
+     * ホワイトバランスを取得します.
+     *
+     * @return ホワイトバランス
+     */
     public String getWhiteBalance() {
         return mCameraWrapper.getOptions().getWhiteBalance();
     }

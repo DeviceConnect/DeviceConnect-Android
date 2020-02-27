@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-
 
 public class RtspPreferences {
     private SharedPreferences mPreferences;
@@ -60,20 +58,8 @@ public class RtspPreferences {
         return getInt(R.string.key_video_bit_rate, R.string.settings_video_bit_rate);
     }
 
-    public Camera2Wrapper.Rotation getVideoRotation() {
-        int rotation = getInt(R.string.key_video_rotation, R.string.settings_video_rotation);
-        switch (rotation) {
-            default:
-                return Camera2Wrapper.Rotation.FREE;
-            case 0:
-                return Camera2Wrapper.Rotation.ROTATION_0;
-            case 90:
-                return Camera2Wrapper.Rotation.ROTATION_90;
-            case 180:
-                return Camera2Wrapper.Rotation.ROTATION_180;
-            case 270:
-                return Camera2Wrapper.Rotation.ROTATION_270;
-        }
+    public int getFacing() {
+        return getInt(R.string.key_video_camera_id, R.string.settings_video_camera_id);
     }
 
     public boolean isEnabledAudio() {

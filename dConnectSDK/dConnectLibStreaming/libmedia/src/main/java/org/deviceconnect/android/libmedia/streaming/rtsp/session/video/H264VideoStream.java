@@ -15,6 +15,7 @@ import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.ControlAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CanvasVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
@@ -52,16 +53,6 @@ public abstract class H264VideoStream extends VideoStream {
      * プロファイルレベルの 16 進数にした文字列
      */
     private String mProfileLevel;
-
-    /**
-     * PPS のデータ.
-     */
-    private byte[] mPPS;
-
-    /**
-     * SPS のデータ.
-     */
-    private byte[] mSPS;
 
     public H264VideoStream() {
         super();
@@ -114,32 +105,23 @@ public abstract class H264VideoStream extends VideoStream {
                         return;
                     }
 
-                    mSPS = new byte[sps.capacity() - 4];
+                    byte[] spsData = new byte[sps.capacity() - 4];
                     sps.position(4);
-                    sps.get(mSPS, 0, mSPS.length);
+                    sps.get(spsData, 0, spsData.length);
 
-                    mPPS = new byte[pps.capacity() - 4];
+                    byte[] ppsData = new byte[pps.capacity() - 4];
                     pps.position(4);
-                    pps.get(mPPS, 0, mPPS.length);
+                    pps.get(ppsData, 0, ppsData.length);
 
-                    mPPSString = Base64.encodeToString(mPPS, 0, mPPS.length, Base64.NO_WRAP);
-                    mSPSString = Base64.encodeToString(mSPS, 0, mSPS.length, Base64.NO_WRAP);
-                    mProfileLevel = toHexString(mSPS, 1, 3);
+                    mPPSString = Base64.encodeToString(ppsData, 0, ppsData.length, Base64.NO_WRAP);
+                    mSPSString = Base64.encodeToString(spsData, 0, spsData.length, Base64.NO_WRAP);
+                    mProfileLevel = toHexString(spsData, 1, 3);
 
                     if (DEBUG) {
                         Log.d(TAG, "### PPS " + mPPSString);
                         Log.d(TAG, "### SPS " + mSPSString);
-
-                        StringBuilder spsA = new StringBuilder();
-                        StringBuilder ppsA = new StringBuilder();
-                        for (byte b : mSPS) {
-                            spsA.append(String.format("%02X", b));
-                        }
-                        for (byte b : mPPS) {
-                            ppsA.append(String.format("%02X", b));
-                        }
-                        Log.d(TAG, "### PPS " + ppsA);
-                        Log.d(TAG, "### SPS " + spsA);
+                        Log.d(TAG, "### PPS " + HexUtil.hexToString(ppsData));
+                        Log.d(TAG, "### SPS " + HexUtil.hexToString(spsData));
                     }
 
                     result.set(true);

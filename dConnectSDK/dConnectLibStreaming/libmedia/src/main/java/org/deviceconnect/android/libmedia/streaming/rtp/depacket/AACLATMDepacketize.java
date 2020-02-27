@@ -2,11 +2,14 @@ package org.deviceconnect.android.libmedia.streaming.rtp.depacket;
 
 import android.util.Log;
 
-import java.io.ByteArrayOutputStream;
-
+import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
 
+import java.io.ByteArrayOutputStream;
+
 public class AACLATMDepacketize extends RtpDepacketize {
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "AAC-DEPACKET";
     /**
      * データを格納するバッファ.
      */
@@ -41,12 +44,19 @@ public class AACLATMDepacketize extends RtpDepacketize {
 
     @Override
     public synchronized void write(byte[] data, int payloadStart, int dataLength) {
+        if (DEBUG) {
+            Log.d(TAG, "--------");
+            Log.d(TAG, "SequenceNumber: " + getSequenceNumber(data));
+            Log.d(TAG, "TimeStamp: " + getTimestamp(data) * mSamplingRate / 1000L);
+        }
+
         if (!checkSequenceNumber(data)) {
+            Log.e(TAG, "checkSequenceNumber: error ");
             mSync = false;
         }
 
         if (data[payloadStart] != 0x00 || data[payloadStart + 1] != 0x10) {
-            Log.e("ABC", "## error");
+            mSync = false;
         }
 
         int auSize = (data[payloadStart + 2] & 0x1F) << 5 | ((data[payloadStart + 3] >> 3) & 0x07);

@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -271,6 +272,8 @@ public class MixedReplaceMediaServer {
                 while (!mStopFlag) {
                     new ClientThread(mServerSocket.accept()).start();
                 }
+            } catch (SocketException e) {
+                // ignore.
             } catch (Exception e) {
                 if (DEBUG) {
                     Log.w(TAG, "", e);

@@ -1,4 +1,4 @@
-package org.deviceconnect.android.rtspserver;
+package org.deviceconnect.android.rtspserver.audio;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -51,5 +51,10 @@ public class MicOpusStream extends AudioStream {
         mediaDescription.addAttribute(new RtpMapAttribute(PAYLOAD_TYPE, "OPUS", quality.getSamplingRate(), "1"));
         mediaDescription.addAttribute(new ControlAttribute("trackID=" + getTrackId()));
         return mediaDescription;
+    }
+
+    @Override
+    public void setMute(boolean mute) {
+
     }
 }

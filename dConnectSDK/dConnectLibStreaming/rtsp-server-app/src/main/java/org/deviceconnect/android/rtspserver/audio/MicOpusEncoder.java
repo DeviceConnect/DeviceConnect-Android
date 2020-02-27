@@ -1,4 +1,4 @@
-package org.deviceconnect.android.rtspserver;
+package org.deviceconnect.android.rtspserver.audio;
 
 import android.media.MediaCodec;
 

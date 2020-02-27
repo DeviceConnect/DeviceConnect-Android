@@ -21,6 +21,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="16dp"
+                android:paddingBottom="16dp"
                 android:text="@string/gps_settings_body"
                 android:textColor="#777777"
                 android:textSize="16sp"/>

@@ -20,6 +20,14 @@
         app:iconSpaceReserved="false">
 
         <ListPreference
+            app:entries="@array/video_encoder_names"
+            app:entryValues="@array/video_encoder_values"
+            app:key="encoder_name"
+            app:title="エンコーダ"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             app:entries="@array/camera_facing_names"
             app:entryValues="@array/camera_facing_values"
             app:key="camera_facing"
@@ -48,6 +56,20 @@
         <EditTextPreference
             app:key="encoder_bit_rate"
             app:title="映像のビットレート (Mbps / 目安)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="音声設定"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="audio_enabled"
+            android:title="音声"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

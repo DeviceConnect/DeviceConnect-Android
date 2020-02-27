@@ -13,6 +13,8 @@ public class AacH264TsPacketWriter extends AacH26xTsPacketWriter {
      */
     private static final int H264NT_SLICE_IDR = 5;
 
+    private final TsPacketWriter.PES mPES = new TsPacketWriter.PES();
+
     @Override
     public synchronized void writeNALU(final ByteBuffer buffer, final long pts) {
         writePatPmt(FrameType.VIDEO);
@@ -22,8 +24,15 @@ public class AacH264TsPacketWriter extends AacH26xTsPacketWriter {
         int type = buffer.get(4) & 0x1F;
         boolean isFrame = type == H264NT_SLICE || type == H264NT_SLICE_IDR;
         buffer.position(offset);
-        mTsWriter.writeVideoBuffer(mFirstPes, put(buffer, length), length, getPcr(), pts, 0, isFrame, mMixed);
-        mFirstPes = false;
+
+        mPES.setStreamId(TsPacketWriter.STREAM_ID_VIDEO);
+        mPES.setStreamType(TsPacketWriter.STREAM_TYPE_VIDEO_H264);
+        mPES.setPCR(getPcr());
+        mPES.setPTS(pts);
+        mPES.setFrame(isFrame);
+        mPES.setData(buffer, length);
+
+        mTsWriter.writePES(mPES);
     }
 
     @Override
@@ -31,8 +40,14 @@ public class AacH264TsPacketWriter extends AacH26xTsPacketWriter {
         writePatPmt(FrameType.AUDIO);
 
         int length = buffer.limit() - buffer.position();
-        mTsWriter.writeAudioBuffer(mFirstPes, put(buffer, length), length, getPcr(), pts, 0, mMixed);
-        mFirstPes = false;
+        mPES.setStreamId(TsPacketWriter.STREAM_ID_AUDIO);
+        mPES.setStreamType(TsPacketWriter.STREAM_TYPE_AUDIO_AAC);
+        mPES.setPCR(getPcr());
+        mPES.setPTS(pts);
+        mPES.setFrame(true);
+        mPES.setData(buffer, length);
+
+        mTsWriter.writePES(mPES);
     }
 
     private void writePatPmt(FrameType frameType) {

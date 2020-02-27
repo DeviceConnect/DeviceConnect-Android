@@ -6,26 +6,20 @@ import android.view.Surface;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
-public class CameraVideoStream extends H264VideoStream {
+public class CameraH265VideoStream extends H265VideoStream {
     /**
      * 映像用エンコーダ.
      */
     private CameraSurfaceVideoEncoder mVideoEncoder;
 
     /**
-     * コンテキスト.
-     */
-    private Context mContext;
-
-    /**
      * コンストラクタ.
      *
      * @param context コンテキスト
      */
-    public CameraVideoStream(Context context) {
+    public CameraH265VideoStream(Context context) {
         super();
-        mContext = context;
-        mVideoEncoder = new CameraSurfaceVideoEncoder(context);
+        mVideoEncoder = new CameraSurfaceVideoEncoder(context, "video/hevc");
     }
 
     @Override

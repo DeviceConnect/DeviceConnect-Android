@@ -34,6 +34,10 @@ public class RtspPreferences {
         return "test.mp4";
     }
 
+    public String getEncoderName() {
+        return mPreferences.getString(getString(R.string.key_video_encoder_name), "video/avc");
+    }
+
     public int getVideoWidth() {
         String resolution = mPreferences.getString(getString(R.string.key_video_resolution), "640x480");
         String[] sizes = resolution.split("x");

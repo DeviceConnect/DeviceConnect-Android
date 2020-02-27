@@ -28,6 +28,10 @@ class Settings {
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
+    String getEncoderName() {
+        return mSharedPreferences.getString("encoder_name", "video_avc");
+    }
+
     int getCameraFacing() {
         String value = mSharedPreferences.getString("camera_facing", null);
         if (value != null) {
@@ -58,5 +62,9 @@ class Settings {
         String value = mSharedPreferences.getString("encoder_bit_rate", DEFAULT_ENCODER_BITRATE_BASE);
         float base = Float.parseFloat(value);
         return (int) base * 1024 * 1024;
+    }
+
+    boolean isAudioEnabled() {
+        return mSharedPreferences.getBoolean("audio_enabled", true);
     }
 }

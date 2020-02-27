@@ -8,4 +8,14 @@
         <item>0</item>
         <item>1</item>
     </string-array>
+
+    <string-array name="video_encoder_names">
+        <item>H264</item>
+        <item>H265</item>
+    </string-array>
+
+    <string-array name="video_encoder_values">
+        <item>video/avc</item>
+        <item>video/hevc</item>
+    </string-array>
 </resources>

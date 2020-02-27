@@ -22,6 +22,14 @@
 
     <PreferenceCategory android:title="映像設定">
         <ListPreference
+            app:entries="@array/key_video_encoder_names"
+            app:entryValues="@array/key_video_encoder_values"
+            app:key="@string/key_video_encoder_name"
+            app:title="エンコーダ"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
             android:key="@string/key_video_resolution"
             android:title="解像度"
             app:useSimpleSummaryProvider="true" />

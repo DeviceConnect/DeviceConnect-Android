@@ -19,14 +19,9 @@ public abstract class AacH26xTsPacketWriter {
     private long mPcrStartTime;
 
     /**
-     * 最初の PES 送信フラグ.
-     */
-    boolean mFirstPes = true;
-
-    /**
      * 映像・音声が含まれている場合は true、それ以外は false.
      */
-    boolean mMixed;
+    private boolean mMixed;
 
     /**
      * TSパケットを書き込む Writer.
@@ -36,12 +31,7 @@ public abstract class AacH26xTsPacketWriter {
     /**
      * TS パケットを送るリスナー.
      */
-    PacketListener mPacketListener;
-
-    /**
-     * データを一時的に格納するバッファ.
-     */
-    private byte[] mFrameBuffer = new byte[4096];
+    private PacketListener mPacketListener;
 
     /**
      * 初期化を行います.
@@ -58,7 +48,6 @@ public abstract class AacH26xTsPacketWriter {
         mMixed = (fps > 0 && sampleRate > 0);
         mPatPmtSendTime = 0;
         mPcrStartTime = System.currentTimeMillis();
-        mFirstPes = true;
     }
 
     /**
@@ -97,25 +86,6 @@ public abstract class AacH26xTsPacketWriter {
             mTsWriter.writePAT();
             mTsWriter.writePMT(mMixed ? FrameType.MIXED : frameType, videoStreamType, TsPacketWriter.STREAM_TYPE_AUDIO_AAC);
         }
-    }
-
-    /**
-     * Buffer のデータを byte[] にコピーして取得します.
-     *
-     * <p>
-     * 返却される byte[] は、フィールド変数に指定されているので、注意。
-     * </p>
-     *
-     * @param buffer コピー元のバッファ
-     * @param length コピー元のバッファサイズ
-     * @return コピーしたbyte[]
-     */
-    byte[] put(ByteBuffer buffer, int length) {
-        if (mFrameBuffer.length < length) {
-            mFrameBuffer = new byte[length];
-        }
-        buffer.get(mFrameBuffer, 0, length);
-        return mFrameBuffer;
     }
 
     /**

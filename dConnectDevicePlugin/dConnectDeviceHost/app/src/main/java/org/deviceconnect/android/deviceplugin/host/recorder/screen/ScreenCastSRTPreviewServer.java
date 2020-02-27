@@ -88,6 +88,22 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
+    public boolean requestSyncFrame() {
+        SRTServer server = mSRTServer;
+        if (server != null) {
+            SRTSession session = server.getSRTSession();
+            if (session != null) {
+                VideoEncoder videoEncoder = session.getVideoEncoder();
+                if (videoEncoder != null) {
+                    videoEncoder.requestSyncKeyFrame();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
 

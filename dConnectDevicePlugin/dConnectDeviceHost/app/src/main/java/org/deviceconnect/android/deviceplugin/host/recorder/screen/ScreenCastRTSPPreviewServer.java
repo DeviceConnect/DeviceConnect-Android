@@ -84,6 +84,22 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
     }
 
     @Override
+    public boolean requestSyncFrame() {
+        RtspServer server = mRtspServer;
+        if (server != null) {
+            RtspSession session = server.getRtspSession();
+            if (session != null) {
+                VideoStream videoStream = session.getVideoStream();
+                if (videoStream != null) {
+                    videoStream.getVideoEncoder().requestSyncKeyFrame();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
 

@@ -127,6 +127,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 setRecorderPreviewHeight(info, previewSize.getHeight());
                                 setRecorderPreviewMaxFrameRate(info, recorder.getMaxFrameRate());
                                 info.putInt("previewBitRate", recorder.getPreviewBitRate() / 1024);
+                                info.putInt("previewKeyFrameInterval", recorder.getIFrameInterval());
                             }
                         } else if (recorder.getMimeType().startsWith("audio/")) {
                             // 音声の設定
@@ -204,6 +205,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             Integer previewHeight = getPreviewHeight(request);
             Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
             Integer previewBitRate = parseInteger(request, "previewBitRate");
+            Integer previewKeyFrameInterval = parseInteger(request, "previewKeyFrameInterval");
 
             HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
             if (recorder == null) {
@@ -250,6 +252,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 recorder.setPreviewBitRate(previewBitRate * 1024);
             }
 
+            if (previewKeyFrameInterval != null) {
+                recorder.setIFrameInterval(previewKeyFrameInterval);
+            }
 
             // 設定をプレビューサーバに反映
             PreviewServerProvider provider = recorder.getServerProvider();
@@ -290,6 +295,41 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 }
             });
             return false;
+        }
+    };
+
+    private final DConnectApi mPostPreviewRequestKeyFrameApi = new PostApi() {
+
+        @Override
+        public String getInterface() {
+            return "preview";
+        }
+
+        @Override
+        public String getAttribute() {
+            return "requestKeyFrame";
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response) {
+            final String target = getTarget(request);
+
+            final HostMediaRecorder recorder = mRecorderMgr.getRecorder(target);
+
+            if (recorder == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            PreviewServerProvider provider = recorder.getServerProvider();
+            List<PreviewServer> result = provider.requestSyncFrame();
+            List<String> serverUrls = new ArrayList<>();
+            for (PreviewServer server : result) {
+                serverUrls.add(server.getUri());
+            }
+            response.putExtra("servers", serverUrls.toArray(new String[0]));
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
     };
 
@@ -871,6 +911,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);
+        addApi(mPostPreviewRequestKeyFrameApi);
         addApi(mPutOnPhotoApi);
         addApi(mDeleteOnPhotoApi);
         addApi(mPostTakePhotoApi);

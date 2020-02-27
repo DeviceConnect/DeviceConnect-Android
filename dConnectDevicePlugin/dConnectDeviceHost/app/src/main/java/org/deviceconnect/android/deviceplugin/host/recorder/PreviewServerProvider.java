@@ -63,6 +63,13 @@ public interface PreviewServerProvider {
     void stopServers();
 
     /**
+     * 全てのサーバの映像のエンコーダーに対して sync frame の即時生成を要求する.
+     *
+     * @return 実際に即時生成を受け付けたサーバのリスト
+     */
+    List<PreviewServer> requestSyncFrame();
+
+    /**
      * 設定が変更されたことを通知します.
      */
     void onConfigChange();

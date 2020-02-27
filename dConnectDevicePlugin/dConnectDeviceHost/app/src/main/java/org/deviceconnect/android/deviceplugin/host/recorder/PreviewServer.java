@@ -72,6 +72,13 @@ public interface PreviewServer {
     boolean isMuted();
 
     /**
+     * 映像のエンコーダーに対して sync frame の即時生成を要求する.
+     *
+     * @return 即時生成を受け付けた場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    boolean requestSyncFrame();
+
+    /**
      * Callback interface used to receive the result of starting a web server.
      */
     interface OnWebServerStartCallback {

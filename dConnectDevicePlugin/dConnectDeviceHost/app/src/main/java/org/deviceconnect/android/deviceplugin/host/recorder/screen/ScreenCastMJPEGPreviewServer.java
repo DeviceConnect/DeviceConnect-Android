@@ -73,6 +73,12 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     }
 
     @Override
+    public boolean requestSyncFrame() {
+        // 何もしない
+        return false;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
 

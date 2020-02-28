@@ -50,11 +50,6 @@ public abstract class VideoEncoder extends MediaEncoder {
      */
     private boolean mRequestChangeBitRate;
 
-    /**
-     * ソフトウェアエンコーダを優先的に使用するフラグ.
-     */
-    private boolean mUseSoftwareEncoder;
-
     // MediaEncoder
 
     @Override
@@ -84,15 +79,6 @@ public abstract class VideoEncoder extends MediaEncoder {
             }
             mMediaCodec = null;
         }
-    }
-
-    /**
-     * ソフトウェアエンコーダを使用するか設定します.
-     *
-     * @param useSoftwareEncoder ソフトウェアエンコーダを使用する場合はtrue、それ以外はfalse
-     */
-    public void setUseSoftwareEncoder(boolean useSoftwareEncoder) {
-        mUseSoftwareEncoder = useSoftwareEncoder;
     }
 
     /**
@@ -232,7 +218,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         // エンコーダ名が OMX.qcom. から始まる場合はハードウェアエンコーダ
         // エンコーダ名が OMX.google. から始まる場合はソフトウェアエンコーダ
         String encoderPrefix = "OMX.qcom.";
-        if (mUseSoftwareEncoder) {
+        if (videoQuality.isUseSoftwareEncoder()) {
             encoderPrefix = "OMX.google.";
         }
 

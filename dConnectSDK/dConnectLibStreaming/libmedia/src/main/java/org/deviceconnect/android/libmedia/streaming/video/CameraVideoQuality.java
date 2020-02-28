@@ -17,6 +17,16 @@ public class CameraVideoQuality extends VideoQuality {
     }
 
     /**
+     * VideoQuality をコピーします.
+     *
+     * @param quality コピー元の VideoQuality
+     */
+    public void set(CameraVideoQuality quality) {
+        super.set(quality);
+        mFacing = quality.getFacing();
+    }
+
+    /**
      * カメラのタイプを取得します.
      *
      * @return カメラのタイプ

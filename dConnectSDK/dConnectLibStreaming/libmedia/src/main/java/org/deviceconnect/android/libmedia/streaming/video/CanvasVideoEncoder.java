@@ -127,8 +127,6 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
             Surface surface = new Surface(getSurfaceTexture());
             try {
                 while (!mStopFlag) {
-                    executeRequest();
-
                     long start = System.currentTimeMillis();
 
                     Canvas canvas = surface.lockCanvas(null);

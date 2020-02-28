@@ -135,6 +135,17 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     @Override
+    public List<PreviewServer> requestSyncFrame() {
+        List<PreviewServer> result = new ArrayList<>();
+        for (PreviewServer server : getServers()) {
+            if (server.requestSyncFrame()) {
+                result.add(server);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public void onConfigChange() {
         for (PreviewServer server : getServers()) {
             server.onConfigChange();

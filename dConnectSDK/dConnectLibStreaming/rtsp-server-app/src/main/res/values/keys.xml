@@ -8,6 +8,7 @@
 
     <string name="key_server_url" translatable="false">serverUrl</string>
 
+    <string name="key_video_encoder_name" translatable="false">videoEncoderName</string>
     <string name="key_video_resolution" translatable="false">videoResolution</string>
 
     <string name="key_video_bit_rate" translatable="false">videoBitRate</string>
@@ -74,4 +75,13 @@
     <string name="key_recorder_enabled" translatable="false">recorderEnabled</string>
     <bool name="settings_recorder_enabled">false</bool>
 
+    <string-array name="key_video_encoder_names">
+        <item>H264</item>
+        <item>H265</item>
+    </string-array>
+
+    <string-array name="key_video_encoder_values">
+        <item>video/avc</item>
+        <item>video/hevc</item>
+    </string-array>
 </resources>

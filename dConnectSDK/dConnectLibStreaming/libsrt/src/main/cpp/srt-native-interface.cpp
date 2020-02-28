@@ -223,15 +223,17 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
 
 JNIEXPORT void JNICALL
 JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_dumpStats(): ptr=%d", ptr);
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_dumpStats()");
 
     SRT_TRACEBSTATS stats;
     int result = srt_bstats((int) ptr, &stats, 0);
     if (result == SRT_ERROR) {
         return;
     }
-    LOGD("dumpStats: pktSentTotal=%ld, pktRetransTotal=%d, pktSndLossTotal=%d", stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal);
-    LOGD("dumpStats: mbpsBandwidth=%f, mbpsMaxBW=%f, byteAvailSndBuf=%d", stats.mbpsBandwidth, stats.mbpsMaxBW, stats.byteAvailSndBuf);
+    LOGD("dumpStats: pktSentTotal=%ld, pktRetransTotal=%d, pktSndLossTotal=%d, pktSndDropTotal=%d",
+            stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal, stats.pktSndDropTotal);
+    LOGD("dumpStats: mbpsBandwidth=%f, mbpsMaxBW=%f, byteAvailSndBuf=%d, msRTT=%f",
+            stats.mbpsBandwidth, stats.mbpsMaxBW, stats.byteAvailSndBuf, stats.msRTT);
 }
 
 

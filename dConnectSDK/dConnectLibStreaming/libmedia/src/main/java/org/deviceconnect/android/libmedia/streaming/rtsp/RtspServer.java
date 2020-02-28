@@ -6,6 +6,7 @@ import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpSocket;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.MediaStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 
 import java.io.BufferedReader;

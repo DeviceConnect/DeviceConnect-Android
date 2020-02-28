@@ -615,6 +615,22 @@
             "exclusiveMinimum": true
           },
           {
+            "name": "previewBitRate",
+            "description": "プレビュー時のビットレート設定。単位はbps。範囲は0より大きい整数値。",
+            "in": "formData",
+            "required": false,
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          {
+            "name": "previewKeyFrameInterval",
+            "description": "プレビューのキーフレーム送信間隔。単位は秒。",
+            "in": "formData",
+            "required": false,
+            "type": "integer"
+          },
+          {
             "name": "mimeType",
             "description": "MimeType。動画録画・音声録音するときのエンコードするタイプ。",
             "in": "formData",
@@ -959,6 +975,45 @@
         }
       }
     },
+    "/preview/requestKeyFrame": {
+      "post": {
+        "operationId": "mediaStreamRecordingPreviewRequestKeyFramePost",
+        "x-type": "one-shot",
+        "summary": "プレビューのキーフレーム送信を要求する。",
+        "description": "プレビューのエンコーダに対して映像のキーフレームを生成・送信するように要求する。<br>1つのターゲットについて複数の映像形式をサポートする場合、起動中のすべてのエンコーダに対して要求する。",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "description": "サービスID。取得対象スマートデバイス",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target",
+            "description": "ターゲット。レコーダーを識別するID。<br> 省略された場合にはデフォルトのレコーダーを使用する。<br> デバイスが音声・動画の両方のレコーダーをサポートする場合、 どちらのレコーダーが使用されるかどうかはデバイスプラグイン依存とする。",
+            "in": "formData",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "プレビューのキーフレーム送信リクエストの結果を返す。 失敗した場合はエラーを返す。",
+            "schema": {
+              "$ref": "#/definitions/RecorderControlResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": 0,
+                "product": "Example System",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      }
+    },
     "/onRecordingChange": {
       "get": {
         "operationId": "mediaStreamRecordingOnRecordingChangeGet",
@@ -1163,6 +1218,16 @@
                     "type": "number",
                     "title": "プレビューの最大フレームレート",
                     "description": "現在のプレビューのフレームレートの最大値。単位はfps。<br> 録音の場合は省略可。"
+                  },
+                  "previewKeyFrameInterval": {
+                    "type": "integer",
+                    "title": "プレビューのキーフレーム送信間隔",
+                    "description": "現在のプレビューのキーフレーム送信間隔。単位はミリ秒。<br> 録音の場合は省略可。"
+                  },
+                  "previewEncoderBitRate": {
+                    "type": "integer",
+                    "title": "プレビューのエンコーダのビットレート設定",
+                    "description": "現在のプレビューのエンコーダのビットレート設定。エンコーダへの設定のため、実際の出力ビットレートはエンコーダに依存する。単位はbps。<br> 録音の場合は省略可。"
                   },
                   "audio": {
                     "type": "object",

@@ -29,7 +29,9 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLATMStream;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraVideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH265VideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.CameraH264VideoStream;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.util.StreamingRecorder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
@@ -153,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
         } else {
             RtspSession session = mRtspServer.getRtspSession();
-            CameraVideoStream videoStream = (CameraVideoStream) session.getVideoStream();
+            CameraH264VideoStream videoStream = (CameraH264VideoStream) session.getVideoStream();
             CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) videoStream.getVideoEncoder();
             mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);
         }
@@ -205,11 +207,23 @@ public class MainActivity extends AppCompatActivity {
 
                 startStreamingRecorder();
 
-                CameraVideoStream videoStream = new CameraVideoStream(getApplicationContext());
-                videoStream.setDestinationPort(5006);
-                videoStream.addSurface(surface);
-                if (mStreamingRecorder != null) {
-                    videoStream.addSurface(mStreamingRecorder.getSurface());
+                String mimeType = mPreferences.getEncoderName();
+
+                VideoStream videoStream;
+                if (mimeType.equalsIgnoreCase("video/hevc")) {
+                    videoStream = new CameraH265VideoStream(getApplicationContext());
+                    videoStream.setDestinationPort(5006);
+                    ((CameraH265VideoStream) videoStream).addSurface(surface);
+                    if (mStreamingRecorder != null) {
+                        ((CameraH265VideoStream) videoStream).addSurface(mStreamingRecorder.getSurface());
+                    }
+                } else {
+                    videoStream = new CameraH264VideoStream(getApplicationContext());
+                    videoStream.setDestinationPort(5006);
+                    ((CameraH264VideoStream) videoStream).addSurface(surface);
+                    if (mStreamingRecorder != null) {
+                        ((CameraH264VideoStream) videoStream).addSurface(mStreamingRecorder.getSurface());
+                    }
                 }
 
                 VideoEncoder videoEncoder = videoStream.getVideoEncoder();

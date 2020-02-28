@@ -240,6 +240,7 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
             startCamera();
 
             mSRTServer = new SRTServer(12345);
+            mSRTServer.setShowStats(true);
             mSRTServer.setCallback(new SRTServer.Callback() {
                 @Override
                 public void createSession(SRTSession session) {
@@ -249,14 +250,16 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
 
                     stopCamera();
 
-                    CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(getApplicationContext());
+                    String mimeType = mSettings.getEncoderName();
+
+                    CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(getApplicationContext(), mimeType);
                     videoEncoder.addSurface(mCameraView.getHolder().getSurface());
 
                     setVideoQuality((CameraVideoQuality) videoEncoder.getVideoQuality());
 
                     session.setVideoEncoder(videoEncoder);
 
-                    try {
+                    if (mSettings.isAudioEnabled()) {
                         MicAACLATMEncoder audioEncoder = new MicAACLATMEncoder();
                         audioEncoder.setMute(false);
 
@@ -266,8 +269,6 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
                         audioQuality.setFormat(AudioFormat.ENCODING_PCM_16BIT);
 
                         session.setAudioEncoder(audioEncoder);
-                    } catch (Exception e) {
-                        Log.e("ABC", "3", e);
                     }
 
                     runOnUiThread(() -> findViewById(R.id.text_view).setVisibility(View.VISIBLE));

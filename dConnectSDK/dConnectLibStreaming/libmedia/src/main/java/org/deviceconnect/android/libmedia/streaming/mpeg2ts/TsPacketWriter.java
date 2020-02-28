@@ -4,6 +4,8 @@ import com.google.common.primitives.Bytes;
 
 import org.deviceconnect.android.libmedia.streaming.util.CrcUtil;
 
+import java.nio.ByteBuffer;
+
 class TsPacketWriter {
 
     // Transport Stream packets are 188 bytes in length
@@ -12,13 +14,14 @@ class TsPacketWriter {
     private static final int TS_PAYLOAD_SIZE = TS_PACKET_SIZE - TS_HEADER_SIZE;
 
     // Table 2-29 – Stream type assignments. page 66
-    public static final byte STREAM_TYPE_AUDIO_AAC = 0x0F;
-    public static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
-    public static final byte STREAM_TYPE_VIDEO_H264 = 0x1B;
-    public static final byte STREAM_TYPE_VIDEO_H265 = 0x24;
+    static final byte STREAM_TYPE_AUDIO_AAC = 0x0F;
+    static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
+    static final byte STREAM_TYPE_VIDEO_H264 = 0x1B;
+    static final byte STREAM_TYPE_VIDEO_H265 = 0x24;
 
-    private static final byte STREAM_ID_VIDEO = (byte) 0xE0;
-    private static final byte STREAM_ID_AUDIO = (byte) 0xC0;
+    // Table 2-18 – Stream_id assignments
+    static final byte STREAM_ID_VIDEO = (byte) 0xE0;
+    static final byte STREAM_ID_AUDIO = (byte) 0xC0;
 
     private static final int TS_PAT_PID = 0x0000;    // 0
     private static final int TS_PMT_PID = 0x1000;    // 4096
@@ -29,8 +32,9 @@ class TsPacketWriter {
     private static final int TS_PAT_TABLE_ID = 0x00;
     private static final int TS_PMT_TABLE_ID = 0x02;
 
-    // H264 Nalu
-    private static byte[] H264_NAL = {0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xf0};
+    // H264, H265 AUD NALU
+    private static byte[] H264_NAL = {0x00, 0x00, 0x00, 0x01, 0x09, (byte) 0xF0};
+    private static byte[] H265_NAL = {0x00, 0x00, 0x00, 0x01, 0x46, 0x01, 0x50};
 
     // ContinuityCounter
     private byte mAudioContinuityCounter = 0;
@@ -123,7 +127,7 @@ class TsPacketWriter {
         writePacket((byte) ((transport_error_indicator << 7) | (payload_unit_start_indicator << 6) | (transport_priority << 5) | ((pid >> 8) & 0x1F)));
         writePacket((byte) (pid & 0xff));
         writePacket((byte) ((transport_scrambling_control << 6) | (adaptation_field_control << 4) | (continuity_counter & 0x0F)));
-        writePacket((byte) 0x00);    //開始インジケータ
+        writePacket((byte) 0x00);
     }
 
     /**
@@ -182,11 +186,11 @@ class TsPacketWriter {
      *     audio & video mix, section_length = 23
      * </p>
      *
-     * @param fType フレームタイプ
+     * @param frameType フレームタイプ
      * @param videoStreamType 映像ストリームのタイプ
      * @param audioStreamType 音声ストリームのタイプ
      */
-    void writePMT(FrameType fType, int videoStreamType, int audioStreamType) {
+    void writePMT(FrameType frameType, int videoStreamType, int audioStreamType) {
         resetPacket((byte) 0xFF);
 
         // TS Header
@@ -197,7 +201,7 @@ class TsPacketWriter {
         int section_syntax_indicator = 1;
         int zero = 0;
         int reserved_1 = 3;
-        int section_length = (fType == FrameType.MIXED) ? 23 : 18;
+        int section_length = (frameType == FrameType.MIXED) ? 23 : 18;
         int program_number = 1;
         int reserved_2 = 3;
         int version_number = 0;
@@ -205,7 +209,7 @@ class TsPacketWriter {
         int section_number = 0;
         int last_section_number = 0;
         int reserved_3 = 7;
-        int pcr_pid = (fType == FrameType.AUDIO) ? TS_AUDIO_PID : TS_VIDEO_PID;
+        int pcr_pid = (frameType == FrameType.AUDIO) ? TS_AUDIO_PID : TS_VIDEO_PID;
         int reserved_4 = 15;
         int program_info_length = 0;
 
@@ -223,7 +227,7 @@ class TsPacketWriter {
         writePacket((byte) (program_info_length & 0xFF));
 
         // set video stream info
-        if (fType == FrameType.VIDEO || fType == FrameType.MIXED) {
+        if (frameType == FrameType.VIDEO || frameType == FrameType.MIXED) {
             int stream_type = videoStreamType;
             int reserved_5 = 7;
             int elementary_pid = TS_VIDEO_PID;
@@ -238,7 +242,7 @@ class TsPacketWriter {
         }
 
         // set audio stream info
-        if (fType == FrameType.AUDIO || fType == FrameType.MIXED) {
+        if (frameType == FrameType.AUDIO || frameType == FrameType.MIXED) {
             int stream_type = audioStreamType;
             int reserved_5 = 7;
             int elementary_pid = TS_AUDIO_PID;
@@ -253,7 +257,7 @@ class TsPacketWriter {
         }
 
         // set crc32
-        long crc = CrcUtil.crc32(mPacket.mData, 5, (fType == FrameType.MIXED) ? 22 : 17);
+        long crc = CrcUtil.crc32(mPacket.mData, 5, (frameType == FrameType.MIXED) ? 22 : 17);
         writePacket((byte) ((crc >> 24) & 0xFF));
         writePacket((byte) ((crc >> 16) & 0xFF));
         writePacket((byte) ((crc >> 8) & 0xFF));
@@ -280,13 +284,18 @@ class TsPacketWriter {
         writePacket((byte) (((pts3 & 0x007F) << 1) | 0x01));
     }
 
-    private void writeBuffer(FrameType frameType, boolean isFirstPes, byte[] frameBuf, int frameBufSize, long pcr, long pts, long dts, boolean isFrame, boolean isAudio) {
+    /**
+     * PES のデータを書き込みます.
+     *
+     * @param pes PES データ
+     */
+    void writePES(PES pes) {
         boolean isFirstTs = true;
         int frameBufPtr = 0;
-        int pid = isAudio ? TS_AUDIO_PID : TS_VIDEO_PID;
+        int pid = pes.isAudio() ? TS_AUDIO_PID : TS_VIDEO_PID;
 
-        while (frameBufPtr < frameBufSize) {
-            int frameBufRemaining = frameBufSize - frameBufPtr;
+        while (frameBufPtr < pes.mDataLength) {
+            int frameBufRemaining = pes.mDataLength - frameBufPtr;
             boolean isAdaptationField = (isFirstTs || (frameBufRemaining < TS_PAYLOAD_SIZE));
 
             // TS パケットを 0x00 で初期化しておく
@@ -296,66 +305,75 @@ class TsPacketWriter {
             writePacket((byte) 0x47); // sync_byte
             writePacket((byte) ((isFirstTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1F)));
             writePacket((byte) (pid & 0xFF));
-            writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((isAudio ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
+            writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((pes.isAudio() ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));
 
             if (isFirstTs) {
-                if (isFrame) {
+                if (pes.isFrame()) {
                     writePacket((byte) 0x07); // adaptation_field_length
-                    writePacket((byte) (isFirstPes ? 0x50 : (isAudio && frameType == FrameType.MIXED ? 0x50 : 0x10)));
+                    writePacket((byte) 0x50); // random_access_indicator, PCR_flag
 
                     // write PCR
-                    writePacket((byte) ((pcr >> 25) & 0xFF));
-                    writePacket((byte) ((pcr >> 17) & 0xFF));
-                    writePacket((byte) ((pcr >> 9) & 0xFF));
-                    writePacket((byte) ((pcr >> 1) & 0xFF));
+                    writePacket((byte) ((pes.mPCR >> 25) & 0xFF));
+                    writePacket((byte) ((pes.mPCR >> 17) & 0xFF));
+                    writePacket((byte) ((pes.mPCR >> 9) & 0xFF));
+                    writePacket((byte) ((pes.mPCR >> 1) & 0xFF));
                     writePacket((byte) 0x00); //(byte) (pcr << 7 | 0x7E); // (6bit) reserved， 0x00
                     writePacket((byte) 0x00);
                 } else {
                     writePacket((byte) 0x01); // adaptation_field_length
-                    writePacket((byte) (isFirstPes ? 0x40 : (isAudio && frameType == FrameType.MIXED ? 0x40 : 0x00)));
+                    writePacket((byte) ((pes.isAudio() || pes.isFrame() ? 0x40 : 0x00)));
                 }
 
-                // write PES HEADER
+                // write packet_start_code_prefix
                 writePacket((byte) 0x00);
                 writePacket((byte) 0x00);
                 writePacket((byte) 0x01);
-                writePacket(isAudio ? STREAM_ID_AUDIO : STREAM_ID_VIDEO);
+                writePacket((byte) (pes.mStreamId & 0xFF));
 
-                boolean hasDts = dts > 0;
-                int header_size = hasDts ? 10 : 5;
-
-                // PES パケット長
-                if (isAudio) {
-                    int pes_size = frameBufSize + header_size + 3;
+                // PES パケットサイズ
+                if (pes.isAudio()) {
+                    int header_size = pes.hasDTS() ? 10 : 5;
+                    int pes_size = pes.mDataLength + header_size + 3;
                     writePacket((byte) ((pes_size >> 8) & 0xFF));
                     writePacket((byte) (pes_size & 0xFF));
                 } else {
                     writePacket((byte) 0x00); // 0x00==無制限
-                    writePacket((byte) 0x00); // 16:
+                    writePacket((byte) 0x00);
                 }
 
                 // PES ヘッダーの識別
-                byte PTS_DTS_flags = isFrame ? (byte) (hasDts ? 0xc0 : 0x80) : (byte) 0x00;
-                writePacket((byte) 0x80);          // 0x80 no flags set,  0x84 just data alignment indicator flag set
-                writePacket(PTS_DTS_flags);        // 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
+                byte PTS_DTS_flags = pes.isFrame() ? (byte) (pes.hasDTS() ? 0xC0 : 0x80) : (byte) 0x00;
+                writePacket((byte) 0x80);     // 0x80 no flags set,  0x84 just data alignment indicator flag set
+                writePacket(PTS_DTS_flags);   // 0xC0 PTS & DTS,  0x80 PTS,  0x00 no PTS/DTS
 
                 // write pts & dts
                 if (PTS_DTS_flags == (byte) 0xC0) {
                     writePacket((byte) 0x0A);
-                    writePtsDts(3, pts);
-                    writePtsDts(1, dts);
+                    writePtsDts(3, pes.mPTS);
+                    writePtsDts(1, pes.mDTS);
                 } else if (PTS_DTS_flags == (byte) 0x80) {
                     writePacket((byte) 0x05);
-                    writePtsDts(2, pts);
+                    writePtsDts(2, pes.mPTS);
                 } else {
                     writePacket((byte) 0x00);
                 }
 
-                // TODO 仕様を確認
-                // H264 NAL
-                if (!isAudio) {
-                    if (Bytes.indexOf(frameBuf, H264_NAL) == -1) {
-                        writePacket(H264_NAL, 0, H264_NAL.length);
+                if (!pes.isAudio()) {
+                    // TODO この記述は必要か確認すること。
+                    switch (pes.mStreamType) {
+                        case STREAM_TYPE_VIDEO_H264:
+                            if (Bytes.indexOf(pes.mData, H264_NAL) == -1) {
+                                writePacket(H264_NAL, 0, H264_NAL.length);
+                            }
+                            break;
+                        case STREAM_TYPE_VIDEO_H265:
+                            if (Bytes.indexOf(pes.mData, H265_NAL) == -1) {
+                                writePacket(H265_NAL, 0, H265_NAL.length);
+                            }
+                            break;
+                        default:
+                            // not implements
+                            break;
                     }
                 }
             } else {
@@ -372,7 +390,7 @@ class TsPacketWriter {
             // fill data
             int tsBufRemaining = TS_PACKET_SIZE - mPacket.mOffset;
             if (frameBufRemaining >= tsBufRemaining) {
-                writePacket(frameBuf, frameBufPtr, tsBufRemaining);
+                writePacket(pes.mData, frameBufPtr, tsBufRemaining);
                 frameBufPtr += tsBufRemaining;
             } else {
                 int paddingSize = tsBufRemaining - frameBufRemaining;
@@ -411,44 +429,68 @@ class TsPacketWriter {
                     }
                 }
 
-                System.arraycopy(frameBuf, frameBufPtr, tsBuf, offset + paddingSize, frameBufRemaining);
+                System.arraycopy(pes.mData, frameBufPtr, tsBuf, offset + paddingSize, frameBufRemaining);
                 frameBufPtr += frameBufRemaining;
             }
 
             isFirstTs = false;
 
-            notifyPacket(frameBufPtr >= frameBufSize);
+            notifyPacket(frameBufPtr >= pes.mDataLength);
         }
     }
 
-    /**
-     * 映像のデータを書き込みます.
-     *
-     * @param isFirstPes 最初のパケットフラグ
-     * @param buffer 映像データのバッファ
-     * @param length 映像データのバッファサイズ
-     * @param pcr PCR
-     * @param pts PTS
-     * @param dts DTS
-     * @param isFrame フレームフラグ
-     * @param mixed 映像、音声が混合の場合はtrue、それ以外はfalse
-     */
-    void writeVideoBuffer(boolean isFirstPes, byte[] buffer, int length, long pcr, long pts, long dts, boolean isFrame, boolean mixed) {
-        writeBuffer(mixed ? FrameType.MIXED : FrameType.VIDEO, isFirstPes, buffer, length, pcr, pts, dts, isFrame, false);
-    }
+    static class PES {
+        private int mStreamId;
+        private int mStreamType;
+        private byte[] mData = new byte[1024];
+        private int mDataLength;
+        private long mPCR;
+        private long mPTS;
+        private long mDTS;
+        private boolean mFrame;
 
-    /**
-     * 音声のデータを書き込みます.
-     *
-     * @param isFirstPes 最初のパケットフラグ
-     * @param buffer 音声データのバッファ
-     * @param length 音声データのバッファサイズ
-     * @param pcr PCR
-     * @param pts PTS
-     * @param dts DTS
-     * @param mixed 映像、音声が混合の場合はtrue、それ以外はfalse
-     */
-    void writeAudioBuffer(boolean isFirstPes, byte[] buffer, int length, long pcr, long pts, long dts, boolean mixed) {
-        writeBuffer(mixed ? FrameType.MIXED : FrameType.AUDIO, isFirstPes, buffer, length, pcr, pts, dts, true, true);
+        boolean isFrame() {
+            return mFrame;
+        }
+
+        boolean isAudio() {
+            return mStreamId == STREAM_ID_AUDIO;
+        }
+
+        boolean hasDTS() {
+            return mDTS > 0;
+        }
+
+        void setStreamId(int streamId) {
+            mStreamId = streamId;
+        }
+
+        void setStreamType(int streamType) {
+            mStreamType = streamType;
+        }
+
+        void setData(ByteBuffer buffer, int length) {
+            if (mData == null || mData.length < length) {
+                mData = new byte[length];
+            }
+            buffer.get(mData, 0, length);
+            mDataLength = length;
+        }
+
+        void setPCR(long PCR) {
+            mPCR = PCR;
+        }
+
+        void setPTS(long PTS) {
+            mPTS = PTS;
+        }
+
+        void setDTS(long DTS) {
+            mDTS = DTS;
+        }
+
+        void setFrame(boolean frame) {
+            mFrame = frame;
+        }
     }
 }

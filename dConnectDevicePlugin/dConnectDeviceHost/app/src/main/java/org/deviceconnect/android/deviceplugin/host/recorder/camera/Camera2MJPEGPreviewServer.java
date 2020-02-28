@@ -87,6 +87,12 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     }
 
     @Override
+    public boolean requestSyncFrame() {
+        // 何もしない
+        return false;
+    }
+
+    @Override
     public void onConfigChange() {
         setEncoderQuality();
         restartCamera();

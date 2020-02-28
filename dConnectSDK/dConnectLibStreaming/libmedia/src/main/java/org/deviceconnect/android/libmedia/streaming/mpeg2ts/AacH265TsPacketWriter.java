@@ -7,7 +7,7 @@ public class AacH265TsPacketWriter extends AacH26xTsPacketWriter {
     private final TsPacketWriter.PES mPES = new TsPacketWriter.PES();
 
     @Override
-    public void writeNALU(ByteBuffer buffer, long pts) {
+    public synchronized void writeNALU(ByteBuffer buffer, long pts) {
         writePatPmt(FrameType.VIDEO);
 
         int offset = buffer.position();
@@ -27,7 +27,7 @@ public class AacH265TsPacketWriter extends AacH26xTsPacketWriter {
     }
 
     @Override
-    public void writeADTS(ByteBuffer buffer, long pts) {
+    public synchronized void writeADTS(ByteBuffer buffer, long pts) {
         writePatPmt(FrameType.AUDIO);
 
         int length = buffer.limit() - buffer.position();

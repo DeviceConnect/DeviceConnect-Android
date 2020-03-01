@@ -185,7 +185,7 @@ public class SRTServerSocket {
         }
     }
 
-        /**
+    /**
      * SRT ソケットにオプションをまとめて設定します.
      *
      * @param options オプション設定の一覧
@@ -193,7 +193,10 @@ public class SRTServerSocket {
      */
     public void setOptions(Map<Integer, Object> options) throws SRTSocketException {
         for (Map.Entry<Integer, Object> entry : options.entrySet()) {
-            setOption(entry.getKey(), entry.getValue());
+            Object value = entry.getValue();
+            if (value != null) {
+                setOption(entry.getKey(), value);
+            }
         }
     }
 

@@ -88,6 +88,8 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
         case SRTO_RCVLATENCY:
         case SRTO_PEERLATENCY:
         case SRTO_OHEADBW:
+        case SRTO_CONNTIMEO:
+        case SRTO_PEERIDLETIMEO:
         {
             jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
             int32_t data = env->CallIntMethod(value, intValueMethodId);

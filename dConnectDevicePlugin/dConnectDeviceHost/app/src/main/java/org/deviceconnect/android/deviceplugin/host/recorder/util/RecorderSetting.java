@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.Nullable;
+
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.libsrt.SRT;
 
@@ -75,6 +77,38 @@ public class RecorderSetting {
     }
 
     /**
+     * 指定されたキーの値を {@link Integer} にして取得します.
+     *
+     * @param key 格納されているキー
+     * @param defaultValue 値が格納されていない場合に返却する値
+     * @return 整数値
+     */
+    private Integer getInteger(String key, Integer defaultValue) {
+        String value = mSharedPreferences.getString(key, null);
+        if (value == null) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 指定されたキーの値を {@link Integer} にして取得します.
+     *
+     * 値が格納されていない場は <code>null</code> を返します.
+     *
+     * @param key 格納されているキー
+     * @return 整数値
+     */
+    @Nullable
+    private Integer getInteger(String key) {
+        return getInteger(key, null);
+    }
+
+    /**
      * MediaRecorder プレビューの音声が有効か確認します.
      *
      * @return 有効の場合はtrue、それ以外はfalse
@@ -126,8 +160,10 @@ public class RecorderSetting {
      */
     public Map<Integer, Object> loadSRTSocketOptions() {
         Map<Integer, Object> options = new HashMap<>();
-        options.put(SRT.SRTO_PEERLATENCY, getInt(mContext.getString(R.string.pref_key_settings_srt_peerlatency), 120));
-        options.put(SRT.SRTO_LOSSMAXTTL, getInt(mContext.getString(R.string.pref_key_settings_srt_peerlatency), 0));
+        options.put(SRT.SRTO_PEERLATENCY, getInteger(mContext.getString(R.string.pref_key_settings_srt_peerlatency)));
+        options.put(SRT.SRTO_LOSSMAXTTL, getInteger(mContext.getString(R.string.pref_key_settings_srt_peerlatency)));
+        options.put(SRT.SRTO_CONNTIMEO, getInteger(mContext.getString(R.string.pref_key_settings_srt_conntimeo)));
+        options.put(SRT.SRTO_PEERIDLETIMEO, getInteger(mContext.getString(R.string.pref_key_settings_srt_peeridletimeo)));
         return options;
     }
 

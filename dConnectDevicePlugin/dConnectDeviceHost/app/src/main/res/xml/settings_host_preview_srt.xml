@@ -18,4 +18,20 @@
         app:iconSpaceReserved="false"
         app:useSimpleSummaryProvider="true" />
 
+    <EditTextPreference
+        android:defaultValue="3000"
+        android:key="@string/pref_key_settings_srt_conntimeo"
+        android:singleLine="true"
+        android:title="@string/host_settings_item_srt_conntimeo"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:defaultValue="5000"
+        android:key="@string/pref_key_settings_srt_peeridletimeo"
+        android:singleLine="true"
+        android:title="@string/host_settings_item_srt_peeridletimeo"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
 </androidx.preference.PreferenceScreen>

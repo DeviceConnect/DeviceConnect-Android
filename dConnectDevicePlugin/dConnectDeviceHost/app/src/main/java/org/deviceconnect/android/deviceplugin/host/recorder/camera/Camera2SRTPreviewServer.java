@@ -59,6 +59,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                 mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
+                mSRTServer.setSocketOptions(RecorderSetting.getInstance(getContext()).loadSRTSocketOptions());
                 mSRTServer.start();
             } catch (IOException e) {
                 callback.onFail();

@@ -5,10 +5,13 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.libsrt.SRT;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -114,6 +117,18 @@ public class RecorderSetting {
      */
     public boolean isUseAEC() {
         return mSharedPreferences.getBoolean(mContext.getString(R.string.pref_key_settings_audio_use_aec), true);
+    }
+
+    /**
+     * SRT サーバに対して設定するオプションの一覧を作成します.
+     *
+     * @return オプションの一覧
+     */
+    public Map<Integer, Object> loadSRTSocketOptions() {
+        Map<Integer, Object> options = new HashMap<>();
+        options.put(SRT.SRTO_PEERLATENCY, getInt(mContext.getString(R.string.pref_key_settings_srt_peerlatency), 120));
+        options.put(SRT.SRTO_LOSSMAXTTL, getInt(mContext.getString(R.string.pref_key_settings_srt_peerlatency), 0));
+        return options;
     }
 
     /**

@@ -59,7 +59,7 @@ JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz) {
 
 JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint opt, jobject value) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_setSockFlag()");
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_setSockFlag(): opt=%d", opt);
 
     jclass valueClass = env->GetObjectClass(value);
 
@@ -83,6 +83,7 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
             result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
         }
             break;
+        case SRTO_LOSSMAXTTL:
         case SRTO_LATENCY:
         case SRTO_RCVLATENCY:
         case SRTO_PEERLATENCY:
@@ -96,6 +97,10 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
 
         default:
             break;
+    }
+
+    if (result == SRT_ERROR) {
+        LOGE("srt_setsockflag: %s", srt_getlasterror_str());
     }
 
     env->DeleteLocalRef(valueClass);

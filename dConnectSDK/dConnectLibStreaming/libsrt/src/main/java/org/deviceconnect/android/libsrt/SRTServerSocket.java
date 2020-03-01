@@ -1,5 +1,7 @@
 package org.deviceconnect.android.libsrt;
 
+import java.util.Map;
+
 /**
  * SRTサーバーのソケット.
  *
@@ -180,6 +182,18 @@ public class SRTServerSocket {
         int result = NdkHelper.setSockFlag(mNativeSocket, option, value);
         if (result < 0) {
             throw new SRTSocketException("Failed to set a socket flag.", result);
+        }
+    }
+
+        /**
+     * SRT ソケットにオプションをまとめて設定します.
+     *
+     * @param options オプション設定の一覧
+     * @throws SRTSocketException オプションの設定に失敗した場合に発生
+     */
+    public void setOptions(Map<Integer, Object> options) throws SRTSocketException {
+        for (Map.Entry<Integer, Object> entry : options.entrySet()) {
+            setOption(entry.getKey(), entry.getValue());
         }
     }
 

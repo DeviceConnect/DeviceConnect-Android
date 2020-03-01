@@ -41,6 +41,7 @@
     <string name="host_settings_item_gps">GPS</string>
     <string name="host_settings_item_jpeg_quality_preview">JPEG 品質</string>
     <string name="host_settings_item_audio_preview">音声</string>
+    <string name="host_settings_item_srt_preview">SRT</string>
     <string name="host_settings_item_demo_page">デモページ</string>
     <string name="host_settings_item_audio_enabled">音声</string>
     <string name="host_settings_item_audio_enabled_summary">プレビューの音声の有効化の設定を行います。</string>
@@ -52,6 +53,7 @@
     <string name="pref_key_settings_gps">pref_key_settings_gps</string>
     <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
     <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
+    <string name="pref_key_settings_srt_preview">pref_key_settings_srt_preview</string>
     <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
     <string name="pref_key_settings_audio_enabled">pref_key_settings_audio_enabled</string>
     <string name="pref_key_settings_audio_bit_rate">pref_key_settings_audio_bit_rate</string>

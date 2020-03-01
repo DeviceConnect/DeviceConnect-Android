@@ -68,8 +68,10 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
         if (mSRTServer == null) {
             try {
                 mSRTServer = new SRTServer(getPort());
+                mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
+                mSRTServer.setSocketOptions(RecorderSetting.getInstance(getContext()).loadSRTSocketOptions());
                 mSRTServer.start();
             } catch (IOException e) {
                 callback.onFail();

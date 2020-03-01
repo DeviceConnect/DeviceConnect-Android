@@ -12,6 +12,7 @@ import org.deviceconnect.android.libsrt.SRTSocketException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -97,12 +98,30 @@ public class SRTServer {
     private int mPort;
 
     /**
+     * クライアントのソケットに設定するオプション.
+     */
+    private Map<Integer, Object> mCustomSocketOptions;
+
+    /**
      * コンストラクタ.
      *
      * @param port サーバーのソケットにバインドするローカルのポート番号.
      */
     public SRTServer(final int port) {
         mPort = port;
+    }
+
+    /**
+     * ソケットに反映するオプションを設定します.
+     *
+     * <p>
+     * オプションはサーバ側のソケットがバインドされる前に設定されます.
+     * </p>
+     *
+     * @param socketOptions ソケットに反映するオプションd
+     */
+    public void setSocketOptions(Map<Integer, Object> socketOptions) {
+        mCustomSocketOptions = socketOptions;
     }
 
     /**
@@ -207,6 +226,12 @@ public class SRTServer {
             // TODO 他に設定する項目がないか検討
             mServerSocket.setOption(SRT.SRTO_SENDER, true);
             mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
+
+            // アプリ側から指定されたオプションを設定
+            if (mCustomSocketOptions != null) {
+                mServerSocket.setOptions(mCustomSocketOptions);
+            }
+
             mServerSocket.open();
         } catch (SRTSocketException e) {
             // SRT サーバの srt_bind と srt_listen に失敗した場合はサーバを閉じておく。
@@ -448,6 +473,7 @@ public class SRTServer {
                 }
             } catch (Exception e) {
                 // ignore.
+                Log.e(TAG, "Failed to start socket thread.", e);
             } finally {
                 mSRTSession.removeSRTClientSocket(mClientSocket);
 

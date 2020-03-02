@@ -223,7 +223,6 @@ public class SRTServer {
 
         mServerSocket = new SRTServerSocket(mPort);
         try {
-            // TODO 他に設定する項目がないか検討
             mServerSocket.setOption(SRT.SRTO_SENDER, true);
             mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
 
@@ -472,8 +471,9 @@ public class SRTServer {
                     }
                 }
             } catch (Exception e) {
-                // ignore.
-                Log.e(TAG, "Failed to start socket thread.", e);
+                if (DEBUG) {
+                    Log.e(TAG, "Failed to start socket thread.", e);
+                }
             } finally {
                 mSRTSession.removeSRTClientSocket(mClientSocket);
 

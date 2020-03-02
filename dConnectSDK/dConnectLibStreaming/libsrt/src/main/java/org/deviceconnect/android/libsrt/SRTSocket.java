@@ -196,8 +196,13 @@ public class SRTSocket {
      */
     public void setOption(int option, Object value) throws SRTSocketException {
         if (mClosed) {
-            throw new SRTSocketException(0);
+            throw new SRTSocketException("SRTSocket is already closed.", -1);
         }
+
+        if (value == null) {
+            throw new IllegalArgumentException("value is not set.");
+        }
+
         int result = NdkHelper.setSockFlag(mNativePtr, option, value);
         if (result < 0) {
             throw new SRTSocketException(result);

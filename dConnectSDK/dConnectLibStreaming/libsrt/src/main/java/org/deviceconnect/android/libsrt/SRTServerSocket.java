@@ -179,6 +179,10 @@ public class SRTServerSocket {
             throw new SRTSocketException("already closed", -1);
         }
 
+        if (value == null) {
+            throw new IllegalArgumentException("value is not set.");
+        }
+
         int result = NdkHelper.setSockFlag(mNativeSocket, option, value);
         if (result < 0) {
             throw new SRTSocketException("Failed to set a socket flag.", result);

@@ -66,34 +66,51 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
     int result = -1;
 
     switch (opt) {
+        case SRTO_CONGESTION:
+        case SRTO_STREAMID:
+        {
+            const char *type = env->GetStringUTFChars((jstring) value, nullptr);
+            if (type != nullptr) {
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, type, (int) strlen(type));
+                env->ReleaseStringUTFChars((jstring) value, type);
+            }
+        }
+            break;
         case SRTO_SNDSYN:
         case SRTO_RCVSYN:
         case SRTO_SENDER: // RTO_SENDER	1.0.4	pre	int32_t bool?
+        case SRTO_MESSAGEAPI:
         {
             jmethodID boolValueMethodId = env->GetMethodID(valueClass, "booleanValue", "()Z");
-            bool data = env->CallBooleanMethod(value, boolValueMethodId);
-            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            if (boolValueMethodId != nullptr) {
+                bool data = env->CallBooleanMethod(value, boolValueMethodId);
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            }
         }
             break;
         case SRTO_MAXBW:
         case SRTO_INPUTBW:
         {
             jmethodID longValueMethodId = env->GetMethodID(valueClass, "longValue", "()J");
-            int64_t data = env->CallLongMethod(value, longValueMethodId);
-            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            if (longValueMethodId != nullptr) {
+                int64_t data = env->CallLongMethod(value, longValueMethodId);
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            }
         }
             break;
+        case SRTO_TRANSTYPE:
         case SRTO_LOSSMAXTTL:
         case SRTO_LATENCY:
         case SRTO_RCVLATENCY:
         case SRTO_PEERLATENCY:
         case SRTO_OHEADBW:
         case SRTO_CONNTIMEO:
-        case SRTO_PEERIDLETIMEO:
-        {
+        case SRTO_PEERIDLETIMEO: {
             jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
-            int32_t data = env->CallIntMethod(value, intValueMethodId);
-            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            if (intValueMethodId != nullptr) {
+                int32_t data = env->CallIntMethod(value, intValueMethodId);
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            }
         }
             break;
 

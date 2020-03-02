@@ -323,11 +323,11 @@ public class H264Decoder extends VideoDecoder {
                 createMediaCodec();
 
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-                long startMs = System.currentTimeMillis();
+
+                long start = System.nanoTime();
 
                 while (!isInterrupted()) {
                     Frame frame = getFrame();
-
                     if (!isEOS) {
                         int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
                         if (inIndex >= 0) {
@@ -356,7 +356,7 @@ public class H264Decoder extends VideoDecoder {
                                 }
                             }
 
-                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getPTS(), flags);
+                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), start + frame.getPTS(), flags);
                         }
                     }
 
@@ -364,15 +364,6 @@ public class H264Decoder extends VideoDecoder {
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
                     if (outIndex >= 0) {
-                        // We use a very simple clock to keep the video FPS, or the video
-                        // playback will be too fast
-                        while ((info.presentationTimeUs / 1000) > (System.currentTimeMillis() - startMs)) {
-                            try {
-                                sleep(10);
-                            } catch (InterruptedException e) {
-                                break;
-                            }
-                        }
                         mMediaCodec.releaseOutputBuffer(outIndex, true);
                     } else {
                         switch (outIndex) {

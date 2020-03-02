@@ -6,6 +6,7 @@ import android.view.Surface;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketExtractor;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketReader;
 import org.deviceconnect.android.libsrt.BuildConfig;
+import org.deviceconnect.android.libsrt.client.decoder.audio.AACDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H264Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.VideoDecoder;
@@ -218,6 +219,10 @@ public class SRTPlayer {
             mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
             mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
             mVideoDecoder.onInit();
+
+            mAudioDecoder = new AACDecoder();
+            mAudioDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+            mAudioDecoder.onInit();
         }
 
         @Override
@@ -225,6 +230,11 @@ public class SRTPlayer {
             if (mVideoDecoder != null) {
                 mVideoDecoder.onReleased();
                 mVideoDecoder = null;
+            }
+
+            if (mAudioDecoder != null) {
+                mAudioDecoder.onReleased();
+                mAudioDecoder = null;
             }
         }
 

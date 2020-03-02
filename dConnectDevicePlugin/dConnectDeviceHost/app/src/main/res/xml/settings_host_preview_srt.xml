@@ -19,6 +19,20 @@
         app:useSimpleSummaryProvider="true" />
 
     <EditTextPreference
+        android:key="@string/pref_key_settings_srt_inputbw"
+        android:singleLine="true"
+        android:title="@string/host_settings_item_srt_inputbw"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+        android:key="@string/pref_key_settings_srt_oheadbw"
+        android:singleLine="true"
+        android:title="@string/host_settings_item_srt_oheadbw"
+        app:iconSpaceReserved="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
         android:defaultValue="3000"
         android:key="@string/pref_key_settings_srt_conntimeo"
         android:singleLine="true"

@@ -5,6 +5,7 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 
 public class TsPacketReader {
     /**
@@ -64,8 +65,24 @@ public class TsPacketReader {
 
     /**
      * Program Map Tables.
+     *
+     * <p>
+     * PID が、どの PMT に対応するかを格納します。
+     * </p>
      */
     private SparseIntArray mPMT = new SparseIntArray();
+
+    /**
+     * PMT 情報を格納する Map.
+     *
+     * <p>
+     * PES が、どのストリームタイプに対応するかを格納します。
+     *
+     * - key: PID (PESを識別するID)
+     * - value: ストリームタイプ
+     * </p>
+     */
+    private SparseIntArray mStreamType = new SparseIntArray();
 
     /**
      * TSパケットの連続性を確認するための情報を格納するマップ.
@@ -85,7 +102,7 @@ public class TsPacketReader {
     /**
      * 送られてきたデータを格納するバッファ.
      */
-    private final PESData mPESData = new PESData();
+    private final PES mPES = new PES();
 
     /**
      * 取り出したストリームデータを通知するコールバック.
@@ -184,14 +201,14 @@ public class TsPacketReader {
 
         // Payload data
         if (adaptationFieldControl == 0b01 || adaptationFieldControl == 0b11) {
+
+            // PES、 PSI のどちらかのペイロードが data_byte には格納されます。
+            // PID で、PAT を判別し解析を行い PSI の PID を取得します。
+            // PSI の場合は pointer_field (0x00) が先頭に入ります。
+            // PES の場合は 0x000001 が先頭に入ります。
+
             if (pid == PAT) {
-                if (payloadUnitStartIndicator) {
-                    int pointerField = packetData.read() & 0xFF;
-                    for (int i = 0; i < pointerField; i++) {
-                        packetData.read();
-                    }
-                }
-                parsePAT(packetData);
+                parsePAT(packetData, payloadUnitStartIndicator);
             } else if (pid == CAT) {
                 if (INFO) {
                     Log.w(TAG, " #### CAT");
@@ -217,7 +234,7 @@ public class TsPacketReader {
                 if (mPMT.indexOfKey(pid) >= 0) {
                     parsePMT(packetData, payloadUnitStartIndicator, pid);
                 } else {
-                    parsePES(packetData, payloadUnitStartIndicator, continuity);
+                    parsePES(packetData, payloadUnitStartIndicator, pid, continuity);
                 }
             }
         }
@@ -227,35 +244,50 @@ public class TsPacketReader {
      * Program Association Tables (PAT) を解析します.
      *
      * @param packetData データソース
+     * @param payloadUnitStartIndicator 開始フラグ
      */
-    private void parsePAT(Buffer packetData) {
-        int tableId = packetData.read();
-        int sectionLength = (((packetData.read() & 0x0F) << 8)) | ((packetData.read() & 0xFF));
-        int transportStreamId = ((packetData.read() & 0xFF) | ((packetData.read() & 0xFF) << 8));
-        int b = packetData.read() & 0xFF;
-        int versionNumber = ((b >> 1) & 0x1F);
-        boolean currentNextIndicator = ((b & 0x01) != 0);
-        int sectionNumber = packetData.read() & 0xFF;
-        int lastSectionNumber = packetData.read() & 0xFF;
-
-        if (INFO) {
-            Log.w(TAG, " tableId: " + tableId);
-            Log.w(TAG, " sectionLength: " + sectionLength);
-            Log.w(TAG, " transportStreamId: " + transportStreamId);
-            Log.w(TAG, " versionNumber: " + versionNumber);
-            Log.w(TAG, " currentNextIndicator: " + currentNextIndicator);
-            Log.w(TAG, " sectionNumber: " + sectionNumber);
-            Log.w(TAG, " lastSectionNumber: " + lastSectionNumber);
-        }
-
-        for (int i = 0; i < sectionLength - 4 - 5; i += 4) {
-            int programNumber = (((packetData.read() & 0xFF) << 8) | ((packetData.read() & 0xFF)));
-            int programMapPid = (((packetData.read() & 0x1F) << 8) | ((packetData.read() & 0xFF)));
-            if (INFO) {
-                Log.w(TAG, "   programNumber: " + programNumber);
-                Log.w(TAG, "   programMapPid: " + programMapPid);
+    private void parsePAT(Buffer packetData, boolean payloadUnitStartIndicator) {
+        if (payloadUnitStartIndicator) {
+            int pointerField = packetData.read();
+            if (pointerField != 0x00) {
+                if (DEBUG) {
+                    Log.e(TAG, "## " + HexUtil.hexToString(packetData.mData, 48));
+                    Log.e(TAG, "!!!!!!!! ERROR PAT.");
+                }
+                return;
             }
-            mPMT.put(programMapPid, programNumber);
+
+            int tableId = packetData.read();
+            int sectionLength = (((packetData.read() & 0x0F) << 8)) | ((packetData.read() & 0xFF));
+            int transportStreamId = ((packetData.read() & 0xFF) | ((packetData.read() & 0xFF) << 8));
+            int b = packetData.read() & 0xFF;
+            int versionNumber = ((b >> 1) & 0x1F);
+            boolean currentNextIndicator = ((b & 0x01) != 0);
+            int sectionNumber = packetData.read() & 0xFF;
+            int lastSectionNumber = packetData.read() & 0xFF;
+
+            if (INFO) {
+                Log.w(TAG, " PAT: ");
+                Log.w(TAG, " tableId: " + tableId);
+                Log.w(TAG, " sectionLength: " + sectionLength);
+                Log.w(TAG, " transportStreamId: " + transportStreamId);
+                Log.w(TAG, " versionNumber: " + versionNumber);
+                Log.w(TAG, " currentNextIndicator: " + currentNextIndicator);
+                Log.w(TAG, " sectionNumber: " + sectionNumber);
+                Log.w(TAG, " lastSectionNumber: " + lastSectionNumber);
+            }
+
+            for (int i = 0; i < sectionLength - 4 - 5; i += 4) {
+                int programNumber = (((packetData.read() & 0xFF) << 8) | ((packetData.read() & 0xFF)));
+                int programMapPid = (((packetData.read() & 0x1F) << 8) | ((packetData.read() & 0xFF)));
+                if (INFO) {
+                    Log.w(TAG, "   programNumber: " + programNumber);
+                    Log.w(TAG, "   programMapPid: " + programMapPid);
+                }
+                mPMT.put(programMapPid, programNumber);
+            }
+        } else {
+            // TODO: PAT が複数パケットに分かれている場合の処理を行うこと。
         }
     }
 
@@ -267,7 +299,62 @@ public class TsPacketReader {
      * @param pid pid
      */
     private void parsePMT(Buffer packetData, boolean payloadUnitStartIndicator, int pid) {
-        // not implements yet.
+        if (payloadUnitStartIndicator) {
+            int pointerField = packetData.read();
+            if (pointerField != 0x00) {
+                if (DEBUG) {
+                    Log.e(TAG, "## " + HexUtil.hexToString(packetData.mData, 48));
+                    Log.e(TAG, "!!!!!!!! ERROR PMT.");
+                }
+                return;
+            }
+
+            mStreamType.clear();
+
+            int tableId = packetData.read();
+            int sectionLength = (((packetData.read() & 0x0F) << 8)) | ((packetData.read() & 0xFF));
+            int programNumber = ((packetData.read() & 0xFF) | ((packetData.read() & 0xFF) << 8));
+            int b = packetData.read() & 0xFF;
+            int versionNumber = ((b >> 1) & 0x1F);
+            boolean currentNextIndicator = ((b & 0x01) != 0);
+            int sectionNumber = packetData.read() & 0xFF;
+            int lastSectionNumber = packetData.read() & 0xFF;
+            int pcrPID = (((packetData.read() & 0x1F) << 8)) | ((packetData.read() & 0xFF));
+            int programInfoLength = (((packetData.read() & 0x0F) << 8)) | ((packetData.read() & 0xFF));
+            packetData.skip(programInfoLength);
+
+            if (INFO) {
+                Log.w(TAG, " PMT: " + pid);
+                Log.w(TAG, " tableId: " + tableId);
+                Log.w(TAG, " sectionLength: " + sectionLength);
+                Log.w(TAG, " programNumber: " + programNumber);
+                Log.w(TAG, " versionNumber: " + versionNumber);
+                Log.w(TAG, " currentNextIndicator: " + currentNextIndicator);
+                Log.w(TAG, " sectionNumber: " + sectionNumber);
+                Log.w(TAG, " lastSectionNumber: " + lastSectionNumber);
+                Log.w(TAG, " pcrPID: " + pcrPID);
+                Log.w(TAG, " programInfoLength: " + programInfoLength);
+            }
+
+            for (int i = 0; i < sectionLength - programInfoLength - 13;) {
+                int streamType = packetData.read() & 0xFF;
+                int elementaryPID = (((packetData.read() & 0x1F) << 8) | ((packetData.read() & 0xFF)));
+                int ES_info_length = (((packetData.read() & 0x0F) << 8) | ((packetData.read() & 0xFF)));
+                packetData.skip(ES_info_length);
+
+                mStreamType.put(elementaryPID, streamType);
+
+                if (INFO) {
+                    Log.w(TAG, "   streamType: " + streamType);
+                    Log.w(TAG, "   elementaryPID: " + elementaryPID);
+                    Log.w(TAG, "   ES_info_length: " + ES_info_length);
+                }
+
+                i += (5 + ES_info_length);
+            }
+        } else {
+            // TODO: PMT が複数パケットに分かれている場合の処理を行うこと。
+        }
     }
 
     /**
@@ -275,21 +362,23 @@ public class TsPacketReader {
      *
      * @param packetData                データソース
      * @param payloadUnitStartIndicator 開始フラグ
+     * @param pid                       PID
      * @param continuity                連続性確認用カウンター
      */
-    private void parsePES(Buffer packetData, boolean payloadUnitStartIndicator, Continuity continuity) {
+    private void parsePES(Buffer packetData, boolean payloadUnitStartIndicator, int pid, Continuity continuity) {
         if (payloadUnitStartIndicator) {
             // payload unit start indicator が true の場合はデータの先頭になる
             // その場合は、溜め込んでいたデータを通知する。
-            if (mPESData.size() > 0 && !continuity.hasError) {
-                postByteStream(mPESData.getStreamId(), mPESData.toByteArray(), mPESData.size(), mPESData.getPts());
+            if (mPES.size() > 0 && !continuity.hasError) {
+                postByteStream(mPES);
             }
 
-            mPESData.reset();
+            mPES.reset();
 
             // PES のスタートコード
             if (!(packetData.read() == 0x00 && packetData.read() == 0x00 && packetData.read() == 0x01)) {
                 if (DEBUG) {
+                    Log.e(TAG, "## " + HexUtil.hexToString(packetData.mData, 48));
                     Log.e(TAG, "!!!!!!!! ERROR PES Packet.");
                 }
                 return;
@@ -452,15 +541,15 @@ public class TsPacketReader {
             // エラーフラグを解除しておきます。
             continuity.reset();
 
-            mPESData.setStreamId(streamId);
-            mPESData.setPts(pts);
-            mPESData.setDts(dts);
-
-            mPESData.write(packetData.mData, packetData.mPosition, packetData.remaining());
+            mPES.setPID(pid);
+            mPES.setStreamId(streamId);
+            mPES.setPts(pts);
+            mPES.setDts(dts);
+            mPES.write(packetData.mData, packetData.mPosition, packetData.remaining());
         } else {
             // payload unit start indicator が false の場合はデータの後発になる
             // その場合は、データを溜め込みます。
-            mPESData.write(packetData.mData, packetData.mPosition, packetData.remaining());
+            mPES.write(packetData.mData, packetData.mPosition, packetData.remaining());
         }
     }
 
@@ -468,12 +557,36 @@ public class TsPacketReader {
      * PTS, DTS を解析します.
      *
      * @param packetData パケットデータ
-     * @return PTS、DTS の値
+     * @return PTS or DTS の値
      */
     private long parsePtsDts(Buffer packetData) {
         return ((long) ((packetData.read() & 0x0E) << 29)) | ((packetData.read() & 0xFF) << 22) |
                 ((packetData.read() & 0xFE) << 14) | ((packetData.read() & 0xFF) << 7) |
                 ((packetData.read() & 0xFE) >> 1);
+    }
+
+    /**
+     * PCR、OPCR を解析します.
+     *
+     * @param packetData パケットデータ
+     * @return PCR or OPCR の値
+     */
+    private long parsePcrOpcr(Buffer packetData) {
+        byte[] b = {
+                (byte) packetData.read(),
+                (byte) packetData.read(),
+                (byte) packetData.read(),
+                (byte) packetData.read(),
+                (byte) packetData.read(),
+                (byte) packetData.read(),
+        };
+
+        int base = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
+        base <<= 1;
+        base |= ((b[4] >> 7) & 0x01);
+        int ext = (b[4] << 8) & 0x100;
+        ext = (ext | b[5]);
+        return base * 300 + ext;
     }
 
     /**
@@ -502,15 +615,15 @@ public class TsPacketReader {
 
             if (INFO) {
                 Log.d(TAG, " AdaptationField ");
-                Log.d(TAG, "   adaptationFieldLength " + adaptationFieldLength);
-                Log.d(TAG, "   discontinuityIndicator " + discontinuityIndicator);
-                Log.d(TAG, "   randomAccessIndicator " + randomAccessIndicator);
-                Log.d(TAG, "   elementaryStreamPriorityIndicator " + elementaryStreamPriorityIndicator);
-                Log.d(TAG, "   PCRFlag " + PCRFlag);
-                Log.d(TAG, "   OPCRFlag " + OPCRFlag);
-                Log.d(TAG, "   splicingPointFlag " + splicingPointFlag);
-                Log.d(TAG, "   transportPrivateDataFlag " + transportPrivateDataFlag);
-                Log.d(TAG, "   adaptationFieldExtensionFlag " + adaptationFieldExtensionFlag);
+                Log.d(TAG, "   adaptationFieldLength: " + adaptationFieldLength);
+                Log.d(TAG, "   discontinuityIndicator: " + discontinuityIndicator);
+                Log.d(TAG, "   randomAccessIndicator: " + randomAccessIndicator);
+                Log.d(TAG, "   elementaryStreamPriorityIndicator: " + elementaryStreamPriorityIndicator);
+                Log.d(TAG, "   PCRFlag: " + PCRFlag);
+                Log.d(TAG, "   OPCRFlag: " + OPCRFlag);
+                Log.d(TAG, "   splicingPointFlag: " + splicingPointFlag);
+                Log.d(TAG, "   transportPrivateDataFlag: " + transportPrivateDataFlag);
+                Log.d(TAG, "   adaptationFieldExtensionFlag: " + adaptationFieldExtensionFlag);
             }
 
             long PCR;
@@ -519,21 +632,7 @@ public class TsPacketReader {
             int transportPrivateDataLength;
 
             if (PCRFlag) {
-                byte[] b = {
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                };
-
-                int base = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
-                base <<= 1;
-                base |= ((b[4] >> 7) & 0x01);
-                int ext = (b[4] << 8) & 0x100;
-                ext = (ext | b[5]);
-                PCR = base * 300 + ext;
+                PCR = parsePcrOpcr(packetData);
 
                 if (INFO) {
                     Log.d(TAG, "   PCR: " + PCR + " : " + (PCR / (float) 27000000));
@@ -541,21 +640,7 @@ public class TsPacketReader {
             }
 
             if (OPCRFlag) {
-                byte[] b = {
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                        (byte) packetData.read(),
-                };
-
-                int base = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
-                base <<= 1;
-                base |= ((b[4] >> 7) & 0x01);
-                int ext = (b[4] << 8) & 0x100;
-                ext = (ext | b[5]);
-                OPCR = base * 300 + ext;
+                OPCR = parsePcrOpcr(packetData);
 
                 if (INFO) {
                     Log.d(TAG, "   OPCR " + OPCR + " : " + (OPCR / (float) 27000000));
@@ -629,11 +714,15 @@ public class TsPacketReader {
     /**
      * ByteStream をリスナーに通知します.
      *
-     * @param streamId ストリームタイプ
-     * @param data     通知するByteStreamのデータ
+     * @param pes ストリームタイプ
      */
-    private void postByteStream(int streamId, byte[] data, int dataLength, long pts) {
+    private void postByteStream(PES pes) {
         if (mCallback != null) {
+            int streamType = mStreamType.get(pes.getPID());
+            int streamId = pes.getStreamId();
+            byte[] data = pes.toByteArray();
+            int dataLength = pes.size();
+            long pts = pes.getPts();
             mCallback.onByteStream(streamId, data, dataLength, pts);
         }
     }
@@ -686,15 +775,34 @@ public class TsPacketReader {
     /**
      * PES データを格納しておくクラス.
      */
-    private class PESData {
+    private static class PES {
+        private int mPID;
         private int mStreamId;
         private long mPts;
         private long mDts;
         private byte[] mData;
         private int mDataLength;
 
-        PESData() {
+        PES() {
             mData = new byte[4096];
+        }
+
+        /**
+         * PES データの PID を取得します.
+         *
+         * @return PID
+         */
+        int getPID() {
+            return mPID;
+        }
+
+        /**
+         * PES データの PID を設定します.
+         *
+         * @param PID PID
+         */
+        void setPID(int PID) {
+            mPID = PID;
         }
 
         /**

@@ -346,8 +346,10 @@ public class SRTServer {
             mStatsTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    for (SocketThread thread : mSocketThreads) {
-                        thread.mClientSocket.dumpStats();
+                    synchronized (mSocketThreads) {
+                        for (SocketThread thread : mSocketThreads) {
+                            thread.mClientSocket.dumpStats();
+                        }
                     }
                 }
             }, 0, mStatsInterval);

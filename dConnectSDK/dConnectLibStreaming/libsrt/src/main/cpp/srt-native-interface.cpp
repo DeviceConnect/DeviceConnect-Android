@@ -238,7 +238,7 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
 
     int result = srt_recvmsg((int) ptr, (char *) data, length);
     if (result == SRT_ERROR) {
-        LOGE("srt_send: %s\n", srt_getlasterror_str());
+        LOGE("srt_recvmsg: %s\n", srt_getlasterror_str());
     }
     env->ReleaseByteArrayElements(byteArray, data, 0);
     return result;

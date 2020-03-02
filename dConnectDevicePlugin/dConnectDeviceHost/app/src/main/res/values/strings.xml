@@ -52,6 +52,8 @@
     <string name="host_settings_item_audio_use_aec_summary">Set whether to enable the echo canceller.</string>
     <string name="host_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
     <string name="host_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
+    <string name="host_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>
+    <string name="host_settings_item_srt_inputbw" translatable="false">SRTO_INPUTBW</string>
     <string name="host_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
     <string name="host_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
     <string name="pref_key_settings_gps">pref_key_settings_gps</string>
@@ -66,6 +68,8 @@
     <string name="pref_key_settings_audio_use_aec">pref_key_settings_audio_use_aec</string>
     <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
     <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
+    <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>
+    <string name="pref_key_settings_srt_inputbw" translatable="false">pref_key_settings_srt_inputbw</string>
     <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
     <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
     <string-array name="host_settings_item_audio_sample_rate_list">
@@ -105,6 +109,7 @@
     <string name="host_setting_dialog_disable_gps">Can not search because the GPS is disabled.\nPlease enable GPS by GPS setting screen.</string>
     <string name="host_setting_gps_dialog_cancel">Cancel</string>
 
+    <string name="host_setting_srt_option_auto">Auto</string>
 
     <string name="host_canvas_download_title">Download</string>
     <string name="host_canvas_download_message">Downloading...</string>

@@ -97,6 +97,8 @@
     <string name="host_setting_dialog_disable_gps">GPSが無効になっているために検索できません。\nGPS設定画面からGPSを有効に設定してください。</string>
     <string name="host_setting_gps_dialog_cancel">キャンセル</string>
 
+    <string name="host_setting_srt_option_auto">自動</string>
+
     <string name="host_canvas_download_title">ダウンロード</string>
     <string name="host_canvas_download_message">ダウンロード中...</string>
 
@@ -107,5 +109,4 @@
     <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
     <string name="host_notification_channel_title">Device Connect Notification</string>
     <string name="host_notification_channel_desc">DeviceConnectの通知</string>
-
 </resources>

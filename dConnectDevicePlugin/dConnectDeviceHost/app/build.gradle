@@ -76,8 +76,8 @@ dependencies {
     implementation "androidx.preference:preference:1.1.0"
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
     implementation project(':dconnect-demo-lib')
-    implementation project(':libstreaming')
     implementation project(':libmedia')
+    implementation project(':libsrt')
 }
 
 task zipDemo(type:Zip) {

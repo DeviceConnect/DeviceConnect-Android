@@ -268,7 +268,7 @@ JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_getPeerName()");
 
     struct sockaddr addr;
-    int addrlen;
+    int addrlen = sizeof(addr);
     int ret = srt_getpeername((SRTSOCKET) nativeSocket, &addr, &addrlen);
     if (ret == SRT_ERROR) {
         LOGE("getPeerName: srt_getpeername: %s\n", srt_getlasterror_str());

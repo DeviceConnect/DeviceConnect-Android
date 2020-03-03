@@ -18,6 +18,7 @@ public final class SRT {
     public static final int SRTO_RCVLATENCY = 43;
     public static final int SRTO_PEERLATENCY = 44;
     public static final int SRTO_PEERIDLETIMEO = 55;
+    public static final int SRTO_PACKETFILTER = 60;
 
     public static void startup() {
         NdkHelper.startup();

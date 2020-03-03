@@ -45,6 +45,7 @@ public class RecorderSetting {
         mSRTOptionItems.add(new SRTOptionItem(SRT.SRTO_OHEADBW, Integer.class, R.string.pref_key_settings_srt_oheadbw));
         mSRTOptionItems.add(new SRTOptionItem(SRT.SRTO_CONNTIMEO, Integer.class, R.string.pref_key_settings_srt_conntimeo));
         mSRTOptionItems.add(new SRTOptionItem(SRT.SRTO_PEERIDLETIMEO, Integer.class, R.string.pref_key_settings_srt_peeridletimeo));
+        mSRTOptionItems.add(new SRTOptionItem(SRT.SRTO_PACKETFILTER, String.class, R.string.pref_key_settings_srt_packetfilter));
     }
 
     /**

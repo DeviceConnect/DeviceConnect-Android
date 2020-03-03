@@ -56,6 +56,7 @@
     <string name="host_settings_item_srt_inputbw" translatable="false">SRTO_INPUTBW</string>
     <string name="host_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
     <string name="host_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
+    <string name="host_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
     <string name="pref_key_settings_gps">pref_key_settings_gps</string>
     <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
     <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
@@ -72,6 +73,7 @@
     <string name="pref_key_settings_srt_inputbw" translatable="false">pref_key_settings_srt_inputbw</string>
     <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
     <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
+    <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
     <string-array name="host_settings_item_audio_sample_rate_list">
         <item>96000</item>
         <item>88200</item>

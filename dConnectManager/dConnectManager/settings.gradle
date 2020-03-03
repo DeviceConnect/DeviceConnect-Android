@@ -5,8 +5,6 @@ include 'dconnect-server-nano-httpd'
 project(':dconnect-server-nano-httpd').projectDir = new File('../dConnectServerNanoHttpd/nanohttpd')
 include 'dconnect-device-plugin-host'
 project(':dconnect-device-plugin-host').projectDir = new File('../../dConnectDevicePlugin/dConnectDeviceHost/app')
-include 'libstreaming'
-project(':libstreaming').projectDir = new File('../../dConnectSDK/dConnectLibStreaming/libstreaming')
 include 'libmedia'
 project(':libmedia').projectDir = new File('../../dConnectSDK/dConnectLibStreaming/libmedia')
 include 'libsrt'

@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.uvc.profile;
+package org.deviceconnect.android.deviceplugin.uvc.recorder.preview;
 
 
 import java.util.List;

@@ -1,12 +1,15 @@
 apply plugin: 'com.android.library'
-import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
     compileSdkVersion 29
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 27
+        ndk {
+            // NDKビルドするABIを指定する
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
+        }
     }
 
     buildTypes {
@@ -15,10 +18,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-    sourceSets {
-        main {
-            jniLibs.srcDir 'src/main/libs'
-            jni.srcDirs = []
+
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
         }
     }
 }
@@ -27,68 +30,6 @@ dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
 }
 
-tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn ndkBuild
-}
-
-
-def getNdkFolder() {
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    def ndkdir = properties.getProperty('ndk.dir', null)
-
-    if ((ndkdir == null) && android.hasProperty('plugin')) {
-        if (android.plugin.hasProperty('sdkHandler')) {
-            if (android.plugin.sdkHandler.hasProperty('ndkFolder')) {
-                println("use android.plugin.sdkHandler.ndkFolder as NDK location");
-                ndkdir = android.plugin.sdkHandler.ndkFolder;
-            }
-        }
-    }
-
-    if ((ndkdir == null) && (System.env.ANDROID_NDK_ROOT != null)) {
-        println("use ANDROID_NDK_ROOT environment variable as NDK location")
-        ndkdir = System.env.ANDROID_NDK_ROOT
-    }
-
-    if ((ndkdir == null) && (System.env.NDK_ROOT != null)) {
-        println("use NDK_ROOT environment variable as NDK location")
-        ndkdir = System.env.NDK_ROOT
-    }
-
-    if ((ndkdir == null) && (System.env.NDKROOT != null)) {
-        println("use NDKROOT environment variable as NDK location")
-        ndkdir = System.env.NDKROOT
-    }
-
-    if ((ndkdir == null) && (System.env.NDK != null)) {
-        println("use NDK environment variable as NDK location")
-        ndkdir = System.env.NDKT
-    }
-
-    if (ndkdir == null) {
-        return null;
-    }
-
-    if (!ndkdir.endsWith('/')) {
-        ndkdir = ndkdir + File.separator;
-    }
-    return ndkdir
-}
-
-task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
-    println('executing ndkBuild')
-    def ndkBuildingDir = getNdkFolder();
-    def ndkBuildPath = ndkBuildingDir
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        ndkBuildPath = ndkBuildingDir + 'ndk-build.cmd'
-    } else {
-        ndkBuildPath = ndkBuildingDir + 'ndk-build'
-    }
-    println('ndkBuildPath: ' + ndkBuildPath)
-    println('src: ' + file('src/main').absolutePath)
-    commandLine ndkBuildPath, '-j8', '-C', file('src/main').absolutePath
-}
 dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
     implementation "androidx.legacy:legacy-support-v4:${supportLibVersion}"

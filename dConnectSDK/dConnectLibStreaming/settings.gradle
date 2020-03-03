@@ -1,1 +1,1 @@
-include ':libstreaming-old', ':librtmpstreaming', ':libmedia', ':libopus', ':libsrt', ':rtsp-player-app', ':rtsp-server-app', ':srt-player-app',':srt-server-app', ':libstreaming'
+include ':librtmpstreaming', ':libmedia', ':libopus', ':libsrt', ':rtsp-player-app', ':rtsp-server-app', ':srt-player-app',':srt-server-app', ':libstreaming'

@@ -68,6 +68,7 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
     switch (opt) {
         case SRTO_CONGESTION:
         case SRTO_STREAMID:
+        case SRTO_PACKETFILTER:
         {
             const char *type = env->GetStringUTFChars((jstring) value, nullptr);
             if (type != nullptr) {
@@ -105,7 +106,8 @@ JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint op
         case SRTO_PEERLATENCY:
         case SRTO_OHEADBW:
         case SRTO_CONNTIMEO:
-        case SRTO_PEERIDLETIMEO: {
+        case SRTO_PEERIDLETIMEO:
+        {
             jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
             if (intValueMethodId != nullptr) {
                 int32_t data = env->CallIntMethod(value, intValueMethodId);

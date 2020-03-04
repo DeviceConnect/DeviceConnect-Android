@@ -64,27 +64,6 @@ public class TsPacketReader {
     private static final int STREAM_ID_H222_STREAM = 0b11111000;
 
     /**
-     * Program Map Tables.
-     *
-     * <p>
-     * PID が、どの PMT に対応するかを格納します。
-     * </p>
-     */
-    private SparseIntArray mPMT = new SparseIntArray();
-
-    /**
-     * PMT 情報を格納する Map.
-     *
-     * <p>
-     * PES が、どのストリームタイプに対応するかを格納します。
-     *
-     * - key: PID (PESを識別するID)
-     * - value: ストリームタイプ
-     * </p>
-     */
-    private SparseIntArray mStreamType = new SparseIntArray();
-
-    /**
      * TSパケットの連続性を確認するための情報を格納するマップ.
      *
      * <p>
@@ -98,6 +77,16 @@ public class TsPacketReader {
      * TS パケットデータを格納するくデータソース.
      */
     private final Buffer mPacketData = new Buffer(TS_PACKET_SIZE);
+
+    /**
+     * PAT の情報を格納するクラス.
+     */
+    private final PAT mPAT = new PAT();
+
+    /**
+     * PMT の情報を格納するクラス.
+     */
+    private final SparseArray<PMT> mPMTMap = new SparseArray<>();
 
     /**
      * 送られてきたデータを格納するバッファ.
@@ -231,7 +220,7 @@ public class TsPacketReader {
                     Log.w(TAG, " #### etc... pid=" + pid);
                 }
             } else {
-                if (mPMT.indexOfKey(pid) >= 0) {
+                if (mPAT.containPMT(pid)) {
                     parsePMT(packetData, payloadUnitStartIndicator, pid);
                 } else {
                     parsePES(packetData, payloadUnitStartIndicator, pid, continuity);
@@ -284,7 +273,7 @@ public class TsPacketReader {
                     Log.w(TAG, "   programNumber: " + programNumber);
                     Log.w(TAG, "   programMapPid: " + programMapPid);
                 }
-                mPMT.put(programMapPid, programNumber);
+                mPAT.put(programMapPid, programNumber);
             }
         } else {
             // TODO: PAT が複数パケットに分かれている場合の処理を行うこと。
@@ -309,7 +298,13 @@ public class TsPacketReader {
                 return;
             }
 
-            mStreamType.clear();
+            PMT pmt = mPMTMap.get(pid);
+            if (pmt == null) {
+                pmt = new PMT();
+                mPMTMap.put(pid, pmt);
+            } else {
+                pmt.clear();
+            }
 
             int tableId = packetData.read();
             int sectionLength = (((packetData.read() & 0x0F) << 8)) | ((packetData.read() & 0xFF));
@@ -342,7 +337,7 @@ public class TsPacketReader {
                 int ES_info_length = (((packetData.read() & 0x0F) << 8) | ((packetData.read() & 0xFF)));
                 packetData.skip(ES_info_length);
 
-                mStreamType.put(elementaryPID, streamType);
+                pmt.put(elementaryPID, streamType);
 
                 if (INFO) {
                     Log.w(TAG, "   streamType: " + streamType);
@@ -718,13 +713,32 @@ public class TsPacketReader {
      */
     private void postByteStream(PES pes) {
         if (mCallback != null) {
-            int streamType = mStreamType.get(pes.getPID());
+            int streamType = getStreamType(pes);
             int streamId = pes.getStreamId();
             byte[] data = pes.toByteArray();
             int dataLength = pes.size();
             long pts = pes.getPts();
             mCallback.onByteStream(streamId, data, dataLength, pts);
         }
+    }
+
+    /**
+     * PES のストリームタイプを取得します.
+     *
+     * @param pes PES
+     * @return ストリームタイプ
+     */
+    private int getStreamType(PES pes) {
+        for (int i = 0; i < mPMTMap.size(); i++) {
+            PMT pmt = mPMTMap.get(mPMTMap.keyAt(i));
+            if (pmt != null) {
+                int streamType = pmt.getStreamType(pes.mPID);
+                if (streamType != -1) {
+                    return streamType;
+                }
+            }
+        }
+        return -1;
     }
 
     /**
@@ -769,6 +783,86 @@ public class TsPacketReader {
         void reset() {
             hasError = false;
             mCounter = -1;
+        }
+    }
+
+    /**
+     * PAT の情報を格納するクラス.
+     */
+    private static class PAT {
+        /**
+         * Program Map Tables.
+         *
+         * <p>
+         * PID が、どの PMT に対応するかを格納します。
+         * </p>
+         */
+        private SparseIntArray mPMT = new SparseIntArray();
+
+        /**
+         * 指定された PID が PAT に含まれているか確認します.
+         *
+         * 含まれている場合は、PMT として処理を行います。
+         *
+         * @param pid PID
+         * @return 含まれている場合はtrue、それ以外はfalse;
+         */
+        boolean containPMT(int pid) {
+            return mPMT.indexOfKey(pid) >= 0;
+        }
+
+        /**
+         * PID と program number を登録します.
+         *
+         * @param pid PID
+         * @param programNumber プログラムナンバー
+         */
+        void put(int pid, int programNumber) {
+            mPMT.put(pid, programNumber);
+        }
+    }
+
+    /**
+     * PMT の情報を格納するクラス.
+     */
+    private static class PMT {
+        /**
+         * PMT 情報を格納する Map.
+         *
+         * <p>
+         * PES が、どのストリームタイプに対応するかを格納します。
+         *
+         * - key: PID (PESを識別するID)
+         * - value: ストリームタイプ
+         * </p>
+         */
+        private SparseIntArray mStreamType = new SparseIntArray();
+
+        /**
+         * PMT に PID とストリームタイプを登録します.
+         *
+         * @param pid PID
+         * @param streamType ストリームタイプ
+         */
+        void put(int pid, int streamType) {
+            mStreamType.put(pid, streamType);
+        }
+
+        /**
+         * PID に対応するストリームタイプを取得します.
+         *
+         * @param pid PID
+         * @return ストリームタイプ
+         */
+        int getStreamType(int pid) {
+            return mStreamType.get(pid, -1);
+        }
+
+        /**
+         * PMT のデータをクリアします.
+         */
+        void clear() {
+            mStreamType.clear();
         }
     }
 

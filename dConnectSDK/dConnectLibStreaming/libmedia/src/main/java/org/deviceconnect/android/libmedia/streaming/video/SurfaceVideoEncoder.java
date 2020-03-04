@@ -156,6 +156,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
                 int fps = 1000 / getVideoQuality().getFrameRate();
 
+                int displayRotation = getDisplayRotation();
                 while (!isInterrupted()) {
                     long startTime = System.currentTimeMillis();
 
@@ -164,7 +165,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
                     SurfaceTexture st = mStManager.getSurfaceTexture();
 
                     mStManager.awaitNewImage();
-                    mStManager.drawImage(getDisplayRotation());
+                    mStManager.drawImage(displayRotation);
                     mInputSurface.setPresentationTime(st.getTimestamp());
                     mInputSurface.swapBuffers();
 

@@ -109,9 +109,11 @@ class NdkHelper {
     static native String getPeerName(long nativePtr);
 
     /**
-     * SRT ソケットの統計情報を LogCat にダンプします.
+     * 指定したソケットについての統計データを取得します.
      *
      * @param nativePtr SRTソケットへのポインタ
+     * @param stats 統計データを受け取るオブジェクト
      */
-    static native void dumpStats(long nativePtr);
+    static native void getStats(long nativePtr, SRTStats stats);
+
 }

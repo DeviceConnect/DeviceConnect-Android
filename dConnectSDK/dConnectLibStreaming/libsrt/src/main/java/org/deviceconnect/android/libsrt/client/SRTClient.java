@@ -1,6 +1,9 @@
 package org.deviceconnect.android.libsrt.client;
 
+import android.util.Log;
+
 import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.SRTStats;
 
 import java.io.IOException;
 import java.util.Timer;
@@ -15,6 +18,11 @@ public class SRTClient {
      * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
      */
     static final long DEFAULT_STATS_INTERVAL = 5000;
+
+    /**
+     * タグ.
+     */
+    private static final String TAG = "SRT-CLIENT";
 
     /**
      * SRT ソケット.
@@ -119,7 +127,7 @@ public class SRTClient {
     }
 
     /**
-     * SRT 統計データの LogCat へ表示するインターバルを設定します.
+     * SRT 統計情報を取得するインターバルを設定します.
      *
      * <p>
      * {@link #setShowStats(boolean)} の前に実行すること.
@@ -132,7 +140,7 @@ public class SRTClient {
     }
 
     /**
-     * 統計情報のログ出力を開始します.
+     * 統計情報の取得を開始します.
      */
     private void startStatsTimer() {
         if (mStatsTimer != null) {
@@ -144,14 +152,15 @@ public class SRTClient {
             public void run() {
                 SRTSocket socket = mSRTSocket;
                 if (socket != null) {
-                    socket.dumpStats();
+                    SRTStats stats = socket.getStats();
+                    Log.d(TAG, "stats: " + stats);
                 }
             }
         }, 0, 5000);
     }
 
     /**
-     * 統計情報のログ出力を停止します.
+     * 統計情報の取得を停止します.
      */
     private void stopStatsTimer() {
         if (mStatsTimer != null) {

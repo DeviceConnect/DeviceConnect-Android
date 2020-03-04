@@ -26,6 +26,8 @@ import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 import org.deviceconnect.android.libsrt.SRT;
+import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.SRTStats;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
 
@@ -45,7 +47,15 @@ import androidx.fragment.app.Fragment;
  * SRTサーバからAndroid端末のカメラ映像を配信する画面.
  */
 public class MainActivity extends AppCompatActivity implements SettingsDialogFragment.SettingsDialogListener {
+
+    /**
+     * デバッグフラグ.
+     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * タグ.
+     */
     private static final String TAG = "SRTServer";
 
     /**
@@ -240,7 +250,10 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
             startCamera();
 
             mSRTServer = new SRTServer(12345);
-            mSRTServer.setShowStats(true);
+            if (DEBUG) {
+                mSRTServer.setStatsListener((SRTSocket client, SRTStats stats)
+                        -> Log.d(TAG, "stats: " + stats));
+            }
             mSRTServer.setCallback(new SRTServer.Callback() {
                 @Override
                 public void createSession(SRTSession session) {

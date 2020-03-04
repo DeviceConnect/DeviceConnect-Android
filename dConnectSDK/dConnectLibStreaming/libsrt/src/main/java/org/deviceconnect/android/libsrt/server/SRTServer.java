@@ -8,6 +8,7 @@ import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
 import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.SRTSocketException;
+import org.deviceconnect.android.libsrt.SRTStats;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +24,10 @@ import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
  */
 public class SRTServer {
 
-    private static final String TAG = "SRT";
+    /**
+     * タグ.
+     */
+    private static final String TAG = "SRT-SERVER";
 
     /**
      * 接続できるクライアントの最大数を定義.
@@ -31,7 +35,7 @@ public class SRTServer {
     private static final int DEFAULT_MAX_CLIENT_NUM = 10;
 
     /**
-     * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
+     * 統計データを通知するインターバルのデフォルト値. 単位はミリ秒.
      */
     private static final long DEFAULT_STATS_INTERVAL = 5000;
 
@@ -74,12 +78,17 @@ public class SRTServer {
     private Callback mCallback;
 
     /**
+     * 統計情報のリスナー.
+     */
+    private StatsListener mStatsListener;
+
+    /**
      * 統計データをログ出力するタイマー.
      */
     private Timer mStatsTimer;
 
     /**
-     * 統計データをログ出力するインターバル. 単位はミリ秒.
+     * 統計データを通知するインターバル. 単位はミリ秒.
      */
     private long mStatsInterval = DEFAULT_STATS_INTERVAL;
 
@@ -134,7 +143,7 @@ public class SRTServer {
 
         // 既にサーバが開始されている場合は、タイマーの設定を行います。
         if (mServerStarted) {
-            if (showStats) {
+            if (usesStats()) {
                 startStatsTimer();
             } else {
                 stopStatsTimer();
@@ -178,6 +187,15 @@ public class SRTServer {
      */
     public void setCallback(final Callback callback) {
         mCallback = callback;
+    }
+
+    /**
+     * 統計情報のリスナーを設定します.
+     *
+     * @param statsListener リスナー
+     */
+    public void setStatsListener(final StatsListener statsListener) {
+        mStatsListener = statsListener;
     }
 
     /**
@@ -243,7 +261,7 @@ public class SRTServer {
         mServerSocketThread.setName("SRTServerThread");
         mServerSocketThread.start();
 
-        if (mShowStats) {
+        if (usesStats()) {
             startStatsTimer();
         }
     }
@@ -270,6 +288,10 @@ public class SRTServer {
             }
             mSocketThreads.clear();
         }
+    }
+
+    private boolean usesStats() {
+        return mStatsListener != null || mShowStats;
     }
 
     /**
@@ -337,18 +359,29 @@ public class SRTServer {
         }
     }
 
+    private void notifyStats(final SRTSocket client, final SRTStats stats) {
+        StatsListener listener = mStatsListener;
+        if (listener != null) {
+            listener.onStats(client, stats);
+        }
+    }
+
     /**
      * SRT 統計データを定期的に表示するためのタイマーを開始します.
      */
     private synchronized void startStatsTimer() {
         if (mStatsTimer == null) {
-            mStatsTimer = new Timer();
+            mStatsTimer = new Timer("SRT-STATS");
             mStatsTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     synchronized (mSocketThreads) {
                         for (SocketThread thread : mSocketThreads) {
-                            thread.mClientSocket.dumpStats();
+                            SRTStats stats = thread.mClientSocket.getStats();
+                            if (mShowStats) {
+                                Log.d(TAG, "stats: " + stats);
+                            }
+                            notifyStats(thread.mClientSocket, stats);
                         }
                     }
                 }
@@ -513,5 +546,16 @@ public class SRTServer {
          * @param session セッション
          */
         void releaseSession(SRTSession session);
+    }
+
+    public interface StatsListener {
+
+        /**
+         * 指定したソケットの統計情報を通知します.
+         *
+         * @param client クライアント側のソケット
+         * @param stats 統計情報
+         */
+        void onStats(SRTSocket client, SRTStats stats);
     }
 }

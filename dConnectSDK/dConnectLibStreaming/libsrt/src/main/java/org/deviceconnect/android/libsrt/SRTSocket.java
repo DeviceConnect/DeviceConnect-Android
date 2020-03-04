@@ -133,16 +133,16 @@ public class SRTSocket {
     public String getRemoteSocketAddress() {
         return mSocketAddress;
     }
-
+    
     /**
-     * 通信に関する統計情報をログ出力します.
+     * このソケットについての統計データを取得します.
      *
-     * <p>
-     * デバッグ機能。
-     * </p>
+     * @return 統計データを受け取るオブジェクト
      */
-    public void dumpStats() {
-        NdkHelper.dumpStats(mNativePtr);
+    public SRTStats getStats() {
+        SRTStats stats = new SRTStats();
+        NdkHelper.getStats(mNativePtr, stats);
+        return stats;
     }
 
     /**

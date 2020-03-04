@@ -246,22 +246,36 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
     return result;
 }
 
-
 JNIEXPORT void JNICALL
-JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_dumpStats()");
-
+JNI_METHOD_NAME(getStats)(JNIEnv *env, jclass clazz, jlong ptr, jobject jStats) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_getStats()");
     SRT_TRACEBSTATS stats;
     int result = srt_bstats((int) ptr, &stats, 0);
     if (result == SRT_ERROR) {
         return;
     }
-    LOGD("dumpStats: pktSentTotal=%ld, pktRetransTotal=%d, pktSndLossTotal=%d, pktSndDropTotal=%d",
-            stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal, stats.pktSndDropTotal);
-    LOGD("dumpStats: mbpsBandwidth=%f, mbpsMaxBW=%f, byteAvailSndBuf=%d, msRTT=%f",
-            stats.mbpsBandwidth, stats.mbpsMaxBW, stats.byteAvailSndBuf, stats.msRTT);
-}
 
+    jclass valueClass = env->GetObjectClass(jStats);
+    jmethodID msTimeStamp = env->GetMethodID(valueClass, "msTimeStamp", "(J)V");
+    jmethodID pktSentTotal = env->GetMethodID(valueClass, "pktSentTotal", "(J)V");
+    jmethodID pktRetransTotal = env->GetMethodID(valueClass, "pktRetransTotal", "(I)V");
+    jmethodID pktSndLossTotal = env->GetMethodID(valueClass, "pktSndLossTotal", "(I)V");
+    jmethodID pktSndDropTotal = env->GetMethodID(valueClass, "pktSndDropTotal", "(I)V");
+    jmethodID mbpsMaxBW = env->GetMethodID(valueClass, "mbpsMaxBW", "(D)V");
+    jmethodID byteAvailSndBuf = env->GetMethodID(valueClass, "byteAvailSndBuf", "(I)V");
+    jmethodID msRTT = env->GetMethodID(valueClass, "msRTT", "(D)V");
+    jmethodID setBandWidth = env->GetMethodID(valueClass, "mbpsBandwidth", "(D)V");
+    env->CallVoidMethod(jStats, msTimeStamp, stats.msTimeStamp);
+    env->CallVoidMethod(jStats, pktSentTotal, stats.pktSentTotal);
+    env->CallVoidMethod(jStats, pktRetransTotal, stats.pktRetransTotal);
+    env->CallVoidMethod(jStats, pktSndLossTotal, stats.pktSndLossTotal);
+    env->CallVoidMethod(jStats, pktSndDropTotal, stats.pktSndDropTotal);
+    env->CallVoidMethod(jStats, mbpsMaxBW, stats.mbpsMaxBW);
+    env->CallVoidMethod(jStats, byteAvailSndBuf, stats.byteAvailSndBuf);
+    env->CallVoidMethod(jStats, msRTT, stats.msRTT);
+    env->CallVoidMethod(jStats, setBandWidth, stats.mbpsBandwidth);
+    env->DeleteLocalRef(valueClass);
+}
 
 JNIEXPORT jobject JNICALL
 JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {

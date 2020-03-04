@@ -1,7 +1,7 @@
 package org.deviceconnect.android.libsrt;
 
-import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * SRTソケット.
@@ -21,30 +21,53 @@ public class SRTSocket {
     private String mSocketAddress;
 
     /**
-     * ソケットが閉じているかどうかのフラグ
+     * 未オープンされた状態を定義.
      */
-    private boolean mClosed;
+    private static final int STATE_NOT_OPEN = 1;
+
+    /**
+     * オープンされた状態を定義.
+     */
+    private static final int STATE_CONNECTED = 2;
+
+    /**
+     * クローズされた状態を定義.
+     */
+    private static final int STATE_CLOSED = 3;
+
+    /**
+     * SRT サーバソケットの状態.
+     */
+    private int mState = STATE_NOT_OPEN;
+
+    /**
+     * 接続されていない SRT ソケットを作成します。
+     *
+     * @throws SRTSocketException SRT ソケットの作成に失敗した場合に発生
+     */
+    public SRTSocket() throws SRTSocketException {
+        mNativePtr = NdkHelper.createSrtSocket();
+        if (mNativePtr < 0) {
+            throw new SRTSocketException("Failed to create a socket.", -1);
+        }
+    }
 
     /**
      * SRT ソケットを指定されたアドレスとポート番号に接続します.
      *
      * @param address アドレス
      * @param port ポート番号
-     * @throws IOException 接続に失敗した場合に発生
+     * @throws SRTSocketException 接続に失敗した場合に発生
      */
-    public SRTSocket(String address, int port) throws IOException {
-        InetAddress inetAddress = InetAddress.getByName(address);
-        mSocketAddress = address;
+    public SRTSocket(String address, int port) throws SRTSocketException {
+        this();
 
-        mNativePtr = NdkHelper.createSrtSocket();
-        if (mNativePtr < 0) {
-            throw new IOException("Failed to create a socket: " + address + ":" + port);
-        }
-
-        int result = NdkHelper.connect(mNativePtr, inetAddress.getHostAddress(), port);
-        if (result < 0) {
+        try {
+            connect(address, port);
+        } catch (SRTSocketException e) {
+            // コンストラクタで例外が発生したので、SRT ソケットを閉じます。
             NdkHelper.closeSrtSocket(mNativePtr);
-            throw new IOException("Failed to create a socket: " + address + ":" + port);
+            throw e;
         }
     }
 
@@ -61,6 +84,7 @@ public class SRTSocket {
     SRTSocket(final long nativePtr, final String socketAddress) {
         mNativePtr = nativePtr;
         mSocketAddress = socketAddress;
+        mState = STATE_CONNECTED;
     }
 
     @Override
@@ -70,6 +94,35 @@ public class SRTSocket {
         } finally {
             super.finalize();
         }
+    }
+
+    /**
+     * 指定されたアドレスのサーバーに SRT ソケットを接続します。
+     *
+     * @param address アドレス
+     * @param port ポート番号
+     * @throws SRTSocketException 接続に失敗した場合に発生
+     */
+    public synchronized void connect(String address, int port) throws SRTSocketException {
+        if (mState == STATE_CONNECTED) {
+            throw new SRTSocketException("SRTSocket is already connected.", -1);
+        } else if (mState == STATE_CLOSED) {
+            throw new SRTSocketException("SRTSocket is already closed.", -1);
+        }
+
+        InetAddress inetAddress;
+        try {
+            inetAddress = InetAddress.getByName(address);
+        } catch (UnknownHostException e) {
+            throw new SRTSocketException("The format of the address is invalid.", e, -1);
+        }
+
+        int result = NdkHelper.connect(mNativePtr, inetAddress.getHostAddress(), port);
+        if (result < 0) {
+            throw new SRTSocketException("Failed to create a socket: " + address + ":" + port, -1);
+        }
+
+        mState = STATE_CONNECTED;
     }
 
     /**
@@ -93,12 +146,21 @@ public class SRTSocket {
     }
 
     /**
+     * ソケットの接続状態を返します.
+     *
+     * @return ソケットが接続されている場合は true、それ以外は false
+     */
+    public boolean isConnected() {
+        return mState == STATE_CONNECTED;
+    }
+
+    /**
      * ソケットが閉じているかどうかを返します.
      *
      * @return ソケットが閉じている場合は<code>true</code>、そうでない場合は<code>false</code>
      */
     public boolean isClosed() {
-        return mClosed;
+        return mState == STATE_CLOSED;
     }
 
     /**
@@ -116,7 +178,7 @@ public class SRTSocket {
     /**
      * SRTパケットを送信します.
      *
-     * 指定したバイト配列の先頭から長さ dataLength のデータがペイロードとして格納されます.
+     * 指定したバイト配列の先頭から長さ length のデータがペイロードとして格納されます.
      *
      * @param data ペイロード
      * @param length データ長
@@ -129,7 +191,7 @@ public class SRTSocket {
     /**
      * SRTパケットを送信します.
      *
-     * 指定したバイト配列のうち、offset 番目から長さ dataLength のデータがペイロードとして格納されます.
+     * 指定したバイト配列のうち、offset 番目から長さ length のデータがペイロードとして格納されます.
      *
      * @param data ペイロード
      * @param offset オフセット
@@ -137,7 +199,9 @@ public class SRTSocket {
      * @throws SRTSocketException 送信に失敗した場合
      */
     public synchronized void send(final byte[] data, final int offset, final int length) throws SRTSocketException {
-        if (mClosed) {
+        if (mState == STATE_NOT_OPEN) {
+            throw new SRTSocketException("SRTSocket is not connected yet.", -1);
+        } else if (mState == STATE_CLOSED) {
             throw new SRTSocketException("SRTSocket is already closed.", -1);
         }
 
@@ -155,7 +219,7 @@ public class SRTSocket {
 
         int result = NdkHelper.sendMessage(mNativePtr, data, offset, length);
         if (result < 0) {
-            throw new SRTSocketException(result);
+            throw new SRTSocketException("Failed to send a message.", result);
         }
     }
 
@@ -168,7 +232,9 @@ public class SRTSocket {
      * @throws SRTSocketException 受信に失敗した場合
      */
     public synchronized int recv(byte[] data, int dataLength) throws SRTSocketException {
-        if (mClosed) {
+        if (mState == STATE_NOT_OPEN) {
+            throw new SRTSocketException("SRTSocket is not connected yet.", -1);
+        } else if (mState == STATE_CLOSED) {
             throw new SRTSocketException("SRTSocket is already closed.", -1);
         }
 
@@ -195,7 +261,7 @@ public class SRTSocket {
      * @throws SRTSocketException オプションの設定に失敗した場合に発生
      */
     public void setOption(int option, Object value) throws SRTSocketException {
-        if (mClosed) {
+        if (mState == STATE_CLOSED) {
             throw new SRTSocketException("SRTSocket is already closed.", -1);
         }
 
@@ -205,7 +271,7 @@ public class SRTSocket {
 
         int result = NdkHelper.setSockFlag(mNativePtr, option, value);
         if (result < 0) {
-            throw new SRTSocketException(result);
+            throw new SRTSocketException("Failed to set a socket option. option=" + option + ", value=" + value, result);
         }
     }
 
@@ -215,10 +281,10 @@ public class SRTSocket {
      * すでに閉じている場合は何もせずに即座に処理を返します.
      */
     public synchronized void close() {
-        if (mClosed) {
+        if (mState == STATE_CLOSED) {
             return;
         }
-        mClosed = true;
+        mState = STATE_CLOSED;
 
         NdkHelper.closeSrtSocket(mNativePtr);
     }

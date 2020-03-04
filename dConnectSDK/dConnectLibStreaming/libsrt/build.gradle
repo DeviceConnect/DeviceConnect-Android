@@ -1,7 +1,5 @@
 apply plugin: 'com.android.library'
 
-def SRT_VERSION = '1.4.1'
-
 android {
     compileSdkVersion 29
 
@@ -59,11 +57,15 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
+// 推奨 SRT バージョンを指定します。
+def SRT_VERSION = '1.4.1'
+
 // ビルド時に SRT のバージョンチェックを実行します.
 // jniLibs に存在する SRT ライブラリのバージョンが指定したものでない場合、ビルドを失敗させます.
 task checkVersion(type: VersionCheckTask) {
     requiredVersion = SRT_VERSION
 }
+
 tasks.preBuild.dependsOn(checkVersion)
 
 class VersionCheckTask extends DefaultTask {

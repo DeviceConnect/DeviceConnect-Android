@@ -189,14 +189,18 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             return;
         }
 
-        int outBitsSize = bufferInfo.size;
-        int outPacketSize = outBitsSize + ADTS_LENGTH;
-        if (mADTS == null || mADTS.length != outPacketSize) {
-            mADTS = new byte[outPacketSize];
-            mADTSBuffer = ByteBuffer.wrap(mADTS);
+        int outPacketSize = bufferInfo.size;
+        if (isADTSPacket(encodedData)) {
+            // 送られてきたデータが ADTS ヘッダーを含んでいる場合
+            checkADTSBuffer(outPacketSize);
+            encodedData.get(mADTS, 0, outPacketSize);
+        } else {
+            outPacketSize += ADTS_LENGTH;
+            checkADTSBuffer(outPacketSize);
+
+            addADTStoPacket(mADTS, outPacketSize);
+            encodedData.get(mADTS, ADTS_LENGTH, bufferInfo.size);
         }
-        addADTStoPacket(mADTS, outPacketSize);
-        encodedData.get(mADTS, ADTS_LENGTH, outBitsSize);
 
         mADTSBuffer.position(0);
         mADTSBuffer.limit(outPacketSize);
@@ -233,6 +237,28 @@ public class Mpeg2TsMuxer extends SRTMuxer {
             }
         }
         return -1;
+    }
+
+    /**
+     * バッファサイズを確認し、パケットサイズよりも小さい場合には拡張します.
+     *
+     * @param outPacketSize パケットサイズ
+     */
+    private void checkADTSBuffer(int outPacketSize) {
+        if (mADTS == null || mADTS.length < outPacketSize) {
+            mADTS = new byte[outPacketSize];
+            mADTSBuffer = ByteBuffer.wrap(mADTS);
+        }
+    }
+
+    /**
+     * 指定されたデータの先頭が 0xFFF0 になっている確認します.
+     *
+     * @param encodedData データ
+     * @return 0xFFF0 で開始されている場合は true、それ以外はfalse.
+     */
+    private boolean isADTSPacket(ByteBuffer encodedData) {
+        return (encodedData.get(0) & 0xFF) == 0xFF && (encodedData.get(1) & 0xF0) == 0xF0;
     }
 
     /**

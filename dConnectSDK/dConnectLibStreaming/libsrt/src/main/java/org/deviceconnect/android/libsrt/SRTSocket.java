@@ -42,6 +42,11 @@ public class SRTSocket implements Closeable {
     private int mState = STATE_NOT_OPEN;
 
     /**
+     * SRT 統計情報を格納するクラス.
+     */
+    private final SRTStats mStats = new SRTStats();
+
+    /**
      * 接続されていない SRT ソケットを作成します。
      *
      * @throws SRTSocketException SRT ソケットの作成に失敗した場合に発生
@@ -134,16 +139,15 @@ public class SRTSocket implements Closeable {
     public String getRemoteSocketAddress() {
         return mSocketAddress;
     }
-    
+
     /**
      * このソケットについての統計データを取得します.
      *
      * @return 統計データを受け取るオブジェクト
      */
     public SRTStats getStats() {
-        SRTStats stats = new SRTStats();
-        NdkHelper.getStats(mNativePtr, stats);
-        return stats;
+        NdkHelper.getStats(mNativePtr, mStats);
+        return mStats;
     }
 
     /**

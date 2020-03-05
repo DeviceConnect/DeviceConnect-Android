@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
@@ -30,7 +30,7 @@ import static org.deviceconnect.android.deviceplugin.host.BuildConfig.DEBUG;
 /**
  * メディア共有ロジック.
  */
-abstract class MediaSharing {
+public abstract class MediaSharing {
 
     /**
      * ログ出力用タグ.
@@ -58,6 +58,9 @@ abstract class MediaSharing {
     public abstract Uri shareVideo(final @NonNull Context context,
                                    final @NonNull File videoFile,
                                    final @NonNull FileManager fileManager);
+
+    public abstract Uri shareAudio(final @NonNull Context context,
+                                   final @NonNull File audioFile);
 
     /**
      * 動作環境に合わせたメディア共有ロジックを取得する.
@@ -213,6 +216,22 @@ abstract class MediaSharing {
             int result = resolver.update(uri, values, where, args);
             return result == 1;
         }
+
+        @Override
+        public Uri shareAudio(@NonNull Context context, @NonNull File audioFile) {
+            if (checkMediaFile(audioFile)) {
+                // Contents Providerに登録.
+                ContentResolver resolver = context.getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Video.Media.TITLE, audioFile.getName());
+                values.put(MediaStore.Video.Media.DISPLAY_NAME, audioFile.getName());
+                values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
+                values.put(MediaStore.Video.Media.MIME_TYPE, "audio/mp3");
+                values.put(MediaStore.Video.Media.DATA, audioFile.toString());
+                resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+            }
+            return null;
+        }
     }
 
     @TargetApi(29)
@@ -276,7 +295,7 @@ abstract class MediaSharing {
                 values.put(MediaStore.Video.Media.DISPLAY_NAME, videoFile.getName());
                 values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
                 values.put(MediaStore.Video.Media.MIME_TYPE, "video/avc");
-                values.put(MediaStore.Images.Media.IS_PENDING, 1);
+                values.put(MediaStore.Video.Media.IS_PENDING, 1);
                 Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
                 if (uri == null) {
                     return null;
@@ -301,7 +320,7 @@ abstract class MediaSharing {
                 }
 
                 values.clear();
-                values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                values.put(MediaStore.Video.Media.IS_PENDING, 0);
                 resolver.update(uri, values, null, null);
 
                 try {
@@ -322,6 +341,51 @@ abstract class MediaSharing {
                     }
                     return null;
                 }
+            }
+            return null;
+        }
+
+        @Override
+        public Uri shareAudio(@NonNull Context context, @NonNull File audioFile) {
+            if (checkMediaFile(audioFile)) {
+                ContentResolver resolver = context.getContentResolver();
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Audio.Media.DISPLAY_NAME, audioFile.getName());
+                values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/aac");
+                values.put(MediaStore.Audio.Media.IS_PENDING, 1);
+                Uri collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                Uri uri = resolver.insert(collection, values);
+                if (uri == null) {
+                    Log.e(TAG, "Failed to share audio: not inserted to media store: path = " + audioFile.getAbsolutePath());
+                    return null;
+                }
+
+                try (InputStream in = new FileInputStream(audioFile);
+                     OutputStream out = resolver.openOutputStream(uri))
+                {
+                    if (out == null) {
+                        Log.e(TAG, "Failed to share audio: no output stream: path = " + audioFile.getAbsolutePath());
+                        return null;
+                    }
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    out.flush();
+                } catch (FileNotFoundException e) {
+                    throw new IllegalStateException(e);
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed to share audio: I/O error: path = " + audioFile.getAbsolutePath(), e);
+                    return null;
+                }
+
+                values.clear();
+                values.put(MediaStore.Audio.Media.IS_PENDING, 0);
+                resolver.update(uri, values, null, null);
+                return uri;
+            } else {
+                Log.e(TAG, "Failed to share audio: file not found: path = " + audioFile.getAbsolutePath());
             }
             return null;
         }

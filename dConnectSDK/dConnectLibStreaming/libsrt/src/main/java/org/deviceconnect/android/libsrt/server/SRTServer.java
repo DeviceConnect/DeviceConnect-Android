@@ -23,7 +23,6 @@ import static org.deviceconnect.android.libsrt.BuildConfig.DEBUG;
  * SRTサーバー.
  */
 public class SRTServer {
-
     /**
      * タグ.
      */
@@ -449,6 +448,18 @@ public class SRTServer {
     }
 
     /**
+     * カスタムオプションを取得します.
+     * <p>
+     * オプションが存在しない婆には null を返却します.
+     * </p>
+     * @param option オプション
+     * @return オプションの値
+     */
+    private Object getCustomOption(int option) {
+        return mCustomSocketOptions == null ? null : mCustomSocketOptions.get(option);
+    }
+
+    /**
      * SRT クライアントソケットの生存確認を行うスレッド.
      */
     private class SocketThread extends Thread {
@@ -483,15 +494,16 @@ public class SRTServer {
 
                 mSRTSession.addSRTClientSocket(mClientSocket);
 
-                // TODO 他に設定するオプションがないか検討
-
-                // ソケットの通信を非同期に設定
-                mClientSocket.setOption(SRT.SRTO_RCVSYN, Boolean.FALSE);
-                mClientSocket.setOption(SRT.SRTO_SNDSYN, Boolean.FALSE);
-
                 // ソケットにビットレートの最大値を設定
-                mClientSocket.setOption(SRT.SRTO_INPUTBW, calcMaxBitRate());
-                mClientSocket.setOption(SRT.SRTO_OHEADBW, 50);
+                Object inputbw = getCustomOption(SRT.SRTO_INPUTBW);
+                if (!(inputbw instanceof Long)) {
+                    mClientSocket.setOption(SRT.SRTO_INPUTBW, calcMaxBitRate());
+                }
+
+                Object oheadbw = getCustomOption(SRT.SRTO_OHEADBW);
+                if (!(oheadbw instanceof Integer)) {
+                    mClientSocket.setOption(SRT.SRTO_OHEADBW, 50);
+                }
 
                 while (!isInterrupted()) {
                     if (mClientSocket.isClosed()) {
@@ -549,7 +561,6 @@ public class SRTServer {
     }
 
     public interface StatsListener {
-
         /**
          * 指定したソケットの統計情報を通知します.
          *

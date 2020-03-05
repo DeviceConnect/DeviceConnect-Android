@@ -289,13 +289,13 @@ public class RecorderSetting {
         final Class<?> mValueClass;
         final int mPrefKey;
 
-        public SRTOptionItem(int optionEnum, Class<?> valueClass, int prefKey) {
+        SRTOptionItem(int optionEnum, Class<?> valueClass, int prefKey) {
             mOptionEnum = optionEnum;
             mValueClass = valueClass;
             mPrefKey = prefKey;
         }
 
-        public int getOptionEnum() {
+        int getOptionEnum() {
             return mOptionEnum;
         }
 

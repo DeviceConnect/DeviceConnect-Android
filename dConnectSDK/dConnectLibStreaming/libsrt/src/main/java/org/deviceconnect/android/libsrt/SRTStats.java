@@ -3,8 +3,7 @@ package org.deviceconnect.android.libsrt;
 /**
  * SRT 通信の統計情報.
  */
-public class SRTStats {
-
+public final class SRTStats {
     /**
      * SRT開始からの経過時間. 単位はミリ秒.
      */
@@ -49,6 +48,9 @@ public class SRTStats {
      * ネットワークリンクの帯域幅の推定値. 単位は Mbps.
      */
     private double mbpsBandwidth;
+
+    SRTStats() {
+    }
 
     public long msTimeStamp() {
         return msTimeStamp;

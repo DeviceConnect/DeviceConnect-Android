@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libsrt;
 
+import java.io.Closeable;
 import java.util.Map;
 
 /**
@@ -7,7 +8,7 @@ import java.util.Map;
  *
  * このクラスはスレッドセーフではありません.
  */
-public class SRTServerSocket {
+public class SRTServerSocket implements Closeable {
 
     private static final int DEFAULT_BACKLOG = 5;
 

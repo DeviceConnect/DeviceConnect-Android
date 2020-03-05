@@ -1,12 +1,13 @@
 package org.deviceconnect.android.libsrt;
 
+import java.io.Closeable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
  * SRTソケット.
  */
-public class SRTSocket {
+public class SRTSocket implements Closeable {
 
     /**
      * JNI 側のソケット.
@@ -221,6 +222,17 @@ public class SRTSocket {
         if (result < 0) {
             throw new SRTSocketException("Failed to send a message.", result);
         }
+    }
+
+    /**
+     * SRTパケットを受信します.
+     *
+     * @param data 受信するためのバッファ
+     * @return 受信したデータ長
+     * @throws SRTSocketException 受信に失敗した場合
+     */
+    public int recv(byte[] data) throws SRTSocketException {
+        return recv(data, data.length);
     }
 
     /**

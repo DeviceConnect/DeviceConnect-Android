@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,12 +15,11 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.provider.MediaStore;
+
 import androidx.annotation.NonNull;
 
 import android.util.Log;
@@ -42,12 +39,12 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

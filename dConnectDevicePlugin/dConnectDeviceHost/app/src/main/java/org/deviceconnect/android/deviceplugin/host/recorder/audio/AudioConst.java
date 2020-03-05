@@ -69,5 +69,5 @@ public final class AudioConst {
     public static final String EXTRA_CALLBACK_ERROR_MESSAGE = "callback_error_message";
 
     /** フォーマット名. */
-    public static final String FORMAT_TYPE = ".3gp";
+    public static final String FORMAT_TYPE = ".m4a";
 }

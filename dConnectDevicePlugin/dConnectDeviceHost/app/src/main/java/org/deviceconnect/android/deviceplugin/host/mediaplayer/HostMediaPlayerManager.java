@@ -110,7 +110,7 @@ public class HostMediaPlayerManager {
      * サポートしているaudioのタイプ一覧.
      */
     private static final List<String> AUDIO_TYPE_LIST = Arrays.asList("audio/mpeg", "audio/x-wav", "application/ogg",
-            "audio/x-ms-wma", "audio/mp3", "audio/ogg", "audio/mp4");
+            "audio/x-ms-wma", "audio/mp3", "audio/ogg", "audio/mp4", "audio/aac");
 
     /**
      * サポートしているvideoのタイプ一覧.
@@ -249,6 +249,9 @@ public class HostMediaPlayerManager {
 
         String mMineType = getMIMEType(filePath);
         FileDescriptor fd = getDescriptorFromUri(uri);
+
+        mLogger.info("putMediaId: mimeType: " + mMineType);
+        mLogger.info("putMediaId: fd: " + fd);
 
         // パス指定の場合
         if (AUDIO_TYPE_LIST.contains(mMineType)) {

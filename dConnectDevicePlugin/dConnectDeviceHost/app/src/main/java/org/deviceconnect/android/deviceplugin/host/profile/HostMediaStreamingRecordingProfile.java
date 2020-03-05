@@ -87,7 +87,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 Uri uri = intent.getParcelableExtra(VideoConst.EXTRA_URI);
                 String path = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
                 String u = uri != null ? uri.toString() : null;
-                mRecorderMgr.sendEventForRecordingChange(serviceId, state, u, path, "audio/3gp", "");
+                mRecorderMgr.sendEventForRecordingChange(serviceId, state, u, path, "audio/aac", "");
             }
         }
     };

@@ -350,7 +350,9 @@ public abstract class MediaSharing {
             if (checkMediaFile(audioFile)) {
                 ContentResolver resolver = context.getContentResolver();
                 ContentValues values = new ContentValues();
+                values.put(MediaStore.Audio.Media.TITLE, audioFile.getName());
                 values.put(MediaStore.Audio.Media.DISPLAY_NAME, audioFile.getName());
+                values.put(MediaStore.Audio.Media.ARTIST, "DeviceConnect");
                 values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/aac");
                 values.put(MediaStore.Audio.Media.IS_PENDING, 1);
                 Uri collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);

@@ -7,7 +7,6 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTServerSocket;
 import org.deviceconnect.android.libsrt.SRTSocket;
-import org.deviceconnect.android.libsrt.SRTSocketException;
 import org.deviceconnect.android.libsrt.SRTStats;
 
 import java.io.IOException;
@@ -238,22 +237,20 @@ public class SRTServer {
             return;
         }
 
-        mServerSocket = new SRTServerSocket(mPort);
-        try {
-            mServerSocket.setOption(SRT.SRTO_SENDER, true);
-            mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
-
-            // アプリ側から指定されたオプションを設定
-            if (mCustomSocketOptions != null) {
-                mServerSocket.setOptions(mCustomSocketOptions);
-            }
-
-            mServerSocket.open();
-        } catch (SRTSocketException e) {
-            // SRT サーバの srt_bind と srt_listen に失敗した場合はサーバを閉じておく。
-            mServerSocket.close();
-            throw new IOException(e);
+        if (mServerSocketThread != null) {
+            mServerSocketThread.terminate();
+            mServerSocketThread = null;
         }
+
+        mServerSocket = new SRTServerSocket(mPort);
+        mServerSocket.setOption(SRT.SRTO_SENDER, true);
+        mServerSocket.setOption(SRT.SRTO_MAXBW, 0L);
+
+        // アプリ側から指定されたオプションを設定
+        if (mCustomSocketOptions != null) {
+            mServerSocket.setOptions(mCustomSocketOptions);
+        }
+
         mServerStarted = true;
 
         mServerSocketThread = new ServerSocketThread();

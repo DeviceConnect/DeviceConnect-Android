@@ -120,7 +120,11 @@ public class SRTSocket implements Closeable {
         try {
             inetAddress = InetAddress.getByName(address);
         } catch (UnknownHostException e) {
-            throw new SRTSocketException("The format of the address is invalid.", e, -1);
+            throw new IllegalArgumentException("The format of the address is invalid.", e);
+        }
+
+        if (port <= 0 || port > 65535) {
+            throw new IllegalArgumentException("port is invalid.");
         }
 
         int result = NdkHelper.connect(mNativePtr, inetAddress.getHostAddress(), port);

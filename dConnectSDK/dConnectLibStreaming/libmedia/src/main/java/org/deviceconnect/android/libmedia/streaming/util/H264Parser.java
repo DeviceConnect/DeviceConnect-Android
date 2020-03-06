@@ -10,12 +10,12 @@ public class H264Parser {
     }
 
     public static Sps parseSps(byte[] data, int offset) {
-        Scanner scanner = new Scanner(data);
+        BitScanner scanner = new BitScanner(data);
         scanner.setOffset(offset);
         return parseSps(scanner);
     }
 
-    private static Sps parseSps(Scanner scanner) {
+    private static Sps parseSps(BitScanner scanner) {
         int frame_crop_left_offset = 0;
         int frame_crop_right_offset = 0;
         int frame_crop_top_offset = 0;
@@ -106,57 +106,6 @@ public class H264Parser {
         int height = ((2 - frame_mbs_only_flag) * (pic_height_in_map_units_minus1 + 1) * 16) - (frame_crop_bottom_offset * 2) - (frame_crop_top_offset * 2);
 
         return new Sps(width, height);
-    }
-
-    private static class Scanner {
-        private int mCurrentBit;
-        private byte[] mData;
-
-        Scanner(byte[] data) {
-            mData = data;
-        }
-
-        private void setOffset(int offset) {
-            mCurrentBit += offset * 8;
-        }
-
-        private int readBit() {
-            int index = mCurrentBit / 8;
-            int offset = mCurrentBit % 8 + 1;
-            mCurrentBit++;
-            return (mData[index] >> (8 - offset)) & 0x01;
-        }
-
-        private int readBits(int n) {
-            int r = 0;
-            for (int i = 0; i < n; i++) {
-                r |= (readBit() << (n - i - 1));
-            }
-            return r;
-        }
-
-        private int readExponentialGolombCode() {
-            int r;
-            int i = 0;
-
-            while ((readBit() == 0) && i < 32) {
-                i++;
-            }
-
-            r = readBits(i);
-            r += ((1 << i) - 1);
-            return r;
-        }
-
-        private int readSE() {
-            int r = readExponentialGolombCode();
-            if ((r & 0x01) != 0) {
-                r = (r + 1) / 2;
-            } else {
-                r = -(r / 2);
-            }
-            return r;
-        }
     }
 
     public static class Sps {

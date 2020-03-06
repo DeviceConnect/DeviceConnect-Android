@@ -16,7 +16,6 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
-import org.deviceconnect.android.libmedia.streaming.util.H264Parser;
 import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.IOException;
@@ -315,16 +314,6 @@ public class H264Decoder extends VideoDecoder {
                                 int type = frame.getData()[4] & 0x1F;
                                 if (type == 0x07 || type == 0x08) {
                                     flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-                                    if (type == 0x07) {
-                                        try {
-                                            H264Parser.Sps sps = H264Parser.parseSps(frame.getData(), 4);
-                                            postSizeChanged(sps.getWidth(), sps.getHeight());
-                                        } catch (Exception e) {
-                                            if (DEBUG) {
-                                                Log.e(TAG, "", e);
-                                            }
-                                        }
-                                    }
                                 }
                             }
 

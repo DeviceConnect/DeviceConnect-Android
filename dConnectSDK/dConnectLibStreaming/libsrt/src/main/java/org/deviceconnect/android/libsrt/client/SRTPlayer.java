@@ -8,7 +8,7 @@ import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketReader;
 import org.deviceconnect.android.libsrt.BuildConfig;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AACDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AudioDecoder;
-import org.deviceconnect.android.libsrt.client.decoder.video.H264Decoder;
+import org.deviceconnect.android.libsrt.client.decoder.video.H265Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.VideoDecoder;
 
 import java.io.IOException;
@@ -214,7 +214,7 @@ public class SRTPlayer {
 
         @Override
         public void onConnected() {
-            mVideoDecoder = new H264Decoder();
+            mVideoDecoder = new H265Decoder();
             mVideoDecoder.setSurface(mSurface);
             mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
             mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);

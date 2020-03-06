@@ -67,9 +67,9 @@ public class H264Decoder extends VideoDecoder {
 
     @Override
     public void onReceived(byte[] data, int dataLength, long pts) {
-        if (isRunningWorkThread()) {
-            pts = (long) ((pts / (float) 90000) * 1000 * 1000);
+        pts = (long) ((pts / (float) 90000) * 1000 * 1000);
 
+        if (isRunningWorkThread()) {
             Frame frame = mFrameCache.getFrame(data, dataLength, pts);
             if (frame == null) {
                 if (DEBUG) {
@@ -80,6 +80,7 @@ public class H264Decoder extends VideoDecoder {
             mWorkThread.add(frame);
         } else if (searchSPSandPPS(data, dataLength)) {
             createWorkThread();
+            mWorkThread.add(mFrameCache.getFrame(data, dataLength, pts));
         }
     }
 

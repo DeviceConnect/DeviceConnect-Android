@@ -53,14 +53,21 @@ public class SRTSocketTest {
         }
     }
 
-    @Test(expected = SRTSocketException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testConnect_address_is_null() throws Exception {
         try (SRTSocket socket = new SRTSocket()) {
             socket.connect(null, SRT_PORT);
         }
     }
 
-    @Test(expected = SRTSocketException.class)
+    @Test(expected = IllegalArgumentException.class)
+    public void testConnect_address_is_invalid() throws Exception {
+        try (SRTSocket socket = new SRTSocket()) {
+            socket.connect("test", SRT_PORT);
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testConnect_port_is_invalid() throws Exception {
         try (SRTSocket socket = new SRTSocket()) {
             socket.connect(SRT_HOST, -1);

@@ -73,7 +73,6 @@ public abstract class TestSRTServer {
         public void run() {
             try {
                 mServerSocket = new SRTServerSocket(mPort);
-                mServerSocket.open();
                 mResult.set(true);
             } catch (Exception e) {
                 mLatch.countDown();

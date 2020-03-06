@@ -191,6 +191,21 @@ public class Frame {
     }
 
     /**
+     * フレームバッファにデータを設定します.
+     *
+     * @param data コピー元のデータ
+     * @param offset オフセット
+     * @param dataLength コピー元のデータサイズ
+     */
+    void setData(byte[] data, int offset, int dataLength) {
+        if (mBuffer == null || mBuffer.length < dataLength) {
+            resizeBuffer(dataLength);
+        }
+        mLength = dataLength;
+        System.arraycopy(data, offset, mBuffer, 0, dataLength);
+    }
+
+    /**
      * 指定されたサイズがバッファよりも大きい場合にはリサイズを行います.
      * <p>
      * 現在のバッファの方が大きい場合には何も行いません。

@@ -5,7 +5,8 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.util.Log;
 
-import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.H264Parser;
+import org.deviceconnect.android.libmedia.streaming.util.H264Parser;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 import org.deviceconnect.android.libsrt.BuildConfig;
 import org.deviceconnect.android.libsrt.client.Frame;
 import org.deviceconnect.android.libsrt.client.FrameCache;
@@ -13,8 +14,6 @@ import org.deviceconnect.android.libsrt.client.FrameCache;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class H264Decoder extends VideoDecoder {
     /**
@@ -69,7 +68,9 @@ public class H264Decoder extends VideoDecoder {
     @Override
     public void onReceived(byte[] data, int dataLength, long pts) {
         if (isRunningWorkThread()) {
-            Frame frame = mFrameCache.getFrame(data, dataLength, (pts / 90000) * 1000 * 1000);
+            pts = (long) ((pts / (float) 90000) * 1000 * 1000);
+
+            Frame frame = mFrameCache.getFrame(data, dataLength, pts);
             if (frame == null) {
                 if (DEBUG) {
                     Log.e(TAG, "No free frame.");
@@ -87,6 +88,11 @@ public class H264Decoder extends VideoDecoder {
         if (mWorkThread != null) {
             mWorkThread.terminate();
             mWorkThread = null;
+        }
+
+        if (mFrameCache != null) {
+            mFrameCache.freeFrames();
+            mFrameCache = null;
         }
     }
 
@@ -108,10 +114,10 @@ public class H264Decoder extends VideoDecoder {
                 int type = data[i + 4] & 0x1F;
                 switch (type) {
                     case 7: // SPS
-                        createCSD0(data, i + 4, end);
+                        mCsd0 = createCSD(data, i + 4, end);
                         break;
                     case 8: // PPS
-                        createCSD1(data, i + 4, end);
+                        mCsd1 = createCSD(data, i + 4, end);
                         break;
                 }
             }
@@ -121,16 +127,17 @@ public class H264Decoder extends VideoDecoder {
     }
 
     /**
-     * SPS (csd-0) のデータを作成します.
+     * csd-0 または csd-1 のデータを作成します.
      *
-     * @param data データが格納されたフレームバッファ
-     * @param start csd-0 開始位置
-     * @param end csd-0 終了位置
+     * @param data csd が含まれているデータ
+     * @param start csd の開始位置
+     * @param end csd の終了位置
+     * @return csd のデータ
      */
-    private void createCSD0(byte[] data, int start, int end) {
+    private ByteBuffer createCSD(byte[] data, int start, int end) {
         if (DEBUG) {
             StringBuilder builder = new StringBuilder();
-            builder.append("csd-0: ");
+            builder.append("csd: ");
             for (int i = start; i < end; i++) {
                 if (i > start) {
                     builder.append(",");
@@ -140,34 +147,10 @@ public class H264Decoder extends VideoDecoder {
             Log.d(TAG, builder.toString());
         }
 
-        mCsd0 = ByteBuffer.allocateDirect(end - start).order(ByteOrder.nativeOrder());
-        mCsd0.put(data, start, end - start);
-        mCsd0.flip();
-    }
-
-    /**
-     * PPS (csd-1) のデータを作成します.
-     *
-     * @param data データが格納されたフレームバッファ
-     * @param start csd-1 開始位置
-     * @param end csd-1 終了位置
-     */
-    private void createCSD1(byte[] data, int start, int end) {
-        if (DEBUG) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("csd-1: ");
-            for (int i = start; i < end; i++) {
-                if (i > start) {
-                    builder.append(",");
-                }
-                builder.append(String.format("%02X", data[i]));
-            }
-            Log.d(TAG, builder.toString());
-        }
-
-        mCsd1 = ByteBuffer.allocateDirect(end - start).order(ByteOrder.nativeOrder());
-        mCsd1.put(data, start, end - start);
-        mCsd1.flip();
+        ByteBuffer csd = ByteBuffer.allocateDirect(end - start).order(ByteOrder.nativeOrder());
+        csd.put(data, start, end - start);
+        csd.flip();
+        return csd;
     }
 
     /**
@@ -178,11 +161,14 @@ public class H264Decoder extends VideoDecoder {
             mWorkThread.terminate();
         }
 
+        if (mFrameCache != null) {
+            mFrameCache.freeFrames();
+        }
         mFrameCache = new FrameCache();
         mFrameCache.initFrames();
 
         mWorkThread = new WorkThread();
-        mWorkThread.setName("GoProLiveStreaming-WorkThread");
+        mWorkThread.setName("H264-DECODER");
         mWorkThread.start();
     }
 
@@ -198,21 +184,11 @@ public class H264Decoder extends VideoDecoder {
     /**
      * 送られてきたデータをMediaCodecに渡してデコードを行うスレッド.
      */
-    private class WorkThread extends Thread {
+    private class WorkThread extends QueueThread<Frame> {
         /**
          * タイムアウト時間を定義.
          */
         private static final long TIMEOUT_US = 50000;
-
-        /**
-         * 送られてきたデータを格納するリスト.
-         */
-        private final Queue<Frame> mFrames = new LinkedList<>();
-
-        /**
-         * データの終了フラグ.
-         */
-        private boolean isEOS = false;
 
         /**
          * デコードを行うMediaCodec.
@@ -223,38 +199,13 @@ public class H264Decoder extends VideoDecoder {
          * スレッドのクローズ処理を行います.
          */
         void terminate() {
-            isEOS = true;
-
             interrupt();
 
             try {
-                join(400);
+                join(500);
             } catch (InterruptedException e) {
                 // ignore.
             }
-        }
-
-        /**
-         * 送られてきたデータを通知します.
-         *
-         * @param frame フレームバッファ
-         */
-        synchronized void add(Frame frame) {
-            mFrames.offer(frame);
-            notifyAll();
-        }
-
-        /**
-         * 送られてきたデータを取得します.
-         *
-         * @return 送られてきたデータ
-         * @throws InterruptedException スレッドがインタラプトされた場合に発生
-         */
-        private synchronized Frame getFrame() throws InterruptedException {
-            while (mFrames.peek() == null) {
-                wait();
-            }
-            return mFrames.remove();
         }
 
         /**
@@ -291,8 +242,12 @@ public class H264Decoder extends VideoDecoder {
             format.setByteBuffer("csd-1", mCsd1);
 
             if (mMediaCodec != null) {
-                mMediaCodec.stop();
-                mMediaCodec.release();
+                try {
+                    mMediaCodec.stop();
+                    mMediaCodec.release();
+                } catch (Exception e) {
+                    // ignore.
+                }
             }
 
             mMediaCodec = MediaCodec.createDecoderByType(mMimeType);
@@ -308,6 +263,11 @@ public class H264Decoder extends VideoDecoder {
             if (mMediaCodec != null) {
                 try {
                     mMediaCodec.stop();
+                } catch (Exception e) {
+                    // ignore.
+                }
+
+                try {
                     mMediaCodec.release();
                 } catch (Exception e) {
                     // ignore.
@@ -324,40 +284,27 @@ public class H264Decoder extends VideoDecoder {
 
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
-                long start = System.nanoTime();
-
                 while (!isInterrupted()) {
-                    Frame frame = getFrame();
-                    if (!isEOS) {
-                        int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
-                        if (inIndex >= 0) {
-                            ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
-                            if (buffer != null) {
-                                buffer.clear();
-                                buffer.put(frame.getBuffer(), 0, frame.getLength());
-                                buffer.flip();
-                            }
+                    Frame frame = get();
 
-                            int flags = 0;
-                            if (frame.getLength() > 4) {
-                                int type = frame.getBuffer()[4] & 0x1F;
-                                if (type == 0x07 || type == 0x08) {
-                                    flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-                                    if (type == 0x07) {
-                                        try {
-                                            H264Parser.Sps sps = H264Parser.parseSps(frame.getBuffer(), 4);
-                                            postSizeChanged(sps.getWidth(), sps.getHeight());
-                                        } catch (Exception e) {
-                                            if (DEBUG) {
-                                                Log.e(TAG, "", e);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), start + frame.getPTS(), flags);
+                    int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
+                    if (inIndex >= 0) {
+                        ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
+                        if (buffer != null) {
+                            buffer.clear();
+                            buffer.put(frame.getBuffer(), 0, frame.getLength());
+                            buffer.flip();
                         }
+
+                        int flags = 0;
+                        if (frame.getLength() > 4) {
+                            int type = frame.getBuffer()[4] & 0x1F;
+                            if (type == 0x07 || type == 0x08) {
+                                flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+                            }
+                        }
+
+                        mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getPTS(), flags);
                     }
 
                     frame.release();
@@ -395,14 +342,6 @@ public class H264Decoder extends VideoDecoder {
                             default:
                                 break;
                         }
-                    }
-
-                    // All decoded frames have been rendered, we can stop playing now
-                    if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                        if (DEBUG) {
-                            Log.d(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-                        }
-                        break;
                     }
                 }
             } catch (OutOfMemoryError e) {

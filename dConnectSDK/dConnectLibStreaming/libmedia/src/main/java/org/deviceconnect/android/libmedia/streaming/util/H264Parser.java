@@ -1,4 +1,4 @@
-package org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video;
+package org.deviceconnect.android.libmedia.streaming.util;
 
 public class H264Parser {
 
@@ -102,8 +102,8 @@ public class H264Parser {
         }
         int vui_parameters_present_flag = scanner.readBit();
 
-        int width = ((pic_width_in_mbs_minus1 +1)*16) - frame_crop_right_offset *2 - frame_crop_left_offset *2;
-        int height = ((2 - frame_mbs_only_flag)* (pic_height_in_map_units_minus1 +1) * 16) - (frame_crop_bottom_offset* 2) - (frame_crop_top_offset* 2);
+        int width = ((pic_width_in_mbs_minus1 + 1) * 16) - frame_crop_right_offset * 2 - frame_crop_left_offset * 2;
+        int height = ((2 - frame_mbs_only_flag) * (pic_height_in_map_units_minus1 + 1) * 16) - (frame_crop_bottom_offset * 2) - (frame_crop_top_offset * 2);
 
         return new Sps(width, height);
     }

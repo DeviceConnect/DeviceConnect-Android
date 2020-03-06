@@ -43,6 +43,27 @@ public class FrameCache {
     }
 
     /**
+     * 未使用の Frame にデータを設定して取得します.
+     * <p>
+     * 未使用の Frame が見つからない場合は、null を返却します。
+     * </p>
+     * @param data データ
+     * @param offset オフセット
+     * @param dataLength データサイズ
+     * @param pts PTS
+     * @return 未使用の Frame
+     */
+    public Frame getFrame(byte[] data, int offset, int dataLength, long pts) {
+        Frame frame = getFreeFrame(dataLength);
+        if (frame == null) {
+            return null;
+        }
+        frame.setData(data, offset, dataLength);
+        frame.setPTS(pts);
+        return frame;
+    }
+
+    /**
      * 未使用の Frame を取得します.
      * <p>
      * 未使用の Frame が見つからない場合は、null を返却します。

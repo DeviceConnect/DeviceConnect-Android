@@ -13,7 +13,6 @@ import java.util.TimerTask;
  * SRT サーバと通信するクラス.
  */
 public class SRTClient {
-
     /**
      * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
      */
@@ -95,6 +94,7 @@ public class SRTClient {
             return;
         }
         mSRTSessionThread = new SRTSessionThread();
+        mSRTSessionThread.setName("SRT-CLIENT-THREAD");
         mSRTSessionThread.start();
     }
 
@@ -156,7 +156,7 @@ public class SRTClient {
                     Log.d(TAG, "stats: " + stats);
                 }
             }
-        }, 0, 5000);
+        }, mStatsInterval, mStatsInterval);
     }
 
     /**

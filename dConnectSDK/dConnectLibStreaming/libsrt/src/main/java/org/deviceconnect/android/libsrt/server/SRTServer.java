@@ -254,7 +254,7 @@ public class SRTServer {
         mServerStarted = true;
 
         mServerSocketThread = new ServerSocketThread();
-        mServerSocketThread.setName("SRTServerThread");
+        mServerSocketThread.setName("SRT-SERVER-THREAD");
         mServerSocketThread.start();
 
         if (usesStats()) {
@@ -381,7 +381,7 @@ public class SRTServer {
                         }
                     }
                 }
-            }, 0, mStatsInterval);
+            }, mStatsInterval, mStatsInterval);
         }
     }
 
@@ -467,6 +467,7 @@ public class SRTServer {
 
         SocketThread(final SRTSocket clientSocket) {
             mClientSocket = clientSocket;
+            setName("SRT-CLIENT-" + clientSocket.getRemoteSocketAddress());
         }
 
         void terminate() {

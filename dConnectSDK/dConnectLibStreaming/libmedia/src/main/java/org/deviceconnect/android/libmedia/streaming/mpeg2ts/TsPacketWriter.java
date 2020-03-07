@@ -6,25 +6,7 @@ import org.deviceconnect.android.libmedia.streaming.util.CrcUtil;
 
 import java.nio.ByteBuffer;
 
-class TsPacketWriter {
-
-    // Transport Stream packets are 188 bytes in length
-    private static final int TS_PACKET_SIZE = 188;
-    private static final int TS_HEADER_SIZE = 4;
-    private static final int TS_PAYLOAD_SIZE = TS_PACKET_SIZE - TS_HEADER_SIZE;
-
-    // Table 2-29 – Stream type assignments. page 66
-    static final byte STREAM_TYPE_AUDIO_AAC = 0x0F;
-    static final byte STREAM_TYPE_AUDIO_MP3 = 0x03;
-    static final byte STREAM_TYPE_VIDEO_H264 = 0x1B;
-    static final byte STREAM_TYPE_VIDEO_H265 = 0x24;
-
-    // Table 2-18 – Stream_id assignments
-    static final byte STREAM_ID_VIDEO = (byte) 0xE0;
-    static final byte STREAM_ID_AUDIO = (byte) 0xC0;
-
-    private static final int TS_PAT_PID = 0x0000;    // 0
-    private static final int TS_PMT_PID = 0x1000;    // 4096
+class TsPacketWriter implements TsConstants {
     private static final int TS_AUDIO_PID = 0x101;   // 257
     private static final int TS_VIDEO_PID = 0x100;   // 256
 
@@ -116,14 +98,13 @@ class TsPacketWriter {
      * @param continuity_counter カウンター
      */
     private void writeTsHeader(int pid, int continuity_counter) {
-        byte sync_byte = 0x47;
         int transport_error_indicator = 0;
         int payload_unit_start_indicator = 1;
         int transport_priority = 0;
         int transport_scrambling_control = 0;
         int adaptation_field_control = 1;
 
-        writePacket(sync_byte);
+        writePacket(SYNC_BYTE);
         writePacket((byte) ((transport_error_indicator << 7) | (payload_unit_start_indicator << 6) | (transport_priority << 5) | ((pid >> 8) & 0x1F)));
         writePacket((byte) (pid & 0xff));
         writePacket((byte) ((transport_scrambling_control << 6) | (adaptation_field_control << 4) | (continuity_counter & 0x0F)));
@@ -302,7 +283,7 @@ class TsPacketWriter {
             resetPacket((byte) 0x00);
 
             // write ts header
-            writePacket((byte) 0x47); // sync_byte
+            writePacket(SYNC_BYTE);
             writePacket((byte) ((isFirstTs ? 0x40 : 0x00) | ((pid >> 8) & 0x1F)));
             writePacket((byte) (pid & 0xFF));
             writePacket((byte) ((isAdaptationField ? 0x30 : 0x10) | ((pes.isAudio() ? mAudioContinuityCounter++ : mVideoContinuityCounter++) & 0xF)));

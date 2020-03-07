@@ -9,7 +9,7 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
     /**
      * TS パケットから取得したストリームを通知するコールバック.
      */
-    private TsPacketReader.Callback mCallback;
+    private Callback mCallback;
 
     /**
      * コンストラクタ.
@@ -23,7 +23,7 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
      *
      * @param callback コールバック
      */
-    public void setCallback(TsPacketReader.Callback callback) {
+    public void setCallback(Callback callback) {
         mCallback = callback;
     }
 
@@ -64,5 +64,8 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
         } catch (Exception e) {
             // ignore.
         }
+    }
+
+    public interface Callback extends TsPacketReader.Callback {
     }
 }

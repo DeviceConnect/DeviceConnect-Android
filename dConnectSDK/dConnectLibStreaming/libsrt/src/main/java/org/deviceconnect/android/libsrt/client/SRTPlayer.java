@@ -3,11 +3,12 @@ package org.deviceconnect.android.libsrt.client;
 import android.net.Uri;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsConstants;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketExtractor;
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketReader;
 import org.deviceconnect.android.libsrt.BuildConfig;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AACDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AudioDecoder;
+import org.deviceconnect.android.libsrt.client.decoder.video.H264Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H265Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.VideoDecoder;
 
@@ -124,7 +125,7 @@ public class SRTPlayer {
     /**
      * SRT プレイヤーを開始します.
      */
-    public void start() {
+    public synchronized void start() {
         if (mSRTClient != null) {
             return;
         }
@@ -152,7 +153,7 @@ public class SRTPlayer {
     /**
      * SRT プレイヤーを停止します.
      */
-    public void stop() {
+    public synchronized void stop() {
         if (mPacketExtractor != null) {
             mPacketExtractor.terminate();
             mPacketExtractor = null;
@@ -214,15 +215,6 @@ public class SRTPlayer {
 
         @Override
         public void onConnected() {
-            mVideoDecoder = new H265Decoder();
-            mVideoDecoder.setSurface(mSurface);
-            mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
-            mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
-            mVideoDecoder.onInit();
-
-            mAudioDecoder = new AACDecoder();
-            mAudioDecoder.setErrorCallback(SRTPlayer.this::postOnError);
-            mAudioDecoder.onInit();
         }
 
         @Override
@@ -244,14 +236,57 @@ public class SRTPlayer {
         }
     };
 
-    private final TsPacketReader.Callback mCallback = (streamId, data, dataLength, pts) -> {
-        if (streamId == STREAM_TYPE_VIDEO) {
-            if (mVideoDecoder != null) {
-                mVideoDecoder.onReceived(data, dataLength, pts);
+    private final TsPacketExtractor.Callback mCallback = new TsPacketExtractor.Callback() {
+        @Override
+        public void onConfig(int pid, int streamType) {
+            switch (streamType) {
+                case TsConstants.STREAM_TYPE_VIDEO_H264:
+                {
+                    if (mVideoDecoder != null) {
+                        return;
+                    }
+                    mVideoDecoder = new H264Decoder();
+                    mVideoDecoder.setSurface(mSurface);
+                    mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+                    mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
+                    mVideoDecoder.onInit();
+                }
+                    break;
+                case TsConstants.STREAM_TYPE_VIDEO_H265:
+                {
+                    if (mVideoDecoder != null) {
+                        return;
+                    }
+                    mVideoDecoder = new H265Decoder();
+                    mVideoDecoder.setSurface(mSurface);
+                    mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+                    mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
+                    mVideoDecoder.onInit();
+                }
+                    break;
+                case TsConstants.STREAM_TYPE_AUDIO_AAC:
+                {
+                    if (mAudioDecoder != null) {
+                        return;
+                    }
+                    mAudioDecoder = new AACDecoder();
+                    mAudioDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+                    mAudioDecoder.onInit();
+                }
+                    break;
             }
-        } else if (streamId == STREAM_TYPE_AUDIO) {
-            if (mAudioDecoder != null) {
-                mAudioDecoder.onReceived(data, dataLength, pts);
+        }
+
+        @Override
+        public void onByteStream(int pid, int streamId, byte[] data, int dataLength, long pts) {
+            if (streamId == STREAM_TYPE_VIDEO) {
+                if (mVideoDecoder != null) {
+                    mVideoDecoder.onReceived(data, dataLength, pts);
+                }
+            } else if (streamId == STREAM_TYPE_AUDIO) {
+                if (mAudioDecoder != null) {
+                    mAudioDecoder.onReceived(data, dataLength, pts);
+                }
             }
         }
     };

@@ -7,7 +7,7 @@ import android.util.SparseIntArray;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.util.HexUtil;
 
-public class TsPacketReader {
+public class TsPacketReader implements TsConstants {
     /**
      * パケット情報ログの出力フラグ.
      */
@@ -22,46 +22,6 @@ public class TsPacketReader {
      * デバッグ用タグ.
      */
     private static final String TAG = "TS-READER";
-
-    /**
-     * TS パケットサイズの定義.
-     */
-    private static final int TS_PACKET_SIZE = 188;
-
-    /**
-     * TS パケットヘッダ.
-     */
-    private static final byte SYNC_BYTE = 0x47;
-
-    /**
-     * Program Association Table (PAT) の定義.
-     */
-    private static final int PAT = 0x00;
-
-    /**
-     * Conditional Access Table (CAT) の定義.
-     */
-    private static final int CAT = 0x01;
-
-    /**
-     * Transport Stream Description Table (TSDT) の定義.
-     */
-    private static final int TSDT = 0x02;
-
-    /**
-     * IPMP Control Information Table の定義.
-     */
-    private static final int IPMP = 0x03;
-
-    private static final int STREAM_ID_PROGRAM_STREAM_MAP = 0b10111100;
-    private static final int STREAM_ID_PRIVATE_STREAM_1 = 0b10111101;
-    private static final int STREAM_ID_PADDING_STREAM = 0b10111110;
-    private static final int STREAM_ID_PRIVATE_STREAM_2 = 0b10111111;
-    private static final int STREAM_ID_ECM_STREAM = 0b11110000;
-    private static final int STREAM_ID_EMM_STREAM = 0b11110001;
-    private static final int STREAM_ID_DSMCC_STREAM = 0b11110010;
-    private static final int STREAM_ID_PROGRAM_STREAM_DIRECTORY = 0b11111111;
-    private static final int STREAM_ID_H222_STREAM = 0b11111000;
 
     /**
      * TSパケットの連続性を確認するための情報を格納するマップ.
@@ -139,7 +99,7 @@ public class TsPacketReader {
     /**
      * TSパケットのヘッダーを格納するためのバッファ.
      */
-    private final byte[] mTsPacketHeader = new byte[4];
+    private final byte[] mTsPacketHeader = new byte[TS_HEADER_SIZE];
 
     /**
      * TSパケットを解析して、 Byte stream format (Annex B) を抜き出してリスナーに通知します.
@@ -147,7 +107,7 @@ public class TsPacketReader {
      * @param packetData TSパケットが格納されたデータソース
      */
     private void parseTS(Buffer packetData) {
-        packetData.read(mTsPacketHeader, 0, 4);
+        packetData.read(mTsPacketHeader, 0, TS_HEADER_SIZE);
 
         // TS パケットのヘッダー解析
         int syncByte = mTsPacketHeader[0];
@@ -196,17 +156,17 @@ public class TsPacketReader {
             // PSI の場合は pointer_field (0x00) が先頭に入ります。
             // PES の場合は 0x000001 が先頭に入ります。
 
-            if (pid == PAT) {
+            if (pid == TS_PAT_PID) {
                 parsePAT(packetData, payloadUnitStartIndicator);
-            } else if (pid == CAT) {
+            } else if (pid == TS_CAT_PID) {
                 if (INFO) {
                     Log.w(TAG, " #### CAT");
                 }
-            } else if (pid == TSDT) {
+            } else if (pid == TS_TSDT_PID) {
                 if (INFO) {
                     Log.w(TAG, " #### TSDT");
                 }
-            } else if (pid == IPMP) {
+            } else if (pid == TS_IPMP_PID) {
                 if (INFO) {
                     Log.w(TAG, " #### IPMP");
                 }
@@ -347,6 +307,8 @@ public class TsPacketReader {
 
                 i += (5 + ES_info_length);
             }
+
+            postConfig(pmt);
         } else {
             // TODO: PMT が複数パケットに分かれている場合の処理を行うこと。
         }
@@ -707,18 +669,33 @@ public class TsPacketReader {
     }
 
     /**
-     * ByteStream をリスナーに通知します.
+     * PMT をリスナーに通知します.
      *
-     * @param pes ストリームタイプ
+     * @param pmt PMT のデータ
+     */
+    private void postConfig(PMT pmt) {
+        if (mCallback != null) {
+            for (int i = 0; i < pmt.mStreamType.size(); i++) {
+                int pid = pmt.mStreamType.keyAt(i);
+                int streamType = pmt.getStreamType(pid);
+                mCallback.onConfig(pid, streamType);
+            }
+        }
+    }
+
+    /**
+     * PES をリスナーに通知します.
+     *
+     * @param pes PES のデータ
      */
     private void postByteStream(PES pes) {
         if (mCallback != null) {
-            int streamType = getStreamType(pes);
+            int pid = pes.getPID();
             int streamId = pes.getStreamId();
             byte[] data = pes.toByteArray();
             int dataLength = pes.size();
             long pts = pes.getPts();
-            mCallback.onByteStream(streamId, data, dataLength, pts);
+            mCallback.onByteStream(pid, streamId, data, dataLength, pts);
         }
     }
 
@@ -1005,13 +982,19 @@ public class TsPacketReader {
      */
     public interface Callback {
         /**
+         * ストリームのコンフィグ情報を通知します.
+         */
+        void onConfig(int pid, int streamType);
+
+        /**
          * ストリームデータを通知します.
          *
+         * @param pid PID
          * @param streamId ストリーム ID
          * @param data データ
          * @param dataLength データサイズ
          * @param pts PTS
          */
-        void onByteStream(int streamId, byte[] data, int dataLength, long pts);
+        void onByteStream(int pid, int streamId, byte[] data, int dataLength, long pts);
     }
 }

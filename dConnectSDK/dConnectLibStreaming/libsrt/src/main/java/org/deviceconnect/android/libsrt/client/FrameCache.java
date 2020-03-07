@@ -1,9 +1,22 @@
 package org.deviceconnect.android.libsrt.client;
 
+import android.util.Log;
+
+import org.deviceconnect.android.libsrt.BuildConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class FrameCache {
+    /**
+     * デバッグ用フラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * デバッグ用タグ.
+     */
+    private static final String TAG = "SRT-PLAYER";
 
     /**
      * 使い回す Frame のリスト.
@@ -97,7 +110,22 @@ public class FrameCache {
                 }
             }
         }
+
+        if (DEBUG) {
+            Log.e(TAG, "No free frame.");
+        }
         return null;
+    }
+
+    /**
+     * 全てのフレームの使用フラグを false に設定します.
+     */
+    public void releaseAllFrames() {
+        synchronized (mCacheFrames) {
+            for (Frame frame : mCacheFrames) {
+                frame.release();
+            }
+        }
     }
 
     /**

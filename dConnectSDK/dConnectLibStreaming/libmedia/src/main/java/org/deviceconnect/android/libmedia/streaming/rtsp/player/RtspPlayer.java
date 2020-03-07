@@ -3,10 +3,6 @@ package org.deviceconnect.android.libmedia.streaming.rtsp.player;
 import android.util.Log;
 import android.view.Surface;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspClient;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspClientException;
@@ -16,11 +12,16 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.DecoderF
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.audio.AACLATMDecoderFactory;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.H264DecoderFactory;
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.H265DecoderFactory;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.VideoDecoder;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class RtspPlayer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -84,6 +85,7 @@ public class RtspPlayer {
         mUrl = url;
 
         addVideoFactory("H264", new H264DecoderFactory());
+        addVideoFactory("H265", new H265DecoderFactory());
         addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
     }
 

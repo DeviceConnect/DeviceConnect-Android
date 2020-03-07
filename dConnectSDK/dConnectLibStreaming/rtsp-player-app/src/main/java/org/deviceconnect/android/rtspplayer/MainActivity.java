@@ -1,21 +1,10 @@
 package org.deviceconnect.android.rtspplayer;
 
-import android.content.Context;
-import android.media.MediaPlayer;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -23,8 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RtspPlayer mRtspPlayer;
-    private MediaPlayer mMediaPlayer;
+    private RTSPSetting mSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,23 +21,30 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener((View view) ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show());
+        mSetting = new RTSPSetting(getApplicationContext());
 
-        EditText editText = findViewById(R.id.edit_text_url);
-        editText.setText("rtsp://192.168.1.75:10000");
+        findViewById(R.id.btn_srt_play).setOnClickListener((v) -> {
+            EditText et = findViewById(R.id.edittext_rtsp_server_url);
+            String uri = et.getText().toString();
 
-        findViewById(R.id.btn_start).setOnClickListener((v) -> {
-            hideSoftKeyboard(v);
-            startPlayer();
+            if (uri.isEmpty()) {
+                return;
+            }
+
+            if (!uri.startsWith("rtsp://")) {
+                return;
+            }
+
+            mSetting.setServerUrl(uri);
+
+            gotoRTSPPlayer(uri);
         });
 
-        findViewById(R.id.btn_stop).setOnClickListener((v) -> {
-            hideSoftKeyboard(v);
-            stopPlayer();
-        });
+        String srtUrl = mSetting.getServerUrl();
+        if (srtUrl != null && !srtUrl.isEmpty()) {
+            EditText et = findViewById(R.id.edittext_rtsp_server_url);
+            et.setText(srtUrl);
+        }
     }
 
     @Override
@@ -74,100 +69,11 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void hideSoftKeyboard(View v) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-        }
-    }
-
-    private void startPlayer() {
-        if (mRtspPlayer != null) {
-            return;
-        }
-
-        if (mMediaPlayer != null) {
-            return;
-        }
-
-        EditText urlEditText = findViewById(R.id.edit_text_url);
-        String url = urlEditText.getText().toString();
-
-        SurfaceView surfaceView = findViewById(R.id.surface_view);
-
-//        try {
-//            mMediaPlayer = new MediaPlayer();
-//            mMediaPlayer.setDataSource(url);
-//            mMediaPlayer.setSurface(surfaceView.getHolder().getSurface());
-//            mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-//            mMediaPlayer.setOnPreparedListener((MediaPlayer mp) -> mMediaPlayer.start());
-//            mMediaPlayer.prepare();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-        mRtspPlayer = new RtspPlayer(url);
-        mRtspPlayer.setSurface(surfaceView.getHolder().getSurface());
-        mRtspPlayer.setOnEventListener(new RtspPlayer.OnEventListener() {
-            @Override
-            public void onError(Exception e) {
-            }
-
-            @Override
-            public void onOpened() {
-            }
-
-            @Override
-            public void onSizeChanged(int width, int height) {
-                runOnUiThread(() -> changePlayerSize(width, height));
-            }
-        });
-        mRtspPlayer.start();
-    }
-
-    private void changePlayerSize(int pictureWidth, int pictureHeight) {
-        View root = findViewById(R.id.root);
-        SurfaceView surfaceView = findViewById(R.id.surface_view);
-
-        Size changeSize;
-        Size viewSize = new Size(root.getWidth(), root.getHeight());
-        changeSize = calculateViewSize(pictureWidth, pictureHeight, viewSize);
-
-        ViewGroup.LayoutParams layoutParams = surfaceView.getLayoutParams();
-        layoutParams.width = changeSize.getWidth();
-        layoutParams.height = changeSize.getHeight();
-        surfaceView.setLayoutParams(layoutParams);
-    }
-
-    protected Size calculateViewSize(int width, int height, Size maxSize) {
-        int h = maxSize.getWidth() * height / width;
-        if (h % 2 != 0) {
-            h--;
-        }
-        if (maxSize.getHeight() < h) {
-            int w = maxSize.getHeight() * width / height;
-            if (w % 2 != 0) {
-                w--;
-            }
-            return new Size(w, maxSize.getHeight());
-        }
-        return new Size(maxSize.getWidth(), h);
-    }
-
-    private void stopPlayer() {
-        if (mMediaPlayer != null) {
-            try {
-                mMediaPlayer.stop();
-                mMediaPlayer.release();
-                mMediaPlayer = null;
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (mRtspPlayer != null) {
-            mRtspPlayer.stop();
-            mRtspPlayer = null;
-        }
+    private void gotoRTSPPlayer(String uri) {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), RTSPPlayerActivity.class);
+        intent.putExtra(RTSPPlayerActivity.EXTRA_URI, uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

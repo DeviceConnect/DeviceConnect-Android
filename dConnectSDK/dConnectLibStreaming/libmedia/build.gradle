@@ -18,9 +18,28 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all {
+            def buildTypeName = variant.buildType.name
+            def versionName = android.defaultConfig.versionName
+            def newName = "libmedia-${buildTypeName}-${versionName}.aar"
+            outputFileName = newName
+        }
+        variant.getAssembleProvider().get().doLast {
+            variant.outputs.all { output ->
+                copy {
+                    def srcDir = new File(variant.getPackageLibraryProvider().get().getDestinationDir(), output.outputFileName)
+                    from "${srcDir}"
+                    into "${rootProject.buildDir}/outputs/aar"
+                }
+            }
+        }
     }
 }
 

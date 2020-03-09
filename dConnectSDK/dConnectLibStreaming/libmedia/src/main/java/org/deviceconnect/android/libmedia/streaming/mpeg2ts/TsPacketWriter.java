@@ -1,7 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.mpeg2ts;
 
-import com.google.common.primitives.Bytes;
-
 import org.deviceconnect.android.libmedia.streaming.util.CrcUtil;
 
 import java.nio.ByteBuffer;
@@ -343,12 +341,12 @@ class TsPacketWriter implements TsConstants {
                     // TODO この記述は必要か確認すること。
                     switch (pes.mStreamType) {
                         case STREAM_TYPE_VIDEO_H264:
-                            if (Bytes.indexOf(pes.mData, H264_NAL) == -1) {
+                            if (indexOf(pes.mData, H264_NAL) == -1) {
                                 writePacket(H264_NAL, 0, H264_NAL.length);
                             }
                             break;
                         case STREAM_TYPE_VIDEO_H265:
-                            if (Bytes.indexOf(pes.mData, H265_NAL) == -1) {
+                            if (indexOf(pes.mData, H265_NAL) == -1) {
                                 writePacket(H265_NAL, 0, H265_NAL.length);
                             }
                             break;
@@ -418,6 +416,23 @@ class TsPacketWriter implements TsConstants {
 
             notifyPacket(frameBufPtr >= pes.mDataLength);
         }
+    }
+
+    private static int indexOf(byte[] array, byte[] target) {
+        if (target.length == 0) {
+            return 0;
+        }
+
+        outer:
+        for (int i = 0; i < array.length - target.length + 1; i++) {
+            for (int j = 0; j < target.length; j++) {
+                if (array[i + j] != target[j]) {
+                    continue outer;
+                }
+            }
+            return i;
+        }
+        return -1;
     }
 
     static class PES {

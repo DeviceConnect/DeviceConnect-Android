@@ -14,12 +14,6 @@ import androidx.annotation.NonNull;
  * メディア共有ロジック.
  */
 public abstract class MediaSharing {
-
-    /**
-     * ログ出力用タグ.
-     */
-    private static final String TAG = "host.dplugin";
-
     /**
      * 指定された静止画ファイルを端末内の他アプリと共有する.
      *

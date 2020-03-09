@@ -99,7 +99,7 @@ class MediaSharingForLegacy extends MediaSharing {
         return null;
     }
 
-    long registerVideoThumbnail(final @NonNull Context context,
+    private long registerVideoThumbnail(final @NonNull Context context,
                                 final @NonNull File videoFile,
                                 final long videoId,
                                 final @NonNull FileManager fileManager) {
@@ -156,7 +156,7 @@ class MediaSharingForLegacy extends MediaSharing {
         }
     }
 
-    boolean updateThumbnailInfo(final @NonNull Context context,
+    private boolean updateThumbnailInfo(final @NonNull Context context,
                                 final long thumbnailId,
                                 final long videoId) {
         ContentValues values = new ContentValues();
@@ -164,7 +164,7 @@ class MediaSharingForLegacy extends MediaSharing {
         return updateThumbnailInfo(context, thumbnailId, values);
     }
 
-    boolean updateThumbnailInfo(final @NonNull Context context,
+    private boolean updateThumbnailInfo(final @NonNull Context context,
                                 final long thumbnailId,
                                 final ContentValues values) {
         ContentResolver resolver = context.getApplicationContext().getContentResolver();

@@ -24,11 +24,6 @@ public class SRTClient {
     private static final String TAG = "SRT-CLIENT";
 
     /**
-     * SRT ソケット.
-     */
-    private SRTSocket mSRTSocket;
-
-    /**
      * 接続先のアドレス.
      */
     private String mAddress;
@@ -109,6 +104,17 @@ public class SRTClient {
     }
 
     /**
+     * SRTサーバに接続されているか確認します.
+     *
+     * @return SRT サーバに接続されている場合はtrue、それ以外はfalse
+     */
+    public synchronized boolean isConnected() {
+        return mSRTSessionThread != null &&
+                mSRTSessionThread.mSRTSocket != null &&
+                mSRTSessionThread.mSRTSocket.isConnected();
+    }
+
+    /**
      * SRT 統計データの LogCat への表示設定を行います.
      *
      * @param showStats LogCat に表示する場合はtrue、それ以外はfalse
@@ -150,10 +156,12 @@ public class SRTClient {
         mStatsTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                SRTSocket socket = mSRTSocket;
-                if (socket != null) {
-                    SRTStats stats = socket.getStats();
-                    Log.d(TAG, "stats: " + stats);
+                if (mSRTSessionThread != null) {
+                    SRTSocket socket = mSRTSessionThread.mSRTSocket;
+                    if (socket != null) {
+                        SRTStats stats = socket.getStats();
+                        Log.d(TAG, "stats: " + stats);
+                    }
                 }
             }
         }, mStatsInterval, mStatsInterval);
@@ -178,6 +186,11 @@ public class SRTClient {
          */
         private static final int BUFFER_SIZE = 1500;
 
+        /**
+         * SRT ソケット.
+         */
+        private SRTSocket mSRTSocket;
+
         SRTSessionThread() {
             setName("SRT-CLIENT");
         }
@@ -192,6 +205,7 @@ public class SRTClient {
                 } catch (Exception e) {
                     // ignore.
                 }
+                mSRTSocket = null;
             }
 
             interrupt();
@@ -238,6 +252,7 @@ public class SRTClient {
                     } catch (Exception e) {
                         // ignore.
                     }
+                    mSRTSocket = null;
                 }
 
                 postOnDisconnected();

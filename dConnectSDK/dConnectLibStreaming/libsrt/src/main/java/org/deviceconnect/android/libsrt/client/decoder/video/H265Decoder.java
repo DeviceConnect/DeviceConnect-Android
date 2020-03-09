@@ -20,7 +20,7 @@ public class H265Decoder extends VideoDecoder {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "SRT-PLAYER";
+    private static final String TAG = "H265Decoder";
 
     /**
      * MediaCodec に渡すマイムタイプ.
@@ -91,6 +91,10 @@ public class H265Decoder extends VideoDecoder {
 
         format.setByteBuffer("csd-0", csd0);
 
+        if (DEBUG) {
+            Log.d(TAG, "H265Decoder::createMediaCodec: " + format);
+        }
+
         MediaCodec mediaCodec = MediaCodec.createDecoderByType(mMimeType);
         mediaCodec.configure(format, getSurface(), null, 0);
         mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
@@ -99,9 +103,12 @@ public class H265Decoder extends VideoDecoder {
     }
 
     @Override
-    protected boolean checkConfig(byte[] data, int dataLength) {
+    protected int getFlags(byte[] data, int dataLength) {
         int type = (data[4] >> 1) & 0x3F;
-        return (type == 32 || type == 33 || type == 34);
+        if (type == 32 || type == 33 || type == 34) {
+            return MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        }
+        return 0;
     }
 
     private byte[] createCSD(byte[] data, int start, int end) {

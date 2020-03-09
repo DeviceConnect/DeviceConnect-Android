@@ -22,7 +22,7 @@ public class AACDecoder extends AudioDecoder {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "AACLATM-DECODE";
+    private static final String TAG = "AACDecoder";
 
     /**
      * AAC で使用できるサンプリングレートを定義します.
@@ -47,11 +47,6 @@ public class AACDecoder extends AudioDecoder {
     };
 
     /**
-     * デコードを行うMediaCodec.
-     */
-    private MediaCodec mMediaCodec;
-
-    /**
      * 音声再生処理を行うスレッド.
      */
     private WorkThread mWorkThread;
@@ -61,13 +56,13 @@ public class AACDecoder extends AudioDecoder {
      */
     private FrameCache mFrameCache;
 
-    /**
-     * サンプルレートのインデックス.
-     */
-    private int mFreqIdx;
-
     @Override
     public void onInit() {
+        if (mFrameCache != null) {
+            mFrameCache.freeFrames();
+        }
+        mFrameCache = new FrameCache();
+        mFrameCache.initFrames();
     }
 
     @Override
@@ -107,19 +102,12 @@ public class AACDecoder extends AudioDecoder {
                     Log.d(TAG, "   dataLength: " + dataLength);
                 }
 
-                mFreqIdx = freqIdx;
                 setChannelCount(channel);
                 setSamplingRate(SUPPORT_AUDIO_SAMPLING_RATES[freqIdx]);
 
-                if (mFrameCache != null) {
-                    mFrameCache.freeFrames();
-                }
-                mFrameCache = new FrameCache();
-                mFrameCache.initFrames();
+                createWorkThread();
 
-                mWorkThread = new WorkThread();
-                mWorkThread.setName("AACLATM-DECODER");
-                mWorkThread.start();
+                mFrameCache.releaseAllFrames();
             }
         }
     }
@@ -157,64 +145,66 @@ public class AACDecoder extends AudioDecoder {
         return (data[1] & 0x01) == 0;
     }
 
-    private void createMediaCodec() throws IOException {
-        if (mMediaCodec != null) {
-            if (DEBUG) {
-                Log.w(TAG, "MediaCodec is already running.");
+    /**
+     * ADTS に指定するサンプルレートに対応するインデックスを取得します.
+     *
+     * @param sampleRate サンプルレート
+     * @return サンプルレートに対応するインデックス
+     */
+    private int getFreqIdx(int sampleRate) {
+        for (int i = 0; i < SUPPORT_AUDIO_SAMPLING_RATES.length; i++) {
+            if (sampleRate == SUPPORT_AUDIO_SAMPLING_RATES[i]) {
+                return i;
             }
-            return;
         }
+        return -1;
+    }
 
+    /**
+     * MediaCodec を作成します.
+     *
+     * @return MediaCodec
+     * @throws IOException MediaCodec の作成に失敗した場合に発生
+     */
+    private MediaCodec createMediaCodec() throws IOException {
         MediaFormat format = MediaFormat.createAudioFormat("audio/mp4a-latm",
                 getSamplingRate(), getChannelCount());
 
         format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
 
         int audioProfile = MediaCodecInfo.CodecProfileLevel.AACObjectLC;
-        int sampleIndex = mFreqIdx;
+        int sampleIndex = getFreqIdx(getSamplingRate());
         int channelConfig = getChannelCount();
 
-        ByteBuffer csd = ByteBuffer.allocate(2);
+        ByteBuffer csd = ByteBuffer.allocateDirect(2);
         csd.put((byte) ((audioProfile << 3) | (sampleIndex >> 1)));
         csd.position(1);
         csd.put((byte) ((byte) ((sampleIndex << 7) & 0x80) | (channelConfig << 3)));
         csd.flip();
+
         format.setByteBuffer("csd-0", csd);
 
         if (DEBUG) {
-            Log.d(TAG, "MediaFormat: " + format);
+            Log.d(TAG, "AACDecoder::createMediaCodec: " + format);
         }
 
-        if (mMediaCodec != null) {
-            try {
-                mMediaCodec.stop();
-                mMediaCodec.release();
-            } catch (Exception e) {
-                // ignore.
-            }
-        }
-
-        mMediaCodec = MediaCodec.createDecoderByType("audio/mp4a-latm");
-        mMediaCodec.configure(format, null, null, 0);
-        mMediaCodec.start();
+        MediaCodec mediaCodec = MediaCodec.createDecoderByType("audio/mp4a-latm");
+        mediaCodec.configure(format, null, null, 0);
+        mediaCodec.start();
+        return mediaCodec;
     }
 
-    private void releaseMediaCodec() {
-        if (mMediaCodec != null) {
-            try {
-                mMediaCodec.stop();
-            } catch (Exception e) {
-                // ignore.
-            }
-
-            try {
-                mMediaCodec.release();
-            } catch (Exception e) {
-                // ignore.
-            }
-
-            mMediaCodec = null;
+    /**
+     * Surface に描画を行うスレッドを作成します.
+     */
+    private void createWorkThread() {
+        if (mWorkThread != null) {
+            mWorkThread.terminate();
         }
+
+        mWorkThread = new WorkThread();
+        mWorkThread.setName("AACLATM-DECODER");
+        mWorkThread.start();
     }
 
     /**
@@ -236,15 +226,40 @@ public class AACDecoder extends AudioDecoder {
         private static final long TIMEOUT_US = 50000;
 
         /**
+         * デコードを行うMediaCodec.
+         */
+        private MediaCodec mMediaCodec;
+
+        /**
          * スレッドのクローズ処理を行います.
          */
         void terminate() {
             interrupt();
 
+            releaseMediaCodec();
+
             try {
                 join(500);
             } catch (InterruptedException e) {
                 // ignore.
+            }
+        }
+
+        private synchronized void releaseMediaCodec() {
+            if (mMediaCodec != null) {
+                try {
+                    mMediaCodec.stop();
+                } catch (Exception e) {
+                    // ignore.
+                }
+
+                try {
+                    mMediaCodec.release();
+                } catch (Exception e) {
+                    // ignore.
+                }
+
+                mMediaCodec = null;
             }
         }
 
@@ -254,7 +269,8 @@ public class AACDecoder extends AudioDecoder {
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
                 createAudioTrack();
-                createMediaCodec();
+
+                mMediaCodec = createMediaCodec();
 
                 while (!isInterrupted()) {
                     Frame frame = get();
@@ -262,13 +278,11 @@ public class AACDecoder extends AudioDecoder {
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
                     if (inIndex >= 0) {
                         ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
-                        if (buffer == null) {
-                            continue;
+                        if (buffer != null) {
+                            buffer.clear();
+                            buffer.put(frame.getBuffer(), 0, frame.getLength());
+                            buffer.flip();
                         }
-
-                        buffer.clear();
-                        buffer.put(frame.getBuffer(), 0, frame.getLength());
-                        buffer.flip();
 
                         mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getPTS(), 0);
                     }
@@ -280,7 +294,7 @@ public class AACDecoder extends AudioDecoder {
                         if (info.size > 0) {
                             writeAudioData(mMediaCodec.getOutputBuffer(outIndex), 0, info.size, info.presentationTimeUs);
                         }
-                        mMediaCodec.releaseOutputBuffer(outIndex, true);
+                        mMediaCodec.releaseOutputBuffer(outIndex, false);
                     } else {
                         switch (outIndex) {
                             case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
@@ -314,6 +328,9 @@ public class AACDecoder extends AudioDecoder {
             } catch (Exception e) {
                 if (DEBUG) {
                     Log.w(TAG, "AAC encode occurred an exception.", e);
+                }
+                if (!isInterrupted()) {
+                    postError(e);
                 }
             } finally {
                 releaseAudioTrack();

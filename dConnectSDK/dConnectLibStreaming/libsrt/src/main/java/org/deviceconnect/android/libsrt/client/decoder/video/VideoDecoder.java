@@ -25,7 +25,7 @@ public abstract class VideoDecoder implements Decoder {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "SRT-PLAYER";
+    private static final String TAG = "VideoDecoder";
 
     /**
      * エラー通知用のリスナー.
@@ -184,13 +184,13 @@ public abstract class VideoDecoder implements Decoder {
     protected abstract MediaCodec createMediaCodec() throws IOException;
 
     /**
-     * 送られてきたフレームが映像情報か確認します.
+     * 送られてきたフレームのフラグを取得します.
      *
      * @param data 送られてきたデータ
      * @param dataLength データサイズ
-     * @return 映像情報の場合はtrue、それ以外はfalse
+     * @return フラグ
      */
-    protected abstract boolean checkConfig(byte[] data, int dataLength);
+    protected abstract int getFlags(byte[] data, int dataLength);
 
     /**
      * Surface に描画を行うスレッドを作成します.
@@ -234,6 +234,8 @@ public abstract class VideoDecoder implements Decoder {
         void terminate() {
             interrupt();
 
+            releaseMediaCodec();
+
             try {
                 join(500);
             } catch (InterruptedException e) {
@@ -244,7 +246,7 @@ public abstract class VideoDecoder implements Decoder {
         /**
          * MediaCodec を解放します.
          */
-        private void releaseMediaCodec() {
+        private synchronized void releaseMediaCodec() {
             if (mMediaCodec != null) {
                 try {
                     mMediaCodec.stop();
@@ -257,15 +259,17 @@ public abstract class VideoDecoder implements Decoder {
                 } catch (Exception e) {
                     // ignore.
                 }
+
+                mMediaCodec = null;
             }
         }
 
         @Override
         public void run() {
             try {
-                mMediaCodec = createMediaCodec();
-
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+
+                mMediaCodec = createMediaCodec();
 
                 while (!isInterrupted()) {
                     Frame frame = get();
@@ -281,9 +285,7 @@ public abstract class VideoDecoder implements Decoder {
 
                         int flags = 0;
                         if (frame.getLength() > 4) {
-                            if (checkConfig(frame.getBuffer(), frame.getLength())) {
-                                flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-                            }
+                            flags = getFlags(frame.getBuffer(), frame.getLength());
                         }
 
                         mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getPTS(), flags);
@@ -336,7 +338,9 @@ public abstract class VideoDecoder implements Decoder {
                 if (DEBUG) {
                     Log.w(TAG, "H264 encode occurred an exception.", e);
                 }
-                postError(e);
+                if (!isInterrupted()) {
+                    postError(e);
+                }
             } finally {
                 releaseMediaCodec();
             }

@@ -21,7 +21,7 @@ public class H264Decoder extends VideoDecoder {
     /**
      * デバッグ用タグ.
      */
-    private static final String TAG = "SRT-PLAYER";
+    private static final String TAG = "H264Decoder";
 
     /**
      * MediaCodec に渡すマイムタイプ.
@@ -89,6 +89,10 @@ public class H264Decoder extends VideoDecoder {
         format.setByteBuffer("csd-0", mCsd0);
         format.setByteBuffer("csd-1", mCsd1);
 
+        if (DEBUG) {
+            Log.d(TAG, "H264Decoder::createMediaCodec: " + format);
+        }
+
         MediaCodec mediaCodec = MediaCodec.createDecoderByType(mMimeType);
         mediaCodec.configure(format, getSurface(), null, 0);
         mediaCodec.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
@@ -97,9 +101,12 @@ public class H264Decoder extends VideoDecoder {
     }
 
     @Override
-    protected boolean checkConfig(byte[] data, int dataLength) {
+    protected int getFlags(byte[] data, int dataLength) {
         int type = data[4] & 0x1F;
-        return (type == 0x07 || type == 0x08);
+        if (type == 0x07 || type == 0x08) {
+            return MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        }
+        return 0;
     }
 
     /**

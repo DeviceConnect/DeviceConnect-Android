@@ -147,20 +147,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     }
 
     /**
-     * 映像の解像度の変更を要求します.
-     *
-     * <p>
-     * エンコード中に映像の解像度を変更したい場合に指定します。
-     *
-     * {@link VideoQuality#getVideoWidth()}、 {@link VideoQuality#getVideoHeight()}
-     * で取得できる映像の解像度を再設定します。
-     * </p>
-     */
-    public void requestChangeVideoSize() {
-        new Thread(this::restart).start();
-    }
-
-    /**
      * MediaCodec にキーフレームの作成を行います.
      */
     private void syncKeyFrame() {

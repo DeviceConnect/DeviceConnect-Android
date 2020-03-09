@@ -5,6 +5,7 @@ import android.media.MediaFormat;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,13 +21,20 @@ public abstract class MediaEncoder {
      */
     protected MediaCodec mMediaCodec;
 
-    private StartingThread mStartingThread;
-    private StoppingThread mStoppingThread;
+    /**
+     * 実行スレッド.
+     */
+    private WorkThread mWorkThread;
 
     /**
      * エンコード処理を通知するコールバック.
      */
     private Callback mCallback;
+
+    /**
+     * 停止フラグ.
+     */
+    private boolean mStopFlag = true;
 
     /**
      * エンコーダーの準備を行います.
@@ -67,61 +75,68 @@ public abstract class MediaEncoder {
      * エンコード処理を開始します.
      */
     public synchronized void start() {
-        if (mMediaCodec != null) {
+        if (isEncoderStarted()) {
             if (DEBUG) {
                 Log.w(TAG, "MediaEncoder is already started.");
             }
             return;
         }
+        mStopFlag = false;
 
-        if (mStartingThread != null) {
-            if (DEBUG) {
-                Log.w(TAG, "MediaEncoder is starting.");
+        mWorkThread = new WorkThread();
+        mWorkThread.setName("Encoder-Thread");
+        mWorkThread.add(() -> {
+            if (startEncoder()) {
+                postOnStarted();
             }
-            return;
-        }
-
-        mStartingThread = new StartingThread();
-        mStartingThread.setName("Encoder-Starting-Thread");
-        mStartingThread.start();
+        });
+        mWorkThread.start();
     }
 
     /**
      * エンコード処理を停止します.
      */
     public synchronized void stop() {
-        if (mMediaCodec == null) {
+        if (!isEncoderStarted()) {
             if (DEBUG) {
-                Log.w(TAG, "MediaEncoder is already stopped.");
+                Log.w(TAG, "MediaEncoder has not started.");
             }
             return;
         }
+        mStopFlag = true;
 
-        if (mStoppingThread != null) {
-            if (DEBUG) {
-                Log.w(TAG, "MediaEncoder is stopping.");
-            }
-            return;
-        }
-
-        mStoppingThread = new StoppingThread();
-        mStoppingThread.setName("Encoder-Stopping-Thread");
-        mStoppingThread.start();
+        mWorkThread.add(() -> {
+            stopEncoder();
+            mWorkThread.interrupt();
+            mWorkThread = null;
+            postOnStopped();
+        });
     }
 
     /**
      * エンコーダを再起動の処理を行います.
      */
     public synchronized void restart() {
-        if (mStartingThread == null) {
+        if (!isEncoderStarted()) {
             if (DEBUG) {
                 Log.w(TAG, "MediaEncoder has not started.");
             }
             return;
         }
 
-        stopEncoder();
-        startEncoder();
+        mWorkThread.add(() -> {
+            stopEncoder();
+            startEncoder();
+        });
+    }
+
+    /**
+     * エンコーダの開始状態を確認します.
+     *
+     * @return エンコーダが開始されている場合はtrue、それ以外はfalse
+     */
+    private boolean isEncoderStarted() {
+        return mWorkThread != null && !mStopFlag;
     }
 
     /**
@@ -286,27 +301,18 @@ public abstract class MediaEncoder {
     };
 
     /**
-     * エンコーダの開始処理を行うスレッド.
+     * エンコーダの開始・停止の処理を行うスレッド.
      */
-    private class StartingThread extends Thread {
+    private class WorkThread extends QueueThread<Runnable> {
         @Override
         public void run() {
-            if (startEncoder()) {
-                postOnStarted();
+            try {
+                while (!isInterrupted()) {
+                    get().run();
+                }
+            } catch (InterruptedException e) {
+                // ignore.
             }
-        }
-    }
-
-    /**
-     * エンコーダの停止処理を行うスレッド.
-     */
-    private class StoppingThread extends Thread {
-        @Override
-        public void run() {
-            stopEncoder();
-            mStartingThread = null;
-            mStoppingThread = null;
-            postOnStopped();
         }
     }
 

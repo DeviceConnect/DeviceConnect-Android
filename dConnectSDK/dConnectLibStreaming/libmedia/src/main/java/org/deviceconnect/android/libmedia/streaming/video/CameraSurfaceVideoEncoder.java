@@ -249,7 +249,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     private final BroadcastReceiver mConfigurationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            requestChangeVideoSize();
+            restart();
         }
     };
 }

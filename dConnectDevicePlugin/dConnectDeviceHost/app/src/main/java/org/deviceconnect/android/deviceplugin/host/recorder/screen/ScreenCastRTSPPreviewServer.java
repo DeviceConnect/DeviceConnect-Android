@@ -104,14 +104,10 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
         setEncoderQuality();
 
         if (mRtspServer != null) {
-            new Thread(() -> {
-                if (mRtspServer != null) {
-                    RtspSession session = mRtspServer.getRtspSession();
-                    if (session != null) {
-                        session.restartVideoStream();
-                    }
-                }
-            }).start();
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                session.restartVideoStream();
+            }
         }
     }
 
@@ -134,17 +130,13 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
      */
     private void setMute(boolean mute) {
         if (mRtspServer != null) {
-            new Thread(() -> {
-                if (mRtspServer != null) {
-                    RtspSession session = mRtspServer.getRtspSession();
-                    if (session != null) {
-                        AudioStream stream = session.getAudioStream();
-                        if (stream  != null) {
-                            stream.setMute(mute);
-                        }
-                    }
+            RtspSession session = mRtspServer.getRtspSession();
+            if (session != null) {
+                AudioStream stream = session.getAudioStream();
+                if (stream  != null) {
+                    stream.setMute(mute);
                 }
-            }).start();
+            }
         }
     }
 

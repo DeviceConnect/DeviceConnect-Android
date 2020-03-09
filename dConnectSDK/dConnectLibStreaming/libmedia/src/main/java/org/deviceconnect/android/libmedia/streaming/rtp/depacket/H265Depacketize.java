@@ -36,9 +36,6 @@ public class H265Depacketize extends RtpDepacketize {
         }
 
         int nal = (data[12] >> 1) & 0x3F;
-        int lid = ((data[12] & 0x01) << 5) | ((data[13] >> 3) & 0x1F);
-        int tid = data[13] & 0x07;
-
         switch (nal) {
             case 48: // aggregated packet (AP) - with two or more NAL units
                 break;
@@ -78,6 +75,8 @@ public class H265Depacketize extends RtpDepacketize {
     }
 
     private void decodeFragmentationUnits(byte[] data, int payloadStart, int dataLength) {
+        int lid = ((data[payloadStart] & 0x01) << 5) | ((data[payloadStart + 1] >> 3) & 0x1F);
+        int tid = data[payloadStart + 1] & 0x07;
         int fuHeader = data[payloadStart + 2] & 0xFF;
 
         boolean startBit = (fuHeader & 0x80) != 0;
@@ -89,11 +88,12 @@ public class H265Depacketize extends RtpDepacketize {
             mOutputStream.write(0x00);
             mOutputStream.write(0x00);
             mOutputStream.write(0x01);
-            mOutputStream.write(((fuHeader & 0x3F) << 1));
+            mOutputStream.write(((fuHeader & 0x3F) << 1) | (lid >> 5));
+            mOutputStream.write((lid << 3) | tid);
             mSync = true;
         }
 
-        int fuHeaderSize = 3;
+        int fuHeaderSize = payloadStart + 3;
 
         mOutputStream.write(data, fuHeaderSize, dataLength - fuHeaderSize);
 

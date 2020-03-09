@@ -98,6 +98,11 @@ public class H264Decoder extends VideoDecoder {
     }
 
     @Override
+    protected RtpDepacketize createDepacketize() {
+        return new H264Depacketize();
+    }
+
+    @Override
     protected MediaCodec createMediaCodec() throws IOException {
         MediaFormat format = MediaFormat.createVideoFormat(mMimeType, 0, 0);
         if (mCsd0 != null) {
@@ -116,14 +121,12 @@ public class H264Decoder extends VideoDecoder {
     }
 
     @Override
-    protected boolean checkConfig(byte[] data, int dataLength) {
+    protected int getFlags(byte[] data, int dataLength) {
         int type = data[4] & 0x1F;
-        return  (type == 0x07 || type == 0x08);
-    }
-
-    @Override
-    protected RtpDepacketize createDepacketize() {
-        return new H264Depacketize();
+        if  (type == 0x07 || type == 0x08) {
+            return MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        }
+        return 0;
     }
 
     private byte[] createSPS_PPS(byte[] sps, byte[] pps) {

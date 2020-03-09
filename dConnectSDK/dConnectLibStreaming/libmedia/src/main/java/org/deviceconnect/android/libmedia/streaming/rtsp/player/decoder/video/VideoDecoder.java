@@ -61,7 +61,7 @@ public abstract class VideoDecoder implements Decoder {
         configure(md);
         createWorkThread();
 
-        mWorkThread.add(mConfigFrame);
+//        mWorkThread.add(mConfigFrame);
 
         mDepacketize = createDepacketize();
         mDepacketize.setClockFrequency(mClockFrequency);
@@ -212,18 +212,23 @@ public abstract class VideoDecoder implements Decoder {
     protected abstract MediaCodec createMediaCodec() throws IOException;
 
     /**
-     * 指定されたデータがフレームデータか確認します.
+     * 送られてきたフレームのフラグを取得します.
      *
      * @param data データ
      * @param dataLength データサイズ
-     * @return フレームデータの場合にはtrue、それ以外はfalse
+     * @return フラグ
      */
-    protected abstract boolean checkConfig(byte[] data, int dataLength);
+    protected abstract int getFlags(byte[] data, int dataLength);
 
     /**
      * 送られてきたデータをMediaCodecに渡してデコードを行うスレッド.
      */
     private class WorkThread extends QueueThread<Frame> {
+        /**
+         * タイムアウト時間を定義.
+         */
+        private static final long TIMEOUT_US = 50000;
+
         /**
          * デコードを行うMediaCodec.
          */
@@ -235,6 +240,8 @@ public abstract class VideoDecoder implements Decoder {
         void terminate() {
             interrupt();
 
+            releaseMediaCodec();
+
             try {
                 join(500);
             } catch (InterruptedException e) {
@@ -242,7 +249,7 @@ public abstract class VideoDecoder implements Decoder {
             }
         }
 
-        void releaseMediaCodec() {
+        private synchronized void releaseMediaCodec() {
             if (mMediaCodec != null) {
                 try {
                     mMediaCodec.stop();
@@ -263,14 +270,14 @@ public abstract class VideoDecoder implements Decoder {
         @Override
         public void run() {
             try {
-                mMediaCodec = createMediaCodec();
-
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+
+                mMediaCodec = createMediaCodec();
 
                 while (!isInterrupted()) {
                     Frame frame = get();
 
-                    int inIndex = mMediaCodec.dequeueInputBuffer(10000);
+                    int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
                     if (inIndex >= 0) {
                         ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
                         if (buffer == null) {
@@ -283,15 +290,13 @@ public abstract class VideoDecoder implements Decoder {
 
                         int flags = 0;
                         if (frame.getLength() > 4) {
-                            if (checkConfig(frame.getData(), frame.getLength())) {
-                                flags = MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-                            }
+                            flags = getFlags(frame.getData(), frame.getLength());
                         }
 
                         mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), flags);
                     }
 
-                    int outIndex = mMediaCodec.dequeueOutputBuffer(info, 10000);
+                    int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
                     if (outIndex > 0) {
                         mMediaCodec.releaseOutputBuffer(outIndex, true);
                     } else {
@@ -326,15 +331,16 @@ public abstract class VideoDecoder implements Decoder {
                 // ignore.
             } catch (Exception e) {
                 if (DEBUG) {
-                    Log.w(TAG, "H264 encode occurred an exception.");
+                    Log.w(TAG, "H264 encode occurred an exception.", e);
                 }
-                postError(e);
+                if (!isInterrupted()) {
+                    postError(e);
+                }
             } finally {
                 releaseMediaCodec();
             }
         }
     }
-
 
     public interface EventCallback {
         void onSizeChanged(int width, int height);

@@ -90,7 +90,7 @@ public class H265Decoder extends VideoDecoder {
 
     @Override
     protected MediaCodec createMediaCodec() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(mMimeType, 320, 480);
+        MediaFormat format = MediaFormat.createVideoFormat(mMimeType, 0, 0);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
             format.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_FULL);
         }
@@ -99,14 +99,14 @@ public class H265Decoder extends VideoDecoder {
             format.setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE);
         }
 
-        ByteBuffer csd0 = ByteBuffer.allocateDirect(mVPS.length + mSPS.length + mPPS.length);
-        csd0.put(mVPS);
-        csd0.position(mVPS.length);
-        csd0.put(mSPS);
-        csd0.position(mVPS.length + mSPS.length);
-        csd0.put(mPPS);
+        ByteBuffer csd0 = ByteBuffer.allocate(mVPS.length + mSPS.length + mPPS.length +  12);
+        csd0.put(createSPS_PPS(mVPS, mSPS, mPPS));
 
         format.setByteBuffer("csd-0", csd0);
+
+        if (DEBUG) {
+            Log.d(TAG, "H265Deocder::createMediaCodec: " + format);
+        }
 
         MediaCodec mediaCodec = MediaCodec.createDecoderByType(mMimeType);
         mediaCodec.configure(format, getSurface(), null, 0);
@@ -116,9 +116,12 @@ public class H265Decoder extends VideoDecoder {
     }
 
     @Override
-    protected boolean checkConfig(byte[] data, int dataLength) {
+    protected int getFlags(byte[] data, int dataLength) {
         int type = (data[4] >> 1) & 0x3F;
-        return (type == 32 || type == 33 || type == 34);
+        if (type == 32 || type == 33 || type == 34) {
+            return MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+        }
+        return 0;
     }
 
     private byte[] createSPS_PPS(byte[] vps, byte[] sps, byte[] pps) {

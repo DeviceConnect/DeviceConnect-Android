@@ -27,10 +27,10 @@ public class LiveStreamingClient implements MediaStreamer.OnEventListener {
         if (DEBUG) {
             Log.d(TAG, "LiveStreamingClient()");
             Log.d(TAG, "broadcastURI : " + broadcastURI);
+            Log.d(TAG, "eventListener : " + eventListener);
         }
         IMediaMuxer muxer = new RtmpMuxer(broadcastURI);
         mMediaStreamer = new MediaStreamer(muxer);
-        mEventListener = null;
         mMediaStreamer.setOnEventListener(this);
         mBroadcastURI = broadcastURI;
         mEventListener = eventListener;

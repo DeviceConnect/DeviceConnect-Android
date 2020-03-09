@@ -24,10 +24,13 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.List;
+
 public class HostLiveStreamingProfile extends DConnectProfile implements LiveStreamingClient.EventListener {
 
     private static final String TAG = "LiveStreamingProfile";
     private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String PROFILE_NAME = "liveStreaming";
     private static final String AT_ON_STATUS_CHANGE = "onStatusChange";
     private static final String PARAM_KEY_BROADCAST = "broadcast";
     private static final String PARAM_KEY_VIDEO = "video";
@@ -368,7 +371,10 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
 
     @Override
     public void onStart() {
-        for(Event event : EventManager.INSTANCE.getEventList(AT_ON_STATUS_CHANGE)) {
+        if (DEBUG) {
+            Log.d(TAG, "onStart()");
+        }
+        for(Event event : EventManager.INSTANCE.getEventList(getService().getId(), PROFILE_NAME, null, AT_ON_STATUS_CHANGE)) {
             Bundle root = new Bundle();
             Bundle streaming = new Bundle();
             streaming.putString(PARAM_KEY_URI, mHostDeviceLiveStreamRecorder.getBroadcastURI());
@@ -391,7 +397,10 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
 
     @Override
     public void onStop() {
-        for(Event event : EventManager.INSTANCE.getEventList(AT_ON_STATUS_CHANGE)) {
+        if (DEBUG) {
+            Log.d(TAG, "onStop()");
+        }
+        for(Event event : EventManager.INSTANCE.getEventList(getService().getId(), PROFILE_NAME, null, AT_ON_STATUS_CHANGE)) {
             Bundle root = new Bundle();
             Bundle streaming = new Bundle();
             streaming.putString(PARAM_KEY_URI, mHostDeviceLiveStreamRecorder.getBroadcastURI());
@@ -414,7 +423,10 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
 
     @Override
     public void onError(MediaEncoderException mediaEncoderException) {
-        for(Event event : EventManager.INSTANCE.getEventList(AT_ON_STATUS_CHANGE)) {
+        if (DEBUG) {
+            Log.d(TAG, "onError()");
+        }
+        for(Event event : EventManager.INSTANCE.getEventList(getService().getId(), PROFILE_NAME, null, AT_ON_STATUS_CHANGE)) {
             Bundle root = new Bundle();
             Bundle streaming = new Bundle();
             streaming.putString(PARAM_KEY_URI, mHostDeviceLiveStreamRecorder.getBroadcastURI());

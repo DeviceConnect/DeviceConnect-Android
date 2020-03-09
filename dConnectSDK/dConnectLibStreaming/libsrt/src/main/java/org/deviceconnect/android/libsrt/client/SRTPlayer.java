@@ -34,16 +34,6 @@ public class SRTPlayer {
     private static final long DEFAULT_STATS_INTERVAL = SRTClient.DEFAULT_STATS_INTERVAL;
 
     /**
-     * 動画のストリームタイプを定義.
-     */
-    private static final int STREAM_TYPE_VIDEO = 0xE0;
-
-    /**
-     * 音声のストリームタイプを定義.
-     */
-    private static final int STREAM_TYPE_AUDIO = 0xC0;
-
-    /**
      * SRT の通信を行うクラス.
      */
     private SRTClient mSRTClient;
@@ -279,11 +269,11 @@ public class SRTPlayer {
 
         @Override
         public void onByteStream(int pid, int streamId, byte[] data, int dataLength, long pts) {
-            if (streamId == STREAM_TYPE_VIDEO) {
+            if (streamId == TsConstants.STREAM_ID_VIDEO) {
                 if (mVideoDecoder != null) {
                     mVideoDecoder.onReceived(data, dataLength, pts);
                 }
-            } else if (streamId == STREAM_TYPE_AUDIO) {
+            } else if (streamId == TsConstants.STREAM_ID_AUDIO) {
                 if (mAudioDecoder != null) {
                     mAudioDecoder.onReceived(data, dataLength, pts);
                 }

@@ -83,6 +83,22 @@ class MediaSharingForLegacy extends MediaSharing {
         return null;
     }
 
+    @Override
+    public Uri shareAudio(@NonNull Context context, @NonNull File audioFile) {
+        if (checkMediaFile(audioFile)) {
+            // Contents Providerに登録.
+            ContentResolver resolver = context.getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Video.Media.TITLE, audioFile.getName());
+            values.put(MediaStore.Video.Media.DISPLAY_NAME, audioFile.getName());
+            values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
+            values.put(MediaStore.Video.Media.MIME_TYPE, "audio/mp3");
+            values.put(MediaStore.Video.Media.DATA, audioFile.toString());
+            resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        }
+        return null;
+    }
+
     long registerVideoThumbnail(final @NonNull Context context,
                                 final @NonNull File videoFile,
                                 final long videoId,

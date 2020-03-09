@@ -7,8 +7,6 @@
 package org.deviceconnect.android.manager.setting;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,9 +24,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -37,6 +33,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.R;
@@ -367,7 +366,7 @@ public class WhitelistFragment extends Fragment {
                             showPopup(e.getMessage());
                         }
                     };
-                    builder.create().show();
+                    builders.create().show();
                     break;
                 default:
                     // nothing to do

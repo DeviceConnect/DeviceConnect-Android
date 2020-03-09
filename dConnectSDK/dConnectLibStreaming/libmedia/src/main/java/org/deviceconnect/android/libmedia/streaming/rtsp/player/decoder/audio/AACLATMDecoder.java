@@ -5,11 +5,6 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.util.Log;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpDepacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.depacket.AACLATMDepacketize;
@@ -19,6 +14,11 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class AACLATMDecoder extends AudioDecoder {
     /**
@@ -264,7 +264,7 @@ public class AACLATMDecoder extends AudioDecoder {
                         if (info.size > 0) {
                             writeAudioData(mMediaCodec.getOutputBuffer(outIndex), 0, info.size, info.presentationTimeUs);
                         }
-                        mMediaCodec.releaseOutputBuffer(outIndex, true);
+                        mMediaCodec.releaseOutputBuffer(outIndex, false);
                     } else {
                         switch (outIndex) {
                             case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:

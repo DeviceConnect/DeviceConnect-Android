@@ -14,11 +14,10 @@ import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.FormatAttribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+import org.deviceconnect.android.libmedia.streaming.util.QueueThread;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class AACLATMDecoder extends AudioDecoder {
     /**
@@ -96,7 +95,7 @@ public class AACLATMDecoder extends AudioDecoder {
         mDepacketize.setClockFrequency(getSamplingRate());
         mDepacketize.setCallback((data, pts) -> {
             if (mWorkThread != null) {
-                mWorkThread.notifyFrame(new Frame(data, pts));
+                mWorkThread.add(new Frame(data, pts));
             }
         });
     }
@@ -189,21 +188,18 @@ public class AACLATMDecoder extends AudioDecoder {
     /**
      * 送られてきたデータをMediaCodecに渡してデコードを行うスレッド.
      */
-    private class WorkThread extends Thread {
-        /**
-         * 送られてきたデータを格納するリスト.
-         */
-        private final Queue<Frame> mFrames = new LinkedList<>();
-
+    private class WorkThread extends QueueThread<Frame> {
         /**
          * データの終了フラグ.
          */
-        private boolean isEOS = false;
+        private boolean mStopFlag = false;
 
         /**
          * スレッドのクローズ処理を行います.
          */
         void close() {
+            mStopFlag = true;
+
             interrupt();
 
             try {
@@ -213,50 +209,26 @@ public class AACLATMDecoder extends AudioDecoder {
             }
         }
 
-        /**
-         * 送られてきたデータを通知します.
-         *
-         * @param frame フレームバッファ
-         */
-        synchronized void notifyFrame(final Frame frame) {
-            mFrames.offer(frame);
-            notifyAll();
-        }
-
-        /**
-         * フレームの先頭を取得すると同時に削除します.
-         *
-         * @return フレーム
-         */
-        private synchronized Frame getFrame() throws InterruptedException {
-            while (mFrames.peek() == null) {
-                wait();
-            }
-            return mFrames.remove();
-        }
-
         @Override
         public void run() {
             try {
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
-                while (!isInterrupted()) {
-                    Frame frame = getFrame();
+                while (!mStopFlag) {
+                    Frame frame = get();
 
-                    if (!isEOS) {
-                        int inIndex = mMediaCodec.dequeueInputBuffer(10000);
-                        if (inIndex >= 0) {
-                            ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
-                            if (buffer == null) {
-                                continue;
-                            }
-
-                            buffer.clear();
-                            buffer.put(frame.getData(), 0, frame.getLength());
-                            buffer.flip();
-
-                            mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), 0);
+                    int inIndex = mMediaCodec.dequeueInputBuffer(10000);
+                    if (inIndex >= 0) {
+                        ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
+                        if (buffer == null) {
+                            continue;
                         }
+
+                        buffer.clear();
+                        buffer.put(frame.getData(), 0, frame.getLength());
+                        buffer.flip();
+
+                        mMediaCodec.queueInputBuffer(inIndex, 0, frame.getLength(), frame.getTimestamp(), 0);
                     }
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, 10000);

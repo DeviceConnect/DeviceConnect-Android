@@ -179,8 +179,9 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
         if (mCamera2 != null) {
             mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
         } else {
-            SRTSession srtSession = mSRTServer.getSRTSession();
-            if (srtSession != null) {
+            if (mSRTServer != null && mSRTServer.getSRTSession() != null) {
+                SRTSession srtSession = mSRTServer.getSRTSession();
+                srtSession.restartVideoEncoder();
                 CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) srtSession.getVideoEncoder();
                 if (videoEncoder != null) {
                     mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);

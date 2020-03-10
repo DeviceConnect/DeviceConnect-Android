@@ -3,10 +3,10 @@ package org.deviceconnect.android.libmedia.streaming.rtsp;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpSocket;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.MediaStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 
 import java.io.BufferedReader;
@@ -245,6 +245,7 @@ public class RtspServer {
             releaseSession();
         }
         mRtspSession = new RtspSession();
+        mRtspSession.setOnEventListener(mEventListener);
         mCallback.createSession(mRtspSession);
         mRtspSession.configure();
     }
@@ -259,6 +260,32 @@ public class RtspServer {
             mRtspSession = null;
         }
     }
+
+    /**
+     * RtspSession からのイベントを受信するリスナー.
+     */
+    private final RtspSession.OnEventListener mEventListener = new RtspSession.OnEventListener() {
+        @Override
+        public void onStarted() {
+            if (DEBUG) {
+                Log.d(TAG, "MediaStreamer started.");
+            }
+        }
+
+        @Override
+        public void onStopped() {
+            if (DEBUG) {
+                Log.d(TAG, "MediaStreamer stopped.");
+            }
+        }
+
+        @Override
+        public void onError(MediaEncoderException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Error occurred on MediaStreamer.", e);
+            }
+        }
+    };
 
     /**
      * クライアントとの接続を行うスレッド.

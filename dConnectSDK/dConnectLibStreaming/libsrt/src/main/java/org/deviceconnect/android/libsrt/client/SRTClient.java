@@ -191,6 +191,11 @@ public class SRTClient {
          */
         private SRTSocket mSRTSocket;
 
+        /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
         SRTSessionThread() {
             setName("SRT-CLIENT");
         }
@@ -207,6 +212,8 @@ public class SRTClient {
                 }
                 mSRTSocket = null;
             }
+
+            mStopFlag = true;
 
             interrupt();
 
@@ -235,7 +242,7 @@ public class SRTClient {
                 int len;
                 byte[] buffer = new byte[BUFFER_SIZE];
 
-                while (!isInterrupted()) {
+                while (!mStopFlag) {
                     len = mSRTSocket.recv(buffer, BUFFER_SIZE);
                     if (len > 0) {
                         postOnRead(buffer, len);

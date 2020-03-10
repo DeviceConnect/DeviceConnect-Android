@@ -1,9 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.ImageReader;
 import android.util.Log;
 import android.util.Size;
@@ -104,7 +101,6 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
 
     @Override
     protected void release() {
-        unregisterScreenChange();
         stopCamera();
         super.release();
     }
@@ -131,12 +127,10 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     @Override
     protected void onStartSurfaceDrawing() {
         startCamera();
-        registerScreenChange();
     }
 
     @Override
     protected void onStopSurfaceDrawing() {
-        unregisterScreenChange();
         stopCamera();
     }
 
@@ -222,34 +216,4 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
             mCamera2 = null;
         }
     }
-
-    /**
-     * 画面の回転イベントを受け取る BroadcastReceiver を登録します.
-     */
-    private void registerScreenChange() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-        mContext.registerReceiver(mConfigurationReceiver, filter);
-    }
-
-    /**
-     * 画面の回転イベントを受け取る BroadcastReceiver を解除します.
-     */
-    private void unregisterScreenChange() {
-        try {
-            mContext.unregisterReceiver(mConfigurationReceiver);
-        } catch (Exception e) {
-            // ignore.
-        }
-    }
-
-    /**
-     * 画面の回転イベントを受け取る BroadcastReceiver.
-     */
-    private final BroadcastReceiver mConfigurationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            restart();
-        }
-    };
 }

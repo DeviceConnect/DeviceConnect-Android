@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 
 public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -98,12 +99,6 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
         private void terminate() {
             mStopFlag = true;
 
-            try {
-                join(200);
-            } catch (InterruptedException e) {
-                // ignore.
-            }
-
             interrupt();
 
             try {
@@ -151,8 +146,8 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
             } catch (InterruptedException e) {
                 // ignore.
             } catch (Exception e) {
-                if (DEBUG) {
-                    Log.e(TAG, "", e);
+                if (!mStopFlag) {
+                    postOnError(new MediaEncoderException(e));
                 }
             } finally {
                 surface.release();

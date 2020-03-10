@@ -5,6 +5,7 @@ import android.media.MediaCodecInfo;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.gles.CodecInputSurface;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
 
@@ -131,12 +132,19 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
      */
     private class SurfaceDrawingThread extends Thread {
         /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
+        /**
          * スレッドを終了します.
          */
         private void terminate() {
-            releaseStManager();
+            mStopFlag = true;
 
             interrupt();
+
+            releaseStManager();
 
             try {
                 join(200);
@@ -157,7 +165,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
                 int fps = 1000 / getVideoQuality().getFrameRate();
 
                 int displayRotation = getDisplayRotation();
-                while (!isInterrupted()) {
+                while (!mStopFlag) {
                     long startTime = System.currentTimeMillis();
 
                     executeRequest();
@@ -175,7 +183,9 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
                     }
                 }
             } catch (Exception e) {
-                // ignore.
+                if (!mStopFlag) {
+                    postOnError(new MediaEncoderException(e));
+                }
             } finally {
                 releaseStManager();
                 onStopSurfaceDrawing();

@@ -231,9 +231,16 @@ public class AACDecoder extends AudioDecoder {
         private MediaCodec mMediaCodec;
 
         /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
+        /**
          * スレッドのクローズ処理を行います.
          */
         void terminate() {
+            mStopFlag = true;
+
             interrupt();
 
             releaseMediaCodec();
@@ -272,7 +279,7 @@ public class AACDecoder extends AudioDecoder {
 
                 mMediaCodec = createMediaCodec();
 
-                while (!isInterrupted()) {
+                while (!mStopFlag) {
                     Frame frame = get();
 
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
@@ -329,7 +336,7 @@ public class AACDecoder extends AudioDecoder {
                 if (DEBUG) {
                     Log.w(TAG, "AAC encode occurred an exception.", e);
                 }
-                if (!isInterrupted()) {
+                if (!mStopFlag) {
                     postError(e);
                 }
             } finally {

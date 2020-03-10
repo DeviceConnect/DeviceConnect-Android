@@ -12,6 +12,11 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
     private Callback mCallback;
 
     /**
+     * 停止フラグ.
+     */
+    private boolean mStopFlag;
+
+    /**
      * コンストラクタ.
      */
     public TsPacketExtractor() {
@@ -43,6 +48,8 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
      * TS パケットの解析を終了します.
      */
     public void terminate() {
+        mStopFlag = true;
+
         interrupt();
 
         try {
@@ -58,7 +65,7 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
             TsPacketReader packetReader = new TsPacketReader();
             packetReader.setCallback(mCallback);
 
-            while (!isInterrupted()) {
+            while (!mStopFlag) {
                 packetReader.readPacket(get());
             }
         } catch (Exception e) {
@@ -66,6 +73,9 @@ public class TsPacketExtractor extends QueueThread<Buffer> {
         }
     }
 
+    /**
+     * ストリームから抽出した TS パケット通知するリスナー.
+     */
     public interface Callback extends TsPacketReader.Callback {
     }
 }

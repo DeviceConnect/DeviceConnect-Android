@@ -2,6 +2,7 @@ package org.deviceconnect.android.libsrt.server;
 
 import android.util.Log;
 
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.SRT;
@@ -286,6 +287,11 @@ public class SRTServer {
         }
     }
 
+    /**
+     * 統計情報を使用するかを確認します.
+     *
+     * @return 統計情報を使用する場合にはtrue、それ以外はfalse
+     */
     private boolean usesStats() {
         return mStatsListener != null || mShowStats;
     }
@@ -402,7 +408,7 @@ public class SRTServer {
         if (mSRTSession != null) {
             releaseSRTSession();
         }
-        mSRTSession = new SRTSession();
+        mSRTSession = new SRTSession(mOnEventListener);
         if (mCallback != null) {
             mCallback.createSession(mSRTSession);
         }
@@ -455,6 +461,32 @@ public class SRTServer {
     private Object getCustomOption(int option) {
         return mCustomSocketOptions == null ? null : mCustomSocketOptions.get(option);
     }
+
+    /**
+     * SRTSession からのイベントを受信するリスナー.
+     */
+    private SRTSession.OnEventListener mOnEventListener = new SRTSession.OnEventListener() {
+        @Override
+        public void onStarted() {
+            if (DEBUG) {
+                Log.d(TAG, "MediaStreamer started.");
+            }
+        }
+
+        @Override
+        public void onStopped() {
+            if (DEBUG) {
+                Log.d(TAG, "MediaStreamer stopped.");
+            }
+        }
+
+        @Override
+        public void onError(MediaEncoderException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Error occurred on MediaStreamer.", e);
+            }
+        }
+    };
 
     /**
      * SRT クライアントソケットの生存確認を行うスレッド.

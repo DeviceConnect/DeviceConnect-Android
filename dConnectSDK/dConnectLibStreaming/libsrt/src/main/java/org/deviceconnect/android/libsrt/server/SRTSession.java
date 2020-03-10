@@ -1,8 +1,5 @@
 package org.deviceconnect.android.libsrt.server;
 
-import android.util.Log;
-
-import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
@@ -31,48 +28,45 @@ public class SRTSession {
     private final SRTMuxer mSRTMuxer;
 
     /**
+     * SRTSession のイベントを通知するリスナー.
+     */
+    private OnEventListener mOnEventListener;
+
+    /**
      * コンストラクタ.
      * <p>
      * デフォルトでは、Mpeg2TsMuxer を設定します。
      * </p>
      */
     public SRTSession() {
-        this(new Mpeg2TsMuxer());
+        this(new Mpeg2TsMuxer(), null);
+    }
+
+    /**
+     * コンストラクタ .
+     * <p>
+     * デフォルトでは、Mpeg2TsMuxer を設定します。
+     * </p>
+     * @param listener リスナー
+     */
+    public SRTSession(OnEventListener listener) {
+        this(new Mpeg2TsMuxer(), listener);
     }
 
     /**
      * コンストラクタ .
      * @param muxer 配信処理を行う Muxer
      */
-    public SRTSession(SRTMuxer muxer) {
+    public SRTSession(SRTMuxer muxer, OnEventListener listener) {
         if (muxer == null) {
             throw new IllegalArgumentException("muxer is not set.");
         }
 
+        mOnEventListener = listener;
+
         mSRTMuxer = muxer;
         mMediaStreamer = new MediaStreamer(mSRTMuxer);
-        mMediaStreamer.setOnEventListener(new MediaStreamer.OnEventListener() {
-            @Override
-            public void onStarted() {
-                if (DEBUG) {
-                    Log.d(TAG, "MediaStreamer started.");
-                }
-            }
-
-            @Override
-            public void onStopped() {
-                if (DEBUG) {
-                    Log.d(TAG, "MediaStreamer stopped.");
-                }
-            }
-
-            @Override
-            public void onError(MediaEncoderException e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Error occurred on MediaStreamer.", e);
-                }
-            }
-        });
+        mMediaStreamer.setOnEventListener(listener);
     }
 
     /**
@@ -167,5 +161,11 @@ public class SRTSession {
         if (audioEncoder != null) {
             audioEncoder.restart();
         }
+    }
+
+    /**
+     * SRTSession のイベントを通知するリスナー.
+     */
+    public interface OnEventListener extends MediaStreamer.OnEventListener {
     }
 }

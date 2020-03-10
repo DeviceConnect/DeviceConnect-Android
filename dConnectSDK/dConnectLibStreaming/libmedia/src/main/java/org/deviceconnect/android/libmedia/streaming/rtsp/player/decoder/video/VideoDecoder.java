@@ -235,9 +235,16 @@ public abstract class VideoDecoder implements Decoder {
         private MediaCodec mMediaCodec;
 
         /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
+        /**
          * スレッドのクローズ処理を行います.
          */
         void terminate() {
+            mStopFlag = true;
+
             interrupt();
 
             releaseMediaCodec();
@@ -274,7 +281,7 @@ public abstract class VideoDecoder implements Decoder {
 
                 mMediaCodec = createMediaCodec();
 
-                while (!isInterrupted()) {
+                while (!mStopFlag) {
                     Frame frame = get();
 
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
@@ -331,9 +338,9 @@ public abstract class VideoDecoder implements Decoder {
                 // ignore.
             } catch (Exception e) {
                 if (DEBUG) {
-                    Log.w(TAG, "H264 encode occurred an exception.", e);
+                    Log.w(TAG, "video decoder occurred an exception.", e);
                 }
-                if (!isInterrupted()) {
+                if (!mStopFlag) {
                     postError(e);
                 }
             } finally {

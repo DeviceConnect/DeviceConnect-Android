@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
 
                     runOnUiThread(() -> findViewById(R.id.text_view).setVisibility(View.GONE));
 
-                    mHandler.postDelayed(()->startCamera(), 500);
+                    mHandler.postDelayed(() -> startCamera(), 500);
                 }
             });
             mSRTServer.start();
@@ -345,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
         return null;
     }
 
-    private void startCamera() {
+    private synchronized void startCamera() {
         if (mCamera2 != null) {
             if (DEBUG) {
                 Log.w(TAG, "Camera is already opened.");
@@ -387,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
             @Override
             public void onError(Camera2WrapperException e) {
                 if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onStopPreview");
+                    Log.d(TAG, "MainActivity::onError", e);
                 }
             }
         });
@@ -398,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
         adjustSurfaceView(mCamera2.isSwappedDimensions());
     }
 
-    private void stopCamera() {
+    private synchronized void stopCamera() {
         if (mCamera2 != null) {
             mCamera2.close();
             mCamera2 = null;

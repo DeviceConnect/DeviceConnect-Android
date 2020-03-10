@@ -463,6 +463,17 @@ public class SRTServer {
     }
 
     /**
+     * 全てのソケットを閉じます.
+     */
+    private void closeAllClientSocket() {
+        synchronized (mSocketThreads) {
+            for (SocketThread thread : mSocketThreads) {
+                thread.terminate();
+            }
+        }
+    }
+
+    /**
      * SRTSession からのイベントを受信するリスナー.
      */
     private SRTSession.OnEventListener mOnEventListener = new SRTSession.OnEventListener() {
@@ -485,6 +496,7 @@ public class SRTServer {
             if (DEBUG) {
                 Log.e(TAG, "Error occurred on MediaStreamer.", e);
             }
+            closeAllClientSocket();
         }
     };
 

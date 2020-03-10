@@ -110,17 +110,19 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
 
         @Override
         public void run() {
-            VideoQuality videoQuality = getVideoQuality();
-
-            int width = videoQuality.getVideoWidth();
-            int height = videoQuality.getVideoHeight();
-            int fps = 1000 / videoQuality.getFrameRate();
-
-            SurfaceTexture surfaceTexture = getSurfaceTexture();
-            surfaceTexture.setDefaultBufferSize(videoQuality.getVideoWidth(), videoQuality.getVideoHeight());
-
-            Surface surface = new Surface(getSurfaceTexture());
+            Surface surface = null;
             try {
+                VideoQuality videoQuality = getVideoQuality();
+
+                int width = videoQuality.getVideoWidth();
+                int height = videoQuality.getVideoHeight();
+                int fps = 1000 / videoQuality.getFrameRate();
+
+                SurfaceTexture surfaceTexture = getSurfaceTexture();
+                surfaceTexture.setDefaultBufferSize(videoQuality.getVideoWidth(), videoQuality.getVideoHeight());
+
+                surface = new Surface(getSurfaceTexture());
+
                 while (!mStopFlag) {
                     long start = System.currentTimeMillis();
 
@@ -150,7 +152,9 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
                     postOnError(new MediaEncoderException(e));
                 }
             } finally {
-                surface.release();
+                if (surface != null) {
+                    surface.release();
+                }
             }
         }
     }

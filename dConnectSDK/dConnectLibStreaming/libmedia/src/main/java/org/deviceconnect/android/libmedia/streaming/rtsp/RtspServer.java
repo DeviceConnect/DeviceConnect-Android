@@ -262,6 +262,17 @@ public class RtspServer {
     }
 
     /**
+     * クライアント Socket を全て閉じます.
+     */
+    private void closeAllClientSocket() {
+        synchronized (mClientSocketThreads) {
+            for (ClientSocketThread t : mClientSocketThreads) {
+                t.terminate();
+            }
+        }
+    }
+
+    /**
      * RtspSession からのイベントを受信するリスナー.
      */
     private final RtspSession.OnEventListener mEventListener = new RtspSession.OnEventListener() {
@@ -284,6 +295,7 @@ public class RtspServer {
             if (DEBUG) {
                 Log.e(TAG, "Error occurred on MediaStreamer.", e);
             }
+            closeAllClientSocket();
         }
     };
 

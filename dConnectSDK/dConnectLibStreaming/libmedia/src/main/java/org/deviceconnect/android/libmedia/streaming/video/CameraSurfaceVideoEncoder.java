@@ -197,7 +197,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
         mCamera2.open(getSurfaceTexture(), new ArrayList<>(mSurfaces));
 
         try {
-            if (!latch.await(5, TimeUnit.SECONDS)) {
+            if (!latch.await(3, TimeUnit.SECONDS)) {
                 // タイムアウト
                 throw new RuntimeException("Timed out opening a camera.");
             }

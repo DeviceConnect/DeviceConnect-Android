@@ -285,7 +285,7 @@ public abstract class VideoDecoder implements Decoder {
                     Frame frame = get();
 
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
-                    if (inIndex >= 0) {
+                    if (inIndex >= 0 && !mStopFlag) {
                         ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
                         if (buffer == null) {
                             continue;
@@ -304,7 +304,7 @@ public abstract class VideoDecoder implements Decoder {
                     }
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
-                    if (outIndex > 0) {
+                    if (outIndex > 0 && !mStopFlag) {
                         mMediaCodec.releaseOutputBuffer(outIndex, true);
                     } else {
                         switch (outIndex) {

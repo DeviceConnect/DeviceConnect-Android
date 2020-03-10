@@ -25,7 +25,8 @@
 
         <activity
             android:name=".RTSPPlayerActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>

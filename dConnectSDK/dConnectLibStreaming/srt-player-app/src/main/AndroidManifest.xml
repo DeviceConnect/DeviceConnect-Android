@@ -26,7 +26,8 @@
 
         <activity
             android:name=".SRTSettingPreferenceActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
 
         <activity
             android:name=".SRTPlayerActivity"

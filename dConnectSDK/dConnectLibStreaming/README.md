@@ -48,3 +48,11 @@ $ ./gradlew assembleRelease
 ```
 
 dConnectLibStreaming/build/outputs/aar に aar ファイルは作成されます。
+
+# 各モジュールの依存している外部ライブラリ
+## libsrt
+libsrt モジュールは、以下の外部ライブラリに依存しています。
+
+|ライブラリ名|著作者|ライセンス|
+|:--|:--|:--|
+|[Secure Reliable Transport (SRT)](https://github.com/Haivision/srt)|Haivision Systems Inc.|[Mozilla Public License Version 2.0](https://github.com/Haivision/srt/blob/master/LICENSE)|

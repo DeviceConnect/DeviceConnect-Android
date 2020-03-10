@@ -3,6 +3,13 @@ package org.deviceconnect.android.libmedia.streaming.rtsp;
 import android.net.Uri;
 import android.util.Log;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.rtp.RtpReceiver;
+import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
+import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
+import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
+import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescriptionParser;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,13 +18,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.deviceconnect.android.libmedia.BuildConfig;
-import org.deviceconnect.android.libmedia.streaming.rtp.RtpReceiver;
-import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
-import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
-import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
-import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescriptionParser;
 
 public class RtspClient {
     /**
@@ -48,7 +48,7 @@ public class RtspClient {
     /**
      * 受信した RTP パケットを通知するコールバック.
      */
-    private Callback mCallback;
+    private OnEventListener mOnEventListener;
 
     /**
      * コンストラクタ.
@@ -62,12 +62,12 @@ public class RtspClient {
     }
 
     /**
-     * 受信した RTP パケットを通知するコールバックを設定します.
+     * 受信した RTP パケットを通知するリスナーを設定します.
      *
-     * @param callback コールバック
+     * @param listener リスナー
      */
-    public void setCallback(Callback callback) {
-        mCallback = callback;
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
     }
 
     /**
@@ -118,26 +118,38 @@ public class RtspClient {
     }
 
     private void postOnError(RtspClientException e) {
-        if (mCallback != null) {
-            mCallback.onError(e);
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(e);
         }
     }
 
     private void postOnSdpReceived(SessionDescription sdp) {
-        if (mCallback != null) {
-            mCallback.onSdpReceived(sdp);
+        if (mOnEventListener != null) {
+            mOnEventListener.onSdpReceived(sdp);
         }
     }
 
     private void postOnRtpReceived(MediaDescription md, byte[] data, int dataLength) {
-        if (mCallback != null) {
-            mCallback.onRtpReceived(md, data, dataLength);
+        if (mOnEventListener != null) {
+            mOnEventListener.onRtpReceived(md, data, dataLength);
         }
     }
 
     private void postOnRtcpReceived(MediaDescription md, byte[] data, int dataLength) {
-        if (mCallback != null) {
-            mCallback.onRtcpReceived(md, data, dataLength);
+        if (mOnEventListener != null) {
+            mOnEventListener.onRtcpReceived(md, data, dataLength);
+        }
+    }
+
+    private void postOnConnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConnected();
+        }
+    }
+
+    private void postOnDisconnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onDisconnected();
         }
     }
 
@@ -235,6 +247,8 @@ public class RtspClient {
                 mReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                 mWriter = new BufferedOutputStream(mSocket.getOutputStream());
 
+                postOnConnected();
+
                 processOptions();
                 processDescribe();
 
@@ -276,6 +290,8 @@ public class RtspClient {
                         // ignore.
                     }
                 }
+
+                postOnDisconnected();
 
                 if (DEBUG) {
                     Log.d(TAG, "RTSP CLIENT END");
@@ -492,7 +508,17 @@ public class RtspClient {
         }
     }
 
-    public interface Callback {
+    public interface OnEventListener {
+        /**
+         * 接続されたことを通知します.
+         */
+        void onConnected();
+
+        /**
+         * 切断されたことを通知します.
+         */
+        void onDisconnected();
+
         /**
          * RTSP サーバとの通信で発生したエラーを通知します.
          *

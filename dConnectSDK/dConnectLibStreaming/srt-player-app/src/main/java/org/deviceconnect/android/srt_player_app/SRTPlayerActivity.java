@@ -2,13 +2,20 @@ package org.deviceconnect.android.srt_player_app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
+import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.client.SRTPlayer;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import static org.deviceconnect.android.srt_player_app.BuildConfig.DEBUG;
@@ -18,11 +25,14 @@ public class SRTPlayerActivity extends AppCompatActivity {
     static final String EXTRA_URI = "_extra_uri";
 
     private SRTPlayer mSRTPlayer;
+    private SRTSetting mSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_srt_player);
+
+        mSetting = new SRTSetting(getApplicationContext());
     }
 
     @Override
@@ -55,14 +65,36 @@ public class SRTPlayerActivity extends AppCompatActivity {
             finish();
         }
 
+        ProgressBar progressBar = findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.VISIBLE);
+
         SurfaceView surfaceView = findViewById(R.id.surface_view);
+
+        Map<Integer, Object> socketOptions = new HashMap<>();
+        socketOptions.put(SRT.SRTO_RCVLATENCY, mSetting.getRcvLatency());
+        socketOptions.put(SRT.SRTO_CONNTIMEO, mSetting.getConnTimeo());
+        socketOptions.put(SRT.SRTO_PEERIDLETIMEO, mSetting.getPeerIdleTimeo());
 
         mSRTPlayer = new SRTPlayer();
         mSRTPlayer.setUri(uri);
+        mSRTPlayer.setSocketOptions(socketOptions);
         mSRTPlayer.setSurface(surfaceView.getHolder().getSurface());
         mSRTPlayer.setStatsInterval(BuildConfig.STATS_INTERVAL);
         mSRTPlayer.setShowStats(DEBUG);
         mSRTPlayer.setOnEventListener(new SRTPlayer.OnEventListener() {
+            @Override
+            public void onConnected() {
+            }
+
+            @Override
+            public void onDisconnected() {
+            }
+
+            @Override
+            public void onReady() {
+                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+            }
+
             @Override
             public void onSizeChanged(int width, int height) {
                 runOnUiThread(() -> changePlayerSize(width, height));
@@ -70,7 +102,8 @@ public class SRTPlayerActivity extends AppCompatActivity {
 
             @Override
             public void onError(Exception e) {
-
+                Log.e("SRT-PLAYER", "Error", e);
+                showErrorDialog("エラー", e.getMessage());
             }
         });
         mSRTPlayer.start();
@@ -81,6 +114,17 @@ public class SRTPlayerActivity extends AppCompatActivity {
             mSRTPlayer.stop();
             mSRTPlayer = null;
         }
+    }
+
+    private void showErrorDialog(String title, String message) {
+        runOnUiThread(() ->
+            new AlertDialog.Builder(this)
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setPositiveButton("はい", null)
+                    .setCancelable(false)
+                    .setOnDismissListener((dialogInterface) -> finish())
+                    .show());
     }
 
     private void changePlayerSize(int pictureWidth, int pictureHeight) {

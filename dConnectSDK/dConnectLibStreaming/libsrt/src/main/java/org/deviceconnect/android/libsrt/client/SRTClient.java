@@ -3,9 +3,11 @@ package org.deviceconnect.android.libsrt.client;
 import android.util.Log;
 
 import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.SRTSocketException;
 import org.deviceconnect.android.libsrt.SRTStats;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -63,6 +65,11 @@ public class SRTClient {
     private boolean mShowStats;
 
     /**
+     * クライアントのソケットに設定するオプション.
+     */
+    private Map<Integer, Object> mCustomSocketOptions;
+
+    /**
      * コンストラクタ.
      * @param address 接続先のアドレス
      * @param port 接続先のポート番号
@@ -70,6 +77,19 @@ public class SRTClient {
     public SRTClient(String address, int port) {
         mAddress = address;
         mPort = port;
+    }
+
+    /**
+     * ソケットに反映するオプションを設定します.
+     *
+     * <p>
+     * オプションはサーバ側のソケットがバインドされる前に設定されます.
+     * </p>
+     *
+     * @param socketOptions ソケットに反映するオプションd
+     */
+    public void setSocketOptions(Map<Integer, Object> socketOptions) {
+        mCustomSocketOptions = socketOptions;
     }
 
     /**
@@ -112,6 +132,26 @@ public class SRTClient {
         return mSRTSessionThread != null &&
                 mSRTSessionThread.mSRTSocket != null &&
                 mSRTSessionThread.mSRTSocket.isConnected();
+    }
+
+    /**
+     * SRT ソケットにオプションを設定します.
+     *
+     * <p>
+     * Binding が post のオプションのみ、ソケットが接続された後にもオプションを設定することができます。
+     * </p>
+     *
+     * @param option オプション
+     * @param value 値
+     */
+    public synchronized void setSocketOption(int option, Object value) {
+        if (mSRTSessionThread != null) {
+            try {
+                mSRTSessionThread.mSRTSocket.setOption(option, value);
+            } catch (SRTSocketException e) {
+                // ignore.
+            }
+        }
     }
 
     /**
@@ -227,7 +267,15 @@ public class SRTClient {
         @Override
         public void run() {
             try {
-                mSRTSocket = new SRTSocket(mAddress, mPort);
+                mSRTSocket = new SRTSocket();
+
+                if (mCustomSocketOptions != null) {
+                    for (Map.Entry<Integer, Object> o : mCustomSocketOptions.entrySet()) {
+                        mSRTSocket.setOption(o.getKey(), o.getValue());
+                    }
+                }
+
+                mSRTSocket.connect(mAddress, mPort);
             } catch (IOException e) {
                 postOnError(e);
                 return;

@@ -61,7 +61,6 @@
 
     </PreferenceCategory>
 
-
     <PreferenceCategory
         android:title="音声設定"
         app:iconSpaceReserved="false">
@@ -70,6 +69,61 @@
             android:defaultValue="true"
             android:key="audio_enabled"
             android:title="音声"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_audio_bit_rate"
+            android:key="audio_bit_rate"
+            android:singleLine="true"
+            android:title="ビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <DropDownPreference
+            android:defaultValue="@string/settings_audio_sampling_rate"
+            android:entries="@array/settings_audio_sampling_rates"
+            android:entryValues="@array/settings_audio_sampling_rates"
+            android:key="audio_sampling_rate"
+            android:title="サンプリングレート"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="SRT"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:defaultValue="120"
+            android:key="settings_srt_peerlatency"
+            android:singleLine="true"
+            android:title="PEERLATENCY"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="settings_srt_lossmaxttl"
+            android:singleLine="true"
+            android:title="LOSSMAXTTL"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="3000"
+            android:key="settings_srt_conntimeo"
+            android:singleLine="true"
+            android:title="CONNTIMEO"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="5000"
+            android:key="settings_srt_peeridletimeo"
+            android:singleLine="true"
+            android:title="PEERIDLETIMO"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 

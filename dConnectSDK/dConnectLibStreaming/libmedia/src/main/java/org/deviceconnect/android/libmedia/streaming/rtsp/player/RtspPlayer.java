@@ -164,7 +164,21 @@ public class RtspPlayer {
 
         mRetryCount = 0;
         mRtspClient = new RtspClient(mUrl);
-        mRtspClient.setCallback(new RtspClient.Callback() {
+        mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
+            @Override
+            public void onConnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onConnected();
+                }
+            }
+
+            @Override
+            public void onDisconnected() {
+                if (mOnEventListener != null) {
+                    mOnEventListener.onDisconnected();
+                }
+            }
+
             @Override
             public void onError(RtspClientException e) {
                 if (DEBUG) {
@@ -202,15 +216,15 @@ public class RtspPlayer {
                     Log.d(TAG, sdp.toString());
                 }
 
-                if (mOnEventListener != null) {
-                    mOnEventListener.onOpened();
-                }
-
                 for (MediaDescription md : sdp.getMediaDescriptions()) {
                     Decoder decoder = createDecoder(md);
                     if (decoder != null) {
                         mDecoderMap.put(md, decoder);
                     }
+                }
+
+                if (mOnEventListener != null) {
+                    mOnEventListener.onReady();
                 }
             }
 
@@ -360,16 +374,19 @@ public class RtspPlayer {
 
     public interface OnEventListener {
         /**
-         * RTSP プレイヤーでエラーが発生したことを通知します.
-         *
-         * @param e エラー原因の例外
-         */
-        void onError(Exception e);
-
-        /**
          * RTSP サーバの接続したことを通知します.
          */
-        void onOpened();
+        void onConnected();
+
+        /**
+         * RTSP サーバから切断したことを通知します.
+         */
+        void onDisconnected();
+
+        /**
+         * RTSP の受信準備が完了したことを通知します.
+         */
+        void onReady();
 
         /**
          * 映像の解像度が変更されたことを通知します.
@@ -378,5 +395,12 @@ public class RtspPlayer {
          * @param height 縦幅
          */
         void onSizeChanged(int width, int height);
+
+        /**
+         * RTSP プレイヤーでエラーが発生したことを通知します.
+         *
+         * @param e エラー原因の例外
+         */
+        void onError(Exception e);
     }
 }

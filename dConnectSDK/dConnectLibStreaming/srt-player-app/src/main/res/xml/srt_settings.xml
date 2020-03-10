@@ -1,0 +1,35 @@
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <PreferenceCategory
+        android:title="SRT"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:defaultValue="120"
+            android:key="settings_srt_rcvlatency"
+            android:singleLine="true"
+            android:title="RCVLATENCY"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="3000"
+            android:key="settings_srt_conntimeo"
+            android:singleLine="true"
+            android:title="CONNTIMEO"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="5000"
+            android:key="settings_srt_peeridletimeo"
+            android:singleLine="true"
+            android:title="PEERIDLETIMO"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

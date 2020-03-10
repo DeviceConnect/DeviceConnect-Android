@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         findViewById(R.id.btn_srt_play).setOnClickListener((v) -> {
             EditText et = findViewById(R.id.edittext_srt_server_url);
@@ -59,10 +62,17 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            gotoPreferences();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void gotoPreferences() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), SRTSettingPreferenceActivity.class);
+        startActivity(intent);
     }
 
     private void gotoSRTPlayer(String uri) {

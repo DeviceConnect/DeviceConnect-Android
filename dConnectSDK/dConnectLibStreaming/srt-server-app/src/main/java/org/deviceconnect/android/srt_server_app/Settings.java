@@ -67,4 +67,34 @@ class Settings {
     boolean isAudioEnabled() {
         return mSharedPreferences.getBoolean("audio_enabled", true);
     }
+
+    int getSamplingRate() {
+        String value = mSharedPreferences.getString("audio_sampling_rate", "8000");
+        return Integer.parseInt(value);
+    }
+
+    int getAudioBitRate() {
+        String value = mSharedPreferences.getString("audio_bit_rate", "64");
+        return Integer.parseInt(value) * 1024;
+    }
+
+    int getPeerLatency() {
+        String value = mSharedPreferences.getString("settings_srt_peerlatency", "120");
+        return Integer.parseInt(value);
+    }
+
+    int getLossMaxTTL() {
+        String value = mSharedPreferences.getString("settings_srt_lossmaxttl", "0");
+        return Integer.parseInt(value);
+    }
+
+    int getConnTimeo() {
+        String value = mSharedPreferences.getString("settings_srt_conntimeo", "3000");
+        return Integer.parseInt(value);
+    }
+
+    int getPeerIdleTimeo() {
+        String value = mSharedPreferences.getString("settings_srt_peeridletimeo", "5000");
+        return Integer.parseInt(value);
+    }
 }

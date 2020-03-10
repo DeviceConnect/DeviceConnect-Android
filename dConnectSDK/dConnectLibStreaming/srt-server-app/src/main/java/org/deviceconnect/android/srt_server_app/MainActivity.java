@@ -1,6 +1,7 @@
 package org.deviceconnect.android.srt_server_app;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.media.AudioFormat;
 import android.os.Bundle;
@@ -34,19 +35,19 @@ import org.deviceconnect.android.libsrt.server.SRTSession;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 
 /**
  * SRTサーバからAndroid端末のカメラ映像を配信する画面.
  */
-public class MainActivity extends AppCompatActivity implements SettingsDialogFragment.SettingsDialogListener {
+public class MainActivity extends AppCompatActivity {
 
     /**
      * デバッグフラグ.
@@ -165,9 +166,7 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_settings) {
-            DialogFragment settingsDialog = new SettingsDialogFragment();
-            settingsDialog.setCancelable(false);
-            settingsDialog.show(getSupportFragmentManager(), "settings");
+            gotoPreferences();
         }
         return true;
     }
@@ -190,33 +189,10 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
         }
     }
 
-    // SettingsDialogFragment.SettingsDialogListener
-
-    @Override
-    public void onSettingsDialogDismiss() {
-        if (DEBUG) {
-            Log.d(TAG, "onSettingsDialogDismiss");
-        }
-
-        Fragment settingsDialog = getSupportFragmentManager().findFragmentById(R.id.settings_fragment);
-        if (settingsDialog != null) {
-            getSupportFragmentManager().beginTransaction().remove(settingsDialog).commit();
-        }
-
-        if (mSRTServer == null || mSRTServer.getSRTSession() == null) {
-            stopCamera();
-            startCamera();
-        } else {
-            SRTSession srtSession = mSRTServer.getSRTSession();
-            CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) srtSession.getVideoEncoder();
-            if (videoEncoder != null) {
-                setVideoQuality((CameraVideoQuality) videoEncoder.getVideoQuality());
-
-                new Thread(videoEncoder::restart).start();
-
-                mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);
-            }
-        }
+    private void gotoPreferences() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), SettingsPreferenceActivity.class);
+        startActivity(intent);
     }
 
     private void setVideoQuality(CameraVideoQuality videoQuality) {
@@ -250,7 +226,14 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
         try {
             startCamera();
 
+            Map<Integer, Object> socketOptions = new HashMap<>();
+            socketOptions.put(SRT.SRTO_PEERLATENCY, mSettings.getPeerLatency());
+            socketOptions.put(SRT.SRTO_LOSSMAXTTL, mSettings.getLossMaxTTL());
+            socketOptions.put(SRT.SRTO_CONNTIMEO, mSettings.getConnTimeo());
+            socketOptions.put(SRT.SRTO_PEERIDLETIMEO, mSettings.getPeerIdleTimeo());
+
             mSRTServer = new SRTServer(12345);
+            mSRTServer.setSocketOptions(socketOptions);
             if (DEBUG) {
                 mSRTServer.setStatsListener((SRTSocket client, SRTStats stats)
                         -> Log.d(TAG, "stats: " + stats));
@@ -278,7 +261,8 @@ public class MainActivity extends AppCompatActivity implements SettingsDialogFra
                         audioEncoder.setMute(false);
 
                         AudioQuality audioQuality = audioEncoder.getAudioQuality();
-                        audioQuality.setSamplingRate(44100);
+                        audioQuality.setBitRate(mSettings.getAudioBitRate());
+                        audioQuality.setSamplingRate(mSettings.getSamplingRate());
                         audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
                         audioQuality.setFormat(AudioFormat.ENCODING_PCM_16BIT);
 

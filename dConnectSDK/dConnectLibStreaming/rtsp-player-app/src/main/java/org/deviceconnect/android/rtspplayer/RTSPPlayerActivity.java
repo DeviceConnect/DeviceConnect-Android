@@ -1,15 +1,17 @@
 package org.deviceconnect.android.rtspplayer;
 
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Size;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class RTSPPlayerActivity extends AppCompatActivity {
@@ -17,7 +19,6 @@ public class RTSPPlayerActivity extends AppCompatActivity {
     static final String EXTRA_URI = "_extra_uri";
 
     private RtspPlayer mRtspPlayer;
-    private MediaPlayer mMediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,45 +51,61 @@ public class RTSPPlayerActivity extends AppCompatActivity {
             return;
         }
 
-        if (mMediaPlayer != null) {
-            return;
-        }
-
         String uri = getExtraUri();
         if (uri == null) {
             finish();
         }
 
         SurfaceView surfaceView = findViewById(R.id.surface_view);
-
-//        try {
-//            mMediaPlayer = new MediaPlayer();
-//            mMediaPlayer.setDataSource(url);
-//            mMediaPlayer.setSurface(surfaceView.getHolder().getSurface());
-//            mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-//            mMediaPlayer.setOnPreparedListener((MediaPlayer mp) -> mMediaPlayer.start());
-//            mMediaPlayer.prepare();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        ProgressBar progressBar = findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.VISIBLE);
 
         mRtspPlayer = new RtspPlayer(uri);
         mRtspPlayer.setSurface(surfaceView.getHolder().getSurface());
         mRtspPlayer.setOnEventListener(new RtspPlayer.OnEventListener() {
             @Override
-            public void onError(Exception e) {
+            public void onConnected() {
             }
 
             @Override
-            public void onOpened() {
+            public void onDisconnected() {
+            }
+
+            @Override
+            public void onReady() {
+                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
             }
 
             @Override
             public void onSizeChanged(int width, int height) {
                 runOnUiThread(() -> changePlayerSize(width, height));
             }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e("RTSP-PLAYER", "Error", e);
+                showErrorDialog("エラー", e.getMessage());
+            }
         });
         mRtspPlayer.start();
+    }
+
+    private void stopPlayer() {
+        if (mRtspPlayer != null) {
+            mRtspPlayer.stop();
+            mRtspPlayer = null;
+        }
+    }
+
+    private void showErrorDialog(String title, String message) {
+        runOnUiThread(() ->
+                new AlertDialog.Builder(this)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setPositiveButton("はい", null)
+                        .setCancelable(false)
+                        .setOnDismissListener((dialogInterface) -> finish())
+                        .show());
     }
 
     private void changePlayerSize(int pictureWidth, int pictureHeight) {
@@ -118,22 +135,5 @@ public class RTSPPlayerActivity extends AppCompatActivity {
             return new Size(w, maxSize.getHeight());
         }
         return new Size(maxSize.getWidth(), h);
-    }
-
-    private void stopPlayer() {
-        if (mMediaPlayer != null) {
-            try {
-                mMediaPlayer.stop();
-                mMediaPlayer.release();
-                mMediaPlayer = null;
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (mRtspPlayer != null) {
-            mRtspPlayer.stop();
-            mRtspPlayer = null;
-        }
     }
 }

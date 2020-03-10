@@ -283,7 +283,7 @@ public class AACDecoder extends AudioDecoder {
                     Frame frame = get();
 
                     int inIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_US);
-                    if (inIndex >= 0) {
+                    if (inIndex >= 0 && !mStopFlag) {
                         ByteBuffer buffer = mMediaCodec.getInputBuffer(inIndex);
                         if (buffer != null) {
                             buffer.clear();
@@ -297,7 +297,7 @@ public class AACDecoder extends AudioDecoder {
                     frame.release();
 
                     int outIndex = mMediaCodec.dequeueOutputBuffer(info, TIMEOUT_US);
-                    if (outIndex > 0) {
+                    if (outIndex >= 0 && !mStopFlag) {
                         if (info.size > 0) {
                             writeAudioData(mMediaCodec.getOutputBuffer(outIndex), 0, info.size, info.presentationTimeUs);
                         }

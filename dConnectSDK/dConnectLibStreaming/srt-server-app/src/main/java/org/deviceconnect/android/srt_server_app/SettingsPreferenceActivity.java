@@ -77,6 +77,14 @@ public class SettingsPreferenceActivity extends AppCompatActivity {
                 createEncoderFrameRatePreference();
                 createEncoderBitRatePreference();
             }
+
+            setInputTypeNumber("encoder_frame_rate");
+            setInputTypeNumber("encoder_bit_rate");
+            setInputTypeNumber("audio_bit_rate");
+            setInputTypeNumber("settings_srt_peerlatency");
+            setInputTypeNumber("settings_srt_lossmaxttl");
+            setInputTypeNumber("settings_srt_conntimeo");
+            setInputTypeNumber("settings_srt_peeridletimeo");
         }
 
         private String getIpAddress() {
@@ -96,6 +104,15 @@ public class SettingsPreferenceActivity extends AppCompatActivity {
                 return address.getHostAddress();
             }
             return null;
+        }
+
+        private void setInputTypeNumber(String key) {
+            EditTextPreference editTextPreference = findPreference(key);
+            if (editTextPreference != null) {
+                editTextPreference.setOnBindEditTextListener((editText) ->
+                        editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED));
+                editTextPreference.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            }
         }
 
         private void createSrtServerPreference() {
@@ -258,6 +275,11 @@ public class SettingsPreferenceActivity extends AppCompatActivity {
             // We cast here to ensure the multiplications won't overflow
             return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
                     (long) rhs.getWidth() * rhs.getHeight());
+        };
+
+        private Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
+            String key = preference.getKey();
+            return true;
         };
     }
 }

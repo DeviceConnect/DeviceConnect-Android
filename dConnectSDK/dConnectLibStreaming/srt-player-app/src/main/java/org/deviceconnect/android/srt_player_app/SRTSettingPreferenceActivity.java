@@ -1,10 +1,13 @@
 package org.deviceconnect.android.srt_player_app;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 public class SRTSettingPreferenceActivity extends AppCompatActivity {
@@ -41,6 +44,24 @@ public class SRTSettingPreferenceActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
             setPreferencesFromResource(R.xml.srt_settings, rootKey);
+
+            setInputTypeNumber("settings_srt_rcvlatency");
+            setInputTypeNumber("settings_srt_conntimeo");
+            setInputTypeNumber("settings_srt_peeridletimeo");
         }
+
+        private void setInputTypeNumber(String key) {
+            EditTextPreference editTextPreference = findPreference(key);
+            if (editTextPreference != null) {
+                editTextPreference.setOnBindEditTextListener((editText) ->
+                        editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED));
+                editTextPreference.setOnPreferenceChangeListener(mOnPreferenceChangeListener);
+            }
+        }
+
+        private Preference.OnPreferenceChangeListener mOnPreferenceChangeListener = (preference, newValue) -> {
+            String key = preference.getKey();
+            return true;
+        };
     }
 }

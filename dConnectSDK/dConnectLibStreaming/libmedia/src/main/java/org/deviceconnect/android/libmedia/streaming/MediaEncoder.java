@@ -361,7 +361,7 @@ public abstract class MediaEncoder {
     /**
      * プレゼンテーションタイムを取得します.
      *
-     * @return プレゼンテーションタイム
+     * @return プレゼンテーションタイム(マイクロ秒)
      */
     protected long getPTSUs() {
         long result = System.nanoTime() / 1000L;

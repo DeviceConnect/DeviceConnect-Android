@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import org.deviceconnect.android.libsrt.SRT;
+import org.deviceconnect.android.libsrt.SRTStats;
 import org.deviceconnect.android.libsrt.client.SRTPlayer;
 
 import java.util.HashMap;
@@ -104,6 +105,10 @@ public class SRTPlayerActivity extends AppCompatActivity {
             public void onError(Exception e) {
                 Log.e("SRT-PLAYER", "Error", e);
                 showErrorDialog("エラー", e.getMessage());
+            }
+
+            @Override
+            public void onStats(SRTStats stats) {
             }
         });
         mSRTPlayer.start();

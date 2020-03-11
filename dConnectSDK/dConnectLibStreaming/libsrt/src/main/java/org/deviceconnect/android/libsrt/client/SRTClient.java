@@ -2,11 +2,11 @@ package org.deviceconnect.android.libsrt.client;
 
 import android.util.Log;
 
+import org.deviceconnect.android.libsrt.BuildConfig;
 import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.SRTSocketException;
 import org.deviceconnect.android.libsrt.SRTStats;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,6 +19,11 @@ public class SRTClient {
      * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
      */
     static final long DEFAULT_STATS_INTERVAL = 5000;
+
+    /**
+     * デバッグ用タグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
     /**
      * タグ.
@@ -199,8 +204,11 @@ public class SRTClient {
                 if (mSRTSessionThread != null) {
                     SRTSocket socket = mSRTSessionThread.mSRTSocket;
                     if (socket != null) {
-                        SRTStats stats = socket.getStats();
-                        Log.d(TAG, "stats: " + stats);
+                        SRTStats srtStats = socket.getStats();
+                        if (DEBUG) {
+                            Log.d(TAG, srtStats.toString());
+                        }
+                        postStats(srtStats);
                     }
                 }
             }
@@ -276,7 +284,7 @@ public class SRTClient {
                 }
 
                 mSRTSocket.connect(mAddress, mPort);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 postOnError(e);
                 return;
             }
@@ -333,9 +341,15 @@ public class SRTClient {
         }
     }
 
-    private void postOnError(IOException e) {
+    private void postOnError(Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
+        }
+    }
+
+    private void postStats(SRTStats stats) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStats(stats);
         }
     }
 
@@ -368,6 +382,13 @@ public class SRTClient {
          *
          * @param e 失敗原因の例外
          */
-        void onError(IOException e);
+        void onError(Exception e);
+
+        /**
+         * SRT サーバとの通信状況を通知します.
+         *
+         * @param stats 通信統計情報
+         */
+        void onStats(SRTStats stats);
     }
 }

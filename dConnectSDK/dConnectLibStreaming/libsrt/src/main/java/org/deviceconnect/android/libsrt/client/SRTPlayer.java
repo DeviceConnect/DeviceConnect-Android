@@ -1,18 +1,19 @@
 package org.deviceconnect.android.libsrt.client;
 
 import android.net.Uri;
+import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsConstants;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketExtractor;
 import org.deviceconnect.android.libsrt.BuildConfig;
+import org.deviceconnect.android.libsrt.SRTStats;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AACDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H264Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H265Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.VideoDecoder;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -249,6 +250,12 @@ public class SRTPlayer {
         }
     }
 
+    private void postOnStats(SRTStats stats) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStats(stats);
+        }
+    }
+
     /**
      * デコーダを作成します.
      *
@@ -260,6 +267,16 @@ public class SRTPlayer {
             case TsConstants.STREAM_TYPE_VIDEO_H265:
             {
                 if (mVideoDecoder != null) {
+                    if (DEBUG) {
+                        Log.w(TAG, "VideoDecoder has already existed.");
+                    }
+                    return;
+                }
+
+                if (mSurface == null) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Surface is not set.");
+                    }
                     return;
                 }
 
@@ -277,8 +294,12 @@ public class SRTPlayer {
             case TsConstants.STREAM_TYPE_AUDIO_AAC:
             {
                 if (mAudioDecoder != null) {
+                    if (DEBUG) {
+                        Log.w(TAG, "AudioEncoder has already existed.");
+                    }
                     return;
                 }
+
                 mAudioDecoder = new AACDecoder();
                 mAudioDecoder.setErrorCallback(SRTPlayer.this::postOnError);
                 mAudioDecoder.onInit();
@@ -330,8 +351,13 @@ public class SRTPlayer {
         }
 
         @Override
-        public void onError(IOException e) {
+        public void onError(Exception e) {
             postOnError(e);
+        }
+
+        @Override
+        public void onStats(SRTStats stats) {
+            postOnStats(stats);
         }
     };
 
@@ -386,5 +412,12 @@ public class SRTPlayer {
          * @param e エラー原因の例外
          */
         void onError(Exception e);
+
+        /**
+         * SRT サーバとの通信状況を通知します.
+         *
+         * @param stats 通信統計情報
+         */
+        void onStats(SRTStats stats);
     }
 }

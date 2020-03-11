@@ -111,6 +111,13 @@ public class SRTServer {
     private Map<Integer, Object> mCustomSocketOptions;
 
     /**
+     * エラーが発生フラグ.
+     *
+     * SRTSession 内部でエラーが発生した場合に、このフラグは true になります。
+     */
+    private boolean mErrorFlag;
+
+    /**
      * コンストラクタ.
      *
      * @param port サーバーのソケットにバインドするローカルのポート番号.
@@ -235,6 +242,9 @@ public class SRTServer {
      */
     public synchronized void start() throws IOException {
         if (mServerStarted) {
+            if (DEBUG) {
+                Log.w(TAG, "SRTServer is already started.");
+            }
             return;
         }
 
@@ -253,6 +263,7 @@ public class SRTServer {
         }
 
         mServerStarted = true;
+        mErrorFlag = false;
 
         mServerSocketThread = new ServerSocketThread();
         mServerSocketThread.setName("SRT-SERVER-THREAD");
@@ -474,6 +485,42 @@ public class SRTServer {
     }
 
     /**
+     * クライアントソケットのスレッドを追加します.
+     *
+     * 最初にクライアントソケットに接続があった時に SRTSession を初期化して処理を開始します。
+     *
+     * @param socketThread 追加するソケットのスレッド
+     */
+    private void addClientSocketThread(SocketThread socketThread) {
+        synchronized (mSocketThreads) {
+            if (mSocketThreads.isEmpty()) {
+                createSRTSession();
+            }
+            mSocketThreads.add(socketThread);
+        }
+
+        mSRTSession.addSRTClientSocket(socketThread.mClientSocket);
+    }
+
+    /**
+     * クライアントソケットのスレッドを削除します.
+     *
+     * 全てのクライアントソケットが削除された時に、SRTSession を削除して処理を停止します。
+     *
+     * @param socketThread 削除するソケットのスレッド
+     */
+    private void removeClientSocketThread(SocketThread socketThread) {
+        mSRTSession.removeSRTClientSocket(socketThread.mClientSocket);
+
+        synchronized (mSocketThreads) {
+            mSocketThreads.remove(socketThread);
+            if (mSocketThreads.isEmpty()) {
+                releaseSRTSession();
+            }
+        }
+    }
+
+    /**
      * SRTSession からのイベントを受信するリスナー.
      */
     private SRTSession.OnEventListener mOnEventListener = new SRTSession.OnEventListener() {
@@ -496,6 +543,7 @@ public class SRTServer {
             if (DEBUG) {
                 Log.e(TAG, "Error occurred on MediaStreamer.", e);
             }
+            mErrorFlag = true;
             closeAllClientSocket();
         }
     };
@@ -527,14 +575,19 @@ public class SRTServer {
         @Override
         public void run() {
             try {
-                synchronized (mSocketThreads) {
-                    if (mSocketThreads.isEmpty()) {
-                        createSRTSession();
+                // 事前にエラーがあった場合には、SRTSession を作成し直すために
+                // 他の Socket が閉じて、SRTSession が削除されるのを待ちます。
+                while (mErrorFlag) {
+                    synchronized (mSocketThreads) {
+                        if (mSocketThreads.isEmpty()) {
+                            mErrorFlag = false;
+                            break;
+                        }
                     }
-                    mSocketThreads.add(this);
+                    Thread.sleep(50);
                 }
 
-                mSRTSession.addSRTClientSocket(mClientSocket);
+                addClientSocketThread(this);
 
                 // ソケットにビットレートの最大値を設定
                 Object inputbw = getCustomOption(SRT.SRTO_INPUTBW);
@@ -564,20 +617,13 @@ public class SRTServer {
                     Log.e(TAG, "Failed to start socket thread.", e);
                 }
             } finally {
-                mSRTSession.removeSRTClientSocket(mClientSocket);
-
                 try {
                     mClientSocket.close();
                 } catch (Exception e) {
                     // ignore.
                 }
 
-                synchronized (mSocketThreads) {
-                    mSocketThreads.remove(this);
-                    if (mSocketThreads.isEmpty()) {
-                        releaseSRTSession();
-                    }
-                }
+                removeClientSocketThread(this);
             }
         }
     }

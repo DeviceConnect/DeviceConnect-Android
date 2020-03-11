@@ -65,6 +65,13 @@ public class RtspServer {
     private Callback mCallback;
 
     /**
+     * エラーが発生フラグ.
+     *
+     * RtspSession 内部でエラーが発生した場合に、このフラグは true になります。
+     */
+    private boolean mErrorFlag;
+
+    /**
      * RTSP のエンコードを行うセッションを取得します.
      *
      * <p>
@@ -110,6 +117,13 @@ public class RtspServer {
      * @throws IOException サーバの開始に失敗した場合に発生
      */
     public void start() throws IOException {
+        if (mServerThread != null) {
+            if (DEBUG) {
+                Log.w(TAG, "RtspServer is already started.");
+            }
+            return;
+        }
+
         synchronized (mClientSocketThreads) {
             mClientSocketThreads.clear();
         }
@@ -145,6 +159,7 @@ public class RtspServer {
          */
         ServerSocketThread(int port) throws IOException {
             mServerSocket = new ServerSocket(port);
+            mServerSocket.setReuseAddress(true);
             setName("RTSP-SERVER-SOCKET");
         }
 
@@ -188,6 +203,7 @@ public class RtspServer {
                 Log.d(TAG, "  PORT: " + mServerPort);
             }
 
+            mErrorFlag = false;
             try {
                 while (!isInterrupted()) {
                     new ClientSocketThread(mServerSocket.accept()).start();
@@ -295,6 +311,8 @@ public class RtspServer {
             if (DEBUG) {
                 Log.e(TAG, "Error occurred on MediaStreamer.", e);
             }
+
+            mErrorFlag = true;
             closeAllClientSocket();
         }
     };
@@ -330,6 +348,8 @@ public class RtspServer {
          */
         ClientSocketThread(Socket socket) throws IOException {
             mClientSocket = socket;
+            mClientSocket.setReuseAddress(true);
+            mClientSocket.setKeepAlive(true);
             mInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             mOutput = socket.getOutputStream();
             setName("RTSP-CLIENT-SOCKET");
@@ -362,6 +382,18 @@ public class RtspServer {
             }
 
             try {
+                // 事前にエラーがあった場合には、RtspSession を作成し直すために
+                // 他の Socket が閉じて、RtspSession が削除されるのを待ちます。
+                while (mErrorFlag) {
+                    synchronized (mClientSocketThreads) {
+                        if (mClientSocketThreads.isEmpty()) {
+                            mErrorFlag = false;
+                            break;
+                        }
+                    }
+                    Thread.sleep(50);
+                }
+
                 addClientSocketThread(this);
 
                 while (!isInterrupted()) {

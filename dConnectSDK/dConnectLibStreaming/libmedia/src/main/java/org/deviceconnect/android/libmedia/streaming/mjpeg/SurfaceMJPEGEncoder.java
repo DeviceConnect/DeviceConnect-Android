@@ -41,7 +41,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     /**
      * JPEG のデータを格納するためのストリーム.
      */
-    private ByteArrayOutputStream mJPEGOutputStream = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream mJPEGOutputStream = new ByteArrayOutputStream();
 
     /**
      * エンコードを開始します.

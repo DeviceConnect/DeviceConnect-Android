@@ -32,7 +32,7 @@ public class RtpSocket implements RtpPacketize.Callback {
     /**
      * 送信する RTP のデータを一時的にするバッファ.
      */
-    private RtpPacket[] mRtpPackets = new RtpPacket[MAX_BUF_SIZE];
+    private final RtpPacket[] mRtpPackets = new RtpPacket[MAX_BUF_SIZE];
 
     /**
      * マルチキャスト用のソケット.

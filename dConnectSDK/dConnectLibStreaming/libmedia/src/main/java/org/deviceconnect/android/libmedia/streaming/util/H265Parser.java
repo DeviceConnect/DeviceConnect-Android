@@ -1,7 +1,9 @@
 package org.deviceconnect.android.libmedia.streaming.util;
 
-public class H265Parser {
+public final class H265Parser {
 
+    private H265Parser() {
+    }
 
     public static Sps parseSps(byte[] data) {
         return parseSps(data, 0);

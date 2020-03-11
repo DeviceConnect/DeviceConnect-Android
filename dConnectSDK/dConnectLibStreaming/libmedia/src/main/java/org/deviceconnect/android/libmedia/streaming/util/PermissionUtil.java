@@ -8,7 +8,11 @@ import android.os.Build;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PermissionUtil {
+public final class PermissionUtil {
+
+    private PermissionUtil() {
+    }
+
     /**
      * 指定されたパーミッションに許可が下りていないリストを作成します.
      *

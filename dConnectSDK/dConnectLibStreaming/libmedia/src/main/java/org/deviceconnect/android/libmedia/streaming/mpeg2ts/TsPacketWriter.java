@@ -22,7 +22,7 @@ class TsPacketWriter implements TsConstants {
     private int mPatContinuityCounter = 0;
     private int mPmtContinuityCounter = 0;
 
-    private TsPacket mPacket = new TsPacket();
+    private final TsPacket mPacket = new TsPacket();
 
     public interface Callback {
         /**

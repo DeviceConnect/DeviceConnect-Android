@@ -555,7 +555,7 @@ public class SRTServer {
         /**
          * 生存確認を行うソケット.
          */
-        private SRTSocket mClientSocket;
+        private final SRTSocket mClientSocket;
 
         SocketThread(final SRTSocket clientSocket) {
             mClientSocket = clientSocket;

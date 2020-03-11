@@ -31,7 +31,7 @@ public class TsPacketReader implements TsConstants {
      * この値がずれていないか確認するために使用します。
      * </p>
      */
-    private SparseArray<Continuity> mContinuityCounterMap = new SparseArray<>();
+    private final SparseArray<Continuity> mContinuityCounterMap = new SparseArray<>();
 
     /**
      * TS パケットデータを格納するくデータソース.

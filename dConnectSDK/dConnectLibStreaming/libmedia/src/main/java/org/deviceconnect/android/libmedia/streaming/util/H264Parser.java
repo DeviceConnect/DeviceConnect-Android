@@ -1,6 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.util;
 
-public class H264Parser {
+public final class H264Parser {
 
     private H264Parser() {
     }

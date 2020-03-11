@@ -34,7 +34,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
      * カメラのプレビューを描画する Surface.
      */
-    private List<Surface> mSurfaces = new ArrayList<>();
+    private final List<Surface> mSurfaces = new ArrayList<>();
 
     /**
      * 映像のエンコード設定.

@@ -298,7 +298,6 @@ public class MediaStreamer {
      */
     private synchronized void startEncoder() {
         if (mRunningFlag) {
-            postOnError(new MediaEncoderException("MediaStreamer is already started."));
             return;
         }
         mRunningFlag = true;

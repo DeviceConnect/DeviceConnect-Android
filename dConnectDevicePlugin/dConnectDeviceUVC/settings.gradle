@@ -1,7 +1,1 @@
-def properties = new Properties()
-properties.load(new File('local.properties').newDataInputStream())
-def deviceConnectAndroid = new File(properties.getProperty("dc.dir"))
-
 include ':app', ':libuvccamera'
-include 'libmedia'
-project(':libmedia').projectDir = new File(deviceConnectAndroid, 'dConnectSDK/dConnectLibStreaming/libmedia')

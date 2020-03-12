@@ -133,7 +133,6 @@ curl  -X GET \
 |[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Chromecastのデバイスプラグイン。 |
 |[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|FaBoのデバイスプラグイン。|
 |[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Mio AlphaなどのHeartRateのデバイスプラグイン。|
-|[dConnectDeviceHitoe](dConnectDevicePlugin/dConnectDeviceHitoe)|Hitoeのデバイスプラグイン。|
 |[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
 |[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Androidのデバイスプラグイン。|
 |[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Hueのデバイスプラグイン。|
@@ -213,7 +212,6 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
-* [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
 * [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)

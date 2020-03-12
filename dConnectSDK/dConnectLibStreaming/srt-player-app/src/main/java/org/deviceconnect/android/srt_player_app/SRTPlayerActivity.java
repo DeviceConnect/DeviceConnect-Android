@@ -8,12 +8,15 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.libsrt.SRTStats;
 import org.deviceconnect.android.libsrt.client.SRTPlayer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import androidx.appcompat.app.AlertDialog;
@@ -34,6 +37,9 @@ public class SRTPlayerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_srt_player);
 
         mSetting = new SRTSetting(getApplicationContext());
+
+        int visibility = mSetting.isEnabledDebugLog() ? View.VISIBLE : View.GONE;
+        findViewById(R.id.text_view_debug).setVisibility(visibility);
     }
 
     @Override
@@ -85,19 +91,23 @@ public class SRTPlayerActivity extends AppCompatActivity {
         mSRTPlayer.setOnEventListener(new SRTPlayer.OnEventListener() {
             @Override
             public void onConnected() {
+                addDebugLog("サーバに接続しました。");
             }
 
             @Override
             public void onDisconnected() {
+                addDebugLog("サーバから切断しました。");
             }
 
             @Override
             public void onReady() {
+                addDebugLog("PMT を受信しました。");
                 runOnUiThread(() -> progressBar.setVisibility(View.GONE));
             }
 
             @Override
             public void onSizeChanged(int width, int height) {
+                addDebugLog("サイズ変更: " + width + "x" + height);
                 runOnUiThread(() -> changePlayerSize(width, height));
             }
 
@@ -109,6 +119,7 @@ public class SRTPlayerActivity extends AppCompatActivity {
 
             @Override
             public void onStats(SRTStats stats) {
+                addDebugLog(stats.toString());
             }
         });
         mSRTPlayer.start();
@@ -119,6 +130,33 @@ public class SRTPlayerActivity extends AppCompatActivity {
             mSRTPlayer.stop();
             mSRTPlayer = null;
         }
+    }
+
+    private final List<String> mDebugMessage = new ArrayList<>();
+
+    private void addDebugLog(String message) {
+        synchronized (mDebugMessage) {
+            mDebugMessage.add(message);
+
+            if (mDebugMessage.size() > 5) {
+                mDebugMessage.remove(0);
+            }
+        }
+        runOnUiThread(() -> {
+            TextView textView = findViewById(R.id.text_view_debug);
+
+            StringBuilder sb = new StringBuilder();
+            synchronized (mDebugMessage) {
+                for (String s : mDebugMessage) {
+                    if (sb.length() > 0) {
+                        sb.append("\n");
+                    }
+                    sb.append(s);
+                }
+            }
+
+            textView.setText(sb.toString());
+        });
     }
 
     private void showErrorDialog(String title, String message) {

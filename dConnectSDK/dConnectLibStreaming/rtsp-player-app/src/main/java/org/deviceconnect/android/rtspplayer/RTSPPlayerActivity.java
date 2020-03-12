@@ -8,8 +8,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.RtspPlayer;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,11 +23,17 @@ public class RTSPPlayerActivity extends AppCompatActivity {
     static final String EXTRA_URI = "_extra_uri";
 
     private RtspPlayer mRtspPlayer;
+    private RTSPSetting mSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rtsp_player);
+
+        mSetting = new RTSPSetting(getApplicationContext());
+
+        int visibility = mSetting.isEnabledDebugLog() ? View.VISIBLE : View.GONE;
+        findViewById(R.id.text_view_debug).setVisibility(visibility);
     }
 
     @Override
@@ -65,19 +75,23 @@ public class RTSPPlayerActivity extends AppCompatActivity {
         mRtspPlayer.setOnEventListener(new RtspPlayer.OnEventListener() {
             @Override
             public void onConnected() {
+                addDebugLog("サーバに接続しました。");
             }
 
             @Override
             public void onDisconnected() {
+                addDebugLog("サーバから切断されました。");
             }
 
             @Override
             public void onReady() {
+                addDebugLog("SDP を受信しました。");
                 runOnUiThread(() -> progressBar.setVisibility(View.GONE));
             }
 
             @Override
             public void onSizeChanged(int width, int height) {
+                addDebugLog("サイズ変更: " + width + "x" + height);
                 runOnUiThread(() -> changePlayerSize(width, height));
             }
 
@@ -95,6 +109,33 @@ public class RTSPPlayerActivity extends AppCompatActivity {
             mRtspPlayer.stop();
             mRtspPlayer = null;
         }
+    }
+
+    private final List<String> mDebugMessage = new ArrayList<>();
+
+    private void addDebugLog(String message) {
+        synchronized (mDebugMessage) {
+            mDebugMessage.add(message);
+
+            if (mDebugMessage.size() > 5) {
+                mDebugMessage.remove(0);
+            }
+        }
+        runOnUiThread(() -> {
+            TextView textView = findViewById(R.id.text_view_debug);
+
+            StringBuilder sb = new StringBuilder();
+            synchronized (mDebugMessage) {
+                for (String s : mDebugMessage) {
+                    if (sb.length() > 0) {
+                        sb.append("\n");
+                    }
+                    sb.append(s);
+                }
+            }
+
+            textView.setText(sb.toString());
+        });
     }
 
     private void showErrorDialog(String title, String message) {

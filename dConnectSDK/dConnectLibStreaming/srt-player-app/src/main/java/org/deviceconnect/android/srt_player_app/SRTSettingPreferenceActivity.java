@@ -26,7 +26,7 @@ public class SRTSettingPreferenceActivity extends AppCompatActivity {
 
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.settings_container, new RtspPreferenceFragment())
+                .replace(R.id.settings_container, new SRTPreferenceFragment())
                 .commit();
     }
 
@@ -40,7 +40,7 @@ public class SRTSettingPreferenceActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static class RtspPreferenceFragment extends PreferenceFragmentCompat {
+    public static class SRTPreferenceFragment extends PreferenceFragmentCompat {
         @Override
         public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
             setPreferencesFromResource(R.xml.srt_settings, rootKey);

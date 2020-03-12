@@ -63,10 +63,17 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            gotoPreferences();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void gotoPreferences() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), RTSPSettingPreferenceActivity.class);
+        startActivity(intent);
     }
 
     private void gotoRTSPPlayer(String uri) {

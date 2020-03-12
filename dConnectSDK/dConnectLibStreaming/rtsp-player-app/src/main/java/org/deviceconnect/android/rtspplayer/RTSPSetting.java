@@ -4,22 +4,25 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-public class RTSPSetting {
+class RTSPSetting {
 
     private SharedPreferences mSharedPreferences;
 
-    public RTSPSetting(Context context) {
+    RTSPSetting(Context context) {
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-
-    public void setServerUrl(String url) {
+    void setServerUrl(String url) {
         SharedPreferences.Editor editor = mSharedPreferences.edit();
         editor.putString("rtsp_server_url", url);
         editor.apply();
     }
 
-    public String getServerUrl() {
+    String getServerUrl() {
         return mSharedPreferences.getString("rtsp_server_url", null);
+    }
+
+    boolean isEnabledDebugLog() {
+        return mSharedPreferences.getBoolean("settings_debug_log", true);
     }
 }

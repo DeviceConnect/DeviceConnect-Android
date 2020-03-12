@@ -37,4 +37,8 @@ class SRTSetting {
         String value = mSharedPreferences.getString("settings_srt_peeridletimeo", "5000");
         return Integer.parseInt(value);
     }
+
+    boolean isEnabledDebugLog() {
+        return mSharedPreferences.getBoolean("settings_debug_log", true);
+    }
 }

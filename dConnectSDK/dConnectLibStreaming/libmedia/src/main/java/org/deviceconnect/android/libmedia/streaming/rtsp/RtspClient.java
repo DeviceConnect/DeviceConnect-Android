@@ -266,6 +266,7 @@ public class RtspClient {
 
                 mSocket = new Socket();
                 mSocket.setKeepAlive(true);
+                mSocket.setReuseAddress(true);
                 mSocket.connect(endpoint, mConnectionTimeout);
                 mReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                 mWriter = new BufferedOutputStream(mSocket.getOutputStream());

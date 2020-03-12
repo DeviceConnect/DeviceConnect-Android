@@ -24,6 +24,7 @@ public class RTSPPlayerActivity extends AppCompatActivity {
 
     private RtspPlayer mRtspPlayer;
     private RTSPSetting mSetting;
+    private boolean mRunningFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class RTSPPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        mRunningFlag = false;
         stopPlayer();
         super.onPause();
     }
@@ -45,6 +47,7 @@ public class RTSPPlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mRunningFlag = true;
         startPlayer();
     }
 
@@ -107,6 +110,7 @@ public class RTSPPlayerActivity extends AppCompatActivity {
     private void stopPlayer() {
         if (mRtspPlayer != null) {
             mRtspPlayer.stop();
+            mRtspPlayer.setOnEventListener(null);
             mRtspPlayer = null;
         }
     }
@@ -114,6 +118,10 @@ public class RTSPPlayerActivity extends AppCompatActivity {
     private final List<String> mDebugMessage = new ArrayList<>();
 
     private void addDebugLog(String message) {
+        if (!mRunningFlag) {
+            return;
+        }
+
         synchronized (mDebugMessage) {
             mDebugMessage.add(message);
 
@@ -121,8 +129,11 @@ public class RTSPPlayerActivity extends AppCompatActivity {
                 mDebugMessage.remove(0);
             }
         }
+
         runOnUiThread(() -> {
-            TextView textView = findViewById(R.id.text_view_debug);
+            if (!mRunningFlag) {
+                return;
+            }
 
             StringBuilder sb = new StringBuilder();
             synchronized (mDebugMessage) {
@@ -134,19 +145,26 @@ public class RTSPPlayerActivity extends AppCompatActivity {
                 }
             }
 
+            TextView textView = findViewById(R.id.text_view_debug);
             textView.setText(sb.toString());
         });
     }
 
     private void showErrorDialog(String title, String message) {
-        runOnUiThread(() ->
+        if (!mRunningFlag) {
+            return;
+        }
+        runOnUiThread(() -> {
+            if (mRunningFlag) {
                 new AlertDialog.Builder(this)
                         .setTitle(title)
                         .setMessage(message)
                         .setPositiveButton("はい", null)
                         .setCancelable(false)
                         .setOnDismissListener((dialogInterface) -> finish())
-                        .show());
+                        .show();
+            }
+        });
     }
 
     private void changePlayerSize(int pictureWidth, int pictureHeight) {

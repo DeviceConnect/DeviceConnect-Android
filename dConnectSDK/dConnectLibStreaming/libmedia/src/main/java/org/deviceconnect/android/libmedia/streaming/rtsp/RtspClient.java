@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,11 @@ public class RtspClient {
     private OnEventListener mOnEventListener;
 
     /**
+     * RTSP サーバとの接続タイムアウト.
+     */
+    private int mConnectionTimeout = 10 * 1000;
+
+    /**
      * コンストラクタ.
      * @param url RTSP サーバの URL
      */
@@ -68,6 +74,19 @@ public class RtspClient {
      */
     public void setOnEventListener(OnEventListener listener) {
         mOnEventListener = listener;
+    }
+
+    /**
+     * RTSP サーバとの接続タイムアウト時間を設定します.
+     *
+     * 単位: ミリ秒
+     *
+     * デフォルトでは、10000 (10秒) が設定されています。
+     *
+     * @param connectionTimeout 接続タイムアウト時間
+     */
+    public void setConnectionTimeout(int connectionTimeout) {
+        mConnectionTimeout = connectionTimeout;
     }
 
     /**
@@ -243,7 +262,11 @@ public class RtspClient {
                     Log.d(TAG, "  PORT: " + uri.getPort());
                 }
 
-                mSocket = new Socket(uri.getHost(), uri.getPort());
+                InetSocketAddress endpoint= new InetSocketAddress(uri.getHost(), uri.getPort());
+
+                mSocket = new Socket();
+                mSocket.setKeepAlive(true);
+                mSocket.connect(endpoint, mConnectionTimeout);
                 mReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                 mWriter = new BufferedOutputStream(mSocket.getOutputStream());
 
@@ -272,9 +295,13 @@ public class RtspClient {
 
                 processTearDown();
             } catch (RtspClientException e) {
-                postOnError(e);
+                if (!mStopFlag) {
+                    postOnError(e);
+                }
             } catch (Exception e) {
-                postOnError(new RtspClientException(e, RtspResponse.Status.STATUS_UNKNOWN));
+                if (!mStopFlag) {
+                    postOnError(new RtspClientException(e, RtspResponse.Status.STATUS_UNKNOWN));
+                }
             } finally {
                 synchronized (mRtpReceivers) {
                     for (RtpReceiver receiver : mRtpReceivers) {

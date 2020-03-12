@@ -30,6 +30,7 @@ public class SRTPlayerActivity extends AppCompatActivity {
 
     private SRTPlayer mSRTPlayer;
     private SRTSetting mSetting;
+    private boolean mRunningFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,7 @@ public class SRTPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        mRunningFlag = false;
         stopSRTPlayer();
         super.onPause();
     }
@@ -51,6 +53,7 @@ public class SRTPlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mRunningFlag = true;
         startSRTPlayer();
     }
 
@@ -128,6 +131,7 @@ public class SRTPlayerActivity extends AppCompatActivity {
     private void stopSRTPlayer() {
         if (mSRTPlayer != null) {
             mSRTPlayer.stop();
+            mSRTPlayer.setOnEventListener(null);
             mSRTPlayer = null;
         }
     }
@@ -135,6 +139,10 @@ public class SRTPlayerActivity extends AppCompatActivity {
     private final List<String> mDebugMessage = new ArrayList<>();
 
     private void addDebugLog(String message) {
+        if (!mRunningFlag) {
+            return;
+        }
+
         synchronized (mDebugMessage) {
             mDebugMessage.add(message);
 
@@ -143,7 +151,9 @@ public class SRTPlayerActivity extends AppCompatActivity {
             }
         }
         runOnUiThread(() -> {
-            TextView textView = findViewById(R.id.text_view_debug);
+            if (!mRunningFlag) {
+                return;
+            }
 
             StringBuilder sb = new StringBuilder();
             synchronized (mDebugMessage) {
@@ -155,19 +165,29 @@ public class SRTPlayerActivity extends AppCompatActivity {
                 }
             }
 
+            TextView textView = findViewById(R.id.text_view_debug);
             textView.setText(sb.toString());
         });
     }
 
     private void showErrorDialog(String title, String message) {
-        runOnUiThread(() ->
+        if (!mRunningFlag) {
+            return;
+        }
+
+        runOnUiThread(() -> {
+            if (!mRunningFlag) {
+                return;
+            }
+
             new AlertDialog.Builder(this)
                     .setTitle(title)
                     .setMessage(message)
                     .setPositiveButton("はい", null)
                     .setCancelable(false)
                     .setOnDismissListener((dialogInterface) -> finish())
-                    .show());
+                    .show();
+        });
     }
 
     private void changePlayerSize(int pictureWidth, int pictureHeight) {

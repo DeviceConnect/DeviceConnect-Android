@@ -167,16 +167,12 @@ public class RtspPlayer {
         mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
             @Override
             public void onConnected() {
-                if (mOnEventListener != null) {
-                    mOnEventListener.onConnected();
-                }
+                postOnConnected();
             }
 
             @Override
             public void onDisconnected() {
-                if (mOnEventListener != null) {
-                    mOnEventListener.onDisconnected();
-                }
+                postOnDisconnected();
             }
 
             @Override
@@ -199,14 +195,10 @@ public class RtspPlayer {
                             start();
                         }).start();
                     } else {
-                        if (mOnEventListener != null) {
-                            mOnEventListener.onError(e);
-                        }
+                        postOnError(e);
                     }
                 } else {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onError(e);
-                    }
+                    postOnError(e);
                 }
             }
 
@@ -223,9 +215,7 @@ public class RtspPlayer {
                     }
                 }
 
-                if (mOnEventListener != null) {
-                    mOnEventListener.onReady();
-                }
+                postOnReady();
             }
 
             @Override
@@ -273,16 +263,8 @@ public class RtspPlayer {
             VideoDecoder decoder = createVideoDecoder(md);
             if (decoder != null) {
                 decoder.setSurface(mSurface);
-                decoder.setErrorCallback((e) -> {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onError(e);
-                    }
-                });
-                decoder.setEventCallback(((width, height) -> {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onSizeChanged(width, height);
-                    }
-                }));
+                decoder.setErrorCallback(this::postOnError);
+                decoder.setEventCallback(this::postOnSizeChanged);
                 decoder.onInit(md);
                 return decoder;
             } else {
@@ -293,11 +275,7 @@ public class RtspPlayer {
         } else if ("audio".equalsIgnoreCase(md.getMedia())) {
             AudioDecoder decoder = createAudioDecoder(md);
             if (decoder != null) {
-                decoder.setErrorCallback((e) -> {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onError(e);
-                    }
-                });
+                decoder.setErrorCallback(this::postOnError);
                 decoder.setMute(mMute);
                 decoder.onInit(md);
                 return decoder;
@@ -370,6 +348,36 @@ public class RtspPlayer {
             }
         }
         return null;
+    }
+
+    private void postOnConnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConnected();
+        }
+    }
+
+    private void postOnDisconnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onDisconnected();
+        }
+    }
+
+    private void postOnReady() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onReady();
+        }
+    }
+
+    private void postOnSizeChanged(int width, int height) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onSizeChanged(width, height);
+        }
+    }
+
+    private void postOnError(Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(e);
+        }
     }
 
     public interface OnEventListener {

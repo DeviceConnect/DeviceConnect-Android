@@ -305,7 +305,9 @@ public class SRTClient {
                     }
                 }
             } catch (Exception e) {
-                // ignore.
+                if (!mStopFlag) {
+                    postOnError(e);
+                }
             } finally {
                 stopStatsTimer();
 

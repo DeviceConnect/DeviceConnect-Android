@@ -8,7 +8,7 @@ dConnectLibStreaming は、映像配信などを行うためのライブラリ�
 |:--|:--|
 |libmedia|映像・音声を配信する機能を提供するモジュール。|
 |libopus|opus エンコードとデコードの機能を提供するモジュール。|
-|libsrt|SRT 配信用サーバとプレイヤーの機能を提供するモジュール。|
+|libsrt|SRT 配信用サーバとプレイヤーの機能を提供するモジュール。libmedia に依存します。|
 |rtsp-player-app|RTSP 確認用プレイヤーのアプリ。|
 |rtsp-server-app|RTSP 確認用サーバのアプリ。|
 |srt-player-app|SRT 確認用プレイヤーのアプリ。|
@@ -31,6 +31,33 @@ dConnectLibStreaming は、映像配信などを行うためのライブラリ�
    ├─ /srt-player-app
    ├─ /srt-server-app
    └─ README.md
+```
+
+# インストール方法
+libmedia と libsrt を AndroidStudio プロジェクトにインストールする方法を説明します。
+
+libmedia と libsrt の aar を、下記のリリースページでダウンロードします。<br>
+[https://github.com/DeviceConnect/DeviceConnect-Android/releases](https://github.com/DeviceConnect/DeviceConnect-Android/releases)
+
+
+
+aar はプロジェクト直下の `libs` フォルダにコピーします。
+
+```
+/YourProject
+   ├── /libs
+   │    ├─ libmedia-release-{version}.aar
+   │    └─ libsrt-release-{version}.aar
+   └── /your-module
+        └─ build.gradle
+```
+
+ライブラリを使用するモジュールの build.gradle で、以下の依存関係を追加します。
+
+```
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
+}
 ```
 
 # モジュールのビルド

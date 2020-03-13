@@ -14,25 +14,6 @@ dConnectLibStreaming は、映像配信などを行うためのライブラリ�
 |srt-player-app|SRT 確認用プレイヤーのアプリ。|
 |srt-server-app|SRT 確認用サーバのアプリ。|
 
-
-## フォルダ構成
-
-```
-/dConnectLibStream
-   ├─ /build
-   │   └─ /outputs
-   │       ├─ libmedia-{build-type}-{version}.aar
-   │       └─ libsrt-{build-type}-{version}.aar
-   ├─ /libmedia
-   ├─ /libopus
-   ├─ /libsrt
-   ├─ /rtsp-player-app
-   ├─ /rtsp-server-app
-   ├─ /srt-player-app
-   ├─ /srt-server-app
-   └─ README.md
-```
-
 # インストール
 libmedia と libsrt を AndroidStudio プロジェクトにインストールする方法を説明します。
 
@@ -111,15 +92,17 @@ server.setCallback(new RtspServer.Callback() {
 
 RTSP では映像・音声についてそれぞれストリームが定義されます。libmedia では、映像・音声のストリームがそれぞれ `VideoStream` と `AudioStream` として提供されます。
 
-各ストリームは、それぞれ1つの映像または音声のエンコーダを持ちます。エンコーダは `VideoEncoder` と `AudioEncoder` のクラスとして定義されています。映像・音声の具体的なソースによって、`VideoEncoder` と `AudioEncoder` の拡張クラスが実装されています。例えば、Android 端末のカメラ映像を Camera2 API で取得する場合は、`CameraSurfaceVideoEncoder` を使用します。
+各ストリームは、それぞれ1つの映像または音声のエンコーダを持ちます。エンコーダは `VideoEncoder` と `AudioEncoder` のクラスとして定義されています。映像・音声の具体的なソースによって、`VideoEncoder` と `AudioEncoder` の拡張クラスが実装されています。
+
+例えば、Android 端末のカメラ映像を Camera2 API で取得する場合は、`CameraSurfaceVideoEncoder` を使用します。
 
 以下、Android 端末のカメラ映像のストリームをセッションに設定するサンプルコードです。
 
 ``` java
 // 映像のストリーム作成
-VideoStream videoStream = new CameraH264VideoStream(context);
+CameraH264VideoStream videoStream = new CameraH264VideoStream(context);
 videoStream.setDestinationPort(5006);
-((CameraH264VideoStream) videoStream).addSurface(surface);
+videoStream.addSurface(surface);
 
 // 映像のパラメータ設定
 VideoEncoder videoEncoder = videoStream.getVideoEncoder();
@@ -194,7 +177,9 @@ mSRTServer.setCallback(new SRTServer.Callback() {
 
 RTSPとは異なり、SRT 自体にはストリームの概念がないため、セッションに直接エンコーダを設定します。
 
-映像・音声のエンコーダは libmedia の `VideoEncoder` と `AudioEncoder` のクラスとして定義されています。映像・音声の具体的なソースによって、`VideoEncoder` と `AudioEncoder` の拡張クラスが実装されています。例えば、Android 端末のカメラ映像を Camera2 API で取得する場合は、`CameraSurfaceVideoEncoder` を使用します。
+映像・音声のエンコーダは libmedia の `VideoEncoder` と `AudioEncoder` のクラスとして定義されています。映像・音声の具体的なソースによって、`VideoEncoder` と `AudioEncoder` の拡張クラスが実装されています。
+
+例えば、Android 端末のカメラ映像を Camera2 API で取得する場合は、`CameraSurfaceVideoEncoder` を使用します。
 
 以下、セッションに映像のエンコーダを設定するサンプルコードです。
 
@@ -242,6 +227,23 @@ $ ./gradlew assembleRelease
 ```
 
 dConnectLibStreaming/build/outputs/aar に aar ファイルは作成されます。
+
+```
+/dConnectLibStream
+   ├─ /build
+   │   └─ /outputs 
+   │       ├─ libmedia-{build-type}-{version}.aar
+   │       └─ libsrt-{build-type}-{version}.aar
+   ├─ /libmedia
+   ├─ /libopus
+   ├─ /libsrt
+   ├─ /rtsp-player-app
+   ├─ /rtsp-server-app
+   ├─ /srt-player-app
+   ├─ /srt-server-app
+   └─ README.md
+```
+
 
 # 各モジュールの依存している外部ライブラリ
 ## libsrt

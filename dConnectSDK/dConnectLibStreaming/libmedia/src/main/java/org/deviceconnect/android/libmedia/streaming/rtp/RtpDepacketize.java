@@ -1,6 +1,14 @@
 package org.deviceconnect.android.libmedia.streaming.rtp;
 
+import android.util.Log;
+
+import org.deviceconnect.android.libmedia.BuildConfig;
+
 public abstract class RtpDepacketize {
+
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+    private static final String TAG = "RTP-DEPACKET";
+
     /**
      * RTP のヘッダーサイズを定義します.
      */
@@ -89,7 +97,10 @@ public abstract class RtpDepacketize {
     protected boolean checkSequenceNumber(byte[] data) {
         boolean result = true;
         int s = getSequenceNumber(data);
-        if (mSequenceNumber != -1 && (mSequenceNumber + 1) % 65535 != s) {
+        if (mSequenceNumber != -1 && (mSequenceNumber + 1) % 65536 != s) {
+            if (DEBUG) {
+                Log.e(TAG, "Error sequence number: [" + mSequenceNumber + " " + s + "]");
+            }
             result = false;
         }
         mSequenceNumber = s;

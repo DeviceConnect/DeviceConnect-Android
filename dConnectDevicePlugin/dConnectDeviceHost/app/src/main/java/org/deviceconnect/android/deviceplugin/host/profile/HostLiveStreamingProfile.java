@@ -44,6 +44,14 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
     private static final String PARAM_KEY_STATUS = "status";
     private static final String PARAM_KEY_MIME_TYPE = "mimeType";
     private static final String PARAM_KEY_MUTE = "mute";
+    private static final String VIDEO_URI_TRUE = "true";
+    private static final String VIDEO_URI_FALSE = "false";
+    private static final String VIDEO_URI_CAMERA_FRONT = "camera-front";
+    private static final String VIDEO_URI_CAMERA_BACK = "camera-back";
+    private static final String AUDIO_URI_TRUE = "true";
+    private static final String AUDIO_URI_FALSE = "false";
+    private static final int CAMERA_TYPE_FRONT = 0;
+    private static final int CAMERA_TYPE_BACK = 1;
     private HostDeviceLiveStreamRecorder mHostDeviceLiveStreamRecorder;
     private HostMediaRecorderManager mHostMediaRecorderManager;
     private String mVideoURI = null;
@@ -94,6 +102,17 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     mVideoURI = (String) extras.get(PARAM_KEY_VIDEO);
                     if (mVideoURI == null) {
                         mVideoURI = "false";
+                    } else {
+                        switch (mVideoURI) {
+                            case VIDEO_URI_TRUE:
+                            case VIDEO_URI_FALSE:
+                            case VIDEO_URI_CAMERA_FRONT:
+                            case VIDEO_URI_CAMERA_BACK:
+                                break;
+                            default:
+                                MessageUtils.setInvalidRequestParameterError(response, "video parameter illegal");
+                                return true;
+                        }
                     }
                     if (DEBUG) {
                         Log.d(TAG, "mVideoURI : " + mVideoURI);
@@ -106,6 +125,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         ex.printStackTrace();
                         //例外(パラメータ)はエラー応答
                         MessageUtils.setInvalidRequestParameterError(response, ex.getMessage());
+                        return true;
                     } catch (RuntimeException ex) {
                         ex.printStackTrace();
                         //例外(実行時)はエラー応答(不明なエラーにしておく)
@@ -135,6 +155,15 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     mAudioURI = (String) extras.get(PARAM_KEY_AUDIO);
                     if (mAudioURI == null) {
                         mAudioURI = "false";
+                    } else {
+                        switch (mAudioURI) {
+                            case AUDIO_URI_TRUE:
+                            case AUDIO_URI_FALSE:
+                                break;
+                            default:
+                                MessageUtils.setInvalidRequestParameterError(response, "audio parameter illegal");
+                                return true;
+                        }
                     }
                     if (DEBUG) {
                         Log.d(TAG, "audioUri : " + mAudioURI);
@@ -325,45 +354,64 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
     }
 
     private HostDeviceLiveStreamRecorder getHostDeviceLiveStreamRecorder() {
-        String cameraId;
-        switch(mVideoURI) {
-            //Video無しの場合は取り敢えずdefaultを指定しておく
-            case "true":
-            case "false":
-                cameraId = null;
-                break;
-            case "front-camera":
-                cameraId = getCameraId(CameraCharacteristics.LENS_FACING_FRONT);
-                break;
-            case "back-camera":
-                cameraId = getCameraId(CameraCharacteristics.LENS_FACING_BACK);
-                break;
-            default:
-                Log.e(TAG, "getHostDeviceLiveStreamRecorder() unexpected videoURI");
-                throw new IllegalArgumentException("video uri unexpected");
+        if (DEBUG) {
+            Log.d(TAG, "getHostDeviceLiveStreamRecorder()");
+            Log.d(TAG, "mVideoURI : " + mVideoURI);
         }
-        HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(cameraId);
-        if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-            return (HostDeviceLiveStreamRecorder)hostMediaRecorder;
-        } else {
-            Log.e(TAG, "getHostDeviceLiveStreamRecorder() recorder not found");
-            throw new RuntimeException("recorder not found");
+        switch (mVideoURI) {
+            case VIDEO_URI_TRUE: {
+                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
+                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                }
+                break;
+            }
+            case VIDEO_URI_FALSE: {
+                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
+                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                }
+                break;
+            }
+            case VIDEO_URI_CAMERA_FRONT: {
+                HostMediaRecorder hostMediaRecorder = getRecorder(CAMERA_TYPE_FRONT);
+                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                }
+                break;
+            }
+            case VIDEO_URI_CAMERA_BACK: {
+                HostMediaRecorder hostMediaRecorder = getRecorder(CAMERA_TYPE_BACK);
+                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                }
+                break;
+            }
         }
+        Log.e(TAG, "getHostDeviceLiveStreamRecorder() recorder not found");
+        throw new RuntimeException("recorder not found");
     }
 
-    private String getCameraId(int facing) {
-        CameraManager cameraManager = (CameraManager)getContext().getSystemService(Context.CAMERA_SERVICE);
-        if (cameraManager != null) {
-            try {
-                for (String cameraId : cameraManager.getCameraIdList()) {
-                    CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
-                    Integer lensFacing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
-                    if (lensFacing != null && lensFacing == facing) {
-                        return cameraId;
+
+    private HostMediaRecorder getRecorder(int type) {
+        if (DEBUG) {
+            Log.d(TAG, "getRecorder()");
+            Log.d(TAG, "type" + type);
+        }
+        for(HostMediaRecorder hostMediaRecorder : mHostMediaRecorderManager.getRecorders()) {
+            if (DEBUG) {
+                Log.d(TAG, "name : " + hostMediaRecorder.getName());
+            }
+            if (hostMediaRecorder.getName().matches("^Camera [0-9] \\((Front|Back)\\)")) {
+                if (type == CAMERA_TYPE_FRONT) {
+                    if (hostMediaRecorder.getName().contains("Front")) {
+                        return hostMediaRecorder;
+                    }
+                } else if (type == CAMERA_TYPE_BACK) {
+                    if (hostMediaRecorder.getName().contains("Back")) {
+                        return hostMediaRecorder;
                     }
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
         }
         return null;

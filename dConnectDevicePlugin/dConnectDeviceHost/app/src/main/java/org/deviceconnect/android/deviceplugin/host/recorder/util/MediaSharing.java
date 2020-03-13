@@ -36,9 +36,15 @@ public abstract class MediaSharing {
                                    final @NonNull File videoFile,
                                    final @NonNull FileManager fileManager);
 
-    boolean checkMediaFile(final @NonNull File file) {
-        return file.exists() && file.length() > 0;
-    }
+    /**
+     * 指定された音声ファイルを端末内の他アプリと共有する.
+     *
+     * @param context コンテキスト
+     * @param audioFile 音声ファイル
+     * @return 発行されたURI
+     */
+    public abstract Uri shareAudio(final @NonNull Context context,
+                                   final @NonNull File audioFile);
 
     /**
      * 動作環境に合わせたメディア共有ロジックを取得する.
@@ -50,5 +56,9 @@ public abstract class MediaSharing {
         } else {
             return new MediaSharingForLegacy();
         }
+    }
+
+    boolean checkMediaFile(final @NonNull File file) {
+        return file.exists() && file.length() > 0;
     }
 }

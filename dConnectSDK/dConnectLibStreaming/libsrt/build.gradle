@@ -1,13 +1,14 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
+    ndkVersion "21.0.6113669"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -46,6 +47,24 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all {
+            def buildTypeName = variant.buildType.name
+            def versionName = android.defaultConfig.versionName
+            def newName = "libsrt-${buildTypeName}-${versionName}.aar"
+            outputFileName = newName
+        }
+        variant.getAssembleProvider().get().doLast {
+            variant.outputs.all { output ->
+                copy {
+                    def srcDir = new File(variant.getPackageLibraryProvider().get().getDestinationDir(), output.outputFileName)
+                    from "${srcDir}"
+                    into "${rootProject.buildDir}/outputs/aar"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -55,4 +74,31 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+// 推奨 SRT バージョンを指定します。
+def SRT_VERSION = '1.4.1'
+
+// ビルド時に SRT のバージョンチェックを実行します.
+// jniLibs に存在する SRT ライブラリのバージョンが指定したものでない場合、ビルドを失敗させます.
+task checkVersion(type: VersionCheckTask) {
+    requiredVersion = SRT_VERSION
+}
+
+tasks.preBuild.dependsOn(checkVersion)
+
+class VersionCheckTask extends DefaultTask {
+    File versionFile = new File(project.projectDir, "src/main/jniLibs/include/srt/version.h")
+    String requiredVersion
+
+    @TaskAction
+    def execute() {
+        if (!versionFile.exists()) {
+            throw new GradleException("No SRT library is installed.")
+        }
+        String pattern = '#define SRT_VERSION_STRING "' + requiredVersion + '"'
+        if (pattern != versionFile.text.find(pattern)) {
+            throw new GradleException("SRT Version must be " + requiredVersion)
+        }
+    }
 }

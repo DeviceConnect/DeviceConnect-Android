@@ -6,7 +6,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
-import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.MediaStreamer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.AudioStream;
@@ -57,32 +56,24 @@ public class RtspSession {
     private Map<String, MediaStream> mStreamMap = new LinkedHashMap<>();
 
     /**
+     * イベントを配信するリスナー.
+     */
+    private OnEventListener mOnEventListener;
+
+    /**
      * コンストラクタ.
      */
     public RtspSession() {
         mMediaStreamer = new MediaStreamer(mMediaMuxer);
-        mMediaStreamer.setOnEventListener(new MediaStreamer.OnEventListener() {
-            @Override
-            public void onStarted() {
-                if (DEBUG) {
-                    Log.d(TAG, "MediaStreamer started.");
-                }
-            }
+    }
 
-            @Override
-            public void onStopped() {
-                if (DEBUG) {
-                    Log.d(TAG, "MediaStreamer stopped.");
-                }
-            }
-
-            @Override
-            public void onError(MediaEncoderException e) {
-                if (DEBUG) {
-                    Log.e(TAG, "Error occurred on MediaStreamer.", e);
-                }
-            }
-        });
+    /**
+     * RtspSession のイベントを通知するリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
     }
 
     /**
@@ -98,6 +89,7 @@ public class RtspSession {
      * RTSP セッションを開始します.
      */
     public void start() {
+        mMediaStreamer.setOnEventListener(mOnEventListener);
         mMediaStreamer.start();
     }
 
@@ -331,4 +323,10 @@ public class RtspSession {
             return bufferInfo.presentationTimeUs - mPresentationTimeUs;
         }
     };
+
+    /**
+     * RtspSession のイベントを通知するリスナー.
+     */
+    public interface OnEventListener extends MediaStreamer.OnEventListener {
+    }
 }

@@ -110,7 +110,7 @@ public class HostMediaPlayerManager {
      * サポートしているaudioのタイプ一覧.
      */
     private static final List<String> AUDIO_TYPE_LIST = Arrays.asList("audio/mpeg", "audio/x-wav", "application/ogg",
-            "audio/x-ms-wma", "audio/mp3", "audio/ogg", "audio/mp4");
+            "audio/x-ms-wma", "audio/mp3", "audio/ogg", "audio/mp4", "audio/aac");
 
     /**
      * サポートしているvideoのタイプ一覧.
@@ -230,14 +230,14 @@ public class HostMediaPlayerManager {
         mMyCurrentMediaId = mediaId;
 
         // Videoとしてパスを取得
-        Uri mUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+        Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
 
-        String filePath = getPathFromUri(mUri);
+        String filePath = getPathFromUri(uri);
 
         // nullなら、Audioとしてパスを取得
         if (filePath == null) {
-            mUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
-            filePath = getPathFromUri(mUri);
+            uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            filePath = getPathFromUri(uri);
         }
 
         // ファイル存在チェック
@@ -248,6 +248,10 @@ public class HostMediaPlayerManager {
         }
 
         String mMineType = getMIMEType(filePath);
+        FileDescriptor fd = getDescriptorFromUri(uri);
+
+        mLogger.info("putMediaId: mimeType: " + mMineType);
+        mLogger.info("putMediaId: fd: " + fd);
 
         // パス指定の場合
         if (AUDIO_TYPE_LIST.contains(mMineType)) {
@@ -260,11 +264,11 @@ public class HostMediaPlayerManager {
 
             try {
                 mSetMediaType = MEDIA_TYPE_MUSIC;
-                mMyCurrentUri = mUri;
+                mMyCurrentUri = uri;
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
                 mMediaStatus = MEDIA_PLAYER_SET;
-                mMediaPlayer.setDataSource(filePath);
+                mMediaPlayer.setDataSource(fd);
                 mMediaPlayer.setOnCompletionListener((mp) -> {
                     mMediaStatus = MEDIA_PLAYER_COMPLETE;
                     sendOnStatusChangeEvent("complete");
@@ -290,7 +294,7 @@ public class HostMediaPlayerManager {
         } else if (VIDEO_TYPE_LIST.contains(mMineType)) {
             try {
                 mSetMediaType = MEDIA_TYPE_VIDEO;
-                mMyCurrentUri = mUri;
+                mMyCurrentUri = uri;
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
 
@@ -304,7 +308,7 @@ public class HostMediaPlayerManager {
                 FileInputStream fis;
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(mUri, "r");
+                    ParcelFileDescriptor descriptor = getContentResolver().openFileDescriptor(uri, "r");
                     fis = new ParcelFileDescriptor.AutoCloseInputStream(descriptor);
                 } else {
                     fis = new FileInputStream(mMyCurrentFilePath);
@@ -780,6 +784,19 @@ public class HostMediaPlayerManager {
                 response.putExtra(MediaPlayerProfile.PARAM_STATUS, "stop");
             }
             sendResponse(response);
+        }
+    }
+
+    private FileDescriptor getDescriptorFromUri(final Uri uri) {
+        ContentResolver resolver = getContentResolver();
+        try {
+            ParcelFileDescriptor descriptor =  resolver.openFileDescriptor(uri, "r");
+            if (descriptor == null) {
+                return null;
+            }
+            return descriptor.getFileDescriptor();
+        } catch (IOException e) {
+            return null;
         }
     }
 

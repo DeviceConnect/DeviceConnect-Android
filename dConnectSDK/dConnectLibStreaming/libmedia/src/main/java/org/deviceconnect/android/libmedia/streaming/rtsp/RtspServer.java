@@ -3,10 +3,10 @@ package org.deviceconnect.android.libmedia.streaming.rtsp;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
+import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpSocket;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.MediaStream;
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.RtspSession;
-import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 
 import java.io.BufferedReader;
@@ -65,6 +65,13 @@ public class RtspServer {
     private Callback mCallback;
 
     /**
+     * エラーが発生フラグ.
+     *
+     * RtspSession 内部でエラーが発生した場合に、このフラグは true になります。
+     */
+    private boolean mErrorFlag;
+
+    /**
      * RTSP のエンコードを行うセッションを取得します.
      *
      * <p>
@@ -110,6 +117,13 @@ public class RtspServer {
      * @throws IOException サーバの開始に失敗した場合に発生
      */
     public void start() throws IOException {
+        if (mServerThread != null) {
+            if (DEBUG) {
+                Log.w(TAG, "RtspServer is already started.");
+            }
+            return;
+        }
+
         synchronized (mClientSocketThreads) {
             mClientSocketThreads.clear();
         }
@@ -145,6 +159,7 @@ public class RtspServer {
          */
         ServerSocketThread(int port) throws IOException {
             mServerSocket = new ServerSocket(port);
+            mServerSocket.setReuseAddress(true);
             setName("RTSP-SERVER-SOCKET");
         }
 
@@ -188,6 +203,7 @@ public class RtspServer {
                 Log.d(TAG, "  PORT: " + mServerPort);
             }
 
+            mErrorFlag = false;
             try {
                 while (!isInterrupted()) {
                     new ClientSocketThread(mServerSocket.accept()).start();
@@ -245,6 +261,7 @@ public class RtspServer {
             releaseSession();
         }
         mRtspSession = new RtspSession();
+        mRtspSession.setOnEventListener(mEventListener);
         mCallback.createSession(mRtspSession);
         mRtspSession.configure();
     }
@@ -259,6 +276,46 @@ public class RtspServer {
             mRtspSession = null;
         }
     }
+
+    /**
+     * クライアント Socket を全て閉じます.
+     */
+    private void closeAllClientSocket() {
+        synchronized (mClientSocketThreads) {
+            for (ClientSocketThread t : mClientSocketThreads) {
+                t.terminate();
+            }
+        }
+    }
+
+    /**
+     * RtspSession からのイベントを受信するリスナー.
+     */
+    private final RtspSession.OnEventListener mEventListener = new RtspSession.OnEventListener() {
+        @Override
+        public void onStarted() {
+            if (DEBUG) {
+                Log.d(TAG, "MediaStreamer started.");
+            }
+        }
+
+        @Override
+        public void onStopped() {
+            if (DEBUG) {
+                Log.d(TAG, "MediaStreamer stopped.");
+            }
+        }
+
+        @Override
+        public void onError(MediaEncoderException e) {
+            if (DEBUG) {
+                Log.e(TAG, "Error occurred on MediaStreamer.", e);
+            }
+
+            mErrorFlag = true;
+            closeAllClientSocket();
+        }
+    };
 
     /**
      * クライアントとの接続を行うスレッド.
@@ -291,6 +348,8 @@ public class RtspServer {
          */
         ClientSocketThread(Socket socket) throws IOException {
             mClientSocket = socket;
+            mClientSocket.setReuseAddress(true);
+            mClientSocket.setKeepAlive(true);
             mInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             mOutput = socket.getOutputStream();
             setName("RTSP-CLIENT-SOCKET");
@@ -323,6 +382,18 @@ public class RtspServer {
             }
 
             try {
+                // 事前にエラーがあった場合には、RtspSession を作成し直すために
+                // 他の Socket が閉じて、RtspSession が削除されるのを待ちます。
+                while (mErrorFlag) {
+                    synchronized (mClientSocketThreads) {
+                        if (mClientSocketThreads.isEmpty()) {
+                            mErrorFlag = false;
+                            break;
+                        }
+                    }
+                    Thread.sleep(50);
+                }
+
                 addClientSocketThread(this);
 
                 while (!isInterrupted()) {

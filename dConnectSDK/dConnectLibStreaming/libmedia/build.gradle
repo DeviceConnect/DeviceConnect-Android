@@ -1,13 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -18,9 +18,28 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all {
+            def buildTypeName = variant.buildType.name
+            def versionName = android.defaultConfig.versionName
+            def newName = "libmedia-${buildTypeName}-${versionName}.aar"
+            outputFileName = newName
+        }
+        variant.getAssembleProvider().get().doLast {
+            variant.outputs.all { output ->
+                copy {
+                    def srcDir = new File(variant.getPackageLibraryProvider().get().getDestinationDir(), output.outputFileName)
+                    from "${srcDir}"
+                    into "${rootProject.buildDir}/outputs/aar"
+                }
+            }
+        }
     }
 }
 
@@ -31,7 +50,7 @@ allprojects {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
     implementation 'com.google.guava:guava:28.2-android'
 

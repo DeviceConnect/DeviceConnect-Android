@@ -59,43 +59,69 @@ JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz) {
 
 JNIEXPORT jint JNICALL
 JNI_METHOD_NAME(setSockFlag)(JNIEnv *env, jclass clazz, jlong nativePtr, jint opt, jobject value) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_setSockFlag()");
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_setSockFlag(): opt=%d", opt);
 
     jclass valueClass = env->GetObjectClass(value);
 
     int result = -1;
 
     switch (opt) {
+        case SRTO_CONGESTION:
+        case SRTO_STREAMID:
+        case SRTO_PACKETFILTER:
+        {
+            const char *type = env->GetStringUTFChars((jstring) value, nullptr);
+            if (type != nullptr) {
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, type, (int) strlen(type));
+                env->ReleaseStringUTFChars((jstring) value, type);
+            }
+        }
+            break;
         case SRTO_SNDSYN:
         case SRTO_RCVSYN:
         case SRTO_SENDER: // RTO_SENDER	1.0.4	pre	int32_t bool?
+        case SRTO_MESSAGEAPI:
         {
             jmethodID boolValueMethodId = env->GetMethodID(valueClass, "booleanValue", "()Z");
-            bool data = env->CallBooleanMethod(value, boolValueMethodId);
-            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            if (boolValueMethodId != nullptr) {
+                bool data = env->CallBooleanMethod(value, boolValueMethodId);
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            }
         }
             break;
         case SRTO_MAXBW:
         case SRTO_INPUTBW:
         {
             jmethodID longValueMethodId = env->GetMethodID(valueClass, "longValue", "()J");
-            int64_t data = env->CallLongMethod(value, longValueMethodId);
-            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            if (longValueMethodId != nullptr) {
+                int64_t data = env->CallLongMethod(value, longValueMethodId);
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            }
         }
             break;
+        case SRTO_TRANSTYPE:
+        case SRTO_LOSSMAXTTL:
         case SRTO_LATENCY:
         case SRTO_RCVLATENCY:
         case SRTO_PEERLATENCY:
         case SRTO_OHEADBW:
+        case SRTO_CONNTIMEO:
+        case SRTO_PEERIDLETIMEO:
         {
             jmethodID intValueMethodId = env->GetMethodID(valueClass, "intValue", "()I");
-            int32_t data = env->CallIntMethod(value, intValueMethodId);
-            result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            if (intValueMethodId != nullptr) {
+                int32_t data = env->CallIntMethod(value, intValueMethodId);
+                result = srt_setsockflag((int) nativePtr, (SRT_SOCKOPT) opt, &data, sizeof data);
+            }
         }
             break;
 
         default:
             break;
+    }
+
+    if (result == SRT_ERROR) {
+        LOGE("srt_setsockflag: %s", srt_getlasterror_str());
     }
 
     env->DeleteLocalRef(valueClass);
@@ -214,35 +240,49 @@ JNI_METHOD_NAME(recvMessage)(JNIEnv *env, jclass clazz, jlong ptr, jbyteArray by
 
     int result = srt_recvmsg((int) ptr, (char *) data, length);
     if (result == SRT_ERROR) {
-        LOGE("srt_send: %s\n", srt_getlasterror_str());
+        LOGE("srt_recvmsg: %s\n", srt_getlasterror_str());
     }
     env->ReleaseByteArrayElements(byteArray, data, 0);
     return result;
 }
 
-
 JNIEXPORT void JNICALL
-JNI_METHOD_NAME(dumpStats)(JNIEnv *env, jclass clazz, jlong ptr) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_dumpStats()");
-
+JNI_METHOD_NAME(getStats)(JNIEnv *env, jclass clazz, jlong ptr, jobject jStats) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_getStats()");
     SRT_TRACEBSTATS stats;
     int result = srt_bstats((int) ptr, &stats, 0);
     if (result == SRT_ERROR) {
         return;
     }
-    LOGD("dumpStats: pktSentTotal=%ld, pktRetransTotal=%d, pktSndLossTotal=%d, pktSndDropTotal=%d",
-            stats.pktSentTotal, stats.pktRetransTotal, stats.pktSndLossTotal, stats.pktSndDropTotal);
-    LOGD("dumpStats: mbpsBandwidth=%f, mbpsMaxBW=%f, byteAvailSndBuf=%d, msRTT=%f",
-            stats.mbpsBandwidth, stats.mbpsMaxBW, stats.byteAvailSndBuf, stats.msRTT);
-}
 
+    jclass valueClass = env->GetObjectClass(jStats);
+    jmethodID msTimeStamp = env->GetMethodID(valueClass, "msTimeStamp", "(J)V");
+    jmethodID pktSentTotal = env->GetMethodID(valueClass, "pktSentTotal", "(J)V");
+    jmethodID pktRetransTotal = env->GetMethodID(valueClass, "pktRetransTotal", "(I)V");
+    jmethodID pktSndLossTotal = env->GetMethodID(valueClass, "pktSndLossTotal", "(I)V");
+    jmethodID pktSndDropTotal = env->GetMethodID(valueClass, "pktSndDropTotal", "(I)V");
+    jmethodID mbpsMaxBW = env->GetMethodID(valueClass, "mbpsMaxBW", "(D)V");
+    jmethodID byteAvailSndBuf = env->GetMethodID(valueClass, "byteAvailSndBuf", "(I)V");
+    jmethodID msRTT = env->GetMethodID(valueClass, "msRTT", "(D)V");
+    jmethodID setBandWidth = env->GetMethodID(valueClass, "mbpsBandwidth", "(D)V");
+    env->CallVoidMethod(jStats, msTimeStamp, stats.msTimeStamp);
+    env->CallVoidMethod(jStats, pktSentTotal, stats.pktSentTotal);
+    env->CallVoidMethod(jStats, pktRetransTotal, stats.pktRetransTotal);
+    env->CallVoidMethod(jStats, pktSndLossTotal, stats.pktSndLossTotal);
+    env->CallVoidMethod(jStats, pktSndDropTotal, stats.pktSndDropTotal);
+    env->CallVoidMethod(jStats, mbpsMaxBW, stats.mbpsMaxBW);
+    env->CallVoidMethod(jStats, byteAvailSndBuf, stats.byteAvailSndBuf);
+    env->CallVoidMethod(jStats, msRTT, stats.msRTT);
+    env->CallVoidMethod(jStats, setBandWidth, stats.mbpsBandwidth);
+    env->DeleteLocalRef(valueClass);
+}
 
 JNIEXPORT jobject JNICALL
 JNI_METHOD_NAME(getPeerName)(JNIEnv *env, jclass clazz, jlong nativeSocket) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_getPeerName()");
 
     struct sockaddr addr;
-    int addrlen;
+    int addrlen = sizeof(addr);
     int ret = srt_getpeername((SRTSOCKET) nativeSocket, &addr, &addrlen);
     if (ret == SRT_ERROR) {
         LOGE("getPeerName: srt_getpeername: %s\n", srt_getlasterror_str());

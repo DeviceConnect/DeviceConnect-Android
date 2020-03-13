@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.uvc"
-        minSdkVersion 15
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName getVersionName()
@@ -49,6 +49,7 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -63,8 +64,8 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
     implementation project(':libuvccamera')
-    implementation project(':libstreaming')
 }

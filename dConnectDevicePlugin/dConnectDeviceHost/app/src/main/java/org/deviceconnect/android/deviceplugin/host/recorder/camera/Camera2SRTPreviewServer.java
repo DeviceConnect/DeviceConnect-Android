@@ -59,6 +59,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                 mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
+                mSRTServer.setSocketOptions(RecorderSetting.getInstance(getContext()).loadSRTSocketOptions());
                 mSRTServer.start();
             } catch (IOException e) {
                 callback.onFail();
@@ -115,14 +116,10 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
     @Override
     void restartCamera() {
         if (mSRTServer != null) {
-            new Thread(() -> {
-                if (mSRTServer != null) {
-                    SRTSession session = mSRTServer.getSRTSession();
-                    if (session != null) {
-                        session.restartVideoEncoder();
-                    }
-                }
-            }).start();
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                session.restartVideoEncoder();
+            }
         }
     }
 
@@ -133,17 +130,13 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
      */
     private void setMute(boolean mute) {
         if (mSRTServer != null) {
-            new Thread(() -> {
-                if (mSRTServer != null) {
-                    SRTSession session = mSRTServer.getSRTSession();
-                    if (session != null) {
-                        AudioEncoder audioEncoder = session.getAudioEncoder();
-                        if (audioEncoder  != null) {
-                            audioEncoder.setMute(mute);
-                        }
-                    }
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder  != null) {
+                    audioEncoder.setMute(mute);
                 }
-            }).start();
+            }
         }
     }
 

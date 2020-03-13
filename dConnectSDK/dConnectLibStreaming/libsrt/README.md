@@ -284,6 +284,133 @@ unzip がインストールされていない場合には以下のコマンド�
 $ sudo apt install unzip
 ```
 
+### patchelf のビルド
+
+Android OS 5.0 以前では、ライブラリの soname とそのパスの違いを認識できません。<br>
+soname を変更するのに、patchelf を使用します。
+
+下記のサイトからソースコードをダウンロードします。<br>
+[http://nixos.org/releases/patchelf/](http://nixos.org/releases/patchelf/)
+
+最新版があれば、そちらをダウンロードしてください。<br>
+
+```
+$ wget http://nixos.org/releases/patchelf/patchelf-0.10/patchelf-0.10.tar.bz2
+$ tar xfa patchelf-0.10.tar.bz2 
+```
+
+カレントディレクトリを移動して、configure を実行し Makefile を作成します。
+
+```sh
+$ cd patchelf-0.10
+$ ./configure --prefix=/usr/local
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking whether make supports the include directive... yes (GNU style)
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking whether gcc understands -c and -o together... yes
+checking dependency style of gcc... gcc3
+checking for g++... g++
+checking whether we are using the GNU C++ compiler... yes
+checking whether g++ accepts -g... yes
+checking dependency style of g++... gcc3
+Setting page size to 4096
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating src/Makefile
+config.status: creating tests/Makefile
+config.status: creating patchelf.spec
+config.status: executing depfiles commands
+```
+
+make を実行して、patchelf をビルドします。
+
+```sh
+$ make
+Making all in src
+make[1]: Entering directory '/home/vagrant/workspace/patchelf-0.10/src'
+g++ -DPACKAGE_NAME=\"patchelf\" -DPACKAGE_TARNAME=\"patchelf\" -DPACKAGE_VERSION=\"0.10\" -DPACKAGE_STRING=\"patchelf\ 0.10\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"patchelf\" -DVERSION=\"0.10\" -DPAGESIZE=4096 -I.    -Wall -std=c++11 -D_FILE_OFFSET_BITS=64 -g -O2 -MT patchelf.o -MD -MP -MF .deps/patchelf.Tpo -c -o patchelf.o patchelf.cc
+mv -f .deps/patchelf.Tpo .deps/patchelf.Po
+g++ -Wall -std=c++11 -D_FILE_OFFSET_BITS=64 -g -O2   -o patchelf patchelf.o  
+make[1]: Leaving directory '/home/vagrant/workspace/patchelf-0.10/src'
+Making all in tests
+make[1]: Entering directory '/home/vagrant/workspace/patchelf-0.10/tests'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/vagrant/workspace/patchelf-0.10/tests'
+make[1]: Entering directory '/home/vagrant/workspace/patchelf-0.10'
+make[1]: Nothing to be done for 'all-am'.
+make[1]: Leaving directory '/home/vagrant/workspace/patchelf-0.10'
+```
+
+ルート権限で、ビルドした patchelf をインストールします。
+
+```sh
+$ sudo make install
+Making install in src
+make[1]: Entering directory '/home/vagrant/workspace/patchelf-0.10/src'
+make[2]: Entering directory '/home/vagrant/workspace/patchelf-0.10/src'
+ /bin/mkdir -p '/usr/local/bin'
+  /usr/bin/install -c patchelf '/usr/local/bin'
+make[2]: Nothing to be done for 'install-data-am'.
+make[2]: Leaving directory '/home/vagrant/workspace/patchelf-0.10/src'
+make[1]: Leaving directory '/home/vagrant/workspace/patchelf-0.10/src'
+Making install in tests
+make[1]: Entering directory '/home/vagrant/workspace/patchelf-0.10/tests'
+make[2]: Entering directory '/home/vagrant/workspace/patchelf-0.10/tests'
+make[2]: Nothing to be done for 'install-exec-am'.
+make[2]: Nothing to be done for 'install-data-am'.
+make[2]: Leaving directory '/home/vagrant/workspace/patchelf-0.10/tests'
+make[1]: Leaving directory '/home/vagrant/workspace/patchelf-0.10/tests'
+make[1]: Entering directory '/home/vagrant/workspace/patchelf-0.10'
+make[2]: Entering directory '/home/vagrant/workspace/patchelf-0.10'
+make[2]: Nothing to be done for 'install-exec-am'.
+ /bin/mkdir -p '/usr/local/share/doc/patchelf'
+ /usr/bin/install -c -m 644 README '/usr/local/share/doc/patchelf'
+ /bin/mkdir -p '/usr/local/share/man/man1'
+ /usr/bin/install -c -m 644 patchelf.1 '/usr/local/share/man/man1'
+make[2]: Leaving directory '/home/vagrant/workspace/patchelf-0.10'
+make[1]: Leaving directory '/home/vagrant/workspace/patchelf-0.10'
+```
+
+patchelf を実行して、インストールされていることを確認します。
+
+```sh
+$ /usr/local/bin/patchelf
+syntax: /usr/local/bin/patchelf
+  [--set-interpreter FILENAME]
+  [--page-size SIZE]
+  [--print-interpreter]
+  [--print-soname]		Prints 'DT_SONAME' entry of .dynamic section. Raises an error if DT_SONAME doesn't exist
+  [--set-soname SONAME]		Sets 'DT_SONAME' entry to SONAME.
+  [--set-rpath RPATH]
+  [--remove-rpath]
+  [--shrink-rpath]
+  [--allowed-rpath-prefixes PREFIXES]		With '--shrink-rpath', reject rpath entries not starting with the allowed prefix
+  [--print-rpath]
+  [--force-rpath]
+  [--add-needed LIBRARY]
+  [--remove-needed LIBRARY]
+  [--replace-needed LIBRARY NEW_LIBRARY]
+  [--print-needed]
+  [--no-default-lib]
+  [--debug]
+  [--version]
+  FILENAME
+```
+
 ### SRT のビルド
 
 SRT は、下記のサイトに公開されています。<br>
@@ -395,6 +522,14 @@ SRT ビルドの完了後に下記のコマンドを実行し、ライブラリ�
 
 ```
 $ ./packjni
+/vagrant_data/srt/docs/Android/jniLibs/armeabi-v7a/libsrt.so:     file format elf32-little
+  SONAME               libsrt.so
+/vagrant_data/srt/docs/Android/jniLibs/arm64-v8a/libsrt.so:     file format elf64-little
+  SONAME               libsrt.so
+/vagrant_data/srt/docs/Android/jniLibs/x86/libsrt.so:     file format elf32-i386
+  SONAME               libsrt.so
+/vagrant_data/srt/docs/Android/jniLibs/x86_64/libsrt.so:     file format elf64-x86-64
+  SONAME               libsrt.so
 ```
 
 コマンドの実行に成功すると jniLibs というファイルが作成されます。

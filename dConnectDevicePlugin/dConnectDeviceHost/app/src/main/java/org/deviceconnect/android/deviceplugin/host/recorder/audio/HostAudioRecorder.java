@@ -7,22 +7,23 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.audio;
 
 import android.Manifest;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
+import android.util.Log;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -42,11 +43,21 @@ import androidx.annotation.NonNull;
  */
 public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRecorder {
 
+    /**
+     * ログ出力用フラグ.
+     */
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * ログ出力用タグ.
+     */
+    private static final String TAG = "host.dplugin";
+
     private static final String ID = "audio";
 
     private static final String NAME = "AndroidHost Audio Recorder";
 
-    private static final String MIME_TYPE = "audio/3gp";
+    private static final String MIME_TYPE = "audio/aac";
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
@@ -67,10 +78,13 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
      */
     private List<String> mMimeTypes = new ArrayList<String>() {
         {
-            add("audio/3gp");
+            add("audio/aac");
         }
     };
+
     private RecorderState mState;
+
+    private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     public HostAudioRecorder(final Context context) {
         mContext = context;
@@ -282,7 +296,9 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
             mState = RecorderState.INACTTIVE;
             if (listener != null) {
                 if (mMediaRecorder != null) {
+                    mMediaRecorder.stop();
                     releaseMediaRecorder();
+                    registerAudio(mFile);
                     listener.onStopped(this, mFile.getName());
                 } else {
                     listener.onFailed(this, "Failed to Stop recording.");
@@ -381,42 +397,33 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mMediaRecorder.setOutputFile(mFile.toString());
         mMediaRecorder.prepare();
         mMediaRecorder.start();
     }
 
     /**
-     * Check the existence of file.
-     *
-     * @return true is exist
-     */
-    private boolean checkAudioFile() {
-        return mFile != null && mFile.exists() && mFile.length() > 0;
-    }
-
-    /**
      * MediaRecorderを解放.
      */
     private void releaseMediaRecorder() {
-        if (checkAudioFile()) {
-            // Contents Providerに登録.
-            ContentResolver resolver = mContext.getContentResolver();
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Video.Media.TITLE, mFile.getName());
-            values.put(MediaStore.Video.Media.DISPLAY_NAME, mFile.getName());
-            values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
-            values.put(MediaStore.Video.Media.MIME_TYPE, "audio/3gp");
-            values.put(MediaStore.Video.Media.DATA, mFile.toString());
-            resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
-        }
-
         if (mMediaRecorder != null) {
             mMediaRecorder.reset();
             mMediaRecorder.release();
             mMediaRecorder = null;
+        }
+    }
+
+    private void registerAudio(final File audioFile) {
+        Uri uri = mMediaSharing.shareAudio(mContext, audioFile);
+        if (DEBUG) {
+            String filePath = audioFile.getAbsolutePath();
+            if (uri != null) {
+                Log.d(TAG, "Registered audio: filePath=" + filePath + ", uri=" + uri.getPath());
+            } else {
+                Log.e(TAG, "Failed to register audio: file=" + filePath);
+            }
         }
     }
 }

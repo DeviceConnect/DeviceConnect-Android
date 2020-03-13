@@ -4,7 +4,7 @@ public abstract class MJPEGEncoder {
     /**
      * MJPEG の設定を格納するクラス.
      */
-    private MJPEGQuality mMJPEGQuality = new MJPEGQuality();
+    private final MJPEGQuality mMJPEGQuality = new MJPEGQuality();
 
     /**
      * JPEG を通知するためのコールバック.

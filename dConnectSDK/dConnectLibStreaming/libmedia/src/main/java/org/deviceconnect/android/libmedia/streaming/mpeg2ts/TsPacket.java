@@ -4,14 +4,9 @@ import java.util.Arrays;
 
 class TsPacket {
     /**
-     * TP パケットのサイズを定義します.
-     */
-    private static final int TS_PACKET_SIZE = 188;
-
-    /**
      * パケットデータ.
      */
-    final byte[] mData = new byte[TS_PACKET_SIZE];
+    final byte[] mData = new byte[TsConstants.TS_PACKET_SIZE];
 
     /**
      * 書き込んでいる位置.

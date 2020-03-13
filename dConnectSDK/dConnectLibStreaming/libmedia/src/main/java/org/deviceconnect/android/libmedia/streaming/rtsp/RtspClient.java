@@ -3,21 +3,22 @@ package org.deviceconnect.android.libmedia.streaming.rtsp;
 import android.net.Uri;
 import android.util.Log;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpReceiver;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescriptionParser;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RtspClient {
     /**
@@ -48,7 +49,12 @@ public class RtspClient {
     /**
      * 受信した RTP パケットを通知するコールバック.
      */
-    private Callback mCallback;
+    private OnEventListener mOnEventListener;
+
+    /**
+     * RTSP サーバとの接続タイムアウト.
+     */
+    private int mConnectionTimeout = 10 * 1000;
 
     /**
      * コンストラクタ.
@@ -62,12 +68,25 @@ public class RtspClient {
     }
 
     /**
-     * 受信した RTP パケットを通知するコールバックを設定します.
+     * 受信した RTP パケットを通知するリスナーを設定します.
      *
-     * @param callback コールバック
+     * @param listener リスナー
      */
-    public void setCallback(Callback callback) {
-        mCallback = callback;
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
+    }
+
+    /**
+     * RTSP サーバとの接続タイムアウト時間を設定します.
+     *
+     * 単位: ミリ秒
+     *
+     * デフォルトでは、10000 (10秒) が設定されています。
+     *
+     * @param connectionTimeout 接続タイムアウト時間
+     */
+    public void setConnectionTimeout(int connectionTimeout) {
+        mConnectionTimeout = connectionTimeout;
     }
 
     /**
@@ -118,26 +137,38 @@ public class RtspClient {
     }
 
     private void postOnError(RtspClientException e) {
-        if (mCallback != null) {
-            mCallback.onError(e);
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(e);
         }
     }
 
     private void postOnSdpReceived(SessionDescription sdp) {
-        if (mCallback != null) {
-            mCallback.onSdpReceived(sdp);
+        if (mOnEventListener != null) {
+            mOnEventListener.onSdpReceived(sdp);
         }
     }
 
     private void postOnRtpReceived(MediaDescription md, byte[] data, int dataLength) {
-        if (mCallback != null) {
-            mCallback.onRtpReceived(md, data, dataLength);
+        if (mOnEventListener != null) {
+            mOnEventListener.onRtpReceived(md, data, dataLength);
         }
     }
 
     private void postOnRtcpReceived(MediaDescription md, byte[] data, int dataLength) {
-        if (mCallback != null) {
-            mCallback.onRtcpReceived(md, data, dataLength);
+        if (mOnEventListener != null) {
+            mOnEventListener.onRtcpReceived(md, data, dataLength);
+        }
+    }
+
+    private void postOnConnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConnected();
+        }
+    }
+
+    private void postOnDisconnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onDisconnected();
         }
     }
 
@@ -231,9 +262,16 @@ public class RtspClient {
                     Log.d(TAG, "  PORT: " + uri.getPort());
                 }
 
-                mSocket = new Socket(uri.getHost(), uri.getPort());
+                InetSocketAddress endpoint= new InetSocketAddress(uri.getHost(), uri.getPort());
+
+                mSocket = new Socket();
+                mSocket.setKeepAlive(true);
+                mSocket.setReuseAddress(true);
+                mSocket.connect(endpoint, mConnectionTimeout);
                 mReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                 mWriter = new BufferedOutputStream(mSocket.getOutputStream());
+
+                postOnConnected();
 
                 processOptions();
                 processDescribe();
@@ -258,9 +296,13 @@ public class RtspClient {
 
                 processTearDown();
             } catch (RtspClientException e) {
-                postOnError(e);
+                if (!mStopFlag) {
+                    postOnError(e);
+                }
             } catch (Exception e) {
-                postOnError(new RtspClientException(e, RtspResponse.Status.STATUS_UNKNOWN));
+                if (!mStopFlag) {
+                    postOnError(new RtspClientException(e, RtspResponse.Status.STATUS_UNKNOWN));
+                }
             } finally {
                 synchronized (mRtpReceivers) {
                     for (RtpReceiver receiver : mRtpReceivers) {
@@ -276,6 +318,8 @@ public class RtspClient {
                         // ignore.
                     }
                 }
+
+                postOnDisconnected();
 
                 if (DEBUG) {
                     Log.d(TAG, "RTSP CLIENT END");
@@ -492,7 +536,17 @@ public class RtspClient {
         }
     }
 
-    public interface Callback {
+    public interface OnEventListener {
+        /**
+         * 接続されたことを通知します.
+         */
+        void onConnected();
+
+        /**
+         * 切断されたことを通知します.
+         */
+        void onDisconnected();
+
         /**
          * RTSP サーバとの通信で発生したエラーを通知します.
          *

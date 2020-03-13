@@ -47,6 +47,8 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
             intent = new Intent(context, HostDemoSettingActivity.class);
         } else if (getString(R.string.pref_key_settings_audio_preview).equals(preference.getKey())) {
             intent = new Intent(context, HostRecorderAudioSettingActivity.class);
+        } else if (getString(R.string.pref_key_settings_srt_preview).equals(preference.getKey())) {
+            intent = new Intent(context, HostRecorderSRTSettingActivity.class);
         }
         if (intent != null) {
             activity.startActivity(intent);

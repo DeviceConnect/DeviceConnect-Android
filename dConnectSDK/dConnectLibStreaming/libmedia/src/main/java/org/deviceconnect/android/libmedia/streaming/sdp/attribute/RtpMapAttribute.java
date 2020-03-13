@@ -39,7 +39,7 @@ public class RtpMapAttribute extends Attribute {
         mRate = Integer.parseInt(params2[1]);
 
         if (params2.length > 2) {
-            mParameters = params[2];
+            mParameters = params2[2];
         }
     }
 

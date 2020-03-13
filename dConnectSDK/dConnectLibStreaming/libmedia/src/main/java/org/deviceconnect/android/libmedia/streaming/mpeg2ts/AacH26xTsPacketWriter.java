@@ -78,13 +78,29 @@ public abstract class AacH26xTsPacketWriter {
     /**
      * PAT、PMT を一定時間で送信します.
      *
+     * <p>
+     * 音声のストリームタイプは、AAC で固定で指定しています。
+     * </p>
+     *
      * @param frameType フレームタイプ
+     * @param videoStreamType 映像のストリームタイプ
      */
     void writePatPmt(FrameType frameType, int videoStreamType) {
+        writePatPmt(frameType, videoStreamType, TsPacketWriter.STREAM_TYPE_AUDIO_AAC);
+    }
+
+    /**
+     * PAT、PMT を一定時間で送信します.
+     *
+     * @param frameType フレームタイプ
+     * @param videoStreamType 映像のストリームタイプ
+     * @param audioStreamType 音声のストリームタイプ
+     */
+    void writePatPmt(FrameType frameType, int videoStreamType, int audioStreamType) {
         if (System.currentTimeMillis() - mPatPmtSendTime > PAT_PMT_SEND_INTERVAL) {
             mPatPmtSendTime = System.currentTimeMillis();
             mTsWriter.writePAT();
-            mTsWriter.writePMT(mMixed ? FrameType.MIXED : frameType, videoStreamType, TsPacketWriter.STREAM_TYPE_AUDIO_AAC);
+            mTsWriter.writePMT(mMixed ? FrameType.MIXED : frameType, videoStreamType, audioStreamType);
         }
     }
 

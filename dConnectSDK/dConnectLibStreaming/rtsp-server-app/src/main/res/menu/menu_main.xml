@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="jp.gclue.android.rtspserver.org.deviceconnect.android.rtspserver.MainActivity">
+    tools:context="org.deviceconnect.android.rtspserver.MainActivity">
 
     <item
         android:id="@+id/action_settings"

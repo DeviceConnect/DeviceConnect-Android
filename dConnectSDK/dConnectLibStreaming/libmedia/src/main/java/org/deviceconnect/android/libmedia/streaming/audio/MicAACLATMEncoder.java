@@ -105,7 +105,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
         inputData.clear();
 
         if (mAudioRecord == null || mAudioThread == null || mMuteBuffer == null) {
-            mMediaCodec.queueInputBuffer(index, 0, 0, System.nanoTime() / 1000, 0);
+            mMediaCodec.queueInputBuffer(index, 0, 0, getPTSUs(), 0);
         } else if (isMute()) {
             // ミュート設定の場合には、AudioRecord からデータを取得しない
             int length = mMuteBuffer.length;
@@ -113,7 +113,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
                 length = inputData.remaining();
             }
             inputData.put(mMuteBuffer, 0, length);
-            mMediaCodec.queueInputBuffer(index, 0, length, System.nanoTime() / 1000, 0);
+            mMediaCodec.queueInputBuffer(index, 0, length, getPTSUs(), 0);
         } else {
             mAudioThread.add(() -> {
                 int len = mAudioRecord.read(inputData, mBufferSize);
@@ -123,7 +123,7 @@ public class MicAACLATMEncoder extends AudioEncoder {
                     }
                 }
                 inputData.flip();
-                mMediaCodec.queueInputBuffer(index, 0, len, System.nanoTime() / 1000, 0);
+                mMediaCodec.queueInputBuffer(index, 0, len, getPTSUs(), 0);
             });
         }
     }

@@ -1,8 +1,13 @@
 package org.deviceconnect.android.libsrt.client;
 
-import org.deviceconnect.android.libsrt.SRTSocket;
+import android.util.Log;
 
-import java.io.IOException;
+import org.deviceconnect.android.libsrt.BuildConfig;
+import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.SRTSocketException;
+import org.deviceconnect.android.libsrt.SRTStats;
+
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -10,16 +15,20 @@ import java.util.TimerTask;
  * SRT サーバと通信するクラス.
  */
 public class SRTClient {
-
     /**
      * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
      */
     static final long DEFAULT_STATS_INTERVAL = 5000;
 
     /**
-     * SRT ソケット.
+     * デバッグ用タグ.
      */
-    private SRTSocket mSRTSocket;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
+     * タグ.
+     */
+    private static final String TAG = "SRT-CLIENT";
 
     /**
      * 接続先のアドレス.
@@ -61,6 +70,11 @@ public class SRTClient {
     private boolean mShowStats;
 
     /**
+     * クライアントのソケットに設定するオプション.
+     */
+    private Map<Integer, Object> mCustomSocketOptions;
+
+    /**
      * コンストラクタ.
      * @param address 接続先のアドレス
      * @param port 接続先のポート番号
@@ -68,6 +82,19 @@ public class SRTClient {
     public SRTClient(String address, int port) {
         mAddress = address;
         mPort = port;
+    }
+
+    /**
+     * ソケットに反映するオプションを設定します.
+     *
+     * <p>
+     * オプションはサーバ側のソケットがバインドされる前に設定されます.
+     * </p>
+     *
+     * @param socketOptions ソケットに反映するオプションd
+     */
+    public void setSocketOptions(Map<Integer, Object> socketOptions) {
+        mCustomSocketOptions = socketOptions;
     }
 
     /**
@@ -87,6 +114,7 @@ public class SRTClient {
             return;
         }
         mSRTSessionThread = new SRTSessionThread();
+        mSRTSessionThread.setName("SRT-CLIENT-THREAD");
         mSRTSessionThread.start();
     }
 
@@ -97,6 +125,37 @@ public class SRTClient {
         if (mSRTSessionThread != null) {
             mSRTSessionThread.terminate();
             mSRTSessionThread = null;
+        }
+    }
+
+    /**
+     * SRTサーバに接続されているか確認します.
+     *
+     * @return SRT サーバに接続されている場合はtrue、それ以外はfalse
+     */
+    public synchronized boolean isConnected() {
+        return mSRTSessionThread != null &&
+                mSRTSessionThread.mSRTSocket != null &&
+                mSRTSessionThread.mSRTSocket.isConnected();
+    }
+
+    /**
+     * SRT ソケットにオプションを設定します.
+     *
+     * <p>
+     * Binding が post のオプションのみ、ソケットが接続された後にもオプションを設定することができます。
+     * </p>
+     *
+     * @param option オプション
+     * @param value 値
+     */
+    public synchronized void setSocketOption(int option, Object value) {
+        if (mSRTSessionThread != null) {
+            try {
+                mSRTSessionThread.mSRTSocket.setOption(option, value);
+            } catch (SRTSocketException e) {
+                // ignore.
+            }
         }
     }
 
@@ -119,7 +178,7 @@ public class SRTClient {
     }
 
     /**
-     * SRT 統計データの LogCat へ表示するインターバルを設定します.
+     * SRT 統計情報を取得するインターバルを設定します.
      *
      * <p>
      * {@link #setShowStats(boolean)} の前に実行すること.
@@ -132,7 +191,7 @@ public class SRTClient {
     }
 
     /**
-     * 統計情報のログ出力を開始します.
+     * 統計情報の取得を開始します.
      */
     private void startStatsTimer() {
         if (mStatsTimer != null) {
@@ -142,16 +201,22 @@ public class SRTClient {
         mStatsTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                SRTSocket socket = mSRTSocket;
-                if (socket != null) {
-                    socket.dumpStats();
+                if (mSRTSessionThread != null) {
+                    SRTSocket socket = mSRTSessionThread.mSRTSocket;
+                    if (socket != null) {
+                        SRTStats srtStats = socket.getStats();
+                        if (DEBUG) {
+                            Log.d(TAG, srtStats.toString());
+                        }
+                        postStats(srtStats);
+                    }
                 }
             }
-        }, 0, 5000);
+        }, mStatsInterval, mStatsInterval);
     }
 
     /**
-     * 統計情報のログ出力を停止します.
+     * 統計情報の取得を停止します.
      */
     private void stopStatsTimer() {
         if (mStatsTimer != null) {
@@ -169,6 +234,16 @@ public class SRTClient {
          */
         private static final int BUFFER_SIZE = 1500;
 
+        /**
+         * SRT ソケット.
+         */
+        private SRTSocket mSRTSocket;
+
+        /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
+
         SRTSessionThread() {
             setName("SRT-CLIENT");
         }
@@ -183,7 +258,10 @@ public class SRTClient {
                 } catch (Exception e) {
                     // ignore.
                 }
+                mSRTSocket = null;
             }
+
+            mStopFlag = true;
 
             interrupt();
 
@@ -197,8 +275,16 @@ public class SRTClient {
         @Override
         public void run() {
             try {
-                mSRTSocket = new SRTSocket(mAddress, mPort);
-            } catch (IOException e) {
+                mSRTSocket = new SRTSocket();
+
+                if (mCustomSocketOptions != null) {
+                    for (Map.Entry<Integer, Object> o : mCustomSocketOptions.entrySet()) {
+                        mSRTSocket.setOption(o.getKey(), o.getValue());
+                    }
+                }
+
+                mSRTSocket.connect(mAddress, mPort);
+            } catch (Exception e) {
                 postOnError(e);
                 return;
             }
@@ -212,14 +298,16 @@ public class SRTClient {
                 int len;
                 byte[] buffer = new byte[BUFFER_SIZE];
 
-                while (!isInterrupted()) {
+                while (!mStopFlag) {
                     len = mSRTSocket.recv(buffer, BUFFER_SIZE);
                     if (len > 0) {
                         postOnRead(buffer, len);
                     }
                 }
             } catch (Exception e) {
-                // ignore.
+                if (!mStopFlag) {
+                    postOnError(e);
+                }
             } finally {
                 stopStatsTimer();
 
@@ -229,6 +317,7 @@ public class SRTClient {
                     } catch (Exception e) {
                         // ignore.
                     }
+                    mSRTSocket = null;
                 }
 
                 postOnDisconnected();
@@ -254,9 +343,15 @@ public class SRTClient {
         }
     }
 
-    private void postOnError(IOException e) {
+    private void postOnError(Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
+        }
+    }
+
+    private void postStats(SRTStats stats) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStats(stats);
         }
     }
 
@@ -289,6 +384,13 @@ public class SRTClient {
          *
          * @param e 失敗原因の例外
          */
-        void onError(IOException e);
+        void onError(Exception e);
+
+        /**
+         * SRT サーバとの通信状況を通知します.
+         *
+         * @param stats 通信統計情報
+         */
+        void onStats(SRTStats stats);
     }
 }

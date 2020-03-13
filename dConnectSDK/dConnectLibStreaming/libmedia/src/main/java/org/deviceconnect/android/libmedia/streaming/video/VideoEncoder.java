@@ -147,20 +147,6 @@ public abstract class VideoEncoder extends MediaEncoder {
     }
 
     /**
-     * 映像の解像度の変更を要求します.
-     *
-     * <p>
-     * エンコード中に映像の解像度を変更したい場合に指定します。
-     *
-     * {@link VideoQuality#getVideoWidth()}、 {@link VideoQuality#getVideoHeight()}
-     * で取得できる映像の解像度を再設定します。
-     * </p>
-     */
-    public void requestChangeVideoSize() {
-        new Thread(this::restart).start();
-    }
-
-    /**
      * MediaCodec にキーフレームの作成を行います.
      */
     private void syncKeyFrame() {
@@ -283,7 +269,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
 
         // 一定期間 Surface に更新がなかった場合に前の映像をエンコードします.(単位: microseconds)
-        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000 * 1000);
+        format.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 200 * 1000);
 
         // ビットレートモードに設定します。
         // 機種ごとにサポートできるパラメータが異なるので、設定できない場合はデフォルトで動作します。

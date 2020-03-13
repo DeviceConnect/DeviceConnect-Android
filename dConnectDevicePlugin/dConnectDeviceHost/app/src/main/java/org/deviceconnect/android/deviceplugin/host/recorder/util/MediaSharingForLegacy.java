@@ -83,7 +83,23 @@ class MediaSharingForLegacy extends MediaSharing {
         return null;
     }
 
-    long registerVideoThumbnail(final @NonNull Context context,
+    @Override
+    public Uri shareAudio(@NonNull Context context, @NonNull File audioFile) {
+        if (checkMediaFile(audioFile)) {
+            // Contents Providerに登録.
+            ContentResolver resolver = context.getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Video.Media.TITLE, audioFile.getName());
+            values.put(MediaStore.Video.Media.DISPLAY_NAME, audioFile.getName());
+            values.put(MediaStore.Video.Media.ARTIST, "DeviceConnect");
+            values.put(MediaStore.Video.Media.MIME_TYPE, "audio/mp3");
+            values.put(MediaStore.Video.Media.DATA, audioFile.toString());
+            resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        }
+        return null;
+    }
+
+    private long registerVideoThumbnail(final @NonNull Context context,
                                 final @NonNull File videoFile,
                                 final long videoId,
                                 final @NonNull FileManager fileManager) {
@@ -140,7 +156,7 @@ class MediaSharingForLegacy extends MediaSharing {
         }
     }
 
-    boolean updateThumbnailInfo(final @NonNull Context context,
+    private boolean updateThumbnailInfo(final @NonNull Context context,
                                 final long thumbnailId,
                                 final long videoId) {
         ContentValues values = new ContentValues();
@@ -148,7 +164,7 @@ class MediaSharingForLegacy extends MediaSharing {
         return updateThumbnailInfo(context, thumbnailId, values);
     }
 
-    boolean updateThumbnailInfo(final @NonNull Context context,
+    private boolean updateThumbnailInfo(final @NonNull Context context,
                                 final long thumbnailId,
                                 final ContentValues values) {
         ContentResolver resolver = context.getApplicationContext().getContentResolver();

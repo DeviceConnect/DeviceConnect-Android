@@ -41,6 +41,7 @@
     <string name="host_settings_item_gps">GPS</string>
     <string name="host_settings_item_jpeg_quality_preview">JPEG Quality</string>
     <string name="host_settings_item_audio_preview">Audio</string>
+    <string name="host_settings_item_srt_preview">SRT</string>
     <string name="host_settings_item_demo_page">Demo Page</string>
     <string name="host_settings_item_audio_enabled">Audio</string>
     <string name="host_settings_item_audio_enabled_summary">Set whether to enable preview audio.</string>
@@ -49,15 +50,30 @@
     <string name="host_settings_item_audio_channel">Channel</string>
     <string name="host_settings_item_audio_use_aec">Echo Canceller</string>
     <string name="host_settings_item_audio_use_aec_summary">Set whether to enable the echo canceller.</string>
+    <string name="host_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
+    <string name="host_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
+    <string name="host_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>
+    <string name="host_settings_item_srt_inputbw" translatable="false">SRTO_INPUTBW</string>
+    <string name="host_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
+    <string name="host_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
+    <string name="host_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
     <string name="pref_key_settings_gps">pref_key_settings_gps</string>
     <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
     <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
+    <string name="pref_key_settings_srt_preview">pref_key_settings_srt_preview</string>
     <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
     <string name="pref_key_settings_audio_enabled">pref_key_settings_audio_enabled</string>
     <string name="pref_key_settings_audio_bit_rate">pref_key_settings_audio_bit_rate</string>
     <string name="pref_key_settings_audio_sample_rate">pref_key_settings_audio_sample_rate</string>
     <string name="pref_key_settings_audio_channel">pref_key_settings_audio_channel</string>
     <string name="pref_key_settings_audio_use_aec">pref_key_settings_audio_use_aec</string>
+    <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
+    <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
+    <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>
+    <string name="pref_key_settings_srt_inputbw" translatable="false">pref_key_settings_srt_inputbw</string>
+    <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
+    <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
+    <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
     <string-array name="host_settings_item_audio_sample_rate_list">
         <item>96000</item>
         <item>88200</item>
@@ -95,6 +111,7 @@
     <string name="host_setting_dialog_disable_gps">Can not search because the GPS is disabled.\nPlease enable GPS by GPS setting screen.</string>
     <string name="host_setting_gps_dialog_cancel">Cancel</string>
 
+    <string name="host_setting_srt_option_auto">Auto</string>
 
     <string name="host_canvas_download_title">Download</string>
     <string name="host_canvas_download_message">Downloading...</string>

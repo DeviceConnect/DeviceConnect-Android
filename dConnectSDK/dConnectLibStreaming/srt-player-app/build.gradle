@@ -7,10 +7,10 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.srt_player_app"
-        minSdkVersion 26
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

@@ -1,12 +1,19 @@
 package org.deviceconnect.android.libsrt;
 
+import java.io.Closeable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
+
 /**
  * SRTサーバーのソケット.
  *
  * このクラスはスレッドセーフではありません.
  */
-public class SRTServerSocket {
-
+public class SRTServerSocket implements Closeable {
+    /**
+     * backlog のデフォルト値を定義.
+     */
     private static final int DEFAULT_BACKLOG = 5;
 
     /**
@@ -14,9 +21,13 @@ public class SRTServerSocket {
      */
     private long mNativeSocket;
 
-    private final String mServerAddress;
-    private final int mServerPort;
-    private final int mBacklog;
+    private String mServerAddress;
+    private int mServerPort;
+
+    /**
+     * 着信接続のキューの要求された最大長.
+     */
+    private int mBacklog = DEFAULT_BACKLOG;
 
     /**
      * 未オープンされた状態を定義.
@@ -40,6 +51,22 @@ public class SRTServerSocket {
 
     /**
      * コンストラクタ.
+     *
+     * アンバウンドのサーバー・ソケットを作成します。
+     *
+     * @throws SRTSocketException ソケットの作成に失敗した場合に発生
+     */
+    public SRTServerSocket() throws SRTSocketException {
+        mNativeSocket = NdkHelper.createSrtSocket();
+        if (mNativeSocket < 0) {
+            throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, -1);
+        }
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * 指定されたポートにバインドされたサーバー・ソケットを作成します。
      *
      * @param serverPort サーバのポート番号
      * @throws SRTSocketException ソケットの作成に失敗した場合に発生
@@ -72,12 +99,19 @@ public class SRTServerSocket {
      * @throws SRTSocketException ソケットの作成に失敗した場合に発生
      */
     public SRTServerSocket(final String serverAddress, final int serverPort, final int backlog) throws SRTSocketException {
-        mServerAddress = serverAddress;
-        mServerPort = serverPort;
-        mBacklog = backlog;
-        mNativeSocket = NdkHelper.createSrtSocket();
-        if (mNativeSocket < 0) {
-            throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, -1);
+        this();
+
+        if (backlog <= 0) {
+            mBacklog = DEFAULT_BACKLOG;
+        } else {
+            mBacklog = backlog;
+        }
+
+        try {
+            bind(serverAddress, serverPort);
+        } catch (SRTSocketException e) {
+            NdkHelper.closeSrtSocket(mNativeSocket);
+            throw e;
         }
     }
 
@@ -109,16 +143,30 @@ public class SRTServerSocket {
     }
 
     /**
-     * SRTServerSocket を開きます.
+     * SRTServerSocket を特定のアドレス(IPアドレスおよびポート番号)にバインドします.
      *
      * <p>
      * 内部では、srt_bind と srt_listen の処理が行われます。
      * </p>
      *
-     * @throws SRTSocketException SRTServerSocket を開くのに失敗した場合に発生
+     * @throws SRTSocketException SRTServerSocket をバインドするのに失敗した場合に発生
      */
-    public synchronized void open() throws SRTSocketException {
+    public synchronized void bind(String serverAddress, int serverPort) throws SRTSocketException {
         if (mState == STATE_NOT_OPEN) {
+            InetAddress inetAddress;
+            try {
+                inetAddress = InetAddress.getByName(serverAddress);
+            } catch (UnknownHostException e) {
+                throw new IllegalArgumentException("The format of the address is invalid.", e);
+            }
+
+            if (serverPort <= 0 || serverPort > 65535) {
+                throw new IllegalArgumentException("serverPort is invalid.");
+            }
+
+            mServerAddress = inetAddress.getHostAddress();
+            mServerPort = serverPort;
+
             int result = NdkHelper.bind(mNativeSocket, mServerAddress, mServerPort);
             if (result < 0) {
                 throw new SRTSocketException("Failed to create server socket: " + mServerAddress + ":" + mServerPort, result);
@@ -177,9 +225,28 @@ public class SRTServerSocket {
             throw new SRTSocketException("already closed", -1);
         }
 
+        if (value == null) {
+            throw new IllegalArgumentException("value is not set.");
+        }
+
         int result = NdkHelper.setSockFlag(mNativeSocket, option, value);
         if (result < 0) {
             throw new SRTSocketException("Failed to set a socket flag.", result);
+        }
+    }
+
+    /**
+     * SRT ソケットにオプションをまとめて設定します.
+     *
+     * @param options オプション設定の一覧
+     * @throws SRTSocketException オプションの設定に失敗した場合に発生
+     */
+    public void setOptions(Map<Integer, Object> options) throws SRTSocketException {
+        for (Map.Entry<Integer, Object> entry : options.entrySet()) {
+            Object value = entry.getValue();
+            if (value != null) {
+                setOption(entry.getKey(), value);
+            }
         }
     }
 

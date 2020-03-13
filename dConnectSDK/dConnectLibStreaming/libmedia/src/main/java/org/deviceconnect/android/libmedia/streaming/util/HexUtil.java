@@ -1,6 +1,9 @@
 package org.deviceconnect.android.libmedia.streaming.util;
 
-public class HexUtil {
+public final class HexUtil {
+
+    private HexUtil() {
+    }
 
     public static String hexToString(byte[] data) {
         return hexToString(data, 0, data.length);

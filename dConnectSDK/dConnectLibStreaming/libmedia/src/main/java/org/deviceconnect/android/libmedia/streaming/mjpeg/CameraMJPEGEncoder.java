@@ -26,7 +26,7 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     /**
      * カメラの映像描画用の Surface のリスト.
      */
-    private List<Surface> mSurfaces = new ArrayList<>();
+    private final List<Surface> mSurfaces = new ArrayList<>();
 
     /**
      * コンストラクタ.

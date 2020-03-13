@@ -68,8 +68,10 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
         if (mSRTServer == null) {
             try {
                 mSRTServer = new SRTServer(getPort());
+                mSRTServer.setStatsInterval(BuildConfig.STATS_INTERVAL);
                 mSRTServer.setShowStats(DEBUG);
                 mSRTServer.setCallback(mCallback);
+                mSRTServer.setSocketOptions(RecorderSetting.getInstance(getContext()).loadSRTSocketOptions());
                 mSRTServer.start();
             } catch (IOException e) {
                 callback.onFail();
@@ -108,17 +110,12 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
         setEncoderQuality();
 
         if (mSRTServer != null) {
-            new Thread(() -> {
-                if (mSRTServer != null) {
-                    SRTSession session = mSRTServer.getSRTSession();
-                    if (session != null) {
-                        session.restartVideoEncoder();
-                    }
-                }
-            }).start();
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                session.restartVideoEncoder();
+            }
         }
     }
-
 
     @Override
     public void mute() {
@@ -139,17 +136,13 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
      */
     private void setMute(boolean mute) {
         if (mSRTServer != null) {
-            new Thread(() -> {
-                if (mSRTServer != null) {
-                    SRTSession session = mSRTServer.getSRTSession();
-                    if (session != null) {
-                        AudioEncoder audioEncoder = session.getAudioEncoder();
-                        if (audioEncoder  != null) {
-                            audioEncoder.setMute(mute);
-                        }
-                    }
+            SRTSession session = mSRTServer.getSRTSession();
+            if (session != null) {
+                AudioEncoder audioEncoder = session.getAudioEncoder();
+                if (audioEncoder  != null) {
+                    audioEncoder.setMute(mute);
                 }
-            }).start();
+            }
         }
     }
 

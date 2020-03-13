@@ -1,16 +1,20 @@
 package org.deviceconnect.android.libsrt.client;
 
 import android.net.Uri;
+import android.util.Log;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsConstants;
 import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketExtractor;
-import org.deviceconnect.android.libmedia.streaming.mpeg2ts.TsPacketReader;
 import org.deviceconnect.android.libsrt.BuildConfig;
+import org.deviceconnect.android.libsrt.SRTStats;
+import org.deviceconnect.android.libsrt.client.decoder.audio.AACDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H264Decoder;
+import org.deviceconnect.android.libsrt.client.decoder.video.H265Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.VideoDecoder;
 
-import java.io.IOException;
+import java.util.Map;
 
 /**
  * SRT からのデータを再生するためのクラス.
@@ -32,19 +36,14 @@ public class SRTPlayer {
     private static final long DEFAULT_STATS_INTERVAL = SRTClient.DEFAULT_STATS_INTERVAL;
 
     /**
-     * 動画のストリームタイプを定義.
-     */
-    private static final int STREAM_TYPE_VIDEO = 0xE0;
-
-    /**
-     * 音声のストリームタイプを定義.
-     */
-    private static final int STREAM_TYPE_AUDIO = 0xC0;
-
-    /**
      * SRT の通信を行うクラス.
      */
     private SRTClient mSRTClient;
+
+    /**
+     * クライアントのソケットに設定するオプション.
+     */
+    private Map<Integer, Object> mCustomSocketOptions;
 
     /**
      * 接続先の URI.
@@ -121,9 +120,38 @@ public class SRTPlayer {
     }
 
     /**
+     * ソケットに反映するオプションを設定します.
+     *
+     * <p>
+     * オプションはサーバ側のソケットがコネクトされる前に設定されます.
+     * </p>
+     *
+     * @param socketOptions ソケットに反映するオプション
+     */
+    public void setSocketOptions(Map<Integer, Object> socketOptions) {
+        mCustomSocketOptions = socketOptions;
+    }
+
+    /**
+     * SRT ソケットにオプションを設定します.
+     *
+     * <p>
+     * Binding が post のオプションのみ、ソケットが接続された後にもオプションを設定することができます。
+     * </p>
+     *
+     * @param option オプション
+     * @param value 値
+     */
+    public synchronized void setSocketOption(int option, Object value) {
+        if (mSRTClient != null) {
+            mSRTClient.setSocketOption(option, value);
+        }
+    }
+
+    /**
      * SRT プレイヤーを開始します.
      */
-    public void start() {
+    public synchronized void start() {
         if (mSRTClient != null) {
             return;
         }
@@ -142,6 +170,7 @@ public class SRTPlayer {
         mPacketExtractor.start();
 
         mSRTClient = new SRTClient(uri.getHost(), uri.getPort());
+        mSRTClient.setSocketOptions(mCustomSocketOptions);
         mSRTClient.setOnEventListener(mOnClientEventListener);
         mSRTClient.setStatsInterval(mStatsInterval);
         mSRTClient.setShowStats(mShowStats);
@@ -151,7 +180,7 @@ public class SRTPlayer {
     /**
      * SRT プレイヤーを停止します.
      */
-    public void stop() {
+    public synchronized void stop() {
         if (mPacketExtractor != null) {
             mPacketExtractor.terminate();
             mPacketExtractor = null;
@@ -191,6 +220,24 @@ public class SRTPlayer {
         mStatsInterval = interval;
     }
 
+    private void postOnConnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConnected();
+        }
+    }
+
+    private void postOnDisconnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onDisconnected();
+        }
+    }
+
+    private void postOnReady() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onReady();
+        }
+    }
+
     private void postOnSizeChanged(int width, int height) {
         if (mOnEventListener != null) {
             mOnEventListener.onSizeChanged(width, height);
@@ -200,6 +247,87 @@ public class SRTPlayer {
     private void postOnError(Exception e) {
         if (mOnEventListener != null) {
             mOnEventListener.onError(e);
+        }
+    }
+
+    private void postOnStats(SRTStats stats) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onStats(stats);
+        }
+    }
+
+    /**
+     * デコーダを作成します.
+     *
+     * @param streamType ストリームタイプ
+     */
+    private synchronized void createDecoder(int streamType) {
+        switch (streamType) {
+            case TsConstants.STREAM_TYPE_VIDEO_H264:
+            case TsConstants.STREAM_TYPE_VIDEO_H265:
+            {
+                if (mVideoDecoder != null) {
+                    if (DEBUG) {
+                        Log.w(TAG, "VideoDecoder has already existed.");
+                    }
+                    return;
+                }
+
+                if (mSurface == null) {
+                    if (DEBUG) {
+                        Log.w(TAG, "Surface is not set.");
+                    }
+                    return;
+                }
+
+                if (streamType == TsConstants.STREAM_TYPE_VIDEO_H264) {
+                    mVideoDecoder = new H264Decoder();
+                } else {
+                    mVideoDecoder = new H265Decoder();
+                }
+                mVideoDecoder.setSurface(mSurface);
+                mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+                mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
+                mVideoDecoder.onInit();
+            }
+                break;
+            case TsConstants.STREAM_TYPE_AUDIO_AAC:
+            {
+                if (mAudioDecoder != null) {
+                    if (DEBUG) {
+                        Log.w(TAG, "AudioEncoder has already existed.");
+                    }
+                    return;
+                }
+
+                mAudioDecoder = new AACDecoder();
+                mAudioDecoder.setErrorCallback(SRTPlayer.this::postOnError);
+                mAudioDecoder.onInit();
+            }
+                break;
+        }
+    }
+
+    /**
+     * デコーダを削除します.
+     */
+    private synchronized void releaseDecoder() {
+        if (mVideoDecoder != null) {
+            try {
+                mVideoDecoder.onReleased();
+            } catch (Exception e) {
+                // ignore
+            }
+            mVideoDecoder = null;
+        }
+
+        if (mAudioDecoder != null) {
+            try {
+                mAudioDecoder.onReleased();
+            } catch (Exception e) {
+                // ignore.
+            }
+            mAudioDecoder = null;
         }
     }
 
@@ -213,41 +341,83 @@ public class SRTPlayer {
 
         @Override
         public void onConnected() {
-            mVideoDecoder = new H264Decoder();
-            mVideoDecoder.setSurface(mSurface);
-            mVideoDecoder.setErrorCallback(SRTPlayer.this::postOnError);
-            mVideoDecoder.setEventCallback(SRTPlayer.this::postOnSizeChanged);
-            mVideoDecoder.onInit();
+            postOnConnected();
         }
 
         @Override
         public void onDisconnected() {
-            if (mVideoDecoder != null) {
-                mVideoDecoder.onReleased();
-                mVideoDecoder = null;
-            }
+            releaseDecoder();
+            postOnDisconnected();
         }
 
         @Override
-        public void onError(IOException e) {
+        public void onError(Exception e) {
             postOnError(e);
+        }
+
+        @Override
+        public void onStats(SRTStats stats) {
+            postOnStats(stats);
         }
     };
 
-    private final TsPacketReader.Callback mCallback = (streamId, data, dataLength, pts) -> {
-        if (streamId == STREAM_TYPE_VIDEO) {
-            if (mVideoDecoder != null) {
-                mVideoDecoder.onReceived(data, dataLength, pts);
-            }
-        } else if (streamId == STREAM_TYPE_AUDIO) {
-            if (mAudioDecoder != null) {
-                mAudioDecoder.onReceived(data, dataLength, pts);
+    private final TsPacketExtractor.Callback mCallback = new TsPacketExtractor.Callback() {
+        @Override
+        public void onConfig(int pid, int streamType) {
+            createDecoder(streamType);
+            postOnReady();
+        }
+
+        @Override
+        public void onByteStream(int pid, int streamId, byte[] data, int dataLength, long pts) {
+            if (streamId == TsConstants.STREAM_ID_VIDEO) {
+                if (mVideoDecoder != null) {
+                    mVideoDecoder.onReceived(data, dataLength, pts);
+                }
+            } else if (streamId == TsConstants.STREAM_ID_AUDIO) {
+                if (mAudioDecoder != null) {
+                    mAudioDecoder.onReceived(data, dataLength, pts);
+                }
             }
         }
     };
 
     public interface OnEventListener {
+        /**
+         * SRT サーバと接続したことを通知します.
+         */
+        void onConnected();
+
+        /**
+         * SRT サーバから切断したことを通知します.
+         */
+        void onDisconnected();
+
+        /**
+         * SRT サーバからの受信準備が完了したことを通知します.
+         */
+        void onReady();
+
+        /**
+         * 映像の解像度が変更されたことを通知します.
+         *
+         * @param width 横幅
+         * @param height 縦幅
+         */
         void onSizeChanged(int width, int height);
+
+        /**
+         * SRTPlayer でエラーが発生したことを通知します.
+         *
+         * @param e エラー原因の例外
+         */
         void onError(Exception e);
+
+        /**
+         * SRT サーバとの通信状況を通知します.
+         *
+         * @param stats 通信統計情報
+         */
+        void onStats(SRTStats stats);
     }
 }

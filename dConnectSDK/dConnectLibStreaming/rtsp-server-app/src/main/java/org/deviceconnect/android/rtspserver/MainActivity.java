@@ -152,9 +152,14 @@ public class MainActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (mRtspServer == null || mRtspServer.getRtspSession() == null) {
-            mHandler.postDelayed(() -> adjustSurfaceView(mCamera2.isSwappedDimensions()), 500);
+            mHandler.postDelayed(() -> {
+                if (mCamera2 != null) {
+                    adjustSurfaceView(mCamera2.isSwappedDimensions());
+                }
+            }, 500);
         } else {
             RtspSession session = mRtspServer.getRtspSession();
+            session.restartVideoStream();
             CameraH264VideoStream videoStream = (CameraH264VideoStream) session.getVideoStream();
             CameraSurfaceVideoEncoder videoEncoder = (CameraSurfaceVideoEncoder) videoStream.getVideoEncoder();
             mHandler.postDelayed(() -> adjustSurfaceView(videoEncoder.isSwappedDimensions()), 500);

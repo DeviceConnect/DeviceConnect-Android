@@ -3,10 +3,6 @@ package org.deviceconnect.android.libmedia.streaming.rtsp.player;
 import android.util.Log;
 import android.view.Surface;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspClient;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspClientException;
@@ -16,11 +12,16 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.DecoderF
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.audio.AACLATMDecoderFactory;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.H264DecoderFactory;
+import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.H265DecoderFactory;
 import org.deviceconnect.android.libmedia.streaming.rtsp.player.decoder.video.VideoDecoder;
 import org.deviceconnect.android.libmedia.streaming.sdp.Attribute;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.SessionDescription;
 import org.deviceconnect.android.libmedia.streaming.sdp.attribute.RtpMapAttribute;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class RtspPlayer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -84,6 +85,7 @@ public class RtspPlayer {
         mUrl = url;
 
         addVideoFactory("H264", new H264DecoderFactory());
+        addVideoFactory("H265", new H265DecoderFactory());
         addAudioFactory("mpeg4-generic", new AACLATMDecoderFactory());
     }
 
@@ -162,7 +164,17 @@ public class RtspPlayer {
 
         mRetryCount = 0;
         mRtspClient = new RtspClient(mUrl);
-        mRtspClient.setCallback(new RtspClient.Callback() {
+        mRtspClient.setOnEventListener(new RtspClient.OnEventListener() {
+            @Override
+            public void onConnected() {
+                postOnConnected();
+            }
+
+            @Override
+            public void onDisconnected() {
+                postOnDisconnected();
+            }
+
             @Override
             public void onError(RtspClientException e) {
                 if (DEBUG) {
@@ -183,14 +195,10 @@ public class RtspPlayer {
                             start();
                         }).start();
                     } else {
-                        if (mOnEventListener != null) {
-                            mOnEventListener.onError(e);
-                        }
+                        postOnError(e);
                     }
                 } else {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onError(e);
-                    }
+                    postOnError(e);
                 }
             }
 
@@ -200,16 +208,14 @@ public class RtspPlayer {
                     Log.d(TAG, sdp.toString());
                 }
 
-                if (mOnEventListener != null) {
-                    mOnEventListener.onOpened();
-                }
-
                 for (MediaDescription md : sdp.getMediaDescriptions()) {
                     Decoder decoder = createDecoder(md);
                     if (decoder != null) {
                         mDecoderMap.put(md, decoder);
                     }
                 }
+
+                postOnReady();
             }
 
             @Override
@@ -257,16 +263,8 @@ public class RtspPlayer {
             VideoDecoder decoder = createVideoDecoder(md);
             if (decoder != null) {
                 decoder.setSurface(mSurface);
-                decoder.setErrorCallback((e) -> {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onError(e);
-                    }
-                });
-                decoder.setEventCallback(((width, height) -> {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onSizeChanged(width, height);
-                    }
-                }));
+                decoder.setErrorCallback(this::postOnError);
+                decoder.setEventCallback(this::postOnSizeChanged);
                 decoder.onInit(md);
                 return decoder;
             } else {
@@ -277,11 +275,7 @@ public class RtspPlayer {
         } else if ("audio".equalsIgnoreCase(md.getMedia())) {
             AudioDecoder decoder = createAudioDecoder(md);
             if (decoder != null) {
-                decoder.setErrorCallback((e) -> {
-                    if (mOnEventListener != null) {
-                        mOnEventListener.onError(e);
-                    }
-                });
+                decoder.setErrorCallback(this::postOnError);
                 decoder.setMute(mMute);
                 decoder.onInit(md);
                 return decoder;
@@ -356,18 +350,51 @@ public class RtspPlayer {
         return null;
     }
 
-    public interface OnEventListener {
-        /**
-         * RTSP プレイヤーでエラーが発生したことを通知します.
-         *
-         * @param e エラー原因の例外
-         */
-        void onError(Exception e);
+    private void postOnConnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onConnected();
+        }
+    }
 
+    private void postOnDisconnected() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onDisconnected();
+        }
+    }
+
+    private void postOnReady() {
+        if (mOnEventListener != null) {
+            mOnEventListener.onReady();
+        }
+    }
+
+    private void postOnSizeChanged(int width, int height) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onSizeChanged(width, height);
+        }
+    }
+
+    private void postOnError(Exception e) {
+        if (mOnEventListener != null) {
+            mOnEventListener.onError(e);
+        }
+    }
+
+    public interface OnEventListener {
         /**
          * RTSP サーバの接続したことを通知します.
          */
-        void onOpened();
+        void onConnected();
+
+        /**
+         * RTSP サーバから切断したことを通知します.
+         */
+        void onDisconnected();
+
+        /**
+         * RTSP の受信準備が完了したことを通知します.
+         */
+        void onReady();
 
         /**
          * 映像の解像度が変更されたことを通知します.
@@ -376,5 +403,12 @@ public class RtspPlayer {
          * @param height 縦幅
          */
         void onSizeChanged(int width, int height);
+
+        /**
+         * RTSP プレイヤーでエラーが発生したことを通知します.
+         *
+         * @param e エラー原因の例外
+         */
+        void onError(Exception e);
     }
 }

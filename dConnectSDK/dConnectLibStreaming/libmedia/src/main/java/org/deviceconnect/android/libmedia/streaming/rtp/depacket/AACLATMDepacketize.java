@@ -44,12 +44,6 @@ public class AACLATMDepacketize extends RtpDepacketize {
 
     @Override
     public synchronized void write(byte[] data, int payloadStart, int dataLength) {
-        if (DEBUG) {
-            Log.d(TAG, "--------");
-            Log.d(TAG, "SequenceNumber: " + getSequenceNumber(data));
-            Log.d(TAG, "TimeStamp: " + getTimestamp(data) * mSamplingRate / 1000L);
-        }
-
         if (!checkSequenceNumber(data)) {
             Log.e(TAG, "checkSequenceNumber: error ");
             mSync = false;

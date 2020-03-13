@@ -36,12 +36,10 @@ dConnectLibStreaming は、映像配信などを行うためのライブラリ�
 # インストール方法
 libmedia と libsrt を AndroidStudio プロジェクトにインストールする方法を説明します。
 
-libmedia と libsrt の aar を、下記のリリースページでダウンロードします。<br>
+まず、libmedia と libsrt の aar を下記のページからダウンロードします。<br>
 [https://github.com/DeviceConnect/DeviceConnect-Android/releases](https://github.com/DeviceConnect/DeviceConnect-Android/releases)
 
-
-
-aar はプロジェクト直下の `libs` フォルダにコピーします。
+以下のように、aar をプロジェクト直下の `libs` フォルダにコピーします。
 
 ```
 /YourProject

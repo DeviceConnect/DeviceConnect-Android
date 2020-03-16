@@ -198,11 +198,19 @@ public class CameraWrapper {
 
     private void close() {
         if (mCaptureSession != null) {
-            mCaptureSession.close();
+            try {
+                mCaptureSession.close();
+            } catch (Exception e) {
+                // ignore
+            }
             mCaptureSession = null;
         }
         if (mCameraDevice != null) {
-            mCameraDevice.close();
+            try {
+                mCameraDevice.close();
+            } catch (Exception e) {
+                // ignore.
+            }
             mCameraDevice = null;
         }
     }
@@ -369,7 +377,11 @@ public class CameraWrapper {
     private synchronized CameraCaptureSession createCaptureSession(final List<Surface> targets, final CameraDevice cameraDevice) throws CameraWrapperException {
         try {
             if (mCaptureSession != null) {
-                mCaptureSession.close();
+                try {
+                    mCaptureSession.close();
+                } catch (Exception e) {
+                    // ignore.
+                }
                 mCaptureSession = null;
             }
             final CountDownLatch lock = new CountDownLatch(1);
@@ -464,7 +476,11 @@ public class CameraWrapper {
         mIsPreview = false;
         mPreviewSurface = null;
         if (mCaptureSession != null) {
-            mCaptureSession.close();
+            try {
+                mCaptureSession.close();
+            } catch (Exception e) {
+                // ignore.
+            }
             mCaptureSession = null;
         }
         if (mIsRecording) {
@@ -524,7 +540,11 @@ public class CameraWrapper {
         mIsRecording = false;
         mRecordingSurface = null;
         if (mCaptureSession != null) {
-            mCaptureSession.close();
+            try {
+                mCaptureSession.close();
+            } catch (Exception e) {
+                // ignore.
+            }
             mCaptureSession = null;
         }
 

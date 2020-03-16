@@ -152,6 +152,8 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     if (previewMaxFrameRate != null) {
                         recorder.setMaxFrameRate(previewMaxFrameRate);
                     }
+                    
+                    setResult(response, DConnectMessage.RESULT_OK);
                 } finally {
                     sendResponse(response);
                 }

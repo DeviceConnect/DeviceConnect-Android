@@ -634,6 +634,8 @@ public class CameraWrapper {
                 startRecording(mRecordingSurface, true);
             } else if (mIsPreview) {
                 startPreview(mPreviewSurface, true);
+            } else {
+                close();
             }
         } catch (CameraWrapperException e) {
             if (DEBUG) {
@@ -698,7 +700,6 @@ public class CameraWrapper {
             }
             setDefaultCaptureRequest(request, true);
             mCaptureSession.setRepeatingRequest(request.build(), new CameraCaptureSession.CaptureCallback() {
-
                 @Override
                 public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
                     onCaptureResult(partialResult, false);
@@ -748,11 +749,8 @@ public class CameraWrapper {
                     }
                 }
             }, mBackgroundHandler);
-            lock.await(10, TimeUnit.SECONDS);
+            lock.await(5, TimeUnit.SECONDS);
             mCaptureSession.stopRepeating();
-            if (resultRef.get() == null) {
-                throw new CameraWrapperException("Failed auto focus.");
-            }
         } catch (CameraAccessException e) {
             throw new CameraWrapperException(e);
         } catch (InterruptedException e) {

@@ -208,7 +208,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
 
-        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this);
+        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this, mFacing.getValue());
     }
 
     @Override
@@ -852,26 +852,33 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      */
     public enum CameraFacing {
         /** スマートフォンの裏側. */
-        BACK("Back"),
+        BACK("Back", 0),
 
         /** スマートフォンの正面. */
-        FRONT("Front"),
+        FRONT("Front", 1),
 
         /** 外部接続. (e.g. OTG 接続されている USB カメラ) */
-        EXTERNAL("External"),
+        EXTERNAL("External", 2),
 
         /** 不明. */
-        UNKNOWN("Unknown");
+        UNKNOWN("Unknown", -1);
 
         /** カメラの位置を表現する名前. */
         private final String mName;
 
         /**
+         * カメラの番号.
+         */
+        private final int mValue;
+
+        /**
          * コンストラクタ.
          * @param name カメラの位置を表現する名前
+         * @param value カメラの番号
          */
-        CameraFacing(final String name) {
+        CameraFacing(final String name, final int value) {
             mName = name;
+            mValue = value;
         }
 
         /**
@@ -880,6 +887,15 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
          */
         public String getName() {
             return mName;
+        }
+
+        /**
+         * カメラの番号を取得します.
+         *
+         * @return カメラ番号
+         */
+        public int getValue() {
+            return mValue;
         }
     }
 

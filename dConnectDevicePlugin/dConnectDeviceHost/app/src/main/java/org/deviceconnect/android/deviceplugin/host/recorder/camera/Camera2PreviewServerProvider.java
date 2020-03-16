@@ -97,17 +97,18 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      *
      * @param context  コンテキスト
      * @param recorder レコーダ
+     * @param num カメラの番号
      */
-    Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder) {
+    Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder, final int num) {
         super(context, recorder, BASE_NOTIFICATION_ID + recorder.getId().hashCode());
 
         mContext = context;
         mRecorder = recorder;
         mOverlayManager = new OverlayManager(mContext);
 
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, 11000, mOnEventListener));
-        addServer(new Camera2RTSPPreviewServer(context, recorder, 12000, mOnEventListener));
-        addServer(new Camera2SRTPreviewServer(context, recorder, 13000, mOnEventListener));
+        addServer(new Camera2MJPEGPreviewServer(context, recorder, 11000 + num, mOnEventListener));
+        addServer(new Camera2RTSPPreviewServer(context, recorder, 12000 + num, mOnEventListener));
+        addServer(new Camera2SRTPreviewServer(context, recorder, 13000 + num, mOnEventListener));
     }
 
     @Override
@@ -393,7 +394,12 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent == null) {
+            if (intent == null || mRecorder == null) {
+                return;
+            }
+
+            String cameraId = intent.getStringExtra(EXTRA_CAMERA_ID);
+            if (!mRecorder.getId().equals(cameraId)) {
                 return;
             }
 
@@ -414,14 +420,14 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         public void onCameraStarted() {
             mCameraPreviewFlag = true;
 
-            // プレビュー配信が開始されるので、オーバーレイに表示していたカメラを停止します。
-            try {
-                mRecorder.stopPreview();
-            } catch (CameraWrapperException e) {
-                // ignore.
-            }
-
             if (mOverlayView != null) {
+                // プレビュー配信が開始されるので、オーバーレイに表示していたカメラを停止します。
+                try {
+                    mRecorder.stopPreview();
+                } catch (CameraWrapperException e) {
+                    // ignore.
+                }
+
                 SurfaceView surfaceView = mOverlayView.findViewById(R.id.surface_view);
                 mRecorder.setTargetSurface(surfaceView.getHolder().getSurface());
                 adjustSurfaceView(mRecorder.isSwappedDimensions());

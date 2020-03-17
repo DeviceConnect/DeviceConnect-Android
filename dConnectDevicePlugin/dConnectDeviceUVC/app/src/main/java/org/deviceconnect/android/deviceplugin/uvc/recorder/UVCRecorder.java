@@ -132,7 +132,6 @@ public class UVCRecorder implements MediaRecorder {
     @Override
     public List<String> getSupportedMimeTypes() {
         List<String> result = new ArrayList<>();
-        result.add(RECORDER_MIME_TYPE_MJPEG);
         for (PreviewServer server : mPreviewServers) {
             result.add(server.getMimeType());
         }

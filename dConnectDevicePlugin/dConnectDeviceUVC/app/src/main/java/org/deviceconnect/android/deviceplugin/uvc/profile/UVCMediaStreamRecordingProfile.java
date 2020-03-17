@@ -283,6 +283,10 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             previewSizes.add(size);
         }
         setPreviewSizes(response, previewSizes);
-        setMIMEType(response.getExtras(), recorder.getSupportedMimeTypes());
+        setMIMEType(response, recorder.getSupportedMimeTypes());
+    }
+
+    private static void setMIMEType(final Intent response, final List<String> mimeTypes) {
+        response.putExtra("mimeType", mimeTypes.toArray(new String[0]));
     }
 }

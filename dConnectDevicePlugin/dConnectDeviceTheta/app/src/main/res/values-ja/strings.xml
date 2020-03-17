@@ -76,7 +76,7 @@
     <string name="theta_error_limit_shooting_time">撮影可能時間に達したため、動画の撮影を終了しました。</string>
     <string name="theta_error_shooting">撮影に失敗しました。</string>
     <string name="theta_error_record_start">動画撮影開始に失敗しました。</string>
-    <string name="theta_error_record_stop">動画撮影停止に失敗しました。</string>
+    <string name="theta_error_record_stop">すでに停止しています。</string>
     <string name="theta_error_change_mode">切り替えに失敗しました。</string>
     <string name="theta_error_get_mode">切り替えに失敗しました。</string>
     <string name="theta_error_usb_live_streaming">ライブストリーミング中は撮影できません。</string>

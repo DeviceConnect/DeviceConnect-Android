@@ -7,15 +7,15 @@ import android.util.Log;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
-import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.IMediaMuxer;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * RTMP で指定された URL にデータを送信するためのマルチプレクサ.
@@ -87,7 +87,9 @@ public class RtmpMuxer implements IMediaMuxer {
         };
 
         mSrsFlvMuxer = new SrsFlvMuxer(rtmpAdapter);
-        mSrsFlvMuxer.setVideoResolution(videoQuality.getVideoWidth(), videoQuality.getVideoHeight());
+        if (videoQuality != null) {
+            mSrsFlvMuxer.setVideoResolution(videoQuality.getVideoWidth(), videoQuality.getVideoHeight());
+        }
         if (audioQuality != null) {
             mSrsFlvMuxer.setSampleRate(audioQuality.getSamplingRate());
             mSrsFlvMuxer.setIsStereo(audioQuality.getChannelCount() == 2);

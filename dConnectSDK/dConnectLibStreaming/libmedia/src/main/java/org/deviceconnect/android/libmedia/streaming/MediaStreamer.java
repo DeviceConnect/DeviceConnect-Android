@@ -305,11 +305,21 @@ public class MediaStreamer {
         VideoQuality videoQuality = mVideoEncoder != null ? mVideoEncoder.getVideoQuality() : null;
         AudioQuality audioQuality = mAudioEncoder != null ? mAudioEncoder.getAudioQuality() : null;
 
+        if (videoQuality == null && audioQuality == null) {
+            if (DEBUG) {
+                Log.e(TAG, "Video and audio is not set.");
+            }
+            postOnError(new MediaEncoderException("Need to set either video or audio."));
+            stopEncoder();
+            return;
+        }
+
         if (!mMediaMuxer.onPrepare(videoQuality, audioQuality)) {
             if (DEBUG) {
                 Log.e(TAG, "Failed to prepare a media muxer.");
             }
             postOnError(new MediaEncoderException("Failed to prepare a media muxer."));
+            stopEncoder();
             return;
         }
 

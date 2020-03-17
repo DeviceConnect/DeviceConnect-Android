@@ -1,12 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceScreen
-        android:key="@string/pref_key_settings_gps"
-        android:title="@string/host_settings_item_gps" />
-    <PreferenceScreen
-        android:key="@string/pref_key_settings_jpeg_quality_preview"
-        android:title="@string/host_settings_item_jpeg_quality_preview" />
-    <PreferenceScreen
-        android:key="@string/pref_key_settings_demo_page"
-        android:title="@string/host_settings_item_demo_page" />
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="プラブイン設定"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_gps"
+            android:title="@string/host_settings_item_gps"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="プレビュー設定"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_jpeg_quality_preview"
+            android:title="@string/host_settings_item_jpeg_quality_preview"
+            app:iconSpaceReserved="false" />
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_audio_preview"
+            android:title="@string/host_settings_item_audio_preview"
+            app:iconSpaceReserved="false" />
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_srt_preview"
+            android:title="@string/host_settings_item_srt_preview"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="デモ設定"
+        app:iconSpaceReserved="false">
+
+        <PreferenceScreen
+            android:key="@string/pref_key_settings_demo_page"
+            android:title="@string/host_settings_item_demo_page"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

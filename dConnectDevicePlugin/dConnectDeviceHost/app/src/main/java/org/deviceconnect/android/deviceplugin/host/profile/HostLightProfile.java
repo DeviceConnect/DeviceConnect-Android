@@ -15,13 +15,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.profile.utils.FlashingExecutor;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
@@ -35,31 +34,47 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import androidx.annotation.NonNull;
+
 /**
  * Light Profile.
  *
  * @author NTT DOCOMO, INC.
  */
 public class HostLightProfile extends LightProfile {
-    /** ライトID. */
+    /**
+     * ライトID.
+     */
     private static final String HOST_LIGHT_ID = "0";
 
-    /** ライト名称の初期値. */
+    /**
+     * ライト名称の初期値.
+     */
     private static final String HOST_DEFAULT_LIGHT_NAME = "Host Light";
 
-    /** 点滅制御用Map. */
+    /**
+     * 点滅制御用Map.
+     */
     private Map<String, FlashingExecutor> mFlashingMap = new HashMap<>();
 
-    /** Contextインスタンス. */
+    /**
+     * Contextインスタンス.
+     */
     private Context mContext;
 
-    /** HostDevicePhotoRecorderインスタンス. */
+    /**
+     * HostDevicePhotoRecorderインスタンス.
+     */
     private HostDevicePhotoRecorder mPhotoRec;
 
-    /** レスポンスを返すハンドラー. */
+    /**
+     * レスポンスを返すハンドラー.
+     */
     private final Handler mResponseHandler;
 
-    /** 点滅を制御するハンドラー. */
+    /**
+     * 点滅を制御するハンドラー.
+     */
     private final Handler mFlashingHandler;
 
     /**
@@ -256,10 +271,11 @@ public class HostLightProfile extends LightProfile {
 
     /**
      * Constructor.
+     *
      * @param context context.
-     * @param manager HostDeviceRecorderManager.
+     * @param manager HostMediaRecorderManager.
      */
-    public HostLightProfile(final Context context, final HostDeviceRecorderManager manager) {
+    public HostLightProfile(final Context context, final HostMediaRecorderManager manager) {
         mContext = context;
         manager.initialize();
         mPhotoRec = manager.getCameraRecorder(null);
@@ -270,18 +286,6 @@ public class HostLightProfile extends LightProfile {
         addApi(mGetLightApi);
         addApi(mPostLightApi);
         addApi(mDeleteLightApi);
-
-        PermissionUtility.requestPermissions(mContext,
-                new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.CAMERA},
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                    }
-
-                    @Override
-                    public void onFail(@NonNull String deniedPermission) {
-                    }
-                });
     }
 
     private Handler createHandler(final String name) {
@@ -296,7 +300,7 @@ public class HostLightProfile extends LightProfile {
      * @return 使用可能の場合は true, そうでない場合は false.
      */
     private boolean isCameraAvailable() {
-        if (((HostDeviceRecorder) mPhotoRec).getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+        if (((HostMediaRecorder) mPhotoRec).getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
             return false;
         }
         return true;
@@ -304,7 +308,8 @@ public class HostLightProfile extends LightProfile {
 
     /**
      * 点滅制御.
-     * @param id ライトID.
+     *
+     * @param id       ライトID.
      * @param flashing 点滅パターン.
      */
     private void flashing(final String id, final long[] flashing) {

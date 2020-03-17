@@ -10,11 +10,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
 
 /**
  * Host プラグインの設定全体を管理するフラグメント.
@@ -22,15 +22,9 @@ import org.deviceconnect.android.deviceplugin.host.R;
  * @author NTT DOCOMO, INC.
  */
 public class HostSettingFragment extends PreferenceFragmentCompat {
-
-    @Override
-    public void onCreate(final @Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.settings_host_plugin);
-    }
-
     @Override
     public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
+        addPreferencesFromResource(R.xml.settings_host_plugin);
     }
 
     @Override
@@ -51,6 +45,10 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
             intent = new Intent(context, HostRecorderSettingActivity.class);
         } else if (getString(R.string.pref_key_settings_demo_page).equals(preference.getKey())) {
             intent = new Intent(context, HostDemoSettingActivity.class);
+        } else if (getString(R.string.pref_key_settings_audio_preview).equals(preference.getKey())) {
+            intent = new Intent(context, HostRecorderAudioSettingActivity.class);
+        } else if (getString(R.string.pref_key_settings_srt_preview).equals(preference.getKey())) {
+            intent = new Intent(context, HostRecorderSRTSettingActivity.class);
         }
         if (intent != null) {
             activity.startActivity(intent);
@@ -58,6 +56,4 @@ public class HostSettingFragment extends PreferenceFragmentCompat {
 
         return result;
     }
-
-
 }

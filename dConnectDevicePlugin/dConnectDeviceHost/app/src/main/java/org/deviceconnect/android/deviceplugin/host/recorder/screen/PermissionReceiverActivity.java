@@ -11,6 +11,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.view.View;
@@ -18,14 +19,18 @@ import android.view.Window;
 import android.view.WindowManager;
 
 /**
- * Permission Receiver Activity.
+ * スクリーンキャプチャの許可を受け取るための Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-@TargetApi(21)
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class PermissionReceiverActivity extends Activity {
 
-    private static final int REQUEST_CODE = 1;
+    static final String RESULT_DATA = "result_data";
+
+    static final String EXTRA_CALLBACK = "callback";
+
+    private static final int REQUEST_CODE = 1234567;
 
     private MediaProjectionManager mManager;
 
@@ -46,7 +51,6 @@ public class PermissionReceiverActivity extends Activity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        // Hide UI first
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.hide();
@@ -57,22 +61,24 @@ public class PermissionReceiverActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        // スクリーンのキャプチャ許可を行う画面を呼び出します。
         Intent intent = mManager.createScreenCaptureIntent();
         startActivityForResult(intent, REQUEST_CODE);
     }
 
     @Override
-    protected void onActivityResult(final int requestCode, final int resultCode,
-                                    final Intent data) {
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode != REQUEST_CODE) {
             return;
         }
 
         Bundle response = new Bundle();
-        response.putParcelable(HostDeviceScreenCastRecorder.RESULT_DATA, data);
+        response.putParcelable(RESULT_DATA, data);
 
-        ResultReceiver callback = getIntent().getParcelableExtra(HostDeviceScreenCastRecorder.EXTRA_CALLBACK);
-        callback.send(Activity.RESULT_OK, response);
+        ResultReceiver callback = getIntent().getParcelableExtra(EXTRA_CALLBACK);
+        if (callback != null) {
+            callback.send(Activity.RESULT_OK, response);
+        }
         finish();
     }
 }

@@ -1,126 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="org.deviceconnect.android.deviceplugin.host"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.deviceconnect.android.deviceplugin.host">
 
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.FLASHLIGHT"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.BATTERY_STATS"/>
-    <uses-permission android:name="android.permission.GET_TASKS"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
 
-    <uses-feature android:name="android.hardware.camera"/>
-    <uses-feature android:name="android.hardware.camera.autofocus"/>
-    <uses-feature android:name="android.hardware.camera.flash"/>
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature android:name="android.hardware.camera.flash" />
 
-    <application
-        android:allowBackup="false">
+    <application android:allowBackup="false">
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity"
-            android:label="@string/app_name_host"
-            android:theme="@style/AppCompatTheme"
-            android:launchMode="singleTask">
-        </activity>
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostGpsSettingActivity"
-            android:label="@string/app_name_host"
-            android:theme="@style/AppCompatTheme"
-            android:launchMode="singleTask">
-        </activity>
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSettingActivity"
-            android:label="@string/app_name_host"
-            android:theme="@style/AppCompatTheme"
-            android:launchMode="singleTask">
-        </activity>
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderAudioSettingActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.setting.HostRecorderSRTSettingActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.setting.HostDemoSettingActivity"
-            android:label="@string/app_name_host"
-            android:theme="@style/AppCompatTheme"
-            android:launchMode="singleTask">
-        </activity>
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/AppCompatTheme" />
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoPlayer"
-            android:exported="false"
             android:excludeFromRecents="true"
+            android:exported="false"
             android:launchMode="singleInstance"
+            android:screenOrientation="landscape"
             android:taskAffinity=".player"
-            android:screenOrientation="landscape"/>
+            android:theme="@style/AppCompatTheme" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
-            android:exported="false"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:excludeFromRecents="true"
+            android:exported="false"
             android:launchMode="singleInstance"
-            android:taskAffinity=".canvas"/>
+            android:taskAffinity=".canvas"
+            android:theme="@style/AppCompatTheme" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
-            android:exported="false"
-            android:label="@string/app_name_host"
             android:excludeFromRecents="true"
+            android:exported="false"
             android:launchMode="singleInstance"
-            android:taskAffinity=".touch"/>
+            android:taskAffinity=".touch"
+            android:theme="@style/AppCompatTheme" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
-            android:exported="false"
-            android:label="@string/app_name_host"
             android:excludeFromRecents="true"
+            android:exported="false"
             android:launchMode="singleInstance"
-            android:taskAffinity=".keyevent"/>
+            android:taskAffinity=".keyevent"
+            android:theme="@style/AppCompatTheme" />
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.recorder.screen.PermissionReceiverActivity"
-            android:exported="false"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name_host"
-            android:theme="@android:style/Theme.Translucent"/>
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent" />
 
-        <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
-            android:label="@string/gps_settings_body"
-            android:theme="@style/AppTheme.Translucent"
+        <activity
+            android:name=".recorder.util.OverlayPermissionActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:theme="@style/AppTheme.Translucent" />
+
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity"
             android:excludeFromRecents="true"
-            android:launchMode="singleInstance">
-        </activity>
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.Translucent" />
 
         <!-- パーミッション要求画面 -->
         <activity
             android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
             android:exported="false"
             android:taskAffinity=".permission"
-            android:theme="@style/Theme.Dialog.Transparent"/>
+            android:theme="@style/Theme.Dialog.Transparent" />
 
         <provider
             android:name="org.deviceconnect.android.deviceplugin.host.file.HostFileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider.included"
-            android:exported="true" >
+            android:exported="true">
             <meta-data
                 android:name="filelocation"
                 android:resource="@xml/host_filelocation" />

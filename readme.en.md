@@ -26,14 +26,22 @@ It assumes that the following commands are installed here.
 * Android SDK
 
 ## Build Device Connect Manager
-### Mac/Linux
+
+### Get a source code
+
 Download DeviceConnect-Android source code.
 
 ```
 $ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
-Before building, make sure the path to AndroidSDK is set to the ANDROID_SDK_ROOT environment variable.
+### import a library
+
+The build requires libmedia-release-1.0.0.aar and libsrt-release-1.0.0.aar.<br>
+Download libmedia-release-1.0.0.aar and libsrt-release-1.0.0.aar from GitHub releases and copy it to /DeviceConnect-Android/dConnectDevicePlugin/dConnectDeviceHost/app/libs.
+
+### Mac/Linux
+Before building, make sure the path to Android SDK is set to the ANDROID\_SDK\_ROOT environment variable.
 
 ```
 $ echo 'export ANDROID_SDK_ROOT=<path>' >> ~/.bash_profile
@@ -56,13 +64,8 @@ $ adb install dconnect-manager-app/build/outputs/apk/debug/dconnect-manager-app-
 
 
 ### Windows
-Download DeviceConnect-Android source code.
 
-```
-> git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
-```
-
-Before building, make sure the path to AndroidSDK is set to the ANDROID_HOME environment variable.
+Before building, make sure the path to AndroidS DK is set to the ANDROID\_HOME environment variable.
 
 ```
 > setx ANDROID_HOME <path>

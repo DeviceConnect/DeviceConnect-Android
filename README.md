@@ -24,21 +24,30 @@ Device Connect Managerをビルドして、簡単に動作させるまでを解�
 * Android SDK
 
 ## Device Connect Managerのビルド
-### Mac/Linux
-DeviceConnect-Androidのソースコードをダウンロードしてください。
+
+### ソースコードの取得
+
+git コマンドでソースコードをクローンします。
 
 ```
 $ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
-ビルド前にANDROID_SDK_ROOTの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
+### ライブラリのインポート
+
+ビルドには、libmedia-release-1.0.0.aar と libsrt-release-1.0.0.aar が必要になります。<br>
+GitHub の releases からダウンロードして、/DeviceConnect-Android/dConnectDevicePlugin/dConnectDeviceHost/app/libs にコピーしてください。
+
+### Mac/Linux でビルド
+
+ビルド前にANDROID\_SDK\_ROOTの環境変数にAndroid SDKへのパスが設定されていることを確認してください。
 
 ```
 $ echo 'export ANDROID_SDK_ROOT=<path>' >> ~/.bash_profile
 ```
 
 &lt;path&gt;には、AndroidSDKへのパスを指定してください。
-<br><br>
+
 Device Connect Managerをビルドしてapkを作成します。
 
 ```
@@ -52,14 +61,9 @@ Device Connect Managerを端末にインストールします。
 $ adb install dconnect-manager-app/build/outputs/apk/debug/dconnect-manager-app-debug.apk
 ```
 
-### Windows
-DeviceConnect-Androidのソースコードをダウンロードしてください。
+### Windows でビルド
 
-```
-> git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
-```
-
-ビルド前にANDROID_HOMEの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
+ビルド前にANDROID\_HOMEの環境変数にAndroid SDKへのパスが設定されていることを確認してください。
 
 ```
 > setx ANDROID_HOME <path>
@@ -79,7 +83,6 @@ Device Connect Managerを端末にインストールします。
 ```
 > adb install app/build/outputs/apk/app-debug.apk
 ```
-
 
 ## Device Connect Managerの起動
 Android端末のアプリケーション一覧画面から、Device Connect Managerのアイコンをタップして、起動します。

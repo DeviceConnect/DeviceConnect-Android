@@ -10,12 +10,9 @@ package org.deviceconnect.android.deviceplugin.uvc;
 import org.deviceconnect.android.deviceplugin.uvc.activity.ErrorDialogActivity;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
-import org.deviceconnect.android.deviceplugin.uvc.profile.UVCMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCSystemProfile;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
+import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
 
@@ -26,32 +23,31 @@ import java.util.logging.Logger;
  *
  * @author NTT DOCOMO, INC.
  */
-public class UVCDeviceService extends DConnectMessageService
-    implements UVCDeviceManager.DeviceListener, UVCDeviceManager.ConnectionListener {
+public class UVCDeviceService extends DConnectMessageService {
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
     private UVCDeviceManager mDeviceMgr;
 
-    private DConnectProfile mMediaStreamRecordinrProfile;
-
     @Override
     public void onCreate() {
         super.onCreate();
-        EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        mDeviceMgr = getDeviceManager();
-        mDeviceMgr.addDeviceListener(this);
-        mDeviceMgr.addConnectionListener(this);
+        mDeviceMgr = ((UVCDeviceApplication) getApplication()).getDeviceManager();
+        mDeviceMgr.addDeviceListener(mDeviceListener);
+        mDeviceMgr.addConnectionListener(mConnectionListener);
         mDeviceMgr.start();
-
-        mMediaStreamRecordinrProfile = new UVCMediaStreamRecordingProfile(mDeviceMgr);
     }
 
     @Override
     public void onDestroy() {
-        mDeviceMgr.removeDeviceListener(this);
-        mDeviceMgr.removeConnectionListener(this);
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            if (service instanceof  UVCService) {
+                ((UVCService) service).closeUVCDevice();
+            }
+        }
+        mDeviceMgr.removeDeviceListener(mDeviceListener);
+        mDeviceMgr.removeConnectionListener(mConnectionListener);
         mDeviceMgr.stop();
         super.onDestroy();
     }
@@ -81,72 +77,71 @@ public class UVCDeviceService extends DConnectMessageService
         resetPluginResource();
     }
 
-    /**
-     * リソースリセット処理.
-     */
-    private void resetPluginResource() {
-        ((UVCMediaStreamRecordingProfile) mMediaStreamRecordinrProfile).stopPreviewAllUVCDevice();
-    }
-
     @Override
     protected SystemProfile getSystemProfile() {
         return new UVCSystemProfile();
     }
 
-    public UVCDeviceManager getDeviceManager() {
-        UVCDeviceApplication app = (UVCDeviceApplication) getApplication();
-        return app.getDeviceManager();
-    }
-
-    @Override
-    public void onFound(final UVCDevice device) {
-        if (mDeviceMgr.connectDevice(device)) {
-            mLogger.severe("UVC device has been initialized: " + device.getName());
-            if (!device.canPreview()) {
-                mLogger.info("UVC device CANNOT start preview: " + device.getName());
-                ErrorDialogActivity.showNotSupportedError(this, device);
-            } else {
-                mLogger.info("UVC device can start preview: " + device.getName());
+    /**
+     * リソースリセット処理.
+     */
+    private void resetPluginResource() {
+        for (DConnectService service : getServiceProvider().getServiceList()) {
+            if (service instanceof  UVCService) {
+                ((UVCService) service).reset();
             }
-        } else {
-            mLogger.severe("UVC device COULD NOT be initialized: " + device.getName());
         }
     }
 
-    @Override
-    public void onConnect(final UVCDevice device) {
-        DConnectService service = getService(device);
-        if (service != null) {
-            service.setOnline(true);
+    private final UVCDeviceManager.DeviceListener mDeviceListener = new UVCDeviceManager.DeviceListener() {
+        @Override
+        public void onFound(final UVCDevice device) {
+            if (mDeviceMgr.connectDevice(device)) {
+                if (!device.canPreview()) {
+                    ErrorDialogActivity.showNotSupportedError(getApplicationContext(), device);
+                }
+            } else {
+                mLogger.severe("UVC device COULD NOT be initialized: " + device.getName());
+            }
         }
-    }
+    };
 
-    private DConnectService addService(final UVCDevice device) {
-        DConnectService service = new DConnectService(device.getId());
-        service.setName("UVC: " + device.getName());
-        service.addProfile(mMediaStreamRecordinrProfile);
+    private final UVCDeviceManager.ConnectionListener mConnectionListener = new UVCDeviceManager.ConnectionListener() {
+        @Override
+        public void onConnect(final UVCDevice device) {
+            UVCService service = getService(device);
+            if (service != null) {
+                service.openUVCDevice(device);
+                service.setOnline(true);
+            }
+        }
+
+        @Override
+        public void onConnectionFailed(final UVCDevice device) {
+            // NOP.
+        }
+
+        @Override
+        public void onDisconnect(final UVCDevice device) {
+            UVCService service = (UVCService) getServiceProvider().getService(device.getId());
+            if (service != null) {
+                service.closeUVCDevice();
+                service.setOnline(false);
+            }
+        }
+    };
+
+    private UVCService addService(final UVCDevice device) {
+        UVCService service = new UVCService(mDeviceMgr, device);
         getServiceProvider().addService(service);
         return service;
     }
 
-    private DConnectService getService(final UVCDevice device) {
-        DConnectService service = getServiceProvider().getService(device.getId());
+    private UVCService getService(final UVCDevice device) {
+        UVCService service = (UVCService) getServiceProvider().getService(device.getId());
         if (service == null) {
             service = addService(device);
         }
         return service;
-    }
-
-    @Override
-    public void onConnectionFailed(final UVCDevice device) {
-        // NOP.
-    }
-
-    @Override
-    public void onDisconnect(final UVCDevice device) {
-        DConnectService service = getServiceProvider().getService(device.getId());
-        if (service != null) {
-            service.setOnline(false);
-        }
     }
 }

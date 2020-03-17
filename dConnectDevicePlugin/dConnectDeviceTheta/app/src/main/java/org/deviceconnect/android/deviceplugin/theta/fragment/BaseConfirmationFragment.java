@@ -312,7 +312,7 @@ public abstract class BaseConfirmationFragment extends SettingsFragment implemen
 
     @Override
     public void onConnected(final ThetaDevice device) {
-        mLogger.info("onConnected: device = " + device.getName());
+//        mLogger.info("onConnected: device = " + device.getName());
 
         if (mDialog != null) {
             mDialog.dismiss();

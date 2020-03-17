@@ -1,0 +1,484 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "",
+        "version": "1.0.0",
+        "title": "Live Streaming Profile"
+    },
+    "basePath": "/gotapi/liveStreaming",
+    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "paths": {
+        "/start": {
+            "post": {
+                "summary": "配信開始",
+                "description": "このAPIが実行される契機で配信を開始する。",
+                "operationId": "liveStreamingStartPost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。",
+                        "required": true,
+                        "type": "string"
+                    }, {
+                        "name": "broadcast",
+                        "in": "query",
+                        "description": "配信先のサーバURI。",
+                        "required": true,
+                        "type": "string"
+                    }, {
+                        "name": "video",
+                        "in": "query",
+                        "description": "映像リソースURI。<br><ul><li>true(デバイス標準のカメラ)</li><li>false(映像無し)</li><li>camera-front(端末のフロントカメラ)</li><li>camera-back(端末のバックカメラ)</li></ul>省略された場合はfalseを指定した場合と同様。",
+                        "required": false,
+                        "type": "string"
+                    }, {
+                        "name": "audio",
+                        "in": "query",
+                        "description": "音声リソースURI。<br><ul><li>true(デバイス標準のマイクを使用)</li><li>false(音声無し)</li></ul>省略された場合はfalseを指定した場合と同様。",
+                        "required": false,
+                        "type": "string"
+                    }, {
+                        "name": "width",
+                        "in": "query",
+                        "description": "映像サイズの横幅(px)。<br>省略された場合はプラグインのデフォルト値を使用する。",
+                        "required": false,
+                        "type": "integer"
+                    }, {
+                        "name": "height",
+                        "in": "query",
+                        "description": "映像サイズの縦幅(px)。<br>省略された場合はプラグインのデフォルト値を使用する。",
+                        "required": false,
+                        "type": "integer"
+                    }, {
+                        "name": "bitrate",
+                        "in": "query",
+                        "description": "映像のビットレート。<br>省略された場合はプラグインのデフォルト値を使用する。",
+                        "required": false,
+                        "type": "integer"
+                    }, {
+                        "name": "frameRate",
+                        "in": "query",
+                        "description": "映像のフレームレート(fps)。<br>省略された場合はプラグインのデフォルト値を使用する。",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/StartResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        }, 
+        "/stop": {
+            "put": {
+                "summary": "配信停止",
+                "description": "このAPIが実行される契機で配信を停止する。",
+                "operationId": "liveStreamingStopPost",
+                "parameters": [{
+                            "name": "serviceId",
+                            "in": "query",
+                            "description": "サービスID。",
+                            "required": true,
+                            "type": "string"
+                        }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/StopResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/onStatusChange": {
+            "get": {
+                "summary": "配信状態取得",
+                "description": "配信状態を取得する。",
+                "operationId": "liveStreamingOnStatusChangeGet",
+                "parameters": [{
+                    "name": "serviceId",
+                    "in": "query",
+                    "description": "サービスID。",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/GetOnStatusChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "streaming": {
+                                    "uri": "rtmp://youtube.com/xxxxx",
+                                    "status": "streaming",
+                                    "timestamp": "2018-01-01T00:00:00+0900",
+                                    "video": {
+                                        "uri": "camera-front",
+                                        "mimeType": "video/h264",
+                                        "frameRate": 30,
+                                        "width": 640,
+                                        "height": 480
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "liveStreamingOnStatusChangePut",
+                "x-type": "event",
+                "summary": "配信状態のイベント通知開始",
+                "description": "配信状態のイベント通知を開始する。",
+                "parameters": [{
+                    "name": "serviceId",
+                    "description": "サービスID。",
+                    "in": "formData",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/PutOnStatusChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "product": "Example System",
+                                "version": "1.0",
+                                "result": 0
+                            }
+                        }
+                    }
+                },
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/OnStatusChangeEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "servieId": "xxxxx",
+                            "profile": "liveStreaming",
+                            "attribute": "onStatusChange",
+                            "streaming": {
+                                "uri": "rtmp://youtube.com/xxxxx",
+                                "status": "streaming",
+                                "statusMessage": "normal",
+                                "timestamp": "2018-01-01T00:00:00+0900",
+                                "video": {
+                                    "uri": "camera-front",
+                                    "mimeType": "video/h264",
+                                    "frameRate": 30,
+                                    "width": 640,
+                                    "height": 480
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "liveStreamingOnStatusChangeDelete",
+                "x-type": "event",
+                "summary": "配信状態のイベント通知停止",
+                "description": "配信状態のイベント通知を停止する。",
+                "parameters": [{
+                    "name": "serviceId",
+                    "description": "サービスID。",
+                    "in": "query",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/DeleteOnStatusChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "product": "Example System",
+                                "version": "1.0",
+                                "result": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/mute": {
+            "get": {
+                "summary": "ミュート状態の取得",
+                "description": "ミュート状態を取得する。",
+                "operationId": "liveStreamingMuteGet",
+                "parameters": [{
+                    "name": "serviceId",
+                    "in": "query",
+                    "description": "サービスID。",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "ミュート状態の取得結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/GetMuteResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "mute": "false"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "ミュート設定",
+                "description": "ミュート状態に設定する。",
+                "operationId": "liveStreamingMutePut",
+                "parameters": [{
+                    "name": "serviceId",
+                    "in": "query",
+                    "description": "サービスID。",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/PutMuteResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "ミュート解除",
+                "description": "ミュート状態を解除する。",
+                "operationId": "liveStreamingMuteDelete",
+                "parameters": [{
+                    "name": "serviceId",
+                    "in": "query",
+                    "description": "サービスID。",
+                    "required": true,
+                    "type": "string"
+                }],
+                "responses": {
+                    "200": {
+                        "description": "処理結果を返す。",
+                        "schema": {
+                            "$ref": "#/definitions/DeleteMuteResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "StartResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }]
+        },
+        "StopResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }]
+        },
+        "GetOnStatusChangeResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }, {
+                "$ref": "#/definitions/OnStatusChangeEvent"
+            }]
+        },
+        "PutOnStatusChangeResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }]
+        },
+        "DeleteOnStatusChangeResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }]
+        },
+        "GetMuteResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }, {
+                "$ref": "#definitions/MuteStatus"
+            }]
+        },
+        "PutMuteResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }]
+        },
+        "DeleteMuteResponse": {
+            "allOf": [{
+                "$ref": "#/definitions/CommonResponse"
+            }]
+        },
+        "OnStatusChangeEvent": {
+            "type": "object",
+            "properties": {
+                "streaming": {
+                    "type": "object",
+                    "properties": {
+                        "uri": {
+                            "type": "string",
+                            "description": "配信先URI。",
+                            "title": "配信先URI"
+                        },
+                        "status": {
+                            "type": "string",
+                            "description": "配信状態。<br><ul><li>normal(配信中)</li><li>stop(非配信中)</li><li>error(エラー)</li></ul>",
+                            "title": "配信状態",
+                            "enum": ["normal", "stop", "error"]
+                        },
+                        "video": {
+                            "type": "object",
+                            "properties": {
+                                "uri": {
+                                    "type": "string",
+                                    "description": "映像リソースURI。",
+                                    "title": "映像リソースURI"
+                                },
+                                "mimeType": {
+                                    "type": "string",
+                                    "description": "映像のMime種別。",
+                                    "title": "Mimeタイプ"
+                                },
+                                "width": {
+                                    "type": "integer",
+                                    "description": "映像の横サイズ(px)。",
+                                    "title": "横サイズ"
+                                },
+                                "height": {
+                                    "type": "string",
+                                    "description": "映像の縦サイズ(px)。",
+                                    "title": "縦サイズ"
+                                },
+                                "frameRate": {
+                                    "type": "string",
+                                    "description": "映像のフレームレート(fps)。",
+                                    "title": "フレームレート"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "MuteStatus": {
+            "type": "object",
+            "required": ["mute"],
+            "properties": {
+                "mute": {
+                    "type": "string",
+                    "enum": ["true", "false"],
+                    "description": "ミュート状態。<br><ul><li>true(ミュート中)</li><li>false(非ミュート中)</li></ul>",
+                    "title": "ミュート状態"
+                }
+            }
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": ["product", "result", "version"],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": ["attribute", "interface", "profile", "serviceId"],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "description": "イベントを送信したサービスのID",
+                    "title": "サービスID"
+                },
+                "profile": {
+                    "type": "string",
+                    "description": "プロファイル名。",
+                    "title": "プロファイル名"
+                },
+                "interface": {
+                    "type": "string",
+                    "description": "インターフェース名。",
+                    "title": "インターフェース名"
+                },
+                "attribute": {
+                    "type": "string",
+                    "description": "アトリビュート名。",
+                    "title": "アトリビュート名"
+                }
+            }
+        }
+    }
+}

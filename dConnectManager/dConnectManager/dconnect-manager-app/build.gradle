@@ -77,7 +77,10 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'com.google.android.material:material:1.1.0'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
     implementation project(':dconnect-manager-core')
     implementation project(':dconnect-server-nano-httpd')
@@ -92,9 +95,6 @@ dependencies {
         exclude module: 'support-media-compat'
     }
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'com.google.android.material:material:1.0.0'
 }
 
 android.testVariants.all { variant ->

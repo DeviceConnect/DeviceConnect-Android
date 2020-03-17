@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="サーバ設定"
+        app:iconSpaceReserved="false">
+        <EditTextPreference
+            android:enabled="false"
+            android:key="@string/key_server_url"
+            android:singleLine="true"
+            android:title="URL"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_server_port"
+            android:key="@string/key_server_port"
+            android:singleLine="true"
+            android:title="ポート番号"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="映像設定"
+        app:iconSpaceReserved="false">
+        <ListPreference
+            app:entries="@array/key_video_encoder_names"
+            app:entryValues="@array/key_video_encoder_values"
+            app:iconSpaceReserved="false"
+            app:key="@string/key_video_encoder_name"
+            app:title="エンコーダ"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:key="@string/key_video_resolution"
+            android:title="解像度"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_video_bit_rate"
+            android:key="@string/key_video_bit_rate"
+            android:singleLine="true"
+            android:title="ビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_video_frame_rate"
+            android:key="@string/key_video_frame_rate"
+            android:singleLine="true"
+            android:title="フレームレート"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_video_iframe_interval"
+            android:key="@string/key_video_iframe_interval"
+            android:singleLine="true"
+            android:title="IFrame インターバル"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <DropDownPreference
+            android:defaultValue="@string/settings_video_camera_id"
+            android:entries="@array/settings_video_camera_names"
+            android:entryValues="@array/settings_video_camera_values"
+            android:key="@string/key_video_camera_id"
+            android:title="カメラの向き"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="音声設定"
+        app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/settings_audio_enabled"
+            android:key="@string/key_audio_enabled"
+            android:title="音声"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="@string/settings_audio_bit_rate"
+            android:key="@string/key_audio_bit_rate"
+            android:singleLine="true"
+            android:title="ビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <DropDownPreference
+            android:defaultValue="@string/settings_audio_sampling_rate"
+            android:entries="@array/settings_audio_sampling_rates"
+            android:entryValues="@array/settings_audio_sampling_rates"
+            android:key="@string/key_audio_sampling_rate"
+            android:title="サンプリングレート"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="録画設定"
+        app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/settings_recorder_enabled"
+            android:key="@string/key_recorder_enabled"
+            android:title="録画"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

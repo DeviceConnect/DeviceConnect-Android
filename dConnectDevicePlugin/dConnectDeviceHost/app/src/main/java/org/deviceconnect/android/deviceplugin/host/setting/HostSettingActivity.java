@@ -7,9 +7,10 @@
 package org.deviceconnect.android.deviceplugin.host.setting;
 
 import android.os.Bundle;
-import androidx.appcompat.app.ActionBar;
 
 import org.deviceconnect.android.deviceplugin.host.R;
+
+import androidx.appcompat.app.ActionBar;
 
 /**
  * Host プラグインの設定画面.
@@ -17,7 +18,6 @@ import org.deviceconnect.android.deviceplugin.host.R;
  * @author NTT DOCOMO, INC.
  */
 public class HostSettingActivity extends BaseHostSettingActivity {
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

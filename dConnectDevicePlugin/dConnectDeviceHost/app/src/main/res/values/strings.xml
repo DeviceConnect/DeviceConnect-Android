@@ -122,5 +122,14 @@
     <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
     <string name="host_notification_channel_title">Device Connect Notification</string>
     <string name="host_notification_channel_desc">DeviceConnect\'s Notification</string>
+
+    <string name="host_notification_canvas_warnning">Start request from Host Canvas Profile</string>
+    <string name="host_notification_touch_warnning">Start request from Host Touch Profile</string>
+    <string name="host_notification_keyevent_warnning">Start request from Host KeyEvent Profile</string>
+    <string name="host_notification_mediaplayer_warnning">Start request from Host MediaPlayer Profile</string>
+    <string name="host_notification_geolocation_warnning">Start request from Host Geolocation Profile</string>
+    <string name="host_notification_connection_warnning">Start request from Host Connection Profile</string>
+    <string name="host_notification_projection_warnning">Start request from Host Media Streaming Recording Profile</string>
+    <string name="host_notification_phone_warnning">Start request from Host Phone Profile</string>
 </resources>
 

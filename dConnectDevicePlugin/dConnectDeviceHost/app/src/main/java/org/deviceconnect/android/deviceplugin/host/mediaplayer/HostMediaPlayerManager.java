@@ -29,6 +29,7 @@ import android.webkit.MimeTypeMap;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
@@ -170,9 +171,6 @@ public class HostMediaPlayerManager {
 
     /** Notification Id */
     private final int NOTIFICATION_ID = 3539;
-
-    /** Notification Content */
-    private final String NOTIFICATION_CONTENT = "Host Media Player Profileからの起動要求";
 
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("host.dplugin");
@@ -511,7 +509,8 @@ public class HostMediaPlayerManager {
                     sendOnStatusChangeEvent("play");
                 } else {
                     NotificationUtils.createNotificationChannel(getContext());
-                    NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent, NOTIFICATION_CONTENT);
+                    NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent,
+                            getContext().getString(R.string.host_notification_mediaplayer_warnning));
                 }
             }
 

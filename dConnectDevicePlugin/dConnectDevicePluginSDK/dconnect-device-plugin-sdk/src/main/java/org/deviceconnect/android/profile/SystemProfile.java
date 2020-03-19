@@ -8,10 +8,13 @@ package org.deviceconnect.android.profile;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
+import org.deviceconnect.android.R;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.spec.models.Method;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -33,6 +36,9 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
      * 設定画面起動用IntentのパラメータオブジェクトのExtraキー.
      */
     public static final String SETTING_PAGE_PARAMS = "org.deviceconnect.profile.system.setting_params";
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3518;
+
 
     /**
      * 遷移先の設定画面用のActivityのクラス.
@@ -82,7 +88,13 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
                 Intent i = new Intent(getContext(), clazz);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 i.putExtra(SETTING_PAGE_PARAMS, param);
-                getContext().startActivity(i);
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    getContext().startActivity(i);
+                } else {
+                    NotificationUtils.createNotificationChannel(getContext());
+                    NotificationUtils.notify(getContext(),  NOTIFICATION_ID, 0, i,
+                            getContext().getString(R.string.notification_warnning));
+                }
                 setResult(response, DConnectMessage.RESULT_OK);
             }
             return true;

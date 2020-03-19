@@ -17,6 +17,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -26,6 +27,7 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -41,6 +43,8 @@ public class HostConnectionProfile extends ConnectionProfile {
 
     /** Bluetooth Adapter. */
     private BluetoothAdapter mBluetoothAdapter;
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3527;
 
     private final DConnectApi mGetWifiApi = new GetApi() {
 
@@ -377,7 +381,13 @@ public class HostConnectionProfile extends ConnectionProfile {
                 Intent intent = new Intent(request);
                 intent.setClass(getContext(), BluetoothManageActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(intent);
+                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    this.getContext().startActivity(intent);
+                } else {
+                    NotificationUtils.createNotificationChannel(getContext());
+                    NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
+                            getContext().getString(R.string.host_notification_connection_warnning));
+                }
 
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             } else {

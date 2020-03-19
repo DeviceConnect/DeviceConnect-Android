@@ -69,4 +69,6 @@
     <string name="dialog_message_service_removal_confirmation">Selected services will be removed. OK?</string>
     <string name="dialog_button_service_removal_ok">OK</string>
     <string name="dialog_button_service_removal_cancel">Cancel</string>
+
+    <string name="notification_warnning">Start request of plug-in setting screen</string>
 </resources>

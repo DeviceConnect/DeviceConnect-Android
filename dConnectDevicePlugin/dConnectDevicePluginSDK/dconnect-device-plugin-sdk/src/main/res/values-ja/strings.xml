@@ -68,4 +68,6 @@
     <string name="dialog_message_service_removal_confirmation">選択したサービスを削除しますか？</string>
     <string name="dialog_button_service_removal_ok">OK</string>
     <string name="dialog_button_service_removal_cancel">キャンセル</string>
+
+    <string name="notification_warnning">プラグイン設定画面の起動要求</string>
 </resources>

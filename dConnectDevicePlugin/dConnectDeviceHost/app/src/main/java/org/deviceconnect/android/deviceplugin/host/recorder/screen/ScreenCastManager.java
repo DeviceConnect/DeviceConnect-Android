@@ -15,6 +15,7 @@ import android.os.ResultReceiver;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.util.NotificationUtils;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -35,11 +36,6 @@ class ScreenCastManager {
      * Notification Id
      */
     private static final int NOTIFICATION_ID = 3539;
-
-    /**
-     * Notification Content
-     */
-    private static final String NOTIFICATION_CONTENT = "Host Media Streaming Recording Profileからの起動要求";
 
     ScreenCastManager(final Context context) {
         mContext = context;
@@ -129,7 +125,8 @@ class ScreenCastManager {
             // Android 10(Q) からは、バックグラウンドから Activity を起動できなくなったので、
             // Notification から起動するようにします。
             NotificationUtils.createNotificationChannel(mContext);
-            NotificationUtils.notify(mContext, NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
+            NotificationUtils.notify(mContext, NOTIFICATION_ID, 0, intent,
+                    mContext.getString(R.string.host_notification_projection_warnning));
         }
     }
 

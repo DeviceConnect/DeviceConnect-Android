@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -44,12 +45,17 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
+import androidx.annotation.NonNull;
+
 import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.HandlerThreadHandler;
+
+import org.deviceconnect.android.activity.PermissionUtility;
 
 public final class USBMonitor {
 
@@ -384,7 +390,7 @@ public final class USBMonitor {
 	 * @return true: 指定したUsbDeviceにパーミッションがある
 	 * @throws IllegalStateException
 	 */
-	public final boolean hasPermission(final UsbDevice device) throws IllegalStateException {
+	public final boolean hasPermission(final UsbDevice device) throws IllegalStateException, SecurityException {
 		if (destroyed) throw new IllegalStateException("already destroyed");
 		return updatePermission(device, device != null && mUsbManager.hasPermission(device));
 	}
@@ -474,17 +480,21 @@ public final class USBMonitor {
 			final String action = intent.getAction();
 			if (ACTION_USB_PERMISSION.equals(action)) {
 				// when received the result of requesting USB permission
-				synchronized (USBMonitor.this) {
-					final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-						if (device != null) {
-							// get permission, call onConnect
-							processConnect(device);
+				try {
+					synchronized (USBMonitor.this) {
+						final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+						if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+							if (device != null) {
+								// get permission, call onConnect
+								processConnect(device);
+							}
+						} else {
+							// failed to get permission
+							processCancel(device);
 						}
-					} else {
-						// failed to get permission
-						processCancel(device);
 					}
+				} catch (SecurityException e ) {
+					// ignore
 				}
 			} else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
 				final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
@@ -522,8 +532,12 @@ public final class USBMonitor {
 			synchronized (mHasPermissions) {
 				hasPermissionCounts = mHasPermissions.size();
 				mHasPermissions.clear();
-				for (final UsbDevice device: devices) {
-					hasPermission(device);
+				try {
+					for (final UsbDevice device : devices) {
+						hasPermission(device);
+					}
+				} catch (SecurityException e) {
+					// ignore
 				}
 				m = mHasPermissions.size();
 			}
@@ -551,6 +565,7 @@ public final class USBMonitor {
 	 */
 	private final void processConnect(final UsbDevice device) {
 		if (destroyed) return;
+
 		updatePermission(device, true);
 		mAsyncHandler.post(new Runnable() {
 			@Override
@@ -646,7 +661,8 @@ public final class USBMonitor {
 	 * @return
 	 */
 	@SuppressLint("NewApi")
-	public static final String getDeviceKeyName(final UsbDevice device, final String serial, final boolean useNewAPI) {
+	public static final String getDeviceKeyName(final UsbDevice device, final String serial, final boolean useNewAPI)
+							throws SecurityException {
 		if (device == null) return "";
 		final StringBuilder sb = new StringBuilder();
 		sb.append(device.getVendorId());			sb.append("#");	// API >= 12

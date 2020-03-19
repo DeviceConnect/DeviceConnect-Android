@@ -7,6 +7,18 @@
 package org.deviceconnect.android.deviceplugin.uvc;
 
 
+import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.hardware.usb.UsbManager;
+import android.os.Handler;
+import android.os.Looper;
+
+import androidx.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.uvc.activity.ErrorDialogActivity;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
@@ -29,14 +41,34 @@ public class UVCDeviceService extends DConnectMessageService {
 
     private UVCDeviceManager mDeviceMgr;
 
+    private BroadcastReceiver mPermissionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            PermissionUtility.requestPermissions(context,
+                    new Handler(Looper.getMainLooper()),
+                    new String[]{Manifest.permission.CAMERA},
+                    new PermissionUtility.PermissionRequestCallback() {
+
+                        @Override
+                        public void onSuccess() {
+                            mDeviceMgr = ((UVCDeviceApplication) getApplication()).getDeviceManager();
+                            mDeviceMgr.addDeviceListener(mDeviceListener);
+                            mDeviceMgr.addConnectionListener(mConnectionListener);
+                            mDeviceMgr.start();
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String s) {
+
+                        }
+                    });
+        }
+    };
     @Override
     public void onCreate() {
         super.onCreate();
+        registerReceiver(mPermissionReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED));
 
-        mDeviceMgr = ((UVCDeviceApplication) getApplication()).getDeviceManager();
-        mDeviceMgr.addDeviceListener(mDeviceListener);
-        mDeviceMgr.addConnectionListener(mConnectionListener);
-        mDeviceMgr.start();
     }
 
     @Override
@@ -49,6 +81,7 @@ public class UVCDeviceService extends DConnectMessageService {
         mDeviceMgr.removeDeviceListener(mDeviceListener);
         mDeviceMgr.removeConnectionListener(mConnectionListener);
         mDeviceMgr.stop();
+        unregisterReceiver(mPermissionReceiver);
         super.onDestroy();
     }
 
@@ -74,7 +107,21 @@ public class UVCDeviceService extends DConnectMessageService {
         if (BuildConfig.DEBUG) {
             mLogger.info("Plug-in : onDevicePluginReset");
         }
-        resetPluginResource();
+        PermissionUtility.requestPermissions(this,
+                new Handler(Looper.getMainLooper()),
+                new String[]{Manifest.permission.CAMERA},
+                new PermissionUtility.PermissionRequestCallback() {
+
+                    @Override
+                    public void onSuccess() {
+                        resetPluginResource();
+                    }
+
+                    @Override
+                    public void onFail(@NonNull String s) {
+
+                    }
+                });
     }
 
     @Override

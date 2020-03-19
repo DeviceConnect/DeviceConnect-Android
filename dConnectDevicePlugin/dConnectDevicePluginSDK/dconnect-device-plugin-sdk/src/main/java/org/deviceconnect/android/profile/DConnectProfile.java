@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.message.DevicePluginContext;
@@ -20,6 +21,7 @@ import org.deviceconnect.android.profile.spec.DConnectServiceSpec;
 import org.deviceconnect.android.profile.spec.OpenAPIValidator;
 import org.deviceconnect.android.profile.spec.models.Method;
 import org.deviceconnect.android.profile.spec.models.Swagger;
+import org.deviceconnect.android.profile.spec.models.parameters.Parameter;
 import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -245,7 +247,36 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         }
         return true;
     }
-
+    /**
+     * 不正なリクエストパラメータを返します.
+     *
+     * @param request リクエスト
+     * @return 不正なリクエストパラメータ
+     */
+    private String getInvalidParameter(final Intent request) {
+        DConnectService service = getService();
+        StringBuilder builder = new StringBuilder();
+        if (service != null) {
+            DConnectServiceSpec spec = service.getServiceSpec();
+            if (spec != null) {
+                Swagger swagger = spec.findProfileSpec(getProfile(request));
+                if (swagger != null) {
+                    Bundle extras = request.getExtras();
+                    if (extras == null) {
+                        return builder.toString();
+                    }
+                    List<Parameter> parameters = OpenAPIValidator.findParameters(swagger, request);
+                    for (Parameter parameter : parameters) {
+                        Object value = extras.get(parameter.getName());
+                        if (!OpenAPIValidator.validate(parameter, value)) {
+                            builder.append(parameter.getName()).append(",");
+                        }
+                    }
+                }
+            }
+        }
+        return builder.toString();
+    }
     /**
      * RESPONSEメソッドハンドラー.
      *
@@ -262,8 +293,10 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         DConnectApi api = findApi(request);
         if (api != null) {
             if (!validateRequest(request)) {
+                String invalidDetails = getInvalidParameter(request);
+                invalidDetails = invalidDetails.substring(0, invalidDetails.length() - 1);
                 // API 定義ファイルでパラメータエラーとなった
-                MessageUtils.setInvalidRequestParameterError(response);
+                MessageUtils.setInvalidRequestParameterError(response, "Request parameters are invalid: " + invalidDetails);
                 return true;
             }
             return api.onRequest(request, response);

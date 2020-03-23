@@ -55,7 +55,6 @@ import androidx.annotation.NonNull;
 import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.HandlerThreadHandler;
 
-import org.deviceconnect.android.activity.PermissionUtility;
 
 public final class USBMonitor {
 

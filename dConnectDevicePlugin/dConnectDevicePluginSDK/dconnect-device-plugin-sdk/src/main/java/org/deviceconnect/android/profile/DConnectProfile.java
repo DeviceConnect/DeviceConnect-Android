@@ -275,7 +275,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                 }
             }
         }
-        return builder.toString();
+        return builder.toString().substring(0, builder.length() - 1);
     }
     /**
      * RESPONSEメソッドハンドラー.
@@ -294,9 +294,6 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         if (api != null) {
             if (!validateRequest(request)) {
                 String invalidDetails = getInvalidParameter(request);
-                if (!invalidDetails.equals("Unknown")) {
-                    invalidDetails = invalidDetails.substring(0, invalidDetails.length() - 1);
-                }
                 // API 定義ファイルでパラメータエラーとなった
                 MessageUtils.setInvalidRequestParameterError(response, "Request parameters are invalid: " + invalidDetails);
                 return true;

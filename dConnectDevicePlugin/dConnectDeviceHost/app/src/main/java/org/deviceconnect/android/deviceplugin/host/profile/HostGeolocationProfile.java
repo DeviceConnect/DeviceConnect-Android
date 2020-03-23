@@ -78,7 +78,9 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 PermissionUtility.requestPermissions(getContext(),
-                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
@@ -116,7 +118,9 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 PermissionUtility.requestPermissions(getContext(),
-                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
@@ -159,7 +163,9 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 PermissionUtility.requestPermissions(getContext(),
-                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new Handler(Looper.getMainLooper()), new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {

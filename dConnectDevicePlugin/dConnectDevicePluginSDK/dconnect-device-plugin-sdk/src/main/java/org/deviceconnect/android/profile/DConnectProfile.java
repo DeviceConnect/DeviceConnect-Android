@@ -263,7 +263,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
                 if (swagger != null) {
                     Bundle extras = request.getExtras();
                     if (extras == null) {
-                        return "";
+                        return "Unknown";
                     }
                     List<Parameter> parameters = OpenAPIValidator.findParameters(swagger, request);
                     for (Parameter parameter : parameters) {
@@ -294,10 +294,8 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         if (api != null) {
             if (!validateRequest(request)) {
                 String invalidDetails = getInvalidParameter(request);
-                if (invalidDetails.length() !=  0) {
+                if (!invalidDetails.equals("Unknown")) {
                     invalidDetails = invalidDetails.substring(0, invalidDetails.length() - 1);
-                } else {
-                    invalidDetails = "Unknown";
                 }
                 // API 定義ファイルでパラメータエラーとなった
                 MessageUtils.setInvalidRequestParameterError(response, "Request parameters are invalid: " + invalidDetails);

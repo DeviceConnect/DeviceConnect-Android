@@ -160,7 +160,7 @@
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"
             android:exported="false"
-            android:foregroundServiceType="mediaProjection">
+            android:foregroundServiceType="mediaProjection|location">
         </service>
 
         <!-- Webサーバを管理するサービス -->

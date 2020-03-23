@@ -146,10 +146,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         // オープソースのリストを準備
         mOpenSourceList = new ArrayList<>();
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
-                "android-support-v4.jar", R.raw.andorid_support_v4));
-        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
-                "android-support-v4-preferencefragment", R.raw.android_support_v4_preferencefragment));
-        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
                 "Java WebSocket", R.raw.java_websocket));
 
         PreferenceScreen versionPreferences = (PreferenceScreen)

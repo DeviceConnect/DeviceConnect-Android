@@ -109,4 +109,13 @@
     <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
     <string name="host_notification_channel_title">Device Connect Notification</string>
     <string name="host_notification_channel_desc">DeviceConnectの通知</string>
+
+    <string name="host_notification_canvas_warnning">Host Canvas Profileからの起動要求</string>
+    <string name="host_notification_touch_warnning">Host Touch Profileからの起動要求</string>
+    <string name="host_notification_keyevent_warnning">Host KeyEvent Profileからの起動要求</string>
+    <string name="host_notification_mediaplayer_warnning">Host MediaPlayer Profileからの起動要求</string>
+    <string name="host_notification_geolocation_warnning">Host Geolocation Profileからの起動要求</string>
+    <string name="host_notification_connection_warnning">Host Connection Profileからの起動要求</string>
+    <string name="host_notification_projection_warnning">Host Media Streaming Recording Profileからの起動要求</string>
+    <string name="host_notification_phone_warnning">Host Connection Profileからの起動要求</string>
 </resources>

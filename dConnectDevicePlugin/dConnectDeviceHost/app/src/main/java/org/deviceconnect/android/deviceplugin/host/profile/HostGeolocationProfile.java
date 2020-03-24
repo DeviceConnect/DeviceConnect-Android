@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.GeolocationAlertDialogActivity;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -60,9 +61,6 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
 
     /** Notification Id */
     private final int NOTIFICATION_ID = 3533;
-
-    /** Notification Content */
-    private final String NOTIFICATION_CONTENT = "Host Geolocation Profileからの起動要求";
 
     /**
      * Constructor.
@@ -214,7 +212,8 @@ public class HostGeolocationProfile extends GeolocationProfile implements Locati
                 getContext().startActivity(intent);
             } else {
                 NotificationUtils.createNotificationChannel(getContext());
-                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
+                        getContext().getString(R.string.host_notification_geolocation_warnning));
             }
         }
         return mLocationManager;

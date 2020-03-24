@@ -18,6 +18,7 @@ import android.os.Bundle;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -65,9 +66,6 @@ public class HostTouchProfile extends TouchProfile {
 
     /** Notification Id */
     private final int NOTIFICATION_ID = 3527;
-
-    /** Notification Content */
-    private final String NOTIFICATION_CONTENT = "Host Touch Profileからの起動要求";
 
     /**
      * KeyEventProfileActivityからのKeyEventを中継するBroadcast Receiver.
@@ -593,7 +591,8 @@ public class HostTouchProfile extends TouchProfile {
                 this.getContext().startActivity(mIntent);
             } else {
                 NotificationUtils.createNotificationChannel(getContext());
-                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent, NOTIFICATION_CONTENT);
+                NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, mIntent,
+                        getContext().getString(R.string.host_notification_touch_warnning));
             }
         }
         return true;

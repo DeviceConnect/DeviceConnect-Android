@@ -25,6 +25,7 @@ import android.telephony.TelephonyManager;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -35,6 +36,7 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants;
@@ -64,6 +66,8 @@ public class HostPhoneProfile extends PhoneProfile {
         }
         PERMISSIONS = permissions.toArray(new String[permissions.size()]);
     }
+    /** Notification Id */
+    private final int NOTIFICATION_ID = 3537;
 
     /**
      * 電話番号のサイズ.
@@ -449,7 +453,13 @@ public class HostPhoneProfile extends PhoneProfile {
     private void call(final Uri uri) {
         Intent intent = new Intent(Intent.ACTION_CALL, uri);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getContext().startActivity(intent);
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            this.getContext().startActivity(intent);
+        } else {
+            NotificationUtils.createNotificationChannel(getContext());
+            NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
+                    getContext().getString(R.string.host_notification_phone_warnning));
+        }
     }
 
     public void onNewOutGoingCall(final Intent intent) {

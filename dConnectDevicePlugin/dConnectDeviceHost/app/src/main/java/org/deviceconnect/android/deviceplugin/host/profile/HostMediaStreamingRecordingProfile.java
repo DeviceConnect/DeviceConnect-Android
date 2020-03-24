@@ -61,10 +61,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private final FileManager mFileManager;
 
     /**
-     * 現在起動中のレコーダーID.
-     */
-    private static volatile String mCurrentRecorderId;
-    /**
      * KeyEventProfileActivity からの KeyEvent を中継する Broadcast Receiver.
      */
     private BroadcastReceiver mAudioEventBR = new BroadcastReceiver() {
@@ -435,11 +431,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            if (mCurrentRecorderId != null && !mCurrentRecorderId.equals(recorder.getId())) {
+            if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
                 MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
                 return true;
             }
-            mCurrentRecorderId = recorder.getId();
 
             if (!(recorder instanceof HostDevicePhotoRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
@@ -472,14 +467,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                 intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
                                 sendEvent(intent, evt.getAccessToken());
                             }
-                            mCurrentRecorderId = null;
                         }
 
                         @Override
                         public void onFailedTakePhoto(final String errorMessage) {
                             MessageUtils.setUnknownError(response, errorMessage);
                             sendResponse(response);
-                            mCurrentRecorderId = null;
                         }
                     });
                 }
@@ -488,7 +481,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 public void onDisallowed() {
                     MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
                     sendResponse(response);
-                    mCurrentRecorderId = null;
                 }
             });
 
@@ -513,11 +505,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            if (mCurrentRecorderId != null && !mCurrentRecorderId.equals(recorder.getId())) {
+            if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
                 MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
                 return true;
             }
-            mCurrentRecorderId = recorder.getId();
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
@@ -575,8 +566,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            mCurrentRecorderId = null;
-
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
@@ -695,11 +684,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            if (mCurrentRecorderId != null && !mCurrentRecorderId.equals(recorder.getId())) {
+            if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
                 MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
                 return true;
             }
-            mCurrentRecorderId = recorder.getId();
 
             if (!(recorder instanceof HostDeviceStreamRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
@@ -766,7 +754,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-            mCurrentRecorderId = null;
             if (!(recorder instanceof HostDeviceStreamRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
                         "target does not support stream recording.");
@@ -929,7 +916,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     public HostMediaStreamingRecordingProfile(final HostMediaRecorderManager mgr, final FileManager fileMgr) {
         mRecorderMgr = mgr;
         mFileManager = fileMgr;
-        mCurrentRecorderId = null;
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);

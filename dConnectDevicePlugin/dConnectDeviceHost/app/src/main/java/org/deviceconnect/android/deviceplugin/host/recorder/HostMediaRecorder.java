@@ -300,6 +300,11 @@ public interface HostMediaRecorder {
         RECORDING,
 
         /**
+         * プレビューが表示されている状態.
+         */
+        PREVIEW,
+
+        /**
          * エラーで停止している状態.
          */
         ERROR

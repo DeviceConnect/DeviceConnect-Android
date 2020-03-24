@@ -12,8 +12,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Camera;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -235,6 +237,52 @@ public class HostMediaRecorderManager {
         return null;
     }
 
+    /**
+     * 指定された ID 以外のレコーダが.
+     *
+     * <p>
+     * id に null が指定された場合には、デフォルトに設定されているレコーダを返却します。
+     * </p>
+     *
+     * @param id レコーダの識別子
+     * @return 他のレコーダーが使用中であるかどうか true:使用中 false:使用されていない
+     */
+    public boolean usingPreviewOrStreamingRecorder(String id) {
+        if (mRecorders.size() == 0) {
+            return false;
+        }
+        if (id == null) {
+            if (mDefaultPhotoRecorder != null) {
+                id = mDefaultPhotoRecorder.getId();
+            } else {
+                id = mRecorders.get(0).getId();
+            }
+        }
+        for (HostMediaRecorder recorder : mRecorders) {
+            if (!id.equals(recorder.getId())
+                    && (recorder.getState() == HostMediaRecorder.RecorderState.PREVIEW
+                        || recorder.getState() == HostMediaRecorder.RecorderState.RECORDING)) {
+                return true;
+            } else if (recorder instanceof HostDeviceLiveStreamRecorder
+                    && ((HostDeviceLiveStreamRecorder) recorder).isStreaming()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * レコーダーが使用中である、あるいはストリーミングが開始している場合はtrueを返す.
+     *
+     * @return true:使用中 false:使用されていない
+     */
+    public boolean usingStreamingRecorder() {
+        for (HostMediaRecorder recorder : mRecorders) {
+            return recorder.getState() == HostMediaRecorder.RecorderState.PREVIEW
+                    || recorder.getState() == HostMediaRecorder.RecorderState.RECORDING
+                    || ((HostDeviceLiveStreamRecorder) recorder).isStreaming();
+        }
+        return false;
+    }
     /**
      * 指定された ID に対応する静止画用のレコーダを取得します.
      *

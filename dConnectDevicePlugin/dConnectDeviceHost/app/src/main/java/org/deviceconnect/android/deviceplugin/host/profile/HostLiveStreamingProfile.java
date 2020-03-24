@@ -357,21 +357,19 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         });
     }
 
-    private HostDeviceLiveStreamRecorder getHostDeviceLiveStreamRecorder() {
+    private HostDeviceLiveStreamRecorder getHostDeviceLiveStreamRecorder()  {
         if (DEBUG) {
             Log.d(TAG, "getHostDeviceLiveStreamRecorder()");
             Log.d(TAG, "mVideoURI : " + mVideoURI);
         }
         switch (mVideoURI) {
-            case VIDEO_URI_TRUE: {
-                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
-                }
-                break;
-            }
+            case VIDEO_URI_TRUE:
             case VIDEO_URI_FALSE: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
+                if (mHostMediaRecorderManager.usingStreamingRecorder()) {
+                    throw new RuntimeException("Another target in using.");
+                }
+
                 if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
                     return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
                 }
@@ -380,6 +378,9 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
             case VIDEO_URI_CAMERA_FRONT:
             case VIDEO_URI_CAMERA_1: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_CAMERA_1);
+                if (mHostMediaRecorderManager.usingStreamingRecorder()) {
+                    throw new RuntimeException("Another target in using.");
+                }
                 if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
                     return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
                 }
@@ -388,6 +389,10 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
             case VIDEO_URI_CAMERA_BACK:
             case VIDEO_URI_CAMERA_0: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_CAMERA_0);
+                if (mHostMediaRecorderManager.usingPreviewOrStreamingRecorder(hostMediaRecorder.getId())) {
+                    throw new RuntimeException("Another target in using.");
+                }
+
                 if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
                     return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
                 }

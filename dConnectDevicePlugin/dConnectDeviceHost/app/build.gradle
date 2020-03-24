@@ -75,7 +75,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "androidx.preference:preference:1.1.0"
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     implementation project(':dconnect-demo-lib')
 }
 

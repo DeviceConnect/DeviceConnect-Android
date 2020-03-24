@@ -66,6 +66,6 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     implementation project(':libuvccamera')
 }

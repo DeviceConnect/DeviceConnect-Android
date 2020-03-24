@@ -64,5 +64,5 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.3'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
 }

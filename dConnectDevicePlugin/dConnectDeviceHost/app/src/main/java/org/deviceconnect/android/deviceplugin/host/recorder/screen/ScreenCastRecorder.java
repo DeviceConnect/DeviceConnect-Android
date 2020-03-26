@@ -490,7 +490,20 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
             Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
         }
         if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.setVideoEncoder(new ScreenCastVideoEncoder(mScreenCastMgr), width, height, bitrate, frameRate);
+            ScreenCastVideoEncoder encoder = new ScreenCastVideoEncoder(mScreenCastMgr);
+            // widthかheightがnullの場合は、PreviewSizeの最小値を設定する
+            if (width == null || height == null) {
+                PictureSize pSize = mSupportedPreviewSizes.get(0);
+                width = pSize.getWidth();
+                height = pSize.getHeight();
+                for (int i = 1; i < mSupportedPreviewSizes.size(); i++) {
+                    if (pSize.getWidth() < mSupportedPreviewSizes.get(i).getWidth()) {
+                        width = mSupportedPreviewSizes.get(i).getWidth();
+                        height = mSupportedPreviewSizes.get(i).getHeight();
+                    }
+                }
+            }
+            mLiveStreamingClient.setVideoEncoder(encoder, width, height, bitrate, frameRate);
         }
     }
 

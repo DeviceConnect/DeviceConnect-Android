@@ -696,7 +696,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE) {
+            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE
+                && recorder.getState() != HostMediaRecorder.RecorderState.PREVIEW) {
                 MessageUtils.setIllegalDeviceStateError(response,
                         recorder.getName() + " is already running.");
                 return true;

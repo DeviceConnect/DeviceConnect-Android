@@ -551,6 +551,9 @@ public class CameraWrapper {
         close();
         if (mIsPreview) {
             startPreview(mPreviewSurface, true);
+        } else if (mIsTouchOn) {
+            mIsTouchOn = false;
+            turnOnTorch();
         }
         notifyCameraEvent(CameraEvent.STOPPED_VIDEO_RECORDING);
     }
@@ -623,17 +626,21 @@ public class CameraWrapper {
             }
             resumeRepeatingRequest();
             throw new CameraWrapperException(e);
+        } finally {
+            mIsTakingStillImage = false;
         }
     }
 
     private void resumeRepeatingRequest() {
-        mIsTakingStillImage = false;
 
         try {
             if (mIsRecording) {
                 startRecording(mRecordingSurface, true);
             } else if (mIsPreview) {
                 startPreview(mPreviewSurface, true);
+            } else if (mIsTouchOn) {
+                mIsTouchOn = false;
+                turnOnTorch();
             } else {
                 close();
             }
@@ -794,6 +801,9 @@ public class CameraWrapper {
                 if (mTargetSurface != null) {
                     requestBuilder.addTarget(mTargetSurface);
                 }
+            }
+            if (mIsRecording) {
+                requestBuilder.addTarget(mRecordingSurface);
             } else {
                 requestBuilder.addTarget(mDummyPreviewReader.getSurface());
             }
@@ -849,7 +859,7 @@ public class CameraWrapper {
             } catch (CameraWrapperException e) {
                 throw new IllegalArgumentException(e);
             } finally {
-                close();
+                resumeRepeatingRequest();
             }
             notifyTorchOffEvent(listener, handler);
         }

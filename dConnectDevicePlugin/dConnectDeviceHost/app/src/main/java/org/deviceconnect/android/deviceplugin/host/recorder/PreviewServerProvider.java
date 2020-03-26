@@ -73,4 +73,10 @@ public interface PreviewServerProvider {
      * 設定が変更されたことを通知します.
      */
     void onConfigChange();
+
+    /**
+     * Previewの状態を表すNotificationが表示されているかどうかのフラグを返します.
+     * return true:表示されている false:表示されていない
+     */
+    boolean isShownCameraNotification();
 }

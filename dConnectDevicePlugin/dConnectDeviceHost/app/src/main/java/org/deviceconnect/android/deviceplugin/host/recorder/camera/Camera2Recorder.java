@@ -252,7 +252,11 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         if (mCameraWrapper.isRecording() || mCameraWrapper.isTakingStillImage()) {
             return RecorderState.RECORDING;
         }
-        return RecorderState.INACTTIVE;
+        // Preview用のNotificationが表示されている場合は、カメラをPreviewで占有しているものと判断する。
+        if (mCamera2PreviewServerProvider.isShownCameraNotification()) {
+            return RecorderState.PREVIEW;
+        }
+        return RecorderState.INACTIVE;
     }
 
     @Override

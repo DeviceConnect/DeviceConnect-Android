@@ -287,7 +287,7 @@ public interface HostMediaRecorder {
         /**
          * 動作していない.
          */
-        INACTTIVE,
+        INACTIVE,
 
         /**
          * 録画が一時停止中の状態.
@@ -298,6 +298,11 @@ public interface HostMediaRecorder {
          * 録画・静止画撮影中の状態.
          */
         RECORDING,
+
+        /**
+         * プレビューが表示されている状態.
+         */
+        PREVIEW,
 
         /**
          * エラーで停止している状態.

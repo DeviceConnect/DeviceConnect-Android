@@ -218,7 +218,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
+            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE
+                && recorder.getState() != HostMediaRecorder.RecorderState.PREVIEW) {
                 MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
                 return;
             }
@@ -431,6 +432,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
+            if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
+                MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
+                return true;
+            }
 
             if (!(recorder instanceof HostDevicePhotoRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
@@ -501,7 +506,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-
+            if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
+                MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
+                return true;
+            }
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
@@ -559,7 +567,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
@@ -678,6 +685,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
+            if (mRecorderMgr.usingPreviewOrStreamingRecorder(recorder.getId())) {
+                MessageUtils.setInvalidRequestParameterError(response, "Another target in using.");
+                return true;
+            }
 
             if (!(recorder instanceof HostDeviceStreamRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
@@ -685,7 +696,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
+            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response,
                         recorder.getName() + " is already running.");
                 return true;
@@ -744,14 +755,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
-
             if (!(recorder instanceof HostDeviceStreamRecorder)) {
                 MessageUtils.setNotSupportAttributeError(response,
                         "target does not support stream recording.");
                 return true;
             }
 
-            if (recorder.getState() == HostMediaRecorder.RecorderState.INACTTIVE) {
+            if (recorder.getState() == HostMediaRecorder.RecorderState.INACTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
                 return true;
             }
@@ -907,7 +917,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     public HostMediaStreamingRecordingProfile(final HostMediaRecorderManager mgr, final FileManager fileMgr) {
         mRecorderMgr = mgr;
         mFileManager = fileMgr;
-
         addApi(mGetMediaRecorderApi);
         addApi(mGetOptionsApi);
         addApi(mPutOptionsApi);

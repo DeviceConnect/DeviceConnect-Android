@@ -82,7 +82,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private int mPreviewBitRate = 1024 * 1024;
     private double mMaxFps = DEFAULT_MAX_FPS;
     private int mIFrameInterval = 2;
-    private RecorderState mState = RecorderState.INACTTIVE;
+    private RecorderState mState = RecorderState.INACTIVE;
 
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
@@ -420,7 +420,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
             Bitmap bitmap = screenshot.get();
             if (bitmap == null) {
-                mState = RecorderState.INACTTIVE;
+                mState = RecorderState.INACTIVE;
                 listener.onFailedTakePhoto("Failed to take screenshot.");
                 return;
             }
@@ -433,14 +433,14 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
             mFileMgr.saveFile(filename, media, true, new FileManager.SaveFileCallback() {
                 @Override
                 public void onSuccess(@NonNull final String uri) {
-                    mState = RecorderState.INACTTIVE;
+                    mState = RecorderState.INACTIVE;
                     registerPhoto(new File(mFileMgr.getBasePath(), filename));
                     listener.onTakePhoto(uri, null, MIME_TYPE_JPEG);
                 }
 
                 @Override
                 public void onFail(@NonNull final Throwable throwable) {
-                    mState = RecorderState.INACTTIVE;
+                    mState = RecorderState.INACTIVE;
                     listener.onFailedTakePhoto(throwable.getMessage());
                 }
             });

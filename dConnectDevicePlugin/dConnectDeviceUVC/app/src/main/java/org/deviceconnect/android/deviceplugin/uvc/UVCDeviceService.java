@@ -78,9 +78,11 @@ public class UVCDeviceService extends DConnectMessageService {
                 ((UVCService) service).closeUVCDevice();
             }
         }
-        mDeviceMgr.removeDeviceListener(mDeviceListener);
-        mDeviceMgr.removeConnectionListener(mConnectionListener);
-        mDeviceMgr.stop();
+        if (mDeviceMgr != null) {
+            mDeviceMgr.removeDeviceListener(mDeviceListener);
+            mDeviceMgr.removeConnectionListener(mConnectionListener);
+            mDeviceMgr.stop();
+        }
         unregisterReceiver(mPermissionReceiver);
         super.onDestroy();
     }

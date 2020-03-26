@@ -804,7 +804,9 @@ public class CameraWrapper {
             }
             if (mIsRecording) {
                 requestBuilder.addTarget(mRecordingSurface);
-            } else {
+            }
+
+            if (!mIsPreview && !mIsRecording) {
                 requestBuilder.addTarget(mDummyPreviewReader.getSurface());
             }
             requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);

@@ -7,7 +7,11 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -39,6 +43,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.DummyVideoEncoder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
@@ -47,6 +52,10 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
+import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
+import org.deviceconnect.android.libmedia.streaming.video.SurfaceVideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -935,7 +944,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     }
 
     @Override
-    public void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer framerate) {
+    public void setVideoEncoder(VideoEncoder encoder, Integer width, Integer height, Integer bitrate, Integer framerate) {
         if (DEBUG) {
             Log.d(TAG, "setVideoEncoder()");
             Log.d(TAG, "width : " + width);
@@ -945,7 +954,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
             Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
         }
         if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.setVideoEncoder(new CameraVideoEncoder(this), width, height, bitrate, framerate);
+            mLiveStreamingClient.setVideoEncoder(encoder, width, height, bitrate, framerate);
         }
     }
 

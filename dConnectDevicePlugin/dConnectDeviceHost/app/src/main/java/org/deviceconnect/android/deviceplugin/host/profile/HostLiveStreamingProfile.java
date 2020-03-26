@@ -8,6 +8,9 @@ import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraVideoEncoder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.DummyVideoEncoder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -117,11 +120,17 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                                 Log.d(TAG, "bitrate : " + bitrate);
                                 Log.d(TAG, "frameRate : " + frameRate);
                             }
-                            // 映像無しの場合も映像ありとする
-                            mHostDeviceLiveStreamRecorder.setVideoEncoder(width, height, bitrate, frameRate);
+                            if (!mVideoURI.equals("false")) {
+                                mHostDeviceLiveStreamRecorder.setVideoEncoder(
+                                                new CameraVideoEncoder((Camera2Recorder) mHostDeviceLiveStreamRecorder),
+                                                        width, height, bitrate, frameRate);
+                            } else {
+                                mHostDeviceLiveStreamRecorder.setVideoEncoder(new DummyVideoEncoder(), width, height, bitrate, frameRate);
+                            }
                             //音声無し以外の場合はエンコーダーをセット
+                            mHostDeviceLiveStreamRecorder.setAudioEncoder();
                             if (!mAudioURI.equals("false")) {
-                                mHostDeviceLiveStreamRecorder.setAudioEncoder();
+                                mHostDeviceLiveStreamRecorder.setMute(false);
                             }
 
                             //ストリーミング開始

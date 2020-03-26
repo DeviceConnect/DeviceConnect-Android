@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
 /**
  * デバイスのカメラを使用したLive Streaming用のインターフェース
@@ -11,7 +12,7 @@ public interface HostDeviceLiveStreamRecorder {
     void createLiveStreamingClient(final String broadcastURI, LiveStreamingClient.EventListener eventListener);
 
     //ビデオエンコーダーの設定
-    void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer frameRate);
+    void setVideoEncoder(VideoEncoder encoder, Integer width, Integer height, Integer bitrate, Integer frameRate);
 
     //オーディオエンコーダーの設定
     void setAudioEncoder();

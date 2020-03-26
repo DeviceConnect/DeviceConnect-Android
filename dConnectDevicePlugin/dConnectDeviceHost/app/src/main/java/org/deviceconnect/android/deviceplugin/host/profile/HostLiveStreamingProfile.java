@@ -11,6 +11,7 @@ import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RTMPUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -88,9 +89,9 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                 if (extras != null) {
                     //サーバURIの取得
                     final String broadcastURI = (String) extras.get(PARAM_KEY_BROADCAST);
-                    if (broadcastURI == null) {
-                        //無しは許容しない
-                        MessageUtils.setInvalidRequestParameterError(response, "requested parameter not available");
+                    String errorMessage = RTMPUtils.checkValidBroadcastParameter(broadcastURI);
+                    if (errorMessage != null) {
+                        MessageUtils.setInvalidRequestParameterError(response, errorMessage);
                         return true;
                     }
 
@@ -100,8 +101,8 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
 
                     //映像リソースURIの取得
                     mVideoURI = (String) extras.get(PARAM_KEY_VIDEO);
-                    if (mVideoURI == null) {
-                        mVideoURI = "false";
+                    if (mVideoURI == null) {  //パラメータが指定されていない場合はtrueとみなす
+                        mVideoURI = "true";
                     } else {
                         switch (mVideoURI) {
                             case VIDEO_URI_TRUE:
@@ -139,7 +140,11 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                             mHostDeviceLiveStreamRecorder.createLiveStreamingClient(broadcastURI, eventListener);
 
                             //映像無し以外の場合はエンコーダーとパラメーターをセット
-                            if (!mVideoURI.equals("false")) {
+                            if (mVideoURI.equals("false")) {
+                                MessageUtils.setInvalidRequestParameterError(response, "Non-Supported broadcast is false. ");
+                                sendResponse(response);
+                                return;
+                            } else {
                                 Integer width = parseInteger(request, PARAM_KEY_WIDTH);
                                 Integer height = parseInteger(request, PARAM_KEY_HEIGHT);
                                 Integer bitrate = parseInteger(request, PARAM_KEY_BITRATE);
@@ -156,7 +161,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                             //音声リソースURIの取得
                             mAudioURI = (String) extras.get(PARAM_KEY_AUDIO);
                             if (mAudioURI == null) {
-                                mAudioURI = "false";
+                                mAudioURI = "true";  //パラメータが指定されていない場合はtrueとみなす
                             } else {
                                 switch (mAudioURI) {
                                     case AUDIO_URI_TRUE:

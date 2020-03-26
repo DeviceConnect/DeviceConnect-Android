@@ -1,9 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -11,7 +8,6 @@ import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -25,7 +21,6 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.util.List;
 
 public class HostLiveStreamingProfile extends DConnectProfile implements LiveStreamingClient.EventListener {
 
@@ -102,7 +97,6 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         Log.d(TAG, "broadcastURI : " + broadcastURI);
                     }
 
-                    boolean isScreenCast = false;
                     //映像リソースURIの取得
                     mVideoURI = (String) extras.get(PARAM_KEY_VIDEO);
                     if (mVideoURI == null) {
@@ -115,9 +109,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                             case VIDEO_URI_CAMERA_BACK:
                             case VIDEO_URI_CAMERA_0:
                             case VIDEO_URI_CAMERA_1:
-                                break;
                             case VIDEO_URI_SCREEN:
-                                isScreenCast = true;
                                 break;
                             default:
                                 MessageUtils.setInvalidRequestParameterError(response, "video parameter illegal");
@@ -142,28 +134,68 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         return true;
                     }
 
-                    if (isScreenCast) {
-                        ((ScreenCastRecorder) mHostDeviceLiveStreamRecorder).requestPermission(new HostMediaRecorder.PermissionCallback() {
-                            @Override
-                            public void onAllowed() {
-                                startLiveStreaming(request, response, extras, broadcastURI, eventListener);
-                                sendResponse(response);
+                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder).requestPermission(new HostMediaRecorder.PermissionCallback() {
+                        @Override
+                        public void onAllowed() {
+                            //クライアントの生成
+                            mHostDeviceLiveStreamRecorder.createLiveStreamingClient(broadcastURI, eventListener);
+
+                            //映像無し以外の場合はエンコーダーとパラメーターをセット
+                            if (!mVideoURI.equals("false")) {
+                                Integer width = parseInteger(request, PARAM_KEY_WIDTH);
+                                Integer height = parseInteger(request, PARAM_KEY_HEIGHT);
+                                Integer bitrate = parseInteger(request, PARAM_KEY_BITRATE);
+                                Integer frameRate = parseInteger(request, PARAM_KEY_FRAME_RATE);
+                                if (DEBUG) {
+                                    Log.d(TAG, "width : " + width);
+                                    Log.d(TAG, "height : " + height);
+                                    Log.d(TAG, "bitrate : " + bitrate);
+                                    Log.d(TAG, "frameRate : " + frameRate);
+                                }
+                                mHostDeviceLiveStreamRecorder.setVideoEncoder(width, height, bitrate, frameRate);
                             }
 
-                            @Override
-                            public void onDisallowed() {
-                                MessageUtils.setUnknownError(response, "Permission for screencast is not granted.");
-                                sendResponse(response);
+                            //音声リソースURIの取得
+                            mAudioURI = (String) extras.get(PARAM_KEY_AUDIO);
+                            if (mAudioURI == null) {
+                                mAudioURI = "false";
+                            } else {
+                                switch (mAudioURI) {
+                                    case AUDIO_URI_TRUE:
+                                    case AUDIO_URI_FALSE:
+                                        break;
+                                    default:
+                                        MessageUtils.setInvalidRequestParameterError(response, "audio parameter illegal");
+                                        sendResponse(response);
+                                        return;
+                                }
                             }
-                        });
-                        return false;
-                    } else {
-                        startLiveStreaming(request, response, extras, broadcastURI, eventListener);
-                    }
+                            if (DEBUG) {
+                                Log.d(TAG, "audioUri : " + mAudioURI);
+                            }
+
+                            //音声無し以外の場合はエンコーダーをセット
+                            if (!mAudioURI.equals("false")) {
+                                mHostDeviceLiveStreamRecorder.setAudioEncoder();
+                            }
+
+                            //ストリーミング開始
+                            mHostDeviceLiveStreamRecorder.startLiveStreaming();
+
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                        }
+
+                        @Override
+                        public void onDisallowed() {
+                            MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                            sendResponse(response);
+                        }
+                    });
+                    return false;
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response, "parameter not available");
                 }
-
                 return true;
             }
         });
@@ -185,10 +217,26 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                         return true;
                     }
-                    mHostDeviceLiveStreamRecorder.stopLiveStreaming();
+                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
+                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
+                              @Override
+                              public void onAllowed() {
+                                  mHostDeviceLiveStreamRecorder.stopLiveStreaming();
+                                  setResult(response, DConnectMessage.RESULT_OK);
+                                  sendResponse(response);
+                              }
+
+                              @Override
+                              public void onDisallowed() {
+                                  MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                                  sendResponse(response);
+                              }
+                          });
+                    return false;
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
+                    return true;
                 }
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
             }
         });
 
@@ -291,11 +339,28 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                 if (DEBUG) {
                     Log.d(TAG, "onRequest() : put /mute");
                 }
+
                 if (mHostDeviceLiveStreamRecorder != null) {
-                    mHostDeviceLiveStreamRecorder.setMute(true);
+                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
+                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
+                                @Override
+                                public void onAllowed() {
+                                    mHostDeviceLiveStreamRecorder.setMute(true);
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                    sendResponse(response);
+                                }
+
+                                @Override
+                                public void onDisallowed() {
+                                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                                    sendResponse(response);
+                                }
+                            });
+                    return false;
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
+                    return true;
                 }
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
             }
         });
 
@@ -311,10 +376,26 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     Log.d(TAG, "onRequest() : delete /mute");
                 }
                 if (mHostDeviceLiveStreamRecorder != null) {
-                    mHostDeviceLiveStreamRecorder.setMute(false);
+                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
+                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
+                                @Override
+                                public void onAllowed() {
+                                    mHostDeviceLiveStreamRecorder.setMute(false);
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                    sendResponse(response);
+                                }
+
+                                @Override
+                                public void onDisallowed() {
+                                    MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                                    sendResponse(response);
+                                }
+                            });
+                    return false;
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
+                    return true;
                 }
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
             }
         });
 
@@ -328,8 +409,10 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
             public boolean onRequest(final Intent request, final Intent response) {
                 if (mHostDeviceLiveStreamRecorder != null) {
                     response.putExtra(PARAM_KEY_MUTE, mHostDeviceLiveStreamRecorder.isMute());
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
                 }
-                setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });

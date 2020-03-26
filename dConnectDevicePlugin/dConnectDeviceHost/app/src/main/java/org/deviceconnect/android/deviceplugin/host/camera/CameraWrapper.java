@@ -848,6 +848,8 @@ public class CameraWrapper {
                 throw new IllegalArgumentException(e);
             } catch (CameraWrapperException e) {
                 throw new IllegalArgumentException(e);
+            } finally {
+                close();
             }
             notifyTorchOffEvent(listener, handler);
         }

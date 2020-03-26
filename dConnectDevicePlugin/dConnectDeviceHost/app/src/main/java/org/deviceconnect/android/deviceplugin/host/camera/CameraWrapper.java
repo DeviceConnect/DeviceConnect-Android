@@ -99,11 +99,11 @@ public class CameraWrapper {
 
     private CameraCaptureSession mCaptureSession;
 
-    private static volatile boolean mIsTakingStillImage;
+    private boolean mIsTakingStillImage;
 
-    private static volatile boolean mIsPreview;
+    private boolean mIsPreview;
 
-    private static volatile boolean mIsRecording;
+    private boolean mIsRecording;
 
     private Surface mStillImageSurface;
 

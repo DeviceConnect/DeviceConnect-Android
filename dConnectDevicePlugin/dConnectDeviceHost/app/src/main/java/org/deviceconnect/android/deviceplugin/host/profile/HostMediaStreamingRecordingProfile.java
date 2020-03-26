@@ -218,7 +218,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
+            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE
+                && recorder.getState() != HostMediaRecorder.RecorderState.PREVIEW) {
                 MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
                 return;
             }

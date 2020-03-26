@@ -1,9 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -11,7 +8,6 @@ import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RTMPUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -24,8 +20,6 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
-
-import java.util.List;
 
 public class HostLiveStreamingProfile extends DConnectProfile implements LiveStreamingClient.EventListener {
 
@@ -57,7 +51,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
     private HostMediaRecorderManager mHostMediaRecorderManager;
     private String mVideoURI = null;
     private String mAudioURI = null;
-
+    private Intent mCurrentResponse = null;
     public String getProfileName() {
         return "liveStreaming";
     }
@@ -89,20 +83,14 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                 if (extras != null) {
                     //サーバURIの取得
                     final String broadcastURI = (String) extras.get(PARAM_KEY_BROADCAST);
-                    String errorMessage = RTMPUtils.checkValidBroadcastParameter(broadcastURI);
-                    if (errorMessage != null) {
-                        MessageUtils.setInvalidRequestParameterError(response, errorMessage);
-                        return true;
-                    }
-
                     if (DEBUG) {
                         Log.d(TAG, "broadcastURI : " + broadcastURI);
                     }
 
                     //映像リソースURIの取得
                     mVideoURI = (String) extras.get(PARAM_KEY_VIDEO);
-                    if (mVideoURI == null) {  //パラメータが指定されていない場合はtrueとみなす
-                        mVideoURI = "true";
+                    if (mVideoURI == null) {  //パラメータが指定されていない場合はfalseとみなす
+                        mVideoURI = "false";
                     } else {
                         switch (mVideoURI) {
                             case VIDEO_URI_TRUE:
@@ -117,6 +105,23 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     }
                     if (DEBUG) {
                         Log.d(TAG, "mVideoURI : " + mVideoURI);
+                    }
+                    //音声リソースURIの取得
+                    mAudioURI = (String) extras.get(PARAM_KEY_AUDIO);
+                    if (mAudioURI == null) {
+                        mAudioURI = "false";  //パラメータが指定されていない場合はfalseとみなす
+                    } else {
+                        switch (mAudioURI) {
+                            case AUDIO_URI_TRUE:
+                            case AUDIO_URI_FALSE:
+                                break;
+                            default:
+                                MessageUtils.setInvalidRequestParameterError(response, "audio parameter illegal");
+                                return true;
+                        }
+                    }
+                    if (DEBUG) {
+                        Log.d(TAG, "audioUri : " + mAudioURI);
                     }
 
                     //映像リソースURIからレコーダーを取得する
@@ -140,8 +145,8 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                             mHostDeviceLiveStreamRecorder.createLiveStreamingClient(broadcastURI, eventListener);
 
                             //映像無し以外の場合はエンコーダーとパラメーターをセット
-                            if (mVideoURI.equals("false")) {
-                                MessageUtils.setInvalidRequestParameterError(response, "Non-Supported broadcast is false. ");
+                            if (mVideoURI.equals("false") && mAudioURI.equals("false")) {
+                                MessageUtils.setInvalidRequestParameterError(response, "Non-Supported video and audio are false. ");
                                 sendResponse(response);
                                 return;
                             } else {
@@ -158,24 +163,6 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                                 mHostDeviceLiveStreamRecorder.setVideoEncoder(width, height, bitrate, frameRate);
                             }
 
-                            //音声リソースURIの取得
-                            mAudioURI = (String) extras.get(PARAM_KEY_AUDIO);
-                            if (mAudioURI == null) {
-                                mAudioURI = "true";  //パラメータが指定されていない場合はtrueとみなす
-                            } else {
-                                switch (mAudioURI) {
-                                    case AUDIO_URI_TRUE:
-                                    case AUDIO_URI_FALSE:
-                                        break;
-                                    default:
-                                        MessageUtils.setInvalidRequestParameterError(response, "audio parameter illegal");
-                                        sendResponse(response);
-                                        return;
-                                }
-                            }
-                            if (DEBUG) {
-                                Log.d(TAG, "audioUri : " + mAudioURI);
-                            }
 
                             //音声無し以外の場合はエンコーダーをセット
                             if (!mAudioURI.equals("false")) {
@@ -184,9 +171,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
 
                             //ストリーミング開始
                             mHostDeviceLiveStreamRecorder.startLiveStreaming();
-
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
+                            mCurrentResponse = response;
                         }
 
                         @Override
@@ -225,8 +210,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                               @Override
                               public void onAllowed() {
                                   mHostDeviceLiveStreamRecorder.stopLiveStreaming();
-                                  setResult(response, DConnectMessage.RESULT_OK);
-                                  sendResponse(response);
+                                  mCurrentResponse = response;
                               }
 
                               @Override
@@ -490,6 +474,11 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         if (DEBUG) {
             Log.d(TAG, "onStart()");
         }
+        if (mCurrentResponse != null) {
+            setResult(mCurrentResponse, DConnectMessage.RESULT_OK);
+            sendResponse(mCurrentResponse);
+            mCurrentResponse = null;
+        }
         for(Event event : EventManager.INSTANCE.getEventList(getService().getId(), PROFILE_NAME, null, AT_ON_STATUS_CHANGE)) {
             Bundle root = new Bundle();
             Bundle streaming = new Bundle();
@@ -516,6 +505,12 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         if (DEBUG) {
             Log.d(TAG, "onStop()");
         }
+        if (mCurrentResponse != null) {
+            setResult(mCurrentResponse, DConnectMessage.RESULT_OK);
+            sendResponse(mCurrentResponse);
+            mCurrentResponse = null;
+        }
+
         for(Event event : EventManager.INSTANCE.getEventList(getService().getId(), PROFILE_NAME, null, AT_ON_STATUS_CHANGE)) {
             Bundle root = new Bundle();
             Bundle streaming = new Bundle();
@@ -542,6 +537,12 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         if (DEBUG) {
             Log.d(TAG, "onError()");
         }
+        if (mCurrentResponse != null) {
+            MessageUtils.setIllegalServerStateError(mCurrentResponse, mediaEncoderException.getMessage());
+            sendResponse(mCurrentResponse);
+            mCurrentResponse = null;
+        }
+
         for(Event event : EventManager.INSTANCE.getEventList(getService().getId(), PROFILE_NAME, null, AT_ON_STATUS_CHANGE)) {
             Bundle root = new Bundle();
             Bundle streaming = new Bundle();

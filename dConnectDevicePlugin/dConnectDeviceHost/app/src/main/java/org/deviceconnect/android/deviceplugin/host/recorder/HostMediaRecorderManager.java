@@ -12,10 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Camera;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -359,7 +357,7 @@ public class HostMediaRecorderManager {
             case RECORDING:
                 MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.RECORDING);
                 break;
-            case INACTTIVE:
+            case INACTIVE:
                 MediaStreamRecordingProfile.setStatus(record, MediaStreamRecordingProfileConstants.RecordingState.STOP);
                 break;
             case ERROR:

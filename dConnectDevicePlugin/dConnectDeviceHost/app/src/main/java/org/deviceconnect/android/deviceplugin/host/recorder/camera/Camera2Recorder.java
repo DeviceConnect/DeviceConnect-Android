@@ -256,7 +256,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         if (mCamera2PreviewServerProvider.isShownCameraNotification()) {
             return RecorderState.PREVIEW;
         }
-        return RecorderState.INACTTIVE;
+        return RecorderState.INACTIVE;
     }
 
     @Override

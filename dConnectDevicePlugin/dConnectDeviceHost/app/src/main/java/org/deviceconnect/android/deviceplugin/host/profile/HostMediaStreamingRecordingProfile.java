@@ -695,7 +695,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
+            if (recorder.getState() != HostMediaRecorder.RecorderState.INACTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response,
                         recorder.getName() + " is already running.");
                 return true;
@@ -760,7 +760,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            if (recorder.getState() == HostMediaRecorder.RecorderState.INACTTIVE) {
+            if (recorder.getState() == HostMediaRecorder.RecorderState.INACTIVE) {
                 MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
                 return true;
             }

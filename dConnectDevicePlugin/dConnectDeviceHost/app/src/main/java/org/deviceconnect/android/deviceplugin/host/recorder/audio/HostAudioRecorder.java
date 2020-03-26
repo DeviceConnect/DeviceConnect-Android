@@ -88,7 +88,7 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     public HostAudioRecorder(final Context context) {
         mContext = context;
-        mState = RecorderState.INACTTIVE;
+        mState = RecorderState.INACTIVE;
     }
 
     @Override
@@ -290,10 +290,10 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     @Override
     public synchronized void stopRecording(final StoppingListener listener) {
-        if (getState() == RecorderState.INACTTIVE) {
+        if (getState() == RecorderState.INACTIVE) {
             listener.onFailed(this, "MediaRecorder is not running.");
         } else {
-            mState = RecorderState.INACTTIVE;
+            mState = RecorderState.INACTIVE;
             if (listener != null) {
                 if (mMediaRecorder != null) {
                     mMediaRecorder.stop();

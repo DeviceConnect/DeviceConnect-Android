@@ -33,6 +33,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -480,7 +481,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     }
 
     @Override
-    public void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer frameRate) {
+    public void setVideoEncoder(VideoEncoder encoder, Integer width, Integer height, Integer bitrate, Integer frameRate) {
         if (DEBUG) {
             Log.d(TAG, "setVideoEncoder()");
             Log.d(TAG, "width : " + width);
@@ -490,19 +491,6 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
             Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
         }
         if (mLiveStreamingClient != null) {
-            ScreenCastVideoEncoder encoder = new ScreenCastVideoEncoder(mScreenCastMgr);
-            // widthかheightがnullの場合は、PreviewSizeの最小値を設定する
-            if (width == null || height == null) {
-                PictureSize pSize = mSupportedPreviewSizes.get(0);
-                width = pSize.getWidth();
-                height = pSize.getHeight();
-                for (int i = 1; i < mSupportedPreviewSizes.size(); i++) {
-                    if (pSize.getWidth() < mSupportedPreviewSizes.get(i).getWidth()) {
-                        width = mSupportedPreviewSizes.get(i).getWidth();
-                        height = mSupportedPreviewSizes.get(i).getHeight();
-                    }
-                }
-            }
             mLiveStreamingClient.setVideoEncoder(encoder, width, height, bitrate, frameRate);
         }
     }

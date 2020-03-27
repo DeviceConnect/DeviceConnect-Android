@@ -23,7 +23,7 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
      */
     private ScreenCast mScreenCast;
 
-    ScreenCastVideoEncoder(ScreenCastManager screenCastManager) {
+    public ScreenCastVideoEncoder(ScreenCastManager screenCastManager) {
         mScreenCastMgr = screenCastManager;
     }
 

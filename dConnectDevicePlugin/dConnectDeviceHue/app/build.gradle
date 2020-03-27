@@ -89,6 +89,6 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     compileOnly 'com.google.android.things:androidthings:1.0'
 }

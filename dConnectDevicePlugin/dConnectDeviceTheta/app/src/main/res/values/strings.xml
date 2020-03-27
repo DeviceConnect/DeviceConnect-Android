@@ -77,7 +77,7 @@
     <string name="theta_error_limit_shooting_time">Ended shooting the movie because the enable shooting time has been reached.</string>
     <string name="theta_error_shooting">Failed to shoot.</string>
     <string name="theta_error_record_start">Failed to start to shoot a movie.</string>
-    <string name="theta_error_record_stop">Failed to stop to shoot a movie.</string>
+    <string name="theta_error_record_stop">Video recording has stopped already.</string>
     <string name="theta_error_change_mode">Failed to change the mode.</string>
     <string name="theta_error_get_mode">Failed to change the mode.</string>
     <string name="theta_error_usb_live_streaming">Cannot shoot during live streaming.</string>

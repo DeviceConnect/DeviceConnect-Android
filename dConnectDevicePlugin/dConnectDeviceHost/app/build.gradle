@@ -27,6 +27,7 @@ android {
         buildConfigField "String", "PACKAGE_NAME", "\"org.deviceconnect.android.deviceplugin.host\""
         buildConfigField "String", "DEMO_DIR", "\"demo\""
         buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
+        buildConfigField "long", "STATS_INTERVAL", "5000L"
     }
 
     signingConfigs {
@@ -79,17 +80,11 @@ repositories {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.2'
     implementation project(':dconnect-device-plugin-linking')
+    implementation "androidx.preference:preference:1.1.0"
+    implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     implementation project(':dconnect-demo-lib')
-    implementation project(':libstreaming')
-    implementation('com.serenegiant:common:2.12.5') {
-        exclude module: 'support-v4'
-        //exclude module: 'recyclerview-v7'
-        exclude module: 'support-fragment'
-        exclude module: 'support-core-ui'
-        exclude module: 'appcompat-v7'
-    }
 }
 
 task zipDemo(type:Zip) {

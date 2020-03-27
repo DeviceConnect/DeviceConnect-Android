@@ -25,16 +25,77 @@
     <string name="overlay_preview_channel_id">org.deviceconnect.android.intent.action.preview.host</string>
     <string name="overlay_preview_channel_title">Device Connect Preview</string>
     <string name="overlay_preview_channel_message">Preview with DeviceConnect.</string>
-    <string name="overlay_preview_content_title">Being captured by the camera</string>
+    <string name="overlay_preview_content_title">Running a preview Server [ %1$s ]</string>
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
+    <string name="overlay_preview_content_message2">Being captured by the camera.</string>
+
+    <string name="overlay_no_permission_title">Permission</string>
+    <string name="overlay_no_permission_message">You have not been granted permission to view the overlay. \ nDo you want to open the settings screen?</string>
+    <string name="overlay_no_permission_ok">Yes</string>
+    <string name="overlay_no_permission_no">No</string>
+
+    <string name="overlay_preview_delivery">Preview</string>
+
+    <string name="overlay_preview_show">Show preview on screen</string>
+    <string name="overlay_preview_hide">Hide preview on screen</string>
+    <string name="overlay_preview_stop">Stop preview</string>
 
     <string name="host_settings_title">Host Settings</string>
     <string name="host_settings_item_gps">GPS</string>
-    <string name="host_settings_item_jpeg_quality_preview">JPEG Quality - Preview</string>
+    <string name="host_settings_item_jpeg_quality_preview">JPEG Quality</string>
+    <string name="host_settings_item_audio_preview">Audio</string>
+    <string name="host_settings_item_srt_preview">SRT</string>
     <string name="host_settings_item_demo_page">Demo Page</string>
+    <string name="host_settings_item_audio_enabled">Audio</string>
+    <string name="host_settings_item_audio_enabled_summary">Set whether to enable preview audio.</string>
+    <string name="host_settings_item_audio_bit_rate">BitRate</string>
+    <string name="host_settings_item_audio_sample_rate">SampleRate</string>
+    <string name="host_settings_item_audio_channel">Channel</string>
+    <string name="host_settings_item_audio_use_aec">Echo Canceller</string>
+    <string name="host_settings_item_audio_use_aec_summary">Set whether to enable the echo canceller.</string>
+    <string name="host_settings_item_srt_peerlatency" translatable="false">SRTO_PEERLATENCY</string>
+    <string name="host_settings_item_srt_lossmaxttl" translatable="false">SRTO_LOSSMAXTTL</string>
+    <string name="host_settings_item_srt_oheadbw" translatable="false">SRTO_OHEADBW</string>
+    <string name="host_settings_item_srt_inputbw" translatable="false">SRTO_INPUTBW</string>
+    <string name="host_settings_item_srt_conntimeo" translatable="false">SRTO_CONNTIMEO</string>
+    <string name="host_settings_item_srt_peeridletimeo" translatable="false">SRTO_PEERIDLETIMEO</string>
+    <string name="host_settings_item_srt_packetfilter" translatable="false">SRTO_PACKETFILTER</string>
     <string name="pref_key_settings_gps">pref_key_settings_gps</string>
     <string name="pref_key_settings_jpeg_quality_preview">pref_key_settings_jpeg_quality_preview</string>
+    <string name="pref_key_settings_audio_preview">pref_key_settings_audio_preview</string>
+    <string name="pref_key_settings_srt_preview">pref_key_settings_srt_preview</string>
     <string name="pref_key_settings_demo_page">pref_key_settings_demo_page</string>
+    <string name="pref_key_settings_audio_enabled">pref_key_settings_audio_enabled</string>
+    <string name="pref_key_settings_audio_bit_rate">pref_key_settings_audio_bit_rate</string>
+    <string name="pref_key_settings_audio_sample_rate">pref_key_settings_audio_sample_rate</string>
+    <string name="pref_key_settings_audio_channel">pref_key_settings_audio_channel</string>
+    <string name="pref_key_settings_audio_use_aec">pref_key_settings_audio_use_aec</string>
+    <string name="pref_key_settings_srt_peerlatency" translatable="false">pref_key_settings_srt_peerlatency</string>
+    <string name="pref_key_settings_srt_lossmaxttl" translatable="false">pref_key_settings_srt_lossmaxttl</string>
+    <string name="pref_key_settings_srt_oheadbw" translatable="false">pref_key_settings_srt_oheadbw</string>
+    <string name="pref_key_settings_srt_inputbw" translatable="false">pref_key_settings_srt_inputbw</string>
+    <string name="pref_key_settings_srt_conntimeo" translatable="false">pref_key_settings_srt_conntimeo</string>
+    <string name="pref_key_settings_srt_peeridletimeo" translatable="false">pref_key_settings_srt_peeridletimeo</string>
+    <string name="pref_key_settings_srt_packetfilter" translatable="false">pref_key_settings_srt_packetfilter</string>
+    <string-array name="host_settings_item_audio_sample_rate_list">
+        <item>96000</item>
+        <item>88200</item>
+        <item>64000</item>
+        <item>48000</item>
+        <item>44100</item>
+        <item>32000</item>
+        <item>24000</item>
+        <item>22050</item>
+        <item>16000</item>
+        <item>12000</item>
+        <item>11025</item>
+        <item>8000</item>
+        <item>7350</item>
+    </string-array>
+    <string-array name="host_settings_item_audio_channel_list">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
 
     <string name="gps_settings_title">GPS setting</string>
     <string name="gps_settings_body">Since this device plug-in uses the GPS function, please turn on the setting from the GPS setting screen of the terminal.</string>
@@ -53,6 +114,7 @@
     <string name="host_setting_dialog_disable_gps">Can not search because the GPS is disabled.\nPlease enable GPS by GPS setting screen.</string>
     <string name="host_setting_gps_dialog_cancel">Cancel</string>
 
+    <string name="host_setting_srt_option_auto">Auto</string>
 
     <string name="host_canvas_download_title">Download</string>
     <string name="host_canvas_download_message">Downloading...</string>
@@ -63,4 +125,13 @@
     <string name="host_notification_channel_id">org.deviceconnect.android.intent.action.notifiy.host</string>
     <string name="host_notification_channel_title">Device Connect Notification</string>
     <string name="host_notification_channel_desc">DeviceConnect\'s Notification</string>
+
+    <string name="host_notification_canvas_warnning">Start request from Host Canvas Profile</string>
+    <string name="host_notification_touch_warnning">Start request from Host Touch Profile</string>
+    <string name="host_notification_keyevent_warnning">Start request from Host KeyEvent Profile</string>
+    <string name="host_notification_mediaplayer_warnning">Start request from Host MediaPlayer Profile</string>
+    <string name="host_notification_geolocation_warnning">Start request from Host Geolocation Profile</string>
+    <string name="host_notification_connection_warnning">Start request from Host Connection Profile</string>
+    <string name="host_notification_projection_warnning">Start request from Host Media Streaming Recording Profile</string>
+    <string name="host_notification_phone_warnning">Start request from Host Phone Profile</string>
 </resources>

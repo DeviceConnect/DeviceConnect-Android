@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.message.MessageUtils;
@@ -49,9 +50,6 @@ public class HostCanvasProfile extends CanvasProfile {
 
     /** Notification Id */
     private final int NOTIFICATION_ID = 3517;
-
-    /** Notification Content */
-    private final String NOTIFICATION_CONTENT = "Host Canvas Profileからの起動要求";
 
     private final DConnectApi mDrawImageApi = new PostApi() {
 
@@ -177,7 +175,8 @@ public class HostCanvasProfile extends CanvasProfile {
                 getContext().startActivity(intent);
             } else {
                 NotificationUtils.createNotificationChannel(getContext());
-                NotificationUtils.notify(getContext(),  NOTIFICATION_ID, 0, intent, NOTIFICATION_CONTENT);
+                NotificationUtils.notify(getContext(),  NOTIFICATION_ID, 0, intent,
+                        getContext().getString(R.string.host_notification_canvas_warnning));
             }
         }
 

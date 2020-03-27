@@ -135,4 +135,11 @@
         <description lang="en">Get geolocation.</description>
     </profile>
 
+    <profile name="liveStreaming" expireperiod="86400000">
+        <name lang="ja">ライブストリーミング</name>
+        <description lang="ja">ライブストリーミングを行う</description>
+        <name lang="en">LiveStreaming</name>
+        <description lang="en">Live streaming.</description>
+    </profile>
+
 </deviceplugin-provider>

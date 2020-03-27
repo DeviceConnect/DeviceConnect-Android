@@ -2,87 +2,44 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.PixelFormat;
-import android.media.ImageReader;
+import android.os.Build;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.MixedReplaceMediaServer;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSettingData;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
+import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
+import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGQuality;
+import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Logger;
 
-
-@TargetApi(21)
-class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
-
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
+    /**
+     * MJPEG のマイムタイプを定義します.
+     */
     static final String MIME_TYPE = "video/x-mjpeg";
 
-    private final Logger mLogger = Logger.getLogger("host.dplugin");
-
-    private final Object mLockObj = new Object();
-
+    /**
+     * Android 端末の画面をキャストするクラス.
+     */
     private final ScreenCastManager mScreenCastMgr;
 
-    private final ScreenCaster mPreview;
+    /**
+     * MJPEG を配信するサーバ.
+     */
+    private MJPEGServer mMJPEGServer;
 
-    private MixedReplaceMediaServer mServer;
-
-    private final MixedReplaceMediaServer.Callback mMediaServerCallback = new MixedReplaceMediaServer.Callback() {
-
-        @Override
-        public boolean onAccept(final Socket socket) {
-            synchronized (mLockObj) {
-                if (!mPreview.isStarted()) {
-                    mPreview.start();
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
-
-        @Override
-        public void onClosed(final Socket socket) {
-            synchronized (mLockObj) {
-                if (mPreview.isStarted()) {
-                    mPreview.stop();
-                }
-            }
-        }
-    };
-
-    ScreenCastMJPEGPreviewServer(final Context context,
-                                 final AbstractPreviewServerProvider serverProvider,
-                                 final ScreenCastManager screenCastMgr) {
-        super(context, serverProvider);
-        mScreenCastMgr = screenCastMgr;
-        mPreview = new ScreenCaster();
+    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
+        super(context, recorder);
+        mScreenCastMgr = recorder.getScreenCastMgr();
+        setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
 
     @Override
-    public int getQuality() {
-        return RecorderSettingData.getInstance(mContext).readPreviewQuality(mServerProvider.getId());
-    }
-
-    @Override
-    public void setQuality(int quality) {
-        RecorderSettingData.getInstance(mContext).storePreviewQuality(mServerProvider.getId(),
-                quality);
-    }
-
-    @Override
-    public void mute() {
-        // NOP
-    }
-
-    @Override
-    public void unMute() {
-        // NOP
+    public String getUri() {
+        return mMJPEGServer == null ? null : mMJPEGServer.getUri();
     }
 
     @Override
@@ -92,125 +49,107 @@ class ScreenCastMJPEGPreviewServer extends ScreenCastPreviewServer {
 
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
-        synchronized (mLockObj) {
-            final String uri;
-            if (mServer == null) {
-                mServer = new MixedReplaceMediaServer();
-                mServer.setServerName("HostDevicePlugin Server");
-                mServer.setContentType("image/jpeg");
-                mServer.setCallback(mMediaServerCallback);
-                uri = mServer.start();
-            } else {
-                uri = mServer.getUrl();
+        if (mMJPEGServer == null) {
+            mMJPEGServer = new MJPEGServer();
+            mMJPEGServer.setServerName("HostDevicePlugin Server");
+            mMJPEGServer.setServerPort(getPort());
+            mMJPEGServer.setCallback(mCallback);
+            try {
+                mMJPEGServer.start();
+            } catch (IOException e) {
+                callback.onFail();
+                return;
             }
-            callback.onStart(uri);
         }
+        callback.onStart(getUri());
     }
 
     @Override
     public void stopWebServer() {
-        synchronized (mLockObj) {
-            if (mServer != null) {
-                mServer.stop();
-                mServer = null;
-            }
-            mPreview.stop();
-            mServerProvider.hideNotification();
+        if (mMJPEGServer != null) {
+            mMJPEGServer.stop();
+            mMJPEGServer = null;
         }
     }
 
     @Override
-    protected void onConfigChange() {
-        synchronized (mLockObj) {
-            if (mPreview != null) {
-                mPreview.restart();
+    public boolean requestSyncFrame() {
+        // 何もしない
+        return false;
+    }
+
+    @Override
+    public void onConfigChange() {
+        setEncoderQuality();
+
+        if (mMJPEGServer != null) {
+            new Thread(() -> {
+                if (mMJPEGServer != null) {
+                    mMJPEGServer.restartEncoder();
+                }
+            }).start();
+        }
+    }
+
+    /**
+     * JPEG のクオリティを取得します.
+     *
+     * @return JPEG のクオリティ
+     */
+    private int getJpegQuality() {
+        return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
+    }
+
+    /**
+     * エンコーダーの設定を行います.
+     */
+    private void setEncoderQuality() {
+        if (mMJPEGServer != null) {
+            MJPEGEncoder encoder = mMJPEGServer.getMJPEGEncoder();
+            if (encoder != null) {
+                setMJPEGQuality(encoder.getMJPEGQuality());
             }
         }
     }
 
-    private class ScreenCaster {
+    /**
+     * MJPEG エンコーダの設定を行います.
+     *
+     * @param quality 設定を反映する MJPEGQuality
+     */
+    private void setMJPEGQuality(MJPEGQuality quality) {
+        ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
-        private boolean mIsStarted;
+        HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
 
-        private ImageScreenCast mScreenCast;
-
-        private ImageReader mImageReader;
-
-        private Thread mStreamingThread;
-
-        boolean isStarted() {
-            return mIsStarted;
-        }
-
-        synchronized void start() {
-            if (!isStarted()) {
-                registerConfigChangeReceiver();
-
-                HostDeviceRecorder.PictureSize size = getRotatedPreviewSize();
-                int w = size.getWidth();
-                int h = size.getHeight();
-                mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 4);
-                mScreenCast = mScreenCastMgr.createScreenCast(mImageReader, size);
-                mScreenCast.startCast();
-
-                mStreamingThread = new Thread(() -> {
-                    if (mServer != null) {
-                        if (BuildConfig.DEBUG) {
-                            mLogger.info("Server URL: " + mServer.getUrl());
-                        }
-                    }
-                    try {
-                        while (mIsStarted) {
-                            long start = System.currentTimeMillis();
-
-                            Bitmap bitmap = mScreenCast.getScreenshot();
-                            if (bitmap == null) {
-                                continue;
-                            }
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, getQuality(), baos);
-                            byte[] media = baos.toByteArray();
-                            mServer.offerMedia(media);
-
-                            long end = System.currentTimeMillis();
-                            double fps = mServerProvider.getMaxFrameRate();
-                            long frameInterval = 1000L / (long) fps;
-                            long interval = frameInterval - (end - start);
-                            if (interval > 0) {
-                                Thread.sleep(interval);
-                            }
-                        }
-                    } catch (InterruptedException e) {
-                        // NOP.
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                        mLogger.warning("MediaProjection is broken." + e.getMessage());
-                        stopWebServer();
-                    }
-                });
-                mStreamingThread.start();
-
-                mIsStarted = true;
-            }
-        }
-
-        synchronized void stop() {
-            if (isStarted()) {
-                mStreamingThread.interrupt();
-                mStreamingThread = null;
-                mImageReader.close();
-                mImageReader = null;
-                mScreenCast.stopCast();
-                mScreenCast = null;
-                unregisterConfigChangeReceiver();
-                mIsStarted = false;
-            }
-        }
-
-        synchronized void restart() {
-            stop();
-            start();
-        }
+        quality.setWidth(size.getWidth());
+        quality.setHeight(size.getHeight());
+        quality.setQuality(getJpegQuality());
+        quality.setFrameRate((int) recorder.getMaxFrameRate());
     }
 
+    /**
+     * MJPEGServerからのイベントを受け取るためのコールバック.
+     */
+    private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+        @Override
+        public boolean onAccept(Socket socket) {
+            return true;
+        }
+
+        @Override
+        public void onClosed(Socket socket) {
+        }
+
+        @Override
+        public MJPEGEncoder createMJPEGEncoder() {
+            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
+            setMJPEGQuality(encoder.getMJPEGQuality());
+            return encoder;
+        }
+
+        @Override
+        public void releaseMJPEGEncoder(MJPEGEncoder encoder) {
+        }
+    };
 }

@@ -1,102 +1,48 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.view.Display;
-import android.view.Surface;
-import android.view.WindowManager;
+import android.media.AudioFormat;
 
-import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
+abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
 
-public abstract class ScreenCastPreviewServer implements PreviewServer {
-
-    protected final Context mContext;
-    protected final AbstractPreviewServerProvider mServerProvider;
-    private BroadcastReceiver mConfigChangeReceiver;
-    private boolean mMute;
-
-    ScreenCastPreviewServer(final Context context,
-                            final AbstractPreviewServerProvider serverProvider) {
-        mContext = context;
-        mServerProvider = serverProvider;
-        mMute = true;
-    }
-
-    private int getRotation() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        return display.getRotation();
-    }
-
-    HostDeviceRecorder.PictureSize getRotatedPreviewSize() {
-        HostDeviceRecorder.PictureSize size = mServerProvider.getPreviewSize();
-        int w;
-        int h;
-        switch (getRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                w = size.getWidth();
-                h = size.getHeight();
-                break;
-            default:
-                w = size.getHeight();
-                h = size.getWidth();
-                break;
-        }
-        return new HostDeviceRecorder.PictureSize(w, h);
-    }
-
-    synchronized void registerConfigChangeReceiver() {
-        mConfigChangeReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                onConfigChange();
-            }
-        };
-        IntentFilter filter = new IntentFilter(
-                "android.intent.action.CONFIGURATION_CHANGED");
-        mContext.registerReceiver(mConfigChangeReceiver, filter);
-    }
-
-    synchronized void unregisterConfigChangeReceiver() {
-        if (mConfigChangeReceiver != null) {
-            mContext.unregisterReceiver(mConfigChangeReceiver);
-            mConfigChangeReceiver = null;
-        }
-    }
-
-    protected void onConfigChange() {
-        // NOP.
-    }
-
-    @Override
-    public void onDisplayRotation(final int degree) {
-        // NOP.
-    }
-    /**
-     * Recorderをmute状態にする.
-     */
-    public void mute() {
-        mMute = true;
+    ScreenCastPreviewServer(Context context, HostMediaRecorder recorder) {
+        super(context, recorder);
     }
 
     /**
-     * Recorderのmute状態を解除する.
+     * VideoQuality にスクリーンキャストの設定を行います.
+     *
+     * @param videoQuality 設定を行う VideoQuality
      */
-    public void unMute() {
-        mMute = false;
+    void setVideoQuality(VideoQuality videoQuality) {
+        ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+
+        HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
+
+        videoQuality.setVideoWidth(size.getWidth());
+        videoQuality.setVideoHeight(size.getHeight());
+        videoQuality.setBitRate(recorder.getPreviewBitRate());
+        videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
+        videoQuality.setIFrameInterval(recorder.getIFrameInterval());
     }
 
     /**
-     * Recorderのmute状態を返す.
-     * @return mute状態
+     * AudioQuality の設定を行います.
+     *
+     * @param audioQuality 設定を行う AudioQuality
      */
-    public boolean isMuted() {
-        return mMute;
+    void setAudioQuality(AudioQuality audioQuality) {
+        ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+
+        audioQuality.setChannel(recorder.getPreviewChannel() == 1 ?
+                AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
+        audioQuality.setSamplingRate(recorder.getPreviewSampleRate());
+        audioQuality.setBitRate(recorder.getPreviewAudioBitRate());
+        audioQuality.setUseAEC(recorder.isUseAEC());
     }
 }

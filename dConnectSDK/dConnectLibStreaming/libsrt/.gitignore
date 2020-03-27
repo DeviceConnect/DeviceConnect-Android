@@ -1,0 +1,4 @@
+/build
+/srt-build/data
+/srt-build/ubuntu/.vagrant
+/src/main/jniLibs

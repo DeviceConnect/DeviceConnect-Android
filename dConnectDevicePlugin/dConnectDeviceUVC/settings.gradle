@@ -1,3 +1,1 @@
 include ':app', ':libuvccamera'
-include ':libstreaming'
-project(':libstreaming').projectDir = new File('../../dConnectSDK/dConnectLibStreaming/libstreaming')

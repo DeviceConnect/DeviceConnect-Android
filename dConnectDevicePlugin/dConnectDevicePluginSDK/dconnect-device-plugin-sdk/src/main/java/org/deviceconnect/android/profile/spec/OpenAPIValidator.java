@@ -86,7 +86,7 @@ public final class OpenAPIValidator {
      * @param request リクエスト
      * @return パラメータの仕様リスト
      */
-    private static List<Parameter> findParameters(Swagger swagger, Intent request) {
+    public static List<Parameter> findParameters(Swagger swagger, Intent request) {
         List<Parameter> parameters = new ArrayList<>();
 
         Operation operation = DConnectServiceSpec.findOperationSpec(swagger, request);

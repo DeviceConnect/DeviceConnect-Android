@@ -200,7 +200,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         mTextureUpdate = true;
     }
 
-    private void draw(final Camera camera) {
+    private synchronized void draw(final Camera camera) {
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.setIdentityM(mViewMatrix, 0);
         Matrix.setIdentityM(mProjectionMatrix, 0);
@@ -291,11 +291,9 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      *
      * @param texture Photo object for texture
      */
-    public void setTexture(final Bitmap texture) {
+    public synchronized void setTexture(final Bitmap texture) {
         if (mTexture != null && mIsDestroyTextureOnUpdate) {
             try {
-                GLES20.glDeleteTextures(1, mTextures, 0);
-                //checkGlError("AAA", "glDeleteTextures");
                 mTexture.recycle();
             } catch (Throwable e) {
                 e.printStackTrace();

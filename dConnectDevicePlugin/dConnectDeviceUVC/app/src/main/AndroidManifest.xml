@@ -5,7 +5,7 @@
     <uses-feature android:name="android.hardware.usb.host" />
 
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:name=".UVCDeviceApplication"
         android:icon="@drawable/dconnect_icon"
@@ -64,11 +64,6 @@
             android:excludeFromRecents="true"
             android:exported="false" >
         </activity>
-
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false" >
-        </service>
     </application>
 
 </manifest>

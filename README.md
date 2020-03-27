@@ -24,21 +24,30 @@ Device Connect Managerをビルドして、簡単に動作させるまでを解�
 * Android SDK
 
 ## Device Connect Managerのビルド
-### Mac/Linux
-DeviceConnect-Androidのソースコードをダウンロードしてください。
+
+### ソースコードの取得
+
+git コマンドでソースコードをクローンします。
 
 ```
 $ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
-ビルド前にANDROID_SDK_ROOTの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
+### ライブラリのインポート
+
+ビルドには、libmedia-release-1.0.0.aar と libsrt-release-1.0.0.aar が必要になります。<br>
+GitHub の releases からダウンロードして、/DeviceConnect-Android/dConnectDevicePlugin/dConnectDeviceHost/app/libs にコピーしてください。
+
+### Mac/Linux でビルド
+
+ビルド前にANDROID\_SDK\_ROOTの環境変数にAndroid SDKへのパスが設定されていることを確認してください。
 
 ```
 $ echo 'export ANDROID_SDK_ROOT=<path>' >> ~/.bash_profile
 ```
 
 &lt;path&gt;には、AndroidSDKへのパスを指定してください。
-<br><br>
+
 Device Connect Managerをビルドしてapkを作成します。
 
 ```
@@ -52,14 +61,9 @@ Device Connect Managerを端末にインストールします。
 $ adb install dconnect-manager-app/build/outputs/apk/debug/dconnect-manager-app-debug.apk
 ```
 
-### Windows
-DeviceConnect-Androidのソースコードをダウンロードしてください。
+### Windows でビルド
 
-```
-> git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
-```
-
-ビルド前にANDROID_HOMEの環境変数にAndroidSDKへのパスが設定されていることを確認してください。
+ビルド前にANDROID\_HOMEの環境変数にAndroid SDKへのパスが設定されていることを確認してください。
 
 ```
 > setx ANDROID_HOME <path>
@@ -79,7 +83,6 @@ Device Connect Managerを端末にインストールします。
 ```
 > adb install app/build/outputs/apk/app-debug.apk
 ```
-
 
 ## Device Connect Managerの起動
 Android端末のアプリケーション一覧画面から、Device Connect Managerのアイコンをタップして、起動します。
@@ -133,16 +136,12 @@ curl  -X GET \
 |[dConnectDeviceChromeCast](dConnectDevicePlugin/dConnectDeviceChromeCast)|Chromecastのデバイスプラグイン。 |
 |[dConnectDeviceFaBo](dConnectDevicePlugin/dConnectDeviceFaBo)|FaBoのデバイスプラグイン。|
 |[dConnectDeviceHeartRate](dConnectDevicePlugin/dConnectDeviceHeartRate)|Mio AlphaなどのHeartRateのデバイスプラグイン。|
-|[dConnectDeviceHitoe](dConnectDevicePlugin/dConnectDeviceHitoe)|Hitoeのデバイスプラグイン。|
 |[dConnectDeviceHOGP](dConnectDevicePlugin/dConnectDeviceHOGP)|HOGPのデバイスプラグイン。|
 |[dConnectDeviceHost](dConnectDevicePlugin/dConnectDeviceHost)|Androidのデバイスプラグイン。|
 |[dConnectDeviceHue](dConnectDevicePlugin/dConnectDeviceHue)|Hueのデバイスプラグイン。|
-|[dConnectDeviceHVC](dConnectDevicePlugin/dConnectDeviceHVC)|HVC-Cのデバイスプラグイン。|
-|[dConnectDeviceHVCC2W](dConnectDevicePlugin/dConnectDeviceHVCC2W)|HVC-C2Wのデバイスプラグイン。|
-|[dConnectDeviceHVCP](dConnectDevicePlugin/dConnectDeviceHVCP)|HVC-Pのデバイスプラグイン。|
 |[dConnectDeviceIRKit](dConnectDevicePlugin/dConnectDeviceIRKit)|IRKitのデバイスプラグイン。|
 |[dConnectDeviceLinking](dConnectDevicePlugin/dConnectDeviceLinking)|Linkingのデバイスプラグイン。|
-|[dConnectDeviceSphero](dConnectDevicePlugin/dConnectDeviceSphero)|Spheroのデバイスプラグイン。|
+|[dConnectDeviceSwitchBot](dConnectDevicePlugin/dConnectDeviceSwitchBot)|SwitchBotのデバイスプラグイン。|
 |[dConnectDeviceTheta](dConnectDevicePlugin/dConnectDeviceTheta)|THETAのデバイスプラグイン。|
 |[dConnectDeviceUVC](dConnectDevicePlugin/dConnectDeviceUVC)|UVCカメラのデバイスプラグイン。|
 |[dConnectDeviceTest](dConnectDevicePlugin/dConnectDeviceTest)|DeviceConnectのテスト用のデバイスプラグイン。|
@@ -216,16 +215,12 @@ Device Connect Managerや各デバイスプラグインを開発したい人は�
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
 * [FaBo](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/FaBo-Build)
 * [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
-* [Hitoe](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hitoe-Build)
 * [HOGP](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HOGP-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
-* [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)
-* [HVC-C2W](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCC2WDevice-Build)
-* [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
-* [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
+* [SwitchBot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SwitchBot-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)

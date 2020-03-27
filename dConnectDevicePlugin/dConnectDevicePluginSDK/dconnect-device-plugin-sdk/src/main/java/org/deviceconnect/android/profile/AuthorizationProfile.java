@@ -181,7 +181,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         String packageName = request.getStringExtra(AuthorizationProfile.PARAM_PACKAGE);
         String serviceId = request.getStringExtra(DConnectProfile.PARAM_SERVICE_ID);
         if (packageName == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
+            MessageUtils.setInvalidRequestParameterError(response, "Request parameters are invalid, PackageName is null.");
         } else {
             // Local OAuthでクライアント作成
             PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName, serviceId);

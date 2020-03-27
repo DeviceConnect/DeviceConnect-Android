@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.linking.beacon;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.lib.BuildConfig;
@@ -315,7 +316,11 @@ public class LinkingBeaconManager {
         if (scanMode != null) {
             intent.putExtra(mContext.getPackageName() + LinkingBeaconUtil.EXTRA_SCAN_MODE, scanMode.getValue());
         }
-        mContext.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mContext.startForegroundService(intent);
+        } else {
+            mContext.startService(intent);
+        }
     }
 
     private void stopBeaconScanInternal() {
@@ -326,7 +331,11 @@ public class LinkingBeaconManager {
         Intent intent = new Intent();
         intent.setClassName(LinkingBeaconUtil.LINKING_PACKAGE_NAME, LinkingBeaconUtil.BEACON_SERVICE_NAME);
         intent.setAction(mContext.getPackageName() + LinkingBeaconUtil.ACTION_STOP_BEACON_SCAN);
-        mContext.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mContext.startForegroundService(intent);
+        } else {
+            mContext.startService(intent);
+        }
     }
 
     private void parseBeaconScanState(final Intent intent) {

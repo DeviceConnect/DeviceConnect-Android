@@ -12,12 +12,15 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraVideoEncoder;
+import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.screen.ScreenCastVideoEncoder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 import org.deviceconnect.android.libmedia.streaming.video.CanvasVideoEncoder;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -48,6 +51,9 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
     private static final String VIDEO_URI_FALSE = "false";
     private static final String VIDEO_URI_CAMERA_FRONT = "camera-front";
     private static final String VIDEO_URI_CAMERA_BACK = "camera-back";
+    private static final String VIDEO_URI_CAMERA_0 = "camera_0";
+    private static final String VIDEO_URI_CAMERA_1 = "camera_1";
+    private static final String VIDEO_URI_SCREEN = "screen";
     private static final String AUDIO_URI_TRUE = "true";
     private static final String AUDIO_URI_FALSE = "false";
     private static final int CAMERA_TYPE_FRONT = 0;
@@ -105,6 +111,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         MessageUtils.setUnknownError(response, ex.getMessage());
                         return true;
                     }
+
                     ((HostMediaRecorder) mHostDeviceLiveStreamRecorder).requestPermission(new HostMediaRecorder.PermissionCallback() {
                         @Override
                         public void onAllowed() {
@@ -123,9 +130,28 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                                 Log.d(TAG, "frameRate : " + frameRate);
                             }
                             if (!mVideoURI.equals("false")) {
-                                mHostDeviceLiveStreamRecorder.setVideoEncoder(
-                                                new CameraVideoEncoder((Camera2Recorder) mHostDeviceLiveStreamRecorder),
-                                                        width, height, bitrate, frameRate);
+                                VideoEncoder encoder;
+                                if (mVideoURI.equals(VIDEO_URI_SCREEN)) {
+                                    ScreenCastRecorder sRecorder = (ScreenCastRecorder) mHostDeviceLiveStreamRecorder;
+                                    encoder = new ScreenCastVideoEncoder(sRecorder.getScreenCastMgr());
+                                    // widthかheightがnullの場合は、PreviewSizeの最小値を設定する
+                                    if (width == null || height == null) {
+                                        HostMediaRecorder.PictureSize pSize = sRecorder.getSupportedPreviewSizes().get(0);
+                                        width = pSize.getWidth();
+                                        height = pSize.getHeight();
+                                        for (int i = 1; i < sRecorder.getSupportedPreviewSizes().size(); i++) {
+                                            if (pSize.getWidth() < sRecorder.getSupportedPreviewSizes().get(i).getWidth()) {
+                                                width = sRecorder.getSupportedPreviewSizes().get(i).getWidth();
+                                                height = sRecorder.getSupportedPreviewSizes().get(i).getHeight();
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    encoder = new CameraVideoEncoder((Camera2Recorder) mHostDeviceLiveStreamRecorder);
+                                }
+
+                                mHostDeviceLiveStreamRecorder.setVideoEncoder(encoder,
+                                                                width, height, bitrate, frameRate);
                             } else {
                                 mHostDeviceLiveStreamRecorder.setVideoEncoder(new CanvasVideoEncoder() {
                                     @Override
@@ -376,37 +402,60 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         });
     }
 
-    private HostDeviceLiveStreamRecorder getHostDeviceLiveStreamRecorder() {
+    private HostDeviceLiveStreamRecorder getHostDeviceLiveStreamRecorder()  {
         if (DEBUG) {
             Log.d(TAG, "getHostDeviceLiveStreamRecorder()");
             Log.d(TAG, "mVideoURI : " + mVideoURI);
         }
         switch (mVideoURI) {
-            case VIDEO_URI_TRUE: {
-                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
-                }
-                break;
-            }
+            case VIDEO_URI_TRUE:
             case VIDEO_URI_FALSE: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                if (hostMediaRecorder != null) {
+                    if (mHostMediaRecorderManager.usingStreamingRecorder()) {
+                        throw new RuntimeException("Another target in using.");
+                    }
+
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
                 }
                 break;
             }
-            case VIDEO_URI_CAMERA_FRONT: {
-                HostMediaRecorder hostMediaRecorder = getRecorder(CAMERA_TYPE_FRONT);
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+            case VIDEO_URI_CAMERA_FRONT:
+            case VIDEO_URI_CAMERA_1: {
+                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_CAMERA_1);
+                if (hostMediaRecorder != null) {
+                    if (mHostMediaRecorderManager.usingStreamingRecorder()) {
+                        throw new RuntimeException("Another target in using.");
+                    }
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
                 }
                 break;
             }
-            case VIDEO_URI_CAMERA_BACK: {
-                HostMediaRecorder hostMediaRecorder = getRecorder(CAMERA_TYPE_BACK);
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+            case VIDEO_URI_CAMERA_BACK:
+            case VIDEO_URI_CAMERA_0: {
+                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_CAMERA_0);
+                if (hostMediaRecorder != null) {
+                    if (mHostMediaRecorderManager.usingPreviewOrStreamingRecorder(hostMediaRecorder.getId())) {
+                        throw new RuntimeException("Another target in using.");
+                    }
+
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
+                }
+                break;
+            }
+            case VIDEO_URI_SCREEN: {
+                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_SCREEN);
+                if (hostMediaRecorder != null) {
+
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
                 }
                 break;
             }
@@ -415,30 +464,6 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         throw new RuntimeException("recorder not found");
     }
 
-
-    private HostMediaRecorder getRecorder(int type) {
-        if (DEBUG) {
-            Log.d(TAG, "getRecorder()");
-            Log.d(TAG, "type" + type);
-        }
-        for(HostMediaRecorder hostMediaRecorder : mHostMediaRecorderManager.getRecorders()) {
-            if (DEBUG) {
-                Log.d(TAG, "name : " + hostMediaRecorder.getName());
-            }
-            if (hostMediaRecorder.getName().matches("^Camera [0-9] \\((Front|Back)\\)")) {
-                if (type == CAMERA_TYPE_FRONT) {
-                    if (hostMediaRecorder.getName().contains("Front")) {
-                        return hostMediaRecorder;
-                    }
-                } else if (type == CAMERA_TYPE_BACK) {
-                    if (hostMediaRecorder.getName().contains("Back")) {
-                        return hostMediaRecorder;
-                    }
-                }
-            }
-        }
-        return null;
-    }
     private String checkRequestParameter(Bundle extras, Intent response) {
         //サーバURIの取得
         String broadcastURI = (String) extras.get(PARAM_KEY_BROADCAST);
@@ -460,6 +485,9 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                 case VIDEO_URI_FALSE:
                 case VIDEO_URI_CAMERA_FRONT:
                 case VIDEO_URI_CAMERA_BACK:
+                case VIDEO_URI_CAMERA_0:
+                case VIDEO_URI_CAMERA_1:
+                case VIDEO_URI_SCREEN:
                     break;
                 default:
                     MessageUtils.setInvalidRequestParameterError(response, "video parameter illegal");

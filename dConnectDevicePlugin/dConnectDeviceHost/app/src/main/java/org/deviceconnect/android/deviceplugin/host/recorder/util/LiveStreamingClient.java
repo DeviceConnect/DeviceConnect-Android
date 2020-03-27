@@ -55,7 +55,7 @@ public class LiveStreamingClient implements MediaStreamer.OnEventListener {
                 videoQuality.setVideoHeight(height);
             }
             if (bitrate != null) {
-                videoQuality.setBitRate(bitrate);
+                videoQuality.setBitRate(bitrate * 1024);
             }
             if (frameRate != null) {
                 videoQuality.setFrameRate(frameRate);

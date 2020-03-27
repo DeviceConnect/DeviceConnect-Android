@@ -10,6 +10,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
+import android.media.AudioFormat;
 import android.media.ImageReader;
 import android.net.Uri;
 import android.os.Build;
@@ -19,13 +20,19 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraVideoEncoder;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
+import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
+import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +56,7 @@ import androidx.annotation.NonNull;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
+public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder, HostDeviceLiveStreamRecorder {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
@@ -88,6 +95,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
     private Context mContext;
+    private LiveStreamingClient mLiveStreamingClient;
 
     public ScreenCastRecorder(final Context context,
                               final FileManager fileMgr) {
@@ -464,5 +472,154 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
                 Log.e(TAG, "Failed to register screen: file=" + photoFile.getAbsolutePath());
             }
         }
+    }
+
+    @Override
+    public void createLiveStreamingClient(String broadcastURI, LiveStreamingClient.EventListener eventListener) {
+        mLiveStreamingClient = new LiveStreamingClient(broadcastURI, eventListener);
+    }
+
+    @Override
+    public void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer frameRate) {
+        if (DEBUG) {
+            Log.d(TAG, "setVideoEncoder()");
+            Log.d(TAG, "width : " + width);
+            Log.d(TAG, "height : " + height);
+            Log.d(TAG, "bitrate : " + bitrate);
+            Log.d(TAG, "framerate : " + frameRate);
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            ScreenCastVideoEncoder encoder = new ScreenCastVideoEncoder(mScreenCastMgr);
+            // widthかheightがnullの場合は、PreviewSizeの最小値を設定する
+            if (width == null || height == null) {
+                PictureSize pSize = mSupportedPreviewSizes.get(0);
+                width = pSize.getWidth();
+                height = pSize.getHeight();
+                for (int i = 1; i < mSupportedPreviewSizes.size(); i++) {
+                    if (pSize.getWidth() < mSupportedPreviewSizes.get(i).getWidth()) {
+                        width = mSupportedPreviewSizes.get(i).getWidth();
+                        height = mSupportedPreviewSizes.get(i).getHeight();
+                    }
+                }
+            }
+            mLiveStreamingClient.setVideoEncoder(encoder, width, height, bitrate, frameRate);
+        }
+    }
+
+    @Override
+    public void setAudioEncoder() {
+        if (DEBUG) {
+            Log.d(TAG, "setAudioEncoder()");
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            AudioEncoder audioEncoder = new MicAACLATMEncoder();
+            AudioQuality audioQuality = audioEncoder.getAudioQuality();
+            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
+            audioQuality.setSamplingRate(44100);
+            mLiveStreamingClient.setAudioEncoder(audioEncoder);
+        }
+    }
+
+    @Override
+    public void startLiveStreaming() {
+        if (DEBUG) {
+            Log.d(TAG, "liveStreamingStart()");
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.start();
+        }
+    }
+
+    @Override
+    public void stopLiveStreaming() {
+        if (DEBUG) {
+            Log.d(TAG, "liveStreamingStop()");
+            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
+        }
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.stop();
+        }
+    }
+
+    @Override
+    public boolean isStreaming() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.isStreaming();
+        }
+        return false;
+    }
+
+    @Override
+    public void setMute(boolean mute) {
+        if (mLiveStreamingClient != null) {
+            mLiveStreamingClient.setMute(mute);
+        }
+    }
+
+    @Override
+    public boolean isMute() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.isMute();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isError() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.isError();
+        }
+        return false;
+    }
+
+    @Override
+    public int getVideoWidth() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getVideoWidth();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getVideoHeight() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getVideoHeight();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getBitrate() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getBitrate();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getFrameRate() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getFrameRate();
+        }
+        return 0;
+    }
+
+    @Override
+    public String getLiveStreamingMimeType() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getMimeType();
+        }
+        return MIME_TYPE_JPEG;
+    }
+
+    @Override
+    public String getBroadcastURI() {
+        if (mLiveStreamingClient != null) {
+            return mLiveStreamingClient.getBroadcastURI();
+        }
+        return null;
     }
 }

@@ -1,9 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -24,7 +21,6 @@ import org.deviceconnect.android.profile.api.PostApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.util.List;
 
 public class HostLiveStreamingProfile extends DConnectProfile implements LiveStreamingClient.EventListener {
 
@@ -50,6 +46,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
     private static final String VIDEO_URI_CAMERA_BACK = "camera-back";
     private static final String VIDEO_URI_CAMERA_0 = "camera_0";
     private static final String VIDEO_URI_CAMERA_1 = "camera_1";
+    private static final String VIDEO_URI_SCREEN = "screen";
     private static final String AUDIO_URI_TRUE = "true";
     private static final String AUDIO_URI_FALSE = "false";
     private static final int CAMERA_TYPE_FRONT = 0;
@@ -112,6 +109,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                             case VIDEO_URI_CAMERA_BACK:
                             case VIDEO_URI_CAMERA_0:
                             case VIDEO_URI_CAMERA_1:
+                            case VIDEO_URI_SCREEN:
                                 break;
                             default:
                                 MessageUtils.setInvalidRequestParameterError(response, "video parameter illegal");
@@ -121,7 +119,6 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                     if (DEBUG) {
                         Log.d(TAG, "mVideoURI : " + mVideoURI);
                     }
-
                     //映像リソースURIからレコーダーを取得する
                     try {
                         mHostDeviceLiveStreamRecorder = getHostDeviceLiveStreamRecorder();
@@ -136,6 +133,7 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                         MessageUtils.setUnknownError(response, ex.getMessage());
                         return true;
                     }
+
                     ((HostMediaRecorder) mHostDeviceLiveStreamRecorder).requestPermission(new HostMediaRecorder.PermissionCallback() {
                         @Override
                         public void onAllowed() {
@@ -420,6 +418,54 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
         });
     }
 
+    private void startLiveStreaming(Intent request, Intent response, Bundle extras, String broadcastURI, LiveStreamingClient.EventListener eventListener) {
+        //クライアントの生成
+        mHostDeviceLiveStreamRecorder.createLiveStreamingClient(broadcastURI, eventListener);
+
+        //映像無し以外の場合はエンコーダーとパラメーターをセット
+        if (!mVideoURI.equals("false")) {
+            Integer width = parseInteger(request, PARAM_KEY_WIDTH);
+            Integer height = parseInteger(request, PARAM_KEY_HEIGHT);
+            Integer bitrate = parseInteger(request, PARAM_KEY_BITRATE);
+            Integer frameRate = parseInteger(request, PARAM_KEY_FRAME_RATE);
+            if (DEBUG) {
+                Log.d(TAG, "width : " + width);
+                Log.d(TAG, "height : " + height);
+                Log.d(TAG, "bitrate : " + bitrate);
+                Log.d(TAG, "frameRate : " + frameRate);
+            }
+            mHostDeviceLiveStreamRecorder.setVideoEncoder(width, height, bitrate, frameRate);
+        }
+
+        //音声リソースURIの取得
+        mAudioURI = (String) extras.get(PARAM_KEY_AUDIO);
+        if (mAudioURI == null) {
+            mAudioURI = "false";
+        } else {
+            switch (mAudioURI) {
+                case AUDIO_URI_TRUE:
+                case AUDIO_URI_FALSE:
+                    break;
+                default:
+                    MessageUtils.setInvalidRequestParameterError(response, "audio parameter illegal");
+                    return;
+            }
+        }
+        if (DEBUG) {
+            Log.d(TAG, "audioUri : " + mAudioURI);
+        }
+
+        //音声無し以外の場合はエンコーダーをセット
+        if (!mAudioURI.equals("false")) {
+            mHostDeviceLiveStreamRecorder.setAudioEncoder();
+        }
+
+        //ストリーミング開始
+        mHostDeviceLiveStreamRecorder.startLiveStreaming();
+
+        setResult(response, DConnectMessage.RESULT_OK);
+    }
+
     private HostDeviceLiveStreamRecorder getHostDeviceLiveStreamRecorder()  {
         if (DEBUG) {
             Log.d(TAG, "getHostDeviceLiveStreamRecorder()");
@@ -429,35 +475,50 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
             case VIDEO_URI_TRUE:
             case VIDEO_URI_FALSE: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(null);
-                if (mHostMediaRecorderManager.usingStreamingRecorder()) {
-                    throw new RuntimeException("Another target in using.");
-                }
+                if (hostMediaRecorder != null) {
+                    if (mHostMediaRecorderManager.usingStreamingRecorder()) {
+                        throw new RuntimeException("Another target in using.");
+                    }
 
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
                 }
                 break;
             }
             case VIDEO_URI_CAMERA_FRONT:
             case VIDEO_URI_CAMERA_1: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_CAMERA_1);
-                if (mHostMediaRecorderManager.usingStreamingRecorder()) {
-                    throw new RuntimeException("Another target in using.");
-                }
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                if (hostMediaRecorder != null) {
+                    if (mHostMediaRecorderManager.usingStreamingRecorder()) {
+                        throw new RuntimeException("Another target in using.");
+                    }
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
                 }
                 break;
             }
             case VIDEO_URI_CAMERA_BACK:
             case VIDEO_URI_CAMERA_0: {
                 HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_CAMERA_0);
-                if (mHostMediaRecorderManager.usingPreviewOrStreamingRecorder(hostMediaRecorder.getId())) {
-                    throw new RuntimeException("Another target in using.");
-                }
+                if (hostMediaRecorder != null) {
+                    if (mHostMediaRecorderManager.usingPreviewOrStreamingRecorder(hostMediaRecorder.getId())) {
+                        throw new RuntimeException("Another target in using.");
+                    }
 
-                if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
-                    return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
+                }
+                break;
+            }
+            case VIDEO_URI_SCREEN: {
+                HostMediaRecorder hostMediaRecorder = mHostMediaRecorderManager.getRecorder(VIDEO_URI_SCREEN);
+                if (hostMediaRecorder != null) {
+                    if (hostMediaRecorder instanceof HostDeviceLiveStreamRecorder) {
+                        return (HostDeviceLiveStreamRecorder) hostMediaRecorder;
+                    }
                 }
                 break;
             }

@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -10,12 +12,12 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.Camera2Recorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraVideoEncoder;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.DummyVideoEncoder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
+import org.deviceconnect.android.libmedia.streaming.video.CanvasVideoEncoder;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -125,7 +127,12 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                                                 new CameraVideoEncoder((Camera2Recorder) mHostDeviceLiveStreamRecorder),
                                                         width, height, bitrate, frameRate);
                             } else {
-                                mHostDeviceLiveStreamRecorder.setVideoEncoder(new DummyVideoEncoder(), width, height, bitrate, frameRate);
+                                mHostDeviceLiveStreamRecorder.setVideoEncoder(new CanvasVideoEncoder() {
+                                    @Override
+                                    public void draw(Canvas canvas, int width, int height) {
+                                        canvas.drawColor(Color.BLACK);
+                                    }
+                                }, width, height, bitrate, frameRate);
                             }
                             //音声無し以外の場合はエンコーダーをセット
                             mHostDeviceLiveStreamRecorder.setAudioEncoder();

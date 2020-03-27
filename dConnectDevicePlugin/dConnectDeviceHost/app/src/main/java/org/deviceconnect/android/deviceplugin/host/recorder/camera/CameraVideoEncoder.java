@@ -21,7 +21,7 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
      */
     private CameraVideoQuality mVideoQuality;
 
-    CameraVideoEncoder(Camera2Recorder camera2Recorder) {
+    public CameraVideoEncoder(Camera2Recorder camera2Recorder) {
         mCamera2Recorder = camera2Recorder;
         mVideoQuality = new CameraVideoQuality("video/avc");
     }

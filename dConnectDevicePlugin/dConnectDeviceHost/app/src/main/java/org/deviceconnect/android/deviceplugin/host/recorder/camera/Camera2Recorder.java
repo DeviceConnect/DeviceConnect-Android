@@ -47,6 +47,7 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
+import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -939,7 +940,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     }
 
     @Override
-    public void setVideoEncoder(Integer width, Integer height, Integer bitrate, Integer framerate) {
+    public void setVideoEncoder(VideoEncoder encoder, Integer width, Integer height, Integer bitrate, Integer framerate) {
         if (DEBUG) {
             Log.d(TAG, "setVideoEncoder()");
             Log.d(TAG, "width : " + width);
@@ -949,7 +950,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
             Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
         }
         if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.setVideoEncoder(new CameraVideoEncoder(this), width, height, bitrate, framerate);
+            mLiveStreamingClient.setVideoEncoder(encoder, width, height, bitrate, framerate);
         }
     }
 

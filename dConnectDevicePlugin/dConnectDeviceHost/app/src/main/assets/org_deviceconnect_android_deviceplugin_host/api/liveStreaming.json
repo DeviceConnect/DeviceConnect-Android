@@ -29,7 +29,7 @@
                     }, {
                         "name": "video",
                         "in": "query",
-                        "description": "映像リソースURI。<br><ul><li>true(デバイス標準のカメラ)</li><li>false(映像無し)</li><li>camera-front(端末のフロントカメラ)</li><li>camera-back(端末のバックカメラ)</li></ul>省略された場合はfalseを指定した場合と同様。",
+                        "description": "映像リソースURI。<br><ul><li>true(デバイス標準のカメラ)</li><li>false(黒い映像を配信する)</li><li>camera-front(端末のフロントカメラ)</li><li>camera-back(端末のバックカメラ)</li></ul>省略された場合はfalseを指定した場合と同様。",
                         "required": false,
                         "type": "string"
                     }, {

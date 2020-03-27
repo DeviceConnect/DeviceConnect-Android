@@ -89,12 +89,6 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            if (!(isCameraAvailable())) {
-                                MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
-                                sendResponse(response);
-                                return;
-                            }
-
                             Bundle lightParam = new Bundle();
                             setName(lightParam, HOST_DEFAULT_LIGHT_NAME);
                             setConfig(lightParam, "");
@@ -144,12 +138,6 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            if (!(isCameraAvailable())) {
-                                MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
-                                sendResponse(response);
-                                return;
-                            }
-
                             if (flashing != null) {
                                 flashing(HOST_LIGHT_ID, flashing);
                                 setResult(response, DConnectMessage.RESULT_OK);
@@ -213,12 +201,6 @@ public class HostLightProfile extends LightProfile {
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {
-                            if (!(isCameraAvailable())) {
-                                MessageUtils.setIllegalDeviceStateError(response, "Camera device is already running.");
-                                sendResponse(response);
-                                return;
-                            }
-
                             mPhotoRec.turnOffFlashLight(new HostDevicePhotoRecorder.TurnOffFlashLightListener() {
                                 @Override
                                 public void onRequested() {
@@ -292,18 +274,6 @@ public class HostLightProfile extends LightProfile {
         HandlerThread thread = new HandlerThread(name);
         thread.start();
         return new Handler(thread.getLooper());
-    }
-
-    /**
-     * カメラが使用可能どうかをチェックする.
-     *
-     * @return 使用可能の場合は true, そうでない場合は false.
-     */
-    private boolean isCameraAvailable() {
-        if (((HostMediaRecorder) mPhotoRec).getState() != HostMediaRecorder.RecorderState.INACTTIVE) {
-            return false;
-        }
-        return true;
     }
 
     /**

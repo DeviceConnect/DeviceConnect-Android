@@ -551,6 +551,9 @@ public class CameraWrapper {
         close();
         if (mIsPreview) {
             startPreview(mPreviewSurface, true);
+        } else if (mIsTouchOn) {
+            mIsTouchOn = false;
+            turnOnTorch();
         }
         notifyCameraEvent(CameraEvent.STOPPED_VIDEO_RECORDING);
     }
@@ -623,17 +626,21 @@ public class CameraWrapper {
             }
             resumeRepeatingRequest();
             throw new CameraWrapperException(e);
+        } finally {
+            mIsTakingStillImage = false;
         }
     }
 
     private void resumeRepeatingRequest() {
-        mIsTakingStillImage = false;
 
         try {
             if (mIsRecording) {
                 startRecording(mRecordingSurface, true);
             } else if (mIsPreview) {
                 startPreview(mPreviewSurface, true);
+            } else if (mIsTouchOn) {
+                mIsTouchOn = false;
+                turnOnTorch();
             } else {
                 close();
             }
@@ -794,7 +801,12 @@ public class CameraWrapper {
                 if (mTargetSurface != null) {
                     requestBuilder.addTarget(mTargetSurface);
                 }
-            } else {
+            }
+            if (mIsRecording) {
+                requestBuilder.addTarget(mRecordingSurface);
+            }
+
+            if (!mIsPreview && !mIsRecording) {
                 requestBuilder.addTarget(mDummyPreviewReader.getSurface());
             }
             requestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
@@ -848,6 +860,8 @@ public class CameraWrapper {
                 throw new IllegalArgumentException(e);
             } catch (CameraWrapperException e) {
                 throw new IllegalArgumentException(e);
+            } finally {
+                resumeRepeatingRequest();
             }
             notifyTorchOffEvent(listener, handler);
         }

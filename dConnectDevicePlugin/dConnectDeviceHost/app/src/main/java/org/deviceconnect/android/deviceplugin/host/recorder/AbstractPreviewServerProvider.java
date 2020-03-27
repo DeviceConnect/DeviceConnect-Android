@@ -52,6 +52,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      */
     private HostMediaRecorder mRecorder;
 
+    private boolean mIsShownNotification;
     /**
      * コンストラクタ.
      * @param context コンテキスト
@@ -60,6 +61,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         mContext = context;
         mRecorder = recorder;
         mNotificationId = notificationId;
+        mIsShownNotification = false;
     }
 
     // PreviewServerProvider
@@ -118,6 +120,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
                 // TODO タイムアウト処理
             } else {
                 sendNotification(mRecorder.getId(), mRecorder.getName());
+                mIsShownNotification = true;
             }
         } catch (InterruptedException e) {
             // ignore.
@@ -171,6 +174,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
                 .getSystemService(Service.NOTIFICATION_SERVICE);
         if (manager != null) {
             manager.cancel(id, getNotificationId());
+            mIsShownNotification = false;
         }
     }
 
@@ -251,5 +255,10 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         intent.setAction(DELETE_PREVIEW_ACTION);
         intent.putExtra(EXTRA_CAMERA_ID, id);
         return PendingIntent.getBroadcast(mContext, getNotificationId(), intent, 0);
+    }
+
+    @Override
+    public boolean isShownCameraNotification() {
+        return mIsShownNotification;
     }
 }

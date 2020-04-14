@@ -1,4 +1,10 @@
 apply plugin: 'com.android.library'
+// Create github.properties in root project folder file with
+// gpr.usr=GITHUB_USER_ID
+// gpr.key=PERSONAL_ACCESS_TOKEN
+def githubPropertiesFile = rootProject.file("github.properties")
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(githubPropertiesFile))
 
 android {
     compileSdkVersion 29
@@ -15,21 +21,29 @@ android {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
-}
 
-repositories {
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
+    repositories {
+        maven {
+            name = "DeviceConnect-Android"
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
+
+            credentials {
+                username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
+                password = System.getenv("GPR_API_KEY") ?: githubProperties['gpr.key']
+            }
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     implementation project(':dconnect-server-nano-httpd')
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'androidx.core:core:1.2.0'
 }

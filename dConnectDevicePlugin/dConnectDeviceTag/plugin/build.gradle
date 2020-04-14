@@ -1,21 +1,24 @@
 apply plugin: 'com.android.application'
+// Create github.properties in root project folder file with
+// gpr.usr=GITHUB_USER_ID
+// gpr.key=PERSONAL_ACCESS_TOKEN
+def githubPropertiesFile = rootProject.file("github.properties")
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(githubPropertiesFile))
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation('androidx.appcompat:appcompat:1.0.0') {
+    implementation('androidx.appcompat:appcompat:1.1.0') {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     implementation 'com.google.zxing:core:3.3.2'
 }
 
-repositories {
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
-}
+
 
 android {
 
@@ -60,5 +63,16 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    repositories {
+        maven {
+            name = "DeviceConnect-Android"
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
+
+            credentials {
+                username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
+                password = System.getenv("GPR_API_KEY") ?: githubProperties['gpr.key']
+            }
+        }
     }
 }

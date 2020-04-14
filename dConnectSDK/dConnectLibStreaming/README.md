@@ -7,8 +7,8 @@ dConnectLibStreaming は、映像配信などを行うためのライブラリ�
 |モジュール|備考|
 |:--|:--|
 |libmedia|映像・音声を配信する機能を提供するモジュール。|
-|libopus|opus エンコードとデコードの機能を提供するモジュール。|
-|libsrt|SRT 配信用サーバとプレイヤーの機能を提供するモジュール。libmedia に依存します。|
+|[libopus](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/tree/master/dConnectSDK/dConnectLibStreaming/libopus)|opus エンコードとデコードの機能を提供するモジュール。|
+|[libsrt](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/tree/master/dConnectSDK/dConnectLibStreaming/libsrt)|SRT 配信用サーバとプレイヤーの機能を提供するモジュール。libmedia に依存します。|
 |rtsp-player-app|RTSP 確認用プレイヤーのアプリ。|
 |rtsp-server-app|RTSP 確認用サーバのアプリ。|
 |srt-player-app|SRT 確認用プレイヤーのアプリ。|

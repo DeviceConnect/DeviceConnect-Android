@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 repositories {
     mavenCentral()
     google()
@@ -95,17 +96,40 @@ android.testVariants.all { variant ->
     }
 }
 
-def repo = new File(rootDir, "repository")
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
 
-apply plugin: 'maven'
+def getVersionName = { ->
+    return "2.3.2" // Replace with version Name
+}
 
-uploadArchives {
+def getArtificatId = { ->
+    return "dconnect-sdk-for-android" // Replace with library name ID
+}
+
+publishing {
+    publications {
+        bar(MavenPublication) {
+            groupId 'org.deviceconnect'
+            artifactId getArtificatId()
+            version getVersionName()
+            artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
+        }
+    }
+
     repositories {
-        mavenDeployer {
-            repository url: "file://${repo.absolutePath}"
-            pom.version = '2.3.2'
-            pom.groupId = 'org.deviceconnect'
-            pom.artifactId = 'dconnect-sdk-for-android'
+        maven {
+            name = "dConnectSDKForAndroid"
+            /** Configure path of your package repository on Github
+             *  Replace GITHUB_USERID with your/organisation Github userID and REPOSITORY with the repository name on GitHub
+             */
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
+
+            credentials {
+                /**Create github.properties in root project folder file with gpr.usr=GITHUB_USER_ID  & gpr.key=PERSONAL_ACCESS_TOKEN**/
+                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
+                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
+            }
         }
     }
 }

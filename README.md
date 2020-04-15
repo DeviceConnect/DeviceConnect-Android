@@ -33,10 +33,20 @@ git コマンドでソースコードをクローンします。
 $ git clone https://github.com/DeviceConnect/DeviceConnect-Android.git
 ```
 
-### ライブラリのインポート
+### GitHubアカウントの設定
 
-ビルドには、libmedia-release-1.0.0.aar と libsrt-release-1.0.0.aar が必要になります。<br>
-GitHub の releases からダウンロードして、/DeviceConnect-Android/dConnectDevicePlugin/dConnectDeviceHost/app/libs にコピーしてください。
+ビルドには、GitHubアカウントとトークンが必要になります。
+以下の手順により、プロジェクトでGitHubアカウントとトークンの設定を行ってください。
+
+1. GitHubの[Settings] > [Developer settings] > [Personal access tokens] から作成します。
+2. scopeは`repo`、`write:packages`、`read:packages`にチェックを付けて生成してください。
+3. プロジェクトのルートディレクトリに`github.properties`というファイルを作成して配置してください。
+4. github.propertiesにユーザ名とトークンを入力してください。
+
+```
+gpr.usr={ GitHubユーザ名 }
+gpr.key={ トークン }
+```
 
 ### Mac/Linux でビルド
 

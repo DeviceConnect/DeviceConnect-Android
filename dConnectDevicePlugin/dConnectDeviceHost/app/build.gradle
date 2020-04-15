@@ -85,11 +85,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "androidx.preference:preference:1.1.0"
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
-    implementation 'org.deviceconnect:libmedia:1.0.0'
-    implementation 'org.deviceconnect:libsrt:1.0.0'
-    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4.9'
+    implementation 'org.deviceconnect:libmedia:1.0.0.1'
+    implementation 'org.deviceconnect:libsrt:1.0.0.2'
+    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1.1'
 }
 
 task zipDemo(type:Zip) {

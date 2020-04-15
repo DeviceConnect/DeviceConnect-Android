@@ -83,9 +83,6 @@ android {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4.9'
     compileOnly 'com.google.android.things:androidthings:1.0'
-    implementation 'androidx.fragment:fragment:1.2.4'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 }

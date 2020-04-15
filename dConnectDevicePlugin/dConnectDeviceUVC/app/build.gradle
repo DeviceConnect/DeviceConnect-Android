@@ -76,8 +76,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.6.7'
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4.9'
     implementation project(':libuvccamera')
-    implementation 'androidx.fragment:fragment:1.2.4'
 }

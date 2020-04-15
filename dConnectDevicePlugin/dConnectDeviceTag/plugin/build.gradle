@@ -12,9 +12,7 @@ dependencies {
         exclude module: 'animated-vector-drawable'
         exclude module: 'support-media-compat'
     }
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4.9'
     implementation 'com.google.zxing:core:3.3.2'
 }
 

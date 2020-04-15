@@ -1,5 +1,15 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
+
+def getVersionName = { ->
+    return "1.0.0.2" // Replace with version Name
+}
+
+def getArtificatId = { ->
+    return "libsrt" // Replace with library name ID
+}
 
 android {
     compileSdkVersion 29
@@ -9,7 +19,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0.0"
+        versionName getVersionName()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -66,11 +76,22 @@ android {
             }
         }
     }
+    repositories {
+        maven {
+            name = "DeviceConnect-Android"
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
+
+            credentials {
+                username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
+                password = System.getenv("GPR_API_KEY") ?: githubProperties['gpr.key']
+            }
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':libmedia')
+    implementation 'org.deviceconnect:libmedia:1.0.0.1'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
@@ -104,16 +125,6 @@ class VersionCheckTask extends DefaultTask {
     }
 }
 
-def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
-
-def getVersionName = { ->
-    return "1.0.0" // Replace with version Name
-}
-
-def getArtificatId = { ->
-    return "libsrt" // Replace with library name ID
-}
 
 publishing {
     publications {
@@ -122,6 +133,32 @@ publishing {
             artifactId getArtificatId()
             version getVersionName()
             artifact("$buildDir/outputs/aar/${getArtificatId()}-release-${getVersionName()}.aar")
+            pom.withXml {
+                final dependenciesNode = asNode().appendNode('dependencies')
+                ext.addDependency = { Dependency dep, String scope ->
+                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                        return
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', scope)
+                    if (!dep.transitive) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        exclusionNode.appendNode('groupId', '*')
+                        exclusionNode.appendNode('artifactId', '*')
+                    } else if (!dep.properties.excludeRules.empty) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        dep.properties.excludeRules.each { ExcludeRule rule ->
+                            exclusionNode.appendNode('groupId', rule.group ?: '*')
+                            exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                        }
+                    }
+                }
+                configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "compile") }
+            }
         }
     }
 

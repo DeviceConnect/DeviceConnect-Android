@@ -9,8 +9,7 @@ githubProperties.load(new FileInputStream(githubPropertiesFile))
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4.9'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.gms:play-services-wearable:17.0.0'
 

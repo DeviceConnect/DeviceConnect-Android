@@ -75,9 +75,7 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':app')
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
-
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4.9'
     implementation 'io.fabo:serialkit:0.9.6'
     implementation 'io.fabo.android.stk500:stk500-aar:1.0.4'
 }

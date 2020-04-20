@@ -25,7 +25,7 @@ android {
     repositories {
         maven {
             name = "DeviceConnect-Android"
-            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
 
             credentials {
                 username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
@@ -37,13 +37,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
     implementation project(':dconnect-server-nano-httpd')
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
-    implementation 'androidx.core:core:1.2.0'
 }

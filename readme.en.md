@@ -50,6 +50,13 @@ gpr.usr={ GitHub User Name }
 gpr.key={ Token }
 ```
 
+You can omit the addition of github.properties by setting environment variables as follows.
+
+```sh
+$ export GPR_USER={ GitHubユーザ名 }
+$ export GPR_API_KEY={ トークン }
+```
+
 ### Mac/Linux
 Before building, make sure the path to Android SDK is set to the ANDROID\_SDK\_ROOT environment variable.
 

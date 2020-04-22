@@ -4,8 +4,9 @@ apply plugin: 'com.android.application'
 // gpr.key=PERSONAL_ACCESS_TOKEN
 def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(githubPropertiesFile))
-
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')

@@ -48,6 +48,14 @@ gpr.usr={ GitHubユーザ名 }
 gpr.key={ トークン }
 ```
 
+以下のように環境変数を設定することで、github.propertiesの追加を省略することができます。
+
+```sh
+$ export GPR_USER={ GitHubユーザ名 }
+$ export GPR_API_KEY={ トークン }
+```
+
+
 ### Mac/Linux でビルド
 
 ビルド前にANDROID\_SDK\_ROOTの環境変数にAndroid SDKへのパスが設定されていることを確認してください。

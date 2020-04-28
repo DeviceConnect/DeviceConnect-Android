@@ -29,6 +29,7 @@ import org.deviceconnect.android.manager.core.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectServiceDiscoveryProfile;
+import org.deviceconnect.android.manager.core.profile.DConnectSettingProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.core.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
@@ -224,6 +225,7 @@ public class DConnectCore extends DevicePluginContext {
         addProfile(new AuthorizationProfile(mSettings, mRequestManager, getLocalOAuth2Main()));
         addProfile(new DConnectAvailabilityProfile(mSettings));
         addProfile(new DConnectServiceDiscoveryProfile(null, mPluginManager, mRequestManager));
+        addProfile(new DConnectSettingProfile());
 
         // 各プラグインに配送するプロファイル
         mDeliveryProfile = new DConnectDeliveryProfile(mPluginManager, mRequestManager,

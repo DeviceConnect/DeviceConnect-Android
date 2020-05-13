@@ -1,5 +1,16 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
+
+def getVersionName = { ->
+    return "2.8.4" // Replace with version Name
+}
+
+def getArtificatId = { ->
+    return "dconnect-device-plugin-sdk" // Replace with library name ID
+}
 android {
     compileSdkVersion 29
 
@@ -7,7 +18,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 29
         versionCode 1
-        versionName '2.8.4'
+        versionName getVersionName()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,6 +40,21 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+    repositories {
+        maven {
+            name = "dConnectSDKForAndroid"
+            /** Configure path of your package repository on Github
+             *  Replace GITHUB_USERID with your/organisation Github userID and REPOSITORY with the repository name on GitHub
+             */
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+
+            credentials {
+                /**Create github.properties in root project folder file with gpr.usr=GITHUB_USER_ID  & gpr.key=PERSONAL_ACCESS_TOKEN**/
+                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
+                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
+            }
         }
     }
 }
@@ -70,11 +96,6 @@ project.androidVariants.all { variant ->
     }
 }
 
-repositories {
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'file://' + rootDir + '/../../dConnectSDK/dConnectSDKForAndroid/repository/' }
-}
-
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
@@ -93,7 +114,7 @@ task setPluginSDKVersion(type: Copy) {
     from 'src/template/pluginsdk.xml'
     into 'src/main/res/xml'
     expand([
-            version: android.defaultConfig.versionName
+            version: getVersionName()
     ])
 }
 preBuild.dependsOn setPluginSDKVersion
@@ -173,27 +194,64 @@ if (!apiDir.exists()) {
 }
 
 
-
-
-def repo = new File(rootDir, "repository")
-
-apply plugin: 'maven'
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository url: "file://${repo.absolutePath}"
-            pom.version = android.defaultConfig.versionName
-            pom.groupId = 'org.deviceconnect'
-            pom.artifactId = 'dconnect-device-plugin-sdk'
-        }
-    }
-}
-
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
         tasks.withType(Javadoc) {
             options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+
+publishing {
+    publications {
+        bar(MavenPublication) {
+            groupId 'org.deviceconnect'
+            artifactId getArtificatId()
+            version getVersionName()
+            artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
+            pom.withXml {
+                final dependenciesNode = asNode().appendNode('dependencies')
+                ext.addDependency = { Dependency dep, String scope ->
+                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                        return
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', scope)
+                    if (!dep.transitive) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        exclusionNode.appendNode('groupId', '*')
+                        exclusionNode.appendNode('artifactId', '*')
+                    } else if (!dep.properties.excludeRules.empty) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        dep.properties.excludeRules.each { ExcludeRule rule ->
+                            exclusionNode.appendNode('groupId', rule.group ?: '*')
+                            exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                        }
+                    }
+                }
+                configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "compile") }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "dConnectDevicePluginSDK"
+            /** Configure path of your package repository on Github
+             *  Replace GITHUB_USERID with your/organisation Github userID and REPOSITORY with the repository name on GitHub
+             */
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+
+            credentials {
+                /**Create github.properties in root project folder file with gpr.usr=GITHUB_USER_ID  & gpr.key=PERSONAL_ACCESS_TOKEN**/
+                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
+                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
+            }
         }
     }
 }

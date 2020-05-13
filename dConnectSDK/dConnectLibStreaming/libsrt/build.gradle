@@ -1,4 +1,15 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
+
+def getVersionName = { ->
+    return "1.0.0" // Replace with version Name
+}
+
+def getArtificatId = { ->
+    return "libsrt" // Replace with library name ID
+}
 
 android {
     compileSdkVersion 29
@@ -8,7 +19,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0.0"
+        versionName getVersionName()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -65,11 +76,22 @@ android {
             }
         }
     }
+    repositories {
+        maven {
+            name = "DeviceConnect-Android"
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+
+            credentials {
+                username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
+                password = System.getenv("GPR_API_KEY") ?: githubProperties['gpr.key']
+            }
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':libmedia')
+    implementation 'org.deviceconnect:libmedia:1.0.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
@@ -99,6 +121,60 @@ class VersionCheckTask extends DefaultTask {
         String pattern = '#define SRT_VERSION_STRING "' + requiredVersion + '"'
         if (pattern != versionFile.text.find(pattern)) {
             throw new GradleException("SRT Version must be " + requiredVersion)
+        }
+    }
+}
+
+
+publishing {
+    publications {
+        bar(MavenPublication) {
+            groupId 'org.deviceconnect'
+            artifactId getArtificatId()
+            version getVersionName()
+            artifact("$buildDir/outputs/aar/${getArtificatId()}-release-${getVersionName()}.aar")
+            pom.withXml {
+                final dependenciesNode = asNode().appendNode('dependencies')
+                ext.addDependency = { Dependency dep, String scope ->
+                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                        return
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', scope)
+                    if (!dep.transitive) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        exclusionNode.appendNode('groupId', '*')
+                        exclusionNode.appendNode('artifactId', '*')
+                    } else if (!dep.properties.excludeRules.empty) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        dep.properties.excludeRules.each { ExcludeRule rule ->
+                            exclusionNode.appendNode('groupId', rule.group ?: '*')
+                            exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                        }
+                    }
+                }
+                configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "compile") }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "libsrt"
+            /** Configure path of your package repository on Github
+             *  Replace GITHUB_USERID with your/organisation Github userID and REPOSITORY with the repository name on GitHub
+             */
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+
+            credentials {
+                /**Create github.properties in root project folder file with gpr.usr=GITHUB_USER_ID  & gpr.key=PERSONAL_ACCESS_TOKEN**/
+                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
+                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
+            }
         }
     }
 }

@@ -448,7 +448,7 @@ srt のバージョンはアップされていくので、バージョンの確�
 ```
 srt_version=1.3.1
    ↓
-srt_version=1.4.0
+srt_version=x.x.x
 ```
 
 古いバージョンでビルドを行いたい場合には、git からソースコードを取得する箇所をバージョン指定するように変更します。
@@ -458,7 +458,7 @@ if [ ! -d $BASE_DIR/srt ]; then
  git clone https://github.com/Haivision/srt srt
 # git -C $BASE_DIR/srt checkout v${srt_version}
    ↓
-# git clone https://github.com/Haivision/srt srt
+ git clone https://github.com/Haivision/srt srt
  git -C $BASE_DIR/srt checkout v${srt_version}
 ```
 
@@ -474,7 +474,7 @@ srt のバージョンを mkall に合わせて設定します。
 ```
 srt_version=1.3.1
    ↓
-srt_version=1.4.0
+srt_version=x.x.x
 ```
 
 ### ビルドの実行

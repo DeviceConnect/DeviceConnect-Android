@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.activity;
 
+
 import androidx.fragment.app.Fragment;
 
 import org.deviceconnect.android.deviceplugin.heartrate.fragment.BluetoothSettingsFragment;

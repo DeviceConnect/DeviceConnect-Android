@@ -6,6 +6,7 @@
 *.ap_
 .externalNativeBuild
 .cxx/
+github.properties
 
 # Files for the Dalvik VM
 *.dex

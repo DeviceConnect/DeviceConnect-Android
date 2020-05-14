@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.fragment.app.FragmentActivity;
+
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
@@ -32,7 +34,7 @@ public class TestServiceListActivity extends DConnectServiceListActivity {
 
     @Override
     protected Class<? extends Activity> getSettingManualActivityClass() {
-        Intent intent = getIntent();
+        Intent intent = ((FragmentActivity) this).getIntent();
         if (intent == null) {
             return DummySettingManualActivity.class;
         }

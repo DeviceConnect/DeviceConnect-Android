@@ -245,6 +245,12 @@
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
 
+    <!-- ================= Copy Protection ================= -->
+    <string name="copy_protection_notification_channel_name">コピー防止機能</string>
+    <string name="copy_protection_notification_channel_description">コピー防止機能の動作状態に関する通知を行います。</string>
+    <string name="copy_protection_notification_overlay_title">画面キャプチャ無効中</string>
+    <string name="copy_protection_notification_overlay_body">画面キャプチャが禁止されています。クリックすると解除されます。</string>
+
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">検索</string>
     <string name="activity_accesslog_hint_search_ip_address">IPアドレス or パス</string>

@@ -29,7 +29,6 @@ import org.deviceconnect.android.manager.core.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectServiceDiscoveryProfile;
-import org.deviceconnect.android.manager.core.profile.DConnectSettingProfile;
 import org.deviceconnect.android.manager.core.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.core.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
@@ -46,6 +45,7 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 import static org.deviceconnect.android.manager.core.plugin.ConnectionType.BROADCAST;
 
 /**
@@ -140,12 +140,15 @@ public class DConnectCore extends DevicePluginContext {
         }
     };
 
+    private DConnectInterface mDConnectInterface;
+
     /**
      * コンストラクタ.
      *
      * @param context  コンテキスト
      * @param settings Device Connect Manager の設定
      * @param pluginManager プラグイン管理クラス
+     * @param factory イベントセッション作成クラス
      * @throws IllegalArgumentException コンテキストがnullの場合に発生
      */
     DConnectCore(final Context context,
@@ -225,7 +228,6 @@ public class DConnectCore extends DevicePluginContext {
         addProfile(new AuthorizationProfile(mSettings, mRequestManager, getLocalOAuth2Main()));
         addProfile(new DConnectAvailabilityProfile(mSettings));
         addProfile(new DConnectServiceDiscoveryProfile(null, mPluginManager, mRequestManager));
-        addProfile(new DConnectSettingProfile());
 
         // 各プラグインに配送するプロファイル
         mDeliveryProfile = new DConnectDeliveryProfile(mPluginManager, mRequestManager,
@@ -326,6 +328,7 @@ public class DConnectCore extends DevicePluginContext {
      * @param i インターフェース
      */
     public void setDConnectInterface(final DConnectInterface i) {
+        mDConnectInterface = i;
         DConnectSystemProfile systemProfile = (DConnectSystemProfile) getProfile(SystemProfileConstants.PROFILE_NAME);
         if (systemProfile != null) {
             systemProfile.setDConnectInterface(i);
@@ -345,7 +348,7 @@ public class DConnectCore extends DevicePluginContext {
         } else if (DConnectUtil.checkActionEvent(message)) {
             onReceivedEvent(message);
         } else {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 mLogger.warning("Unknown message type.");
             }
         }
@@ -519,6 +522,7 @@ public class DConnectCore extends DevicePluginContext {
         // リクエストにDeviceConnectManagerの情報を付加する
         request.putExtra(DConnectMessage.EXTRA_PRODUCT, mSettings.getProductName());
         request.putExtra(DConnectMessage.EXTRA_VERSION, mSettings.getVersionName());
+        request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, new ComponentName(getContext(), mDConnectInterface.getDConnectBroadcastReceiverClass()));
 
         DConnectProfile profile = getProfile(request);
         if (profile != null && !isDeliveryRequest(request)) {

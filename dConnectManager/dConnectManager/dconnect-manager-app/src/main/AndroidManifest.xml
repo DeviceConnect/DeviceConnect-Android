@@ -240,6 +240,12 @@
             android:exported="false"
             android:taskAffinity=".permission"
             android:theme="@style/Theme.Dialog.Transparent"/>
+
+        <!-- コピーガード用オーバーレイ許可取得画面 -->
+        <activity android:name=".protection.OverlayPermissionActivity"
+            android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
     </application>
 
 </manifest>

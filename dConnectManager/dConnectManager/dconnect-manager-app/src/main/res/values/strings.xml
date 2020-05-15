@@ -244,6 +244,13 @@
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
 
+    <!-- ================= Copy Protection ================= -->
+    <string name="copy_protection_notification_channel_id" translatable="false">org.deviceconnect.android.manager.notification.channel.copy_protection</string>
+    <string name="copy_protection_notification_channel_name">Copy Protection</string>
+    <string name="copy_protection_notification_channel_description">Notifications about copy protection on this device\'s screen.</string>
+    <string name="copy_protection_notification_overlay_title">Screen recording Disabled</string>
+    <string name="copy_protection_notification_overlay_body">Screen recording on this device is disabled. Please click to enable.</string>
+
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">Search</string>
     <string name="activity_accesslog_hint_search_ip_address">IP Address or Path</string>

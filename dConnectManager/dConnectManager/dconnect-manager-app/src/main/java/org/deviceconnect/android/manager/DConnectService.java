@@ -29,6 +29,7 @@ import org.deviceconnect.android.manager.core.plugin.DevicePluginManager;
 import org.deviceconnect.android.manager.core.plugin.MessagingException;
 import org.deviceconnect.android.manager.core.util.DConnectUtil;
 import org.deviceconnect.android.manager.core.util.VersionName;
+import org.deviceconnect.android.manager.profile.DConnectSettingProfile;
 import org.deviceconnect.android.manager.setting.KeywordDialogActivity;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.NotificationUtil;
@@ -148,6 +149,7 @@ public class DConnectService extends Service {
                 return SettingActivity.class;
             }
         };
+        mManager.addProfile(new DConnectSettingProfile(this, R.drawable.on_icon));
 
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {

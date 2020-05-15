@@ -4,89 +4,120 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.manager.core.profile;
+package org.deviceconnect.android.manager.profile;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.util.Log;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.manager.protection.CopyProtectionSetting;
+import org.deviceconnect.android.manager.protection.SimpleCopyProtection;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+
+import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 
 public class DConnectSettingProfile extends DConnectProfile {
 
-    public DConnectSettingProfile() {
+    private static final String INTERFACE_COPY_PROTECTION = "copyProtection";
 
-        // GET /gotapi/setting/copyGuard
+    private static final String ATTR_ON_CHANGE = "onChange";
+
+    private final SimpleCopyProtection mCopyProtection;
+
+    private final CopyProtectionSetting.EventListener mEventListener = ((setting, isEnabled) -> {
+        List<Event> events = EventManager.INSTANCE.getEventList(null,
+                getProfileName(),
+                INTERFACE_COPY_PROTECTION,
+                ATTR_ON_CHANGE);
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            intent.putExtra("enabled", isEnabled);
+            sendEvent(intent, event.getAccessToken());
+        }
+    });
+
+    private final HandlerThread mHandlerThread;
+
+    public void destroy() {
+        mHandlerThread.quitSafely();
+    }
+
+    public DConnectSettingProfile(final Context context, final int appIconId) {
+        mHandlerThread = new HandlerThread("SettingProfileThread");
+        mHandlerThread.start();
+        mCopyProtection = new SimpleCopyProtection(context, appIconId);
+        mCopyProtection.setEventListener(mEventListener, new Handler(mHandlerThread.getLooper()));
+
+        // GET /gotapi/setting/copyProtection
         addApi(new GetApi() {
             @Override
             public String getAttribute() {
-                return "copyGuard";
+                return "copyProtection";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
                 setResult(response, DConnectMessage.RESULT_OK);
                 Bundle root = response.getExtras();
-                root.putBoolean("enabled", false);
+                root.putBoolean("enabled", mCopyProtection.isEnabled());
                 response.putExtras(root);
                 return true;
             }
         });
 
-        // PUT /gotapi/setting/copyGuard
+        // PUT /gotapi/setting/copyProtection
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
-                return "copyGuard";
+                return "copyProtection";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
+                try {
+                    mCopyProtection.enable();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    return true;
+                } catch (Throwable e) {
+                    MessageUtils.setUnknownError(response, "Failed to enable copy guard: " + e.getMessage());
+                    return true;
+                }
             }
         });
 
-        // DELETE /gotapi/setting/copyGuard
+        // DELETE /gotapi/setting/copyProtection
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
-                return "copyGuard";
+                return "copyProtection";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
+                mCopyProtection.disable();
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
 
-        // PUT /gotapi/setting/copyGuard/onChange
+        // PUT /gotapi/setting/copyProtection/onChange
         addApi(new PutApi() {
             @Override
             public String getInterface() {
-                return "copyGuard";
+                return "copyProtection";
             }
 
             @Override
@@ -96,27 +127,14 @@ public class DConnectSettingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
+                if (DEBUG) {
+                    Log.d("ABC", "PUT /gotapi/setting/copyProtection/onChange: receiver = " + request.getParcelableExtra("receiver"));
+                }
 
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
                         setResult(response, DConnectMessage.RESULT_OK);
-
-                        // 以下、サンプルのイベントの定期的送信を開始.
-                        String taskId = serviceId;
-                        TimerTask task = new TimerTask() {
-                            @Override
-                            public void run() {
-                                Event event = EventManager.INSTANCE.getEvent(request);
-                                Intent message = EventManager.createEventMessage(event);
-                                Bundle root = message.getExtras();
-                                root.putBoolean("enabled", false);
-                                message.putExtras(root);
-                                sendEvent(message, event.getAccessToken());
-                            }
-                        };
-                        startTimer(taskId, task, 1000L);
                         break;
                     case INVALID_PARAMETER:
                         MessageUtils.setInvalidRequestParameterError(response);
@@ -129,11 +147,11 @@ public class DConnectSettingProfile extends DConnectProfile {
             }
         });
 
-        // DELETE /gotapi/setting/copyGuard/onChange
+        // DELETE /gotapi/setting/copyProtection/onChange
         addApi(new DeleteApi() {
             @Override
             public String getInterface() {
-                return "copyGuard";
+                return "copyProtection";
             }
 
             @Override
@@ -143,16 +161,10 @@ public class DConnectSettingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
                 EventError error = EventManager.INSTANCE.removeEvent(request);
                 switch (error) {
                     case NONE:
                         setResult(response, DConnectMessage.RESULT_OK);
-
-                        // 以下、サンプルのイベントの定期的送信を停止.
-                        String taskId = serviceId;
-                        stopTimer(taskId);
                         break;
                     case INVALID_PARAMETER:
                         MessageUtils.setInvalidRequestParameterError(response);
@@ -173,25 +185,5 @@ public class DConnectSettingProfile extends DConnectProfile {
     @Override
     public String getProfileName() {
         return "setting";
-    }
-
-    private final Map<String, TimerTask> mTimerTasks = new ConcurrentHashMap<>();
-    private final Timer mTimer = new Timer();
-
-    private void startTimer(final String taskId, final TimerTask task, final Long interval) {
-        synchronized (mTimerTasks) {
-            stopTimer(taskId);
-            mTimerTasks.put(taskId, task);
-            mTimer.scheduleAtFixedRate(task, 0, interval != null ? interval : 1000L);
-        }
-    }
-
-    private void stopTimer(final String taskId) {
-        synchronized (mTimerTasks) {
-            TimerTask timer = mTimerTasks.remove(taskId);
-            if (timer != null) {
-                timer.cancel();
-            }
-        }
     }
 }

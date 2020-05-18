@@ -1,7 +1,6 @@
 package org.deviceconnect.android.manager.protection;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -155,17 +154,14 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
     private void showInternal() {
         mMainHandler.post(() -> {
             mWindowManager.addView(mOverlayView, mLayoutParams);
-            // TODO オーバーレイを出していることを Notification で通知。
-
             mIsShown = true;
         });
     }
 
     private void startOverlayPermissionActivity() {
-        // TODO Android Q 以上では、Notification 経由で画面を起動する
         Intent intent = new Intent(mContext, OverlayPermissionActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
+        startActivity(mContext, intent);
     }
 
     @Override
@@ -208,7 +204,7 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
             PendingIntent pendingIntent = createPendingIntent(context);
 
             Notification notification;
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager notificationManager = getNotificationManager(context);
             String title = context.getString(R.string.copy_protection_notification_overlay_title);
             String body = context.getString(R.string.copy_protection_notification_overlay_body);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -227,25 +223,20 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
                                 .setContentText(body)
                                 .setContentIntent(pendingIntent);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    String channelId = context.getString(R.string.copy_protection_notification_channel_id);
-                    NotificationChannel channel = new NotificationChannel(
-                            channelId,
-                            context.getString(R.string.copy_protection_notification_channel_name),
-                            NotificationManager.IMPORTANCE_DEFAULT);
-                    channel.setDescription(context.getString(R.string.copy_protection_notification_channel_description));
-                    notificationManager.createNotificationChannel(channel);
-                    notificationBuilder.setChannelId(channelId);
+                    notificationBuilder.setChannelId(context.getString(R.string.copy_protection_notification_channel_id));
                 }
                 notification = notificationBuilder.build();
             }
-            // Build the notification and issues it with notification
-            // manager.
             notificationManager.notify(NOTIFICATION_ID, notification);
         }
 
         static void hide(final Context context) {
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager notificationManager = getNotificationManager(context);
             notificationManager.cancel(NOTIFICATION_ID);
+        }
+
+        static NotificationManager getNotificationManager(final Context context) {
+            return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         }
     }
 }

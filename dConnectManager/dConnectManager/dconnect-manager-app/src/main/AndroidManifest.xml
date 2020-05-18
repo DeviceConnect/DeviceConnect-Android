@@ -246,6 +246,12 @@
             android:exported="false"
             android:taskAffinity=".permission"
             android:theme="@style/Theme.Dialog.Transparent"/>
+
+        <!-- 開発者向けオプション表示確認画面 -->
+        <activity android:name=".protection.DeveloperToolDialogActivity"
+            android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
     </application>
 
 </manifest>

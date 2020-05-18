@@ -69,9 +69,9 @@ class DeveloperToolGuard extends CopyProtectionSetting {
     @Override
     public void enable() {
         if (!isEnabled()) {
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+            Intent intent = new Intent(mContext, DeveloperToolDialogActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            mContext.startActivity(intent);
+            startActivity(mContext, intent);
         }
     }
 

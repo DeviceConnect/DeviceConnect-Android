@@ -1,9 +1,14 @@
 package org.deviceconnect.android.manager.protection;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+
+import org.deviceconnect.android.manager.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +45,18 @@ public class SimpleCopyProtection extends CopyProtectionSetting {
 
         addSetting(new ScreenRecordingProtectionOverlay(context, appIconId));
         addSetting(new DeveloperToolGuard(context));
+
+        // コピー防止機能の通知チャンネル作成
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            String channelId = context.getString(R.string.copy_protection_notification_channel_id);
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    context.getString(R.string.copy_protection_notification_channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(context.getString(R.string.copy_protection_notification_channel_description));
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     private void addSetting(final CopyProtectionSetting setting) {

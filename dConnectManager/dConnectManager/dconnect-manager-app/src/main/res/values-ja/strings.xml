@@ -250,6 +250,11 @@
     <string name="copy_protection_notification_channel_description">コピー防止機能の動作状態に関する通知を行います。</string>
     <string name="copy_protection_notification_overlay_title">画面キャプチャ無効中</string>
     <string name="copy_protection_notification_overlay_body">画面キャプチャが禁止されています。クリックすると解除されます。</string>
+    <string name="copy_protection_notification_activity_warnning">コピー防止機能の画面起動要求</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_title">USB デバッグ設定</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_message">コンテンツコピー防止のために USB デバッグ設定を OFF にしてください。</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_positive">設定を開く</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_negative">キャンセル</string>
 
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">検索</string>

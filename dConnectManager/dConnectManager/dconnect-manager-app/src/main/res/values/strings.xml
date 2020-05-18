@@ -250,6 +250,11 @@
     <string name="copy_protection_notification_channel_description">Notifications about copy protection on this device\'s screen.</string>
     <string name="copy_protection_notification_overlay_title">Screen recording Disabled</string>
     <string name="copy_protection_notification_overlay_body">Screen recording on this device is disabled. Please click to enable.</string>
+    <string name="copy_protection_notification_activity_warnning">Requested to open window for copy protection.</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_title">USB Debug Setting</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_message">Disable "USB Debug" setting for copy protection feature.</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_positive">Open setting</string>
+    <string name="copy_protection_usb_debug_setting_prompt_dialog_negative">Cancel</string>
 
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">Search</string>

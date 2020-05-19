@@ -211,14 +211,14 @@ public class DConnectCore extends DevicePluginContext {
         mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
             @Override
             public void onPutEventSession(final Intent request, final DevicePlugin plugin) {
-                if (isSupportedKeepAlive(plugin)) {
+                if (plugin != null && isSupportedKeepAlive(plugin)) {
                     mKeepAliveManager.setManagementTable(plugin);
                 }
             }
 
             @Override
             public void onDeleteEventSession(final Intent request, final DevicePlugin plugin) {
-                if (isSupportedKeepAlive(plugin)) {
+                if (plugin != null && isSupportedKeepAlive(plugin)) {
                     mKeepAliveManager.removeManagementTable(plugin);
                 }
             }
@@ -522,10 +522,11 @@ public class DConnectCore extends DevicePluginContext {
         // リクエストにDeviceConnectManagerの情報を付加する
         request.putExtra(DConnectMessage.EXTRA_PRODUCT, mSettings.getProductName());
         request.putExtra(DConnectMessage.EXTRA_VERSION, mSettings.getVersionName());
-        request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, new ComponentName(getContext(), mDConnectInterface.getDConnectBroadcastReceiverClass()));
 
         DConnectProfile profile = getProfile(request);
         if (profile != null && !isDeliveryRequest(request)) {
+            mEventBroker.parseEventSessionForSelf(request);
+
             // Device Connect Manager へのリクエスト処理
             return profile.onRequest(request, response);
         } else {
@@ -534,6 +535,12 @@ public class DConnectCore extends DevicePluginContext {
             mConverterHelper.convertRequestMessage(request);
             return mDeliveryProfile.onRequest(request, response);
         }
+    }
+
+    @Override
+    public boolean sendEvent(final Intent event, final String accessToken) {
+        mEventBroker.onEventForSelf(event);
+        return true;
     }
 
     /**

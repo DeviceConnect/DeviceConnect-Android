@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager.profile;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 
@@ -37,23 +39,41 @@ public class DConnectSettingProfile extends DConnectProfile {
 
     private final SimpleCopyProtection mCopyProtection;
 
+    private final HandlerThread mHandlerThread;
+
     private final CopyProtectionSetting.EventListener mEventListener = ((setting, isEnabled) -> {
         List<Event> events = EventManager.INSTANCE.getEventList(null,
                 getProfileName(),
                 INTERFACE_COPY_PROTECTION,
                 ATTR_ON_CHANGE);
         for (Event event : events) {
-            Intent intent = EventManager.createEventMessage(event);
+            Intent intent = createEventMessage(event);
             intent.putExtra("enabled", isEnabled);
             sendEvent(intent, event.getAccessToken());
         }
     });
 
-    private final HandlerThread mHandlerThread;
+    private static Intent createEventMessage(final Event event) {
+        Intent message = MessageUtils.createEventIntent();
+        message.putExtra(DConnectMessage.EXTRA_SERVICE_ID, event.getServiceId());
+        message.putExtra(DConnectMessage.EXTRA_PROFILE, event.getProfile());
+        message.putExtra(DConnectMessage.EXTRA_INTERFACE, event.getInterface());
+        message.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, event.getAttribute());
+        message.putExtra(DConnectMessage.EXTRA_ACCESS_TOKEN, event.getAccessToken());
+        String receiverName = event.getReceiverName();
+        if (receiverName != null) {
+            ComponentName cn = ComponentName.unflattenFromString(receiverName);
+            message.setComponent(cn);
+        }
+        return message;
+    }
 
     public void destroy() {
         mHandlerThread.quitSafely();
     }
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     public DConnectSettingProfile(final Context context, final int appIconId) {
         mHandlerThread = new HandlerThread("SettingProfileThread");

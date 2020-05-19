@@ -52,25 +52,29 @@ public class EventProtocol {
      *
      * @param table セッションを保持するテーブル
      * @param request 追加リクエスト
-     * @param plugin プラグイン
+     * @param plugin プラグイン. Device Connect Manager 自身のイベントの場合は <code>null</code>
      * @return 追加に成功した場合はtrue、それ以外はfalse
      */
     boolean addSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
-        String serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
         String receiverId = createReceiverId(request, mSettings.requireOrigin());
         if (receiverId == null) {
             return false;
+        }
+        String serviceId = null;
+        String pluginId = null;
+        if (plugin != null) {
+            serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
+            pluginId = plugin.getPluginId();
         }
 
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
         if (accessToken == null) {
             DConnectProfile.setAccessToken(request, receiverId);
         }
-
-        EventSession session = mEventSessionFactory.createSession(request, serviceId, receiverId, plugin.getPluginId());
+        EventSession session = mEventSessionFactory.createSession(request, serviceId, receiverId, pluginId);
         table.add(session);
 
-        if (plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
+        if (plugin != null && plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
             DConnectProfile.setSessionKey(request, session.createKey());
         }
         return true;
@@ -85,10 +89,15 @@ public class EventProtocol {
      * @return 削除に成功した場合はtrue、それ以外はfalse
      */
     boolean removeSession(final EventSessionTable table, final Intent request, final DevicePlugin plugin) {
-        String serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
         String receiverId = createReceiverId(request, mSettings.requireOrigin());
         if (receiverId == null) {
             return false;
+        }
+        String serviceId = null;
+        String pluginId = null;
+        if (plugin != null) {
+            serviceId = DevicePluginManager.splitServiceId(plugin, DConnectProfile.getServiceID(request));
+            pluginId = plugin.getPluginId();
         }
 
         String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
@@ -96,12 +105,12 @@ public class EventProtocol {
             DConnectProfile.setAccessToken(request, receiverId);
         }
 
-        EventSession query = mEventSessionFactory.createSession(request, serviceId, receiverId, plugin.getPluginId());
+        EventSession query = mEventSessionFactory.createSession(request, serviceId, receiverId, pluginId);
         for (EventSession session : table.getAll()) {
             if (isSameSession(query, session)) {
                 table.remove(session);
 
-                if (plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
+                if (plugin != null && plugin.getPluginSdkVersionName().compareTo(V100) == 0) {
                     DConnectProfile.setSessionKey(request, session.createKey());
                 }
                 return true;

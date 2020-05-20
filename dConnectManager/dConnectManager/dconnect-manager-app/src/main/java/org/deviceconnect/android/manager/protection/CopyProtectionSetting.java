@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 
-import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.util.NotificationUtil;
 import org.deviceconnect.android.util.NotificationUtils;
 
 /**

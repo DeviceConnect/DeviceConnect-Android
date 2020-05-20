@@ -24,11 +24,17 @@ public class SimpleCopyProtection extends CopyProtectionSetting {
 
     private final List<CopyProtectionSetting> mCopyProtectionSettingList = new ArrayList<>();
 
+    private boolean mLastEnabled;
+
     private final EventListener mEventListener = (setting, isEnabled) -> {
         if (DEBUG) {
             Log.d(TAG, "onSettingChange: setting=" + setting.getClass().getSimpleName() + ", isEnabled=" + isEnabled);
         }
-        notifyOnSettingChange(isEnabled());
+        boolean enabled = isEnabled();
+        if (enabled != mLastEnabled) {
+            notifyOnSettingChange(enabled);
+        }
+        mLastEnabled = enabled;
     };
 
     private final Handler mHandler;
@@ -57,6 +63,8 @@ public class SimpleCopyProtection extends CopyProtectionSetting {
             channel.setDescription(context.getString(R.string.copy_protection_notification_channel_description));
             notificationManager.createNotificationChannel(channel);
         }
+
+        mLastEnabled = isEnabled();
     }
 
     private void addSetting(final CopyProtectionSetting setting) {

@@ -18,11 +18,11 @@ import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 /**
  * Android 端末上でシンプルなコピーガード機能を提供するクラス.
  */
-public class SimpleCopyProtection extends CopyProtectionSetting {
+public class SimpleCopyGuard extends CopyGuardSetting {
 
-    private static final String TAG = "SimpleCopyProtection";
+    private static final String TAG = "SimpleCopyGuard";
 
-    private final List<CopyProtectionSetting> mCopyProtectionSettingList = new ArrayList<>();
+    private final List<CopyGuardSetting> mCopyGuardSettingList = new ArrayList<>();
 
     private boolean mLastEnabled;
 
@@ -44,32 +44,32 @@ public class SimpleCopyProtection extends CopyProtectionSetting {
      * @param context コンテキスト
      * @param
      */
-    public SimpleCopyProtection(final Context context, final int appIconId) {
-        HandlerThread handlerThread = new HandlerThread("SimpleCopyProtectionThread");
+    public SimpleCopyGuard(final Context context, final int appIconId) {
+        HandlerThread handlerThread = new HandlerThread("SimpleCopyGuardThread");
         handlerThread.start();
         mHandler = new Handler(handlerThread.getLooper());
 
-        addSetting(new ScreenRecordingProtectionOverlay(context, appIconId));
+        addSetting(new ScreenRecordingGuardOverlay(context, appIconId));
         addSetting(new DeveloperToolGuard(context));
 
         // コピー防止機能の通知チャンネル作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            String channelId = context.getString(R.string.copy_protection_notification_channel_id);
+            String channelId = context.getString(R.string.copy_guard_notification_channel_id);
             NotificationChannel channel = new NotificationChannel(
                     channelId,
-                    context.getString(R.string.copy_protection_notification_channel_name),
+                    context.getString(R.string.copy_guard_notification_channel_name),
                     NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription(context.getString(R.string.copy_protection_notification_channel_description));
+            channel.setDescription(context.getString(R.string.copy_guard_notification_channel_description));
             notificationManager.createNotificationChannel(channel);
         }
 
         mLastEnabled = isEnabled();
     }
 
-    private void addSetting(final CopyProtectionSetting setting) {
+    private void addSetting(final CopyGuardSetting setting) {
         setting.setEventListener(mEventListener, mHandler);
-        mCopyProtectionSettingList.add(setting);
+        mCopyGuardSettingList.add(setting);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SimpleCopyProtection extends CopyProtectionSetting {
 
     @Override
     public boolean isEnabled() {
-        for (CopyProtectionSetting setting : mCopyProtectionSettingList) {
+        for (CopyGuardSetting setting : mCopyGuardSettingList) {
             if (!setting.isEnabled()) {
                 return false;
             }
@@ -89,14 +89,14 @@ public class SimpleCopyProtection extends CopyProtectionSetting {
 
     @Override
     public void enable() {
-        for (CopyProtectionSetting setting : mCopyProtectionSettingList) {
+        for (CopyGuardSetting setting : mCopyGuardSettingList) {
             setting.enable();
         }
     }
 
     @Override
     public void disable() {
-        for (CopyProtectionSetting setting : mCopyProtectionSettingList) {
+        for (CopyGuardSetting setting : mCopyGuardSettingList) {
             setting.disable();
         }
     }

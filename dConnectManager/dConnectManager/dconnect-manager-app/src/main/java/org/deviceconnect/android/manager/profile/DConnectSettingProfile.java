@@ -17,8 +17,8 @@ import android.util.Log;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.manager.protection.CopyProtectionSetting;
-import org.deviceconnect.android.manager.protection.SimpleCopyProtection;
+import org.deviceconnect.android.manager.protection.CopyGuardSetting;
+import org.deviceconnect.android.manager.protection.SimpleCopyGuard;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -33,18 +33,18 @@ import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 
 public class DConnectSettingProfile extends DConnectProfile {
 
-    private static final String INTERFACE_COPY_PROTECTION = "copyProtection";
+    private static final String INTERFACE_COPY_GUARD = "copyGuard";
 
     private static final String ATTR_ON_CHANGE = "onChange";
 
-    private final SimpleCopyProtection mCopyProtection;
+    private final SimpleCopyGuard mCopyGuard;
 
     private final HandlerThread mHandlerThread;
 
-    private final CopyProtectionSetting.EventListener mEventListener = ((setting, isEnabled) -> {
+    private final CopyGuardSetting.EventListener mEventListener = ((setting, isEnabled) -> {
         List<Event> events = EventManager.INSTANCE.getEventList(null,
                 getProfileName(),
-                INTERFACE_COPY_PROTECTION,
+                INTERFACE_COPY_GUARD,
                 ATTR_ON_CHANGE);
         for (Event event : events) {
             Intent intent = createEventMessage(event);
@@ -72,43 +72,40 @@ public class DConnectSettingProfile extends DConnectProfile {
         mHandlerThread.quitSafely();
     }
 
-    /** ロガー. */
-    private final Logger mLogger = Logger.getLogger("dconnect.manager");
-
     public DConnectSettingProfile(final Context context, final int appIconId) {
         mHandlerThread = new HandlerThread("SettingProfileThread");
         mHandlerThread.start();
-        mCopyProtection = new SimpleCopyProtection(context, appIconId);
-        mCopyProtection.setEventListener(mEventListener, new Handler(mHandlerThread.getLooper()));
+        mCopyGuard = new SimpleCopyGuard(context, appIconId);
+        mCopyGuard.setEventListener(mEventListener, new Handler(mHandlerThread.getLooper()));
 
-        // GET /gotapi/setting/copyProtection
+        // GET /gotapi/setting/copyGuard
         addApi(new GetApi() {
             @Override
             public String getAttribute() {
-                return "copyProtection";
+                return "copyGuard";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 setResult(response, DConnectMessage.RESULT_OK);
                 Bundle root = response.getExtras();
-                root.putBoolean("enabled", mCopyProtection.isEnabled());
+                root.putBoolean("enabled", mCopyGuard.isEnabled());
                 response.putExtras(root);
                 return true;
             }
         });
 
-        // PUT /gotapi/setting/copyProtection
+        // PUT /gotapi/setting/copyGuard
         addApi(new PutApi() {
             @Override
             public String getAttribute() {
-                return "copyProtection";
+                return "copyGuard";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 try {
-                    mCopyProtection.enable();
+                    mCopyGuard.enable();
                     setResult(response, DConnectMessage.RESULT_OK);
                     return true;
                 } catch (Throwable e) {
@@ -118,26 +115,26 @@ public class DConnectSettingProfile extends DConnectProfile {
             }
         });
 
-        // DELETE /gotapi/setting/copyProtection
+        // DELETE /gotapi/setting/copyGuard
         addApi(new DeleteApi() {
             @Override
             public String getAttribute() {
-                return "copyProtection";
+                return "copyGuard";
             }
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                mCopyProtection.disable();
+                mCopyGuard.disable();
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
             }
         });
 
-        // PUT /gotapi/setting/copyProtection/onChange
+        // PUT /gotapi/setting/copyGuard/onChange
         addApi(new PutApi() {
             @Override
             public String getInterface() {
-                return "copyProtection";
+                return "copyGuard";
             }
 
             @Override
@@ -148,7 +145,7 @@ public class DConnectSettingProfile extends DConnectProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 if (DEBUG) {
-                    Log.d("ABC", "PUT /gotapi/setting/copyProtection/onChange: receiver = " + request.getParcelableExtra("receiver"));
+                    Log.d("ABC", "PUT /gotapi/setting/copyGuard/onChange: receiver = " + request.getParcelableExtra("receiver"));
                 }
 
                 EventError error = EventManager.INSTANCE.addEvent(request);
@@ -167,11 +164,11 @@ public class DConnectSettingProfile extends DConnectProfile {
             }
         });
 
-        // DELETE /gotapi/setting/copyProtection/onChange
+        // DELETE /gotapi/setting/copyGuard/onChange
         addApi(new DeleteApi() {
             @Override
             public String getInterface() {
-                return "copyProtection";
+                return "copyGuard";
             }
 
             @Override

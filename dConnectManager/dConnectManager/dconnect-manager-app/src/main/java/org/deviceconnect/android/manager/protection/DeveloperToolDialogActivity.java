@@ -38,10 +38,10 @@ public class DeveloperToolDialogActivity extends Activity implements SimpleDialo
 
     private void showDialog() {
         SimpleDialogFragment f = new SimpleDialogFragment.Builder()
-                .setTitle(getString(R.string.copy_protection_usb_debug_setting_prompt_dialog_title))
-                .setMessage(getString(R.string.copy_protection_usb_debug_setting_prompt_dialog_message))
-                .setPositive(getString(R.string.copy_protection_usb_debug_setting_prompt_dialog_positive))
-                .setNegative(getString(R.string.copy_protection_usb_debug_setting_prompt_dialog_negative))
+                .setTitle(getString(R.string.copy_guard_usb_debug_setting_prompt_dialog_title))
+                .setMessage(getString(R.string.copy_guard_usb_debug_setting_prompt_dialog_message))
+                .setPositive(getString(R.string.copy_guard_usb_debug_setting_prompt_dialog_positive))
+                .setNegative(getString(R.string.copy_guard_usb_debug_setting_prompt_dialog_negative))
                 .setCancelable(false)
                 .create();
         f.show(getFragmentManager(), TAG_DIALOG);

@@ -12,7 +12,7 @@ import android.provider.Settings;
 /**
  * 開発者ツールの使用を防止する.
  */
-class DeveloperToolGuard extends CopyProtectionSetting {
+class DeveloperToolGuard extends CopyGuardSetting {
 
     private static final int FLAG_ADB_ENABLED = 1;
 

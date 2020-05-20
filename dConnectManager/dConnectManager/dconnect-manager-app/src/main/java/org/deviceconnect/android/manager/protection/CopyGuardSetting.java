@@ -11,10 +11,10 @@ import org.deviceconnect.android.util.NotificationUtils;
 /**
  * コピーガード設定の基底クラス.
  */
-public abstract class CopyProtectionSetting {
+public abstract class CopyGuardSetting {
 
     public interface EventListener {
-        void onSettingChange(CopyProtectionSetting setting, boolean isEnabled);
+        void onSettingChange(CopyGuardSetting setting, boolean isEnabled);
     }
 
     protected EventListener mEventListener;
@@ -36,7 +36,7 @@ public abstract class CopyProtectionSetting {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             NotificationUtils.createNotificationChannel(context);
             NotificationUtils.notify(context, hashCode(), 0, intent,
-                    context.getString(R.string.copy_protection_notification_activity_warnning));
+                    context.getString(R.string.copy_guard_notification_activity_warnning));
         } else {
             context.startActivity(intent);
         }
@@ -59,7 +59,7 @@ public abstract class CopyProtectionSetting {
         }
 
         @Override
-        public void onSettingChange(final CopyProtectionSetting setting, final boolean isEnabled) {
+        public void onSettingChange(final CopyGuardSetting setting, final boolean isEnabled) {
             mHandler.post(() -> mEventListener.onSettingChange(setting, isEnabled));
         }
     }

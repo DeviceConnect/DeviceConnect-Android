@@ -27,7 +27,7 @@ import static org.deviceconnect.android.manager.BuildConfig.DEBUG;
 /**
  * 画面キャプチャを禁止するためのオーバーレイ.
  */
-class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
+class ScreenRecordingGuardOverlay extends CopyGuardSetting {
 
     static final String ACTION_PERMISSION_RESULT = "org.deviceconnect.android.manager.action.PERMISSION_RESULT";
 
@@ -63,8 +63,8 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
 
     private final int mAppIconId;
 
-    ScreenRecordingProtectionOverlay(final Context context,
-                                     final int appIconId) {
+    ScreenRecordingGuardOverlay(final Context context,
+                                final int appIconId) {
         mContext = context;
         mAppIconId = appIconId;
         registerReceiver(context);
@@ -72,7 +72,7 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mOverlayView = inflater.inflate(R.layout.copy_protection_overlay, null);
+        mOverlayView = inflater.inflate(R.layout.copy_guard_overlay, null);
         mOverlayView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(final View view) {
@@ -205,8 +205,8 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
 
             Notification notification;
             NotificationManager notificationManager = getNotificationManager(context);
-            String title = context.getString(R.string.copy_protection_notification_overlay_title);
-            String body = context.getString(R.string.copy_protection_notification_overlay_body);
+            String title = context.getString(R.string.copy_guard_notification_overlay_title);
+            String body = context.getString(R.string.copy_guard_notification_overlay_body);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 NotificationCompat.Builder notificationBuilder =
                         new NotificationCompat.Builder(context)
@@ -223,7 +223,7 @@ class ScreenRecordingProtectionOverlay extends CopyProtectionSetting {
                                 .setContentText(body)
                                 .setContentIntent(pendingIntent);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationBuilder.setChannelId(context.getString(R.string.copy_protection_notification_channel_id));
+                    notificationBuilder.setChannelId(context.getString(R.string.copy_guard_notification_channel_id));
                 }
                 notification = notificationBuilder.build();
             }

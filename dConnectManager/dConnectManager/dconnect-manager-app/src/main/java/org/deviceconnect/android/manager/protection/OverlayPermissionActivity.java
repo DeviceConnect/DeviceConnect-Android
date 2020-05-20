@@ -37,7 +37,7 @@ public class OverlayPermissionActivity extends Activity {
 
         if (requestCode == REQUEST_CODE_OVERLAY) {
             if (Settings.canDrawOverlays(getApplicationContext())) {
-                Intent broadcast = new Intent(ScreenRecordingProtectionOverlay.ACTION_PERMISSION_RESULT);
+                Intent broadcast = new Intent(ScreenRecordingGuardOverlay.ACTION_PERMISSION_RESULT);
                 sendBroadcast(broadcast);
             }
         }

@@ -1,3 +1,9 @@
+/*
+ SimpleCopyGuard.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.protection;
 
 import android.app.NotificationChannel;
@@ -17,6 +23,8 @@ import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 
 /**
  * Android 端末上でシンプルなコピーガード機能を提供するクラス.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class SimpleCopyGuard extends CopyGuardSetting {
 

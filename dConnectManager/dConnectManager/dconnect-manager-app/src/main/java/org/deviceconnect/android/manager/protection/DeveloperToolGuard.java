@@ -1,3 +1,9 @@
+/*
+ DeveloperToolGuard.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.protection;
 
 import android.content.ContentResolver;
@@ -11,6 +17,8 @@ import android.provider.Settings;
 
 /**
  * 開発者ツールの使用を防止する.
+ *
+ * @author NTT DOCOMO, INC.
  */
 class DeveloperToolGuard extends CopyGuardSetting {
 

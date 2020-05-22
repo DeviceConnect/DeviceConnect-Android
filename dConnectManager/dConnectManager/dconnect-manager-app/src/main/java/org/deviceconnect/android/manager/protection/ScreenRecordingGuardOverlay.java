@@ -1,3 +1,9 @@
+/*
+ ScreenRecordingGuardOverlay.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.protection;
 
 import android.app.Notification;
@@ -26,6 +32,8 @@ import static org.deviceconnect.android.manager.BuildConfig.DEBUG;
 
 /**
  * 画面キャプチャを禁止するためのオーバーレイ.
+ *
+ * @author NTT DOCOMO, INC.
  */
 class ScreenRecordingGuardOverlay extends CopyGuardSetting {
 

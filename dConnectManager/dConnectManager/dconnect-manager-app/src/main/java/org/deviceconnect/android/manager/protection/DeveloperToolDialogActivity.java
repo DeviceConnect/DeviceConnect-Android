@@ -1,3 +1,9 @@
+/*
+ DeveloperToolDialogActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.protection;
 
 import android.app.Activity;
@@ -9,6 +15,8 @@ import org.deviceconnect.android.manager.util.SimpleDialogFragment;
 
 /**
  * 開発者向けオプション画面を開くことの確認ダイアログを表示するアクティビティ.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class DeveloperToolDialogActivity extends Activity implements SimpleDialogFragment.Callback {
 

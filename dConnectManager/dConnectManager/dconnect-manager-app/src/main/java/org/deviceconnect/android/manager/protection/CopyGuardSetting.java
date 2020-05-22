@@ -1,3 +1,9 @@
+/*
+ CopyGuardSetting.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.protection;
 
 import android.content.Context;
@@ -10,6 +16,8 @@ import org.deviceconnect.android.util.NotificationUtils;
 
 /**
  * コピーガード設定の基底クラス.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public abstract class CopyGuardSetting {
 

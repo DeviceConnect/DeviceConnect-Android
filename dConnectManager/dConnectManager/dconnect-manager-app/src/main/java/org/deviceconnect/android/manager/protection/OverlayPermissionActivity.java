@@ -1,3 +1,9 @@
+/*
+ OverlayPermissionActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.protection;
 
 import android.annotation.TargetApi;
@@ -12,6 +18,8 @@ import androidx.annotation.Nullable;
 
 /**
  * オーバーレイの許可を取得する画面.
+ *
+ * @author NTT DOCOMO, INC.
  */
 @TargetApi(Build.VERSION_CODES.M)
 public class OverlayPermissionActivity extends Activity {

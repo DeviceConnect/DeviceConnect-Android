@@ -27,10 +27,14 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 
+/**
+ * Setting プロファイル.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class DConnectSettingProfile extends DConnectProfile {
 
     private static final String INTERFACE_COPY_GUARD = "copyGuard";

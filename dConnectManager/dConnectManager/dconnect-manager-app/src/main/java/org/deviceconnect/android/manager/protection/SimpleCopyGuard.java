@@ -50,7 +50,7 @@ public class SimpleCopyGuard extends CopyGuardSetting {
     /**
      * コンストラクタ.
      * @param context コンテキスト
-     * @param
+     * @param appIconId アプリアイコンID
      */
     public SimpleCopyGuard(final Context context, final int appIconId) {
         HandlerThread handlerThread = new HandlerThread("SimpleCopyGuardThread");
@@ -78,6 +78,13 @@ public class SimpleCopyGuard extends CopyGuardSetting {
     private void addSetting(final CopyGuardSetting setting) {
         setting.setEventListener(mEventListener, mHandler);
         mCopyGuardSettingList.add(setting);
+    }
+
+    @Override
+    public void reset() {
+        for (CopyGuardSetting setting : mCopyGuardSettingList) {
+            setting.reset();
+        }
     }
 
     @Override

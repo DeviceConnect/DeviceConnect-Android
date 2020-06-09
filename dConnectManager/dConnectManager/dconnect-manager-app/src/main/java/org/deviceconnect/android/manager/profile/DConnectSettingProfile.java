@@ -17,7 +17,6 @@ import android.util.Log;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.manager.protection.CopyGuardSetting;
 import org.deviceconnect.android.manager.protection.SimpleCopyGuard;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -28,7 +27,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
-import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
+import static org.deviceconnect.android.manager.BuildConfig.DEBUG;
 
 /**
  * Setting プロファイル.
@@ -37,25 +36,25 @@ import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
  */
 public class DConnectSettingProfile extends DConnectProfile {
 
+    /**
+     * インターフェース名: copyGuard
+     */
     private static final String INTERFACE_COPY_GUARD = "copyGuard";
 
+    /**
+     * アトリビュート名: onChange
+     */
     private static final String ATTR_ON_CHANGE = "onChange";
 
-    private final SimpleCopyGuard mCopyGuard;
+    /**
+     * コピーガード機能管理クラス.
+     */
+    private SimpleCopyGuard mCopyGuard;
 
-    private final HandlerThread mHandlerThread;
-
-    private final CopyGuardSetting.EventListener mEventListener = ((setting, isEnabled) -> {
-        List<Event> events = EventManager.INSTANCE.getEventList(null,
-                getProfileName(),
-                INTERFACE_COPY_GUARD,
-                ATTR_ON_CHANGE);
-        for (Event event : events) {
-            Intent intent = createEventMessage(event);
-            intent.putExtra("enabled", isEnabled);
-            sendEvent(intent, event.getAccessToken());
-        }
-    });
+    /**
+     * コピーガード機能のイベントを受信するスレッド.
+     */
+    private HandlerThread mHandlerThread;
 
     private static Intent createEventMessage(final Event event) {
         Intent message = MessageUtils.createEventIntent();
@@ -72,16 +71,7 @@ public class DConnectSettingProfile extends DConnectProfile {
         return message;
     }
 
-    public void destroy() {
-        mHandlerThread.quitSafely();
-    }
-
     public DConnectSettingProfile(final Context context, final int appIconId) {
-        mHandlerThread = new HandlerThread("SettingProfileThread");
-        mHandlerThread.start();
-        mCopyGuard = new SimpleCopyGuard(context, appIconId);
-        mCopyGuard.setEventListener(mEventListener, new Handler(mHandlerThread.getLooper()));
-
         // GET /gotapi/setting/copyGuard
         addApi(new GetApi() {
             @Override
@@ -92,9 +82,7 @@ public class DConnectSettingProfile extends DConnectProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 setResult(response, DConnectMessage.RESULT_OK);
-                Bundle root = response.getExtras();
-                root.putBoolean("enabled", mCopyGuard.isEnabled());
-                response.putExtras(root);
+                response.putExtra("enabled", mCopyGuard.isEnabled());
                 return true;
             }
         });
@@ -200,7 +188,30 @@ public class DConnectSettingProfile extends DConnectProfile {
                 return true;
             }
         });
+    }
 
+    public void start(final Context context, final int appIconId) {
+        mHandlerThread = new HandlerThread("SettingProfileThread");
+        mHandlerThread.start();
+        mCopyGuard = new SimpleCopyGuard(context, appIconId);
+        mCopyGuard.setEventListener(((setting, isEnabled) -> {
+            List<Event> events = EventManager.INSTANCE.getEventList(null,
+                    getProfileName(),
+                    INTERFACE_COPY_GUARD,
+                    ATTR_ON_CHANGE);
+            for (Event event : events) {
+                Intent intent = createEventMessage(event);
+                intent.putExtra("enabled", isEnabled);
+                sendEvent(intent, event.getAccessToken());
+            }
+        }), new Handler(mHandlerThread.getLooper()));
+    }
+
+    public void stop() {
+        mCopyGuard.reset();
+        mCopyGuard = null;
+        mHandlerThread.quitSafely();
+        mHandlerThread = null;
     }
 
     @Override

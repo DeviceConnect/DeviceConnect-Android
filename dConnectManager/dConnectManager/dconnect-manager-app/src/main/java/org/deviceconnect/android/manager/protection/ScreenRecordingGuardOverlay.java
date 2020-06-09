@@ -104,9 +104,10 @@ class ScreenRecordingGuardOverlay extends CopyGuardSetting {
         mMainHandler = new Handler(Looper.getMainLooper());
     }
 
-    void release() {
+    @Override
+    public void reset() {
         hideNotification();
-        mContext.unregisterReceiver(mBroadcastReceiver);
+        disable();
     }
 
     private void registerReceiver(final Context context) {

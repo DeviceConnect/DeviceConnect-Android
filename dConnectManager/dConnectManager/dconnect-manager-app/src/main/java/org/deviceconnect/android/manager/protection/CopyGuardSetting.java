@@ -35,6 +35,9 @@ public abstract class CopyGuardSetting {
 
     public abstract void disable();
 
+    public void reset() {
+    }
+
     public void setEventListener(final EventListener listener, final Handler handler) {
         mEventListener = new EventListenerHolder(listener, handler);
     }

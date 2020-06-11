@@ -12,6 +12,7 @@ if (githubPropertiesFile.exists()) {
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'jp.kshoji:javax-sound-midi:0.0.3'
     testImplementation 'junit:junit:4.12'
 }
 

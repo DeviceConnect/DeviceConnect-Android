@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * ノート・オフ・メッセージ.
  */
-public class NoteOffMessage extends ChannelVoiceMessage {
+public class NoteOffMessage extends ChannelVoiceMessage implements NoteMessage {
 
     public static final int MESSAGE_TYPE = 0b1000;
 

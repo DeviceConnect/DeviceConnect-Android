@@ -44,6 +44,14 @@ public class ControlChangeMessage extends ChannelVoiceMessage {
         buffer.put((byte) (mControlValue & 0x7F));
     }
 
+    public int getControlNumber() {
+        return mControlNumber;
+    }
+
+    public int getControlValue() {
+        return mControlValue;
+    }
+
     public class Builder extends ChannelVoiceMessage.Builder {
 
         /**

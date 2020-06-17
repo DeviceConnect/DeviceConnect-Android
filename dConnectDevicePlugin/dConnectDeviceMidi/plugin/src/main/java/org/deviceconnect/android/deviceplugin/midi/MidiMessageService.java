@@ -34,10 +34,6 @@ public class MidiMessageService extends DConnectMessageService {
         }
     };
 
-    private MidiManager.OnDeviceOpenedListener mDeviceOpenedListener = (midiDevice) -> {
-
-    };
-
     private Handler mDeviceCallbackHandler;
 
     private Handler mDeviceConnectionHandler;
@@ -77,7 +73,14 @@ public class MidiMessageService extends DConnectMessageService {
                         getServiceProvider().addService(service);
                     }
                 } else if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_OUTPUT) {
-                    // TODO 出力用ポートのサービスを作成する
+                    serviceId = DConnectMidiOutputService.createServiceId(deviceInfo, port);
+                    DConnectService service = getServiceProvider().getService(serviceId);
+                    if (service != null) {
+                        service.setOnline(true);
+                    } else {
+                        service = DConnectMidiOutputService.createService(midiDevice, port);
+                        getServiceProvider().addService(service);
+                    }
                 }
             }
         }), mDeviceConnectionHandler);
@@ -90,7 +93,7 @@ public class MidiMessageService extends DConnectMessageService {
                 if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_INPUT) {
                     serviceId = DConnectMidiInputService.createServiceId(deviceInfo, port);
                 } else if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_OUTPUT) {
-                    // TODO 出力用ポートのサービスをオフラインにする
+                    serviceId = DConnectMidiOutputService.createServiceId(deviceInfo, port);
                 }
                 if (serviceId != null) {
                     DConnectService service = getServiceProvider().getService(serviceId);

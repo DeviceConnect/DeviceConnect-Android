@@ -97,7 +97,8 @@ public class MidiMessageService extends DConnectMessageService {
                 }
                 if (serviceId != null) {
                     DConnectService service = getServiceProvider().getService(serviceId);
-                    if (service != null) {
+                    if (service instanceof DConnectMidiService) {
+                        ((DConnectMidiService) service).destroy();
                         service.setOnline(false);
                     }
                 }

@@ -18,7 +18,7 @@ import org.deviceconnect.message.DConnectMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class DConnectMidiInputService extends DConnectService implements MidiMessageSender {
+public class DConnectMidiInputService extends DConnectMidiService implements MidiMessageSender {
 
     private final MidiDevice mMidiDevice;
 
@@ -157,12 +157,14 @@ public class DConnectMidiInputService extends DConnectService implements MidiMes
         }
     }
 
-    void destroy() {
+    @Override
+    public void destroy() {
         synchronized (mLock) {
             if (mMidiInputPort != null) {
                 try {
                     mMidiInputPort.close();
                 } catch (IOException ignored) {}
+                mMidiInputPort = null;
             }
         }
     }

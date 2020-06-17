@@ -22,14 +22,13 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class DConnectMidiOutputService extends DConnectService {
+public class DConnectMidiOutputService extends DConnectMidiService {
 
     /**
      * キーイベントのキータイプ定義.
@@ -122,7 +121,8 @@ public class DConnectMidiOutputService extends DConnectService {
         }
     }
 
-    public void disconnect() {
+    @Override
+    public void destroy() {
         MidiOutputPort outputPort = mMidiOutputPort;
         if (outputPort != null) {
             outputPort.disconnect(mMidiReceiver);
@@ -130,6 +130,8 @@ public class DConnectMidiOutputService extends DConnectService {
                 outputPort.close();
             } catch (IOException ignored) {}
             setOnline(false);
+
+            mMidiOutputPort = null;
         }
     }
 

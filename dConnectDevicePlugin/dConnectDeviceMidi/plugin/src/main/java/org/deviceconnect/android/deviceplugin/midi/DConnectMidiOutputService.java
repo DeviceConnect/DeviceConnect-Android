@@ -12,6 +12,7 @@ import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessageParser;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
+import org.deviceconnect.android.deviceplugin.midi.profiles.MidiKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiSoundControllerProfile;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiVolumeControllerProfile;
 import org.deviceconnect.android.event.Event;
@@ -109,6 +110,7 @@ public class DConnectMidiOutputService extends DConnectMidiService {
         connect();
 
         addProfile(new MidiOutputProfile(midiDevice));
+        addProfile(new MidiKeyEventProfile());
         addProfile(new MidiSoundControllerProfile());
         addProfile(new MidiVolumeControllerProfile());
     }

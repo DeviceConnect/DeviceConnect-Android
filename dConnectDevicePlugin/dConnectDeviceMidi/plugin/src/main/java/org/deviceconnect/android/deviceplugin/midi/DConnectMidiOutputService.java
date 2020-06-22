@@ -7,11 +7,9 @@ import android.media.midi.MidiOutputPort;
 import android.media.midi.MidiReceiver;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.midi.core.ControlChangeMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessageParser;
-import org.deviceconnect.android.deviceplugin.midi.core.NoteMessage;
-import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
+import org.deviceconnect.android.deviceplugin.midi.profiles.BaseMidiOutputProfile;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiSoundControllerProfile;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiVolumeControllerProfile;
@@ -30,11 +28,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class DConnectMidiOutputService extends DConnectMidiService {
-
-    /**
-     * キーイベントのキータイプ定義.
-     */
-    private static final int KEY_TYPE_USER = 0x00008000;
 
     private final Logger mLogger = Logger.getLogger("midi-plugin");
 
@@ -59,23 +52,21 @@ public class DConnectMidiOutputService extends DConnectMidiService {
             }
 
             MidiMessage message = mMessageParser.parse(data, offset, count);
-            if (message instanceof NoteMessage) {
-                int channel = ((NoteMessage) message).getChannelNumber();
-                int noteNumber = ((NoteMessage) message).getChannelNumber();
-                boolean isOn = message instanceof NoteOnMessage;
-                String noteName = NoteNameTable.numberToName(noteNumber);
-                if (noteName != null) {
-                    sendNoteEvent(channel, noteName, isOn);
-                }
-                sendKeyChangeEvent(channel, noteNumber, isOn);
-            } else if (message instanceof ControlChangeMessage) {
-                sendVolumeChangeEvent((ControlChangeMessage) message);
+            if (message != null) {
+                handleParsedMessage(message, timestamp);
             }
-
         }
     };
 
     private MidiOutputPort mMidiOutputPort;
+
+    private void handleParsedMessage(final MidiMessage message, final long timestamp) {
+        for (DConnectProfile profile : getProfileList()) {
+            if (profile instanceof BaseMidiOutputProfile) {
+                ((BaseMidiOutputProfile) profile).sendEvent(message, timestamp);
+            }
+        }
+    }
 
     static DConnectMidiOutputService createService(final MidiDevice device,
                                                    final MidiDeviceInfo.PortInfo portInfo) {
@@ -134,51 +125,6 @@ public class DConnectMidiOutputService extends DConnectMidiService {
             setOnline(false);
 
             mMidiOutputPort = null;
-        }
-    }
-
-    private void sendNoteEvent(final int channel, final String noteName, final boolean isOn) {
-        List<Event> events = EventManager.INSTANCE.getEventList(getId(), "soundController", null, "onNote");
-        for (Event event : events) {
-            Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("channel", channel);
-            intent.putExtra("note", noteName);
-            intent.putExtra("state", isOn ? "on" : "off");
-            getPluginContext().sendEvent(intent, event.getAccessToken());
-        }
-    }
-
-    private void sendKeyChangeEvent(final int channel, final int noteNumber, final boolean isOn) {
-        final int id = createKeyId(channel, noteNumber);
-
-        for (Event event : EventManager.INSTANCE.getEventList(getId(), "keyEvent", null, "onKeyChange")) {
-            Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("id", id);
-            intent.putExtra("state", isOn ? "down" : "up");
-            getPluginContext().sendEvent(intent, event.getAccessToken());
-        }
-
-        String attribute = isOn ? "onDown" : "onUp";
-        for (Event event : EventManager.INSTANCE.getEventList(getId(), "keyEvent", null, attribute)) {
-            Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("id", id);
-            getPluginContext().sendEvent(intent, event.getAccessToken());
-        }
-    }
-
-    private static int createKeyId(final int channel, final int noteNumber) {
-        return KEY_TYPE_USER + (channel * 0x7F) + noteNumber;
-    }
-
-    private void sendVolumeChangeEvent(final ControlChangeMessage message) {
-        int channel = message.getChannelNumber();
-        int value = message.getControlValue();
-        List<Event> events = EventManager.INSTANCE.getEventList(getId(), "volumeController", null, "onVolumeChange");
-        for (Event event : events) {
-            Intent intent = EventManager.createEventMessage(event);
-            intent.putExtra("channel", channel);
-            intent.putExtra("value", value);
-            getPluginContext().sendEvent(intent, event.getAccessToken());
         }
     }
 

@@ -3,15 +3,23 @@ package org.deviceconnect.android.deviceplugin.midi.profiles;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
+import androidx.annotation.NonNull;
+
+import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.NoteMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.message.DConnectMessage;
 
-public class MidiKeyEventProfile extends BaseMidiProfile {
+import java.util.List;
+
+public class MidiKeyEventProfile extends BaseMidiOutputProfile {
+
+    /**
+     * キーイベントのキータイプ定義.
+     */
+    private static final int KEY_TYPE_USER = 0x00008000;
 
     public MidiKeyEventProfile() {
 
@@ -24,17 +32,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                Bundle root = response.getExtras();
-                Bundle keyevent = new Bundle();
-                keyevent.putInt("id", 0);
-                keyevent.putString("config", "test");
-                root.putBundle("keyevent", keyevent);
-                response.putExtras(root);
-                return true;
+                return onEventCacheRequest(request, response);
             }
         });
 
@@ -47,19 +45,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onAddEventRequest(request, response);
             }
         });
 
@@ -72,21 +58,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                switch (error) {
-                    case NONE:
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    case NOT_FOUND:
-                        MessageUtils.setUnknownError(response, "Event is not registered.");
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onRemoveEventRequest(request, response);
             }
         });
 
@@ -99,18 +71,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                Bundle root = response.getExtras();
-                Bundle keyevent = new Bundle();
-                keyevent.putString("state", "test");
-                keyevent.putInt("id", 0);
-                keyevent.putString("config", "test");
-                root.putBundle("keyevent", keyevent);
-                response.putExtras(root);
-                return true;
+                return onEventCacheRequest(request, response);
             }
         });
 
@@ -123,19 +84,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onAddEventRequest(request, response);
             }
         });
 
@@ -148,22 +97,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    case NOT_FOUND:
-                        MessageUtils.setUnknownError(response, "Event is not registered.");
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onRemoveEventRequest(request, response);
             }
         });
 
@@ -176,17 +110,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                Bundle root = response.getExtras();
-                Bundle keyevent = new Bundle();
-                keyevent.putInt("id", 0);
-                keyevent.putString("config", "test");
-                root.putBundle("keyevent", keyevent);
-                response.putExtras(root);
-                return true;
+                return onEventCacheRequest(request, response);
             }
         });
 
@@ -199,19 +123,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onAddEventRequest(request, response);
             }
         });
 
@@ -224,22 +136,7 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    case NOT_FOUND:
-                        MessageUtils.setUnknownError(response, "Event is not registered.");
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onRemoveEventRequest(request, response);
             }
         });
 
@@ -248,5 +145,114 @@ public class MidiKeyEventProfile extends BaseMidiProfile {
     @Override
     public String getProfileName() {
         return "keyEvent";
+    }
+
+    @Override
+    public void convertMessageToEvent(final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
+        if (message instanceof NoteMessage) {
+            int channel = ((NoteMessage) message).getChannelNumber();
+            int noteNumber = ((NoteMessage) message).getChannelNumber();
+            boolean isOn = message instanceof NoteOnMessage;
+            int keyId = createKeyId(channel, noteNumber);
+
+            results.add(new KeyChangeEvent(timestamp, keyId, isOn));
+            if (isOn) {
+                results.add(new KeyDownEvent(timestamp, keyId));
+            } else {
+                results.add(new KeyUpEvent(timestamp, keyId));
+            }
+        }
+    }
+
+    private static int createKeyId(final int channel, final int noteNumber) {
+        return KEY_TYPE_USER + (channel * 0x7F) + noteNumber;
+    }
+
+    private abstract class KeyEvent extends MessageEvent {
+        final int mId;
+
+        KeyEvent(final long timestamp, final int id) {
+            super(timestamp);
+            mId = id;
+        }
+
+        int getId() {
+            return mId;
+        }
+
+        @Override
+        void putExtras(final Intent intent) {
+            Bundle keyEvent = new Bundle();
+            keyEvent.putInt("id", getId());
+            intent.putExtra("keyevent", keyEvent);
+        }
+
+        @NonNull
+        @Override
+        String getProfile() {
+            return getProfileName();
+        }
+
+        @Override
+        String getInterface() {
+            return null;
+        }
+    }
+
+    private class KeyChangeEvent extends KeyEvent {
+        static final String STATE_UP = "up";
+        static final String STATE_DOWN = "down";
+
+        final String mState;
+
+        KeyChangeEvent(final long timestamp, final int id, final String state) {
+            super(timestamp, id);
+            mState = state;
+        }
+
+        KeyChangeEvent(final long timestamp, final int id, final boolean isDown) {
+            this(timestamp, id, isDown ? STATE_DOWN : STATE_UP);
+        }
+
+        String getState() {
+            return mState;
+        }
+
+        @Override
+        void putExtras(final Intent intent) {
+            Bundle keyEvent = new Bundle();
+            keyEvent.putInt("id", getId());
+            keyEvent.putString("state", getState());
+            intent.putExtra("keyevent", keyEvent);
+        }
+
+        @Override
+        String getAttribute() {
+            return "onKeyChange";
+        }
+    }
+
+    private class KeyDownEvent extends KeyEvent {
+
+        KeyDownEvent(long timestamp, int id) {
+            super(timestamp, id);
+        }
+
+        @Override
+        String getAttribute() {
+            return "onDown";
+        }
+    }
+
+    private class KeyUpEvent extends KeyEvent {
+
+        KeyUpEvent(long timestamp, int id) {
+            super(timestamp, id);
+        }
+
+        @Override
+        String getAttribute() {
+            return "onUp";
+        }
     }
 }

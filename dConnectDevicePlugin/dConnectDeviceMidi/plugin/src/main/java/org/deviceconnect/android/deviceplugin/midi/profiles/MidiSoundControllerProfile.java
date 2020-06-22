@@ -1,17 +1,20 @@
 package org.deviceconnect.android.deviceplugin.midi.profiles;
 
 import android.content.Intent;
-import android.os.Bundle;
 
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
+import androidx.annotation.NonNull;
+
+import org.deviceconnect.android.deviceplugin.midi.NoteNameTable;
+import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.NoteMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.message.DConnectMessage;
 
-public class MidiSoundControllerProfile extends BaseMidiProfile {
+import java.util.List;
+
+public class MidiSoundControllerProfile extends BaseMidiOutputProfile {
 
     public MidiSoundControllerProfile() {
 
@@ -24,16 +27,7 @@ public class MidiSoundControllerProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                Bundle root = response.getExtras();
-                root.putInt("channel", 0);
-                root.putString("note", "test");
-                root.putString("state", "test");
-                response.putExtras(root);
-                return true;
+                return onEventCacheRequest(request, response);
             }
         });
 
@@ -46,19 +40,7 @@ public class MidiSoundControllerProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onAddEventRequest(request, response);
             }
         });
 
@@ -71,22 +53,7 @@ public class MidiSoundControllerProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    case NOT_FOUND:
-                        MessageUtils.setUnknownError(response, "Event is not registered.");
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onRemoveEventRequest(request, response);
             }
         });
 
@@ -95,5 +62,65 @@ public class MidiSoundControllerProfile extends BaseMidiProfile {
     @Override
     public String getProfileName() {
         return "soundController";
+    }
+
+    @Override
+    void convertMessageToEvent(final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
+        if (message instanceof NoteMessage) {
+            int channel = ((NoteMessage) message).getChannelNumber();
+            int noteNumber = ((NoteMessage) message).getChannelNumber();
+            boolean isOn = message instanceof NoteOnMessage;
+            String noteName = NoteNameTable.numberToName(noteNumber);
+            if (noteName != null) {
+                results.add(new NoteEvent(timestamp, channel, noteName, isOn));
+            }
+        }
+    }
+
+    private class NoteEvent extends BaseMidiOutputProfile.MessageEvent {
+
+        static final String STATE_ON = "on";
+
+        static final String STATE_OFF = "off";
+
+        private final int mChannel;
+
+        private final String mNoteName;
+
+        private final String mState;
+
+        NoteEvent(final long timestamp, final int channel, final String noteName, final String state) {
+            super(timestamp);
+            mChannel = channel;
+            mNoteName = noteName;
+            mState = state;
+        }
+
+        NoteEvent(final long timestamp, final int channel, final String noteName, final boolean isOn) {
+            this(timestamp, channel, noteName, isOn ? STATE_ON : STATE_OFF);
+        }
+
+        @Override
+        void putExtras(final Intent intent) {
+            intent.putExtra("channel", mChannel);
+            intent.putExtra("note", mNoteName);
+            intent.putExtra("state", mState);
+        }
+
+        @NonNull
+        @Override
+        String getProfile() {
+            return getProfileName();
+        }
+
+        @Override
+        String getInterface() {
+            return null;
+        }
+
+        @Override
+        String getAttribute() {
+            return "onNote";
+        }
     }
 }

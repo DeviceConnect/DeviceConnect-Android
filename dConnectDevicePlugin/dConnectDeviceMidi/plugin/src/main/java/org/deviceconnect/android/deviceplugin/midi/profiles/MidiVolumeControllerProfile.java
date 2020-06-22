@@ -1,17 +1,18 @@
 package org.deviceconnect.android.deviceplugin.midi.profiles;
 
 import android.content.Intent;
-import android.os.Bundle;
 
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
+import androidx.annotation.NonNull;
+
+import org.deviceconnect.android.deviceplugin.midi.core.ControlChangeMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.message.DConnectMessage;
 
-public class MidiVolumeControllerProfile extends BaseMidiProfile {
+import java.util.List;
+
+public class MidiVolumeControllerProfile extends BaseMidiOutputProfile {
 
     public MidiVolumeControllerProfile() {
 
@@ -24,15 +25,7 @@ public class MidiVolumeControllerProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
-                Bundle root = response.getExtras();
-                root.putInt("channel", 0);
-                root.putFloat("value", 0.0f);
-                response.putExtras(root);
-                return true;
+                return onEventCacheRequest(request, response);
             }
         });
 
@@ -45,19 +38,7 @@ public class MidiVolumeControllerProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.addEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onAddEventRequest(request, response);
             }
         });
 
@@ -70,22 +51,7 @@ public class MidiVolumeControllerProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                EventError error = EventManager.INSTANCE.removeEvent(request);
-                switch (error) {
-                    case NONE:
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        break;
-                    case INVALID_PARAMETER:
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        break;
-                    case NOT_FOUND:
-                        MessageUtils.setUnknownError(response, "Event is not registered.");
-                        break;
-                    default:
-                        MessageUtils.setUnknownError(response);
-                        break;
-                }
-                return true;
+                return onRemoveEventRequest(request, response);
             }
         });
 
@@ -94,5 +60,51 @@ public class MidiVolumeControllerProfile extends BaseMidiProfile {
     @Override
     public String getProfileName() {
         return "volumeController";
+    }
+
+    @Override
+    void convertMessageToEvent(final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
+        if (message instanceof ControlChangeMessage) {
+            final int channel = ((ControlChangeMessage) message).getChannelNumber();
+            final int value = ((ControlChangeMessage) message).getControlValue();
+            final double normalized = value / 127.0d;
+
+            results.add(new VolumeChangeEvent(timestamp, channel, normalized));
+        }
+    }
+
+    private class VolumeChangeEvent extends BaseMidiOutputProfile.MessageEvent {
+
+        private final int mChannel;
+
+        private final double mValue;
+
+        VolumeChangeEvent(final long timestamp, final int channel, final double value) {
+            super(timestamp);
+            mChannel = channel;
+            mValue = value;
+        }
+
+        @Override
+        void putExtras(final Intent intent) {
+            intent.putExtra("channel", mChannel);
+            intent.putExtra("value", mValue);
+        }
+
+        @NonNull
+        @Override
+        String getProfile() {
+            return getProfileName();
+        }
+
+        @Override
+        String getInterface() {
+            return null;
+        }
+
+        @Override
+        String getAttribute() {
+            return "onVolumeChange";
+        }
     }
 }

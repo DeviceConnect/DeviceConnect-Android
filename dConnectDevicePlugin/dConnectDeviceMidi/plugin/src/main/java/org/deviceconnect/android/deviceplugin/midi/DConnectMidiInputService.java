@@ -4,18 +4,25 @@ import android.content.Intent;
 import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.file.MidiFilePlayer;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiSoundModuleProfile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PostApi;
-import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 
 public class DConnectMidiInputService extends DConnectMidiService implements MidiMessageSender {
@@ -29,6 +36,8 @@ public class DConnectMidiInputService extends DConnectMidiService implements Mid
     private final ByteBuffer mMessageBuffer;
 
     private final byte[] mMessageArray;
+
+    private final MidiFilePlayer mMidiFilePlayer = new MidiFilePlayer();
 
     private MidiInputPort mMidiInputPort;
 
@@ -51,7 +60,7 @@ public class DConnectMidiInputService extends DConnectMidiService implements Mid
             }
 
             {
-                // GET /midi/info
+                // GET /gotapi/midi/info
                 addApi(new GetApi() {
                     @Override
                     public String getAttribute() {
@@ -73,7 +82,7 @@ public class DConnectMidiInputService extends DConnectMidiService implements Mid
                     }
                 });
 
-                // POST /midi/message
+                // POST /gotapi/midi/message
                 addApi(new PostApi() {
                     @Override
                     public String getAttribute() {
@@ -102,8 +111,67 @@ public class DConnectMidiInputService extends DConnectMidiService implements Mid
                         return true;
                     }
                 });
+
+                // POST /gotapi/midi/playFile
+                addApi(new PostApi() {
+                    @Override
+                    public String getAttribute() {
+                        return "playFile";
+                    }
+
+                    @Override
+                    public boolean onRequest(final Intent request, final Intent response) {
+                        String uriParam = request.getStringExtra("uri");
+                        if (uriParam == null) {
+                            MessageUtils.setInvalidRequestParameterError(response, "parameter `uri` or `data` must be specified.");
+                            return true;
+                        }
+                        MidiInputPort inputPort = getInputPort();
+                        if (inputPort == null) {
+                            MessageUtils.setIllegalDeviceStateError(response, "input port is not available");
+                            return true;
+                        }
+                        try {
+                            InputStream in = getInputStream(uriParam);
+                            if (in != null) {
+                                synchronized (mMidiFilePlayer) {
+                                    if (mMidiFilePlayer.isStarted()) {
+                                        MessageUtils.setIllegalDeviceStateError(response, "Already started.");
+                                        return true;
+                                    }
+                                    mMidiFilePlayer.load(in);
+                                    mMidiFilePlayer.start(inputPort);
+                                    setResult(response, DConnectMessage.RESULT_OK);
+                                }
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response, "Failed to read data: uri = " + uriParam);
+                            }
+                            return true;
+                        } catch (IOException e) {
+                            MessageUtils.setInvalidRequestParameterError(response, "Failed to read data: uri = " + uriParam + ", message = " + e.getMessage());
+                            return true;
+                        }
+                    }
+                });
             }
         });
+    }
+
+    @Nullable
+    private InputStream getInputStream(final String uriParam) throws IOException {
+        try {
+            if (uriParam.startsWith("http://") || uriParam.startsWith("https://")) {
+                URL url = new URL(uriParam);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                return connection.getInputStream();
+            } else if (uriParam.startsWith("content://")) {
+                return getContext().getContentResolver().openInputStream(Uri.parse(uriParam));
+            } else {
+                return null;
+            }
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     static DConnectMidiInputService createService(final MidiDevice device,

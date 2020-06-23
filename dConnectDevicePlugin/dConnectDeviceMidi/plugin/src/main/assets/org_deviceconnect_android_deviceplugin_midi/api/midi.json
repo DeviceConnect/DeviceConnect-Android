@@ -1,4 +1,3 @@
-
 {
     "swagger": "2.0",
     "info": {
@@ -7,7 +6,10 @@
         "title": "MIDI Profile"
     },
     "basePath": "/gotapi/midi",
-    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
     "paths": {
         "/info": {
             "get": {
@@ -56,7 +58,7 @@
                         "description": "サービスID。取得対象スマートデバイス",
                         "required": true,
                         "type": "string"
-                    }, 
+                    },
                     {
                         "name": "message",
                         "in": "query",
@@ -187,6 +189,44 @@
                 },
                 "x-type": "event"
             }
+        },
+        "/playFile": {
+            "post": {
+                "summary": "MIDI ファイルを再生する.",
+                "description": "指定された MIDI ファイルを解析および再生する.",
+                "operationId": "midiPlayFilePost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "data",
+                        "in": "formData",
+                        "description": "MIDI ファイルのデータ",
+                        "required": false,
+                        "type": "file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI ファイル再生処理の結果を返す。失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/MidiPlayFileResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
         }
     },
     "definitions": {
@@ -194,10 +234,13 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
                     "type": "object",
-                    "required": ["direction", "protocol"],
+                    "required": [
+                        "direction",
+                        "protocol"
+                    ],
                     "properties": {
                         "protocol": {
                             "type": "string",
@@ -208,7 +251,10 @@
                             "type": "string",
                             "description": "デバイスのサポートしている MIDI 通信の方向を示す。\n<ul> <li>\"input\": MIDI デバイスへの入力専用。</li> <li>\"output\": MIDI デバイスからの出力専用。</li> </ul>",
                             "title": "MIDI 通信の方向",
-                            "enum": ["input", "output"]
+                            "enum": [
+                                "input",
+                                "output"
+                            ]
                         },
                         "productName": {
                             "type": "string",
@@ -231,13 +277,22 @@
                 }
             ]
         },
+        "MidiPlayFileResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
         "OnMessageEvent": {
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonEvent"
-                }, 
+                },
                 {
-                    "required": ["message"],
+                    "required": [
+                        "message"
+                    ],
                     "properties": {
                         "message": {
                             "type": "string",
@@ -252,9 +307,11 @@
             "allOf": [
                 {
                     "$ref": "#/definitions/CommonResponse"
-                }, 
+                },
                 {
-                    "required": ["message"],
+                    "required": [
+                        "message"
+                    ],
                     "properties": {
                         "message": {
                             "type": "string",
@@ -281,7 +338,11 @@
         },
         "CommonResponse": {
             "type": "object",
-            "required": ["product", "result", "version"],
+            "required": [
+                "product",
+                "result",
+                "version"
+            ],
             "properties": {
                 "result": {
                     "type": "integer",
@@ -307,7 +368,12 @@
         },
         "CommonEvent": {
             "type": "object",
-            "required": ["attribute", "interface", "profile", "serviceId"],
+            "required": [
+                "attribute",
+                "interface",
+                "profile",
+                "serviceId"
+            ],
             "properties": {
                 "serviceId": {
                     "type": "string",

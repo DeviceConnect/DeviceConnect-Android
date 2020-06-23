@@ -38,6 +38,10 @@ public class MidiFilePlayer {
         }
     }
 
+    public boolean isStarted() {
+        return mPlayerThread != null;
+    }
+
     public synchronized void start(final MidiInputPort inputPort) {
         if (mSequence == null) {
             throw new IllegalStateException("sequence is not loaded");
@@ -55,7 +59,18 @@ public class MidiFilePlayer {
         }
     }
 
-    private static class PlayerThread extends Thread {
+    private static Track mergeTracks(@NonNull final Sequence sourceSequence) {
+        final Track mergedTrack = new Track();
+        for (Track track : sourceSequence.getTracks()) {
+            for (int eventIndex = 0; eventIndex < track.size(); eventIndex++) {
+                mergedTrack.add(track.get(eventIndex));
+            }
+        }
+        Track.TrackUtils.sortEvents(mergedTrack);
+        return mergedTrack;
+    }
+
+    private class PlayerThread extends Thread {
 
         private final MidiInputPort mMidiInputPort;
 
@@ -72,11 +87,7 @@ public class MidiFilePlayer {
         PlayerThread(final MidiInputPort inputPort, final Sequence sequence) {
             mMidiInputPort = inputPort;
             mSequence = sequence;
-            mPlayingTrack = mergeTracks(sequence.getTracks());
-        }
-
-        private Track mergeTracks(final Track[] tracks) {
-            return null; // TODO 実装
+            mPlayingTrack = mergeTracks(sequence);
         }
 
         @Override
@@ -103,6 +114,8 @@ public class MidiFilePlayer {
 
                     send(midiMessage);
                 }
+
+                MidiFilePlayer.this.stop();
             } catch (InterruptedException e) {
                 // ignore.
             } catch (IOException e) {

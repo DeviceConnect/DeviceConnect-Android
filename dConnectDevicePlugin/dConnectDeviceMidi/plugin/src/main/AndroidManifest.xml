@@ -42,7 +42,7 @@
         </receiver>
 
         <!-- プラグイン設定画面 -->
-        <activity android:name=".MidiSettingActivity">
+        <activity android:name=".DConnectMidiServiceListActivity">
             <!-- TODO ランチャー画面に表示させたくない場合は、下記のインテントフィルタを削除。 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

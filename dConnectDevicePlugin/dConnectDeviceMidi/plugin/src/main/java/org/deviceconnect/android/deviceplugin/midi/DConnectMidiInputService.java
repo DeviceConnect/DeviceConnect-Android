@@ -180,11 +180,6 @@ public class DConnectMidiInputService extends DConnectMidiService implements Mid
         return new DConnectMidiInputService(serviceId, device, portInfo);
     }
 
-    static String createServiceId(final MidiDeviceInfo deviceInfo,
-                                  final MidiDeviceInfo.PortInfo portInfo) {
-        return deviceInfo.getId() + "-in-" + portInfo.getPortNumber();
-    }
-
     static String createServiceName(final MidiDeviceInfo deviceInfo,
                                     final MidiDeviceInfo.PortInfo portInfo) {
         Bundle props = deviceInfo.getProperties();

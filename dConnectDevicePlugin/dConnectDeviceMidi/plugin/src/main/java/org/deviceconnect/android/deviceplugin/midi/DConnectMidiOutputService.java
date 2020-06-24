@@ -74,11 +74,6 @@ public class DConnectMidiOutputService extends DConnectMidiService {
         return new DConnectMidiOutputService(serviceId, device, portInfo);
     }
 
-    static String createServiceId(final MidiDeviceInfo deviceInfo,
-                                  final MidiDeviceInfo.PortInfo portInfo) {
-        return deviceInfo.getId() + "-out-" + portInfo.getPortNumber();
-    }
-
     static String createServiceName(final MidiDeviceInfo deviceInfo,
                                     final MidiDeviceInfo.PortInfo portInfo) {
         Bundle props = deviceInfo.getProperties();

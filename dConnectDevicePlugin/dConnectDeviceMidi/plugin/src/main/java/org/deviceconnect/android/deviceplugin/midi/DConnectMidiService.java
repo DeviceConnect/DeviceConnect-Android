@@ -1,6 +1,5 @@
 package org.deviceconnect.android.deviceplugin.midi;
 
-import android.bluetooth.BluetoothDevice;
 import android.hardware.usb.UsbDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.os.Bundle;
@@ -9,8 +8,17 @@ import org.deviceconnect.android.service.DConnectService;
 
 public abstract class DConnectMidiService extends DConnectService {
 
-    protected DConnectMidiService(String id) {
+    private final ServiceInfo mServiceInfo;
+
+    DConnectMidiService(final String id,
+                        final MidiDeviceInfo deviceInfo,
+                        final MidiDeviceInfo.PortInfo portInfo) {
         super(id);
+        mServiceInfo = new ServiceInfo(deviceInfo, portInfo);
+    }
+
+    public ServiceInfo getServiceInfo() {
+        return mServiceInfo;
     }
 
     public void destroy() {
@@ -80,5 +88,4 @@ public abstract class DConnectMidiService extends DConnectService {
         }
         return result.toString();
     }
-
 }

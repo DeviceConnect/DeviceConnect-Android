@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">MIDI</string>
+    <string name="app_name">MIDI Plug-in</string>
+    <string name="input">入力</string>
+    <string name="output">出力</string>
+    <string name="unknown">不明</string>
+    <string name="service_detail_item_title_protocol_version">MIDI バージョン</string>
+    <string name="service_detail_item_title_direction">入出力の方向</string>
+    <string name="service_detail_item_title_device_name">デバイス名</string>
+    <string name="service_detail_item_title_manufacturer_name">製造者名</string>
+    <string name="service_detail_item_title_device_connect_profile_list">プロファイル</string>
 
 </resources>

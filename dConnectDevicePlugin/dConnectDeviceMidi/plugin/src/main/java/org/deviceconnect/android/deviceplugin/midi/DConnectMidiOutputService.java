@@ -89,7 +89,7 @@ public class DConnectMidiOutputService extends DConnectMidiService {
     DConnectMidiOutputService(final String id,
                               final MidiDevice midiDevice,
                               final MidiDeviceInfo.PortInfo portInfo) {
-        super(id);
+        super(id, midiDevice.getInfo(), portInfo);
         setName(createServiceName(midiDevice.getInfo(), portInfo));
         mMidiDevice = midiDevice;
         mPortNumber = portInfo.getPortNumber();

@@ -17,7 +17,7 @@ public abstract class DConnectMidiService extends DConnectService {
         mServiceInfo = new ServiceInfo(deviceInfo, portInfo);
     }
 
-    public ServiceInfo getServiceInfo() {
+    ServiceInfo getServiceInfo() {
         return mServiceInfo;
     }
 
@@ -75,14 +75,14 @@ public abstract class DConnectMidiService extends DConnectService {
                 portDirection,
                 Integer.toString(portInfo.getPortNumber())
         };
-        return concat(array, "-");
+        return concat(array);
     }
 
-    private static String concat(final String[] parts, final String separator) {
+    private static String concat(final String[] parts) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < parts.length; i++) {
             if (i > 0) {
-                result.append(separator);
+                result.append("-");
             }
             result.append(parts[i]);
         }

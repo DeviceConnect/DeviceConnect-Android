@@ -9,6 +9,8 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 
+def DEMO_ZIP_NAME = "demo.zip"
+
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
@@ -70,5 +72,39 @@ android {
                 password = System.getenv("GPR_API_KEY") ?: githubProperties['gpr.key']
             }
         }
+    }
+}
+
+task cleanDemo(type: Exec) {
+    workingDir '../demo'
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'build.bat', 'clean'
+    } else {
+        commandLine 'sh', 'build.sh', 'clean'
+    }
+}
+
+task buildDemo(type: Exec) {
+    workingDir '../demo'
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'build.bat', 'build'
+    } else {
+        commandLine 'sh', 'build.sh', 'build'
+    }
+}
+
+task zipDemo(type: Zip, dependsOn: buildDemo) {
+    File demoDir = new File(projectDir, '../demo/dist')
+    File assetsDir = new File(projectDir, 'src/main/assets')
+
+    from demoDir
+    destinationDir assetsDir
+    archiveName = DEMO_ZIP_NAME
+}
+
+tasks.clean.dependsOn(cleanDemo)
+tasks.whenTaskAdded { t ->
+    if (t.name.startsWith('generate') && t.name.endsWith('Assets')){
+        t.dependsOn zipDemo
     }
 }

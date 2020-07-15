@@ -1,0 +1,168 @@
+<template>
+  <v-row>
+    <v-col v-if="usePad">
+      <pad-panel :rows="2" :cols="2" :pads="pads" @touch="onTouch"></pad-panel>
+    </v-col>
+    <v-col v-if="useSlider">
+      <slider-panel :sliders="sliders" @change="onSlide"></slider-panel>
+    </v-col>
+  </v-row>
+</template>
+<script>
+import PadPanel from '../components/PadPanel.vue'
+import SliderPanel from '../components/SliderPanel.vue'
+
+function postMidiMessage(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'POST',
+      path: '/gotapi/midi/message',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+export default {
+  name: 'ControllerPage',
+
+  components: {
+    PadPanel,
+    SliderPanel
+  },
+
+  data: () => ({
+    pads: [],
+    sliders: []
+  }),
+
+  computed: {
+    usePad: {
+      get: function() {
+        if (this.$route.query.pad_count === undefined) {
+          return false;
+        }
+        return this.$route.query.pad_count > 0;
+      }
+    },
+    useSlider: {
+      get: function() {
+        if (this.$route.query.slider_count === undefined) {
+          return false;
+        }
+        return this.$route.query.slider_count > 0;
+      }
+    },
+    host: {
+      get: function() {
+        return this.$route.query.ip || 'localhost';
+      }
+    }
+  },
+
+  methods: {
+    onTouch: function(index, on) {
+      let pad = this.pads[index];
+      console.log('onTouch: index = ' + index + ", on = " + on);
+      if (pad) {
+        this.sendPadMessage(pad, on);
+      }
+    },
+
+    onSlide: function(slider) {
+      console.log('onSlide: slider.id = ' + slider.id + ", slider.value = " + slider.value);
+      this.sendSliderMessage(slider);
+    },
+
+    sendPadMessage: function(pad, on) {
+      if (pad.profile === 'midi') {
+        let midiMessage = this.createNoteMessage(pad, on);
+        this.sendMidiMessage(midiMessage);
+      } /*else if (pad.profile === 'soundModule') {
+
+      }*/
+    },
+
+    sendSliderMessage: function(slider) {
+      let midiMessage = this.createControlChangeMessage(slider);
+      this.sendMidiMessage(midiMessage);
+    },
+
+    sendMidiMessage: function(midiMessage) {
+       this.$dConnect.offer(this.host, postMidiMessage, {
+        serviceId: this.$route.params.id,
+        message: midiMessage.toString()
+      });
+    },
+
+    createNoteMessage: function(pad, on) {
+      let messageType = on ? 0b1001 : 0b1000;
+      return Int8Array.from([
+        (messageType << 4) | pad.channel & 0x0F,
+        pad.note & 0x7F,
+        pad.velocity & 0x7F
+      ]);
+    },
+
+    createControlChangeMessage: function(slider) {
+      let messageType = 0b1011;
+      return Int8Array.from([
+        (messageType << 4) | slider.channel & 0x0F,
+        slider.controlNumber & 0x7F,
+        slider.value & 0x7F
+      ]);
+    }
+  },
+
+  mounted: function() {
+    console.log('ControllerPage: query', this.$router.currentRoute.query);
+
+    let query = this.$route.query;
+    let padCount = query['pad_count'];
+    let padProfile = query['pad_profile'];
+    if (padCount) {
+      for (let k = 0; k < padCount; k++) {
+        let pad;
+        if (padProfile === 'midi') {
+          pad = {
+            id: k,
+            profile: padProfile,
+            name: query['pad_' + k + '_name'],
+            channel: query['pad_' + k + '_midi_channel'],
+            note: query['pad_' + k + '_midi_note'],
+            velocity: query['pad_' + k + '_midi_velocity'],
+          };
+        } /*else if (padProfile === 'soundModule') {
+
+        }*/
+        if (pad) {
+          this.pads.push(pad);
+        }
+      }
+    }
+    let sliderCount = query['slider_count'];
+    if (sliderCount) {
+      for (let k = 0; k < sliderCount; k++) {
+        this.sliders.push({
+          id: k,
+          profile: 'midi',
+          name: query['slider_' + k + '_name'],
+          channel: query['slider_' + k + '_midi_channel'],
+          controlNumber: query['slider_' + k + '_midi_control_number'],
+          value: 0
+        });
+      }
+    }
+  }
+}
+</script>

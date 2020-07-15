@@ -21,7 +21,7 @@ import javax.net.ssl.X509TrustManager;
  *
  * @see "http://java.sun.com/products/javamail/SSLNOTES.txt"
  */
-public class DummyTrustManager implements X509TrustManager {
+public class PlaceHolderTrustManager implements X509TrustManager {
     public void checkClientTrusted(X509Certificate[] chain, String authType) {
         // Does not throw CertificateException: all chains trusted
         return;

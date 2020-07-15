@@ -1,5 +1,5 @@
 /*
- WhitelistActivity.java
+ AllowlistActivity.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -16,20 +16,20 @@ import androidx.fragment.app.FragmentTransaction;
 import org.deviceconnect.android.manager.R;
 
 /**
- * Whitelist Activity.
+ * Allowlist Activity.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class WhitelistActivity extends AppCompatActivity {
+public class AllowlistActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle(R.string.activity_whitelist_title);
+        setTitle(R.string.activity_allowlist_title);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         
         if (savedInstanceState == null) {
-            Fragment f = new WhitelistFragment();
+            Fragment f = new AllowlistFragment();
             FragmentManager fm = getSupportFragmentManager();
             FragmentTransaction t = fm.beginTransaction();
             t.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);

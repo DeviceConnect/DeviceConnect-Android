@@ -40,8 +40,8 @@ public final class DConnectServerConfig {
     /** サーバーのホスト名. */
     private String mHost;
 
-    /** IPのホワイトリスト. */
-    private List<String> mIpWhiteList;
+    /** IPの許可リスト. */
+    private List<String> mIpAllowList;
 
     /** ファイルなどのキャッシュをおくフォルダへのパス. */
     private String mCachePath;
@@ -123,12 +123,12 @@ public final class DConnectServerConfig {
     }
 
     /**
-     * IPのホワイトリストを取得する.
+     * IPの許可リストを取得する.
      * 
-     * @return IPのホワイトリスト。
+     * @return IPの許可リスト。
      */
-    public List<String> getIPWhiteList() {
-        return mIpWhiteList;
+    public List<String> getIPAllowList() {
+        return mIpAllowList;
     }
 
     /**
@@ -154,7 +154,7 @@ public final class DConnectServerConfig {
         this.mPort = builder.mPort;
         this.mHost = builder.mHost;
         this.mCachePath = builder.mCachePath;
-        this.mIpWhiteList = builder.mIpWhiteList;
+        this.mIpAllowList = builder.mIpAllowList;
         this.mCharset = builder.mCharset;
         this.mEnableAccessLog = builder.mEnableAccessLog;
     }
@@ -188,8 +188,8 @@ public final class DConnectServerConfig {
         /** サーバーのホスト名. */
         private String mHost;
 
-        /** IPのホワイトリスト. */
-        private List<String> mIpWhiteList;
+        /** IPの許可リスト. */
+        private List<String> mIpAllowList;
 
         /** 文字コード. */
         private String mCharset = "UTF-8";
@@ -222,7 +222,7 @@ public final class DConnectServerConfig {
                     ", mIsSsl=" + mIsSsl +
                     ", mPort=" + mPort +
                     ", mHost='" + mHost + '\'' +
-                    ", mIpWhiteList=" + mIpWhiteList +
+                    ", mIpAllowList=" + mIpAllowList +
                     ", mCharset='" + mCharset + '\'' +
                     ", mEnableAccessLog='" + mEnableAccessLog + '\'' +
                     '}';
@@ -328,15 +328,15 @@ public final class DConnectServerConfig {
         }
 
         /**
-         * IPのホワイトリストを設定する.
+         * IPの許可リストを設定する.
          * <p>
-         * 空のリストが設定された場合には、ホワイトリストは無視します。
+         * 空のリストが設定された場合には、許可リストは無視します。
          * </p>
-         * @param ipWhiteList IPのホワイトリスト。
+         * @param ipAllowList IPの許可リスト。
          * @return ビルダー。
          */
-        public Builder ipWhiteList(final List<String> ipWhiteList) {
-            this.mIpWhiteList = ipWhiteList;
+        public Builder ipAllowList(final List<String> ipAllowList) {
+            this.mIpAllowList = ipAllowList;
             return this;
         }
 

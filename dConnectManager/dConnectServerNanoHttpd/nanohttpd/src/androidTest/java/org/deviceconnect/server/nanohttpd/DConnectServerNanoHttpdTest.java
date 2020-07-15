@@ -571,24 +571,24 @@ public class DConnectServerNanoHttpdTest {
     }
 
     /**
-     * ホワイトリストに自分自身のIPを指定せずにDConnectServerNanoHttpdを起動し、HTTP通信を行う。
+     * 許可リストに自分自身のIPを指定せずにDConnectServerNanoHttpdを起動し、HTTP通信を行う。
      * <pre>
      * 【期待する動作】
-     * ・ホワイトリストに弾かれ、DConnectServerNanoHttpdへの通信が失敗すること。
+     * ・許可リストに弾かれ、DConnectServerNanoHttpdへの通信が失敗すること。
      * </pre>
      */
     @Test
-    public void DConnectServerNanoHttpd_white_list_error() {
+    public void DConnectServerNanoHttpd_allow_list_error() {
         final CountDownLatch latch = new CountDownLatch(1);
         final String path = "/root/path";
         final String key = "key";
         final String value = "value";
 
-        List<String> whiteList = new ArrayList<>();
-        whiteList.add("192.168.0.1");
+        List<String> allowList = new ArrayList<>();
+        allowList.add("192.168.0.1");
 
         File file = getContext().getFilesDir();
-        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).ipWhiteList(whiteList)
+        DConnectServerConfig config = new DConnectServerConfig.Builder().port(PORT).ipAllowList(allowList)
                 .documentRootPath(file.getPath()).build();
         DConnectServer server = new DConnectServerNanoHttpd(config, getContext());
         server.setServerEventListener(new DConnectServerEventListener() {

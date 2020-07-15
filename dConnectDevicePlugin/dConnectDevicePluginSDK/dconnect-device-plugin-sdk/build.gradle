@@ -1,9 +1,11 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
+def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
-
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
 def getVersionName = { ->
     return "2.8.4" // Replace with version Name
 }

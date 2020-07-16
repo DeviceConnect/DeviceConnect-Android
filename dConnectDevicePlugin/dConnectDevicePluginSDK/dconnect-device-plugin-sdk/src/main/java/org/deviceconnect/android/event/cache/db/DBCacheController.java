@@ -198,7 +198,7 @@ public final class DBCacheController extends BaseCacheController {
             search.setOrigin(origin);
             search.setReceiverName(receiver);
             // checkParameterエラー回避用データの設定
-            search.setAccessToken("dummy");
+            search.setAccessToken("placeHolder");
             
             if (!checkParameter(search)) {
                 break;
@@ -247,9 +247,9 @@ public final class DBCacheController extends BaseCacheController {
             search.setInterface(inter);
             search.setAttribute(attribute);
             // checkParameterエラー回避用データの設定
-            search.setOrigin("dummy");
-            search.setAccessToken("dummy");
-            search.setReceiverName("dummy");
+            search.setOrigin("placeHolder");
+            search.setAccessToken("placeHolder");
+            search.setReceiverName("placeHolder");
             
             if (!checkParameter(search)) {
                 break;

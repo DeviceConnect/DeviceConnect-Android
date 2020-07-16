@@ -141,7 +141,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "tag.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "tag.exampleId.localhost.deviceconnect.org",
                             "profile": "tag",
                             "attribute": "onRead",
                             "tags": [

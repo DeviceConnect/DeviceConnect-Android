@@ -1800,11 +1800,11 @@ the recorded number of bytes before it resumes loading the input buffer.
 common case where a non-suspending source manager is used.)
 
 If the input data has been exhausted, we recommend that you emit a warning
-and insert dummy EOI markers just as a non-suspending data source manager
+and insert place_holder EOI markers just as a non-suspending data source manager
 would do.  This can be handled either in the surrounding application logic or
 within fill_input_buffer(); the latter is probably more efficient.  If
 fill_input_buffer() knows that no more data is available, it can set the
-pointer/count to point to a dummy EOI marker and then return TRUE just as
+pointer/count to point to a place_holder EOI marker and then return TRUE just as
 though it had read more data in a non-suspending situation.
 
 The decompressor does not attempt to suspend within standard JPEG markers;
@@ -2698,8 +2698,8 @@ component as
         cinfo->comp_info[i].height_in_blocks*DCTSIZE rows in image
 after jpeg_start_compress() has initialized those fields.  If the valid data
 is smaller than this, it must be padded appropriately.  For some sampling
-factors and image sizes, additional dummy DCT blocks are inserted to make
-the image a multiple of the MCU dimensions.  The library creates such dummy
+factors and image sizes, additional place_holder DCT blocks are inserted to make
+the image a multiple of the MCU dimensions.  The library creates such place_holder
 blocks itself; it does not read them from your supplied data.  Therefore you
 need never pad by more than DCTSIZE samples.  An example may help here.
 Assume 2h2v downsampling of YCbCr data, that is
@@ -2719,7 +2719,7 @@ MCU height is max_v_samp_factor = 2 DCT rows so you must pass at least 16
 scanlines on each call to jpeg_write_raw_data(), which is to say 16 actual
 sample rows of Y and 8 each of Cb and Cr.  A total of 7 MCU rows are needed,
 so you must pass a total of 7*16 = 112 "scanlines".  The last DCT block row
-of Y data is dummy, so it doesn't matter what you pass for it in the data
+of Y data is place_holder, so it doesn't matter what you pass for it in the data
 arrays, but the scanlines count must total up to 112 so that all of the Cb
 and Cr data gets passed.
 
@@ -2745,7 +2745,7 @@ jpeg_read_raw_data() returns one MCU row per call, and thus you must pass a
 buffer of at least max_v_samp_factor*DCTSIZE scanlines (scanline counting is
 the same as for raw-data compression).  The buffer you pass must be large
 enough to hold the actual data plus padding to DCT-block boundaries.  As with
-compression, any entirely dummy DCT blocks are not processed so you need not
+compression, any entirely place_holder DCT blocks are not processed so you need not
 allocate space for them, but the total scanline count includes them.  The
 above example of computing buffer dimensions for raw-data compression is
 equally valid for decompression.
@@ -2777,7 +2777,7 @@ just be handed directly to jpeg_write_coefficients().
 
 Each block in the block arrays contains quantized coefficient values in
 normal array order (not JPEG zigzag order).  The block arrays contain only
-DCT blocks containing real data; any entirely-dummy blocks added to fill out
+DCT blocks containing real data; any entirely-place_holder blocks added to fill out
 interleaved MCUs at the right or bottom edges of the image are discarded
 during reading and are not stored in the block arrays.  (The size of each
 block array can be determined from the width_in_blocks and height_in_blocks

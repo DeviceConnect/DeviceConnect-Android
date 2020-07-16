@@ -136,7 +136,7 @@ typedef struct {
 
   /* These values are computed during compression or decompression startup: */
   /* Component's size in DCT blocks.
-   * Any dummy blocks added to complete an MCU are not counted; therefore
+   * Any place_holder blocks added to complete an MCU are not counted; therefore
    * these values do not depend on whether a scan is interleaved or not.
    */
   JDIMENSION width_in_blocks;
@@ -173,8 +173,8 @@ typedef struct {
   int MCU_height;               /* number of blocks per MCU, vertically */
   int MCU_blocks;               /* MCU_width * MCU_height */
   int MCU_sample_width;         /* MCU width in samples, MCU_width*DCT_[h_]scaled_size */
-  int last_col_width;           /* # of non-dummy blocks across in last MCU */
-  int last_row_height;          /* # of non-dummy blocks down in last MCU */
+  int last_col_width;           /* # of non-place_holder blocks across in last MCU */
+  int last_row_height;          /* # of non-place_holder blocks down in last MCU */
 
   /* Saved quantization table for component; NULL if none yet saved.
    * See jdinput.c comments about the need for this information.
@@ -1070,33 +1070,33 @@ EXTERN(boolean) jpeg_resync_to_restart (j_decompress_ptr cinfo, int desired);
 
 /* If we have a brain-damaged compiler that emits warnings (or worse, errors)
  * for structure definitions that are never filled in, keep it quiet by
- * supplying dummy definitions for the various substructures.
+ * supplying place_holder definitions for the various substructures.
  */
 
 #ifdef INCOMPLETE_TYPES_BROKEN
 #ifndef JPEG_INTERNALS          /* will be defined in jpegint.h */
-struct jvirt_sarray_control { long dummy; };
-struct jvirt_barray_control { long dummy; };
-struct jpeg_comp_master { long dummy; };
-struct jpeg_c_main_controller { long dummy; };
-struct jpeg_c_prep_controller { long dummy; };
-struct jpeg_c_coef_controller { long dummy; };
-struct jpeg_marker_writer { long dummy; };
-struct jpeg_color_converter { long dummy; };
-struct jpeg_downsampler { long dummy; };
-struct jpeg_forward_dct { long dummy; };
-struct jpeg_entropy_encoder { long dummy; };
-struct jpeg_decomp_master { long dummy; };
-struct jpeg_d_main_controller { long dummy; };
-struct jpeg_d_coef_controller { long dummy; };
-struct jpeg_d_post_controller { long dummy; };
-struct jpeg_input_controller { long dummy; };
-struct jpeg_marker_reader { long dummy; };
-struct jpeg_entropy_decoder { long dummy; };
-struct jpeg_inverse_dct { long dummy; };
-struct jpeg_upsampler { long dummy; };
-struct jpeg_color_deconverter { long dummy; };
-struct jpeg_color_quantizer { long dummy; };
+struct jvirt_sarray_control { long place_holder; };
+struct jvirt_barray_control { long place_holder; };
+struct jpeg_comp_master { long place_holder; };
+struct jpeg_c_main_controller { long place_holder; };
+struct jpeg_c_prep_controller { long place_holder; };
+struct jpeg_c_coef_controller { long place_holder; };
+struct jpeg_marker_writer { long place_holder; };
+struct jpeg_color_converter { long place_holder; };
+struct jpeg_downsampler { long place_holder; };
+struct jpeg_forward_dct { long place_holder; };
+struct jpeg_entropy_encoder { long place_holder; };
+struct jpeg_decomp_master { long place_holder; };
+struct jpeg_d_main_controller { long place_holder; };
+struct jpeg_d_coef_controller { long place_holder; };
+struct jpeg_d_post_controller { long place_holder; };
+struct jpeg_input_controller { long place_holder; };
+struct jpeg_marker_reader { long place_holder; };
+struct jpeg_entropy_decoder { long place_holder; };
+struct jpeg_inverse_dct { long place_holder; };
+struct jpeg_upsampler { long place_holder; };
+struct jpeg_color_deconverter { long place_holder; };
+struct jpeg_color_quantizer { long place_holder; };
 #endif /* JPEG_INTERNALS */
 #endif /* INCOMPLETE_TYPES_BROKEN */
 

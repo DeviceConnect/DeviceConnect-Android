@@ -28,20 +28,20 @@
 class UltraJson : public PerfTest {
 };
 
-static char dummy = 0;
+static char place_holder = 0;
 
 static void Object_objectAddKey(JSOBJ obj, JSOBJ name, JSOBJ value) {}
 static void Object_arrayAddItem(JSOBJ obj, JSOBJ value) {}
 
-static JSOBJ Object_newString(wchar_t *start, wchar_t *end) { return &dummy; }
-static JSOBJ Object_newTrue(void)                           { return &dummy; }
-static JSOBJ Object_newFalse(void)                          { return &dummy; }
-static JSOBJ Object_newNull(void)                           { return &dummy; }
-static JSOBJ Object_newObject(void)                         { return &dummy; }
-static JSOBJ Object_newArray(void)                          { return &dummy; }
-static JSOBJ Object_newInteger(JSINT32 value)               { return &dummy; }
-static JSOBJ Object_newLong(JSINT64 value)                  { return &dummy; }
-static JSOBJ Object_newDouble(double value)                 { return &dummy; }
+static JSOBJ Object_newString(wchar_t *start, wchar_t *end) { return &place_holder; }
+static JSOBJ Object_newTrue(void)                           { return &place_holder; }
+static JSOBJ Object_newFalse(void)                          { return &place_holder; }
+static JSOBJ Object_newNull(void)                           { return &place_holder; }
+static JSOBJ Object_newObject(void)                         { return &place_holder; }
+static JSOBJ Object_newArray(void)                          { return &place_holder; }
+static JSOBJ Object_newInteger(JSINT32 value)               { return &place_holder; }
+static JSOBJ Object_newLong(JSINT64 value)                  { return &place_holder; }
+static JSOBJ Object_newDouble(double value)                 { return &place_holder; }
 
 static void Object_releaseObject(JSOBJ obj) {}
 

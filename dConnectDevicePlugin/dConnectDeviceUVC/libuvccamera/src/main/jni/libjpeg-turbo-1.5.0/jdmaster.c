@@ -599,8 +599,8 @@ master_selection (j_decompress_ptr cinfo)
  * Per-pass setup.
  * This is called at the beginning of each output pass.  We determine which
  * modules will be active during this pass and give them appropriate
- * start_pass calls.  We also set is_dummy_pass to indicate whether this
- * is a "real" output pass or a dummy pass for color quantization.
+ * start_pass calls.  We also set is_place_holder_pass to indicate whether this
+ * is a "real" output pass or a place_holder pass for color quantization.
  * (In the latter case, jdapistd.c will crank the pass to completion.)
  */
 
@@ -609,10 +609,10 @@ prepare_for_output_pass (j_decompress_ptr cinfo)
 {
   my_master_ptr master = (my_master_ptr) cinfo->master;
 
-  if (master->pub.is_dummy_pass) {
+  if (master->pub.is_place_holder_pass) {
 #ifdef QUANT_2PASS_SUPPORTED
     /* Final pass of 2-pass quantization */
-    master->pub.is_dummy_pass = FALSE;
+    master->pub.is_place_holder_pass = FALSE;
     (*cinfo->cquantize->start_pass) (cinfo, FALSE);
     (*cinfo->post->start_pass) (cinfo, JBUF_CRANK_DEST);
     (*cinfo->main->start_pass) (cinfo, JBUF_CRANK_DEST);
@@ -624,7 +624,7 @@ prepare_for_output_pass (j_decompress_ptr cinfo)
       /* Select new quantization method */
       if (cinfo->two_pass_quantize && cinfo->enable_2pass_quant) {
         cinfo->cquantize = master->quantizer_2pass;
-        master->pub.is_dummy_pass = TRUE;
+        master->pub.is_place_holder_pass = TRUE;
       } else if (cinfo->enable_1pass_quant) {
         cinfo->cquantize = master->quantizer_1pass;
       } else {
@@ -638,9 +638,9 @@ prepare_for_output_pass (j_decompress_ptr cinfo)
         (*cinfo->cconvert->start_pass) (cinfo);
       (*cinfo->upsample->start_pass) (cinfo);
       if (cinfo->quantize_colors)
-        (*cinfo->cquantize->start_pass) (cinfo, master->pub.is_dummy_pass);
+        (*cinfo->cquantize->start_pass) (cinfo, master->pub.is_place_holder_pass);
       (*cinfo->post->start_pass) (cinfo,
-            (master->pub.is_dummy_pass ? JBUF_SAVE_AND_PASS : JBUF_PASS_THRU));
+            (master->pub.is_place_holder_pass ? JBUF_SAVE_AND_PASS : JBUF_PASS_THRU));
       (*cinfo->main->start_pass) (cinfo, JBUF_PASS_THRU);
     }
   }
@@ -649,7 +649,7 @@ prepare_for_output_pass (j_decompress_ptr cinfo)
   if (cinfo->progress != NULL) {
     cinfo->progress->completed_passes = master->pass_number;
     cinfo->progress->total_passes = master->pass_number +
-                                    (master->pub.is_dummy_pass ? 2 : 1);
+                                    (master->pub.is_place_holder_pass ? 2 : 1);
     /* In buffered-image mode, we assume one more output pass if EOI not
      * yet reached, but no more passes if EOI has been reached.
      */
@@ -696,7 +696,7 @@ jpeg_new_colormap (j_decompress_ptr cinfo)
     cinfo->cquantize = master->quantizer_2pass;
     /* Notify quantizer of colormap change */
     (*cinfo->cquantize->new_color_map) (cinfo);
-    master->pub.is_dummy_pass = FALSE; /* just in case */
+    master->pub.is_place_holder_pass = FALSE; /* just in case */
   } else
     ERREXIT(cinfo, JERR_MODE_CHANGE);
 }
@@ -717,7 +717,7 @@ jinit_master_decompress (j_decompress_ptr cinfo)
   master->pub.prepare_for_output_pass = prepare_for_output_pass;
   master->pub.finish_output_pass = finish_output_pass;
 
-  master->pub.is_dummy_pass = FALSE;
+  master->pub.is_place_holder_pass = FALSE;
   master->pub.jinit_upsampler_no_alloc = FALSE;
 
   master_selection(cinfo);

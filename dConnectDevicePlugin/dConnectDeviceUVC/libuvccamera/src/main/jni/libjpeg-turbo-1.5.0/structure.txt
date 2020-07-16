@@ -148,11 +148,11 @@ have special cases at the right and bottom edges.  Therefore the interface
 buffer is always an integral number of blocks wide and high, and we expect
 compression preprocessing to pad the source data properly.  Padding will occur
 only to the next block (8-sample) boundary.  In an interleaved-scan situation,
-additional dummy blocks may be used to fill out MCUs, but the MCU assembly and
+additional place_holder blocks may be used to fill out MCUs, but the MCU assembly and
 disassembly logic will create or discard these blocks internally.  (This is
-advantageous for speed reasons, since we avoid DCTing the dummy blocks.
+advantageous for speed reasons, since we avoid DCTing the place_holder blocks.
 It also permits a small reduction in file size, because the compressor can
-choose dummy block contents so as to minimize their size in compressed form.
+choose place_holder block contents so as to minimize their size in compressed form.
 Finally, it makes the interface buffer specification independent of whether
 the file is actually interleaved or not.)  Applications that wish to deal
 directly with the downsampled data must provide similar buffering and padding
@@ -327,7 +327,7 @@ The objects shown above are:
   duplicating the bottom sample row as needed to make a multiple of 8 rows).
 
 * Coefficient controller: buffer controller for the DCT-coefficient data.
-  This controller handles MCU assembly, including insertion of dummy DCT
+  This controller handles MCU assembly, including insertion of place_holder DCT
   blocks when needed at the right or bottom edge.  When performing
   Huffman-code optimization or emitting a multiscan JPEG file, this
   controller is responsible for buffering the full image.  The equivalent of
@@ -409,7 +409,7 @@ shown are:
   always a strip buffer; a full-image buffer is never required.
 
 * Coefficient controller: buffer controller for the DCT-coefficient data.
-  This controller handles MCU disassembly, including deletion of any dummy
+  This controller handles MCU disassembly, including deletion of any place_holder
   DCT blocks at the right or bottom edge.  When reading a multiscan JPEG
   file, this controller is responsible for buffering the full image.
   (Buffering DCT coefficients, rather than samples, is necessary to support

@@ -102,12 +102,12 @@ static ValueAllocator *&valueAllocator()
    return valueAllocator;
 }
 
-static struct DummyValueAllocatorInitializer {
-   DummyValueAllocatorInitializer() 
+static struct PlaceHolderValueAllocatorInitializer {
+   PlaceHolderValueAllocatorInitializer()
    {
       valueAllocator();      // ensure valueAllocator() statics are initialized before main().
    }
-} dummyValueAllocatorInitializer;
+} placeHolderValueAllocatorInitializer;
 
 
 

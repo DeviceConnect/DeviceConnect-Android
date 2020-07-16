@@ -64,7 +64,7 @@ typedef struct {
   /* For 2:1 vertical sampling, we produce two output rows at a time.
    * We need a "spare" row buffer to hold the second output row if the
    * application provides just a one-row buffer; we also use the spare
-   * to discard the dummy last row if the image height is odd.
+   * to discard the place_holder last row if the image height is odd.
    */
   JSAMPROW spare_row;
   boolean spare_full;           /* T if spare buffer is occupied */

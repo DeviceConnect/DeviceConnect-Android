@@ -93,7 +93,7 @@ EXTN(jsimd_h2v1_fancy_upsample_sse2):
         test    eax, SIZEOF_XMMWORD-1
         jz      short .skip
         mov     dl, JSAMPLE [esi+(eax-1)*SIZEOF_JSAMPLE]
-        mov     JSAMPLE [esi+eax*SIZEOF_JSAMPLE], dl    ; insert a dummy sample
+        mov     JSAMPLE [esi+eax*SIZEOF_JSAMPLE], dl    ; insert a place_holder sample
 .skip:
         pxor    xmm0,xmm0               ; xmm0=(all 0's)
         pcmpeqb xmm7,xmm7
@@ -266,7 +266,7 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
         mov     dl, JSAMPLE [ebx+(eax-1)*SIZEOF_JSAMPLE]
         mov     JSAMPLE [ebx+eax*SIZEOF_JSAMPLE], dl
         mov     dl, JSAMPLE [esi+(eax-1)*SIZEOF_JSAMPLE]
-        mov     JSAMPLE [esi+eax*SIZEOF_JSAMPLE], dl    ; insert a dummy sample
+        mov     JSAMPLE [esi+eax*SIZEOF_JSAMPLE], dl    ; insert a place_holder sample
         pop     edx
 .skip:
         ; -- process the first column block

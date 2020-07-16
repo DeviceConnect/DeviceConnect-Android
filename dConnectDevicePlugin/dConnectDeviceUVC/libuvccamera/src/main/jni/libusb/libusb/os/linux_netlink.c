@@ -150,16 +150,16 @@ int linux_netlink_start_event_monitor(void)
 int linux_netlink_stop_event_monitor(void)
 {
 	int r;
-	char dummy = 1;
+	char place_holder = 1;
 
 	if (-1 == linux_netlink_socket) {
 		/* already closed. nothing to do */
 		return LIBUSB_SUCCESS;
 	}
 
-	/* Write some dummy data to the control pipe and
+	/* Write some place_holder data to the control pipe and
 	 * wait for the thread to exit */
-	r = usbi_write(netlink_control_pipe[1], &dummy, sizeof(dummy));
+	r = usbi_write(netlink_control_pipe[1], &place_holder, sizeof(place_holder));
 	if (r <= 0) {
 		usbi_warn(NULL, "netlink control pipe signal failed");
 	}
@@ -326,7 +326,7 @@ static int linux_netlink_read_message(void)
 
 static void *linux_netlink_event_thread_main(void *arg)
 {
-	char dummy;
+	char place_holder;
 	int r;
 	struct pollfd fds[] = {
 		{ .fd = netlink_control_pipe[0],
@@ -341,7 +341,7 @@ static void *linux_netlink_event_thread_main(void *arg)
 	while (poll(fds, 2, -1) >= 0) {
 		if (fds[0].revents & POLLIN) {
 			/* activity on control pipe, read the byte and exit */
-			r = usbi_read(netlink_control_pipe[0], &dummy, sizeof(dummy));
+			r = usbi_read(netlink_control_pipe[0], &place_holder, sizeof(place_holder));
 			if (r <= 0) {
 				usbi_warn(NULL, "netlink control pipe read failed");
 			}

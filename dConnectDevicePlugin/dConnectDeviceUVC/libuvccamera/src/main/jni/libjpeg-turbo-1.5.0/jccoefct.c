@@ -158,7 +158,7 @@ compress_data (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
       /* Determine where data comes from in input_buf and do the DCT thing.
        * Each call on forward_DCT processes a horizontal row of DCT blocks
        * as wide as an MCU; we rely on having allocated the MCU_buffer[] blocks
-       * sequentially.  Dummy blocks at the right or bottom edge are filled in
+       * sequentially.  PlaceHolder blocks at the right or bottom edge are filled in
        * specially.  The data in them does not matter for image reconstruction,
        * so we fill them with values that will encode to the smallest amount of
        * data, viz: all zeroes in the AC entries, DC entries equal to previous
@@ -179,7 +179,7 @@ compress_data (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
                                          coef->MCU_buffer[blkn],
                                          ypos, xpos, (JDIMENSION) blockcnt);
             if (blockcnt < compptr->MCU_width) {
-              /* Create some dummy blocks at the right edge of the image. */
+              /* Create some place_holder blocks at the right edge of the image. */
               jzero_far((void *) coef->MCU_buffer[blkn + blockcnt],
                         (compptr->MCU_width - blockcnt) * sizeof(JBLOCK));
               for (bi = blockcnt; bi < compptr->MCU_width; bi++) {
@@ -187,7 +187,7 @@ compress_data (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
               }
             }
           } else {
-            /* Create a row of dummy blocks at the bottom of the image. */
+            /* Create a row of place_holder blocks at the bottom of the image. */
             jzero_far((void *) coef->MCU_buffer[blkn],
                       compptr->MCU_width * sizeof(JBLOCK));
             for (bi = 0; bi < compptr->MCU_width; bi++) {
@@ -225,10 +225,10 @@ compress_data (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
  * We process the equivalent of one fully interleaved MCU row ("iMCU" row)
  * per call, ie, v_samp_factor block rows for each component in the image.
  * This amount of data is read from the source buffer, DCT'd and quantized,
- * and saved into the virtual arrays.  We also generate suitable dummy blocks
- * as needed at the right and lower edges.  (The dummy blocks are constructed
+ * and saved into the virtual arrays.  We also generate suitable place_holder blocks
+ * as needed at the right and lower edges.  (The place_holder blocks are constructed
  * in the virtual arrays, which have been padded appropriately.)  This makes
- * it possible for subsequent passes not to worry about real vs. dummy blocks.
+ * it possible for subsequent passes not to worry about real vs. place_holder blocks.
  *
  * We must also emit the data to the entropy encoder.  This is conveniently
  * done by calling compress_output() after we've loaded the current strip
@@ -247,7 +247,7 @@ compress_first_pass (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
   my_coef_ptr coef = (my_coef_ptr) cinfo->coef;
   JDIMENSION last_iMCU_row = cinfo->total_iMCU_rows - 1;
   JDIMENSION blocks_across, MCUs_across, MCUindex;
-  int bi, ci, h_samp_factor, block_row, block_rows, ndummy;
+  int bi, ci, h_samp_factor, block_row, block_rows, nplace_holder;
   JCOEF lastDC;
   jpeg_component_info *compptr;
   JBLOCKARRAY buffer;
@@ -260,7 +260,7 @@ compress_first_pass (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
       ((j_common_ptr) cinfo, coef->whole_image[ci],
        coef->iMCU_row_num * compptr->v_samp_factor,
        (JDIMENSION) compptr->v_samp_factor, TRUE);
-    /* Count non-dummy DCT block rows in this iMCU row. */
+    /* Count non-place_holder DCT block rows in this iMCU row. */
     if (coef->iMCU_row_num < last_iMCU_row)
       block_rows = compptr->v_samp_factor;
     else {
@@ -270,11 +270,11 @@ compress_first_pass (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
     }
     blocks_across = compptr->width_in_blocks;
     h_samp_factor = compptr->h_samp_factor;
-    /* Count number of dummy blocks to be added at the right margin. */
-    ndummy = (int) (blocks_across % h_samp_factor);
-    if (ndummy > 0)
-      ndummy = h_samp_factor - ndummy;
-    /* Perform DCT for all non-dummy blocks in this iMCU row.  Each call
+    /* Count number of place_holder blocks to be added at the right margin. */
+    nplace_holder = (int) (blocks_across % h_samp_factor);
+    if (nplace_holder > 0)
+      nplace_holder = h_samp_factor - nplace_holder;
+    /* Perform DCT for all non-place_holder blocks in this iMCU row.  Each call
      * on forward_DCT processes a complete horizontal row of DCT blocks.
      */
     for (block_row = 0; block_row < block_rows; block_row++) {
@@ -283,23 +283,23 @@ compress_first_pass (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
                                    input_buf[ci], thisblockrow,
                                    (JDIMENSION) (block_row * DCTSIZE),
                                    (JDIMENSION) 0, blocks_across);
-      if (ndummy > 0) {
-        /* Create dummy blocks at the right edge of the image. */
-        thisblockrow += blocks_across; /* => first dummy block */
-        jzero_far((void *) thisblockrow, ndummy * sizeof(JBLOCK));
+      if (nplace_holder > 0) {
+        /* Create place_holder blocks at the right edge of the image. */
+        thisblockrow += blocks_across; /* => first place_holder block */
+        jzero_far((void *) thisblockrow, nplace_holder * sizeof(JBLOCK));
         lastDC = thisblockrow[-1][0];
-        for (bi = 0; bi < ndummy; bi++) {
+        for (bi = 0; bi < nplace_holder; bi++) {
           thisblockrow[bi][0] = lastDC;
         }
       }
     }
-    /* If at end of image, create dummy block rows as needed.
+    /* If at end of image, create place_holder block rows as needed.
      * The tricky part here is that within each MCU, we want the DC values
-     * of the dummy blocks to match the last real block's DC value.
+     * of the place_holder blocks to match the last real block's DC value.
      * This squeezes a few more bytes out of the resulting file...
      */
     if (coef->iMCU_row_num == last_iMCU_row) {
-      blocks_across += ndummy;  /* include lower right corner */
+      blocks_across += nplace_holder;  /* include lower right corner */
       MCUs_across = blocks_across / h_samp_factor;
       for (block_row = block_rows; block_row < compptr->v_samp_factor;
            block_row++) {

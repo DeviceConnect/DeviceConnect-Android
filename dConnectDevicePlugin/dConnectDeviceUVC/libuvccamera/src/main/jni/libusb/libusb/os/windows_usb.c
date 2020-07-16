@@ -343,11 +343,11 @@ static SP_DEVICE_INTERFACE_DETAIL_DATA_A *get_interface_details(struct libusb_co
 		return NULL;
 	}
 
-	// Read interface data (dummy + actual) to access the device path
+	// Read interface data (place_holder + actual) to access the device path
 	if (!pSetupDiGetDeviceInterfaceDetailA(*dev_info, &dev_interface_data, NULL, 0, &size, NULL)) {
-		// The dummy call should fail with ERROR_INSUFFICIENT_BUFFER
+		// The place_holder call should fail with ERROR_INSUFFICIENT_BUFFER
 		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-			usbi_err(ctx, "could not access interface data (dummy) for index %u: %s",
+			usbi_err(ctx, "could not access interface data (place_holder) for index %u: %s",
 				_index, windows_error_str(0));
 			goto err_exit;
 		}
@@ -407,11 +407,11 @@ static SP_DEVICE_INTERFACE_DETAIL_DATA_A *get_interface_details_filter(struct li
 		*dev_info = INVALID_HANDLE_VALUE;
 		return NULL;
 	}
-	// Read interface data (dummy + actual) to access the device path
+	// Read interface data (place_holder + actual) to access the device path
 	if (!pSetupDiGetDeviceInterfaceDetailA(*dev_info, &dev_interface_data, NULL, 0, &size, NULL)) {
-		// The dummy call should fail with ERROR_INSUFFICIENT_BUFFER
+		// The place_holder call should fail with ERROR_INSUFFICIENT_BUFFER
 		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-			usbi_err(ctx, "could not access interface data (dummy) for index %u: %s",
+			usbi_err(ctx, "could not access interface data (place_holder) for index %u: %s",
 				_index, windows_error_str(0));
 			goto err_exit;
 		}
@@ -994,7 +994,7 @@ static int cache_config_descriptors(struct libusb_device *dev, HANDLE hub_handle
 	int r;
 	uint8_t i;
 
-	USB_CONFIGURATION_DESCRIPTOR_SHORT cd_buf_short;    // dummy request
+	USB_CONFIGURATION_DESCRIPTOR_SHORT cd_buf_short;    // place_holder request
 	PUSB_DESCRIPTOR_REQUEST cd_buf_actual = NULL;       // actual request
 	PUSB_CONFIGURATION_DESCRIPTOR cd_data = NULL;
 
@@ -1026,16 +1026,16 @@ static int cache_config_descriptors(struct libusb_device *dev, HANDLE hub_handle
 		cd_buf_short.req.SetupPacket.wIndex = i;
 		cd_buf_short.req.SetupPacket.wLength = (USHORT)(size - sizeof(USB_DESCRIPTOR_REQUEST));
 
-		// Dummy call to get the required data size. Initial failures are reported as info rather
+		// PlaceHolder call to get the required data size. Initial failures are reported as info rather
 		// than error as they can occur for non-penalizing situations, such as with some hubs.
 		if (!DeviceIoControl(hub_handle, IOCTL_USB_GET_DESCRIPTOR_FROM_NODE_CONNECTION, &cd_buf_short, size,
 			&cd_buf_short, size, &ret_size, NULL)) {
-			usbi_info(ctx, "could not access configuration descriptor (dummy) for '%s': %s", device_id, windows_error_str(0));
+			usbi_info(ctx, "could not access configuration descriptor (place_holder) for '%s': %s", device_id, windows_error_str(0));
 			LOOP_BREAK(LIBUSB_ERROR_IO);
 		}
 
 		if ((ret_size != size) || (cd_buf_short.data.wTotalLength < sizeof(USB_CONFIGURATION_DESCRIPTOR))) {
-			usbi_info(ctx, "unexpected configuration descriptor size (dummy) for '%s'.", device_id);
+			usbi_info(ctx, "unexpected configuration descriptor size (place_holder) for '%s'.", device_id);
 			LOOP_BREAK(LIBUSB_ERROR_IO);
 		}
 

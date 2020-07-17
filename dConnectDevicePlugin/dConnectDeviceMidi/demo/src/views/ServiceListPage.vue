@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container>
     <v-card class="mx-auto">
       <v-list>
         <v-list-item v-for="item in targetServices" :key="item.id" @click="nextPage(item.id)">
@@ -9,7 +9,7 @@
         </v-list-item>
       </v-list>
     </v-card>
-  </div>
+  </v-container>
 </template>
 <script>
 export default {

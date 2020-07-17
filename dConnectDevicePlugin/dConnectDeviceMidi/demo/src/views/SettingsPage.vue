@@ -6,7 +6,7 @@
 
       <!-- パッド設定 -->
       <v-tab-item v-if="usePad">
-        <v-expansion-panels v-model="panel">
+        <v-expansion-panels v-model="padPanel">
           <v-expansion-panel v-for="pad in pads" :key="pad.id">
             <v-expansion-panel-header>{{ pad.name }}</v-expansion-panel-header>
             <v-expansion-panel-content>
@@ -45,13 +45,13 @@
                   <v-row>
                     <v-col>チャンネル</v-col>
                     <v-col>
-                      <value-field></value-field>
+                      <value-field v-model="pad.channel"></value-field>
                     </v-col>
                   </v-row>
                   <v-row>
                     <v-col>音階</v-col>
                     <v-col>
-                      <v-text-field outlined></v-text-field>
+                      <v-text-field outlined v-model="pad.noteName"></v-text-field>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -63,7 +63,7 @@
 
       <!-- スライダー設定 -->
       <v-tab-item v-if="useSlider">
-        <v-expansion-panels v-model="panel">
+        <v-expansion-panels v-model="sliderPanel">
           <v-expansion-panel v-for="slider in sliders" :key="slider.id">
             <v-expansion-panel-header>{{ slider.name }}</v-expansion-panel-header>
             <v-expansion-panel-content>
@@ -102,10 +102,10 @@ export default {
 
   computed: {
     usePad: function() {
-      return this.$router.currentRoute.query.pad !== 'off';
+      return this.$route.query.pad !== 'off';
     },
     useSlider: function() {
-      return this.$router.currentRoute.query.slider !== 'off';
+      return this.$route.query.slider !== 'off';
     },
     nextPath: {
       get: function() {
@@ -119,7 +119,7 @@ export default {
         q.ip = this.$route.query.ip;
         if (this.usePad) {
           q['pad_count'] = this.pads.length;
-          q['pad_profile'] = 'midi';
+          q['pad_profile'] = this.$route.query.pad;
           if (this.useProfileForPad('midi')) {
             for (let k in this.pads) {
               let pad = this.pads[k];
@@ -128,9 +128,14 @@ export default {
               q['pad_' + k + '_midi_note'] = pad.noteNumber;
               q['pad_' + k + '_midi_velocity'] = pad.velocity;
             }
-          } /*else if (this.useProfileForPad('soundModule')) {
-
-          }*/
+          } else if (this.useProfileForPad('soundModule')) {
+            for (let k in this.pads) {
+              let pad = this.pads[k];
+              q['pad_' + k + '_name'] = pad.name;
+              q['pad_' + k + '_midi_channel'] = pad.channel;
+              q['pad_' + k + '_midi_note'] = pad.noteName;
+            }
+          }
         }
         if (this.useSlider) {
           q['slider_count'] = this.sliders.length;
@@ -161,8 +166,9 @@ export default {
   },
 
   data: () => ({
-    panel: 0,
+    padPanel: 0,
     pads: [],
+    sliderPanel: 0,
     sliders: []
   }),
 
@@ -173,7 +179,7 @@ export default {
         name: 'PAD' + (i + 1),
         channel: i,
         noteNumber: 40,
-        noteName: '',
+        noteName: 'A4',
         velocity: 127
       });
     }

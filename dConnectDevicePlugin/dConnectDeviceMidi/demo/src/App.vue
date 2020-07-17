@@ -5,12 +5,13 @@
       color="primary"
       dark
     >
-      <v-spacer></v-spacer>
+      <v-icon @click="backPage">mdi-arrow-left</v-icon>
+      <v-toolbar-title>{{ title }}</v-toolbar-title>
     </v-app-bar>
 
-    <v-content>
+    <v-main>
       <router-view :allServices="services" />
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
@@ -18,12 +19,20 @@
 export default {
   name: 'App',
   data: () => ({
-    services: []
+    services: [],
+    title: ''
   }),
   watch: {
-    '$route': 'connect'
+    '$route': 'onRouteChange'
   },
   methods: {
+    backPage: function() {
+      this.$router.back();
+    },
+    onRouteChange: function() {
+      this.title = this.$route.meta.title;
+      this.connect();
+    },
     connect: function() {
       let query = this.$route.query;
       let host = query.ip;
@@ -31,7 +40,7 @@ export default {
       if (!host) {
         host = 'localhost';
       }
-      this.$dConnect.connect({ host })
+      this.$dConnect.connect({ host, scopes: ['serviceDiscovery', 'serviceInformation', 'midi', 'soundModule'] })
       .then(result => {
         this.services = result.services;
       })

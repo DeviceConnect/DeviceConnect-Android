@@ -6,7 +6,7 @@ import dConnect from './libs/core.js'
 
 Vue.config.productionTip = false
 Vue.prototype.$dConnect = dConnect({
-  appName: 'MIDI'
+  appName: 'MIDI',
 });
 
 new Vue({

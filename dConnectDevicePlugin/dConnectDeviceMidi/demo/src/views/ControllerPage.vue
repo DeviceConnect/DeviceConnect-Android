@@ -1,12 +1,14 @@
 <template>
-  <v-row>
-    <v-col v-if="usePad">
-      <pad-panel :rows="2" :cols="2" :pads="pads" @touch="onTouch"></pad-panel>
-    </v-col>
-    <v-col v-if="useSlider">
-      <slider-panel :sliders="sliders" @change="onSlide"></slider-panel>
-    </v-col>
-  </v-row>
+  <v-container>
+    <v-row>
+      <v-col v-if="usePad">
+        <pad-panel :rows="2" :cols="2" :pads="pads" @touch="onTouch"></pad-panel>
+      </v-col>
+      <v-col v-if="useSlider">
+        <slider-panel :sliders="sliders" @change="onSlide"></slider-panel>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 <script>
 import PadPanel from '../components/PadPanel.vue'
@@ -17,6 +19,48 @@ function postMidiMessage(session, params) {
     session.request({
       method: 'POST',
       path: '/gotapi/midi/message',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+function postSoundModuleNote(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'POST',
+      path: '/gotapi/soundModule/note',
+      params
+    })
+    .then((json) => {
+      const result = json.result;
+      if (result !== 0) {
+        reject(json);
+        return;
+      }
+      resolve(json);
+    })
+    .catch((err) => {
+      reject(err);
+    })
+  });
+}
+
+function deleteSoundModuleNote(session, params) {
+  return new Promise((resolve, reject) => {
+    session.request({
+      method: 'DELETE',
+      path: '/gotapi/soundModule/note',
       params
     })
     .then((json) => {
@@ -71,9 +115,8 @@ export default {
   },
 
   methods: {
-    onTouch: function(index, on) {
-      let pad = this.pads[index];
-      console.log('onTouch: index = ' + index + ", on = " + on);
+    onTouch: function(pad, on) {
+      console.log('onTouch: pad.id = ' + pad.id + ", on = " + on);
       if (pad) {
         this.sendPadMessage(pad, on);
       }
@@ -88,9 +131,9 @@ export default {
       if (pad.profile === 'midi') {
         let midiMessage = this.createNoteMessage(pad, on);
         this.sendMidiMessage(midiMessage);
-      } /*else if (pad.profile === 'soundModule') {
-
-      }*/
+      } else if (pad.profile === 'soundModule') {
+        this.sendSoundModuleMessage(pad, on);
+      }
     },
 
     sendSliderMessage: function(slider) {
@@ -102,6 +145,14 @@ export default {
        this.$dConnect.offer(this.host, postMidiMessage, {
         serviceId: this.$route.params.id,
         message: midiMessage.toString()
+      });
+    },
+
+    sendSoundModuleMessage: function(pad, on) {
+      this.$dConnect.offer(this.host, on ? postSoundModuleNote : deleteSoundModuleNote, {
+        serviceId: this.$route.params.id,
+        note: pad.note,
+        channel: pad.channel
       });
     },
 
@@ -133,7 +184,7 @@ export default {
     if (padCount) {
       for (let k = 0; k < padCount; k++) {
         let pad;
-        if (padProfile === 'midi') {
+        if (padProfile === 'midi' || padProfile === 'soundModule') {
           pad = {
             id: k,
             profile: padProfile,
@@ -142,9 +193,7 @@ export default {
             note: query['pad_' + k + '_midi_note'],
             velocity: query['pad_' + k + '_midi_velocity'],
           };
-        } /*else if (padProfile === 'soundModule') {
-
-        }*/
+        }
         if (pad) {
           this.pads.push(pad);
         }

@@ -7,6 +7,7 @@ import android.media.midi.MidiInputPort;
 import org.deviceconnect.android.deviceplugin.midi.MidiMessageSender;
 import org.deviceconnect.android.deviceplugin.midi.NoteNameTable;
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
+import org.deviceconnect.android.deviceplugin.midi.core.NoteOffMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -64,12 +65,26 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                String serviceId = (String) request.getExtras().get("serviceId");
-                String note = (String) request.getExtras().get("note");
+                String note = request.getStringExtra("note");
                 Integer channel = parseInteger(request, "channel");
 
-                // TODO ここでAPIを実装してください. 以下はサンプルのレスポンス作成処理です.
-                setResult(response, DConnectMessage.RESULT_OK);
+                Integer noteNumber = NoteNameTable.nameToNumber(note);
+                if (noteNumber == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            note + " is not supported as note name");
+                    return true;
+                }
+
+                NoteOffMessage message = new NoteOffMessage.Builder()
+                        .setChannelNumber(channel != null ? channel : 0)
+                        .setNoteNumber(noteNumber)
+                        .build();
+                try {
+                    mMessageSender.send(message);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (IOException e) {
+                    MessageUtils.setUnknownError(response, "Failed to send MIDI message: " + e.getMessage());
+                }
                 return true;
             }
         });

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card class="mx-auto">
+    <v-card v-if="hasServices" class="mx-auto">
       <v-list>
         <v-list-item v-for="item in targetServices" :key="item.id" @click="nextPage(item.id)">
           <v-list-item-content>
@@ -34,6 +34,9 @@ export default {
   },
 
   computed: {
+    hasServices: {
+      get: function() { return this.allServices.length > 0; }
+    },
     targetServices: {
       get: function() {
         let services = [];

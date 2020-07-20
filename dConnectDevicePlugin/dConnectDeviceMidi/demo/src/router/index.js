@@ -7,7 +7,7 @@ const routes = [
   {
     path: '/',
     name: 'ServiceListPage',
-    meta: {title: 'MIDI サービス一覧'},
+    meta: {title: 'MIDI サービス一覧', useDeviceConnect: true},
     component: () => import('../views/ServiceListPage.vue')
   },
   {
@@ -25,7 +25,7 @@ const routes = [
   {
     path: '/controller/:id',
     name: 'ControllerPage',
-    meta: {title: 'コントローラ'},
+    meta: {title: 'コントローラ', useDeviceConnect: true},
     component: () => import('../views/ControllerPage.vue')
   }
 ]

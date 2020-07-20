@@ -71,6 +71,9 @@ public class DConnectMidiOutputService extends DConnectMidiService {
     static DConnectMidiOutputService createService(final MidiDevice device,
                                                    final MidiDeviceInfo.PortInfo portInfo) {
         String serviceId = createServiceId(device.getInfo(), portInfo);
+        if (serviceId == null) {
+            return null;
+        }
         return new DConnectMidiOutputService(serviceId, device, portInfo);
     }
 

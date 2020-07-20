@@ -70,7 +70,9 @@ public class MidiMessageService extends DConnectMessageService {
                         service.setOnline(true);
                     } else {
                         service = DConnectMidiInputService.createService(midiDevice, port);
-                        getServiceProvider().addService(service);
+                        if (service != null) {
+                            getServiceProvider().addService(service);
+                        }
                     }
                 } else if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_OUTPUT) {
                     serviceId = DConnectMidiOutputService.createServiceId(deviceInfo, port);
@@ -79,7 +81,9 @@ public class MidiMessageService extends DConnectMessageService {
                         service.setOnline(true);
                     } else {
                         service = DConnectMidiOutputService.createService(midiDevice, port);
-                        getServiceProvider().addService(service);
+                        if (service != null) {
+                            getServiceProvider().addService(service);
+                        }
                     }
                 }
             }

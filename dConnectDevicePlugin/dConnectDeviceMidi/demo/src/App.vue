@@ -10,6 +10,8 @@
     </v-app-bar>
 
     <v-main>
+      <v-alert tile type="warning" transition="scale-transition" :value="alert">{{ error.errorMessage }}</v-alert>
+      
       <router-view :allServices="services" />
     </v-main>
   </v-app>
@@ -20,7 +22,9 @@ export default {
   name: 'App',
   data: () => ({
     services: [],
-    title: ''
+    title: '',
+    error: {},
+    alert: false
   }),
   watch: {
     '$route': 'onRouteChange'
@@ -31,7 +35,9 @@ export default {
     },
     onRouteChange: function() {
       this.title = this.$route.meta.title;
-      this.connect();
+      if (this.$route.meta.useDeviceConnect) {
+        this.connect();
+      }
     },
     connect: function() {
       let query = this.$route.query;
@@ -40,12 +46,44 @@ export default {
       if (!host) {
         host = 'localhost';
       }
+
+      this.$dConnect.checkAvailability(host)
+      .then(json => {
+        console.log('Host ' + host + ' is available.', json);
+        this.serviceDiscovery(host);
+      })
+      .catch(err => {
+        console.warn('Host ' + host + ' is not available.', err);
+        if (this.$dConnect.isAndroid()) {
+          this.$dConnect.startDeviceConnect({
+            onstart: function() {
+              this.serviceDiscovery(host);
+            },
+            onerror: function() {
+              this.error = {
+                errorMessage: 'DeviceConnectシステムの起動に失敗しました。'
+              };
+              this.alert = true;
+            }
+          })
+          return;
+        } else {
+          this.error = {
+            errorMessage: 'DeviceConnectシステムへの接続に失敗しました。'
+          };
+          this.alert = true;
+        }
+      });
+    },
+    serviceDiscovery: function(host) {
       this.$dConnect.connect({ host, scopes: ['serviceDiscovery', 'serviceInformation', 'midi', 'soundModule'] })
       .then(result => {
         this.services = result.services;
       })
       .catch(err => {
         console.error("ServiceList: error", err);
+        this.error = err;
+        this.alert = true;
       });
     }
   }

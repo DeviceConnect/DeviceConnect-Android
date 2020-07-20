@@ -177,6 +177,9 @@ public class DConnectMidiInputService extends DConnectMidiService implements Mid
     static DConnectMidiInputService createService(final MidiDevice device,
                                                   final MidiDeviceInfo.PortInfo portInfo) {
         String serviceId = createServiceId(device.getInfo(), portInfo);
+        if (serviceId == null) {
+            return null;
+        }
         return new DConnectMidiInputService(serviceId, device, portInfo);
     }
 

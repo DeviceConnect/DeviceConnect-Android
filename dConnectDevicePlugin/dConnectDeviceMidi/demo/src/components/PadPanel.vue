@@ -5,8 +5,10 @@
         <v-btn
           block
           style="height: 120px"
-          @mouseup="event(pad, false)"
-          @mousedown="event(pad, true)">
+          @mousedown="mouseEvent($event, pad, true)"
+          @mouseup="mouseEvent($event, pad, false)"
+          @touchstart="touchEvent($event, pad, true)"
+          @touchend="touchEvent($event, pad, false)">
           {{ pad.name }}
         </v-btn>
       </v-col>
@@ -28,8 +30,18 @@ export default {
     }
   },
   methods: {
-    event: function(pad, on) {
-      this.$emit('touch', pad, on);
+    mouseEvent: function(event, pad, on) {
+      this.$emit('mouse', pad, on);
+    },
+    touchEvent: function(event, pad, on) {
+      let force;
+      if (event.touches.length > 0) {
+        force = event.touches[0].force;
+      }
+      if (force === undefined || force === null) {
+        force = 1.0;
+      }
+      this.$emit('touch', pad, on, force);
     },
     subPads: function(row) {
       if (this.pads.length == 0) {

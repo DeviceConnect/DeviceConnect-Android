@@ -29,11 +29,11 @@
                   <v-row>
                     <v-col>強弱</v-col>
                     <v-col>
-                      <v-radio-group mandatory>
+                      <v-radio-group mandatory v-if="hasTouchEvent" v-model="pad.velocityMode">
                         <v-radio value="touch" label="画面タッチの強さ"></v-radio>
                         <v-radio value="fixed" label="固定値"></v-radio>
                       </v-radio-group>
-                      <value-field v-model="pad.velocity"></value-field>
+                      <value-field v-model="pad.velocity" :inputDisabled="pad.velocityMode !== 'fixed'"></value-field>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -101,6 +101,9 @@ export default {
   },
 
   computed: {
+    hasTouchEvent: {
+      get: function() { return 'ontouchstart' in window; }
+    },
     usePad: function() {
       return this.$route.query.pad !== 'off';
     },
@@ -127,6 +130,7 @@ export default {
               q['pad_' + k + '_midi_channel'] = pad.channel;
               q['pad_' + k + '_midi_note'] = pad.noteNumber;
               q['pad_' + k + '_midi_velocity'] = pad.velocity;
+              q['pad_' + k + '_midi_velocity_mode'] = pad.velocityMode;
             }
           } else if (this.useProfileForPad('soundModule')) {
             for (let k in this.pads) {
@@ -180,7 +184,8 @@ export default {
         channel: i,
         noteNumber: 40,
         noteName: 'A4',
-        velocity: 127
+        velocity: 127,
+        velocityMode: this.hasTouchEvent ? 'touch' : 'fixed'
       });
     }
     for (let i = 0; i < 4; i++) {

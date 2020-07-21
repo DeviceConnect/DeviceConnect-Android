@@ -1,6 +1,6 @@
 <template>
   <v-form>
-    <v-text-field :value="value" outlined :rules="rules">
+    <v-text-field :value="value" outlined :rules="rules" :disabled="inputDisabled">
       <v-icon slot="prepend" @click="dec()">mdi-minus</v-icon>
       <v-icon slot="append-outer" @click="inc()">mdi-plus</v-icon>
     </v-text-field>
@@ -16,6 +16,9 @@ export default {
   props: {
     value: {
       type: Number
+    },
+    inputDisabled: {
+      type: Boolean
     }
   },
   methods: {

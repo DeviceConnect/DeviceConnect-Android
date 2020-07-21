@@ -2,7 +2,7 @@
   <v-container>
     <v-row>
       <v-col v-if="usePad">
-        <pad-panel :rows="2" :cols="2" :pads="pads" @touch="onTouch"></pad-panel>
+        <pad-panel :rows="2" :cols="2" :pads="pads" @touch="onTouch" @mouse="onMouse"></pad-panel>
       </v-col>
       <v-col v-if="useSlider">
         <slider-panel :sliders="sliders" @change="onSlide"></slider-panel>
@@ -91,6 +91,9 @@ export default {
   }),
 
   computed: {
+    hasTouchEvent: {
+      get: function() { return 'ontouchstart' in window; }
+    },
     usePad: {
       get: function() {
         if (this.$route.query.pad_count === undefined) {
@@ -115,9 +118,16 @@ export default {
   },
 
   methods: {
-    onTouch: function(pad, on) {
-      console.log('onTouch: pad.id = ' + pad.id + ", on = " + on);
-      if (pad) {
+    onTouch: function(pad, on, force) {
+      console.log('onTouch: pad.id = ' + pad.id + ", on = " + on + ", force = " + force);
+      if (this.hasTouchEvent) {
+        this.sendPadMessage(pad, on, force);
+      }
+    },
+
+    onMouse: function(pad, on) {
+      console.log('onMouse: pad.id = ' + pad.id + ", on = " + on);
+      if (!this.hasTouchEvent) {
         this.sendPadMessage(pad, on);
       }
     },
@@ -127,9 +137,9 @@ export default {
       this.sendSliderMessage(slider);
     },
 
-    sendPadMessage: function(pad, on) {
+    sendPadMessage: function(pad, on, force) {
       if (pad.profile === 'midi') {
-        let midiMessage = this.createNoteMessage(pad, on);
+        let midiMessage = this.createNoteMessage(pad, on, force);
         this.sendMidiMessage(midiMessage);
       } else if (pad.profile === 'soundModule') {
         this.sendSoundModuleMessage(pad, on);
@@ -156,12 +166,13 @@ export default {
       });
     },
 
-    createNoteMessage: function(pad, on) {
+    createNoteMessage: function(pad, on, force) {
       let messageType = on ? 0b1001 : 0b1000;
+      let velocity = pad.velocityMode === 'touch' ? 127 * force : pad.velocity;
       return Int8Array.from([
         (messageType << 4) | pad.channel & 0x0F,
         pad.note & 0x7F,
-        pad.velocity & 0x7F
+        velocity & 0x7F
       ]);
     },
 
@@ -176,7 +187,7 @@ export default {
   },
 
   mounted: function() {
-    console.log('ControllerPage: query', this.$router.currentRoute.query);
+    console.log('mounted: ', this.$route.query);
 
     let query = this.$route.query;
     let padCount = query['pad_count'];
@@ -192,6 +203,7 @@ export default {
             channel: query['pad_' + k + '_midi_channel'],
             note: query['pad_' + k + '_midi_note'],
             velocity: query['pad_' + k + '_midi_velocity'],
+            velocityMode: query['pad_' + k + '_midi_velocity_mode'],
           };
         }
         if (pad) {

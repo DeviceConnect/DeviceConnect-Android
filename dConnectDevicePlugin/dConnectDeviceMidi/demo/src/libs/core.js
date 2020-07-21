@@ -189,6 +189,14 @@ class DeviceConnectClient {
     return this._sessions;
   }
 
+  isConnected(host) {
+    let session = this._sessions[host];
+    if (!session) {
+      return false;
+    }
+    return session.connected;
+  }
+
   addSession(args) {
     const host = args.host;
     const session = new Session(args.host, args.scopes);
@@ -245,8 +253,6 @@ class DeviceConnectClient {
     const host = option.host || 'localhost';
     const scopes = option.scopes || ['serviceDiscovery', 'serviceInformation'];
     const ssl = option.ssl || false;
-
-    console.log('connect(): host=' + host)
 
     return new Promise((resolve, reject) => {
       let session = this._sessions[host];

@@ -18,6 +18,14 @@
 </template>
 
 <script>
+function loadAccessToken(host) {
+  return localStorage.getItem('token-' + host);
+}
+
+function storeAccessToken(host, token) {
+  localStorage.setItem('token-' + host, token);
+}
+
 export default {
   name: 'App',
   data: () => ({
@@ -42,7 +50,6 @@ export default {
     connect: function() {
       let query = this.$route.query;
       let host = query.ip;
-      console.log('App: query = ', query);
       if (!host) {
         host = 'localhost';
       }
@@ -76,8 +83,18 @@ export default {
       });
     },
     serviceDiscovery: function(host) {
-      this.$dConnect.connect({ host, scopes: ['serviceDiscovery', 'serviceInformation', 'midi', 'soundModule'] })
+      let scopes = ['serviceDiscovery', 'serviceInformation', 'midi', 'soundModule'];
+      if (!this.$dConnect.isConnected(host)) {
+        let accessToken = loadAccessToken(host);
+        if (accessToken) {
+          this.$dConnect.addSession({ host, scopes, accessToken });
+        }
+      }
+
+      this.$dConnect.connect({ host, scopes })
       .then(result => {
+        storeAccessToken(host, result.session.accessToken);
+
         this.services = result.services;
       })
       .catch(err => {

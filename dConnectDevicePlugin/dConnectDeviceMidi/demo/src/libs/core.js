@@ -216,8 +216,23 @@ class DeviceConnectClient {
     return (userAgent.indexOf('android') != -1);
   }
 
+  isChrome() {
+    var userAgent = window.navigator.userAgent.toLowerCase();
+    return (userAgent.indexOf('chrome') != -1);
+  }
+
   startDeviceConnect(option) {
-    location.href = 'gotapi://start/server?package=org.deviceconnect.android.manager';
+    let scheme = 'gotapi';
+    let uriHost = 'start';
+    let path = '/server';
+    let packageName = 'org.deviceconnect.android.manager';
+    let uri;
+    if (this.isChrome()) {
+      uri = `intent://${uriHost}${path}#Intent;scheme=${scheme};package=${packageName};end;`;
+    } else {
+      uri = `${scheme}://${uriHost}${path}?package=${packageName}`;
+    }
+    location.href = uri;
     this.waitAvailable(option);
   }
 

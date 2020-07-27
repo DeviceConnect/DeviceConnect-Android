@@ -14,6 +14,8 @@ def DEMO_ZIP_NAME = "demo.zip"
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
+    implementation 'androidx.preference:preference:1.1.1'
     implementation 'jp.kshoji:javax-sound-midi:0.0.3'
     testImplementation 'junit:junit:4.12'
 }
@@ -28,6 +30,10 @@ android {
         targetSdkVersion 29
         versionCode 1
         versionName '1.0.0'
+
+        buildConfigField "String", "PACKAGE_NAME", "\"" + applicationId + "\""
+        buildConfigField "String", "DEMO_DIR", "\"demo\""
+        buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
     }
     
     compileOptions {

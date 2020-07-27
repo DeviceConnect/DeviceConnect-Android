@@ -7,7 +7,7 @@ import org.deviceconnect.android.deviceplugin.midi.fragment.MidiDeviceSettingsFr
 import org.deviceconnect.android.deviceplugin.midi.fragment.SummaryFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
-public class DConnectMidiSettingsActivity extends DConnectSettingPageFragmentActivity {
+public class DConnectMidiBleSettingsActivity extends DConnectSettingPageFragmentActivity {
 
     @Override
     public int getPageCount() {

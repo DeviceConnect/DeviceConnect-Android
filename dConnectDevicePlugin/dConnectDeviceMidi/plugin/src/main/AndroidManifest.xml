@@ -2,6 +2,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.deviceconnect.android.deviceplugin.midi">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -47,6 +48,16 @@
             </intent-filter>
         </receiver>
 
+        <!-- プラグイン設定一覧画面 -->
+        <activity
+            android:name=".DConnectMidiSettingsListActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <!-- サービス一覧画面 -->
         <activity
             android:name=".DConnectMidiServiceListActivity"
@@ -57,17 +68,15 @@
             android:name=".DConnectMidiServiceDetailActivity"
             android:exported="false"/>
 
-        <!-- プラグイン設定画面 -->
+        <!-- BLE設定画面 -->
         <activity
-            android:name=".DConnectMidiSettingsActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:name=".DConnectMidiBleSettingsActivity"
+            android:exported="false"/>
 
         <activity android:name=".ble.activity.BleEnableActivity"
+            android:exported="false"/>
+
+        <activity android:name=".MidiDemoSettingActivity"
             android:exported="false"/>
 
         <provider

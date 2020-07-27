@@ -15,7 +15,7 @@
             android:padding="@dimen/padding_title"
             android:background="@color/title_background"
             android:gravity="center"
-            android:text="@string/heart_rate_setting_title"
+            android:text="@string/midi_ble_setting_title"
             android:textColor="@color/title_text"
             android:textSize="@dimen/text_size_title"/>
 

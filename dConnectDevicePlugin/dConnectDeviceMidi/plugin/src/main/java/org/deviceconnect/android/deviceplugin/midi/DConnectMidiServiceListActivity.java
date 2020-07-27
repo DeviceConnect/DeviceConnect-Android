@@ -23,7 +23,7 @@ public class DConnectMidiServiceListActivity extends DConnectServiceListActivity
 
     @Override
     protected Class<? extends Activity> getSettingManualActivityClass() {
-        return DConnectMidiSettingsActivity.class;
+        return DConnectMidiBleSettingsActivity.class;
     }
 
     @Override

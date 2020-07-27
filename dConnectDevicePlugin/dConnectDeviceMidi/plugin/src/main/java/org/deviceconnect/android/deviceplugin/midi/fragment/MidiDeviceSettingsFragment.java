@@ -209,13 +209,13 @@ public class MidiDeviceSettingsFragment extends Fragment {
             if (!BleUtils.isBLEPermission(getActivity())) {
                 mFooterView = inflater.inflate(R.layout.item_midi_ble_error, null);
                 TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
-                textView.setText(getString(R.string.heart_rate_setting_dialog_error_permission));
+                textView.setText(getString(R.string.midi_ble_setting_dialog_error_permission));
             } else if (getManager().isEnabledBle()) {
                 mFooterView = inflater.inflate(R.layout.item_midi_ble_searching, null);
             } else {
                 mFooterView = inflater.inflate(R.layout.item_midi_ble_error, null);
                 TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
-                textView.setText(getString(R.string.heart_rate_setting_dialog_disable_bluetooth));
+                textView.setText(getString(R.string.midi_ble_setting_dialog_disable_bluetooth));
 
                 mDeviceAdapter.clear();
                 mDeviceAdapter.addAll(createDeviceContainers());
@@ -279,8 +279,8 @@ public class MidiDeviceSettingsFragment extends Fragment {
         dismissProgressDialog();
 
         Resources res = getActivity().getResources();
-        String title = res.getString(R.string.heart_rate_setting_connecting_title);
-        String message = res.getString(R.string.heart_rate_setting_connecting_message, name);
+        String title = res.getString(R.string.midi_ble_setting_connecting_title);
+        String message = res.getString(R.string.midi_ble_setting_connecting_message, name);
         mProgressDialogFragment = ProgressDialogFragment.newInstance(title, message);
         mProgressDialogFragment.show(getFragmentManager(), "dialog");
     }
@@ -304,10 +304,10 @@ public class MidiDeviceSettingsFragment extends Fragment {
         Resources res = getActivity().getResources();
         String message;
         if (name == null) {
-            message = res.getString(R.string.heart_rate_setting_dialog_error_message,
-                    getString(R.string.heart_rate_setting_default_name));
+            message = res.getString(R.string.midi_ble_setting_dialog_error_message,
+                    getString(R.string.midi_ble_setting_default_name));
         } else {
-            message = res.getString(R.string.heart_rate_setting_dialog_error_message, name);
+            message = res.getString(R.string.midi_ble_setting_dialog_error_message, name);
         }
         showErrorDialog(message);
     }
@@ -317,7 +317,7 @@ public class MidiDeviceSettingsFragment extends Fragment {
      */
     private void showErrorDialogNoPermissions() {
         Resources res = getActivity().getResources();
-        String message = res.getString(R.string.heart_rate_setting_dialog_error_permission);
+        String message = res.getString(R.string.midi_ble_setting_dialog_error_permission);
         showErrorDialog(message);
     }
 
@@ -330,7 +330,7 @@ public class MidiDeviceSettingsFragment extends Fragment {
         dismissErrorDialog();
 
         Resources res = getActivity().getResources();
-        String title = res.getString(R.string.heart_rate_setting_dialog_error_title);
+        String title = res.getString(R.string.midi_ble_setting_dialog_error_title);
         mErrorDialogFragment = ErrorDialogFragment.newInstance(title, message);
         mErrorDialogFragment.show(getFragmentManager(), "error_dialog");
         mErrorDialogFragment.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -582,9 +582,9 @@ public class MidiDeviceSettingsFragment extends Fragment {
             String name = device.getName();
             if (device.isRegisterFlag()) {
                 if (getManager() != null && getManager().containsConnectedBleDevice(device.getAddress())) {
-                    name += " " + getResources().getString(R.string.heart_rate_setting_online);
+                    name += " " + getResources().getString(R.string.midi_ble_setting_online);
                 } else {
-                    name += " " + getResources().getString(R.string.heart_rate_setting_offline);
+                    name += " " + getResources().getString(R.string.midi_ble_setting_offline);
                 }
             }
 
@@ -597,10 +597,10 @@ public class MidiDeviceSettingsFragment extends Fragment {
             Button btn = convertView.findViewById(R.id.btn_connect_device);
             if (device.isRegisterFlag()) {
                 btn.setBackgroundResource(R.drawable.button_red);
-                btn.setText(R.string.heart_rate_setting_disconnect);
+                btn.setText(R.string.midi_ble_setting_disconnect);
             } else {
                 btn.setBackgroundResource(R.drawable.button_blue);
-                btn.setText(R.string.heart_rate_setting_connect);
+                btn.setText(R.string.midi_ble_setting_connect);
             }
             btn.setOnClickListener((v) -> {
                 if (device.isRegisterFlag()) {

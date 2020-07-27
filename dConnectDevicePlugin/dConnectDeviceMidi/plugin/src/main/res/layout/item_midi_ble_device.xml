@@ -14,7 +14,7 @@
 
         <TextView
             android:id="@+id/device_name"
-            android:text="@string/heart_rate_setting_default_name"
+            android:text="@string/midi_ble_setting_default_name"
             android:textSize="@dimen/text_size_setting_device_name"
             android:textStyle="bold"
             android:textColor="@color/item_name_text"
@@ -23,7 +23,7 @@
 
         <TextView
             android:id="@+id/device_address"
-            android:text="@string/heart_rate_setting_default_address"
+            android:text="@string/midi_ble_setting_default_address"
             android:textSize="@dimen/text_size_setting_device_address"
             android:textColor="@color/item_address_text"
             android:paddingLeft="8dp"
@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/button_blue"
         android:layout_margin="8dp"
-        android:text="@string/heart_rate_setting_connect"
+        android:text="@string/midi_ble_setting_connect"
         android:layout_centerInParent="true"
         android:layout_alignParentRight="true"
         android:textColor="#FFFFFF"/>

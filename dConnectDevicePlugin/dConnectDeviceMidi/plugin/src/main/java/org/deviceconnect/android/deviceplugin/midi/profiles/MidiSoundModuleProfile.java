@@ -33,7 +33,7 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String note = request.getStringExtra("note");
-                Integer channel = parseInteger(request, "channel");
+                Integer channelParam = parseInteger(request, "channel");
 
                 Integer noteNumber = NoteNameTable.nameToNumber(note);
                 if (noteNumber == null) {
@@ -43,11 +43,11 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
                 }
 
                 NoteOnMessage message = new NoteOnMessage.Builder()
-                        .setChannelNumber(channel != null ? channel : 0)
+                        .setChannelNumber(parseMidiChannel(channelParam))
                         .setNoteNumber(noteNumber)
                         .build();
                 try {
-                    mMessageSender.send(message);
+                    mMessageSender.send(parseMidiPort(channelParam), message);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } catch (IOException e) {
                     MessageUtils.setUnknownError(response, "Failed to send MIDI message: " + e.getMessage());
@@ -66,7 +66,7 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
                 String note = request.getStringExtra("note");
-                Integer channel = parseInteger(request, "channel");
+                Integer channelParam = parseInteger(request, "channel");
 
                 Integer noteNumber = NoteNameTable.nameToNumber(note);
                 if (noteNumber == null) {
@@ -76,11 +76,11 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
                 }
 
                 NoteOffMessage message = new NoteOffMessage.Builder()
-                        .setChannelNumber(channel != null ? channel : 0)
+                        .setChannelNumber(parseMidiChannel(channelParam))
                         .setNoteNumber(noteNumber)
                         .build();
                 try {
-                    mMessageSender.send(message);
+                    mMessageSender.send(parseMidiPort(channelParam), message);
                     setResult(response, DConnectMessage.RESULT_OK);
                 } catch (IOException e) {
                     MessageUtils.setUnknownError(response, "Failed to send MIDI message: " + e.getMessage());
@@ -89,6 +89,20 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
             }
         });
 
+    }
+
+    private int parseMidiPort(final Integer channelParam) {
+        if (channelParam == null) {
+            return 0;
+        }
+        return channelParam / 16;
+    }
+
+    private int parseMidiChannel(final Integer channelParam) {
+        if (channelParam == null) {
+            return 0;
+        }
+        return channelParam % 16;
     }
 
     @Override

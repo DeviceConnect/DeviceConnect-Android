@@ -38,7 +38,9 @@
                                 "protocol": "1.0",
                                 "productName": "Example Device",
                                 "manufacturer": "example.com",
-                                "direction": "input"
+                                "direction": "input",
+                                "inputCount": 1,
+                                "outputCount": 0
                             }
                         }
                     }
@@ -65,6 +67,13 @@
                         "description": "MIDI メッセージの文字列表現。 フォーマットはMIDI メッセージを構成する各オクテットの10進数表現をカンマで連結したものとする。",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "name": "port",
+                        "in": "query",
+                        "description": "MIDI 入力ポート番号。指定しない場合はデフォルトの入力ポートへ MIDI メッセージが送信される。存在しない番号が指定された場合はエラー。",
+                        "required": false,
+                        "type": "integer"
                     }
                 ],
                 "responses": {
@@ -209,6 +218,13 @@
                         "description": "MIDI ファイルのデータ",
                         "required": false,
                         "type": "file"
+                    },
+                    {
+                        "name": "port",
+                        "in": "query",
+                        "description": "MIDI 入力ポート番号。指定しない場合はデフォルトの入力ポートへ MIDI メッセージが送信される。存在しない番号が指定された場合はエラー。",
+                        "required": false,
+                        "type": "integer"
                     }
                 ],
                 "responses": {
@@ -239,6 +255,8 @@
                     "type": "object",
                     "required": [
                         "direction",
+                        "inputCount",
+                        "outputCount",
                         "protocol"
                     ],
                     "properties": {
@@ -249,12 +267,23 @@
                         },
                         "direction": {
                             "type": "string",
-                            "description": "デバイスのサポートしている MIDI 通信の方向を示す。\n<ul> <li>\"input\": MIDI デバイスへの入力専用。</li> <li>\"output\": MIDI デバイスからの出力専用。</li> </ul>",
+                            "description": "デバイスのサポートしている MIDI 通信の方向を示す。\n<ul> <li>\"input\": MIDI デバイスへの入力専用。</li> <li>\"output\": MIDI デバイスからの出力専用。</li> <li>\"bidirectional\": 入出力両対応。</li> </ul>",
                             "title": "MIDI 通信の方向",
                             "enum": [
                                 "input",
-                                "output"
+                                "output",
+                                "bidirectional"
                             ]
+                        },
+                        "inputCount": {
+                            "type": "integer",
+                            "description": "MIDI デバイスへの入力ポートの個数。",
+                            "title": "入力ポート数"
+                        },
+                        "outputCount": {
+                            "type": "integer",
+                            "description": "MIDI デバイスからの出力ポートの個数。",
+                            "title": "出力ポート数"
                         },
                         "productName": {
                             "type": "string",
@@ -291,13 +320,19 @@
                 },
                 {
                     "required": [
-                        "message"
+                        "message",
+                        "port"
                     ],
                     "properties": {
                         "message": {
                             "type": "string",
                             "description": "MIDI デバイスから受信した MIDI メッセージの文字列表現。 フォーマットはMIDI メッセージを構成する各オクテットの10進数表現をカンマで連結したものとする。",
                             "title": "MIDI メッセージ"
+                        },
+                        "port": {
+                            "type": "integer",
+                            "description": "MIDI メッセージの送信元である出力ポートの番号。",
+                            "title": "出力ポート番号"
                         }
                     }
                 }
@@ -310,13 +345,19 @@
                 },
                 {
                     "required": [
-                        "message"
+                        "message",
+                        "port"
                     ],
                     "properties": {
                         "message": {
                             "type": "string",
                             "description": "MIDI デバイスから受信した MIDI メッセージの文字列表現。 フォーマットはMIDI メッセージを構成する各オクテットの10進数表現をカンマで連結したものとする。",
                             "title": "MIDI メッセージ"
+                        },
+                        "port": {
+                            "type": "integer",
+                            "description": "MIDI メッセージの送信元である出力ポートの番号。",
+                            "title": "出力ポート番号"
                         }
                     }
                 }

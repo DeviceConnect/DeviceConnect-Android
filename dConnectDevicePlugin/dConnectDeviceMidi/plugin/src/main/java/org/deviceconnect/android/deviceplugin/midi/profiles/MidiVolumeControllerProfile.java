@@ -63,9 +63,9 @@ public class MidiVolumeControllerProfile extends BaseMidiOutputProfile {
     }
 
     @Override
-    void convertMessageToEvent(final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
+    void convertMessageToEvent(final int port, final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
         if (message instanceof ControlChangeMessage) {
-            final int channel = ((ControlChangeMessage) message).getChannelNumber();
+            final int channel = port * ((ControlChangeMessage) message).getChannelNumber();
             final int value = ((ControlChangeMessage) message).getControlValue();
             final double normalized = value / 127.0d;
 

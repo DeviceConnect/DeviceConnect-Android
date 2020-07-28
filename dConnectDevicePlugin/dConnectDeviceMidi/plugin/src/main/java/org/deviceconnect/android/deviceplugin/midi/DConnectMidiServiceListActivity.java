@@ -33,8 +33,8 @@ public class DConnectMidiServiceListActivity extends DConnectServiceListActivity
 
     @Override
     protected void onItemClick(final DConnectService service) {
-        if (service instanceof DConnectMidiService) {
-            DConnectMidiService midiService = (DConnectMidiService) service;
+        if (service instanceof DConnectMidiDeviceService) {
+            DConnectMidiDeviceService midiService = (DConnectMidiDeviceService) service;
             ServiceInfo serviceInfo = midiService.getServiceInfo();
             serviceInfo.setServiceName(midiService.getName());
             serviceInfo.setProfileNameList(getProfileNameList(midiService));

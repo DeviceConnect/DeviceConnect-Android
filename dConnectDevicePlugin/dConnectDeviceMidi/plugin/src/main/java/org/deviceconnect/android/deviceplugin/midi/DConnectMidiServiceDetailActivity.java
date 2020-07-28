@@ -48,11 +48,13 @@ public class DConnectMidiServiceDetailActivity extends Activity {
     }
 
     private String getDirectionName(final ServiceInfo serviceInfo) {
-        switch (serviceInfo.getPortType()) {
-            case ServiceInfo.PORT_TYPE_INPUT:
+        switch (serviceInfo.getDirectionName()) {
+            case INPUT:
                 return getString(R.string.input);
-            case ServiceInfo.PORT_TYPE_OUTPUT:
+            case OUTPUT:
                 return getString(R.string.output);
+            case BIDIRECTIONAL:
+                return getString(R.string.bidirectional);
             default:
                 return getString(R.string.unknown);
         }

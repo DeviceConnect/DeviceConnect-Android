@@ -9,7 +9,6 @@ import android.media.midi.MidiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.ArraySet;
 
 import org.deviceconnect.android.deviceplugin.midi.ble.BleDeviceDetector;
 
@@ -24,8 +23,6 @@ import java.util.logging.Logger;
 public class MidiDeviceManager {
 
     private final Logger mLogger = Logger.getLogger("midi-plugin");
-
-    private final Context mContext;
 
     private final MidiManager mMidiManager;
 
@@ -95,8 +92,6 @@ public class MidiDeviceManager {
     });
 
     public MidiDeviceManager(final Context context) {
-        mContext = context;
-
         HandlerThread deviceCallbackThread = new HandlerThread("MidiDeviceCallbackThread");
         deviceCallbackThread.start();
         mDeviceCallbackHandler = new Handler(deviceCallbackThread.getLooper());

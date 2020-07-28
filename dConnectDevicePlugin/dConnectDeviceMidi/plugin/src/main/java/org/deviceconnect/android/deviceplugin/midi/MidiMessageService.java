@@ -23,9 +23,12 @@ import java.util.logging.Logger;
 
 import static org.deviceconnect.android.deviceplugin.midi.MidiDeviceManager.OnDeviceDiscoveryListener;
 
+/**
+ * MIDI プラグイン本体.
+ */
 public class MidiMessageService extends DConnectMessageService {
 
-    private final int DEMO_NOTIFICATION_ID = 1;
+    private static final int DEMO_NOTIFICATION_ID = 1;
 
     private final Logger mLogger = Logger.getLogger("midi-plugin");
 
@@ -59,30 +62,13 @@ public class MidiMessageService extends DConnectMessageService {
                 mLogger.warning("No MIDI device info.");
                 return;
             }
-            for (MidiDeviceInfo.PortInfo port : deviceInfo.getPorts()) {
-                String serviceId;
-                if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_INPUT) {
-                    serviceId = DConnectMidiInputService.createServiceId(deviceInfo, port);
-                    DConnectService service = getServiceProvider().getService(serviceId);
-                    if (service != null) {
-                        service.setOnline(true);
-                    } else {
-                        service = DConnectMidiInputService.createService(midiDevice, port);
-                        if (service != null) {
-                            getServiceProvider().addService(service);
-                        }
-                    }
-                } else if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_OUTPUT) {
-                    serviceId = DConnectMidiOutputService.createServiceId(deviceInfo, port);
-                    DConnectService service = getServiceProvider().getService(serviceId);
-                    if (service != null) {
-                        service.setOnline(true);
-                    } else {
-                        service = DConnectMidiOutputService.createService(midiDevice, port);
-                        if (service != null) {
-                            getServiceProvider().addService(service);
-                        }
-                    }
+            String serviceId = DConnectMidiDeviceService.createServiceId(deviceInfo);
+            DConnectMidiDeviceService service = (DConnectMidiDeviceService) getServiceProvider().getService(serviceId);
+            if (service == null) {
+                service = DConnectMidiDeviceService.getInstance(deviceInfo);
+                if (service != null) {
+                    service.setMidiDevice(midiDevice);
+                    getServiceProvider().addService(service);
                 }
             }
         }
@@ -95,16 +81,11 @@ public class MidiMessageService extends DConnectMessageService {
         @Override
         public void onDisconnected(final MidiDeviceInfo deviceInfo) {
             for (MidiDeviceInfo.PortInfo port : deviceInfo.getPorts()) {
-                String serviceId = null;
-                if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_INPUT) {
-                    serviceId = DConnectMidiInputService.createServiceId(deviceInfo, port);
-                } else if (port.getType() == MidiDeviceInfo.PortInfo.TYPE_OUTPUT) {
-                    serviceId = DConnectMidiOutputService.createServiceId(deviceInfo, port);
-                }
+                String serviceId = DConnectMidiDeviceService.createServiceId(deviceInfo);
                 if (serviceId != null) {
                     DConnectService service = getServiceProvider().getService(serviceId);
-                    if (service instanceof DConnectMidiService) {
-                        ((DConnectMidiService) service).destroy();
+                    if (service instanceof DConnectMidiDeviceService) {
+                        ((DConnectMidiDeviceService) service).destroy();
                         service.setOnline(false);
                     }
                 }

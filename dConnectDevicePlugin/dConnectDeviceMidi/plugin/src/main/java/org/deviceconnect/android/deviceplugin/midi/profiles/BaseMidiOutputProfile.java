@@ -66,9 +66,9 @@ public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
         return true;
     }
 
-    public void sendEvent(final @NonNull MidiMessage message, final long timestamp) {
+    public void sendEvent(final int port, final @NonNull MidiMessage message, final long timestamp) {
         List<MessageEvent> results = new ArrayList<>();
-        convertMessageToEvent(message, timestamp, results);
+        convertMessageToEvent(port, message, timestamp, results);
         mLastEventList = results;
         for (MessageEvent result : results) {
             List<Event> events = EventManager.INSTANCE.getEventList(
@@ -84,7 +84,8 @@ public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
         }
     }
 
-    abstract void convertMessageToEvent(final @NonNull MidiMessage message,
+    abstract void convertMessageToEvent(final int port,
+                                        final @NonNull MidiMessage message,
                                         final long timestamp,
                                         final @NonNull List<MessageEvent> results);
 

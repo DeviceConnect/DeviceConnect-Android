@@ -5,6 +5,7 @@
     <string name="ok">OK</string>
     <string name="input">入力</string>
     <string name="output">出力</string>
+    <string name="bidirectional">双方向</string>
     <string name="unknown">不明</string>
 
     <!-- プラグイン設定一覧画面 -->

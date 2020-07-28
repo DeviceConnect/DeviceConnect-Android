@@ -65,9 +65,9 @@ public class MidiSoundControllerProfile extends BaseMidiOutputProfile {
     }
 
     @Override
-    void convertMessageToEvent(final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
+    void convertMessageToEvent(final int port, final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
         if (message instanceof NoteMessage) {
-            int channel = ((NoteMessage) message).getChannelNumber();
+            int channel = port * ((NoteMessage) message).getChannelNumber();
             int noteNumber = ((NoteMessage) message).getChannelNumber();
             boolean isOn = message instanceof NoteOnMessage;
             String noteName = NoteNameTable.numberToName(noteNumber);

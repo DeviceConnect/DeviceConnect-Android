@@ -148,9 +148,9 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
     }
 
     @Override
-    public void convertMessageToEvent(final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
+    public void convertMessageToEvent(final int port, final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
         if (message instanceof NoteMessage) {
-            int channel = ((NoteMessage) message).getChannelNumber();
+            int channel = port * ((NoteMessage) message).getChannelNumber();
             int noteNumber = ((NoteMessage) message).getChannelNumber();
             boolean isOn = message instanceof NoteOnMessage;
             int keyId = createKeyId(channel, noteNumber);

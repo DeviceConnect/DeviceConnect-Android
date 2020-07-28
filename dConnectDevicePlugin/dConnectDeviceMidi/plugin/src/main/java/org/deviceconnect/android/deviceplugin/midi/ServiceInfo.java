@@ -10,29 +10,23 @@ import java.util.List;
 
 public class ServiceInfo implements Parcelable {
 
-    static final int PORT_TYPE_INPUT = MidiDeviceInfo.PortInfo.TYPE_INPUT;
-
-    static final int PORT_TYPE_OUTPUT = MidiDeviceInfo.PortInfo.TYPE_OUTPUT;
+    public enum Direction {
+        INPUT,
+        OUTPUT,
+        BIDIRECTIONAL,
+        NONE
+    }
 
     private static final String MIDI_VERSION = "1.0";
 
     private final MidiDeviceInfo mDeviceInfo;
 
-    private final int mPortNumber;
-
-    private final int mPortType;
-
-    private final String mPortName;
-
     private final List<String> mProfileNameList;
 
     private String mServiceName;
 
-    ServiceInfo(final MidiDeviceInfo deviceInfo, final MidiDeviceInfo.PortInfo portInfo) {
+    ServiceInfo(final MidiDeviceInfo deviceInfo) {
         mDeviceInfo = deviceInfo;
-        mPortNumber = portInfo.getPortNumber();
-        mPortType = portInfo.getType();
-        mPortName = portInfo.getName();
         mProfileNameList = new ArrayList<>();
     }
 
@@ -48,16 +42,19 @@ public class ServiceInfo implements Parcelable {
         return MIDI_VERSION;
     }
 
-    public int getPortNumber() {
-        return mPortNumber;
-    }
-
-    public int getPortType() {
-        return mPortType;
-    }
-
-    public String getPortName() {
-        return mPortName;
+    public Direction getDirectionName() {
+        int inputs = mDeviceInfo.getInputPortCount();
+        int outputs = mDeviceInfo.getOutputPortCount();
+        if (inputs > 0 && outputs > 0) {
+            return Direction.BIDIRECTIONAL;
+        }
+        if (inputs > 0) {
+            return Direction.INPUT;
+        }
+        if (outputs > 0) {
+            return Direction.OUTPUT;
+        }
+        return null;
     }
 
     public String getProductName() {
@@ -93,6 +90,7 @@ public class ServiceInfo implements Parcelable {
         return mDeviceInfo.getProperties();
     }
 
+
     @Override
     public int describeContents() {
         return 0;
@@ -100,21 +98,15 @@ public class ServiceInfo implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.mServiceName);
         dest.writeParcelable(this.mDeviceInfo, flags);
-        dest.writeInt(this.mPortNumber);
-        dest.writeInt(this.mPortType);
-        dest.writeString(this.mPortName);
         dest.writeStringList(this.mProfileNameList);
+        dest.writeString(this.mServiceName);
     }
 
     protected ServiceInfo(Parcel in) {
-        this.mServiceName = in.readString();
         this.mDeviceInfo = in.readParcelable(MidiDeviceInfo.class.getClassLoader());
-        this.mPortNumber = in.readInt();
-        this.mPortType = in.readInt();
-        this.mPortName = in.readString();
         this.mProfileNameList = in.createStringArrayList();
+        this.mServiceName = in.readString();
     }
 
     public static final Creator<ServiceInfo> CREATOR = new Creator<ServiceInfo>() {

@@ -67,7 +67,7 @@ public class MidiDeviceManager {
 
         if (mDeviceDiscoveryListener != null) {
             for (OnDeviceDiscoveryListener l : mDeviceDiscoveryListener) {
-                l.onDiscovery(devices);
+                l.onDiscovery(devices.toArray(new BluetoothDevice[0]));
             }
         }
     };
@@ -110,7 +110,15 @@ public class MidiDeviceManager {
     }
 
     public void start() {
-        for (MidiDeviceInfo deviceInfo : mMidiManager.getDevices()) {
+        MidiDeviceInfo[] devices = mMidiManager.getDevices();
+
+        if (mDeviceDiscoveryListener != null) {
+            for (OnDeviceDiscoveryListener l : mDeviceDiscoveryListener) {
+                l.onDiscovery(devices);
+            }
+        }
+
+        for (MidiDeviceInfo deviceInfo : devices) {
             mDeviceCallbackHandler.post(() -> onAddMidiDevice(deviceInfo));
         }
     }
@@ -230,7 +238,8 @@ public class MidiDeviceManager {
     }
 
     public interface OnDeviceDiscoveryListener {
-        void onDiscovery(List<BluetoothDevice> devices);
+        void onDiscovery(BluetoothDevice[] devices);
+        void onDiscovery(MidiDeviceInfo[] devices);
         void onConnected(MidiDevice device);
         void onConnectFailed(BluetoothDevice device);
         void onDisconnected(MidiDeviceInfo device);

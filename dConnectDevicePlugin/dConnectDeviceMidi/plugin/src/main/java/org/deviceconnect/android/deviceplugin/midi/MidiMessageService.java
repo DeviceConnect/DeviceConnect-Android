@@ -18,7 +18,6 @@ import org.deviceconnect.android.service.DConnectService;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Logger;
 
 import static org.deviceconnect.android.deviceplugin.midi.MidiDeviceManager.OnDeviceDiscoveryListener;
@@ -51,9 +50,10 @@ public class MidiMessageService extends DConnectMessageService {
 
     private final OnDeviceDiscoveryListener mDeviceDiscoveryListener = new OnDeviceDiscoveryListener() {
         @Override
-        public void onDiscovery(final List<BluetoothDevice> devices) {
+        public void onDiscovery(final BluetoothDevice[] devices) {}
 
-        }
+        @Override
+        public void onDiscovery(final MidiDeviceInfo[] devices) {}
 
         @Override
         public void onConnected(final MidiDevice midiDevice) {
@@ -66,28 +66,23 @@ public class MidiMessageService extends DConnectMessageService {
             DConnectMidiDeviceService service = (DConnectMidiDeviceService) getServiceProvider().getService(serviceId);
             if (service == null) {
                 service = DConnectMidiDeviceService.getInstance(deviceInfo);
-                if (service != null) {
-                    service.setMidiDevice(midiDevice);
-                    getServiceProvider().addService(service);
-                }
+                getServiceProvider().addService(service);
+            }
+            if (service != null) {
+                service.setMidiDevice(midiDevice);
             }
         }
 
         @Override
-        public void onConnectFailed(final BluetoothDevice device) {
-
-        }
+        public void onConnectFailed(final BluetoothDevice device) {}
 
         @Override
         public void onDisconnected(final MidiDeviceInfo deviceInfo) {
-            for (MidiDeviceInfo.PortInfo port : deviceInfo.getPorts()) {
-                String serviceId = DConnectMidiDeviceService.createServiceId(deviceInfo);
-                if (serviceId != null) {
-                    DConnectService service = getServiceProvider().getService(serviceId);
-                    if (service instanceof DConnectMidiDeviceService) {
-                        ((DConnectMidiDeviceService) service).destroy();
-                        service.setOnline(false);
-                    }
+            String serviceId = DConnectMidiDeviceService.createServiceId(deviceInfo);
+            if (serviceId != null) {
+                DConnectService service = getServiceProvider().getService(serviceId);
+                if (service instanceof DConnectMidiDeviceService) {
+                    ((DConnectMidiDeviceService) service).destroy();
                 }
             }
         }

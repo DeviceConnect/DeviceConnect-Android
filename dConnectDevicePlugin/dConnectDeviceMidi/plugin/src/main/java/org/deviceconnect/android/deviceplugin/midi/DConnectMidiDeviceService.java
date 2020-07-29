@@ -322,6 +322,7 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
     }
 
     void destroy() {
+        mMidiDevice = null;
         mMidiFilePlayer.stop();
         synchronized (mMidiInputBuffers) {
             for (int index = 0; index < mMidiInputBuffers.size(); index++) {
@@ -372,7 +373,7 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
 
     synchronized void setMidiDevice(final MidiDevice device) {
         mMidiDevice = device;
-        for (int port = 0; port < mMidiDeviceInfo.getOutputPortCount(); port++) {
+        for (int port = 0; port < device.getInfo().getOutputPortCount(); port++) {
             connectOutputPort(port);
         }
     }
@@ -469,6 +470,17 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 return null;
         }
 
+        final String[] array = {
+                "midi",
+                deviceType,
+                deviceId
+        };
+        return concat(array);
+    }
+
+    static String createServiceId(final BluetoothDevice device) {
+        final String deviceType = "bluetooth";
+        final String deviceId = device.getAddress();
         final String[] array = {
                 "midi",
                 deviceType,

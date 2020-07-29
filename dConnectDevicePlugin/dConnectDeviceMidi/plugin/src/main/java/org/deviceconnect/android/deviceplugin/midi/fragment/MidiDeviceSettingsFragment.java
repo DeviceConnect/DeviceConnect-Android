@@ -401,12 +401,16 @@ public class MidiDeviceSettingsFragment extends Fragment {
         }
 
         @Override
-        public void onDiscovery(final List<BluetoothDevice> devices) {
+        public void onDiscovery(final BluetoothDevice[] devices) {
             updateView(devices);
+        }
+
+        @Override
+        public void onDiscovery(final MidiDeviceInfo[] devices) {
         }
     };
 
-    private void updateView(final List<BluetoothDevice> devices) {
+    private void updateView(final BluetoothDevice[] devices) {
         if (mDeviceAdapter == null) {
             return;
         }

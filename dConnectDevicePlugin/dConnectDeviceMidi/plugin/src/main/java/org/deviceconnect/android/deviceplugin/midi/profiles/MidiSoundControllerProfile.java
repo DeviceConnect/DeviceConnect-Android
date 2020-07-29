@@ -13,8 +13,14 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class MidiSoundControllerProfile extends BaseMidiOutputProfile {
+
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("midi-plugin");
 
     public MidiSoundControllerProfile() {
 
@@ -68,9 +74,12 @@ public class MidiSoundControllerProfile extends BaseMidiOutputProfile {
     void convertMessageToEvent(final int port, final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
         if (message instanceof NoteMessage) {
             int channel = port * ((NoteMessage) message).getChannelNumber();
-            int noteNumber = ((NoteMessage) message).getChannelNumber();
+            int noteNumber = ((NoteMessage) message).getNoteNumber();
             boolean isOn = message instanceof NoteOnMessage;
             String noteName = NoteNameTable.numberToName(noteNumber);
+
+            mLogger.info("SoundController Event: noteNumber=" + noteNumber + ", noteName=" + noteName);
+
             if (noteName != null) {
                 results.add(new NoteEvent(timestamp, channel, noteName, isOn));
             }

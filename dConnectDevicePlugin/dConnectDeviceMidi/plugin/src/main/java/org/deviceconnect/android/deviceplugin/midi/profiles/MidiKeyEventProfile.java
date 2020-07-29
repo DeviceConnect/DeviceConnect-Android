@@ -13,8 +13,14 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class MidiKeyEventProfile extends BaseMidiOutputProfile {
+
+    /**
+     * ロガー.
+     */
+    private final Logger mLogger = Logger.getLogger("midi-plugin");
 
     /**
      * キーイベントのキータイプ定義.
@@ -151,9 +157,11 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
     public void convertMessageToEvent(final int port, final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
         if (message instanceof NoteMessage) {
             int channel = port * ((NoteMessage) message).getChannelNumber();
-            int noteNumber = ((NoteMessage) message).getChannelNumber();
+            int noteNumber = ((NoteMessage) message).getNoteNumber();
             boolean isOn = message instanceof NoteOnMessage;
             int keyId = createKeyId(channel, noteNumber);
+
+            mLogger.info("KeyEvent Event: noteNumber=" + noteNumber + ", keyId=" + keyId);
 
             results.add(new KeyChangeEvent(timestamp, keyId, isOn));
             if (isOn) {

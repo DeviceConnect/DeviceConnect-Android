@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.MidiMessageParser;
@@ -393,7 +392,8 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 mLogger.info("MidiReceiver.onSend: port = " + port + ", count = " + count);
 
                 List<Event> events = EventManager.INSTANCE.getEventList(getId(), "midi", null, "onMessage");
-                mLogger.info("Event: /midi/onMessage: size = " + events.size());
+                String message = stringify(data, offset, count);
+                mLogger.info("Event: /midi/onMessage: size = " + events.size() + ", message = " + message);
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
                     intent.putExtra("message", stringify(data, offset, count));
@@ -401,9 +401,9 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                     getPluginContext().sendEvent(intent, event.getAccessToken());
                 }
 
-                MidiMessage message = mMessageParser.parse(data, offset, count);
-                if (message != null) {
-                    handleParsedMessage(port, message, timestamp);
+                MidiMessage midiMessage = mMessageParser.parse(data, offset, count);
+                if (midiMessage != null) {
+                    handleParsedMessage(port, midiMessage, timestamp);
                 }
             }
         };

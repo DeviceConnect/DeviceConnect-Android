@@ -17,13 +17,13 @@
                   <v-row>
                     <v-col>チャンネル</v-col>
                     <v-col>
-                      <value-field v-model="pad.channel"></value-field>
+                      <value-field v-model="pad.channel" :min="0" :max="15"></value-field>
                     </v-col>
                   </v-row>
                   <v-row>
                     <v-col>ノート番号</v-col>
                     <v-col>
-                      <value-field v-model="pad.noteNumber"></value-field>
+                      <value-field v-model="pad.noteNumber" :min="0" :max="127"></value-field>
                     </v-col>
                   </v-row>
                   <v-row>
@@ -33,7 +33,7 @@
                         <v-radio value="touch" label="画面タッチの強さ"></v-radio>
                         <v-radio value="fixed" label="固定値"></v-radio>
                       </v-radio-group>
-                      <value-field v-model="pad.velocity" :inputDisabled="pad.velocityMode !== 'fixed'"></value-field>
+                      <value-field v-model="pad.velocity" :inputDisabled="pad.velocityMode !== 'fixed'" :min="0" :max="127"></value-field>
                     </v-col>
                   </v-row>
                 </v-container>
@@ -45,7 +45,7 @@
                   <v-row>
                     <v-col>チャンネル</v-col>
                     <v-col>
-                      <value-field v-model="pad.channel"></value-field>
+                      <value-field v-model="pad.channel" :min="0" :max="15"></value-field>
                     </v-col>
                   </v-row>
                   <v-row>
@@ -72,13 +72,13 @@
                   <v-row>
                     <v-col>チャンネル</v-col>
                     <v-col>
-                      <value-field v-model="slider.channel"></value-field>
+                      <value-field v-model="slider.channel" :min="0" :max="15"></value-field>
                     </v-col>
                   </v-row>
                   <v-row>
                     <v-col>コントロール番号</v-col>
                     <v-col>
-                      <value-field v-model="slider.controlNumber"></value-field>
+                      <value-field v-model="slider.controlNumber" :min="0" :max="127"></value-field>
                     </v-col>
                   </v-row>
                 </v-container>

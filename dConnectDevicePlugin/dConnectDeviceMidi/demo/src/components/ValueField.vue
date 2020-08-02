@@ -1,8 +1,8 @@
 <template>
   <v-form>
     <v-text-field :value="value" outlined :rules="rules" :disabled="inputDisabled">
-      <v-icon slot="prepend" @click="dec()">mdi-minus</v-icon>
-      <v-icon slot="append-outer" @click="inc()">mdi-plus</v-icon>
+      <v-icon slot="prepend" @click="dec()" :disabled="isMin">mdi-minus</v-icon>
+      <v-icon slot="append-outer" @click="inc()" :disabled="isMax">mdi-plus</v-icon>
     </v-text-field>
   </v-form>
 </template>
@@ -19,7 +19,17 @@ export default {
     },
     inputDisabled: {
       type: Boolean
+    },
+    max : {
+      type: Number
+    },
+    min : {
+      type: Number
     }
+  },
+  computed: {
+    isMax: function() { return this.max <= this.value; },
+    isMin: function() { return this.min >= this.value; }
   },
   methods: {
     inc: function() {

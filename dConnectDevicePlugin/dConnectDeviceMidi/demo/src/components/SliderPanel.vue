@@ -1,12 +1,22 @@
 <template>
   <v-container>
     <v-row>
-      <v-slider vertical
-        v-for="slider in sliders"
-        v-bind:value="slider.value" v-on:input="event($event, slider)"
-        :key="slider.id"
-        max="127"
-        min="0"></v-slider>
+      <v-col v-for="slider in sliders" :key="slider.id">
+        <!-- スライダー名 -->
+        <div style="text-align:center"><b>{{ slider.name }}</b></div>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col v-for="slider in sliders" :key="slider.id">
+        <!-- スライダー本体 -->
+        <v-slider vertical
+          v-bind:value="slider.value"
+          v-on:input="event($event, slider)"
+          thumb-label="always"
+          max="127"
+          min="0">
+        </v-slider>
+      </v-col>
     </v-row>
   </v-container>
 </template>

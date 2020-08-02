@@ -1,5 +1,6 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.deviceconnect.android.deviceplugin.midi">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -33,7 +34,8 @@
         <receiver
             android:name=".MidiMessageServiceProvider"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/org_deviceconnect_android_deviceplugin_midi"/>
@@ -52,12 +54,7 @@
         <!-- プラグイン設定一覧画面 -->
         <activity
             android:name=".DConnectMidiSettingsListActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="true"/>
 
         <!-- サービス一覧画面 -->
         <activity
@@ -83,7 +80,8 @@
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.midi.provider"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedContentProvider">
             <meta-data
                 android:name="filelocation"
                 android:resource="@xml/filelocation" />

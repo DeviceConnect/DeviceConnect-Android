@@ -42,7 +42,7 @@ export default {
         let services = [];
         for (var key in this.allServices) {
           let item = this.allServices[key];
-          if (! (item.scopes.includes('midi') && item.scopes.includes('soundModule'))) {
+          if (!item.online || ! (item.scopes.includes('midi') && item.scopes.includes('soundModule'))) {
             continue;
           }
           services.push({

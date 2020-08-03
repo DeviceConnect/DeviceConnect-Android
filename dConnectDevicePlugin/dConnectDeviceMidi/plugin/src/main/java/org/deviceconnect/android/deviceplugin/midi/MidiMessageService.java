@@ -66,9 +66,11 @@ public class MidiMessageService extends DConnectMessageService {
             DConnectMidiDeviceService service = (DConnectMidiDeviceService) getServiceProvider().getService(serviceId);
             if (service == null) {
                 service = DConnectMidiDeviceService.getInstance(deviceInfo);
-                getServiceProvider().addService(service);
-            }
-            if (service != null) {
+                if (service != null) {
+                    service.setMidiDevice(midiDevice);
+                    getServiceProvider().addService(service);
+                }
+            } else {
                 service.setMidiDevice(midiDevice);
             }
         }

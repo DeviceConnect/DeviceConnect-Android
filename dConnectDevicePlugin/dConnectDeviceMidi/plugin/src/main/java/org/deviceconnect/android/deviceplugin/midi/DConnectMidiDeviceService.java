@@ -47,7 +47,7 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
     /**
      * ロガー.
      */
-    private final Logger mLogger = Logger.getLogger("midi-plugin");
+    private static final Logger LOGGER = Logger.getLogger("midi-plugin");
 
     /**
      * MIDI デバイス情報.
@@ -390,11 +390,11 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
         return new MidiReceiver() {
             @Override
             public void onSend(final byte[] data, final int offset, final int count, final long timestamp) throws IOException {
-                mLogger.info("MidiReceiver.onSend: port = " + port + ", count = " + count);
+                LOGGER.info("MidiReceiver.onSend: port = " + port + ", count = " + count);
 
                 List<Event> events = EventManager.INSTANCE.getEventList(getId(), "midi", null, "onMessage");
                 String message = stringify(data, offset, count);
-                mLogger.info("Event: /midi/onMessage: size = " + events.size() + ", message = " + message);
+                LOGGER.info("Event: /midi/onMessage: size = " + events.size() + ", message = " + message);
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
                     intent.putExtra("message", stringify(data, offset, count));
@@ -448,7 +448,8 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 if (device != null) {
                     deviceId = Integer.toString(device.getDeviceId());
                 } else {
-                    return null;
+                    LOGGER.warning("createServiceId: NO USB DEVICE INFO; id = " + deviceInfo.getId());
+                    deviceId = "midi" + deviceInfo.getId();
                 }
                 break;
             }
@@ -471,7 +472,6 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
         }
 
         final String[] array = {
-                "midi",
                 deviceType,
                 deviceId
         };

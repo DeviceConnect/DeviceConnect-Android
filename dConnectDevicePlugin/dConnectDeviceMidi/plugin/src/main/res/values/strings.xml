@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">MIDI Plug-in</string>
+    <string name="app_name">MIDI (Device Connect Device Plugin)</string>
     <string name="ok">OK</string>
     <string name="input">入力</string>
     <string name="output">出力</string>

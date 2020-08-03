@@ -1,9 +1,20 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'de.undercouch:gradle-download-task:4.1.0'
+    }
+}
 
+apply plugin: 'de.undercouch.download'
+def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
-
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
 def getVersionName = { ->
     return "2.8.4" // Replace with version Name
 }
@@ -57,6 +68,12 @@ android {
             }
         }
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
 }
 
 
@@ -103,8 +120,8 @@ dependencies {
     implementation 'org.bouncycastle:bcprov-jdk15on:1.46'
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:2.10.0'
-    testImplementation 'org.robolectric:robolectric:3.7.1'
+    testImplementation 'org.mockito:mockito-core:2.25.0'
+    testImplementation 'org.robolectric:robolectric:4.3.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
@@ -125,72 +142,47 @@ def specOutputDir = file("${projectDir}/src/main/assets/")
 def specZipFile = ''
 def apiDir = new File(specOutputDir, 'api')
 
-task downloadZip(type: SpecDownload) {
-    sourceUrl = 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/master.zip'
-    target = file("${projectDir}/master.zip")
-    specZipFile = target
-}
-
-task unzip(type: Copy) {
-    from zipTree(specZipFile)
-    into specOutputDir
-    exclude '**/README.md'
-    exclude '**/LICENSE'
-    exclude '**/.DS_Store'
-}
-
-task downloadDeviceConnectSpec {
-    doLast {
-        // zipをダウンロード
-        tasks.downloadZip.execute()
-
-        if (!specZipFile.exists()) {
-            println 'Failed to download a zip file.'
-        } else {
-            // assets/api以下を削除
-            if (apiDir.exists()) {
-                delete(apiDir)
-            }
-
-            // zipを解凍
-            tasks.unzip.execute()
-
-            // zipを行うと不要なフォルダが作成されてしまうので、削除
-            def specRootDir = specOutputDir.listFiles(new FilenameFilter() {
-                boolean accept(File dir, String name) {
-                    return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory()
-                }
-            })[0]
-            def apiRootDir = specRootDir.listFiles(new FilenameFilter() {
-                boolean accept(File dir, String name) {
-                    return "api" == name && new File(dir, name).isDirectory()
-                }
-            })[0]
-            apiRootDir.renameTo(apiDir)
-
-            // 不要になったzipやフォルダを削除
-            specRootDir.delete()
-            specZipFile.delete()
-        }
-    }
-}
-
-class SpecDownload extends DefaultTask {
-    @Input
-    String sourceUrl
-
-    @OutputFile
-    File target
-
-    @TaskAction
-    void download() {
-        ant.get(src: sourceUrl, dest: target)
-    }
-}
-
 // apiフォルダが存在しない場合にはDeviceConnect-Specをダウンロード
 if (!apiDir.exists()) {
-    tasks.downloadDeviceConnectSpec.execute()
+    specZipFile = file("${projectDir}/master.zip")
+    download {
+        src 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/master.zip'
+        dest specZipFile
+        overwrite true
+    }
+    if (!specZipFile.exists()) {
+        println 'Failed to download a zip file.'
+    } else {
+        // assets/api以下を削除
+        if (apiDir.exists()) {
+            delete(apiDir)
+        }
+        // zipを解凍
+        copy {
+            from zipTree("${projectDir}/master.zip")
+            into specOutputDir
+            exclude '**/README.md'
+            exclude '**/LICENSE'
+            exclude '**/.DS_Store'
+            exclude '**/yaml/**'
+        }
+        // zipを行うと不要なフォルダが作成されてしまうので、削除
+        def specRootDir = specOutputDir.listFiles(new FilenameFilter() {
+            boolean accept(File dir, String name) {
+                return name.startsWith("DeviceConnect-Spec") && new File(dir, name).isDirectory()
+            }
+        })[0]
+        def apiRootDir = specRootDir.listFiles(new FilenameFilter() {
+            boolean accept(File dir, String name) {
+                return "api" == name && new File(dir, name).isDirectory()
+            }
+        })[0]
+        apiRootDir.renameTo(apiDir)
+
+        // 不要になったzipやフォルダを削除
+        specRootDir.delete()
+        specZipFile.delete()
+    }
 }
 
 
@@ -206,7 +198,7 @@ if (JavaVersion.current().isJava8Compatible()) {
 publishing {
     publications {
         bar(MavenPublication) {
-            groupId 'org.deviceconnect'
+            groupId 'io.gclue.deviceconnect.android'
             artifactId getArtificatId()
             version getVersionName()
             artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
@@ -245,7 +237,7 @@ publishing {
             /** Configure path of your package repository on Github
              *  Replace GITHUB_USERID with your/organisation Github userID and REPOSITORY with the repository name on GitHub
              */
-            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-AndroidSandbox")
 
             credentials {
                 /**Create github.properties in root project folder file with gpr.usr=GITHUB_USER_ID  & gpr.key=PERSONAL_ACCESS_TOKEN**/

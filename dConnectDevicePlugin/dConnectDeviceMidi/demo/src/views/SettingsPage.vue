@@ -181,7 +181,7 @@ export default {
       this.pads.push({
         id: i,
         name: 'PAD' + (i + 1),
-        channel: i,
+        channel: 0,
         noteNumber: 40,
         noteName: 'A4',
         velocity: 127,
@@ -192,7 +192,7 @@ export default {
       this.sliders.push({
         id: i,
         name: 'S' + (i + 1),
-        channel: i,
+        channel: 0,
         controlNumber: 0
       });
     }

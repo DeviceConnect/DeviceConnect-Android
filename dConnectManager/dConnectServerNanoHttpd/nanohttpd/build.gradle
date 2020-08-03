@@ -9,7 +9,7 @@ dependencies {
     androidTestImplementation "org.java-websocket:java-websocket:1.3.3"
 
     api project(':dconnect-server')
-    androidTestImplementation fileTree(include: '*.jar', dir: 'testLibs')
+    androidTestImplementation 'org.bouncycastle:bcprov-jdk15on:1.46'
 }
 
 android {

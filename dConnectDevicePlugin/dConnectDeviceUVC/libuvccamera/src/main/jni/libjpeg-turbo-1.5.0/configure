@@ -14520,7 +14520,7 @@ if test "x$ac_cv_header_jni_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_JNI_H 1
 _ACEOF
- DUMMY=1
+ PLACE_HOLDER=1
 else
   as_fn_error $? "Could not find JNI header file" "$LINENO" 5
 fi

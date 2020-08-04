@@ -62,12 +62,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private ArrayList<OpenSourceSoftware> mOpenSourceList;
 
     /**
-     * origin無効時のLocal OAuth、WhiteList設定ダイアログのタグを定義します.
+     * origin無効時のLocal OAuth、AllowList設定ダイアログのタグを定義します.
      */
     private static final String TAG_ORIGIN = "origin";
 
     /**
-     * Local OAuth、WhiteList設定時のorigin設定ダイアログのタグを定義します.
+     * Local OAuth、AllowList設定時のorigin設定ダイアログのタグを定義します.
      */
     private static final String TAG_REQUIRE_ORIGIN = "require_origin";
 
@@ -241,7 +241,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         // Originブロック設定のON/OFF
         mCheckBoxOriginBlockingPreferences = (CheckBoxPreference) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_dconn_whitelist_origin_blocking));
+                .findPreference(getString(R.string.key_settings_dconn_allowlist_origin_blocking));
 
         // ポート監視設定のON/OFF
         mObserverPreferences = (CheckBoxPreference) getPreferenceScreen()
@@ -399,7 +399,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             } else if (getString(R.string.key_settings_dconn_require_origin).equals(key)) {
                 switchOrigin((Boolean) newValue);
             } else if (getString(R.string.key_settings_dconn_local_oauth).equals(key)
-                    || getString(R.string.key_settings_dconn_whitelist_origin_blocking).equals(key)) {
+                    || getString(R.string.key_settings_dconn_allowlist_origin_blocking).equals(key)) {
                 requiredOrigin((Boolean) newValue);
             } else if (getString(R.string.key_settings_dconn_availability_visible_name).equals(key)) {
                 switchVisibleManagerName((Boolean) newValue);
@@ -707,7 +707,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 settings.add(getString(R.string.activity_settings_local_oauth));
             }
             if (mCheckBoxOriginBlockingPreferences.isChecked()) {
-                settings.add(getString(R.string.activity_settings_whitelist_enable));
+                settings.add(getString(R.string.activity_settings_allowlist_enable));
             }
 
             if (settings.size() > 0) {

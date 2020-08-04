@@ -421,7 +421,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         NanoServer(final String hostname, final int port) {
             super(hostname, port);
-            mFirewall = new Firewall(mConfig.getIPWhiteList());
+            mFirewall = new Firewall(mConfig.getIPAllowList());
             try {
                 mimeTypes();
             } catch (Exception e){
@@ -432,7 +432,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         @Override
         protected ClientHandler createClientHandler(final Socket finalAccept, final InputStream inputStream) {
             ClientHandler clientHandler = super.createClientHandler(finalAccept, inputStream);
-            if (mFirewall != null && !mFirewall.isWhiteIP(finalAccept.getInetAddress().getHostAddress())) {
+            if (mFirewall != null && !mFirewall.isAllowIP(finalAccept.getInetAddress().getHostAddress())) {
                 clientHandler.close();
             }
             return clientHandler;

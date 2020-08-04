@@ -91,7 +91,7 @@ char *sigfig(double val, int figs, char *buf, int len)
 
 
 /* Custom DCT filter which produces a negative of the image */
-int dummyDCTFilter(short *coeffs, tjregion arrayRegion, tjregion planeRegion,
+int place_holderDCTFilter(short *coeffs, tjregion arrayRegion, tjregion planeRegion,
 	int componentIndex, int transformIndex, tjtransform *transform)
 {
 	int i;
@@ -862,7 +862,7 @@ int main(int argc, char *argv[])
 			if(!strcasecmp(argv[i], "-rot180")) xformop=TJXOP_ROT180;
 			if(!strcasecmp(argv[i], "-rot270")) xformop=TJXOP_ROT270;
 			if(!strcasecmp(argv[i], "-grayscale")) xformopt|=TJXOPT_GRAY;
-			if(!strcasecmp(argv[i], "-custom")) customFilter=dummyDCTFilter;
+			if(!strcasecmp(argv[i], "-custom")) customFilter=place_holderDCTFilter;
 			if(!strcasecmp(argv[i], "-nooutput")) xformopt|=TJXOPT_NOOUTPUT;
 			if(!strcasecmp(argv[i], "-benchtime") && i<argc-1)
 			{

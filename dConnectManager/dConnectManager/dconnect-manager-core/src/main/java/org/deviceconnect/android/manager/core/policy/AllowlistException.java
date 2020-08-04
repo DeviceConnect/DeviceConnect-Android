@@ -1,5 +1,5 @@
 /*
- WhitelistException.java
+ AllowlistException.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -7,11 +7,11 @@
 package org.deviceconnect.android.manager.core.policy;
 
 /**
- * Exception of whitelist management.
+ * Exception of allowlist management.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class WhitelistException extends Exception {
+public class AllowlistException extends Exception {
 
     /**
      * Default serial version UID.
@@ -22,7 +22,7 @@ public class WhitelistException extends Exception {
      * Constructor.
      * @param message the detail message for this exception
      */
-    WhitelistException(final String message) {
+    AllowlistException(final String message) {
         super(message);
     }
 
@@ -31,7 +31,7 @@ public class WhitelistException extends Exception {
      * @param message the detail message for this exception
      * @param throwable the cause of this exception
      */
-    WhitelistException(final String message, final Throwable throwable) {
+    AllowlistException(final String message, final Throwable throwable) {
         super(message, throwable);
     }
 }

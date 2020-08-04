@@ -40,7 +40,7 @@ public class OriginInfo {
      * @param id row ID in database.
      * @param origin the origin
      * @param title the title of origin
-     * @param date the date that the origin is added to whitelist.
+     * @param date the date that the origin is added to allowlist.
      */
     public OriginInfo(final long id, final Origin origin, final String title, final long date) {
         mId = id;

@@ -1187,7 +1187,7 @@ read_restart_marker (j_decompress_ptr cinfo)
  *      dependent on buffer size and chance buffer-boundary positions.)
  *   3. Leave the marker unread (by failing to zero cinfo->unread_marker).
  *      This will cause the entropy decoder to process an empty data segment,
- *      inserting dummy zeroes, and then we will reprocess the marker.
+ *      inserting place_holder zeroes, and then we will reprocess the marker.
  *
  * #2 is appropriate if we think the desired marker lies ahead, while #3 is
  * appropriate if the found marker is a future restart marker (indicating

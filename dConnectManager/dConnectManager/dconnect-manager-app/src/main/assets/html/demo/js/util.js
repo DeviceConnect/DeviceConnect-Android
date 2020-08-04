@@ -94,7 +94,7 @@ var util = (function(parent, global) {
                 alert('WARNING: Device Connect Manager may be spoofed.');
                 break;
             case dConnect.constants.ErrorCode.INVALID_ORIGIN:
-                alert('WARNING: Origin of this app is invalid. Maybe the origin is not registered in whiteList.');
+                alert('WARNING: Origin of this app is invalid. Maybe the origin is not registered in allowlist.');
                 break;
             default:
                 alert(errorMessage);

@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+apply plugin: 'de.undercouch.download'
 buildscript {
     repositories {
         jcenter()
@@ -9,7 +10,6 @@ buildscript {
     }
 }
 
-apply plugin: 'de.undercouch.download'
 def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
 if (githubPropertiesFile.exists()) {

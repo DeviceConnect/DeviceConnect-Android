@@ -15,8 +15,8 @@ public final class OriginValidator {
     /** 常に許可するオリジン一覧. */
     private static final String[] IGNORED_ORIGINS = {ORIGIN_FILE};
 
-    /** ホワイトリスト管理クラス. */
-    private Whitelist mWhiteList;
+    /** 許可リスト管理クラス. */
+    private Allowlist mAllowList;
 
     /** オリジン要求フラグ. */
     private boolean mRequireOrigin;
@@ -25,7 +25,7 @@ public final class OriginValidator {
     private boolean mBlockingOrigin;
 
     public OriginValidator(final Context context, final boolean requireOrigin, final boolean blockingOrigin) {
-        mWhiteList = new Whitelist(context);
+        mAllowList = new Allowlist(context);
         mRequireOrigin = requireOrigin;
         mBlockingOrigin = blockingOrigin;
     }
@@ -65,7 +65,7 @@ public final class OriginValidator {
     private boolean allowsOrigin(final String originExp) {
         if (originExp == null) {
             // NOTE: クライアント作成のためにオリジンが必要のため、
-            // ホワイトリストが無効の場合でもオリジン指定のない場合はリクエストを許可しない.
+            // 許可リストが無効の場合でもオリジン指定のない場合はリクエストを許可しない.
             return false;
         }
         for (String origin : IGNORED_ORIGINS) {
@@ -73,7 +73,7 @@ public final class OriginValidator {
                 return true;
             }
         }
-        return !mBlockingOrigin || mWhiteList.allows(OriginParser.parse(originExp));
+        return !mBlockingOrigin || mAllowList.allows(OriginParser.parse(originExp));
     }
 
     /**
@@ -96,7 +96,7 @@ public final class OriginValidator {
         NOT_UNIQUE,
 
         /**
-         * 指定されたオリジンが許可されていない(ホワイトリストに含まれていない)ことを示す定数.
+         * 指定されたオリジンが許可されていない(許可リストに含まれていない)ことを示す定数.
          */
         NOT_ALLOWED
     }

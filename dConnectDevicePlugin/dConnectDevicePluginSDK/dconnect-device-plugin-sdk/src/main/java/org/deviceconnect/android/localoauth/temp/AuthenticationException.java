@@ -22,7 +22,7 @@ public class AuthenticationException extends Exception {
      * @return Explanation.
      */
     public String getExplanation() {
-        return "Explanation - dummy";
+        return "Explanation - placeHolder";
     }
 
 }

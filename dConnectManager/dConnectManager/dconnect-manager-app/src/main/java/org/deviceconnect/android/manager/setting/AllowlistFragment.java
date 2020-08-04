@@ -1,5 +1,5 @@
 /*
- WhitelistFragment.java
+ AllowlistFragment.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -42,8 +41,8 @@ import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.core.policy.Origin;
 import org.deviceconnect.android.manager.core.policy.OriginInfo;
 import org.deviceconnect.android.manager.core.policy.OriginParser;
-import org.deviceconnect.android.manager.core.policy.Whitelist;
-import org.deviceconnect.android.manager.core.policy.WhitelistException;
+import org.deviceconnect.android.manager.core.policy.Allowlist;
+import org.deviceconnect.android.manager.core.policy.AllowlistException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,17 +52,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Whitelist fragment.
+ * Allowlist fragment.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class WhitelistFragment extends Fragment {
+public class AllowlistFragment extends Fragment {
 
     /** The logger. */
     private Logger mLogger = Logger.getLogger("dconnect.manager");
 
-    /** The whitelist of origins. */
-    private Whitelist mWhitelist;
+    /** The allowlist of origins. */
+    private Allowlist mAllowlist;
 
     /** The root view. */
     private View mRootView;
@@ -75,16 +74,16 @@ public class WhitelistFragment extends Fragment {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mWhitelist = new Whitelist(getActivity());
+        mAllowlist = new Allowlist(getActivity());
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
-        mListAdapter = new OriginListAdapter(getActivity(), mWhitelist.getOrigins());
+        mListAdapter = new OriginListAdapter(getActivity(), mAllowlist.getOrigins());
 
-        mRootView = inflater.inflate(R.layout.fragment_whitelist, container, false);
-        ListView listView = mRootView.findViewById(R.id.listview_whitelist);
+        mRootView = inflater.inflate(R.layout.fragment_allowlist, container, false);
+        ListView listView = mRootView.findViewById(R.id.listview_allowlist);
         listView.setAdapter(mListAdapter);
         refreshView();
         return mRootView;
@@ -95,7 +94,7 @@ public class WhitelistFragment extends Fragment {
      */
     private void refreshView() {
         View commentView = mRootView.findViewById(R.id.view_no_origin);
-        if (mWhitelist.getOrigins().size() == 0) {
+        if (mAllowlist.getOrigins().size() == 0) {
             commentView.setVisibility(View.VISIBLE);
         } else {
             commentView.setVisibility(View.GONE);
@@ -166,7 +165,7 @@ public class WhitelistFragment extends Fragment {
 
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.item_whitelist_origin, (ViewGroup) null);
+                view = mInflater.inflate(R.layout.item_allowlist_origin, (ViewGroup) null);
             }
 
             final TextView textViewTitle = view.findViewById(R.id.text_origin_title);
@@ -198,7 +197,7 @@ public class WhitelistFragment extends Fragment {
                         if (BuildConfig.DEBUG) {
                             mLogger.info("Updated origin=" + newOrigin.toString() + " title=" + newTitle);
                         }
-                    } catch (WhitelistException e) {
+                    } catch (AllowlistException e) {
                         mLogger.log(Level.WARNING, "Failed to update origin.", e);
                         showPopup(e.getMessage());
                     }
@@ -229,10 +228,10 @@ public class WhitelistFragment extends Fragment {
      * Deletes an origin.
      * 
      * @param origin an origin.
-     * @throws WhitelistException if the origin can not be removed.
+     * @throws AllowlistException if the origin can not be removed.
      */
-    private void deleteOrigin(final OriginInfo origin) throws WhitelistException {
-        mWhitelist.removeOrigin(origin);
+    private void deleteOrigin(final OriginInfo origin) throws AllowlistException {
+        mAllowlist.removeOrigin(origin);
         mListAdapter.remove(origin);
         mListAdapter.notifyDataSetChanged();
         refreshView();
@@ -243,11 +242,11 @@ public class WhitelistFragment extends Fragment {
      * 
      * @param originExp an string expression of an origin to be allowed.
      * @param title the title of origin.
-     * @throws WhitelistException if the origin can not be stored.
+     * @throws AllowlistException if the origin can not be stored.
      */
-    private void addOrigin(final String originExp, final String title) throws WhitelistException {
+    private void addOrigin(final String originExp, final String title) throws AllowlistException {
         Origin origin = OriginParser.parse(originExp);
-        OriginInfo info = mWhitelist.addOrigin(origin, title);
+        OriginInfo info = mAllowlist.addOrigin(origin, title);
         mListAdapter.add(info);
         mListAdapter.notifyDataSetChanged();
         refreshView();
@@ -256,12 +255,12 @@ public class WhitelistFragment extends Fragment {
     /**
      * Updates an origin to be allowed.
      * 
-     * @param index an index in whitelist
+     * @param index an index in allowlist
      * @param info the information of an origin
-     * @throws WhitelistException if the origin can not be stored.
+     * @throws AllowlistException if the origin can not be stored.
      */
-    private void updateOrigin(final int index, final OriginInfo info) throws WhitelistException {
-        mWhitelist.updateOrigin(info);
+    private void updateOrigin(final int index, final OriginInfo info) throws AllowlistException {
+        mAllowlist.updateOrigin(info);
         mListAdapter.setItem(index, info);
         mListAdapter.notifyDataSetChanged();
         refreshView();
@@ -282,7 +281,7 @@ public class WhitelistFragment extends Fragment {
         builder.setMessage(strGuidance).setPositiveButton(strPositive, (dialog, which) -> {
             try {
                 deleteOrigin(origin);
-            } catch (WhitelistException e) {
+            } catch (AllowlistException e) {
                 showPopup(e.getMessage());
             }
         }).setNegativeButton(strNegative, (dialog, which) -> {
@@ -299,7 +298,7 @@ public class WhitelistFragment extends Fragment {
         builder.setTitle(R.string.dialog_add_origin_title);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            builder.setItems(R.array.whitelist_menu_origin_pre_marshmallow, (dialog, which) -> {
+            builder.setItems(R.array.allowlist_menu_origin_pre_marshmallow, (dialog, which) -> {
                 dialog.dismiss();
                 Context context = getActivity();
                 if (context == null) {
@@ -325,7 +324,7 @@ public class WhitelistFragment extends Fragment {
                             if (BuildConfig.DEBUG) {
                                 mLogger.info("Updated origin=" + origin + " title=" + title);
                             }
-                        } catch (WhitelistException e) {
+                        } catch (AllowlistException e) {
                             mLogger.log(Level.WARNING, "Failed to add origin.", e);
                             showPopup(e.getMessage());
                         }
@@ -338,7 +337,7 @@ public class WhitelistFragment extends Fragment {
                 }
             });
         } else {
-            builder.setItems(R.array.whitelist_menu_origin_post_marshmallow, (dialog, which) -> {
+            builder.setItems(R.array.allowlist_menu_origin_post_marshmallow, (dialog, which) -> {
                 dialog.dismiss();
                 Context context = getActivity();
                 if (context == null) {
@@ -361,7 +360,7 @@ public class WhitelistFragment extends Fragment {
                             if (BuildConfig.DEBUG) {
                                 mLogger.info("Updated origin=" + origin + " title=" + title);
                             }
-                        } catch (WhitelistException e) {
+                        } catch (AllowlistException e) {
                             mLogger.log(Level.WARNING, "Failed to add origin.", e);
                             showPopup(e.getMessage());
                         }
@@ -395,7 +394,7 @@ public class WhitelistFragment extends Fragment {
                 if (BuildConfig.DEBUG) {
                     mLogger.info("Updated origin=" + appInfo.getOrigin() + " title=" + appInfo.getName());
                 }
-            } catch (WhitelistException e) {
+            } catch (AllowlistException e) {
                 mLogger.log(Level.WARNING, "Failed to add origin.", e);
                 showPopup(e.getMessage());
             } finally {

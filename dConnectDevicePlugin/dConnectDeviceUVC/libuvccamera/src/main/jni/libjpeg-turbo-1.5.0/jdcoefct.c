@@ -116,7 +116,7 @@ decompress_onepass (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
       if (MCU_col_num >= cinfo->master->first_iMCU_col &&
           MCU_col_num <= cinfo->master->last_iMCU_col) {
         /* Determine where data should go in output_buf and do the IDCT thing.
-         * We skip dummy blocks at the right and bottom edges (but blkn gets
+         * We skip place_holder blocks at the right and bottom edges (but blkn gets
          * incremented past them!).  Note the inner loop relies on having
          * allocated the MCU_buffer[] blocks sequentially.
          */
@@ -168,11 +168,11 @@ decompress_onepass (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
 
 
 /*
- * Dummy consume-input routine for single-pass operation.
+ * PlaceHolder consume-input routine for single-pass operation.
  */
 
 METHODDEF(int)
-dummy_consume_data (j_decompress_ptr cinfo)
+place_holder_consume_data (j_decompress_ptr cinfo)
 {
   return JPEG_SUSPENDED;        /* Always indicate nothing was done */
 }
@@ -291,7 +291,7 @@ decompress_data (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
       ((j_common_ptr) cinfo, coef->whole_image[ci],
        cinfo->output_iMCU_row * compptr->v_samp_factor,
        (JDIMENSION) compptr->v_samp_factor, FALSE);
-    /* Count non-dummy DCT block rows in this iMCU row. */
+    /* Count non-place_holder DCT block rows in this iMCU row. */
     if (cinfo->output_iMCU_row < last_iMCU_row)
       block_rows = compptr->v_samp_factor;
     else {
@@ -452,7 +452,7 @@ decompress_smooth_data (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
     /* Don't bother to IDCT an uninteresting component. */
     if (! compptr->component_needed)
       continue;
-    /* Count non-dummy DCT block rows in this iMCU row. */
+    /* Count non-place_holder DCT block rows in this iMCU row. */
     if (cinfo->output_iMCU_row < last_iMCU_row) {
       block_rows = compptr->v_samp_factor;
       access_rows = block_rows * 2; /* this and next iMCU row */
@@ -681,7 +681,7 @@ jinit_d_coef_controller (j_decompress_ptr cinfo, boolean need_full_buffer)
     for (i = 0; i < D_MAX_BLOCKS_IN_MCU; i++) {
       coef->MCU_buffer[i] = buffer + i;
     }
-    coef->pub.consume_data = dummy_consume_data;
+    coef->pub.consume_data = place_holder_consume_data;
     coef->pub.decompress_data = decompress_onepass;
     coef->pub.coef_arrays = NULL; /* flag for no virtual arrays */
   }

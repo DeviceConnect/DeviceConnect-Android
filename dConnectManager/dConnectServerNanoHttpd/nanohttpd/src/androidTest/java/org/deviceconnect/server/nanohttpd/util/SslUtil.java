@@ -260,7 +260,7 @@ public class SslUtil {
      * Generates a new {@code SSLContext} suitable for a test environment.
      * <p>
      * A new {@link KeyPair}, {@link X509Certificate},
-     * {@link DummyTrustManager}, and an empty
+     * {@link PlaceHolderTrustManager}, and an empty
      * {@link KeyStore} are created and used to initialize the context.
      *
      * @return                            the new context
@@ -275,7 +275,7 @@ public class SslUtil {
         KeyManager[] keyManagers = SslUtil.generateTestServerKeyManager("SunX509",
                 "test");
         sslcontext.init(keyManagers,
-                new TrustManager[] { new DummyTrustManager()},
+                new TrustManager[] { new PlaceHolderTrustManager()},
                 null);
         return sslcontext;
     }

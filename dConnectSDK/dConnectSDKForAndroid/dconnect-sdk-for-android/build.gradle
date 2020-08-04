@@ -96,9 +96,11 @@ android.testVariants.all { variant ->
     }
 }
 
+def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
-
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
 def getVersionName = { ->
     return "2.3.2" // Replace with version Name
 }

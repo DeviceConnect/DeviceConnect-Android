@@ -146,12 +146,12 @@ static ValueArrayAllocator *&arrayAllocator()
    return arrayAllocator;
 }
 
-static struct DummyArrayAllocatorInitializer {
-   DummyArrayAllocatorInitializer() 
+static struct PlaceHolderArrayAllocatorInitializer {
+   PlaceHolderArrayAllocatorInitializer()
    {
       arrayAllocator();      // ensure arrayAllocator() statics are initialized before main().
    }
-} dummyArrayAllocatorInitializer;
+} place_holderArrayAllocatorInitializer;
 
 // //////////////////////////////////////////////////////////////////
 // class ValueInternalArray
@@ -322,8 +322,8 @@ ValueInternalArray::swap( ValueInternalArray &other )
 void 
 ValueInternalArray::clear()
 {
-   ValueInternalArray dummy;
-   swap( dummy );
+   ValueInternalArray place_holder;
+   swap( place_holder );
 }
 
 

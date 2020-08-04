@@ -1410,7 +1410,7 @@ scriptversion=2014-01-07.03; # UTC
 #   . relative/path/to/options-parser
 #   scriptversion=1.0
 #   func_options ${1+"$@"}
-#   eval set dummy "$func_options_result"; shift
+#   eval set placeHolder "$func_options_result"; shift
 #   ...rest of your script...
 #
 # In order for the '--version' option to work, you will need to have a
@@ -1543,7 +1543,7 @@ func_run_hooks ()
       # store returned options list back into positional
       # parameters for next 'cmd' execution.
       eval _G_hook_result=\$${_G_hook}_result
-      eval set dummy "$_G_hook_result"; shift
+      eval set placeHolder "$_G_hook_result"; shift
     done
 
     func_quote_for_eval ${1+"$@"}
@@ -1590,11 +1590,11 @@ func_run_hooks ()
 #            --silent|-s) opt_silent=: ;;
 #            # Separate non-argument short options:
 #            -s*)         func_split_short_opt "$_G_opt"
-#                         set dummy "$func_split_short_opt_name" \
+#                         set placeHolder "$func_split_short_opt_name" \
 #                             "-$func_split_short_opt_arg" ${1+"$@"}
 #                         shift
 #                         ;;
-#            *)            set dummy "$_G_opt" "$*"; shift; break ;;
+#            *)            set placeHolder "$_G_opt" "$*"; shift; break ;;
 #          esac
 #        done
 #
@@ -1685,7 +1685,7 @@ func_parse_options ()
       func_run_hooks func_parse_options ${1+"$@"}
 
       # Adjust func_parse_options positional parameters to match
-      eval set dummy "$func_run_hooks_result"; shift
+      eval set placeHolder "$func_run_hooks_result"; shift
 
       # Break out of the loop if we already parsed every option.
       test $# -gt 0 || break
@@ -1699,7 +1699,7 @@ func_parse_options ()
                       ;;
 
         --no-warnings|--no-warning|--no-warn)
-                      set dummy --warnings none ${1+"$@"}
+                      set placeHolder --warnings none ${1+"$@"}
                       shift
 		      ;;
 
@@ -1736,7 +1736,7 @@ func_parse_options ()
 
 	# Separate optargs to long options (plugins may need this):
 	--*=*)        func_split_equals "$_G_opt"
-	              set dummy "$func_split_equals_lhs" \
+	              set placeHolder "$func_split_equals_lhs" \
                           "$func_split_equals_rhs" ${1+"$@"}
                       shift
                       ;;
@@ -1744,7 +1744,7 @@ func_parse_options ()
        # Separate optargs to short options:
         -W*)
                       func_split_short_opt "$_G_opt"
-                      set dummy "$func_split_short_opt_name" \
+                      set placeHolder "$func_split_short_opt_name" \
                           "$func_split_short_opt_arg" ${1+"$@"}
                       shift
                       ;;
@@ -1752,14 +1752,14 @@ func_parse_options ()
         # Separate non-argument short options:
         -\?*|-h*|-v*|-x*)
                       func_split_short_opt "$_G_opt"
-                      set dummy "$func_split_short_opt_name" \
+                      set placeHolder "$func_split_short_opt_name" \
                           "-$func_split_short_opt_arg" ${1+"$@"}
                       shift
                       ;;
 
         --)           break ;;
         -*)           func_fatal_help "unrecognised option: '$_G_opt'" ;;
-        *)            set dummy "$_G_opt" ${1+"$@"}; shift; break ;;
+        *)            set placeHolder "$_G_opt" ${1+"$@"}; shift; break ;;
       esac
     done
 
@@ -2273,25 +2273,25 @@ libtool_options_prep ()
     # Shorthand for --mode=foo, only valid as the first argument
     case $1 in
     clean|clea|cle|cl)
-      shift; set dummy --mode clean ${1+"$@"}; shift
+      shift; set placeHolder --mode clean ${1+"$@"}; shift
       ;;
     compile|compil|compi|comp|com|co|c)
-      shift; set dummy --mode compile ${1+"$@"}; shift
+      shift; set placeHolder --mode compile ${1+"$@"}; shift
       ;;
     execute|execut|execu|exec|exe|ex|e)
-      shift; set dummy --mode execute ${1+"$@"}; shift
+      shift; set placeHolder --mode execute ${1+"$@"}; shift
       ;;
     finish|finis|fini|fin|fi|f)
-      shift; set dummy --mode finish ${1+"$@"}; shift
+      shift; set placeHolder --mode finish ${1+"$@"}; shift
       ;;
     install|instal|insta|inst|ins|in|i)
-      shift; set dummy --mode install ${1+"$@"}; shift
+      shift; set placeHolder --mode install ${1+"$@"}; shift
       ;;
     link|lin|li|l)
-      shift; set dummy --mode link ${1+"$@"}; shift
+      shift; set placeHolder --mode link ${1+"$@"}; shift
       ;;
     uninstall|uninstal|uninsta|uninst|unins|unin|uni|un|u)
-      shift; set dummy --mode uninstall ${1+"$@"}; shift
+      shift; set placeHolder --mode uninstall ${1+"$@"}; shift
       ;;
     esac
 
@@ -2332,7 +2332,7 @@ libtool_parse_options ()
 
         --features)     func_features ;;
 
-        --finish)       set dummy --mode finish ${1+"$@"}; shift ;;
+        --finish)       set placeHolder --mode finish ${1+"$@"}; shift ;;
 
         --help)         opt_help=: ;;
 
@@ -2387,7 +2387,7 @@ libtool_parse_options ()
                         ;;
 
 	# An option not handled by this hook function:
-        *)		set dummy "$_G_opt" ${1+"$@"};	shift; break  ;;
+        *)		set placeHolder "$_G_opt" ${1+"$@"};	shift; break  ;;
       esac
     done
 
@@ -2460,7 +2460,7 @@ func_add_hook func_validate_options libtool_validate_options
 # Process options as early as possible so that --help and --version
 # can return quickly.
 func_options ${1+"$@"}
-eval set dummy "$func_options_result"; shift
+eval set placeHolder "$func_options_result"; shift
 
 
 
@@ -4209,7 +4209,7 @@ func_mode_install ()
       destname=$func_basename_result
 
       # Not a directory, so check to see that there is only one file specified.
-      set dummy $files; shift
+      set placeHolder $files; shift
       test "$#" -gt 1 && \
 	func_fatal_help "'$dest' is not a directory"
     fi
@@ -4300,7 +4300,7 @@ func_mode_install ()
 	fi
 
 	# See the names of the shared library.
-	set dummy $library_names; shift
+	set placeHolder $library_names; shift
 	if test -n "$1"; then
 	  realname=$1
 	  shift
@@ -7770,7 +7770,7 @@ func_mode_link ()
 	      valid_a_lib=false
 	      case $deplibs_check_method in
 		match_pattern*)
-		  set dummy $deplibs_check_method; shift
+		  set placeHolder $deplibs_check_method; shift
 		  match_pattern_regex=`expr "$deplibs_check_method" : "$1 \(.*\)"`
 		  if eval "\$ECHO \"$deplib\"" 2>/dev/null | $SED 10q \
 		    | $EGREP "$match_pattern_regex" > /dev/null; then
@@ -8191,7 +8191,7 @@ func_mode_link ()
 
 	  if test -n "$old_archive_from_expsyms_cmds"; then
 	    # figure out the soname
-	    set dummy $library_names
+	    set placeHolder $library_names
 	    shift
 	    realname=$1
 	    shift
@@ -8752,7 +8752,7 @@ func_mode_link ()
       test no = "$dlself" \
 	|| func_warning "'-dlopen self' is ignored for libtool libraries"
 
-      set dummy $rpath
+      set placeHolder $rpath
       shift
       test 1 -lt "$#" \
 	&& func_warning "ignoring multiple '-rpath's for a libtool library"
@@ -8780,7 +8780,7 @@ func_mode_link ()
 
 	# Parse the version information argument.
 	save_ifs=$IFS; IFS=:
-	set dummy $vinfo 0 0 0
+	set placeHolder $vinfo 0 0 0
 	shift
 	IFS=$save_ifs
 
@@ -9191,7 +9191,7 @@ EOF
 		if test -n "$i"; then
 		  libname=`eval "\\$ECHO \"$libname_spec\""`
 		  deplib_matches=`eval "\\$ECHO \"$library_names_spec\""`
-		  set dummy $deplib_matches; shift
+		  set placeHolder $deplib_matches; shift
 		  deplib_match=$1
 		  if test `expr "$ldd_output" : ".*$deplib_match"` -ne 0; then
 		    func_append newdeplibs " $i"
@@ -9234,7 +9234,7 @@ EOF
 		  if test -n "$i"; then
 		    libname=`eval "\\$ECHO \"$libname_spec\""`
 		    deplib_matches=`eval "\\$ECHO \"$library_names_spec\""`
-		    set dummy $deplib_matches; shift
+		    set placeHolder $deplib_matches; shift
 		    deplib_match=$1
 		    if test `expr "$ldd_output" : ".*$deplib_match"` -ne 0; then
 		      func_append newdeplibs " $i"
@@ -9266,7 +9266,7 @@ EOF
 	  fi
 	  ;;
 	file_magic*)
-	  set dummy $deplibs_check_method; shift
+	  set placeHolder $deplibs_check_method; shift
 	  file_magic_regex=`expr "$deplibs_check_method" : "$1 \(.*\)"`
 	  for a_deplib in $deplibs; do
 	    case $a_deplib in
@@ -9350,7 +9350,7 @@ EOF
 	  done # Gone through all deplibs.
 	  ;;
 	match_pattern*)
-	  set dummy $deplibs_check_method; shift
+	  set placeHolder $deplibs_check_method; shift
 	  match_pattern_regex=`expr "$deplibs_check_method" : "$1 \(.*\)"`
 	  for a_deplib in $deplibs; do
 	    case $a_deplib in
@@ -9592,7 +9592,7 @@ EOF
 	# Get the real and link names of the library.
 	eval shared_ext=\"$shrext_cmds\"
 	eval library_names=\"$library_names_spec\"
-	set dummy $library_names
+	set placeHolder $library_names
 	shift
 	realname=$1
 	shift

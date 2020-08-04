@@ -83,13 +83,13 @@ jpeg_start_decompress (j_decompress_ptr cinfo)
     cinfo->output_scan_number = cinfo->input_scan_number;
   } else if (cinfo->global_state != DSTATE_PRESCAN)
     ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
-  /* Perform any dummy output passes, and set up for the final pass */
+  /* Perform any place_holder output passes, and set up for the final pass */
   return output_pass_setup(cinfo);
 }
 
 
 /*
- * Set up for an output pass, and perform any dummy pass(es) needed.
+ * Set up for an output pass, and perform any place_holder pass(es) needed.
  * Common subroutine for jpeg_start_decompress and jpeg_start_output.
  * Entry: global_state = DSTATE_PRESCAN only if previously suspended.
  * Exit: If done, returns TRUE and sets global_state for proper output mode.
@@ -105,10 +105,10 @@ output_pass_setup (j_decompress_ptr cinfo)
     cinfo->output_scanline = 0;
     cinfo->global_state = DSTATE_PRESCAN;
   }
-  /* Loop over any required dummy passes */
-  while (cinfo->master->is_dummy_pass) {
+  /* Loop over any required place_holder passes */
+  while (cinfo->master->is_place_holder_pass) {
 #ifdef QUANT_2PASS_SUPPORTED
-    /* Crank through the dummy pass */
+    /* Crank through the place_holder pass */
     while (cinfo->output_scanline < cinfo->output_height) {
       JDIMENSION last_scanline;
       /* Call progress monitor hook if present */
@@ -124,7 +124,7 @@ output_pass_setup (j_decompress_ptr cinfo)
       if (cinfo->output_scanline == last_scanline)
         return FALSE;           /* No progress made, must suspend */
     }
-    /* Finish up dummy pass, and set up for another one */
+    /* Finish up place_holder pass, and set up for another one */
     (*cinfo->master->finish_output_pass) (cinfo);
     (*cinfo->master->prepare_for_output_pass) (cinfo);
     cinfo->output_scanline = 0;
@@ -285,7 +285,7 @@ jpeg_read_scanlines (j_decompress_ptr cinfo, JSAMPARRAY scanlines,
 }
 
 
-/* Dummy color convert function used by jpeg_skip_scanlines() */
+/* PlaceHolder color convert function used by jpeg_skip_scanlines() */
 LOCAL(void)
 noop_convert (j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
               JDIMENSION input_row, JSAMPARRAY output_buf, int num_rows)
@@ -297,7 +297,7 @@ noop_convert (j_decompress_ptr cinfo, JSAMPIMAGE input_buf,
  * In some cases, it is best to call jpeg_read_scanlines() and discard the
  * output, rather than skipping the scanlines, because this allows us to
  * maintain the internal state of the context-based upsampler.  In these cases,
- * we set up and tear down a dummy color converter in order to avoid valgrind
+ * we set up and tear down a place_holder color converter in order to avoid valgrind
  * errors and to achieve the best possible performance.
  */
 
@@ -334,7 +334,7 @@ increment_simple_rowgroup_ctr (j_decompress_ptr cinfo, JDIMENSION rows)
   main_ptr->rowgroup_ctr += rows / cinfo->max_v_samp_factor;
 
   /* Partially skipping a row group would involve modifying the internal state
-   * of the upsampler, so read the remaining rows into a dummy buffer instead.
+   * of the upsampler, so read the remaining rows into a place_holder buffer instead.
    */
   rows_left = rows % cinfo->max_v_samp_factor;
   cinfo->output_scanline += rows - rows_left;
@@ -576,7 +576,7 @@ jpeg_start_output (j_decompress_ptr cinfo, int scan_number)
       scan_number > cinfo->input_scan_number)
     scan_number = cinfo->input_scan_number;
   cinfo->output_scan_number = scan_number;
-  /* Perform any dummy output passes, and set up for the real pass */
+  /* Perform any place_holder output passes, and set up for the real pass */
   return output_pass_setup(cinfo);
 }
 

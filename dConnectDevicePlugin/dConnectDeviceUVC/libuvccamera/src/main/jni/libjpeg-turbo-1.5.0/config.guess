@@ -104,12 +104,12 @@ trap "rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null; exit 1" 1 2 13 15 ;
  { test -n "$RANDOM" && tmp=$TMPDIR/cg$$-$RANDOM && (umask 077 && mkdir $tmp) ; } ||
  { tmp=$TMPDIR/cg-$$ && (umask 077 && mkdir $tmp) && echo "Warning: creating insecure temp directory" >&2 ; } ||
  { echo "$me: cannot create a temporary directory in $TMPDIR" >&2 ; exit 1 ; } ;
-dummy=$tmp/dummy ;
-tmpfiles="$dummy.c $dummy.o $dummy.rel $dummy" ;
+place_holder=$tmp/place_holder ;
+tmpfiles="$place_holder.c $place_holder.o $place_holder.rel $place_holder" ;
 case $CC_FOR_BUILD,$HOST_CC,$CC in
- ,,)    echo "int x;" > $dummy.c ;
+ ,,)    echo "int x;" > $place_holder.c ;
 	for c in cc gcc c89 c99 ; do
-	  if ($c -c -o $dummy.o $dummy.c) >/dev/null 2>&1 ; then
+	  if ($c -c -o $place_holder.o $place_holder.c) >/dev/null 2>&1 ; then
 	     CC_FOR_BUILD="$c"; break ;
 	  fi ;
 	done ;
@@ -139,7 +139,7 @@ Linux|GNU|GNU/*)
 	LIBC=gnu
 
 	eval $set_cc_for_build
-	cat <<-EOF > $dummy.c
+	cat <<-EOF > $place_holder.c
 	#include <features.h>
 	#if defined(__UCLIBC__)
 	LIBC=uclibc
@@ -149,7 +149,7 @@ Linux|GNU|GNU/*)
 	LIBC=gnu
 	#endif
 	EOF
-	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep '^LIBC' | sed 's, ,,g'`
+	eval `$CC_FOR_BUILD -E $place_holder.c 2>/dev/null | grep '^LIBC' | sed 's, ,,g'`
 	;;
 esac
 
@@ -452,7 +452,7 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
 	exit ;;
     mips:*:*:UMIPS | mips:*:*:RISCos)
 	eval $set_cc_for_build
-	sed 's/^	//' << EOF >$dummy.c
+	sed 's/^	//' << EOF >$place_holder.c
 #ifdef __cplusplus
 #include <stdio.h>  /* for printf() prototype */
 	int main (int argc, char *argv[]) {
@@ -473,9 +473,9 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
 	  exit (-1);
 	}
 EOF
-	$CC_FOR_BUILD -o $dummy $dummy.c &&
-	  dummyarg=`echo "${UNAME_RELEASE}" | sed -n 's/\([0-9]*\).*/\1/p'` &&
-	  SYSTEM_NAME=`$dummy $dummyarg` &&
+	$CC_FOR_BUILD -o $place_holder $place_holder.c &&
+	  place_holderarg=`echo "${UNAME_RELEASE}" | sed -n 's/\([0-9]*\).*/\1/p'` &&
+	  SYSTEM_NAME=`$place_holder $place_holderarg` &&
 	    { echo "$SYSTEM_NAME"; exit; }
 	echo mips-mips-riscos${UNAME_RELEASE}
 	exit ;;
@@ -549,7 +549,7 @@ EOF
     *:AIX:2:3)
 	if grep bos325 /usr/include/stdio.h >/dev/null 2>&1; then
 		eval $set_cc_for_build
-		sed 's/^		//' << EOF >$dummy.c
+		sed 's/^		//' << EOF >$place_holder.c
 		#include <sys/systemcfg.h>
 
 		main()
@@ -560,7 +560,7 @@ EOF
 			exit(0);
 			}
 EOF
-		if $CC_FOR_BUILD -o $dummy $dummy.c && SYSTEM_NAME=`$dummy`
+		if $CC_FOR_BUILD -o $place_holder $place_holder.c && SYSTEM_NAME=`$place_holder`
 		then
 			echo "$SYSTEM_NAME"
 		else
@@ -630,7 +630,7 @@ EOF
 		fi
 		if [ "${HP_ARCH}" = "" ]; then
 		    eval $set_cc_for_build
-		    sed 's/^		//' << EOF >$dummy.c
+		    sed 's/^		//' << EOF >$place_holder.c
 
 		#define _HPUX_SOURCE
 		#include <stdlib.h>
@@ -663,7 +663,7 @@ EOF
 		    exit (0);
 		}
 EOF
-		    (CCOPTS= $CC_FOR_BUILD -o $dummy $dummy.c 2>/dev/null) && HP_ARCH=`$dummy`
+		    (CCOPTS= $CC_FOR_BUILD -o $place_holder $place_holder.c 2>/dev/null) && HP_ARCH=`$place_holder`
 		    test -z "$HP_ARCH" && HP_ARCH=hppa
 		fi ;;
 	esac
@@ -696,7 +696,7 @@ EOF
 	exit ;;
     3050*:HI-UX:*:*)
 	eval $set_cc_for_build
-	sed 's/^	//' << EOF >$dummy.c
+	sed 's/^	//' << EOF >$place_holder.c
 	#include <unistd.h>
 	int
 	main ()
@@ -721,7 +721,7 @@ EOF
 	  exit (0);
 	}
 EOF
-	$CC_FOR_BUILD -o $dummy $dummy.c && SYSTEM_NAME=`$dummy` &&
+	$CC_FOR_BUILD -o $place_holder $place_holder.c && SYSTEM_NAME=`$place_holder` &&
 		{ echo "$SYSTEM_NAME"; exit; }
 	echo unknown-hitachi-hiuxwe2
 	exit ;;
@@ -953,7 +953,7 @@ EOF
 	exit ;;
     mips:Linux:*:* | mips64:Linux:*:*)
 	eval $set_cc_for_build
-	sed 's/^	//' << EOF >$dummy.c
+	sed 's/^	//' << EOF >$place_holder.c
 	#undef CPU
 	#undef ${UNAME_MACHINE}
 	#undef ${UNAME_MACHINE}el
@@ -967,7 +967,7 @@ EOF
 	#endif
 	#endif
 EOF
-	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep '^CPU'`
+	eval `$CC_FOR_BUILD -E $place_holder.c 2>/dev/null | grep '^CPU'`
 	test x"${CPU}" != x && { echo "${CPU}-unknown-linux-${LIBC}"; exit; }
 	;;
     openrisc*:Linux:*:*)

@@ -100,7 +100,7 @@
           },
           "examples": {
             "application/json": {
-              "serviceId": "Test.dummyId.localhost.deviceconnect.org",
+              "serviceId": "Test.exampleId.localhost.deviceconnect.org",
               "profile": "testProfile",
               "attribute": "a0",
               "a0": {

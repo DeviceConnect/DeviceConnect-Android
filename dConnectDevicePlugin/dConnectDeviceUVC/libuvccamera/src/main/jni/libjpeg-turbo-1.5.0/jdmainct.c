@@ -210,7 +210,7 @@ LOCAL(void)
 set_bottom_pointers (j_decompress_ptr cinfo)
 /* Change the pointer lists to duplicate the last sample row at the bottom
  * of the image.  whichptr indicates which xbuffer holds the final iMCU row.
- * Also sets rowgroups_avail to indicate number of nondummy row groups in row.
+ * Also sets rowgroups_avail to indicate number of nonplace_holder row groups in row.
  */
 {
   my_main_ptr main_ptr = (my_main_ptr) cinfo->main;
@@ -223,10 +223,10 @@ set_bottom_pointers (j_decompress_ptr cinfo)
     /* Count sample rows in one iMCU row and in one row group */
     iMCUheight = compptr->v_samp_factor * compptr->_DCT_scaled_size;
     rgroup = iMCUheight / cinfo->_min_DCT_scaled_size;
-    /* Count nondummy sample rows remaining for this component */
+    /* Count nonplace_holder sample rows remaining for this component */
     rows_left = (int) (compptr->downsampled_height % (JDIMENSION) iMCUheight);
     if (rows_left == 0) rows_left = iMCUheight;
-    /* Count nondummy row groups.  Should get same answer for each component,
+    /* Count nonplace_holder row groups.  Should get same answer for each component,
      * so we need only do it once.
      */
     if (ci == 0) {

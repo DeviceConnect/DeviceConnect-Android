@@ -15,7 +15,6 @@ import androidx.fragment.app.FragmentActivity;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
 
 
 /**
@@ -36,11 +35,11 @@ public class TestServiceListActivity extends DConnectServiceListActivity {
     protected Class<? extends Activity> getSettingManualActivityClass() {
         Intent intent = ((FragmentActivity) this).getIntent();
         if (intent == null) {
-            return DummySettingManualActivity.class;
+            return PlaceHolderSettingManualActivity.class;
         }
         Bundle param = intent.getBundleExtra(SystemProfile.SETTING_PAGE_PARAMS);
         if (param != null && param.getBoolean(EXTRA_CAN_ADD_SERVICE, true)) {
-            return DummySettingManualActivity.class;
+            return PlaceHolderSettingManualActivity.class;
         }
         return null;
     }

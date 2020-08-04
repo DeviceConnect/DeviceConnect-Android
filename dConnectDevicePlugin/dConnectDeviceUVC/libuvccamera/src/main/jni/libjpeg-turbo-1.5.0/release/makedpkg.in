@@ -37,10 +37,10 @@ makedeb()
 	mkdir $TMPDIR/DEBIAN
 
 	if [ $SUPPLEMENT = 1 ]; then
-		make install DESTDIR=$TMPDIR bindir=/dummy/bin datadir=/dummy/data \
-			docdir=/dummy/doc includedir=/dummy/include mandir=/dummy/man
+		make install DESTDIR=$TMPDIR bindir=/place_holder/bin datadir=/place_holder/data \
+			docdir=/place_holder/doc includedir=/place_holder/include mandir=/place_holder/man
 		rm -f $TMPDIR$LIBDIR/*.la
-		rm -rf $TMPDIR/dummy
+		rm -rf $TMPDIR/place_holder
 	else
 		make install DESTDIR=$TMPDIR docdir=/usr/share/doc/$DIRNAME-$VERSION \
 			exampledir=/usr/share/doc/$DIRNAME-$VERSION

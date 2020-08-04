@@ -140,12 +140,12 @@ static ValueMapAllocator *&mapAllocator()
    return mapAllocator;
 }
 
-static struct DummyMapAllocatorInitializer {
-   DummyMapAllocatorInitializer() 
+static struct PlaceHolderMapAllocatorInitializer {
+   PlaceHolderMapAllocatorInitializer()
    {
       mapAllocator();      // ensure mapAllocator() statics are initialized before main().
    }
-} dummyMapAllocatorInitializer;
+} placeHolderMapAllocatorInitializer;
 
 
 
@@ -192,8 +192,8 @@ ValueInternalMap::ValueInternalMap( const ValueInternalMap &other )
 ValueInternalMap &
 ValueInternalMap::operator =( const ValueInternalMap &other )
 {
-   ValueInternalMap dummy( other );
-   swap( dummy );
+   ValueInternalMap placeHolder( other );
+   swap( placeHolder );
    return *this;
 }
 
@@ -238,8 +238,8 @@ ValueInternalMap::swap( ValueInternalMap &other )
 void 
 ValueInternalMap::clear()
 {
-   ValueInternalMap dummy;
-   swap( dummy );
+   ValueInternalMap placeHolder;
+   swap(placeHolder );
 }
 
 
@@ -389,8 +389,8 @@ ValueInternalMap::doActualRemove( ValueInternalLink *link,
    }
    else
    {
-      Value dummy;
-      valueToPreserve->swap( dummy ); // restore deleted to default Value.
+      Value placeHolder;
+      valueToPreserve->swap( placeHolder ); // restore deleted to default Value.
       valueToPreserve->setItemUsed( false );
    }
    --itemCount_;

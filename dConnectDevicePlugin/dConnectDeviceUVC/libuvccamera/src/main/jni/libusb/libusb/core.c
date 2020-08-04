@@ -1124,7 +1124,7 @@ void API_EXPORTED libusb_unref_device(libusb_device *dev) {
  */
 void usbi_fd_notification(struct libusb_context *ctx) {
 
-	unsigned char dummy = 1;
+	unsigned char place_holder = 1;
 	ssize_t r;
 
 	if (UNLIKELY(ctx == NULL))
@@ -1138,7 +1138,7 @@ void usbi_fd_notification(struct libusb_context *ctx) {
 	usbi_mutex_unlock(&ctx->pollfd_modify_lock);
 
 	/* write some data on control pipe to interrupt event handlers */
-	r = usbi_write(ctx->ctrl_pipe[1], &dummy, sizeof(dummy));
+	r = usbi_write(ctx->ctrl_pipe[1], &place_holder, sizeof(place_holder));
 	if (UNLIKELY(r <= 0)) {
 		usbi_warn(ctx, "internal signalling write failed");
 		usbi_mutex_lock(&ctx->pollfd_modify_lock);
@@ -1152,8 +1152,8 @@ void usbi_fd_notification(struct libusb_context *ctx) {
 	/* take event handling lock */
 	libusb_lock_events(ctx);
 	{
-		/* read the dummy data */
-		r = usbi_read(ctx->ctrl_pipe[0], &dummy, sizeof(dummy));
+		/* read the place_holder data */
+		r = usbi_read(ctx->ctrl_pipe[0], &place_holder, sizeof(place_holder));
 		if (UNLIKELY(r <= 0))
 			usbi_warn(ctx, "internal signalling read failed");
 
@@ -1396,7 +1396,7 @@ static void do_close(struct libusb_context *ctx,
 void API_EXPORTED libusb_close(libusb_device_handle *dev_handle) {
 
 	struct libusb_context *ctx;
-	unsigned char dummy = 1;
+	unsigned char place_holder = 1;
 	ssize_t r;
 
 	if (UNLIKELY(!dev_handle))
@@ -1419,7 +1419,7 @@ void API_EXPORTED libusb_close(libusb_device_handle *dev_handle) {
 	usbi_mutex_unlock(&ctx->pollfd_modify_lock);
 
 	/* write some data on control pipe to interrupt event handlers */
-	r = usbi_write(ctx->ctrl_pipe[1], &dummy, sizeof(dummy));
+	r = usbi_write(ctx->ctrl_pipe[1], &place_holder, sizeof(place_holder));
 	if (UNLIKELY(r <= 0)) {
 		usbi_warn(ctx, "internal signalling write failed, closing anyway");
 		do_close(ctx, dev_handle);
@@ -1434,8 +1434,8 @@ void API_EXPORTED libusb_close(libusb_device_handle *dev_handle) {
 	/* take event handling lock */
 	libusb_lock_events(ctx);	// XXX crash
 	{
-		/* read the dummy data */
-		r = usbi_read(ctx->ctrl_pipe[0], &dummy, sizeof(dummy));	// XXX crash
+		/* read the place_holder data */
+		r = usbi_read(ctx->ctrl_pipe[0], &place_holder, sizeof(place_holder));	// XXX crash
 		if (UNLIKELY(r <= 0)) {
 			usbi_warn(ctx, "internal signalling read failed, closing anyway");
 		}

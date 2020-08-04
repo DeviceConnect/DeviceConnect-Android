@@ -3335,11 +3335,11 @@ AC_CACHE_VAL(lt_cv_path_MAGIC_CMD,
 *)
   lt_save_MAGIC_CMD=$MAGIC_CMD
   lt_save_ifs=$IFS; IFS=$PATH_SEPARATOR
-dnl $ac_dummy forces splitting on constant user-supplied paths.
+dnl $ac_place_holder forces splitting on constant user-supplied paths.
 dnl POSIX.2 word splitting is done only on the output of word expansions,
 dnl not every word.  This closes a longstanding sh security hole.
-  ac_dummy="m4_if([$2], , $PATH, [$2])"
-  for ac_dir in $ac_dummy; do
+  ac_place_holder="m4_if([$2], , $PATH, [$2])"
+  for ac_dir in $ac_place_holder; do
     IFS=$lt_save_ifs
     test -z "$ac_dir" && ac_dir=.
     if test -f "$ac_dir/$1"; then
@@ -9452,7 +9452,7 @@ AC_CACHE_CHECK([dependency style of $depcc],
   # We make a subdir and do the tests there.  Otherwise we can end up
   # making bogus files that we don't know about and never remove.  For
   # instance it was reported that on HP-UX the gcc test will end up
-  # making a dummy file named 'D' -- because '-MD' means "put the output
+  # making a place_holder file named 'D' -- because '-MD' means "put the output
   # in D".
   rm -rf conftest.dir
   mkdir conftest.dir
@@ -9495,7 +9495,7 @@ AC_CACHE_CHECK([dependency style of $depcc],
       echo '#include "conftst'$i'.h"' >> sub/conftest.c
       # Using ": > sub/conftst$i.h" creates only sub/conftst1.h with
       # Solaris 10 /bin/sh.
-      echo '/* dummy */' > sub/conftst$i.h
+      echo '/* place_holder */' > sub/conftst$i.h
     done
     echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf
 
@@ -9653,7 +9653,7 @@ AC_DEFUN([_AM_OUTPUT_DEPENDENCY_COMMANDS],
       fdir=`AS_DIRNAME(["$file"])`
       AS_MKDIR_P([$dirpart/$fdir])
       # echo "creating $dirpart/$file"
-      echo '# dummy' > "$dirpart/$file"
+      echo '# place_holder' > "$dirpart/$file"
     done
   done
 }
@@ -10396,7 +10396,7 @@ m4_if([$1], [v7],
     # and am__untar set.
     test -n "${am_cv_prog_tar_$1}" && break
 
-    # tar/untar a dummy directory, and stop if the command works.
+    # tar/untar a place_holder directory, and stop if the command works.
     rm -rf conftest.dir
     mkdir conftest.dir
     echo GrepMe > conftest.dir/file

@@ -759,7 +759,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * 指定したメディアをローカルサーバ上で公開する.
      * 
      * @param   mediaId     メディアID
-     * @return  dummyUrl    ダミーURL
+     * @return  placeHolderUrl    代用URL
      */
     private String exposeMedia(final long mediaId) {
         Uri targetUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;

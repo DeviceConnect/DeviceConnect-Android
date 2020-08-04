@@ -409,7 +409,7 @@ per_scan_setup (j_compress_ptr cinfo)
       compptr->MCU_height = compptr->v_samp_factor;
       compptr->MCU_blocks = compptr->MCU_width * compptr->MCU_height;
       compptr->MCU_sample_width = compptr->MCU_width * DCTSIZE;
-      /* Figure number of non-dummy blocks in last MCU column & row */
+      /* Figure number of non-place_holder blocks in last MCU column & row */
       tmp = (int) (compptr->width_in_blocks % compptr->MCU_width);
       if (tmp == 0) tmp = compptr->MCU_width;
       compptr->last_col_width = tmp;

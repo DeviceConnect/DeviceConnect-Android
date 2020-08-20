@@ -9,6 +9,8 @@
     <string name="unknown">不明</string>
 
     <!-- プラグイン設定一覧画面 -->
+    <string name="settings_pref_key_local_oauth">settings_pref_key_local_oauth</string>
+    <string name="settings_pref_title_local_oauth">Local OAuth</string>
     <string name="settings_pref_key_service_list">settings_pref_key_service_list</string>
     <string name="settings_pref_title_service_list">サービス一覧</string>
     <string name="settings_pref_key_demo_page">settings_pref_key_demo_page</string>

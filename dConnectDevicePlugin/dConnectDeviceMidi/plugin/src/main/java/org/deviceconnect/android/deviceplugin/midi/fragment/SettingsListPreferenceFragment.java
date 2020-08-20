@@ -11,7 +11,6 @@ import androidx.preference.PreferenceFragmentCompat;
 import org.deviceconnect.android.deviceplugin.midi.DConnectMidiServiceListActivity;
 import org.deviceconnect.android.deviceplugin.midi.MidiDemoSettingActivity;
 import org.deviceconnect.android.deviceplugin.midi.R;
-import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
 
 public class SettingsListPreferenceFragment extends PreferenceFragmentCompat {
 

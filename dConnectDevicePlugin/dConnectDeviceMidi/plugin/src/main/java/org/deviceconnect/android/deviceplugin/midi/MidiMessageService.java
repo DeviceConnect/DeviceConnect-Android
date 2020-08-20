@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.os.Handler;
 import android.os.Looper;
+import androidx.preference.PreferenceManager;
 
 import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.midi.profiles.MidiSystemProfile;
@@ -28,6 +30,8 @@ import static org.deviceconnect.android.deviceplugin.midi.MidiDeviceManager.OnDe
 public class MidiMessageService extends DConnectMessageService {
 
     private static final int DEMO_NOTIFICATION_ID = 1;
+
+    private static final boolean LOCAL_OAUTH_DEFAULT = true;
 
     private final Logger mLogger = Logger.getLogger("midi-plugin");
 
@@ -90,6 +94,12 @@ public class MidiMessageService extends DConnectMessageService {
         }
     };
 
+    private final SharedPreferences.OnSharedPreferenceChangeListener mPreferenceChangeListener = (shredPref, key) -> {
+        if (key.equals(getString(R.string.settings_pref_key_local_oauth))) {
+            setUseLocalOAuthFromPreference(shredPref);
+        }
+    };
+
     public MidiDeviceManager getMidiDeviceManager() {
         return mMidiDeviceManager;
     }
@@ -113,6 +123,16 @@ public class MidiMessageService extends DConnectMessageService {
         );
         registerDemoNotification();
         updateDemoPageIfNeeded();
+
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        setUseLocalOAuthFromPreference(pref);
+        pref.registerOnSharedPreferenceChangeListener(mPreferenceChangeListener);
+    }
+
+    private void setUseLocalOAuthFromPreference(final SharedPreferences pref) {
+        boolean isOn = pref.getBoolean(getString(R.string.settings_pref_key_local_oauth), LOCAL_OAUTH_DEFAULT);
+        mLogger.info("Changed Local OAuth setting: isOn = " + isOn);
+        setUseLocalOAuth(isOn);
     }
 
     private void registerDemoNotification() {

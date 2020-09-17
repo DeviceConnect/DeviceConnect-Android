@@ -140,8 +140,6 @@ public class DConnectCore extends DevicePluginContext {
         }
     };
 
-    private DConnectInterface mDConnectInterface;
-
     /**
      * コンストラクタ.
      *
@@ -328,7 +326,6 @@ public class DConnectCore extends DevicePluginContext {
      * @param i インターフェース
      */
     public void setDConnectInterface(final DConnectInterface i) {
-        mDConnectInterface = i;
         DConnectSystemProfile systemProfile = (DConnectSystemProfile) getProfile(SystemProfileConstants.PROFILE_NAME);
         if (systemProfile != null) {
             systemProfile.setDConnectInterface(i);

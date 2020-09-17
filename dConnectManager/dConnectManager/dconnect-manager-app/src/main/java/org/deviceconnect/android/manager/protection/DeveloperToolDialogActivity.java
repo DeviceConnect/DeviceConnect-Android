@@ -21,7 +21,7 @@ import org.deviceconnect.android.manager.util.SimpleDialogFragment;
 public class DeveloperToolDialogActivity extends Activity implements SimpleDialogFragment.Callback {
 
     /**
-     * 確認ダイアンログのタグを定義.
+     * 確認ダイアログのタグを定義.
      */
     private static final String TAG_DIALOG = "developer-tool-dialog";
 

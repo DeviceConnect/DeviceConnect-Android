@@ -23,6 +23,7 @@ import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.List;
 
@@ -139,6 +140,7 @@ public class DConnectSettingProfile extends DConnectProfile {
                     Log.d("ABC", "PUT /gotapi/setting/copyGuard/onChange: receiver = " + request.getParcelableExtra("receiver"));
                 }
 
+                setReceiverNameToRequest(request);
                 EventError error = EventManager.INSTANCE.addEvent(request);
                 switch (error) {
                     case NONE:
@@ -169,6 +171,7 @@ public class DConnectSettingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                setReceiverNameToRequest(request);
                 EventError error = EventManager.INSTANCE.removeEvent(request);
                 switch (error) {
                     case NONE:
@@ -187,6 +190,13 @@ public class DConnectSettingProfile extends DConnectProfile {
                 return true;
             }
         });
+    }
+
+    private void setReceiverNameToRequest(final Intent request) {
+        // NOTE: プラグインSDK側でレシーバー名が設定されないことが考慮されていないため、
+        // 暫定的措置として擬似的なレシーバー名を設定する.
+        request.putExtra(IntentDConnectMessage.EXTRA_RECEIVER,
+                new ComponentName(getContext(), "org.deviceconnect.android.manager.DConnectBroadcastReceiver"));
     }
 
     public void start(final Context context, final int appIconId) {

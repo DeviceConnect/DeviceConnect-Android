@@ -93,6 +93,11 @@ public class DConnectService extends Service {
     private DConnectManager mManager;
 
     /**
+     * Device Connect Manager 本体に設定する Setting プロファイル.
+     */
+    private DConnectSettingProfile mSettingProfile;
+
+    /**
      * WakeLockのインスタンス.
      */
     private PowerManager.WakeLock mWakeLock;
@@ -133,6 +138,8 @@ public class DConnectService extends Service {
 
         DConnectApplication app = (DConnectApplication) getApplication();
         mSettings = app.getSettings();
+        mSettingProfile = new DConnectSettingProfile();
+        mSettingProfile.start(this, R.drawable.on_icon);
         mManager = new DConnectManager(this, mSettings, app.getPluginManager()) {
             @Override
             public Class<? extends BroadcastReceiver> getDConnectBroadcastReceiverClass() {
@@ -149,7 +156,7 @@ public class DConnectService extends Service {
                 return SettingActivity.class;
             }
         };
-        mManager.addProfile(new DConnectSettingProfile(this, R.drawable.on_icon));
+        mManager.addProfile(mSettingProfile);
 
         // Webサーバの起動フラグがONになっている場合には起動を行う
         if (mSettings.isManagerStartFlag()) {
@@ -192,6 +199,7 @@ public class DConnectService extends Service {
     @Override
     public void onDestroy() {
         stopInternal();
+        mSettingProfile.stop();
         mManager = null;
         super.onDestroy();
     }

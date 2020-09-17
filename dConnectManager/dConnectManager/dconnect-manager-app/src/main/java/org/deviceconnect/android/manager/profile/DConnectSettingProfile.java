@@ -9,7 +9,6 @@ package org.deviceconnect.android.manager.profile;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -71,7 +70,7 @@ public class DConnectSettingProfile extends DConnectProfile {
         return message;
     }
 
-    public DConnectSettingProfile(final Context context, final int appIconId) {
+    public DConnectSettingProfile() {
         // GET /gotapi/setting/copyGuard
         addApi(new GetApi() {
             @Override

@@ -162,8 +162,10 @@ class ScreenRecordingGuardOverlay extends CopyGuardSetting {
 
     private void showInternal() {
         mMainHandler.post(() -> {
-            mWindowManager.addView(mOverlayView, mLayoutParams);
-            mIsShown = true;
+            if (!mIsShown) {
+                mWindowManager.addView(mOverlayView, mLayoutParams);
+                mIsShown = true;
+            }
         });
     }
 

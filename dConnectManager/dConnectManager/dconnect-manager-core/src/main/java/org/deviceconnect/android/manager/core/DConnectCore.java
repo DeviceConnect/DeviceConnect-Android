@@ -45,6 +45,7 @@ import org.deviceconnect.profile.SystemProfileConstants;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static org.deviceconnect.android.manager.core.BuildConfig.DEBUG;
 import static org.deviceconnect.android.manager.core.plugin.ConnectionType.BROADCAST;
 
 /**
@@ -145,6 +146,7 @@ public class DConnectCore extends DevicePluginContext {
      * @param context  コンテキスト
      * @param settings Device Connect Manager の設定
      * @param pluginManager プラグイン管理クラス
+     * @param factory イベントセッション作成クラス
      * @throws IllegalArgumentException コンテキストがnullの場合に発生
      */
     DConnectCore(final Context context,
@@ -207,14 +209,14 @@ public class DConnectCore extends DevicePluginContext {
         mEventBroker.setRegistrationListener(new EventBroker.RegistrationListener() {
             @Override
             public void onPutEventSession(final Intent request, final DevicePlugin plugin) {
-                if (isSupportedKeepAlive(plugin)) {
+                if (plugin != null && isSupportedKeepAlive(plugin)) {
                     mKeepAliveManager.setManagementTable(plugin);
                 }
             }
 
             @Override
             public void onDeleteEventSession(final Intent request, final DevicePlugin plugin) {
-                if (isSupportedKeepAlive(plugin)) {
+                if (plugin != null && isSupportedKeepAlive(plugin)) {
                     mKeepAliveManager.removeManagementTable(plugin);
                 }
             }
@@ -343,7 +345,7 @@ public class DConnectCore extends DevicePluginContext {
         } else if (DConnectUtil.checkActionEvent(message)) {
             onReceivedEvent(message);
         } else {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 mLogger.warning("Unknown message type.");
             }
         }
@@ -520,6 +522,8 @@ public class DConnectCore extends DevicePluginContext {
 
         DConnectProfile profile = getProfile(request);
         if (profile != null && !isDeliveryRequest(request)) {
+            mEventBroker.parseEventSessionForSelf(request);
+
             // Device Connect Manager へのリクエスト処理
             return profile.onRequest(request, response);
         } else {
@@ -528,6 +532,12 @@ public class DConnectCore extends DevicePluginContext {
             mConverterHelper.convertRequestMessage(request);
             return mDeliveryProfile.onRequest(request, response);
         }
+    }
+
+    @Override
+    public boolean sendEvent(final Intent event, final String accessToken) {
+        mEventBroker.onEventForSelf(event);
+        return true;
     }
 
     /**

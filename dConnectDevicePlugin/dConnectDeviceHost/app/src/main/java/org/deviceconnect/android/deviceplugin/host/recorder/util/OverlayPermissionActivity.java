@@ -24,7 +24,7 @@ public class OverlayPermissionActivity extends Activity implements SimpleDialogF
     private static final int REQUEST_CODE_OVERLAY = 1234;
 
     /**
-     * オーバーレイ許可設定画面を表示して良いかの確認ダイアンログのタグを定義.
+     * オーバーレイ許可設定画面を表示して良いかの確認ダイアログのタグを定義.
      */
     private static final String TAG_NO_PERMISSION_DIALOG = "overlay-permission";
 

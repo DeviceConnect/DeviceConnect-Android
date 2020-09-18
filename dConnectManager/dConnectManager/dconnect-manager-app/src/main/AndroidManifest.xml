@@ -103,9 +103,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- ホワイトリスト管理用Activity. -->
+        <!-- 許可リスト管理用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.WhitelistActivity"
+            android:name="org.deviceconnect.android.manager.setting.AllowlistActivity"
             android:label="@string/app_name">
         </activity>
 
@@ -238,6 +238,20 @@
         <activity
             android:name="org.deviceconnect.android.activity.PermissionRequestActivity"
             android:exported="false"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
+
+        <!-- コピーガード用オーバーレイ許可取得画面 -->
+        <activity android:name=".protection.OverlayPermissionActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=".permission"
+            android:theme="@style/Theme.Dialog.Transparent"/>
+
+        <!-- 開発者向けオプション表示確認画面 -->
+        <activity android:name=".protection.DeveloperToolDialogActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
             android:taskAffinity=".permission"
             android:theme="@style/Theme.Dialog.Transparent"/>
     </application>

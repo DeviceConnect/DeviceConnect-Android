@@ -48,10 +48,10 @@
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
     <string name="activity_settings_security">Security</string>
-    <string name="activity_settings_whitelist">Whitelist</string>
-    <string name="activity_settings_whitelist_enable">Enable origin blocking</string>
-    <string name="activity_settings_whitelist_enable_summary">Block requests of applications that the origin is not included in whitelist.</string>
-    <string name="activity_settings_manage_whitelist">Manage whitelist</string>
+    <string name="activity_settings_allowlist">Allowlist</string>
+    <string name="activity_settings_allowlist_enable">Enable origin blocking</string>
+    <string name="activity_settings_allowlist_enable_summary">Block requests of applications that the origin is not included in allowlist.</string>
+    <string name="activity_settings_manage_allowlist">Manage allowlist</string>
     <string name="activity_settings_accesslog">AccessLog</string>
     <string name="activity_settings_accesslog_title">AccessLog</string>
     <string name="activity_settings_accesslog_summary">Allow saving the access log in the DB.</string>
@@ -108,10 +108,10 @@
     <string name="activity_settings_web_server_error_message">Failed to start the web server, because cannot get a permission.</string>
     <string name="activity_settings_web_server_error">Failed to start the web server.\n\n%1$s</string>
 
-    <!-- ================= WhitelistActivity ================= -->
-    <string name="activity_whitelist_title">Whitelist of Origin</string>
+    <!-- ================= AllowlistActivity ================= -->
+    <string name="activity_allowlist_title">Allowlist of Origin</string>
     <string name="no_origin">No allowed origin by user.</string>
-    <string name="dialog_delete_origin_message">Are you sure you want to remove this origin from whitelist?</string>
+    <string name="dialog_delete_origin_message">Are you sure you want to remove this origin from allowlist?</string>
     <string name="dialog_delete_origin_positive">Remove</string>
     <string name="dialog_delete_origin_negative">Cancel</string>
     <string name="menu_add_origin">Add</string>
@@ -124,12 +124,12 @@
     <string name="dialog_origin_manual_entry_item_title">Title</string>
     <string name="dialog_origin_manual_entry_item_origin">Origin</string>
     <string name="dialog_origin_manual_entry_message">Please enter an origin at least.</string>
-    <string-array name="whitelist_menu_origin_pre_marshmallow">
+    <string-array name="allowlist_menu_origin_pre_marshmallow">
         <item>from the bookmark of Chrome</item>
         <item>from the installed app.</item>
         <item>from manual entry</item>
     </string-array>
-    <string-array name="whitelist_menu_origin_post_marshmallow">
+    <string-array name="allowlist_menu_origin_post_marshmallow">
         <item>from the installed app.</item>
         <item>from manual entry</item>
     </string-array>
@@ -243,6 +243,18 @@
     <string name="web_service_on_channel_desc">It is a WebServer for placing HTML for DeviceConnect.</string>
     <!-- ================= DConnectObservationService ================= -->
     <string name="observation_service_on_channel_id">org.deviceconnect.android.manager.observer</string>
+
+    <!-- ================= Copy Guard ================= -->
+    <string name="copy_guard_notification_channel_id" translatable="false">org.deviceconnect.android.manager.notification.channel.copy_guard</string>
+    <string name="copy_guard_notification_channel_name">Copy Protection</string>
+    <string name="copy_guard_notification_channel_description">Notifications about copy protection on this device\'s screen.</string>
+    <string name="copy_guard_notification_overlay_title">Screen recording Disabled</string>
+    <string name="copy_guard_notification_overlay_body">Screen recording on this device is disabled. Please click to enable.</string>
+    <string name="copy_guard_notification_activity_warnning">Requested to open window for copy protection.</string>
+    <string name="copy_guard_usb_debug_setting_prompt_dialog_title">USB Debug Setting</string>
+    <string name="copy_guard_usb_debug_setting_prompt_dialog_message">Disable "USB Debug" setting for copy protection feature.</string>
+    <string name="copy_guard_usb_debug_setting_prompt_dialog_positive">Open setting</string>
+    <string name="copy_guard_usb_debug_setting_prompt_dialog_negative">Cancel</string>
 
     <!-- ================= AccessLog ================= -->
     <string name="activity_accesslog_btn_search_ip_address">Search</string>

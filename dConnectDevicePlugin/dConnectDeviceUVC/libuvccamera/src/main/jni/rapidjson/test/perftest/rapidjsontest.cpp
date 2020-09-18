@@ -67,7 +67,7 @@ protected:
     Document doc_;
 };
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseInsitu_DummyHandler)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseInsitu_PlaceHolderHandler)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         memcpy(temp_, json_, length_ + 1);
         InsituStringStream s(temp_);
@@ -77,7 +77,7 @@ TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseInsitu_DummyHandler)) {
     }
 }
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseInsitu_DummyHandler_ValidateEncoding)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseInsitu_PlaceHolderHandler_ValidateEncoding)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         memcpy(temp_, json_, length_ + 1);
         InsituStringStream s(temp_);
@@ -87,7 +87,7 @@ TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseInsitu_DummyHandler_ValidateEncoding)) 
     }
 }
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_DummyHandler)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_PlaceHolderHandler)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         StringStream s(json_);
         BaseReaderHandler<> h;
@@ -96,7 +96,7 @@ TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_DummyHandler)) {
     }
 }
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseIterative_DummyHandler)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseIterative_PlaceHolderHandler)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         StringStream s(json_);
         BaseReaderHandler<> h;
@@ -105,7 +105,7 @@ TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseIterative_DummyHandler)) {
     }
 }
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseIterativeInsitu_DummyHandler)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseIterativeInsitu_PlaceHolderHandler)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         memcpy(temp_, json_, length_ + 1);
         InsituStringStream s(temp_);
@@ -115,7 +115,7 @@ TEST_F(RapidJson, SIMD_SUFFIX(ReaderParseIterativeInsitu_DummyHandler)) {
     }
 }
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_DummyHandler_ValidateEncoding)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_PlaceHolderHandler_ValidateEncoding)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         StringStream s(json_);
         BaseReaderHandler<> h;
@@ -315,7 +315,7 @@ TEST_F(RapidJson, FileReadStream) {
     }
 }
 
-TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_DummyHandler_FileReadStream)) {
+TEST_F(RapidJson, SIMD_SUFFIX(ReaderParse_PlaceHolderHandler_FileReadStream)) {
     for (size_t i = 0; i < kTrialCount; i++) {
         FILE *fp = fopen(filename_, "rb");
         char buffer[65536];

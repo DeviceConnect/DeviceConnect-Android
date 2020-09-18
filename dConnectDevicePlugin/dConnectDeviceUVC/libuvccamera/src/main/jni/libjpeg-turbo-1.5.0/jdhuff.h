@@ -66,7 +66,7 @@ EXTERN(void) jpeg_make_d_derived_tbl
  * prefetching reduces the overhead cost of calling jpeg_fill_bit_buffer).
  * Note that jpeg_fill_bit_buffer may return FALSE to indicate suspension.
  * On TRUE return, jpeg_fill_bit_buffer guarantees that get_buffer contains
- * at least the requested number of bits --- dummy zeroes are inserted if
+ * at least the requested number of bits --- place_holder zeroes are inserted if
  * necessary.
  */
 

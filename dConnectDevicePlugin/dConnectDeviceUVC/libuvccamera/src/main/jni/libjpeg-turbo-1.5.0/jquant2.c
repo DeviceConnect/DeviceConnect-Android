@@ -1049,7 +1049,7 @@ pass2_fs_dither (j_decompress_ptr cinfo,
     }
     /* Post-loop cleanup: we must unload the final error values into the
      * final fserrors[] entry.  Note we need not unload belowerrN because
-     * it is for the dummy column before or after the actual array.
+     * it is for the place_holder column before or after the actual array.
      */
     errorptr[0] = (FSERROR) bpreverr0; /* unload prev errs into array */
     errorptr[1] = (FSERROR) bpreverr1;

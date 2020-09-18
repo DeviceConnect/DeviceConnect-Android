@@ -125,16 +125,16 @@ err_free_ctx:
 
 int linux_udev_stop_event_monitor(void)
 {
-	char dummy = 1;
+	char place_holder = 1;
 	int r;
 
 	assert(udev_ctx != NULL);
 	assert(udev_monitor != NULL);
 	assert(udev_monitor_fd != -1);
 
-	/* Write some dummy data to the control pipe and
+	/* Write some place_holder data to the control pipe and
 	 * wait for the thread to exit */
-	r = usbi_write(udev_control_pipe[1], &dummy, sizeof(dummy));
+	r = usbi_write(udev_control_pipe[1], &place_holder, sizeof(place_holder));
 	if (r <= 0) {
 		usbi_warn(NULL, "udev control pipe signal failed");
 	}
@@ -160,7 +160,7 @@ int linux_udev_stop_event_monitor(void)
 
 static void *linux_udev_event_thread_main(void *arg)
 {
-	char dummy;
+	char place_holder;
 	int r;
 	struct udev_device* udev_dev;
 	struct pollfd fds[] = {
@@ -175,7 +175,7 @@ static void *linux_udev_event_thread_main(void *arg)
 	while (poll(fds, 2, -1) >= 0) {
 		if (fds[0].revents & POLLIN) {
 			/* activity on control pipe, read the byte and exit */
-			r = usbi_read(udev_control_pipe[0], &dummy, sizeof(dummy));
+			r = usbi_read(udev_control_pipe[0], &place_holder, sizeof(place_holder));
 			if (r <= 0) {
 				usbi_warn(NULL, "udev control pipe read failed");
 			}

@@ -35,7 +35,7 @@ typedef enum {            /* Operating modes for buffer controllers */
 #define DSTATE_INHEADER 201     /* reading header markers, no SOS yet */
 #define DSTATE_READY    202     /* found SOS, ready for start_decompress */
 #define DSTATE_PRELOAD  203     /* reading multiscan file in start_decompress*/
-#define DSTATE_PRESCAN  204     /* performing dummy pass for 2-pass quant */
+#define DSTATE_PRESCAN  204     /* performing place_holder pass for 2-pass quant */
 #define DSTATE_SCANNING 205     /* start_decompress done, read_scanlines OK */
 #define DSTATE_RAW_OK   206     /* start_decompress done, read_raw_data OK */
 #define DSTATE_BUFIMAGE 207     /* expecting jpeg_start_output */
@@ -150,7 +150,7 @@ struct jpeg_decomp_master {
   void (*finish_output_pass) (j_decompress_ptr cinfo);
 
   /* State variables made visible to other modules */
-  boolean is_dummy_pass;        /* True during 1st pass for 2-pass quant */
+  boolean is_place_holder_pass;        /* True during 1st pass for 2-pass quant */
 
   /* Partial decompression variables */
   JDIMENSION first_iMCU_col;
@@ -362,7 +362,7 @@ extern const JLONG jpeg_aritab[];
 
 #ifdef INCOMPLETE_TYPES_BROKEN
 #ifndef AM_MEMORY_MANAGER       /* only jmemmgr.c defines these */
-struct jvirt_sarray_control { long dummy; };
-struct jvirt_barray_control { long dummy; };
+struct jvirt_sarray_control { long place_holder; };
+struct jvirt_barray_control { long place_holder; };
 #endif
 #endif /* INCOMPLETE_TYPES_BROKEN */

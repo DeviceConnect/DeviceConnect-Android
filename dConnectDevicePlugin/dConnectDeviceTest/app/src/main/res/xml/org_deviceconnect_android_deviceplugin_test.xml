@@ -131,10 +131,10 @@
         <description lang="en">Provides JSON. (for test)</description>
     </profile>
     <profile name="abc" expireperiod="86400000">
-        <name lang="ja">ダミープロファイル (テスト用)</name>
-        <description lang="ja">実装されないダミープロファイル(テスト用)</description>
-        <name lang="en">Dummy Profile(for test)</name>
-        <description lang="en">Dummy profile which is not implemented. (for test)</description>
+        <name lang="ja">プレイスフォルダープロファイル (テスト用)</name>
+        <description lang="ja">実装されないプレイスフォルダープロファイル(テスト用)</description>
+        <name lang="en">PlaceHolder Profile(for test)</name>
+        <description lang="en">PlaceHolder profile which is not implemented. (for test)</description>
     </profile>
     <profile name="notLocalizedProfile" expireperiod="86400000"></profile>
     <profile name="allGetControl" expireperiod="86400000">

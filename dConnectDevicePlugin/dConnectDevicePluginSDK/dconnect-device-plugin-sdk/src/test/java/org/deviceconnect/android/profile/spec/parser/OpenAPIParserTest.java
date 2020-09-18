@@ -141,7 +141,7 @@ public class OpenAPIParserTest {
         Example example = xEvent.getExamples().get("application/json");
         assertThat(example, is(notNullValue()));
         assertThat(example.getExample(), is(notNullValue()));
-        assertThat(example.getExample().getString("serviceId"), is("Test.dummyId.localhost.deviceconnect.org"));
+        assertThat(example.getExample().getString("serviceId"), is("Test.exampleId.localhost.deviceconnect.org"));
         assertThat(example.getExample().getString("profile"), is("testProfile"));
         assertThat(example.getExample().getString("attribute"), is("a0"));
 

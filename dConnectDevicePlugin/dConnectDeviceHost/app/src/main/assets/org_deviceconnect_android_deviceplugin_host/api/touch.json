@@ -99,7 +99,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ontouch",
                             "touch": {
@@ -239,7 +239,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ontouchstart",
                             "touch": {
@@ -379,7 +379,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ontouchend",
                             "touch": {
@@ -519,7 +519,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ontouchmove",
                             "touch": {
@@ -659,7 +659,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ontouchcancel",
                             "touch": {
@@ -799,7 +799,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ondoubletap",
                             "touch": {
@@ -939,7 +939,7 @@
                     },
                     "examples": {
                         "application/json": {
-                            "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+                            "serviceId": "Host.exampleId.localhost.deviceconnect.org",
                             "profile": "touch",
                             "attribute": "ondoubletap",
                             "touch": {

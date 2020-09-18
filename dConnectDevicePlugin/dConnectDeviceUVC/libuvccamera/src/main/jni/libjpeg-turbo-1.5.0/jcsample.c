@@ -26,7 +26,7 @@
  * The downsampler may request "context rows" by setting need_context_rows
  * during startup.  In this case, the input arrays will contain at least
  * one row group's worth of pixels above and below the passed-in data;
- * the caller will create dummy rows at image top and bottom by replicating
+ * the caller will create place_holder rows at image top and bottom by replicating
  * the first or last real pixel row.
  *
  * An excellent reference for image resampling is

@@ -26,8 +26,8 @@ public final class Firewall {
     /** ログ用タグ. */
     private static final String TAG = "Firewall";
 
-    /** IPのホワイトリスト. */
-    private List<String> mIPWhiteList;
+    /** IPの許可リスト. */
+    private List<String> mIPAllowList;
 
     /** ロガー. */
     private final Logger mLogger = Logger.getLogger("dconnect.server");
@@ -42,10 +42,10 @@ public final class Firewall {
     /**
      * 接続元のIP制限リストを指定してファイアウォールを生成する.
      * 
-     * @param ipList IPのホワイトリスト。
+     * @param ipList IPの許可リスト。
      */
     public Firewall(final List<String> ipList) {
-        mIPWhiteList = ipList;
+        mIPAllowList = ipList;
         if (BuildConfig.DEBUG) {
             Handler handler = new AndroidHandler(TAG);
             handler.setFormatter(new SimpleFormatter());
@@ -56,36 +56,36 @@ public final class Firewall {
     }
 
     /**
-     * 指定されたIPがホワイトリストに含まれるかを調査する.
+     * 指定されたIPが許可リストに含まれるかを調査する.
      * 
      * @param ip 調査対象となるIPアドレス。("127.0.0.1"などの文字列。)
-     * @return ホワイトリストに含まれる場合true、その他はfalseを返す。
+     * @return 許可リストに含まれる場合true、その他はfalseを返す。
      */
-    public boolean isWhiteIP(final String ip) {
-        if (mIPWhiteList == null || mIPWhiteList.size() == 0) {
+    public boolean isAllowIP(final String ip) {
+        if (mIPAllowList == null || mIPAllowList.size() == 0) {
             // IPのリストがない場合は制限なしと判断し、すべてtrueにする。
             return true;
         }
 
         // TODO 必要ならば後々ワイルドカードや正規表現を利用できるようにする。
         // 192.168.0.*など
-        for (String white : mIPWhiteList) {
-            if (white.equals(ip)) {
+        for (String allow : mIPAllowList) {
+            if (allow.equals(ip)) {
                 return true;
             }
         }
 
-        mLogger.warning("Firewall#isWhiteIP(). Not allowed IP : " + ip);
+        mLogger.warning("Firewall#isAllowIP(). Not allowed IP : " + ip);
         return false;
     }
 
     /**
-     * IPのホワイトリストを設定する.
+     * IPの許可リストを設定する.
      * 
-     * @param ipList IPのホワイトリスト。
+     * @param ipList IPの許可リスト。
      */
-    public void setIPWhiteList(final ArrayList<String> ipList) {
-        mIPWhiteList = ipList;
+    public void setIPAllowList(final ArrayList<String> ipList) {
+        mIPAllowList = ipList;
     }
 
 }

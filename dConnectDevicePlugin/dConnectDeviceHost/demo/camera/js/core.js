@@ -334,9 +334,9 @@ export class DeviceConnectClient {
       } else {
         console.warn('authorize: createClient: erroCode=' + json.errorCode);
         if (json.errorCode === 2) {
-          // LocalOAuth が OFF の場合はダミーのアクセストークンを返す.
-          // WebSocket 接続確立時にダミーを送信する必要がある.
-          return Promise.resolve({ result:0, accessToken:'dummy' });
+          // LocalOAuth が OFF の場合は代用のアクセストークンを返す.
+          // WebSocket 接続確立時に代用を送信する必要がある.
+          return Promise.resolve({ result:0, accessToken:'placeHolder' });
         }
         return Promise.reject({ what: 'connect', reason: 'no-client', errorMessage: 'クライアントIDを取得できませんでした。' });
       }

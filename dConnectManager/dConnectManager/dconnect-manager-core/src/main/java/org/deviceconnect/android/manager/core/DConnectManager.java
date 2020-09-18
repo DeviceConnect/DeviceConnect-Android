@@ -162,6 +162,8 @@ public abstract class DConnectManager implements DConnectInterface {
                 try {
                     if (DConnectUtil.checkActionResponse(message)) {
                         handleResponse(message);
+                    } else if (DConnectUtil.checkActionEvent(message)) {
+                        getContext().sendBroadcast(message);
                     }
                 } catch (Exception e) {
                     // ignore.
@@ -213,6 +215,13 @@ public abstract class DConnectManager implements DConnectInterface {
      */
     public WebSocketInfoManager getWebSocketInfoManager() {
         return mWebSocketInfoManager;
+    }
+
+    /**
+     * Device Connect Manager 自体に対してプロファイルを追加する.
+     */
+    public void addProfile(final DConnectProfile profile) {
+        mCore.addProfile(profile);
     }
 
     /**
@@ -567,7 +576,7 @@ public abstract class DConnectManager implements DConnectInterface {
                 list.add("127.0.0.1"); // ipv4
                 list.add("::1");       // ipv6
                 list.add(DConnectUtil.getIPAddress(getContext()));
-                builder.ipWhiteList(list);
+                builder.ipAllowList(list);
             }
 
             mWebSocketInfoManager = new WebSocketInfoManager();

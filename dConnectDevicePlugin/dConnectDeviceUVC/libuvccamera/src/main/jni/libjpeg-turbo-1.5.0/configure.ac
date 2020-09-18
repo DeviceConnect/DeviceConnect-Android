@@ -403,7 +403,7 @@ if test "x$with_java" = "xyes"; then
 
   SAVE_CPPFLAGS=${CPPFLAGS}
   CPPFLAGS="${CPPFLAGS} ${JNI_CFLAGS}"
-  AC_CHECK_HEADERS([jni.h], [DUMMY=1],
+  AC_CHECK_HEADERS([jni.h], [PLACE_HOLDER=1],
     [AC_MSG_ERROR([Could not find JNI header file])])
   CPPFLAGS=${SAVE_CPPFLAGS}
   AC_SUBST(JNI_CFLAGS)

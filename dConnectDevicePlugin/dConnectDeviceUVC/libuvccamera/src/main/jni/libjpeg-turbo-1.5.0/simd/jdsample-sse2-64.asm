@@ -88,7 +88,7 @@ EXTN(jsimd_h2v1_fancy_upsample_sse2):
         test    rax, SIZEOF_XMMWORD-1
         jz      short .skip
         mov     dl, JSAMPLE [rsi+(rax-1)*SIZEOF_JSAMPLE]
-        mov     JSAMPLE [rsi+rax*SIZEOF_JSAMPLE], dl    ; insert a dummy sample
+        mov     JSAMPLE [rsi+rax*SIZEOF_JSAMPLE], dl    ; insert a place_holder sample
 .skip:
         pxor    xmm0,xmm0               ; xmm0=(all 0's)
         pcmpeqb xmm7,xmm7
@@ -244,7 +244,7 @@ EXTN(jsimd_h2v2_fancy_upsample_sse2):
         mov     dl, JSAMPLE [rbx+(rax-1)*SIZEOF_JSAMPLE]
         mov     JSAMPLE [rbx+rax*SIZEOF_JSAMPLE], dl
         mov     dl, JSAMPLE [rsi+(rax-1)*SIZEOF_JSAMPLE]
-        mov     JSAMPLE [rsi+rax*SIZEOF_JSAMPLE], dl    ; insert a dummy sample
+        mov     JSAMPLE [rsi+rax*SIZEOF_JSAMPLE], dl    ; insert a place_holder sample
         pop     rdx
 .skip:
         ; -- process the first column block

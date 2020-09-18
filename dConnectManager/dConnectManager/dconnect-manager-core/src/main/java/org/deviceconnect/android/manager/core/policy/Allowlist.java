@@ -1,5 +1,5 @@
 /*
- Whitelist.java
+ Allowlist.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Whitelist of origins.
+ * Allowlist of origins.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class Whitelist {
+public class Allowlist {
 
     /** The origin database. */
     private final OriginDB mCache;
@@ -35,7 +35,7 @@ public class Whitelist {
      * 
      * @param context Context
      */
-    public Whitelist(final Context context) {
+    public Allowlist(final Context context) {
         mCache = new OriginDB(context);
     }
 
@@ -66,7 +66,7 @@ public class Whitelist {
     }
 
     /**
-     * Returns whether the specified origin is included in this whitelist.
+     * Returns whether the specified origin is included in this allowlist.
      * @param originExp a string expression of origin
      * @return <code>true</code> if origin is included, otherwise <code>false</code>
      */
@@ -80,49 +80,49 @@ public class Whitelist {
     }
 
     /**
-     * Adds an origin to this whitelist.
+     * Adds an origin to this allowlist.
      * 
      * @param origin an origin to be added.
      * @param title the title of origin.
      * @return An instance of {@link OriginInfo}
-     * @throws WhitelistException if origin can not be stored.
+     * @throws AllowlistException if origin can not be stored.
      */
     public synchronized OriginInfo addOrigin(final Origin origin, final String title)
-            throws WhitelistException {
+            throws AllowlistException {
         try {
             long date = System.currentTimeMillis();
             long id = mCache.addOrigin(origin, title, date);
             return new OriginInfo(id, origin, title, date);
         } catch (OriginDBException e) {
-            throw new WhitelistException("Failed to store origin: " + origin, e);
+            throw new AllowlistException("Failed to store origin: " + origin, e);
         }
     }
 
     /**
-     * Update an origin on this whitelist.
+     * Update an origin on this allowlist.
      * 
      * @param info an origin to be updated.
-     * @throws WhitelistException if origin can not be updated.
+     * @throws AllowlistException if origin can not be updated.
      */
-    public synchronized void updateOrigin(final OriginInfo info) throws WhitelistException {
+    public synchronized void updateOrigin(final OriginInfo info) throws AllowlistException {
         try {
             mCache.updateOrigin(info);
         } catch (OriginDBException e) {
-            throw new WhitelistException("Failed to store origin: " + info.mOrigin, e);
+            throw new AllowlistException("Failed to store origin: " + info.mOrigin, e);
         }
     }
 
     /**
-     * Removes an origin from this whitelist.
+     * Removes an origin from this allowlist.
      * 
      * @param info an origin to be removed.
-     * @throws WhitelistException if origin can not be removed.
+     * @throws AllowlistException if origin can not be removed.
      */
-    public synchronized void removeOrigin(final OriginInfo info) throws WhitelistException {
+    public synchronized void removeOrigin(final OriginInfo info) throws AllowlistException {
         try {
             mCache.removeOrigin(info);
         } catch (OriginDBException e) {
-            throw new WhitelistException("Failed to remove origin: " + info.mOrigin, e);
+            throw new AllowlistException("Failed to remove origin: " + info.mOrigin, e);
         }
     }
 
@@ -134,7 +134,7 @@ public class Whitelist {
         /** 
          * The DB file name.
          */
-        private static final String DB_NAME = "__device_connect_whitelist.db";
+        private static final String DB_NAME = "__device_connect_allowlist.db";
 
         /** 
          * The DB Version.
@@ -323,7 +323,7 @@ public class Whitelist {
 
             SQLiteDatabase db = openDB();
             if (db == null) {
-                throw new OriginDBException("Failed to open origin whitelist database.");
+                throw new OriginDBException("Failed to open origin allowlist database.");
             }
             try {
                 db.beginTransaction();

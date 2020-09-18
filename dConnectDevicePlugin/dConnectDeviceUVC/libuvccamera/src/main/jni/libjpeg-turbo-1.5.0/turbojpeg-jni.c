@@ -64,7 +64,7 @@
 	handle=(tjhandle)(size_t)(*env)->GetLongField(env, obj, _fid);  \
 
 #ifdef _WIN32
-#define setenv(envvar, value, dummy) _putenv_s(envvar, value)
+#define setenv(envvar, value, place_holder) _putenv_s(envvar, value)
 #endif
 
 #define prop2env(property, envvar)  \

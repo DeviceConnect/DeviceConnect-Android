@@ -32,17 +32,25 @@ public class SimpleCopyGuard extends CopyGuardSetting {
 
     private final List<CopyGuardSetting> mCopyGuardSettingList = new ArrayList<>();
 
+    private final List<CopyGuardSetting> mPendingList = new ArrayList<>();
+
     private boolean mLastEnabled;
 
     private final EventListener mEventListener = (setting, isEnabled) -> {
         if (DEBUG) {
             Log.d(TAG, "onSettingChange: setting=" + setting.getClass().getSimpleName() + ", isEnabled=" + isEnabled);
         }
+
         boolean enabled = isEnabled();
         if (enabled != mLastEnabled) {
             notifyOnSettingChange(enabled);
         }
         mLastEnabled = enabled;
+
+        // 有効にする際は、許可画面が出る場合があるので、順番に1つずつ確実に処理していく
+        if (isEnabled) {
+            enableNextSetting(setting);
+        }
     };
 
     private final Handler mHandler;
@@ -57,8 +65,8 @@ public class SimpleCopyGuard extends CopyGuardSetting {
         handlerThread.start();
         mHandler = new Handler(handlerThread.getLooper());
 
-        addSetting(new ScreenRecordingGuardOverlay(context, appIconId));
         addSetting(new DeveloperToolGuard(context));
+        addSetting(new ScreenRecordingGuardOverlay(context, appIconId));
 
         // コピー防止機能の通知チャンネル作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -104,8 +112,25 @@ public class SimpleCopyGuard extends CopyGuardSetting {
 
     @Override
     public void enable() {
-        for (CopyGuardSetting setting : mCopyGuardSettingList) {
-            setting.enable();
+        synchronized (mPendingList) {
+            for (CopyGuardSetting setting : mCopyGuardSettingList) {
+                if (!setting.isEnabled() && !mPendingList.contains(setting)) {
+                    mPendingList.add(setting);
+                }
+            }
+        }
+        enableNextSetting(null);
+    }
+
+    private void enableNextSetting(final CopyGuardSetting done) {
+        synchronized (mPendingList) {
+            if (done != null) {
+                mPendingList.remove(done);
+            }
+            if (mPendingList.size() > 0) {
+                CopyGuardSetting next = mPendingList.get(0);
+                next.enable();
+            }
         }
     }
 

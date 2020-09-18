@@ -91,8 +91,4 @@ class DeveloperToolGuard extends CopyGuardSetting {
     private int getAdbFlag() throws Settings.SettingNotFoundException {
         return Settings.Global.getInt(mContentResolver, Settings.Global.ADB_ENABLED);
     }
-
-    private void putAdbFlag(final int flag) {
-        Settings.Global.putInt(mContentResolver, Settings.Global.ADB_ENABLED, flag);
-    }
 }

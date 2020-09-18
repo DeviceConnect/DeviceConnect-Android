@@ -187,7 +187,7 @@ parse_switches (j_decompress_ptr cinfo, int argc, char **argv,
  * Any file names with indexes <= last_file_arg_seen are ignored;
  * they have presumably been processed in a previous iteration.
  * (Pass 0 for last_file_arg_seen on the first or only iteration.)
- * for_real is FALSE on the first (dummy) pass; we may skip any expensive
+ * for_real is FALSE on the first (place_holder) pass; we may skip any expensive
  * processing.
  */
 {

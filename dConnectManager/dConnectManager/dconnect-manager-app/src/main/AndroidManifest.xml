@@ -103,9 +103,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- ホワイトリスト管理用Activity. -->
+        <!-- 許可リスト管理用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.WhitelistActivity"
+            android:name="org.deviceconnect.android.manager.setting.AllowlistActivity"
             android:label="@string/app_name">
         </activity>
 

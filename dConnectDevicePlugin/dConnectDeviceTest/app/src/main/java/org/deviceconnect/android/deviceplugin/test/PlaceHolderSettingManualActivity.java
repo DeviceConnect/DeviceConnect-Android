@@ -1,5 +1,5 @@
 /*
- DummySettingManualActivity.java
+ PlaceHolderSettingManualActivity.java
  Copyright (c) 2017 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -10,11 +10,11 @@ import android.app.Activity;
 
 
 /**
- * ダミーの設定手順画面.
+ * 代用の設定手順画面.
  *
  * 空白の画面を表示.
  *
  * @author NTT DOCOMO, INC.
  */
-public class DummySettingManualActivity extends Activity {
+public class PlaceHolderSettingManualActivity extends Activity {
 }

@@ -1030,7 +1030,7 @@ printf("completed!\n");
  *
  * -# During initialization, libusb opens an internal pipe, and it adds the read
  *    end of this pipe to the set of file descriptors to be polled.
- * -# During libusb_close(), libusb writes some dummy data on this control pipe.
+ * -# During libusb_close(), libusb writes some place_holder data on this control pipe.
  *    This immediately interrupts the event handler. libusb also records
  *    internally that it is trying to interrupt event handlers for this
  *    high-priority event.
@@ -1063,7 +1063,7 @@ printf("completed!\n");
  * call to libusb_open():
  *
  * -# The device is opened and a file descriptor is added to the poll set.
- * -# libusb sends some dummy data on the control pipe, and records that it
+ * -# libusb sends some place_holder data on the control pipe, and records that it
  *    is trying to modify the poll descriptor set.
  * -# The event handler is interrupted, and the same behaviour change as for
  *    libusb_close() takes effect, causing all event handling threads to become

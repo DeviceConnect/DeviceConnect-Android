@@ -48,10 +48,10 @@
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
     <string name="activity_settings_security">セキュリティ</string>
-    <string name="activity_settings_whitelist">Whitelist</string>
-    <string name="activity_settings_whitelist_enable">Originブロック機能</string>
-    <string name="activity_settings_whitelist_enable_summary">Originホワイトリストに含まれないOrigin上のアプリからのアクセスをブロックします。</string>
-    <string name="activity_settings_manage_whitelist">Originホワイトリスト管理</string>
+    <string name="activity_settings_allowlist">Allowlist</string>
+    <string name="activity_settings_allowlist_enable">Originブロック機能</string>
+    <string name="activity_settings_allowlist_enable_summary">Origin許可リストに含まれないOrigin上のアプリからのアクセスをブロックします。</string>
+    <string name="activity_settings_manage_allowlist">Origin許可リスト管理</string>
     <string name="activity_settings_accesslog">アクセスログ</string>
     <string name="activity_settings_accesslog_title">アクセスログ</string>
     <string name="activity_settings_accesslog_summary">アクセスログをDBに保存することを許可します。</string>
@@ -108,10 +108,10 @@
     <string name="activity_settings_web_server_error_message">パーミッションの許可が取得できなかったためにWebサーバの起動できませんでした。</string>
     <string name="activity_settings_web_server_error">Webサーバの起動に失敗しました。\n\n%1$s</string>
 
-    <!-- ================= WhitelistActivity ================= -->
-    <string name="activity_whitelist_title">Originホワイトリスト</string>
+    <!-- ================= AllowlistActivity ================= -->
+    <string name="activity_allowlist_title">Origin許可リスト</string>
     <string name="no_origin">ユーザーによって許可されている\nOriginはありません。</string>
-    <string name="dialog_delete_origin_message">このOriginをホワイトリストから削除してよろしいですか?</string>
+    <string name="dialog_delete_origin_message">このOriginを許可リストから削除してよろしいですか?</string>
     <string name="dialog_delete_origin_positive">削除</string>
     <string name="dialog_delete_origin_negative">キャンセル</string>
     <string name="menu_add_origin">追加</string>
@@ -124,12 +124,12 @@
     <string name="dialog_origin_manual_entry_item_title">タイトル</string>
     <string name="dialog_origin_manual_entry_item_origin">Origin</string>
     <string name="dialog_origin_manual_entry_message">少なくともOriginを入力してください。</string>
-    <string-array name="whitelist_menu_origin_pre_marshmallow">
+    <string-array name="allowlist_menu_origin_pre_marshmallow">
         <item>Chromeのブックマークから追加</item>
         <item>インストール済みのアプリを追加</item>
         <item>手入力で追加</item>
     </string-array>
-    <string-array name="whitelist_menu_origin_post_marshmallow">
+    <string-array name="allowlist_menu_origin_post_marshmallow">
         <item>インストール済みのアプリを追加</item>
         <item>手入力で追加</item>
     </string-array>

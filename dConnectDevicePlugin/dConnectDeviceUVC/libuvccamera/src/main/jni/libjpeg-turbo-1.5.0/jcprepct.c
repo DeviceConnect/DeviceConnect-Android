@@ -44,7 +44,7 @@
  * arrays are made five row groups high, with the extra pointers above and
  * below "wrapping around" to point to the last and first real row groups.
  * This allows the downsampler to access the proper context rows.
- * At the top and bottom of the image, we create dummy context rows by
+ * At the top and bottom of the image, we create place_holder context rows by
  * copying the first or last real pixel row.  This copying could be avoided
  * by pointer hacking as is done in jdmainct.c, but it doesn't seem worth the
  * trouble on the compression side.

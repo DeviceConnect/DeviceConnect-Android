@@ -273,7 +273,7 @@ concept Stream {
 
 For input stream, they must implement `Peek()`, `Take()` and `Tell()`.
 For output stream, they must implement `Put()` and `Flush()`. 
-There are two special interface, `PutBegin()` and `PutEnd()`, which are only for *in situ* parsing. Normal streams do not implement them. However, if the interface is not needed for a particular stream, it is still need to a dummy implementation, otherwise will generate compilation error.
+There are two special interface, `PutBegin()` and `PutEnd()`, which are only for *in situ* parsing. Normal streams do not implement them. However, if the interface is not needed for a particular stream, it is still need to a place_holder implementation, otherwise will generate compilation error.
 
 ## Example: istream wrapper {#ExampleIStreamWrapper}
 

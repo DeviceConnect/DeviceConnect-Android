@@ -576,7 +576,7 @@ public abstract class DConnectManager implements DConnectInterface {
                 list.add("127.0.0.1"); // ipv4
                 list.add("::1");       // ipv6
                 list.add(DConnectUtil.getIPAddress(getContext()));
-                builder.ipWhiteList(list);
+                builder.ipAllowList(list);
             }
 
             mWebSocketInfoManager = new WebSocketInfoManager();

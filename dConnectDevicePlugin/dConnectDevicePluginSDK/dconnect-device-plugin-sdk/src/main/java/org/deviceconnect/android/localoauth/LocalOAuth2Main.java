@@ -114,17 +114,17 @@ public class LocalOAuth2Main {
      */
     public static final String EXTRA_APPROVAL = "org.deviceconnect.android.localoauth.APPROVAL";
 
-    /** ダミー値(RedirectURI). */
-    public static final String DUMMY_REDIRECT_URI = "dummyRedirectURI";
+    /** 代用値(RedirectURI). */
+    public static final String PLACE_HOLDER_REDIRECT_URI = "placeHolderRedirectURI";
 
-    /** ダミー値(OriginalRef). */
-    private static final String DUMMY_ORIGINAL_REF = "dummyOriginalRef";
+    /** 代用値(OriginalRef). */
+    private static final String PLACE_HOLDER_ORIGINAL_REF = "placeHolderOriginalRef";
 
-    /** ダミー値(Reference). */
-    private static final String DUMMY_REFERENCE = "dummyReference";
+    /** 代用値(Reference). */
+    private static final String PLACE_HOLDER_REFERENCE = "placeHolderReference";
 
-    /** ダミー値(Scope). */
-    private static final String DUMMY_SCOPE1 = "scope1";
+    /** 代用値(Scope). */
+    private static final String PLACE_HOLDER_SCOPE1 = "scope1";
 
     /** UserManager. */
     private SampleUserManager mUserManager;
@@ -873,9 +873,9 @@ public class LocalOAuth2Main {
 
         // request, responseを初期化 *
         Request request = new Request();
-        request.setOriginalRef(new Reference(DUMMY_ORIGINAL_REF));
+        request.setOriginalRef(new Reference(PLACE_HOLDER_ORIGINAL_REF));
         Response response = new Response(request);
-        request.setResourceRef(new Reference(DUMMY_REFERENCE));
+        request.setResourceRef(new Reference(PLACE_HOLDER_REFERENCE));
 
         // セッションIDが指定されていたらRequestに設定する
         if (sessionId != null) {
@@ -889,9 +889,9 @@ public class LocalOAuth2Main {
         // Formに設定する
         Form paramsA = new Form();
         paramsA.add(AuthorizationServerResource.CLIENT_ID, client.getClientId());
-        paramsA.add(AuthorizationServerResource.REDIR_URI, DUMMY_REDIRECT_URI);
+        paramsA.add(AuthorizationServerResource.REDIR_URI, PLACE_HOLDER_REDIRECT_URI);
         paramsA.add(AuthorizationServerResource.RESPONSE_TYPE, "code");
-        paramsA.add(AuthorizationServerResource.SCOPE, DUMMY_SCOPE1);
+        paramsA.add(AuthorizationServerResource.SCOPE, PLACE_HOLDER_SCOPE1);
 
         // requestAuthorizationを実行する
         Representation representationA;
@@ -925,7 +925,7 @@ public class LocalOAuth2Main {
         // (B)の処理
         LoginPageServerResource.initResult();
         Request request = new Request();
-        Reference requestReference = new Reference(DUMMY_ORIGINAL_REF);
+        Reference requestReference = new Reference(PLACE_HOLDER_ORIGINAL_REF);
         requestReference.addQueryParameter(LoginPageServerResource.USER_ID, userId);
         requestReference.addQueryParameter(LoginPageServerResource.PASSWORD, password);
         requestReference.addQueryParameter(LoginPageServerResource.CONTINUE,
@@ -1031,7 +1031,7 @@ public class LocalOAuth2Main {
         // 入力値(アプリケーション名はbase64エンコードする)
         String base64ApplicationName = Base64.encodeToString(applicationName.getBytes(), Base64.URL_SAFE|Base64.NO_WRAP);
         StringRepresentation input = new StringRepresentation("grant_type=authorization_code&code=" + authCode + "&"
-                + AccessTokenServerResource.REDIR_URI + "=" + DUMMY_REDIRECT_URI + "&"
+                + AccessTokenServerResource.REDIR_URI + "=" + PLACE_HOLDER_REDIRECT_URI + "&"
                 + AccessTokenServerResource.APPLICATION_NAME + "=" + base64ApplicationName);
         try {
             ResultRepresentation resultRepresentation = (ResultRepresentation) AccessTokenServerResource
@@ -1062,7 +1062,7 @@ public class LocalOAuth2Main {
      * @return クライアントデータ
      */
     private Client addClientData(final PackageInfoOAuth packageInfo) {
-        String[] redirectURIs = {DUMMY_REDIRECT_URI};
+        String[] redirectURIs = {PLACE_HOLDER_REDIRECT_URI};
         Map<String, Object> params = new HashMap<>();
         return mClientManager.createClient(packageInfo, ClientType.CONFIDENTIAL, redirectURIs, params);
     }

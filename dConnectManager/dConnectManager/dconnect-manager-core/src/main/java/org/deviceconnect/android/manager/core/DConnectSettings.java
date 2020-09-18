@@ -385,22 +385,22 @@ public final class DConnectSettings {
     /**
      * Originブロック機能の使用フラグを取得する.
      *
-     * @return trueの場合はホワイトリストに無いOriginからのアクセスを許可しない、
+     * @return trueの場合は許可リストに無いOriginからのアクセスを許可しない、
      * falseの場合は任意のOriginからのアクセスを許可する
      */
     public boolean isBlockingOrigin() {
-        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false);
+        return mPreferences.getBoolean(mContext.getString(R.string.key_settings_dconn_allowlist_origin_blocking), false);
     }
 
     /**
      * Originブロック機能の使用フラグを設定する.
      *
-     * @param enabled trueの場合はホワイトリストに無いOriginからのアクセスを許可しない、
+     * @param enabled trueの場合は許可リストに無いOriginからのアクセスを許可しない、
      *                falseの場合は任意のOriginからのアクセスを許可する
      */
     public void setBlockingOrigin(final boolean enabled) {
         SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_whitelist_origin_blocking), enabled);
+        editor.putBoolean(mContext.getString(R.string.key_settings_dconn_allowlist_origin_blocking), enabled);
         editor.apply();
     }
 

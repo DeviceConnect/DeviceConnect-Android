@@ -213,7 +213,7 @@ transencode_master_selection (j_compress_ptr cinfo,
  * The rest of this file is a special implementation of the coefficient
  * buffer controller.  This is similar to jccoefct.c, but it handles only
  * output from presupplied virtual arrays.  Furthermore, we generate any
- * dummy padding blocks on-the-fly rather than expecting them to be present
+ * place_holder padding blocks on-the-fly rather than expecting them to be present
  * in the arrays.
  */
 
@@ -230,8 +230,8 @@ typedef struct {
   /* Virtual block array for each component. */
   jvirt_barray_ptr *whole_image;
 
-  /* Workspace for constructing dummy blocks at right/bottom edges. */
-  JBLOCKROW dummy_buffer[C_MAX_BLOCKS_IN_MCU];
+  /* Workspace for constructing place_holder blocks at right/bottom edges. */
+  JBLOCKROW place_holder_buffer[C_MAX_BLOCKS_IN_MCU];
 } my_coef_controller;
 
 typedef my_coef_controller *my_coef_ptr;
@@ -331,17 +331,17 @@ compress_output (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
             for (xindex = 0; xindex < blockcnt; xindex++)
               MCU_buffer[blkn++] = buffer_ptr++;
           } else {
-            /* At bottom of image, need a whole row of dummy blocks */
+            /* At bottom of image, need a whole row of place_holder blocks */
             xindex = 0;
           }
-          /* Fill in any dummy blocks needed in this row.
-           * Dummy blocks are filled in the same way as in jccoefct.c:
+          /* Fill in any place_holder blocks needed in this row.
+           * PlaceHolder blocks are filled in the same way as in jccoefct.c:
            * all zeroes in the AC entries, DC entries equal to previous
            * block's DC value.  The init routine has already zeroed the
            * AC entries, so we need only set the DC entries correctly.
            */
           for (; xindex < compptr->MCU_width; xindex++) {
-            MCU_buffer[blkn] = coef->dummy_buffer[blkn];
+            MCU_buffer[blkn] = coef->place_holder_buffer[blkn];
             MCU_buffer[blkn][0][0] = MCU_buffer[blkn-1][0][0];
             blkn++;
           }
@@ -391,12 +391,12 @@ transencode_coef_controller (j_compress_ptr cinfo,
   /* Save pointer to virtual arrays */
   coef->whole_image = coef_arrays;
 
-  /* Allocate and pre-zero space for dummy DCT blocks. */
+  /* Allocate and pre-zero space for place_holder DCT blocks. */
   buffer = (JBLOCKROW)
     (*cinfo->mem->alloc_large) ((j_common_ptr) cinfo, JPOOL_IMAGE,
                                 C_MAX_BLOCKS_IN_MCU * sizeof(JBLOCK));
   jzero_far((void *) buffer, C_MAX_BLOCKS_IN_MCU * sizeof(JBLOCK));
   for (i = 0; i < C_MAX_BLOCKS_IN_MCU; i++) {
-    coef->dummy_buffer[i] = buffer + i;
+    coef->place_holder_buffer[i] = buffer + i;
   }
 }

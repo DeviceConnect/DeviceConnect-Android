@@ -42,6 +42,6 @@
         </provider>
 
         <activity android:name=".TestServiceListActivity" android:exported="false" />
-        <activity android:name=".DummySettingManualActivity" android:exported="false" />
+        <activity android:name=".PlaceHolderSettingManualActivity" android:exported="false" />
     </application>
 </manifest>

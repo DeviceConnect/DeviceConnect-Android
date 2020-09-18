@@ -40,7 +40,7 @@
                 "recorders": [
                   {
                     "id": "photo_0",
-                    "name": "Dummy Camera Recorder - back",
+                    "name": "Example Camera Recorder - back",
                     "state": "inactive",
                     "imageWidth": 3264,
                     "imageHeight": 2448,
@@ -52,7 +52,7 @@
                   },
                   {
                     "id": "photo_1",
-                    "name": "Dummy Camera Recorder - front",
+                    "name": "Example Camera Recorder - front",
                     "state": "inactive",
                     "imageWidth": 1280,
                     "imageHeight": 960,
@@ -64,7 +64,7 @@
                   },
                   {
                     "id": "video_0",
-                    "name": "Dummy Video Recorder - back",
+                    "name": "Example Video Recorder - back",
                     "state": "inactive",
                     "imageWidth": 640,
                     "imageHeight": 480,
@@ -73,7 +73,7 @@
                   },
                   {
                     "id": "video_1",
-                    "name": "Dummy Video Recorder - front",
+                    "name": "Example Video Recorder - front",
                     "state": "inactive",
                     "imageWidth": 640,
                     "imageHeight": 480,
@@ -82,14 +82,14 @@
                   },
                   {
                     "id": "audio",
-                    "name": "Dummy Audio Recorder",
+                    "name": "Example Audio Recorder",
                     "state": "inactive",
                     "mimeType": "audio/3gp",
                     "config": ""
                   },
                   {
                     "id": "screen",
-                    "name": "Dummy Screen",
+                    "name": "Example Screen",
                     "state": "inactive",
                     "imageWidth": 1080,
                     "imageHeight": 1776,
@@ -139,8 +139,8 @@
                 "result": 0,
                 "product": "Example System",
                 "version": "1.0.0",
-                "uri": "Dummy URI",
-                "path": "Dummy Path"
+                "uri": "Example URI",
+                "path": "Example Path"
               }
             }
           }
@@ -189,8 +189,8 @@
                 "result": 0,
                 "product": "Example System",
                 "version": "1.0.0",
-                "uri": "Dummy URI",
-                "path": "Dummy Path"
+                "uri": "Example URI",
+                "path": "Example Path"
               }
             }
           }
@@ -681,8 +681,8 @@
                 "result": 0,
                 "product": "Example System",
                 "version": "1.0.0",
-                "uri": "Dummy URI",
-                "path": "Dummy Path"
+                "uri": "Example URI",
+                "path": "Example Path"
               }
             }
           }
@@ -731,12 +731,12 @@
           },
           "examples": {
             "application/json": {
-              "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+              "serviceId": "Host.exampleId.localhost.deviceconnect.org",
               "profile": "mediastreamrecording",
               "attribute": "onphoto",
               "photo": {
-                "uri": "Dummy URI",
-                "path": "Dummy Path",
+                "uri": "Example URI",
+                "path": "Example Path",
                 "mimeType": "image/png"
               }
             }
@@ -807,7 +807,7 @@
                 "result": 0,
                 "product": "Example System",
                 "version": "1.0.0",
-                "uri": "Dummy Preview URI"
+                "uri": "Example Preview URI"
               }
             }
           }
@@ -855,7 +855,7 @@
                 "result": 0,
                 "product": "Example System",
                 "version": "1.0.0",
-                "uri": "Dummy Preview URI"
+                "uri": "Example Preview URI"
               }
             }
           }
@@ -1042,7 +1042,7 @@
                 "version": "1.0.0",
                 "media": {
                   "status": "stop",
-                  "path": "Dummy Path",
+                  "path": "Example Path",
                   "mimeType": "video/3gp"
                 }
               }
@@ -1093,12 +1093,12 @@
           },
           "examples": {
             "application/json": {
-              "serviceId": "Host.dummyId.localhost.deviceconnect.org",
+              "serviceId": "Host.exampleId.localhost.deviceconnect.org",
               "profile": "mediastreamrecording",
               "attribute": "onrecordingchange",
               "media": {
                 "status": "stop",
-                "path": "Dummy Path",
+                "path": "Example Path",
                 "mimeType": "image/png"
               }
             }

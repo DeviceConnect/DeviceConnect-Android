@@ -288,7 +288,7 @@ int usbi_pipe(int filedes[2])
 			// We can use the same handle for both ends
 			filedes[1] = filedes[0];
 
-			poll_fd[i].handle = DUMMY_HANDLE;
+			poll_fd[i].handle = PLACE_HOLDER_HANDLE;
 			poll_fd[i].overlapped = overlapped;
 			// There's no polling on the write end, so we just use READ for our needs
 			poll_fd[i].rw = RW_READ;

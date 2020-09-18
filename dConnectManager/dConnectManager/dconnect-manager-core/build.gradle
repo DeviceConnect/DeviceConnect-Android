@@ -11,7 +11,7 @@ if (githubPropertiesFile.exists()) {
 android {
     compileSdkVersion 29
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 29
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

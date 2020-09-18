@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.manager.core.event;
 
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -104,7 +103,21 @@ public class EventBroker {
         if (isRegistrationRequest(request)) {
             registerRequest(request, dest);
         } else if (isUnregistrationRequest(request)) {
-            unnregisterRequest(request, dest);
+            unregisterRequest(request, dest);
+        }
+    }
+
+    /**
+     * 指定されたリクエストからイベントセッションの登録・解除の処理を行います.
+     * このメソッドでは Device Connect Manager 自身のサポートするイベント API へのリクエストを処理します.
+     *
+     * @param request リクエスト
+     */
+    public void parseEventSessionForSelf(final Intent request) {
+        if (isRegistrationRequest(request)) {
+            registerRequest(request, null);
+        } else if (isUnregistrationRequest(request)) {
+            unregisterRequest(request, null);
         }
     }
 
@@ -194,10 +207,41 @@ public class EventBroker {
     }
 
     /**
+     * プラグインからのイベントを受け取り処理を行います.
+     *  Device Connect Manager 自身のイベントを処理します.
+     *
+     * @param event イベント
+     */
+    public void onEventForSelf(final Intent event) {
+        String profileName = DConnectProfile.getProfile(event);
+        String interfaceName = DConnectProfile.getInterface(event);
+        String attributeName = DConnectProfile.getAttribute(event);
+
+        EventSession targetSession = null;
+        for (EventSession session : mTable.getAll()) {
+            if (isSameName(profileName, session.getProfileName()) &&
+                isSameName(interfaceName, session.getInterfaceName()) &&
+                isSameName(attributeName, session.getAttributeName())) {
+                targetSession = session;
+                break;
+            }
+        }
+
+        if (targetSession != null) {
+            try {
+                event.putExtra(IntentDConnectMessage.EXTRA_SESSION_KEY, targetSession.getReceiverId());
+                targetSession.sendEvent(event);
+            } catch (IOException e) {
+                error("Failed to send event.");
+            }
+        }
+    }
+
+    /**
      * 登録イベントを処理します.
      *
      * @param request リクエスト
-     * @param dest 送信先のプラグイン
+     * @param dest 送信先のプラグイン. Device Connect Manager 自身のイベントの場合は <code>null</code>
      */
     private void registerRequest(final Intent request, final DevicePlugin dest) {
         mProtocol.addSession(mTable, request, dest);
@@ -210,9 +254,9 @@ public class EventBroker {
      * 解除イベントを処理します.
      *
      * @param request リクエスト
-     * @param dest 送信先のプラグイン
+     * @param dest 送信先のプラグイン. Device Connect Manager 自身のイベントの場合は <code>null</code>
      */
-    private void unnregisterRequest(final Intent request, final DevicePlugin dest) {
+    private void unregisterRequest(final Intent request, final DevicePlugin dest) {
         mProtocol.removeSession(mTable, request, dest);
         if (mListener != null) {
             mListener.onDeleteEventSession(request, dest);

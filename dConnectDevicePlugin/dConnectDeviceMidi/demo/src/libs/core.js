@@ -1,19 +1,23 @@
 class Session {
 
-  constructor(host, scopes, ssl) {
+  constructor(host, scopes, ssl, useWebSocket) {
     this._host = host;
     this._scopes = scopes;
     this._clientId = null;
     this._token = null;
     this._webSocket = null;
+    this._useWebSocket = (useWebSocket === false) ? false : true;
     this._ssl = ssl || false;
     this._port = 4035;
-    this._connected = false;
+    this._wsEstablished = false;
     this._pendingOffers = [];
   }
 
   get connected() {
-    return this._connected;
+    if (this._useWebSocket && !this._wsEstablished) {
+      return false;
+    }
+    return true;
   }
 
   get host() {
@@ -40,7 +44,7 @@ class Session {
 
   connect() {
     return new Promise((resolve, reject) => {
-      if (this._connected) {
+      if (this.connected) {
         resolve({ result: 0 });
         return;
       }
@@ -67,7 +71,7 @@ class Session {
           const json = JSON.parse(message);
           if (json.result !== undefined) {
             if (json.result === 0) {
-              session._connected = true;
+              session._wsEstablished = true;
               console.log('onmessage: this=', this);
               resolve(json);
             } else {
@@ -78,7 +82,7 @@ class Session {
         socket.onclose = function(event) {
           console.log(host + ' - close', event);
           session._webSocket = null;
-          session._connected = false;
+          session._wsEstablished = false;
         };
         this._webSocket = socket;
       } catch (e) {
@@ -92,7 +96,7 @@ class Session {
       this._webSocket.close();
       this._webSocket = null;
     }
-    this._connected = false;
+    this._wsEstablished = false;
   }
 
   getRestScheme() {
@@ -105,7 +109,7 @@ class Session {
   }
 
   offer(func, params) {
-    if (this._connected === true) {
+    if (this.connected === true) {
       return func(this, params);
     } else {
       return new Promise((resolve, reject) => {
@@ -113,13 +117,6 @@ class Session {
       });
     }
   }
-
-  // processPendingOffers() {
-  //   const session = this;
-  //   this._pendingOffers.forEach(offer => {
-  //     func(session, offer.params).then(r => { offer.resolve(r) }).cache(e => { offer.reject(e) })
-  //   })
-  // }
 
   request(args) {
     const method = args.method.toUpperCase();
@@ -174,9 +171,6 @@ class Session {
   }
 }
 
-/**
- * Device Connect Client SDK for Javascript.
- */
 class DeviceConnectClient {
 
   constructor(op) {
@@ -199,7 +193,7 @@ class DeviceConnectClient {
 
   addSession(args) {
     const host = args.host;
-    const session = new Session(args.host, args.scopes);
+    const session = new Session(args.host, args.scopes, args.ssl, false);
     session.accessToken = args.accessToken;
     this._sessions[host] = session;
   }
@@ -272,55 +266,45 @@ class DeviceConnectClient {
     return new Promise((resolve, reject) => {
       let session = this._sessions[host];
       if (!session) {
-        session = new Session(host, scopes, ssl);
+        session = new Session(host, scopes, ssl, false);
         this._sessions[host] = session;
       }
 
       // Authorization
       this.authorize(session, host, scopes)
-
-      // Establish WebSokcet
-      .then(json => {
-        console.log('Response:', json);
-
-        const result = json.result;
-        const accessToken = json.accessToken;
-        if (result === 0 && accessToken) {
-          console.log('Got Access Token: accessToken=' + accessToken);
-          const session = this._sessions[host];
-          session.accessToken = accessToken;
-
-          console.log('Connecting to host=' + host);
-          return session.connect();
-        } else {
-          reject({ what: 'connect', reason: 'no-access-token', errorMessage: '本アプリの使用が認可されませんでした。' });
-        }
-      })
-      .catch(err => {
-        if (err.code === 4) {
-          reject({ what: 'connect', reason: 'ws-duplicated', errorMessage: '別ブラウザで既にWebSocketが接続されています。' });
-        } else if (err.code === 3) {
-          reject({ what: 'connect', reason: 'ws-invalid-access-token', errorMessage: 'アクセストークンが不正のためにWebSocketを接続できませんでした。' });
-        } else {
-          reject({ what: 'connect', reason: 'ws-unknown--error', errorMessage: '不明なエラーによりWebSocketを接続できませんでした。' });
-        }
-      })
-
-      // Service Discovery
       .then(json => {
         console.log(json);
-        this.processPendingOffers(session);
+        let result = json.result;
+        if (result === 0) {
+          session.accessToken = json.accessToken;
 
-        return this.fetchServices(host);
+          this.processPendingOffers(session);
+          return this.fetchServices(host);
+        } else {
+          reject({ what: 'connect', reason: 'no-auth', errorMessage: '本アプリケーションの認可に失敗しました。' });
+        }
       })
 
+      // Service Discovery Result
       .then(json => {
-        console.log('Fetched services:', json.services);
+        if (!json) {
+          return;
+        }
         const result = json.result;
         if (result === 0) {
           resolve({session, services:json.services});
         } else {
-          reject({ what: 'connect', reason: 'no-service', errorMessage: 'サービス検索に失敗しました。' });
+          let errorCode = json.errorCode;
+          if (11 <= errorCode && errorCode <= 15) {
+            // 再認可
+            session.clientId = null;
+            session.accessToken = null;
+            this.connect(option)
+            .then(json => resolve(json))
+            .catch(err => reject(err));
+          } else {
+            reject({ what: 'connect', reason: 'no-service', errorMessage: 'サービス検索に失敗しました。' });
+          }
         }
       })
     });
@@ -341,21 +325,17 @@ class DeviceConnectClient {
 
   authorize(session, host, scopes) {
     if (session.accessToken !== null) {
-      console.log('AccessToken: ' + session.accessToken);
       return Promise.resolve({ result:0, accessToken:session.accessToken });
     }
+    
     return this.createClient(host)
-    .then((json) => {
-      console.log('clientId: ' + json.clientId);
+    .then(json => {
       const result = json.result;
       const clientId = json.clientId;
       if (result === 0) {
-        console.log('Created client: clientId=' + clientId);
-
-        this._sessions[host].clientId = clientId;
-        return this.requestAccessToken(host, scopes);
+        session.clientId = clientId;
+        return this.requestAccessToken(session, host, scopes);
       } else {
-        console.warn('authorize: createClient: erroCode=' + json.errorCode);
         if (json.errorCode === 2) {
           // LocalOAuth が OFF の場合は形式的なアクセストークンとして以下の文字列を返す.
           // WebSocket 接続確立時に任意の文字列を送信する必要がある.
@@ -379,14 +359,12 @@ class DeviceConnectClient {
     });
   }
 
-  requestAccessToken(host, scopes) {
-    const session = this._sessions[host];
+  requestAccessToken(session, host, scopes) {
     const params = new URLSearchParams();
     params.set('clientId', session.clientId);
     params.set('applicationName', this.appName);
     params.set('scope', scopes.join(','));
     const query = params.toString();
-    console.log('requestAccessToken: query=' + query)
 
     return fetch("http://" + host + ":4035/gotapi/authorization/accessToken?" + query, {
       method: 'GET',

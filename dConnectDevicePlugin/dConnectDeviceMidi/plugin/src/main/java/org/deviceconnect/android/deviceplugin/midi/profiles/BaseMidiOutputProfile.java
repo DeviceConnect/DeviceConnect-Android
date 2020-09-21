@@ -13,17 +13,16 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Map;
 
 public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
 
-    private final Logger mLogger = Logger.getLogger("midi-plugin");
+    private final Map<Class< ? extends MessageEvent>, MessageEvent> mLastEventList = new HashMap<>();
 
-    private List<MessageEvent> mLastEventList;
-
-    boolean onEventCacheRequest(final Intent request, final Intent response) {
-        MessageEvent messageEvent = getLastMessageEvent(request);
+    boolean onEventCacheRequest(final Class<? extends MessageEvent> eventClass, final Intent response) {
+        MessageEvent messageEvent = getLastMessageEvent(eventClass);
         if (messageEvent != null) {
             messageEvent.putExtras(response);
         }
@@ -69,7 +68,15 @@ public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
     public void sendEvent(final int port, final @NonNull MidiMessage message, final long timestamp) {
         List<MessageEvent> results = new ArrayList<>();
         convertMessageToEvent(port, message, timestamp, results);
-        mLastEventList = results;
+
+        synchronized (mLastEventList) {
+            for (MessageEvent result : results) {
+                if (result != null) {
+                    mLastEventList.put(result.getClass(), result);
+                }
+            }
+        }
+
         for (MessageEvent result : results) {
             List<Event> events = EventManager.INSTANCE.getEventList(
                     getService().getId(),
@@ -89,22 +96,10 @@ public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
                                         final long timestamp,
                                         final @NonNull List<MessageEvent> results);
 
-    private MessageEvent getLastMessageEvent(final Intent request) {
-        List<MessageEvent> messageEventList = mLastEventList;
-        if (messageEventList != null) {
-            String profileName = request.getStringExtra("profile");
-            String interfaceName = request.getStringExtra("interface");
-            String attributeName = request.getStringExtra("attribute");
-            mLogger.info("getLastMessageEvent: profile=" + profileName + ", interface=" + interfaceName + ", attribute=" + attributeName);
-            if (profileName != null) {
-                for (MessageEvent messageEvent : mLastEventList) {
-                    if (messageEvent.isSameEvent(profileName, interfaceName, attributeName)) {
-                        return messageEvent;
-                    }
-                }
-            }
+    private MessageEvent getLastMessageEvent(final Class<? extends MessageEvent> eventClass) {
+        synchronized (mLastEventList) {
+            return mLastEventList.get(eventClass);
         }
-        return null;
     }
 
     static abstract class MessageEvent {
@@ -135,26 +130,5 @@ public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
 
         @Nullable
         abstract String getAttribute();
-
-        boolean isSameEvent(final @NonNull String profileName,
-                            final @Nullable String interfaceName,
-                            final @Nullable String attributeName) {
-            return isSame(profileName, getProfile())
-                    && isSame(interfaceName, getInterface())
-                    && isSame(attributeName, getAttribute());
-        }
-
-        private boolean isSame(final String a, final String b) {
-            if (a == null && b == null) {
-                return true;
-            }
-            if (a == null) {
-                return false;
-            }
-            if (b == null) {
-                return false;
-            }
-            return a.equalsIgnoreCase(b);
-        }
     }
 }

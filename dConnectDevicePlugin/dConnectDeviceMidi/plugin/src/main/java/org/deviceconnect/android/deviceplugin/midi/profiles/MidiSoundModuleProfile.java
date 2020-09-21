@@ -1,12 +1,9 @@
 package org.deviceconnect.android.deviceplugin.midi.profiles;
 
 import android.content.Intent;
-import android.media.midi.MidiDevice;
-import android.media.midi.MidiInputPort;
 
 import org.deviceconnect.android.deviceplugin.midi.MidiMessageSender;
 import org.deviceconnect.android.deviceplugin.midi.NoteNameTable;
-import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteOffMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
 import org.deviceconnect.android.message.MessageUtils;

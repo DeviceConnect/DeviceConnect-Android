@@ -25,7 +25,7 @@ public class MidiVolumeControllerProfile extends BaseMidiOutputProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return onEventCacheRequest(request, response);
+                return onEventCacheRequest(VolumeChangeEvent.class, response);
             }
         });
 

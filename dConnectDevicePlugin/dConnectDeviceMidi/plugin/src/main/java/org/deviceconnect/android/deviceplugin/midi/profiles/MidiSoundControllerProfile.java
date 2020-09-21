@@ -33,7 +33,7 @@ public class MidiSoundControllerProfile extends BaseMidiOutputProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return onEventCacheRequest(request, response);
+                return onEventCacheRequest(NoteEvent.class, response);
             }
         });
 

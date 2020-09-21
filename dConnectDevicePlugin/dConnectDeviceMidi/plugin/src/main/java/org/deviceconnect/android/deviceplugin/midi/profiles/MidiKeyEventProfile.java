@@ -38,7 +38,7 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return onEventCacheRequest(request, response);
+                return onEventCacheRequest(KeyDownEvent.class, response);
             }
         });
 
@@ -77,7 +77,7 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return onEventCacheRequest(request, response);
+                return onEventCacheRequest(KeyChangeEvent.class, response);
             }
         });
 
@@ -116,7 +116,7 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
-                return onEventCacheRequest(request, response);
+                return onEventCacheRequest(KeyUpEvent.class, response);
             }
         });
 
@@ -192,8 +192,8 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
         void putExtras(final Intent intent) {
             Bundle keyEvent = new Bundle();
             keyEvent.putInt("id", getId());
+            keyEvent.putString("config", "");
             intent.putExtra("keyevent", keyEvent);
-            intent.putExtra("config", "");
         }
 
         @NonNull
@@ -232,6 +232,7 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
             Bundle keyEvent = new Bundle();
             keyEvent.putInt("id", getId());
             keyEvent.putString("state", getState());
+            keyEvent.putString("config", "");
             intent.putExtra("keyevent", keyEvent);
         }
 

@@ -193,6 +193,7 @@ public class MidiKeyEventProfile extends BaseMidiOutputProfile {
             Bundle keyEvent = new Bundle();
             keyEvent.putInt("id", getId());
             intent.putExtra("keyevent", keyEvent);
+            intent.putExtra("config", "");
         }
 
         @NonNull

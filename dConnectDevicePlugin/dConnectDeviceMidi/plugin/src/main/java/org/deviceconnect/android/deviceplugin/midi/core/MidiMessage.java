@@ -7,6 +7,11 @@ import java.nio.ByteBuffer;
  */
 public abstract class MidiMessage {
 
+    /**
+     * チャンネルの最大個数.
+     */
+    public static final int CHANNEL_MAX_COUNT = 16;
+
     public abstract void append(ByteBuffer buffer);
 
 }

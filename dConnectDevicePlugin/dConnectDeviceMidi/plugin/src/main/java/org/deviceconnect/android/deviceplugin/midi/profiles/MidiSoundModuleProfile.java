@@ -4,6 +4,7 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.midi.MidiMessageSender;
 import org.deviceconnect.android.deviceplugin.midi.NoteNameTable;
+import org.deviceconnect.android.deviceplugin.midi.core.MidiMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteOffMessage;
 import org.deviceconnect.android.deviceplugin.midi.core.NoteOnMessage;
 import org.deviceconnect.android.message.MessageUtils;
@@ -92,14 +93,14 @@ public class MidiSoundModuleProfile extends BaseMidiProfile {
         if (channelParam == null) {
             return 0;
         }
-        return channelParam / 16;
+        return channelParam / MidiMessage.CHANNEL_MAX_COUNT;
     }
 
     private int parseMidiChannel(final Integer channelParam) {
         if (channelParam == null) {
             return 0;
         }
-        return channelParam % 16;
+        return channelParam % MidiMessage.CHANNEL_MAX_COUNT;
     }
 
     @Override

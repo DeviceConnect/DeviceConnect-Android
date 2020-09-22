@@ -52,7 +52,7 @@ public class ControlChangeMessage extends ChannelVoiceMessage {
         return mControlValue;
     }
 
-    public class Builder extends ChannelVoiceMessage.Builder {
+    public static class Builder extends ChannelVoiceMessage.Builder {
 
         /**
          * コントロール番号.

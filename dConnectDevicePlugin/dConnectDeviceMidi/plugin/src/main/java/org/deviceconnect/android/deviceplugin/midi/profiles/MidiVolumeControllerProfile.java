@@ -11,8 +11,13 @@ import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
 
 import java.util.List;
+import java.util.logging.Logger;
+
+import static org.deviceconnect.android.deviceplugin.midi.BuildConfig.DEBUG;
 
 public class MidiVolumeControllerProfile extends BaseMidiOutputProfile {
+
+    private final Logger mLogger = Logger.getLogger("midi-plugin");
 
     public MidiVolumeControllerProfile() {
 
@@ -65,7 +70,13 @@ public class MidiVolumeControllerProfile extends BaseMidiOutputProfile {
     @Override
     void convertMessageToEvent(final int port, final @NonNull MidiMessage message, final long timestamp, final @NonNull List<MessageEvent> results) {
         if (message instanceof ControlChangeMessage) {
-            final int channel = port * ((ControlChangeMessage) message).getChannelNumber();
+            if (DEBUG) {
+                mLogger.info("convertMessageToEvent: ControlChange:"
+                        + "channel=" + ((ControlChangeMessage) message).getChannelNumber()
+                        + ", value=" + ((ControlChangeMessage) message).getControlValue());
+            }
+
+            final int channel = ((ControlChangeMessage) message).getChannelNumber() + port * MidiMessage.CHANNEL_MAX_COUNT;
             final int value = ((ControlChangeMessage) message).getControlValue();
             final double normalized = value / 127.0d;
 

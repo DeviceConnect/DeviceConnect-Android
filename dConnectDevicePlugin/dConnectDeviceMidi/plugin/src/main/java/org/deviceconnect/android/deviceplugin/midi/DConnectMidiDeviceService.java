@@ -85,6 +85,10 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
      */
     private final ServiceInfo mServiceInfo;
 
+    /**
+     * 直前の MIDI メッセージ受信イベント.
+     */
+    private MidiMessageEvent mLastMessageEvent;
 
     private DConnectMidiDeviceService(final @NonNull String serviceId, final MidiDeviceInfo deviceInfo) {
         super(serviceId);
@@ -210,6 +214,25 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                             MessageUtils.setInvalidRequestParameterError(response, "Failed to read data: uri = " + uriParam + ", message = " + e.getMessage());
                             return true;
                         }
+                    }
+                });
+
+                // GET /gotapi/midi/onMessage
+                addApi(new GetApi() {
+                    @Override
+                    public String getAttribute() {
+                        return "onMessage";
+                    }
+
+                    @Override
+                    public boolean onRequest(final Intent request, final Intent response) {
+                        MidiMessageEvent lastEvent = mLastMessageEvent;
+                        if (lastEvent != null) {
+                            response.putExtra("message", lastEvent.getMessage());
+                            response.putExtra("port", lastEvent.getPort());
+                        }
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        return true;
                     }
                 });
 
@@ -395,10 +418,12 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 List<Event> events = EventManager.INSTANCE.getEventList(getId(), "midi", null, "onMessage");
                 String message = stringify(data, offset, count);
                 LOGGER.info("Event: /midi/onMessage: size = " + events.size() + ", message = " + message);
+
+                MidiMessageEvent messageEvent = new MidiMessageEvent(port, message);
                 for (Event event : events) {
                     Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra("message", stringify(data, offset, count));
-                    intent.putExtra("port", port);
+                    intent.putExtra("message", messageEvent.getMessage());
+                    intent.putExtra("port", messageEvent.getPort());
                     getPluginContext().sendEvent(intent, event.getAccessToken());
                 }
 
@@ -406,6 +431,8 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 if (midiMessage != null) {
                     handleParsedMessage(port, midiMessage, timestamp);
                 }
+
+                mLastMessageEvent = messageEvent;
             }
         };
     }
@@ -478,17 +505,6 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
         return concat(array);
     }
 
-    static String createServiceId(final BluetoothDevice device) {
-        final String deviceType = "bluetooth";
-        final String deviceId = device.getAddress();
-        final String[] array = {
-                "midi",
-                deviceType,
-                deviceId
-        };
-        return concat(array);
-    }
-
     private static String createServiceName(final MidiDeviceInfo deviceInfo) {
         Bundle props = deviceInfo.getProperties();
         if (props != null) {
@@ -520,5 +536,23 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
             result.append(message[offset + i]);
         }
         return result.toString();
+    }
+
+    private static class MidiMessageEvent {
+        private final int mPort;
+        private final String mMessage;
+
+        public MidiMessageEvent(final int port, final String message) {
+            mPort = port;
+            mMessage = message;
+        }
+
+        public int getPort() {
+            return mPort;
+        }
+
+        public String getMessage() {
+            return mMessage;
+        }
     }
 }

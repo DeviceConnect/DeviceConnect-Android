@@ -1,0 +1,231 @@
+
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "サウンドコントローラからの制御用メッセージを受信するための機能を提供する API。\nここでの「サウンドコントローラ」は、外部の音源を操作するためのユーザーインターフェースを持ったデバイスとする。つまり、サウンドコントローラ自身は音声を再生する機能を持たず、外部の音源と組み合わせることではじめて演奏が可能になる。（例: 電子キーボードの鍵盤）",
+        "version": "2.0.0",
+        "title": "Sound Controller Profile"
+    },
+    "basePath": "/gotapi/soundController",
+    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "paths": {
+        "/onNote": {
+            "get": {
+                "summary": "音階制御用メッセージ受信イベントを取得する。",
+                "description": "プラグイン側でキャッシュしている最新のイベントメッセージを1つ取得する。",
+                "operationId": "soundControllerOnNoteGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "サウンドコントローラからの音階制御用メッセージ受信イベントを返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/OnNoteResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "note": "C-1",
+                                "state": "on",
+                                "channel": 0
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "音階制御用メッセージ受信イベントを通知する。",
+                "description": "サウンドコントローラから音階制御用メッセージを受信した時にイベントが発行される。",
+                "operationId": "soundControllerOnNotePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "当該イベントの通知を開始結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/OnNoteEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "example-service-id",
+                            "profile": "midi",
+                            "attribute": "onMessage",
+                            "message": "127,127,127"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "当該イベントの通知を停止する。",
+                "description": "イベント通知の停止に失敗した場合はエラーを返す。",
+                "operationId": "soundControllerOnNoteDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "当該イベントの通知を停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        }
+    },
+    "definitions": {
+        "OnNoteContent": {
+            "type": "object",
+            "required": ["note", "state"],
+            "properties": {
+                "note": {
+                    "type": "string",
+                    "description": "音階を指定する文字列。文字列の形式は国際式とする。",
+                    "title": "音階"
+                },
+                "state": {
+                    "type": "string",
+                    "description": "音階の再生を開始する場合は \"on\", 停止する場合は \"off\"",
+                    "title": "再生の ON/OFF"
+                },
+                "channel": {
+                    "type": "integer",
+                    "description": "チャンネルの指定。音源デバイスがチャンネルによって複数の音色を区別する場合に使用する。省略した場合はデフォルトの音色で再生される。",
+                    "title": "チャンネル",
+                    "minimum": 0
+                }
+            }
+        },
+        "OnNoteEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "$ref": "#/definitions/OnNoteContent"
+                }
+            ]
+        },
+        "OnNoteResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "$ref": "#/definitions/OnNoteContent"
+                }
+            ]
+        },
+        "EventRegistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventUnregistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": ["product", "result", "version"],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": ["attribute", "interface", "profile", "serviceId"],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "description": "イベントを送信したサービスのID",
+                    "title": "サービスID"
+                },
+                "profile": {
+                    "type": "string",
+                    "description": "プロファイル名。",
+                    "title": "プロファイル名"
+                },
+                "interface": {
+                    "type": "string",
+                    "description": "インターフェース名。",
+                    "title": "インターフェース名"
+                },
+                "attribute": {
+                    "type": "string",
+                    "description": "アトリビュート名。",
+                    "title": "アトリビュート名"
+                }
+            }
+        }
+    }
+}

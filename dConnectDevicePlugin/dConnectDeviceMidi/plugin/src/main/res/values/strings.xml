@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MIDI (Device Connect Device Plugin)</string>
+    <string name="ok">OK</string>
+    <string name="input">入力</string>
+    <string name="output">出力</string>
+    <string name="bidirectional">双方向</string>
+    <string name="unknown">不明</string>
+
+    <!-- プラグイン設定一覧画面 -->
+    <string name="settings_pref_key_local_oauth">settings_pref_key_local_oauth</string>
+    <string name="settings_pref_title_local_oauth">Local OAuth</string>
+    <string name="settings_pref_key_service_list">settings_pref_key_service_list</string>
+    <string name="settings_pref_title_service_list">サービス一覧</string>
+    <string name="settings_pref_key_demo_page">settings_pref_key_demo_page</string>
+    <string name="settings_pref_title_demo_page">デモページ</string>
+
+    <!-- サービス情報画面 -->
+    <string name="service_detail_item_title_protocol_version">MIDI バージョン</string>
+    <string name="service_detail_item_title_direction">入出力の方向</string>
+    <string name="service_detail_item_title_device_name">デバイス名</string>
+    <string name="service_detail_item_title_manufacturer_name">製造者名</string>
+    <string name="service_detail_item_title_device_connect_profile_list">プロファイル</string>
+
+    <!-- BLE画面 -->
+    <string name="summary_title" translatable="false">[1/3] デバイスプラグイン概要</string>
+    <string name="summary_body" translatable="false">このデバイスプラグインはUSBまたはBluetooth Low EnergyでMIDIデバイスと接続する機能を提供します。\n\nUSBの場合は、本端末とデバイスをUSBケーブルで接続することで即座に利用可能になります。\n\nBluetooth Low Energyの場合、次ページ以降の手順を実行してください。</string>
+    <string name="summary_not_support_title" translatable="false">デバイスエラー</string>
+    <string name="summary_not_support_message" translatable="false">このデバイスはBluetooth Low Energyをサポートしていません</string>
+    <string name="bluetooth_settings_title" translatable="false">[2/3] Bluetooth設定</string>
+    <string name="bluetooth_settings_body" translatable="false">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>
+    <string name="bluetooth_settings_button" translatable="false">設定画面を開く</string>
+    <string name="bluetooth_settings_ble_detail" translatable="false">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="bluetooth_settings_ble_permission" translatable="false">位置情報の許可</string>
+    <string name="bluetooth_settings_ble_permission_on" translatable="false">取得済み</string>
+    <string name="bluetooth_settings_ble_permission_off" translatable="false">取得</string>
+    <string name="midi_ble_setting_title" translatable="false">[3/3] デバイス接続</string>
+    <string name="midi_ble_setting_connect" translatable="false">接続</string>
+    <string name="midi_ble_setting_disconnect" translatable="false">解除</string>
+    <string name="midi_ble_setting_default_name" translatable="false">Unknown</string>
+    <string name="midi_ble_setting_default_address" translatable="false">Unknown</string>
+    <string name="midi_ble_setting_connecting_title" translatable="false">BLE接続</string>
+    <string name="midi_ble_setting_connecting_message" translatable="false">%1$sと接続中</string>
+    <string name="midi_ble_setting_dialog_positive" translatable="false">OK</string>
+    <string name="midi_ble_setting_dialog_error_title" translatable="false">BLE接続エラー</string>
+    <string name="midi_ble_setting_dialog_error_message" translatable="false">%1$sとの接続に失敗しました</string>
+    <string name="midi_ble_setting_online" translatable="false">[ONLINE]</string>
+    <string name="midi_ble_setting_offline" translatable="false">[OFFLINE]</string>
+    <string name="midi_ble_setting_dialog_error_permission" translatable="false">BLE検索するためのパーミッションが許可されていないために検索できません。\nBluetooth設定画面から位置情報の許可を取得してください。</string>
+    <string name="midi_ble_setting_dialog_disable_bluetooth" translatable="false">Bluetoothが無効になっているために検索できません。\nBluetooth設定画面からBluetoothを有効に設定してください。</string>
+    <string name="midi_ble_setting_searching" translatable="false">デバイス検索中</string>
+
+    <!-- デモページ設定画面 -->
+    <string name="demo_page_description">MIDIデモアプリのインストール管理画面</string>
+    <string name="demo_page_shortcut_label">MIDIデモ</string>
+</resources>

@@ -1,0 +1,227 @@
+
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "ボリュームコントローラからの制御用メッセージを受信するための機能を提供する API。\nここでの「ボリュームコントローラ」は、一定の範囲でパラメータの値を制御するためのデバイスとする。",
+        "version": "2.0.0",
+        "title": "Volume Controller Profile"
+    },
+    "basePath": "/gotapi/volumeController",
+    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "paths": {
+        "/onVolumeChange": {
+            "get": {
+                "summary": "ボリューム制御用メッセージ受信イベントを取得する。",
+                "description": "プラグイン側でキャッシュしている最新のイベントメッセージを1つ取得する。",
+                "operationId": "volumeControllerOnVolumeChangeGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ボリュームコントローラからの制御用メッセージ受信イベントを返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/OnVolumeChangeResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "value": 0.5,
+                                "channel": 0
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "ボリューム制御用メッセージ受信イベントを通知する。",
+                "description": "ボリュームコントローラから制御用メッセージを受信した時にイベントが発行される。",
+                "operationId": "volumeControllerOnVolumeChangePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "当該イベントの通知を開始結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/OnVolumeChangeEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "example-service-id",
+                            "profile": "midi",
+                            "attribute": "onMessage",
+                            "message": "127,127,127"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "当該イベントの通知を停止する。",
+                "description": "イベント通知の停止に失敗した場合はエラーを返す。",
+                "operationId": "volumeControllerOnVolumeChangeDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "当該イベントの通知を停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        }
+    },
+    "definitions": {
+        "OnVolumeChangeContent": {
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+                "value": {
+                    "type": "number",
+                    "description": "ボリュームコントローラから送信されたボリュームの値。 0.0 〜 1.0 の範囲の実数値として正規化されている。",
+                    "title": "ボリュームの値",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                "channel": {
+                    "type": "integer",
+                    "description": "チャンネルの指定。",
+                    "title": "チャンネル",
+                    "minimum": 0
+                }
+            }
+        },
+        "OnVolumeChangeEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                }, 
+                {
+                    "$ref": "#/definitions/OnVolumeChangeContent"
+                }
+            ]
+        },
+        "OnVolumeChangeResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }, 
+                {
+                    "$ref": "#/definitions/OnVolumeChangeContent"
+                }
+            ]
+        },
+        "EventRegistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventUnregistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": ["product", "result", "version"],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": ["attribute", "interface", "profile", "serviceId"],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "description": "イベントを送信したサービスのID",
+                    "title": "サービスID"
+                },
+                "profile": {
+                    "type": "string",
+                    "description": "プロファイル名。",
+                    "title": "プロファイル名"
+                },
+                "interface": {
+                    "type": "string",
+                    "description": "インターフェース名。",
+                    "title": "インターフェース名"
+                },
+                "attribute": {
+                    "type": "string",
+                    "description": "アトリビュート名。",
+                    "title": "アトリビュート名"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,442 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "MIDI デバイスとの通信機能を提供するAPI。",
+        "version": "2.0.0",
+        "title": "MIDI Profile"
+    },
+    "basePath": "/gotapi/midi",
+    "consumes": [
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+    ],
+    "paths": {
+        "/info": {
+            "get": {
+                "summary": "MIDI デバイスに関する情報を取得する。",
+                "description": "サポートしている MIDI プロトコルのバージョン等、MIDI デバイスに関する情報を取得する。",
+                "operationId": "midiInfoGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI デバイスに関する情報を返す。失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/MidiInfoResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "protocol": "1.0",
+                                "productName": "Example Device",
+                                "manufacturer": "example.com",
+                                "direction": "input",
+                                "inputCount": 1,
+                                "outputCount": 0
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/message": {
+            "post": {
+                "summary": "MIDI メッセージを送信する。",
+                "description": "MIDI デバイスに対して MIDI メッセージを送信する。 指定された MIDI メッセージはその正当性を検証されず、そのまま MIDI デバイスへ送信される。",
+                "operationId": "midiMessagePost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "message",
+                        "in": "query",
+                        "description": "MIDI メッセージの文字列表現。 フォーマットはMIDI メッセージを構成する各オクテットの10進数表現をカンマで連結したものとする。",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "port",
+                        "in": "query",
+                        "description": "MIDI 入力ポート番号。指定しない場合はデフォルトの入力ポートへ MIDI メッセージが送信される。存在しない番号が指定された場合はエラー。",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI メッセージ送信処理の結果を返す。失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/MidiMessageResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        },
+        "/onMessage": {
+            "get": {
+                "summary": "MIDI メッセージ受信イベントを取得する。",
+                "description": "プラグイン側でキャッシュしている最新のイベントメッセージを1つ取得する。",
+                "operationId": "midiOnMessageGet",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI デバイスから受信した MIDI メッセージのイベントを返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/OnMessageResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0",
+                                "message": "127,127,127"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "put": {
+                "summary": "MIDI メッセージ受信イベントを通知する。",
+                "description": "MIDI デバイスから MIDI メッセージを受信した時にイベントが発行される。",
+                "operationId": "midiOnMessagePut",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "formData",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "当該イベントの通知を開始結果を返す。 失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventRegistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event",
+                "x-event": {
+                    "schema": {
+                        "$ref": "#/definitions/OnMessageEvent"
+                    },
+                    "examples": {
+                        "application/json": {
+                            "serviceId": "example-service-id",
+                            "profile": "midi",
+                            "attribute": "onMessage",
+                            "message": "127,127,127"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "当該イベントの通知を停止する。",
+                "description": "イベント通知の停止に失敗した場合はエラーを返す。",
+                "operationId": "midiOnMessageDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "当該イベントの通知を停止結果を返す。 停止に失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/EventUnregistrationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System",
+                                "version": "1.0.0"
+                            }
+                        }
+                    }
+                },
+                "x-type": "event"
+            }
+        },
+        "/playFile": {
+            "post": {
+                "summary": "MIDI ファイルを再生する.",
+                "description": "指定された MIDI ファイルを解析および再生する.",
+                "operationId": "midiPlayFilePost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "data",
+                        "in": "formData",
+                        "description": "MIDI ファイルのデータ",
+                        "required": false,
+                        "type": "file"
+                    },
+                    {
+                        "name": "port",
+                        "in": "query",
+                        "description": "MIDI 入力ポート番号。指定しない場合はデフォルトの入力ポートへ MIDI メッセージが送信される。存在しない番号が指定された場合はエラー。",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI ファイル再生処理の結果を返す。失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/MidiPlayFileResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        }
+    },
+    "definitions": {
+        "MidiInfoResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "direction",
+                        "inputCount",
+                        "outputCount",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "protocol": {
+                            "type": "string",
+                            "description": "デバイスのサポートしている MIDI プロトコルのバージョン",
+                            "title": "MIDI プロトコルのバージョン"
+                        },
+                        "direction": {
+                            "type": "string",
+                            "description": "デバイスのサポートしている MIDI 通信の方向を示す。\n<ul> <li>\"input\": MIDI デバイスへの入力専用。</li> <li>\"output\": MIDI デバイスからの出力専用。</li> <li>\"bidirectional\": 入出力両対応。</li> </ul>",
+                            "title": "MIDI 通信の方向",
+                            "enum": [
+                                "input",
+                                "output",
+                                "bidirectional"
+                            ]
+                        },
+                        "inputCount": {
+                            "type": "integer",
+                            "description": "MIDI デバイスへの入力ポートの個数。",
+                            "title": "入力ポート数"
+                        },
+                        "outputCount": {
+                            "type": "integer",
+                            "description": "MIDI デバイスからの出力ポートの個数。",
+                            "title": "出力ポート数"
+                        },
+                        "productName": {
+                            "type": "string",
+                            "description": "MIDI デバイスの製品名。不明な場合は省略可。",
+                            "title": "MIDI デバイスの製品名。"
+                        },
+                        "manufacturer": {
+                            "type": "string",
+                            "description": "MIDI デバイスのメーカー名。不明な場合は省略可。",
+                            "title": "MIDI デバイスのメーカー名。"
+                        }
+                    }
+                }
+            ]
+        },
+        "MidiMessageResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "MidiPlayFileResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "OnMessageEvent": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonEvent"
+                },
+                {
+                    "required": [
+                        "message",
+                        "port"
+                    ],
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "MIDI デバイスから受信した MIDI メッセージの文字列表現。 フォーマットはMIDI メッセージを構成する各オクテットの10進数表現をカンマで連結したものとする。",
+                            "title": "MIDI メッセージ"
+                        },
+                        "port": {
+                            "type": "integer",
+                            "description": "MIDI メッセージの送信元である出力ポートの番号。",
+                            "title": "出力ポート番号"
+                        }
+                    }
+                }
+            ]
+        },
+        "OnMessageResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                },
+                {
+                    "required": [
+                        "message",
+                        "port"
+                    ],
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "MIDI デバイスから受信した MIDI メッセージの文字列表現。 フォーマットはMIDI メッセージを構成する各オクテットの10進数表現をカンマで連結したものとする。",
+                            "title": "MIDI メッセージ"
+                        },
+                        "port": {
+                            "type": "integer",
+                            "description": "MIDI メッセージの送信元である出力ポートの番号。",
+                            "title": "出力ポート番号"
+                        }
+                    }
+                }
+            ]
+        },
+        "EventRegistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "EventUnregistrationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": [
+                "product",
+                "result",
+                "version"
+            ],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        },
+        "CommonEvent": {
+            "type": "object",
+            "required": [
+                "attribute",
+                "interface",
+                "profile",
+                "serviceId"
+            ],
+            "properties": {
+                "serviceId": {
+                    "type": "string",
+                    "description": "イベントを送信したサービスのID",
+                    "title": "サービスID"
+                },
+                "profile": {
+                    "type": "string",
+                    "description": "プロファイル名。",
+                    "title": "プロファイル名"
+                },
+                "interface": {
+                    "type": "string",
+                    "description": "インターフェース名。",
+                    "title": "インターフェース名"
+                },
+                "attribute": {
+                    "type": "string",
+                    "description": "アトリビュート名。",
+                    "title": "アトリビュート名"
+                }
+            }
+        }
+    }
+}

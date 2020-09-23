@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<fragment
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    class="org.deviceconnect.android.deviceplugin.midi.fragment.SettingsListPreferenceFragment"
+    android:id="@+id/activity_settings_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceplugin-provider spec-path="org_deviceconnect_android_deviceplugin_midi/api">
+
+    <profile name="keyEvent" />
+    <profile name="midi" />
+    <profile name="soundController" />
+    <profile name="soundModule" />
+    <profile name="volumeController" />
+
+    <profile name="serviceDiscovery" />
+    <profile name="serviceInformation" />
+    <profile name="system" />
+
+</deviceplugin-provider>

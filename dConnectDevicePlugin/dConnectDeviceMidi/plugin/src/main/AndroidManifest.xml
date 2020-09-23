@@ -1,0 +1,91 @@
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.deviceconnect.android.deviceplugin.midi">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+
+    <application
+        android:name=".MidiPluginApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <!-- プラグイン本体サービス -->
+        <service
+            android:name=".MidiMessageService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_midi"/>
+        </service>
+
+        <!-- Device Connect API リクエストのレシーバー -->
+        <!--
+            NOTE:  下記のレシーバーは、旧仕様のDevice Connect Managerとの互換性、
+            およびDevice Connect Managerのアンインストール検知のために残しています.
+        -->
+        <receiver
+            android:name=".MidiMessageServiceProvider"
+            android:enabled="true"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/org_deviceconnect_android_deviceplugin_midi"/>
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET"/>
+                <action android:name="org.deviceconnect.action.PUT"/>
+                <action android:name="org.deviceconnect.action.POST"/>
+                <action android:name="org.deviceconnect.action.DELETE"/>
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- プラグイン設定一覧画面 -->
+        <activity
+            android:name=".DConnectMidiSettingsListActivity"
+            android:exported="true"/>
+
+        <!-- サービス一覧画面 -->
+        <activity
+            android:name=".DConnectMidiServiceListActivity"
+            android:exported="false"/>
+
+        <!-- サービス情報画面 -->
+        <activity
+            android:name=".DConnectMidiServiceDetailActivity"
+            android:exported="false"/>
+
+        <!-- BLE設定画面 -->
+        <activity
+            android:name=".DConnectMidiBleSettingsActivity"
+            android:exported="false"/>
+
+        <activity android:name=".ble.activity.BleEnableActivity"
+            android:exported="false"/>
+
+        <activity android:name=".MidiDemoSettingActivity"
+            android:exported="false"/>
+
+        <provider
+            android:name="org.deviceconnect.android.provider.FileProvider"
+            android:authorities="org.deviceconnect.android.deviceplugin.midi.provider"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider">
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
+    </application>
+
+</manifest>

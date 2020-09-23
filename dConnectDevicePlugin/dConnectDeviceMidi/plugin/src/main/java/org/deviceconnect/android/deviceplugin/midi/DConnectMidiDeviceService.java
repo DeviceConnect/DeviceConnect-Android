@@ -39,6 +39,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -346,6 +348,8 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
 
     void destroy() {
         mMidiDevice = null;
+        setOnline(false);
+
         mMidiFilePlayer.stop();
         synchronized (mMidiInputBuffers) {
             for (int index = 0; index < mMidiInputBuffers.size(); index++) {
@@ -399,6 +403,8 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
         for (int port = 0; port < device.getInfo().getOutputPortCount(); port++) {
             connectOutputPort(port);
         }
+
+        setOnline(mMidiDevice != null);
     }
 
     private void connectOutputPort(final int port) {
@@ -473,10 +479,13 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 deviceType = "usb";
                 UsbDevice device = props.getParcelable(MidiDeviceInfo.PROPERTY_USB_DEVICE);
                 if (device != null) {
-                    deviceId = Integer.toString(device.getDeviceId());
+                    LOGGER.info("createServiceId: USB Device ID = " + device.getDeviceId() + ", MIDI ID = " + deviceInfo.getId());
+                    String deviceName = createServiceName(deviceInfo);
+                    deviceId = device.getDeviceId() + "_" + md5(deviceName);
                 } else {
-                    LOGGER.warning("createServiceId: NO USB DEVICE INFO; id = " + deviceInfo.getId());
-                    deviceId = "midi" + deviceInfo.getId();
+                    
+                    LOGGER.warning("createServiceId: NO USB DEVICE INFO; MIDI ID = " + deviceInfo.getId());
+                    deviceId = "midi_" + deviceInfo.getId();
                 }
                 break;
             }
@@ -503,6 +512,22 @@ public class DConnectMidiDeviceService extends DConnectService implements MidiMe
                 deviceId
         };
         return concat(array);
+    }
+
+    public static String md5(final String s) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(s.getBytes());
+            byte[] messageDigest = md.digest();
+
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < messageDigest.length; i++) {
+                hex.append(String.format("%02x", messageDigest[i] & 0xFF));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            return s;
+        }
     }
 
     private static String createServiceName(final MidiDeviceInfo deviceInfo) {

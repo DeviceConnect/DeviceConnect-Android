@@ -10,11 +10,14 @@ import org.deviceconnect.android.ui.activity.DConnectServiceListActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * MIDI プラグインのサービス一覧画面.
  */
 public class DConnectMidiServiceListActivity extends DConnectServiceListActivity {
+
+    private final Logger mLogger = Logger.getLogger("midi-plugin");
 
     @Override
     protected Class<? extends DConnectMessageService> getMessageServiceClass() {
@@ -51,5 +54,23 @@ public class DConnectMidiServiceListActivity extends DConnectServiceListActivity
             result.add(profile.getProfileName());
         }
         return result;
+    }
+
+    @Override
+    public void onServiceAdded(DConnectService service) {
+        mLogger.info("*** onServiceAdded: name = " + service.getName());
+        super.onServiceAdded(service);
+    }
+
+    @Override
+    public void onServiceRemoved(DConnectService service) {
+        mLogger.info("*** onServiceRemoved: name = " + service.getName());
+        super.onServiceRemoved(service);
+    }
+
+    @Override
+    public void onStatusChange(DConnectService service) {
+        mLogger.info("*** onStatusChange: name = " + service.getName() + " isOnline = " + service.isOnline());
+        super.onStatusChange(service);
     }
 }

@@ -1,0 +1,136 @@
+
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "音源デバイスとの通信機能を提供するAPI。",
+        "version": "2.0.0",
+        "title": "Sound Module Profile"
+    },
+    "basePath": "/gotapi/soundModule",
+    "consumes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "paths": {
+        "/note": {
+            "post": {
+                "summary": "音の再生を開始する。",
+                "description": "指定した音階での音の再生を開始する。",
+                "operationId": "soundModuleNotePost",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "note",
+                        "in": "query",
+                        "description": "音階の指定。形式は国際式とする。",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "channel",
+                        "in": "query",
+                        "description": "チャンネルの指定。音源デバイスがチャンネルによって複数の音色を区別する場合に使用する。省略した場合はデフォルトの音色で再生される。",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI メッセージ送信処理の結果を返す。失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/SoundModuleOperationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            },
+            "delete": {
+                "summary": "音の再生を停止する。",
+                "description": "指定した音階での音の再生を停止する。",
+                "operationId": "soundModuleNoteDelete",
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "in": "query",
+                        "description": "サービスID。取得対象スマートデバイス",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "note",
+                        "in": "query",
+                        "description": "音階の指定。形式は国際式とする。",
+                        "required": true,
+                        "type": "string"
+                    }, 
+                    {
+                        "name": "channel",
+                        "in": "query",
+                        "description": "チャンネルの指定。音源デバイスがチャンネルによって複数の音色を区別する場合に使用する。省略した場合はデフォルトの音色で再生される。",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "MIDI メッセージ送信処理の結果を返す。失敗した場合はエラーを返す。",
+                        "schema": {
+                            "$ref": "#/definitions/SoundModuleOperationResponse"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "result": 0,
+                                "product": "Example System"
+                            }
+                        }
+                    }
+                },
+                "x-type": "one-shot"
+            }
+        }
+    },
+    "definitions": {
+        "SoundModuleOperationResponse": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/CommonResponse"
+                }
+            ]
+        },
+        "CommonResponse": {
+            "type": "object",
+            "required": ["product", "result", "version"],
+            "properties": {
+                "result": {
+                    "type": "integer",
+                    "description": "0: 正常応答<br> 0以外: 異常応答",
+                    "title": "処理結果"
+                },
+                "product": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムの名前。",
+                    "title": "システム名"
+                },
+                "version": {
+                    "type": "string",
+                    "description": "DeviceConnectシステムのバージョン名。",
+                    "title": "システムバージョン"
+                },
+                "hmac": {
+                    "type": "string",
+                    "description": "レスポンスに対する署名。 アプリケーション側から事前にHMACキーを共有されていた場合は必須。",
+                    "title": "署名"
+                }
+            }
+        }
+    }
+}

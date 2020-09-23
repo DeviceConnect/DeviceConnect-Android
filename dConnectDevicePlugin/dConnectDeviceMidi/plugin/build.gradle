@@ -1,0 +1,116 @@
+apply plugin: 'com.android.application'
+
+// Create github.properties in root project folder file with
+// gpr.usr=GITHUB_USER_ID
+// gpr.key=PERSONAL_ACCESS_TOKEN
+def githubPropertiesFile = rootProject.file("github.properties")
+def githubProperties = new Properties()
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
+
+def DEMO_ZIP_NAME = "demo.zip"
+
+dependencies {
+    implementation fileTree(include: '*.jar', dir: 'libs')
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
+    implementation 'androidx.preference:preference:1.1.1'
+    implementation 'jp.kshoji:javax-sound-midi:0.0.3'
+    testImplementation 'junit:junit:4.12'
+}
+
+android {
+
+    compileSdkVersion 29
+
+    defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.midi"
+        minSdkVersion 23
+        targetSdkVersion 29
+        versionCode 1
+        versionName '1.0.0'
+
+        buildConfigField "String", "PACKAGE_NAME", "\"" + applicationId + "\""
+        buildConfigField "String", "DEMO_DIR", "\"demo\""
+        buildConfigField "String", "DEMO_ZIP", "\"" + DEMO_ZIP_NAME + "\""
+    }
+    
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.releaseConfig
+        }
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+    
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+    repositories {
+        maven {
+            name = "DeviceConnect-Android"
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+
+            credentials {
+                username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
+                password = System.getenv("GPR_API_KEY") ?: githubProperties['gpr.key']
+            }
+        }
+    }
+}
+
+task cleanDemo(type: Exec) {
+    workingDir '../demo'
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'build.bat', 'clean'
+    } else {
+        commandLine 'sh', 'build.sh', 'clean'
+    }
+}
+
+task buildDemo(type: Exec) {
+    workingDir '../demo'
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'build.bat', 'build'
+    } else {
+        commandLine 'sh', 'build.sh', 'build'
+    }
+}
+
+task zipDemo(type: Zip, dependsOn: buildDemo) {
+    File demoDir = new File(projectDir, '../demo/dist')
+    File assetsDir = new File(projectDir, 'src/main/assets')
+
+    from demoDir
+    destinationDir assetsDir
+    archiveName = DEMO_ZIP_NAME
+}
+
+tasks.clean.dependsOn(cleanDemo)
+tasks.whenTaskAdded { t ->
+    if (t.name.startsWith('generate') && t.name.endsWith('Assets')){
+        t.dependsOn zipDemo
+    }
+}

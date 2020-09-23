@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="CustomTableRow">
+        <attr name="itemTitle" format="string" />
+        <attr name="itemContent" format="string" />
+    </declare-styleable>
+</resources>

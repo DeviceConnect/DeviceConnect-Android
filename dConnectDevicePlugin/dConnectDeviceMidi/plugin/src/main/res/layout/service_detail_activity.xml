@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <org.deviceconnect.android.deviceplugin.midi.CustomTableRow
+        android:id="@+id/service_detail_item_title_protocol_version"
+        custom:itemTitle="@string/service_detail_item_title_protocol_version"
+        />
+
+    <org.deviceconnect.android.deviceplugin.midi.CustomTableRow
+        android:id="@+id/service_detail_item_title_direction"
+        custom:itemTitle="@string/service_detail_item_title_direction"
+        />
+
+    <org.deviceconnect.android.deviceplugin.midi.CustomTableRow
+        android:id="@+id/service_detail_item_title_device_name"
+        custom:itemTitle="@string/service_detail_item_title_device_name"
+        />
+
+    <org.deviceconnect.android.deviceplugin.midi.CustomTableRow
+        android:id="@+id/service_detail_item_title_manufacturer_name"
+        custom:itemTitle="@string/service_detail_item_title_manufacturer_name"
+        />
+
+    <org.deviceconnect.android.deviceplugin.midi.CustomTableRow
+        android:id="@+id/service_detail_item_title_device_connect_profile_list"
+        custom:itemTitle="@string/service_detail_item_title_device_connect_profile_list"
+        />
+
+</TableLayout>

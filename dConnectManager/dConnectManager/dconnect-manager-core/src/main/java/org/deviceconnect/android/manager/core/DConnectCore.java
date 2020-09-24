@@ -627,15 +627,18 @@ public class DConnectCore extends DevicePluginContext {
 
     /**
      * 指定されたリクエストがデバイスプラグインに配送するリクエストか確認する.
-     * <p>
-     * /system/deviceで、デバイス側に配信する必要がある。
-     * </p>
+     *
+     * サービスID または プラグインID が指定されている場合はデバイスプラグイン宛と判断する.
      *
      * @param request リクエスト
      * @return プラグインに配送する場合にはtrue、それ以外はfalse
      */
     private boolean isDeliveryRequest(final Intent request) {
-        return DConnectSystemProfile.isWakeUpRequest(request);
+        String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+        if (serviceId != null) {
+            return true;
+        }
+        return SystemProfile.getPluginID(request) != null;
     }
 
     /**

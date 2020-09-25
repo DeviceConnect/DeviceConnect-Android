@@ -8,11 +8,13 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SettingProfile;
 import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
+import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.utils.RFC3339DateUtils;
 
@@ -37,6 +39,7 @@ public class HostSettingProfile extends SettingProfile {
     /** Light Levelの最大値. */
     private static final int MAX_LIGHT_LEVEL = 255;
 
+    private final int NOTIFICATION_ID = 4000;
 
     private final DConnectApi mGetSoundVolumeApi = new GetApi() {
 
@@ -223,21 +226,18 @@ public class HostSettingProfile extends SettingProfile {
                 if (Settings.System.canWrite(getContext())) {
                     onPutDisplayLightInternal(request, response, serviceId, level);
                 } else {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                        Uri.parse("package:" + getContext().getPackageName()));
-                    IntentHandlerActivity.startActivityForResult(getContext(), intent,
-                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                            @Override
-                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                if (Settings.System.canWrite(getContext())) {
-                                    onPutDisplayLightInternal(request, response, serviceId, level);
-                                } else {
-                                    MessageUtils.setIllegalServerStateError(response,
+                    requestSystemSettingPermission(new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                        @Override
+                        protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                            if (Settings.System.canWrite(getContext())) {
+                                onPutDisplayLightInternal(request, response, serviceId, level);
+                            } else {
+                                MessageUtils.setIllegalServerStateError(response,
                                         "WRITE_SETTINGS permisson not granted");
-                                }
-                                sendResponse(response);
                             }
-                        });
+                            sendResponse(response);
+                        }
+                    });
                     return false;
                 }
             } else {
@@ -246,6 +246,25 @@ public class HostSettingProfile extends SettingProfile {
             return true;
         }
     };
+
+    private void requestSystemSettingPermission(final ResultReceiver resultReceiver) {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                Uri.parse("package:" + getContext().getPackageName()));
+
+        Intent callIntent = new Intent(getContext(), IntentHandlerActivity.class);
+        callIntent.putExtra("EXTRA_INTENT", intent);
+        callIntent.putExtra("EXTRA_CALLBACK", resultReceiver);
+        callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            NotificationUtils.createNotificationChannel(getContext());
+            NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, callIntent,
+                    getContext().getString(R.string.host_notification_setting_warnning));
+        } else {
+            getContext().startActivity(callIntent);
+        }
+    }
 
     private final DConnectApi mPutDisplaySleepApi = new PutApi() {
         @Override

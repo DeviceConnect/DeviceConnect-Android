@@ -131,5 +131,6 @@
     <string name="host_notification_connection_warnning">Start request from Host Connection Profile</string>
     <string name="host_notification_projection_warnning">Start request from Host Media Streaming Recording Profile</string>
     <string name="host_notification_phone_warnning">Start request from Host Phone Profile</string>
+    <string name="host_notification_setting_warnning">Start request from Host Setting Profile</string>
 </resources>
 

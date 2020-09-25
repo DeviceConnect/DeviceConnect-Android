@@ -19,6 +19,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import androidx.annotation.NonNull;
+
+import android.provider.Settings;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 
@@ -148,23 +150,18 @@ public class HostPhoneProfile extends PhoneProfile {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                     && !notificationManager.isNotificationPolicyAccessGranted()) {
 
-                Intent intent = new Intent(
-                        android.provider.Settings
-                                .ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
-
-                IntentHandlerActivity.startActivityForResult(getContext(), intent,
-                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                            @Override
-                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                if (notificationManager.isNotificationPolicyAccessGranted()) {
-                                    setPhoneMode(response, mode);
-                                } else {
-                                    MessageUtils.setIllegalServerStateError(response,
-                                            "PHOME_MODE setting permisson not granted");
-                                }
-                                sendResponse(response);
-                            }
-                        });
+                requestNotificationPolicyPermission(new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                    @Override
+                    protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                        if (notificationManager.isNotificationPolicyAccessGranted()) {
+                            setPhoneMode(response, mode);
+                        } else {
+                            MessageUtils.setIllegalServerStateError(response,
+                                    "PHOME_MODE setting permisson not granted");
+                        }
+                        sendResponse(response);
+                    }
+                });
                 return false;
             }
             setPhoneMode(response, mode);
@@ -172,6 +169,27 @@ public class HostPhoneProfile extends PhoneProfile {
             return true;
         }
     };
+
+    private void requestNotificationPolicyPermission(final ResultReceiver resultReceiver) {
+        Intent intent = new Intent(
+                android.provider.Settings
+                        .ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+
+        Intent callIntent = new Intent(getContext(), IntentHandlerActivity.class);
+        callIntent.putExtra("EXTRA_INTENT", intent);
+        callIntent.putExtra("EXTRA_CALLBACK", resultReceiver);
+        callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            NotificationUtils.createNotificationChannel(getContext());
+            NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, callIntent,
+                    getContext().getString(R.string.host_notification_setting_warnning));
+        } else {
+            getContext().startActivity(callIntent);
+        }
+    }
+
 
     private void setPhoneMode(Intent response, PhoneMode mode) {
         // AudioManager

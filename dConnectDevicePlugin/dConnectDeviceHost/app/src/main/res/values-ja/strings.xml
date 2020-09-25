@@ -117,5 +117,6 @@
     <string name="host_notification_geolocation_warnning">Host Geolocation Profileからの起動要求</string>
     <string name="host_notification_connection_warnning">Host Connection Profileからの起動要求</string>
     <string name="host_notification_projection_warnning">Host Media Streaming Recording Profileからの起動要求</string>
-    <string name="host_notification_phone_warnning">Host Connection Profileからの起動要求</string>
+    <string name="host_notification_phone_warnning">Host Phone Profileからの起動要求</string>
+    <string name="host_notification_setting_warnning">Host Setting Profileからの起動要求</string>
 </resources>

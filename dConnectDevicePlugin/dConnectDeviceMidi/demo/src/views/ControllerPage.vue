@@ -87,7 +87,8 @@ export default {
 
   data: () => ({
     pads: [],
-    sliders: []
+    sliders: [],
+    isHelio: false
   }),
 
   computed: {
@@ -127,7 +128,7 @@ export default {
 
     onMouse: function(pad, on) {
       console.log('onMouse: pad.id = ' + pad.id + ", on = " + on);
-      if (!this.hasTouchEvent) {
+      if (!this.hasTouchEvent || this.isHelio) {
         this.sendPadMessage(pad, on);
       }
     },
@@ -188,6 +189,11 @@ export default {
 
   mounted: function() {
     console.log('mounted: ', this.$route.query);
+
+    let userAgent = navigator.userAgent;
+    if (userAgent) {
+      this.isHelio = userAgent.toLowerCase().includes('helio/');
+    }
 
     let query = this.$route.query;
     let padCount = query['pad_count'];

@@ -18,6 +18,10 @@ import jp.kshoji.javax.sound.midi.spi.MidiFileReader;
 
 /**
  * MIDI ファイルプレイヤー.
+ *
+ * NOTE: 再生処理については、以下の実装を参考にした。
+ * https://github.com/kshoji/javax.sound.midi-for-Android/blob/develop/javax.sound.midi/src/jp/kshoji/javax/sound/midi/impl/SequencerImpl.java
+ *
  */
 public class MidiFilePlayer {
 

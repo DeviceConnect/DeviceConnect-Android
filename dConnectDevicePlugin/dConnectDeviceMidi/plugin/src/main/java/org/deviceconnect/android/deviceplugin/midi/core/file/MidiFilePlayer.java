@@ -1,3 +1,9 @@
+/*
+ MidiFilePlayer.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.core.file;
 
 import android.media.midi.MidiInputPort;
@@ -22,6 +28,7 @@ import jp.kshoji.javax.sound.midi.spi.MidiFileReader;
  * NOTE: 再生処理については、以下の実装を参考にした。
  * https://github.com/kshoji/javax.sound.midi-for-Android/blob/develop/javax.sound.midi/src/jp/kshoji/javax/sound/midi/impl/SequencerImpl.java
  *
+ * @author NTT DOCOMO, INC.
  */
 public class MidiFilePlayer {
 

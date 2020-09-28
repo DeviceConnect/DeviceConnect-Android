@@ -1,3 +1,9 @@
+/*
+ DConnectMidiServiceDetailActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi;
 
 import android.app.Activity;
@@ -8,6 +14,8 @@ import androidx.annotation.Nullable;
 
 /**
  * MIDI プラグインのサービス詳細情報画面.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class DConnectMidiServiceDetailActivity extends Activity {
 

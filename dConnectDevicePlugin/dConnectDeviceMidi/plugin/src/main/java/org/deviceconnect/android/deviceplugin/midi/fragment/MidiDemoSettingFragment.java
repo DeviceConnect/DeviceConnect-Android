@@ -1,3 +1,9 @@
+/*
+ MidiDemoSettingFragment.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.fragment;
 
 import android.Manifest;
@@ -14,6 +20,11 @@ import org.deviceconnect.android.deviceplugin.midi.DConnectMidiSettingsListActiv
 import org.deviceconnect.android.deviceplugin.midi.MidiDemoInstaller;
 import org.deviceconnect.android.deviceplugin.midi.R;
 
+/**
+ * This fragment do setting of the MIDI demo setting.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class MidiDemoSettingFragment extends DemoSettingFragment {
 
     private static final String FILE_PROVIDER_AUTHORITY = "org.deviceconnect.android.deviceplugin.midi.provider";

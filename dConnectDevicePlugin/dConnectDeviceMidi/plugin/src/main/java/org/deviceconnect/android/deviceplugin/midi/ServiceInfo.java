@@ -1,3 +1,9 @@
+/*
+ ServiceInfo.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi;
 
 import android.media.midi.MidiDeviceInfo;
@@ -8,6 +14,11 @@ import android.os.Parcelable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * MIDI デバイス操作用サービスについての情報の構造体.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ServiceInfo implements Parcelable {
 
     public enum Direction {

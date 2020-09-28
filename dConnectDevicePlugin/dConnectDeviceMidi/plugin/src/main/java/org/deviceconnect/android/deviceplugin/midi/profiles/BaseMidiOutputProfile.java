@@ -1,3 +1,9 @@
+/*
+ BaseMidiOutputProfile.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.profiles;
 
 import android.content.Intent;
@@ -17,6 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MIDI 出力用プロファイルのベースクラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public abstract class BaseMidiOutputProfile extends BaseMidiProfile {
 
     private final Map<Class< ? extends MessageEvent>, MessageEvent> mLastEventList = new HashMap<>();

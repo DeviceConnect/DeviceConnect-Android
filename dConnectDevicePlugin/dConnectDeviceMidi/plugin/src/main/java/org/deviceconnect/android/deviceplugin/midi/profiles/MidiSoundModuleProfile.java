@@ -1,3 +1,9 @@
+/*
+ MidiSoundModuleProfile.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.profiles;
 
 import android.content.Intent;
@@ -14,6 +20,11 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.io.IOException;
 
+/**
+ * SoundModule プロファイルの実装.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class MidiSoundModuleProfile extends BaseMidiProfile {
 
     private final MidiMessageSender mMessageSender;

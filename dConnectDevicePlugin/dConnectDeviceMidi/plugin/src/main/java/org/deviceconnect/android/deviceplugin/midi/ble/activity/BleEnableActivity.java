@@ -1,3 +1,9 @@
+/*
+ BleEnableActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.ble.activity;
 
 import android.app.Activity;
@@ -7,6 +13,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 
+/**
+ * BLE デバイス接続画面.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class BleEnableActivity extends Activity {
     private static final String EXTRA_CALLBACK = "EXTRA_CALLBACK";
     private static final int REQUEST_CODE = 123456789;

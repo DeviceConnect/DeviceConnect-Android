@@ -1,3 +1,9 @@
+/*
+ MidiMessageParser.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.core;
 
 /**
@@ -5,6 +11,8 @@ package org.deviceconnect.android.deviceplugin.midi.core;
  *
  * 与えられたバイト配列を MIDI メッセージとして解析し、
  * その結果を {@link MidiMessage} オブジェクトで返す.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class MidiMessageParser {
 

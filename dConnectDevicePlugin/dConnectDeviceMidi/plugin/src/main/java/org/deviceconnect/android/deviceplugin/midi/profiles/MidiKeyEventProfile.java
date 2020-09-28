@@ -1,3 +1,9 @@
+/*
+ MidiKeyEventProfile.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.profiles;
 
 import android.content.Intent;
@@ -15,6 +21,11 @@ import org.deviceconnect.android.profile.api.PutApi;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * KeyEvent プロファイルの実装.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class MidiKeyEventProfile extends BaseMidiOutputProfile {
 
     /**

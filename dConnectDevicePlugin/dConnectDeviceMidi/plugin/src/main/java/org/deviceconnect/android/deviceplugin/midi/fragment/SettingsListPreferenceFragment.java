@@ -1,3 +1,9 @@
+/*
+ SettingsListPreferenceFragment.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi.fragment;
 
 import android.app.Activity;
@@ -12,6 +18,11 @@ import org.deviceconnect.android.deviceplugin.midi.DConnectMidiServiceListActivi
 import org.deviceconnect.android.deviceplugin.midi.MidiDemoSettingActivity;
 import org.deviceconnect.android.deviceplugin.midi.R;
 
+/**
+ * Settings List Fragment.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class SettingsListPreferenceFragment extends PreferenceFragmentCompat {
 
     @Override

@@ -1,3 +1,9 @@
+/*
+ DConnectMidiBleSettingsActivity.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi;
 
 import androidx.fragment.app.Fragment;
@@ -7,6 +13,11 @@ import org.deviceconnect.android.deviceplugin.midi.fragment.MidiDeviceSettingsFr
 import org.deviceconnect.android.deviceplugin.midi.fragment.SummaryFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
+/**
+ * BLE 設定画面.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class DConnectMidiBleSettingsActivity extends DConnectSettingPageFragmentActivity {
 
     @Override

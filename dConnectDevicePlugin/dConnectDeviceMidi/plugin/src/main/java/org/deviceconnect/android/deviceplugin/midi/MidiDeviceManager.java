@@ -1,3 +1,9 @@
+/*
+ MidiDeviceManager.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi;
 
 import android.bluetooth.BluetoothDevice;
@@ -20,6 +26,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * MIDI デバイス管理クラス.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class MidiDeviceManager {
 
     private final Logger mLogger = Logger.getLogger("midi-plugin");

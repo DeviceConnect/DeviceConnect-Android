@@ -1,3 +1,9 @@
+/*
+ DConnectMidiDeviceService.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi;
 
 import android.bluetooth.BluetoothDevice;
@@ -44,6 +50,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * MIDI デバイス操作用サービス.
+ *
+ * author NTT DOCOMO, INC.
+ */
 public class DConnectMidiDeviceService extends DConnectService implements MidiMessageSender {
 
     /**

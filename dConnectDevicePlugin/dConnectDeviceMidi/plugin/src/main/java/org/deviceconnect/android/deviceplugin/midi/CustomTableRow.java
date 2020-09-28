@@ -1,3 +1,9 @@
+/*
+ CustomTableRow.java
+ Copyright (c) 2020 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.midi;
 
 import android.content.Context;
@@ -7,6 +13,11 @@ import android.view.LayoutInflater;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+/**
+ * テーブル行表示.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class CustomTableRow extends TableRow {
 
     private String mItemTitle;

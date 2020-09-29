@@ -187,6 +187,8 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
                                                       final BigInteger serialNumber,
                                                       final GeneralNames generalNames,
                                                       final boolean isCA) throws GeneralSecurityException {
+        int keyUsage = isCA ? (KeyUsage.cRLSign | KeyUsage.keyCertSign)
+                : (KeyUsage.keyEncipherment | KeyUsage.digitalSignature);
         X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
         generator.setSerialNumber(serialNumber);
         generator.setIssuerDN(issuer);
@@ -196,8 +198,10 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         generator.setPublicKey(keyPair.getPublic());
         generator.setSignatureAlgorithm("SHA256WithRSAEncryption");
         generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(isCA));
-        generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(160));
-        generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
+        generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(keyUsage));
+        if (!isCA) {
+            generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
+        }
         if (generalNames != null) {
             generator.addExtension(X509Extensions.SubjectAlternativeName, false, generalNames);
         }

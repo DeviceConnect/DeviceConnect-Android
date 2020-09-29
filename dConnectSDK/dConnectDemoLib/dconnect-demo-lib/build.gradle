@@ -40,8 +40,11 @@ dependencies {
     implementation 'androidx.fragment:fragment:1.1.0'
 }
 
+def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
 
 def getVersionName = { ->
     return "1.0.1" // Replace with version Name

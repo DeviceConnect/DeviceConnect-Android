@@ -1,6 +1,9 @@
 apply plugin: 'com.android.application'
+def githubPropertiesFile = rootProject.file("github.properties")
 def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
+if (githubPropertiesFile.exists()) {
+    githubProperties.load(new FileInputStream(githubPropertiesFile))
+}
 
 android {
     compileSdkVersion 29

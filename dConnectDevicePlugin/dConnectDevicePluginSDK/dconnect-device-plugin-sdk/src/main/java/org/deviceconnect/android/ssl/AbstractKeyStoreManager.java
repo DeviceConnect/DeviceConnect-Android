@@ -48,6 +48,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -191,6 +192,14 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
 
     private void saveKeyStore(final OutputStream out) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
         mKeyStore.store(out, mKeyStorePassword.toCharArray());
+    }
+
+    public boolean clean() throws KeyStoreException, IOException {
+        for (Enumeration<String> e = mKeyStore.aliases(); e.hasMoreElements(); ) {
+            String alias = e.nextElement();
+            mKeyStore.deleteEntry(alias);
+        }
+        return mContext.deleteFile(mKeyStoreFilePath);
     }
 
     private X509Certificate buildX509V3Certificate(final KeyPair keyPair,

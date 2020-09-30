@@ -21,6 +21,7 @@ import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 import org.deviceconnect.android.BuildConfig;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -226,7 +227,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
 
                     final CertificateAuthorityClient localCA = new CertificateAuthorityClient(mContext, mRootCA);
 
-                    final List<ASN1Encodable> names = new ArrayList<>();
+                    final List<GeneralName> names = new ArrayList<>();
                     names.add(new GeneralName(GeneralName.iPAddress, ipAddress));
                     for (SAN cache : mSANs) {
                         if (!cache.mName.equals(ipAddress)) {
@@ -236,7 +237,7 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                     names.add(new GeneralName(GeneralName.iPAddress, "0.0.0.0"));
                     names.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
                     names.add(new GeneralName(GeneralName.dNSName, "localhost"));
-                    GeneralNames generalNames = new GeneralNames(new DERSequence(names.toArray(new ASN1Encodable[0])));
+                    GeneralNames generalNames = new GeneralNames(names.toArray(new GeneralName[0]));
 
                     localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
                         @Override
@@ -275,6 +276,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                 callback.onError(KeyStoreError.BROKEN_KEYSTORE);
             } catch (GeneralSecurityException e) {
                 callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
+            } catch (IOException e) {
+                callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
             }
         });
     }
@@ -307,10 +310,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      * @param generalNames SANs
      * @return 証明書署名要求のオブジェクト
      * @throws GeneralSecurityException 作成に失敗した場合
+     * @throws java.io.IOException SANsのエンコードに失敗した場合
      */
     private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,
                                                         final String commonName,
-                                                        final GeneralNames generalNames) throws GeneralSecurityException {
+                                                        final GeneralNames generalNames) throws GeneralSecurityException, IOException {
         final String signatureAlgorithm = "SHA256WithRSAEncryption";
         final X500Principal principal = new X500Principal("CN=" + commonName + ", O=Device Connect Project, L=N/A, ST=N/A, C=JP");
         DERSequence sanExtension= new DERSequence(new ASN1Encodable[] {

@@ -11,9 +11,9 @@ import android.content.Context;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.ASN1StreamParser;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
@@ -22,6 +22,7 @@ import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.GeneralNamesBuilder;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 
 import java.io.IOException;
@@ -178,12 +179,12 @@ class CertificateAuthority {
      * @throws IOException 解析に失敗した場合
      */
     private GeneralNames parseSANs(final PKCS10CertificationRequest request) throws IOException {
-        List<ASN1Encodable> generalNames = new ArrayList<>();
+        List<GeneralName> generalNames = new ArrayList<>();
 
         CertificationRequestInfo info = request.getCertificationRequestInfo();
         ASN1Set attributes = info.getAttributes();
         for (int i = 0; i < attributes.size(); i++) {
-            DEREncodable extensionRequestObj = attributes.getObjectAt(i);
+            ASN1Encodable extensionRequestObj = attributes.getObjectAt(i);
             if (!(extensionRequestObj instanceof DERSequence)) {
                 continue;
             }
@@ -191,8 +192,8 @@ class CertificateAuthority {
             if (extensionRequest.size() != 2) {
                 continue;
             }
-            DEREncodable idObj = extensionRequest.getObjectAt(0);
-            DEREncodable contentObj = extensionRequest.getObjectAt(1);
+            ASN1Encodable idObj = extensionRequest.getObjectAt(0);
+            ASN1Encodable contentObj = extensionRequest.getObjectAt(1);
             if (!(idObj instanceof ASN1ObjectIdentifier && contentObj instanceof DERSet)) {
                 continue;
             }
@@ -204,14 +205,14 @@ class CertificateAuthority {
             if (content.size() < 1) {
                 continue;
             }
-            DEREncodable extensionsObj = content.getObjectAt(0);
+            ASN1Encodable extensionsObj = content.getObjectAt(0);
             if (!(extensionsObj instanceof DERSequence)) {
                 continue;
             }
             DERSequence extensions = (DERSequence) extensionsObj;
 
             for (int k = 0; k < extensions.size(); k++) {
-                DEREncodable extensionObj = extensions.getObjectAt(k);
+                ASN1Encodable extensionObj = extensions.getObjectAt(k);
                 if (!(extensionObj instanceof DERSequence)) {
                     continue;
                 }
@@ -219,8 +220,8 @@ class CertificateAuthority {
                 if (extension.size() != 2) {
                     continue;
                 }
-                DEREncodable extensionIdObj = extension.getObjectAt(0);
-                DEREncodable extensionContentObj = extension.getObjectAt(1);
+                ASN1Encodable extensionIdObj = extension.getObjectAt(0);
+                ASN1Encodable extensionContentObj = extension.getObjectAt(1);
                 if (!(extensionIdObj instanceof ASN1ObjectIdentifier)) {
                     continue;
                 }
@@ -229,11 +230,11 @@ class CertificateAuthority {
                     DEROctetString san = (DEROctetString) extensionContentObj;
 
                     ASN1StreamParser sanParser = new ASN1StreamParser(san.parser().getOctetStream());
-                    DEREncodable namesObj = sanParser.readObject().getDERObject();
+                    ASN1Encodable namesObj = sanParser.readObject().toASN1Primitive();
                     if (namesObj instanceof DERSequence) {
                         DERSequence names = (DERSequence) namesObj;
                         for (int m = 0; m < names.size(); m++) {
-                            DEREncodable nameObj = names.getObjectAt(m);
+                            ASN1Encodable nameObj = names.getObjectAt(m);
                             if (nameObj instanceof DERTaggedObject) {
                                 DERTaggedObject name = (DERTaggedObject) nameObj;
                                 switch (name.getTagNo()) {
@@ -251,7 +252,7 @@ class CertificateAuthority {
             }
         }
         if (generalNames.size() > 0) {
-            return new GeneralNames(new DERSequence(generalNames.toArray(new ASN1Encodable[0])));
+            return new GeneralNames(generalNames.toArray(new GeneralName[0]));
         }
         return null;
     }

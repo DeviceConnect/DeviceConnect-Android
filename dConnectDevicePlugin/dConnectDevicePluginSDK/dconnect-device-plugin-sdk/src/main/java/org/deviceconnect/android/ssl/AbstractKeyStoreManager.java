@@ -203,15 +203,13 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
     }
 
     private X509Certificate buildX509V3Certificate(final KeyPair keyPair,
-                                                   final String issuerName,
                                                    final String subjectName,
+                                                   final String issuerName,
                                                    final Date notBefore,
                                                    final Date notAfter,
                                                    final BigInteger serialNumber,
                                                    final GeneralNames generalNames,
                                                    final boolean isCA) throws GeneralSecurityException, IOException, OperatorCreationException {
-        Log.d("Certificate", "***** buildX509V3Certificate: SANs = " + generalNames);
-
         AsymmetricKeyParameter privateKey = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256WithRSAEncryption");
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);

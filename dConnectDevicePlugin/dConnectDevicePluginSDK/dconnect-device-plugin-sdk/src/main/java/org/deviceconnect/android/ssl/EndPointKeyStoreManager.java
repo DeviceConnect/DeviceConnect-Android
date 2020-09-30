@@ -14,6 +14,7 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
@@ -208,10 +209,11 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
             try {
                 String alias = getAlias();
                 if (hasIPAddress(ipAddress)) {
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info("Certificate is cached for alias: " + alias);
+                    Certificate[] chain = mKeyStore.getCertificateChain(alias);
+                    if (chain == null || chain.length < 2) {
+                        callback.onError(KeyStoreError.BROKEN_KEYSTORE);
+                        return;
                     }
-                    Certificate[] chain = mKeyStore.getCertificateChain(getAlias());
                     callback.onSuccess(mKeyStore, chain[0], chain[1]);
                 } else {
                     if (BuildConfig.DEBUG) {
@@ -237,13 +239,13 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                     names.add(new GeneralName(GeneralName.iPAddress, "0.0.0.0"));
                     names.add(new GeneralName(GeneralName.iPAddress, "127.0.0.1"));
                     names.add(new GeneralName(GeneralName.dNSName, "localhost"));
-                    GeneralNames generalNames = new GeneralNames(names.toArray(new GeneralName[0]));
+                    GeneralNames generalNames = GeneralNames.getInstance(new DLSequence(names.toArray(new GeneralName[0])));
 
                     localCA.executeCertificateRequest(createCSR(keyPair, "localhost", generalNames), new CertificateRequestCallback() {
                         @Override
                         public void onCreate(final Certificate cert, final Certificate rootCert) {
                             if (BuildConfig.DEBUG) {
-                                mLogger.info("Generated server certificate");
+                                mLogger.info("Generated server certificate: cert = " + cert + ", rootCert = " + rootCert);
                             }
 
                             try {
@@ -254,7 +256,16 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                                     mLogger.info("Saved server certificate");
                                 }
                                 mSANs.add(new SAN(GeneralName.iPAddress, ipAddress));
-                                callback.onSuccess(mKeyStore, cert, rootCert);
+
+                                if (BuildConfig.DEBUG) {
+                                    mLogger.info("Generated server certificate: cert = " + cert + ", rootCert = " + rootCert);
+                                }
+                                Certificate[] saved = mKeyStore.getCertificateChain(getAlias());
+                                if (saved == null || saved.length < 2) {
+                                    callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);
+                                    return;
+                                }
+                                callback.onSuccess(mKeyStore, saved[0], saved[1]);
                             } catch (Exception e) {
                                 mLogger.log(Level.SEVERE, "Failed to save server certificate", e);
                                 callback.onError(KeyStoreError.FAILED_BACKUP_KEYSTORE);

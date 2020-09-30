@@ -11,7 +11,6 @@ import android.content.Context;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.ASN1StreamParser;
 import org.bouncycastle.asn1.DERIA5String;
@@ -22,7 +21,6 @@ import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.GeneralNamesBuilder;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
 
 import java.io.IOException;
@@ -159,6 +157,7 @@ class CertificateAuthority {
             X500Principal subject = new X500Principal("CN=localhost");
             X500Principal issuer = new X500Principal("CN=" + mIssuerName);
             GeneralNames generalNames = parseSANs(request);
+            mLogger.info("CertificateAuthority: requestCertificate: SANs = " + generalNames);
 
             // 証明書発行
             Certificate certificate = mRootKeyStoreMgr.generateX509V3Certificate(keyPair, subject, issuer, generalNames, false);
@@ -183,8 +182,11 @@ class CertificateAuthority {
 
         CertificationRequestInfo info = request.getCertificationRequestInfo();
         ASN1Set attributes = info.getAttributes();
+        mLogger.info("CertificateAuthority: parseSANs: attributes = " + attributes.size());
+
         for (int i = 0; i < attributes.size(); i++) {
             ASN1Encodable extensionRequestObj = attributes.getObjectAt(i);
+            mLogger.info("CertificateAuthority: parseSANs: attribute class = " + extensionRequestObj.getClass());
             if (!(extensionRequestObj instanceof DERSequence)) {
                 continue;
             }

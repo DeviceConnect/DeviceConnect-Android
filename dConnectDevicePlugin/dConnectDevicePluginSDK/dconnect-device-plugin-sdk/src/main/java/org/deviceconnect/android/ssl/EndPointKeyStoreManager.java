@@ -10,13 +10,10 @@ package org.deviceconnect.android.ssl;
 import android.content.ComponentName;
 import android.content.Context;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.operator.ContentSigner;
@@ -335,18 +332,13 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
         final String signatureAlgorithm = "SHA256WithRSAEncryption";
         final X500Principal principal = new X500Principal("CN=" + commonName + ", O=Device Connect Project, L=N/A, ST=N/A, C=JP");
 
-        DERSequence sanExtension = new DERSequence(new ASN1Encodable[] {
-                Extension.subjectAlternativeName,
-                new DEROctetString(generalNames)
-        });
-        DERSet extensions = new DERSet(new DERSequence(sanExtension));
-
         ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm)
-                .setProvider(SecurityUtil.getSecurityProvider())
                 .build(keyPair.getPrivate());
 
+        ExtensionsGenerator exGen = new ExtensionsGenerator();
+        exGen.addExtension(Extension.subjectAlternativeName, false, generalNames);
         return new JcaPKCS10CertificationRequestBuilder(principal, keyPair.getPublic())
-                .addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensions)
+                .addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, exGen.generate())
                 .build(contentSigner);
     }
 

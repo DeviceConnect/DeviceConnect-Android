@@ -16,10 +16,14 @@ import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.deviceconnect.android.BuildConfig;
 
 import java.io.IOException;
@@ -287,6 +291,8 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
                 callback.onError(KeyStoreError.BROKEN_KEYSTORE);
             } catch (GeneralSecurityException e) {
                 callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
+            } catch (OperatorCreationException e) {
+                callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
             } catch (IOException e) {
                 callback.onError(KeyStoreError.UNSUPPORTED_CERTIFICATE_FORMAT);
             }
@@ -320,31 +326,28 @@ public class EndPointKeyStoreManager extends AbstractKeyStoreManager implements 
      * @param commonName コモンネーム
      * @param generalNames SANs
      * @return 証明書署名要求のオブジェクト
-     * @throws GeneralSecurityException 作成に失敗した場合
-     * @throws java.io.IOException SANsのエンコードに失敗した場合
+     * @throws OperatorCreationException 作成に失敗した場合
+     * @throws IOException SANsのエンコードに失敗した場合
      */
     private static PKCS10CertificationRequest createCSR(final KeyPair keyPair,
                                                         final String commonName,
-                                                        final GeneralNames generalNames) throws GeneralSecurityException, IOException {
+                                                        final GeneralNames generalNames) throws OperatorCreationException, IOException {
         final String signatureAlgorithm = "SHA256WithRSAEncryption";
         final X500Principal principal = new X500Principal("CN=" + commonName + ", O=Device Connect Project, L=N/A, ST=N/A, C=JP");
-        DERSequence sanExtension= new DERSequence(new ASN1Encodable[] {
-                X509Extensions.SubjectAlternativeName,
+
+        DERSequence sanExtension = new DERSequence(new ASN1Encodable[] {
+                Extension.subjectAlternativeName,
                 new DEROctetString(generalNames)
         });
         DERSet extensions = new DERSet(new DERSequence(sanExtension));
-        DERSequence extensionRequest = new DERSequence(new ASN1Encodable[] {
-                PKCSObjectIdentifiers.pkcs_9_at_extensionRequest,
-                extensions
-        });
-        DERSet attributes = new DERSet(extensionRequest);
-        return new PKCS10CertificationRequest(
-                signatureAlgorithm,
-                principal,
-                keyPair.getPublic(),
-                attributes,
-                keyPair.getPrivate(),
-                SecurityUtil.getSecurityProvider());
+
+        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm)
+                .setProvider(SecurityUtil.getSecurityProvider())
+                .build(keyPair.getPrivate());
+
+        return new JcaPKCS10CertificationRequestBuilder(principal, keyPair.getPublic())
+                .addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensions)
+                .build(contentSigner);
     }
 
     /**

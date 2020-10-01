@@ -8,7 +8,6 @@ package org.deviceconnect.android.ssl;
 
 
 import android.content.Context;
-import android.util.Log;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;

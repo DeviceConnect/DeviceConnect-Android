@@ -147,7 +147,7 @@ def apiDir = new File(specOutputDir, 'api')
 if (!apiDir.exists()) {
     specZipFile = file("${projectDir}/master.zip")
     download {
-        src 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/master.zip'
+        src 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/main.zip'
         dest specZipFile
         overwrite true
     }

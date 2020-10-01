@@ -72,7 +72,7 @@ android {
     repositories {
         maven {
             name = "DeviceConnect-Android"
-            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
 
             credentials {
                 username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
@@ -86,10 +86,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation "androidx.preference:preference:1.1.0"
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.1'
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
-    implementation 'org.deviceconnect:libmedia:1.0.0'
-    implementation 'org.deviceconnect:libsrt:1.0.0'
-    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.5.1'
+    implementation 'org.deviceconnect:libmedia:1.0.0.1'
+    implementation 'org.deviceconnect:libsrt:1.0.0.2'
+    implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1.1'
 }
 
 task zipDemo(type:Zip) {

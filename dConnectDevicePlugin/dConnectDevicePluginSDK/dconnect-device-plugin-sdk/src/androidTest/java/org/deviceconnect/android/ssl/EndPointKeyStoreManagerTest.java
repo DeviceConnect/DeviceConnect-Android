@@ -2,10 +2,9 @@ package org.deviceconnect.android.ssl;
 
 import android.content.ComponentName;
 import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import junit.framework.Assert;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.junit.Before;
@@ -20,6 +19,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -37,7 +40,7 @@ public class EndPointKeyStoreManagerTest {
     }
 
     @Test
-    public void testRequestKeyStore() {
+    public void testRequestKeyStore() throws Exception {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
         String keyStoreFile = "keystore.p12";
         ComponentName authorityName = new ComponentName("org.deviceconnect.android.test",
@@ -45,9 +48,12 @@ public class EndPointKeyStoreManagerTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<KeyStore> result = new AtomicReference<>();
+        final AtomicReference<KeyStoreError> keyStoreError = new AtomicReference<>();
         final String keyStorePassword = "0000";
+        final String alias = context.getPackageName();
 
-        KeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, keyStorePassword, context.getPackageName(), authorityName);
+        EndPointKeyStoreManager mgr = new EndPointKeyStoreManager(context, keyStoreFile, keyStorePassword, alias, authorityName);
+        mgr.clean();
         mgr.requestKeyStore("0.0.0.0", new KeyStoreCallback() {
             @Override
             public void onSuccess(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
@@ -57,16 +63,21 @@ public class EndPointKeyStoreManagerTest {
 
             @Override
             public void onError(final KeyStoreError error) {
+                keyStoreError.set(error);
                 latch.countDown();
             }
         });
-        try {
-            if (latch.getCount() > 0) {
-                latch.await(20, TimeUnit.SECONDS);
-            }
-            Assert.assertNotNull(result.get());
-        } catch (InterruptedException e) {
-            Assert.assertTrue(false);
+
+        if (latch.getCount() > 0) {
+            latch.await(20, TimeUnit.SECONDS);
         }
+
+        assertNull("ERROR: " + keyStoreError, keyStoreError);
+
+        KeyStore keyStore = result.get();
+        assertNotNull(keyStore);
+        Certificate[] chain = keyStore.getCertificateChain(alias);
+        assertNotNull(chain);
+        assertEquals(2, chain.length);
     }
 }

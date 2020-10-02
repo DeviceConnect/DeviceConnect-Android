@@ -90,7 +90,7 @@ public abstract class DConnectManager implements DConnectInterface {
     /**
      * キーストア管理オブジェクト.
      */
-    private KeyStoreManager mKeyStoreMgr;
+    private final KeyStoreManager mKeyStoreMgr;
 
     /**
      * RESTfulサーバ.
@@ -240,9 +240,7 @@ public abstract class DConnectManager implements DConnectInterface {
      * @param callback キーストア要求結果を通知するコールバック
      */
     public void requestKeyStore(String ipAddress, KeyStoreCallback callback) {
-        if (mCore != null) {
-            mCore.requestKeyStore(ipAddress, callback);
-        }
+        mKeyStoreMgr.requestKeyStore(ipAddress, callback);
     }
 
     /**

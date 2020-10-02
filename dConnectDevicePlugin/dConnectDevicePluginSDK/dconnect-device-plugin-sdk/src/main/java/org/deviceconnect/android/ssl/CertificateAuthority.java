@@ -11,25 +11,30 @@ import android.content.Context;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1Set;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1StreamParser;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERSet;
-import org.bouncycastle.asn1.DERTaggedObject;
-import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
+import org.bouncycastle.asn1.DLSequence;
+import org.bouncycastle.asn1.DLSet;
+import org.bouncycastle.asn1.DLTaggedObject;
+import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -154,7 +159,9 @@ class CertificateAuthority {
             // 証明書要求を解析
             PKCS10CertificationRequest request = new PKCS10CertificationRequest(pkcs10);
             PrivateKey signingKey = mRootKeyStoreMgr.getPrivateKey(mIssuerName);
-            KeyPair keyPair = new KeyPair(request.getPublicKey(SecurityUtil.getSecurityProvider()), signingKey);
+            SubjectPublicKeyInfo publicKeyInfo = request.getSubjectPublicKeyInfo();
+            PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKeyInfo.getEncoded()));
+            KeyPair keyPair = new KeyPair(publicKey, signingKey);
             X500Principal subject = new X500Principal("CN=localhost");
             X500Principal issuer = new X500Principal("CN=" + mIssuerName);
             GeneralNames generalNames = parseSANs(request);
@@ -178,49 +185,51 @@ class CertificateAuthority {
      * @throws IOException 解析に失敗した場合
      */
     private GeneralNames parseSANs(final PKCS10CertificationRequest request) throws IOException {
-        List<ASN1Encodable> generalNames = new ArrayList<>();
-
-        CertificationRequestInfo info = request.getCertificationRequestInfo();
-        ASN1Set attributes = info.getAttributes();
-        for (int i = 0; i < attributes.size(); i++) {
-            DEREncodable extensionRequestObj = attributes.getObjectAt(i);
+        List<GeneralName> generalNames = new ArrayList<>();
+        for (Attribute attr : request.getAttributes()) {
+            ASN1Primitive extensionRequestObj = attr.toASN1Primitive();
             if (!(extensionRequestObj instanceof DERSequence)) {
+                mLogger.info("parseSANs: Not DERSequence");
                 continue;
             }
             DERSequence extensionRequest = (DERSequence) extensionRequestObj;
             if (extensionRequest.size() != 2) {
+                mLogger.info("parseSANs: size is not 2");
                 continue;
             }
-            DEREncodable idObj = extensionRequest.getObjectAt(0);
-            DEREncodable contentObj = extensionRequest.getObjectAt(1);
-            if (!(idObj instanceof ASN1ObjectIdentifier && contentObj instanceof DERSet)) {
+            ASN1Encodable idObj = extensionRequest.getObjectAt(0);
+            ASN1Encodable contentObj = extensionRequest.getObjectAt(1);
+            mLogger.info("parseSANs: idObj = " + idObj.getClass() + ", contentObj = " + contentObj.getClass());
+            if (!(idObj instanceof ASN1ObjectIdentifier && contentObj instanceof DLSet)) {
                 continue;
             }
             ASN1ObjectIdentifier id = (ASN1ObjectIdentifier) idObj;
-            DERSet content = (DERSet) contentObj;
+            DLSet content = (DLSet) contentObj;
             if (!id.getId().equals("1.2.840.113549.1.9.14")) {
                 continue;
             }
             if (content.size() < 1) {
                 continue;
             }
-            DEREncodable extensionsObj = content.getObjectAt(0);
-            if (!(extensionsObj instanceof DERSequence)) {
+            ASN1Encodable extensionsObj = content.getObjectAt(0);
+            if (!(extensionsObj instanceof DLSequence)) {
+                mLogger.info("parseSANs: extensionsObj is not DERSequence but; " + extensionsObj.getClass());
                 continue;
             }
-            DERSequence extensions = (DERSequence) extensionsObj;
+            DLSequence extensions = (DLSequence) extensionsObj;
 
             for (int k = 0; k < extensions.size(); k++) {
-                DEREncodable extensionObj = extensions.getObjectAt(k);
-                if (!(extensionObj instanceof DERSequence)) {
+                ASN1Encodable extensionObj = extensions.getObjectAt(k);
+                if (!(extensionObj instanceof DLSequence)) {
+                    mLogger.info("parseSANs: extensionObj is not DERSequence but; " + extensionsObj.getClass());
                     continue;
                 }
-                DERSequence extension = (DERSequence) extensionObj;
+                DLSequence extension = (DLSequence) extensionObj;
                 if (extension.size() != 2) {
                     continue;
                 }
-                DEREncodable extensionIdObj = extension.getObjectAt(0);
-                DEREncodable extensionContentObj = extension.getObjectAt(1);
+                ASN1Encodable extensionIdObj = extension.getObjectAt(0);
+                ASN1Encodable extensionContentObj = extension.getObjectAt(1);
                 if (!(extensionIdObj instanceof ASN1ObjectIdentifier)) {
                     continue;
                 }
@@ -229,19 +238,20 @@ class CertificateAuthority {
                     DEROctetString san = (DEROctetString) extensionContentObj;
 
                     ASN1StreamParser sanParser = new ASN1StreamParser(san.parser().getOctetStream());
-                    DEREncodable namesObj = sanParser.readObject().getDERObject();
-                    if (namesObj instanceof DERSequence) {
-                        DERSequence names = (DERSequence) namesObj;
+                    ASN1Encodable namesObj = sanParser.readObject().toASN1Primitive();
+                    if (namesObj instanceof DLSequence) {
+                        DLSequence names = (DLSequence) namesObj;
                         for (int m = 0; m < names.size(); m++) {
-                            DEREncodable nameObj = names.getObjectAt(m);
-                            if (nameObj instanceof DERTaggedObject) {
-                                DERTaggedObject name = (DERTaggedObject) nameObj;
+                            ASN1Encodable nameObj = names.getObjectAt(m);
+                            mLogger.info("parseSANs: nameObj = " + nameObj.getClass());
+                            if (nameObj instanceof DLTaggedObject) {
+                                DLTaggedObject name = (DLTaggedObject) nameObj;
                                 switch (name.getTagNo()) {
                                     case GeneralName.dNSName:
                                         generalNames.add(new GeneralName(GeneralName.dNSName, DERIA5String.getInstance(name, false)));
                                         break;
                                     case GeneralName.iPAddress:
-                                        generalNames.add(new GeneralName(GeneralName.iPAddress, DEROctetString.getInstance(name, true)));
+                                        generalNames.add(new GeneralName(GeneralName.iPAddress, DERIA5String.getInstance(name, false)));
                                         break;
                                 }
                             }
@@ -250,8 +260,10 @@ class CertificateAuthority {
                 }
             }
         }
+
         if (generalNames.size() > 0) {
-            return new GeneralNames(new DERSequence(generalNames.toArray(new ASN1Encodable[0])));
+            ASN1Sequence seq = new DLSequence(generalNames.toArray(new ASN1Encodable[0]));
+            return GeneralNames.getInstance(seq);
         }
         return null;
     }

@@ -16,7 +16,7 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 def getVersionName = { ->
-    return "2.8.4" // Replace with version Name
+    return "2.8.5" // Replace with version Name
 }
 
 def getArtificatId = { ->
@@ -117,7 +117,8 @@ dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation 'org.deviceconnect:dconnect-sdk-for-android:2.3.2'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'org.bouncycastle:bcprov-jdk15on:1.46'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.65.01'
+    implementation 'org.bouncycastle:bcpkix-jdk15on:1.56'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.25.0'
@@ -146,7 +147,7 @@ def apiDir = new File(specOutputDir, 'api')
 if (!apiDir.exists()) {
     specZipFile = file("${projectDir}/master.zip")
     download {
-        src 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/master.zip'
+        src 'https://github.com/DeviceConnect/DeviceConnect-Spec/archive/main.zip'
         dest specZipFile
         overwrite true
     }
@@ -198,7 +199,7 @@ if (JavaVersion.current().isJava8Compatible()) {
 publishing {
     publications {
         bar(MavenPublication) {
-            groupId 'io.gclue.deviceconnect.android'
+            groupId 'org.deviceconnect'
             artifactId getArtificatId()
             version getVersionName()
             artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
@@ -237,7 +238,7 @@ publishing {
             /** Configure path of your package repository on Github
              *  Replace GITHUB_USERID with your/organisation Github userID and REPOSITORY with the repository name on GitHub
              */
-            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-AndroidSandbox")
+            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
 
             credentials {
                 /**Create github.properties in root project folder file with gpr.usr=GITHUB_USER_ID  & gpr.key=PERSONAL_ACCESS_TOKEN**/

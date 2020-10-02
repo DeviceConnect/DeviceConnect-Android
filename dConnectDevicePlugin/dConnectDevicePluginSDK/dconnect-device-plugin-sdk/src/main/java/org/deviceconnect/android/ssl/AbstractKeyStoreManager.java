@@ -9,15 +9,27 @@ package org.deviceconnect.android.ssl;
 
 import android.content.Context;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.X509Extensions;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.deviceconnect.android.BuildConfig;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,9 +43,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -179,29 +193,50 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         mKeyStore.store(out, mKeyStorePassword.toCharArray());
     }
 
-    private X509Certificate generateX509V3Certificate(final KeyPair keyPair,
-                                                      final X500Principal subject,
-                                                      final X500Principal issuer,
-                                                      final Date notBefore,
-                                                      final Date notAfter,
-                                                      final BigInteger serialNumber,
-                                                      final GeneralNames generalNames,
-                                                      final boolean isCA) throws GeneralSecurityException {
-        X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
-        generator.setSerialNumber(serialNumber);
-        generator.setIssuerDN(issuer);
-        generator.setSubjectDN(subject);
-        generator.setNotBefore(notBefore);
-        generator.setNotAfter(notAfter);
-        generator.setPublicKey(keyPair.getPublic());
-        generator.setSignatureAlgorithm("SHA256WithRSAEncryption");
-        generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(isCA));
-        generator.addExtension(X509Extensions.KeyUsage, true, new KeyUsage(160));
-        generator.addExtension(X509Extensions.ExtendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
-        if (generalNames != null) {
-            generator.addExtension(X509Extensions.SubjectAlternativeName, false, generalNames);
+    public boolean clean() throws KeyStoreException, IOException {
+        for (Enumeration<String> e = mKeyStore.aliases(); e.hasMoreElements(); ) {
+            String alias = e.nextElement();
+            mKeyStore.deleteEntry(alias);
         }
-        return generator.generateX509Certificate(keyPair.getPrivate(), SecurityUtil.getSecurityProvider());
+        return mContext.deleteFile(mKeyStoreFilePath);
+    }
+
+    private X509Certificate buildX509V3Certificate(final KeyPair keyPair,
+                                                   final String subjectName,
+                                                   final String issuerName,
+                                                   final Date notBefore,
+                                                   final Date notAfter,
+                                                   final BigInteger serialNumber,
+                                                   final GeneralNames generalNames,
+                                                   final boolean isCA) throws GeneralSecurityException, IOException, OperatorCreationException {
+        AsymmetricKeyParameter privateKey = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256WithRSAEncryption");
+        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(privateKey);
+
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+                new X500Name(issuerName),
+                serialNumber,
+                notBefore,
+                notAfter,
+                new X500Name(subjectName),
+                SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
+        );
+        builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(isCA));
+        int keyUsage = isCA ? (KeyUsage.cRLSign | KeyUsage.keyCertSign)
+                : (KeyUsage.keyEncipherment | KeyUsage.digitalSignature);
+        builder.addExtension(Extension.keyUsage, true, new KeyUsage(keyUsage));
+        if (!isCA) {
+            builder.addExtension(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth));
+        }
+        if (generalNames != null) {
+            builder.addExtension(Extension.subjectAlternativeName, false, generalNames);
+        }
+        X509CertificateHolder holder = builder.build(signer);
+        byte[] encoded = holder.getEncoded();
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        ByteArrayInputStream in = new ByteArrayInputStream(encoded);
+        return (X509Certificate) factory.generateCertificate(in);
     }
 
     @Override
@@ -216,6 +251,10 @@ abstract class AbstractKeyStoreManager implements KeyStoreManager {
         var2.set(2099, 0, 1);
         Date var4 = new Date(var2.getTimeInMillis());
         BigInteger serialNumber = BigInteger.valueOf(Math.abs(System.currentTimeMillis()));
-        return generateX509V3Certificate(keyPair, subject, issuer, var3, var4, serialNumber, generalNames, isCA);
+        try {
+            return buildX509V3Certificate(keyPair, subject.getName(), issuer.getName(), var3, var4, serialNumber, generalNames, isCA);
+        } catch (Throwable e) {
+            throw new GeneralSecurityException(e);
+        }
     }
 }

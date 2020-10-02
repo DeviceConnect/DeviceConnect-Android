@@ -94,7 +94,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.google.android.material:material:1.1.0'
 
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.5'
     implementation project(':dconnect-manager-core')
     implementation project(':dconnect-server-nano-httpd')
     implementation project(':dconnect-device-plugin-host')

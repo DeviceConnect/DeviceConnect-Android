@@ -14,7 +14,7 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import org.bouncycastle.asn1.pkcs.CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.deviceconnect.android.BuildConfig;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  *
  * <p>
  * ローカル認証局に対して証明書要求を送信する場合は、
- * {@link #executeCertificateRequest(CertificationRequest, CertificateRequestCallback)}
+ * {@link #executeCertificateRequest(PKCS10CertificationRequest, CertificateRequestCallback)}
  * を実行する. 実行すると、指定したAndroidサービスとのバインド後、証明書要求が送信される.
  * </p>
  *
@@ -129,7 +129,7 @@ class CertificateAuthorityClient {
         }
     }
 
-    void executeCertificateRequest(final CertificationRequest request,
+    void executeCertificateRequest(final PKCS10CertificationRequest request,
                                    final CertificateRequestCallback callback) {
         try {
             ICertificateAuthority localCA = fetchLocalCA(callback);

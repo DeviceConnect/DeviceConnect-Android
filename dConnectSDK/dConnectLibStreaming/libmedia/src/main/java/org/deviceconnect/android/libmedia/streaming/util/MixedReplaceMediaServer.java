@@ -7,6 +7,7 @@
 package org.deviceconnect.android.libmedia.streaming.util;
 
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
@@ -18,6 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -30,6 +32,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 
 /**
  * Mixed Replace Media Server.
@@ -98,6 +105,11 @@ public class MixedReplaceMediaServer {
     private ServerSocket mServerSocket;
 
     /**
+     * SSL Context.
+     */
+    private SSLContext mSSLContext;
+
+    /**
      * List a Server Runnable.
      */
     private final List<ClientThread> mRunnables = Collections.synchronizedList(new ArrayList<>());
@@ -121,6 +133,18 @@ public class MixedReplaceMediaServer {
         if (callback != null) {
             callback.onClosed(socket);
         }
+    }
+    /**
+     * SSLContext を設定します.
+     *
+     * <p>
+     * SSLContext を設定してから{@link #start()} で、SSLで通信を行うことができます。
+     * </p>
+     *
+     * @param sslContext SSLContext
+     */
+    public void setSSLContext(final SSLContext sslContext) {
+        mSSLContext = sslContext;
     }
 
     /**
@@ -218,7 +242,11 @@ public class MixedReplaceMediaServer {
         if (mServerSocket == null || mPath == null) {
             return null;
         }
-        return "http://localhost:" + mServerSocket.getLocalPort() + "/" + mPath;
+        String protocol = "http";
+        if (mSSLContext != null) {
+            protocol = "https";
+        }
+        return protocol + "://localhost:" + mServerSocket.getLocalPort() + "/" + mPath;
     }
 
     /**
@@ -255,7 +283,11 @@ public class MixedReplaceMediaServer {
      */
     public synchronized String start() {
         try {
-            mServerSocket = openServerSocket();
+            if (mSSLContext != null) {
+                mServerSocket = openSSLServerSocket(mSSLContext);
+            } else {
+                mServerSocket = openServerSocket();
+            }
         } catch (IOException e) {
             // Failed to open server socket
             mStopFlag = true;
@@ -284,7 +316,37 @@ public class MixedReplaceMediaServer {
         }).start();
         return getUrl();
     }
-    
+    /**
+     * SSL を用いて ServerSocket を作成します.
+     *
+     * @param sslContext SSL
+     * @return ServerSocket
+     * @throws IOException Socketを開くのに失敗した場合に発生
+     */
+    private ServerSocket openSSLServerSocket(final SSLContext sslContext) throws IOException {
+        SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+        SSLServerSocket serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
+        if (Build.VERSION_CODES.N <= Build.VERSION.SDK_INT) {
+            SSLParameters parameters = serverSocket.getSSLParameters();
+            // TODO 必要に応じてプロトコルバージョンや暗号スイートの設定を行うこと。
+            serverSocket.setSSLParameters(parameters);
+        }
+
+        if (mPort != -1) {
+            serverSocket.bind(new InetSocketAddress(mPort));
+            return serverSocket;
+        } else {
+            for (int i = 9000; i < 10000; i++) {
+                try {
+                    serverSocket.bind(new InetSocketAddress(i));
+                    return serverSocket;
+                } catch (IOException e) {
+                    // ignore.
+                }
+            }
+            throw new IOException("Cannot open server socket.");
+        }
+    }
     /**
      * Open a server socket that looking for a port that can be used.
      * @return ServerSocket

@@ -24,7 +24,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * Android 端末の画面をキャストするクラス.
      */
-    private final ScreenCastManager mScreenCastMgr;
+    protected final ScreenCastManager mScreenCastMgr;
 
     /**
      * MJPEG を配信するサーバ.
@@ -96,7 +96,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      *
      * @return JPEG のクオリティ
      */
-    private int getJpegQuality() {
+    protected int getJpegQuality() {
         return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
     }
 
@@ -117,7 +117,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      *
      * @param quality 設定を反映する MJPEGQuality
      */
-    private void setMJPEGQuality(MJPEGQuality quality) {
+    protected void setMJPEGQuality(MJPEGQuality quality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
         HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
@@ -131,7 +131,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * MJPEGServerからのイベントを受け取るためのコールバック.
      */
-    private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+    protected final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
             return true;

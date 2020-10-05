@@ -19,19 +19,18 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 import java.io.IOException;
 import java.net.Socket;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * カメラのプレビューをMJPEG形式で配信するサーバー.
  *
  * {@link SurfaceTexture} をもとに実装.
  */
 class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "host.dplugin";
-
     /**
      * Motion JPEG のマイムタイプを定義します.
      */
-    private static final String MIME_TYPE = "video/x-mjpeg";
+    protected static final String MIME_TYPE = "video/x-mjpeg";
 
     /**
      * サーバー名を定義します.
@@ -42,7 +41,6 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
      * MotionJPEG 配信サーバ.
      */
     private MJPEGServer mMJPEGServer;
-
     Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener listener) {
         super(context, recorder);
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
@@ -137,7 +135,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
      *
      * @param quality 設定を行う MJPEGQuality
      */
-    private void setMJPEGQuality(MJPEGQuality quality) {
+    protected void setMJPEGQuality(MJPEGQuality quality) {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
         quality.setWidth(recorder.getPreviewSize().getWidth());
@@ -149,7 +147,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     /**
      * MJPEGServer からのイベントを受け取るためのコールバック.
      */
-    private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+    protected final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
             if (DEBUG) {

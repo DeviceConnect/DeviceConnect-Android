@@ -523,7 +523,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         List<Bundle> streams = new ArrayList<>();
                         for (PreviewServer server : servers) {
                             // Motion-JPEG をデフォルトの値として使用します
-                            if ("video/x-mjpeg".equals(server.getMimeType())) {
+                            if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
                                 defaultUri = server.getUri();
                             }
 

@@ -2,10 +2,15 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+
 /**
  * プレビュー配信サーバ.
  */
 public abstract class AbstractPreviewServer implements PreviewServer {
+    protected static final boolean DEBUG = BuildConfig.DEBUG;
+    protected static final String TAG = "host.dplugin";
+
     /**
      * コンテキスト.
      */

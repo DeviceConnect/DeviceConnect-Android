@@ -17,6 +17,7 @@ class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
         super(context, recorder, NOTIFICATION_ID);
 
         addServer(new ScreenCastMJPEGPreviewServer(context, recorder, 21000));
+        addServer(new ScreenCastSSLMJPEGPreviewServer(context, recorder, 21100));
         addServer(new ScreenCastRTSPPreviewServer(context, recorder, 22000));
         addServer(new ScreenCastSRTPreviewServer(context, recorder, 23000));
     }

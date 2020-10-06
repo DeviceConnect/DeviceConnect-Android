@@ -45,7 +45,7 @@ JNI_METHOD_NAME(cleanup)(JNIEnv *env, jclass clazz) {
 
 
 JNIEXPORT jlong JNICALL
-JNI_METHOD_NAME(createSrtSocket)(JNIEnv *env, jclass clazz) {
+JNI_METHOD_NAME(_createSrtSocket)(JNIEnv *env, jclass clazz) {
     LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_createSrtSocket()");
 
     int server_socket = srt_create_socket();

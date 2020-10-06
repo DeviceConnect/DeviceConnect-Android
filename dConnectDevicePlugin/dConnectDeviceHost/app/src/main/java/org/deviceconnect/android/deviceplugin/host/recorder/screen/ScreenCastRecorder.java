@@ -51,6 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Host Device Screen Cast.
  *
@@ -99,6 +101,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private LiveStreamingClient mLiveStreamingClient;
 
     public ScreenCastRecorder(final Context context,
+                              final SSLContext sslContext,
                               final FileManager fileMgr) {
         mContext = context;
         mFileMgr = fileMgr;
@@ -109,7 +112,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         setMaxFrameRate(mMaxFps);
 
         mScreenCastMgr = new ScreenCastManager(context);
-        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
+        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, sslContext, this);
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {

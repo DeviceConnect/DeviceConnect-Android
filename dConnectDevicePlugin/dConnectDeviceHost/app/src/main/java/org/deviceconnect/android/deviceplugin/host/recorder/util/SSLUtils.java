@@ -25,10 +25,6 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public class SSLUtils {
     /**
-     * DeviceConnectManagerの証明書名.
-     */
-    public static final String DEFAULT_P12 = "manager.p12";
-    /**
      * DeviceConnectのデフォルトのパスワード.
      */
     public static final String DEFAULT_SSL_PASSWORD = "0000";
@@ -73,22 +69,5 @@ public class SSLUtils {
                     (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                     (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
         }
-    }
-    /**
-     * SSLServerSocketFactory を作成します.
-     *
-     * @param keyStore キーストア
-     * @param password パスワード
-     * @return SSLServerSocketFactoryのインスタンス
-     * @throws GeneralSecurityException SSLServerSocketFactoryの作成に失敗した場合に発生
-     */
-    public static SSLContext createSSLServerSocketFactory(final KeyStore keyStore, final String password) throws GeneralSecurityException {
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, password.toCharArray());
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(keyStore);
-        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
-        return sslContext;
     }
 }

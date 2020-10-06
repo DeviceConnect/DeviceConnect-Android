@@ -59,6 +59,8 @@ import java.util.Locale;
 
 import androidx.annotation.NonNull;
 
+import javax.net.ssl.SSLContext;
+
 public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder, HostDeviceLiveStreamRecorder {
     /**
      * ログ出力用タグ.
@@ -191,6 +193,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      * @param fileManager ファイルマネージャ
      */
     public Camera2Recorder(final @NonNull Context context,
+                           final SSLContext sslContext,
                            final @NonNull CameraWrapper camera,
                            final @NonNull FileManager fileManager) {
         mContext = context;
@@ -209,7 +212,8 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
 
-        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this, mFacing.getValue());
+        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, sslContext,
+                                                                this, mFacing.getValue());
     }
 
     @Override

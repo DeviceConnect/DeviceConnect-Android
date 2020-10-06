@@ -47,6 +47,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecor
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.util.SSLUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libsrt.SRT;
@@ -56,11 +57,20 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * Host Device Plugin Context.
@@ -110,7 +120,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * デモページアップデート通知.
      */
     private DemoInstaller.Notification mDemoNotification;
-
+    private SSLContext mSSLContext;
     /**
      * ブロードキャストレシーバー.
      */
@@ -174,13 +184,34 @@ public class HostDevicePlugin extends DevicePluginContext {
         mHostBatteryManager.getBatteryInfo();
 
         SRT.startup();
-        mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
-        mRecorderMgr.initRecorders();
-        mRecorderMgr.start();
 
+        mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
+        CountDownLatch lock = new CountDownLatch(1);
+        requestKeyStore(SSLUtils.getIPAddress(getContext()), new KeyStoreCallback() {
+            @Override
+            public void onSuccess(KeyStore keyStore, Certificate certificate, Certificate certificate1) {
+                try {
+                    mSSLContext = createSSLContext(keyStore, "0000");
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
+                lock.countDown();
+            }
+
+            @Override
+            public void onError(KeyStoreError keyStoreError) {
+                lock.countDown();
+            }
+        });
+        try {
+            lock.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        DConnectService hostService = new DConnectService(SERVICE_ID);
+        addMediaStreamRecording(hostService, mSSLContext);
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
-        DConnectService hostService = new DConnectService(SERVICE_ID);
         hostService.setName(SERVICE_NAME);
         hostService.setOnline(true);
         hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
@@ -202,13 +233,6 @@ public class HostDevicePlugin extends DevicePluginContext {
 
         if (checkProximityHardware()) {
             hostService.addProfile(new HostProximityProfile());
-        }
-
-        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
-        if (mRecorderMgr.getRecorders().length > 0) {
-            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
-            hostService.addProfile(mHostMediaStreamRecordingProfile);
-            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
         }
 
         // カメラが使用できる場合は、Light プロファイルを追加
@@ -239,7 +263,16 @@ public class HostDevicePlugin extends DevicePluginContext {
         registerDemoNotification();
         updateDemoPageIfNeeded();
     }
-
+    private void addMediaStreamRecording(final DConnectService hostService, final SSLContext sslContext) {
+        mRecorderMgr.initRecorders(sslContext);
+        mRecorderMgr.start();
+        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
+        if (mRecorderMgr.getRecorders().length > 0) {
+            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
+            hostService.addProfile(mHostMediaStreamRecordingProfile);
+            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
+        }
+    }
     private void registerDemoNotification() {
         IntentFilter filter  = new IntentFilter();
         filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);

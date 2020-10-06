@@ -32,6 +32,8 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Host Device Recorder Manager.
  *
@@ -100,10 +102,10 @@ public class HostMediaRecorderManager {
      * ここで使用できるレコーダの登録を行います。
      * </p>
      */
-    public void initRecorders() {
+    public void initRecorders(final SSLContext sslContext) {
         if (checkCameraHardware()) {
             mCameraWrapperManager = new CameraWrapperManager(getContext());
-            createCameraRecorders(mCameraWrapperManager, mFileManager);
+            createCameraRecorders(sslContext, mCameraWrapperManager, mFileManager);
         }
 
         if (checkMicrophone()) {
@@ -111,7 +113,7 @@ public class HostMediaRecorderManager {
         }
 
         if (checkMediaProjection()) {
-            createScreenCastRecorder(mFileManager);
+            createScreenCastRecorder(sslContext, mFileManager);
         }
 
         try {
@@ -125,14 +127,14 @@ public class HostMediaRecorderManager {
         mRecorders.add(new HostAudioRecorder(getContext()));
     }
 
-    private void createScreenCastRecorder(final FileManager fileMgr) {
-        mRecorders.add(new ScreenCastRecorder(getContext(), fileMgr));
+    private void createScreenCastRecorder(final SSLContext sslContext, final FileManager fileMgr) {
+        mRecorders.add(new ScreenCastRecorder(getContext(), sslContext, fileMgr));
     }
 
-    private void createCameraRecorders(final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
+    private void createCameraRecorders(final SSLContext sslContext, final CameraWrapperManager cameraMgr, final FileManager fileMgr) {
         List<Camera2Recorder> photoRecorders = new ArrayList<>();
         for (CameraWrapper camera : cameraMgr.getCameraList()) {
-            photoRecorders.add(new Camera2Recorder(getContext(), camera, fileMgr));
+            photoRecorders.add(new Camera2Recorder(getContext(), sslContext, camera, fileMgr));
         }
         mRecorders.addAll(photoRecorders);
         if (!photoRecorders.isEmpty()) {

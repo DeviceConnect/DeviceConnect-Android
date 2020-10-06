@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.uvc.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.UVCRecorder;
@@ -177,9 +178,9 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         MessageUtils.setIllegalDeviceStateError(response, "device is not connected.");
                         return;
                     }
-
                     UVCRecorder recorder = getUVCRecorder();
                     List<PreviewServer> servers = recorder.startPreview();
+
                     if (servers.isEmpty()) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to start a preview server.");
                     } else {
@@ -187,7 +188,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         List<Bundle> streams = new ArrayList<>();
                         for (PreviewServer server : servers) {
                             // Motion-JPEG をデフォルトの値として使用します
-                            if ("video/x-mjpeg".equals(server.getMimeType())) {
+                            if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
                                 defaultUri = server.getUrl();
                             }
 

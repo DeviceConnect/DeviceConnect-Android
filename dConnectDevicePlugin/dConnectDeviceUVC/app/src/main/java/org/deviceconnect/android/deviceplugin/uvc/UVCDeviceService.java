@@ -23,12 +23,20 @@ import org.deviceconnect.android.deviceplugin.uvc.activity.ErrorDialogActivity;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCSystemProfile;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.SSLUtils;
 import org.deviceconnect.android.deviceplugin.uvc.service.UVCService;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
 
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.logging.Logger;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * UVC Device Service.
@@ -41,6 +49,7 @@ public class UVCDeviceService extends DConnectMessageService {
 
     private UVCDeviceManager mDeviceMgr;
 
+    private SSLContext mSSLContext;
     private BroadcastReceiver mPermissionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -67,6 +76,19 @@ public class UVCDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        requestKeyStore(SSLUtils.getIPAddress(getApplicationContext()), new KeyStoreCallback() {
+            @Override
+            public void onSuccess(KeyStore keyStore, Certificate certificate, Certificate certificate1) {
+                try {
+                    mSSLContext = getPluginContext().createSSLContext(keyStore, "0000");
+                } catch (GeneralSecurityException e) {
+                }
+            }
+
+            @Override
+            public void onError(KeyStoreError keyStoreError) {
+            }
+        });
         registerReceiver(mPermissionReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED));
 
     }
@@ -172,16 +194,18 @@ public class UVCDeviceService extends DConnectMessageService {
 
         @Override
         public void onDisconnect(final UVCDevice device) {
-            UVCService service = (UVCService) getServiceProvider().getService(device.getId());
-            if (service != null) {
-                service.closeUVCDevice();
-                service.setOnline(false);
+            if (device != null) {
+                UVCService service = (UVCService) getServiceProvider().getService(device.getId());
+                if (service != null) {
+                    service.closeUVCDevice();
+                    service.setOnline(false);
+                }
             }
         }
     };
 
     private UVCService addService(final UVCDevice device) {
-        UVCService service = new UVCService(mDeviceMgr, device);
+        UVCService service = new UVCService(mSSLContext, mDeviceMgr, device);
         getServiceProvider().addService(service);
         return service;
     }

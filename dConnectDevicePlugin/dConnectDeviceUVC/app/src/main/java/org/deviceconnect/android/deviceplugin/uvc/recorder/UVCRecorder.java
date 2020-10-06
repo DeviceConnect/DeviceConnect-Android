@@ -5,6 +5,7 @@ import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.preview.MJPEGPreviewServer;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.preview.PreviewServer;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.preview.RTSPPreviewServer;
+import org.deviceconnect.android.deviceplugin.uvc.recorder.preview.SSLMJPEGPreviewServer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
+
+import javax.net.ssl.SSLContext;
 
 public class UVCRecorder implements MediaRecorder {
 
@@ -21,14 +24,15 @@ public class UVCRecorder implements MediaRecorder {
     private final List<PreviewServer> mPreviewServers = new ArrayList<>();
     private final UVCDeviceManager mDeviceMgr;
     private UVCDevice mDevice;
-
+    private SSLContext mSSLContext;
     /**
      * コンストラクタ.
-     *
+     * @param sslContext コンテキスト
      * @param manager ファイル管理クラス
      * @param device UVCカメラ
      */
-    public UVCRecorder(final UVCDeviceManager manager, final UVCDevice device) {
+    public UVCRecorder(final SSLContext sslContext, final UVCDeviceManager manager, final UVCDevice device) {
+        mSSLContext = sslContext;
         mDeviceMgr = manager;
         mDevice = device;
     }
@@ -41,6 +45,7 @@ public class UVCRecorder implements MediaRecorder {
     public void initialize() {
         mPreviewServers.clear();
         mPreviewServers.add(new MJPEGPreviewServer(mDeviceMgr, mDevice, 40000));
+        mPreviewServers.add(new SSLMJPEGPreviewServer(mSSLContext, mDeviceMgr, mDevice, 41000));
         mPreviewServers.add(new RTSPPreviewServer(mDeviceMgr, mDevice, 40001));
     }
 
@@ -157,7 +162,6 @@ public class UVCRecorder implements MediaRecorder {
                 @Override
                 public void onStart(@NonNull String uri) {
                     results.add(server);
-                    lock.countDown();
                 }
 
                 @Override

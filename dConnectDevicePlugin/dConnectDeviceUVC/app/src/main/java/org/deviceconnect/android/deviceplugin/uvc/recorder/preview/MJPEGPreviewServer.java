@@ -14,10 +14,10 @@ public class MJPEGPreviewServer implements PreviewServer {
 
     private static final String SERVER_NAME = "UVC Plugin MotionJPEG Server";
 
-    private final UVCDeviceManager mDeviceMgr;
-    private final UVCDevice mDevice;
+    protected final UVCDeviceManager mDeviceMgr;
+    protected final UVCDevice mDevice;
     private MJPEGServer mServer;
-    private int mPort;
+    protected int mPort;
 
     public MJPEGPreviewServer(final UVCDeviceManager mgr, final UVCDevice device, final int port) {
         mDeviceMgr = mgr;
@@ -65,7 +65,7 @@ public class MJPEGPreviewServer implements PreviewServer {
         }
     }
 
-    private MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+    protected MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
             return true;

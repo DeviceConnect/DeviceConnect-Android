@@ -10,6 +10,8 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 import java.io.IOException;
 import java.net.Socket;
 
+import javax.net.ssl.SSLContext;
+
 public class MJPEGPreviewServer implements PreviewServer {
 
     private static final String SERVER_NAME = "UVC Plugin MotionJPEG Server";
@@ -18,16 +20,24 @@ public class MJPEGPreviewServer implements PreviewServer {
     protected final UVCDevice mDevice;
     private MJPEGServer mServer;
     protected int mPort;
-
-    public MJPEGPreviewServer(final UVCDeviceManager mgr, final UVCDevice device, final int port) {
+    /**
+     * SSLContext を使用するかどうかのフラグ.
+     */
+    private boolean mUsesSSLContext;
+    /**
+     * SSLContext のインスタンス.
+     */
+    private SSLContext mSSLContext;
+    public MJPEGPreviewServer(final boolean isSSL, final UVCDeviceManager mgr, final UVCDevice device, final int port) {
         mDeviceMgr = mgr;
         mDevice = device;
         mPort = port;
+        mUsesSSLContext = isSSL;
     }
 
     @Override
     public String getUrl() {
-        return mServer.getUri();
+        return mServer == null ? null : mServer.getUri();
     }
 
     @Override
@@ -41,9 +51,32 @@ public class MJPEGPreviewServer implements PreviewServer {
     }
 
     @Override
+    public boolean usesSSLContext() {
+        return mUsesSSLContext;
+    }
+
+    @Override
+    public void setSSLContext(SSLContext sslContext) {
+        mSSLContext = sslContext;
+    }
+
+    @Override
+    public SSLContext getSSLContext() {
+        return mSSLContext;
+    }
+
+    @Override
     public void start(final OnWebServerStartCallback callback) {
         if (mServer == null) {
+            SSLContext sslContext = getSSLContext();
+            if (usesSSLContext() && sslContext == null) {
+                callback.onFail();
+                return;
+            }
             mServer = new MJPEGServer();
+            if (sslContext != null) {
+                mServer.setSSLContext(sslContext);
+            }
             mServer.setServerName(SERVER_NAME);
             mServer.setServerPort(mPort);
             mServer.setCallback(mCallback);

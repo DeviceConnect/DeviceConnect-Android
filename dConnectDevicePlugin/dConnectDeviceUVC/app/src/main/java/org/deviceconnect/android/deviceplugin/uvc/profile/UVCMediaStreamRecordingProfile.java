@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceService;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.MediaRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.UVCRecorder;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.preview.PreviewServer;
@@ -27,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * UVC MediaStream Recording Profile.
@@ -184,22 +187,18 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     if (servers.isEmpty()) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to start a preview server.");
                     } else {
-                        String defaultUri = null;
-                        List<Bundle> streams = new ArrayList<>();
-                        for (PreviewServer server : servers) {
-                            // Motion-JPEG をデフォルトの値として使用します
-                            if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
-                                defaultUri = server.getUrl();
+                        UVCDeviceService plugin = (UVCDeviceService) getContext();
+                        plugin.getSSLContext(new UVCDeviceService.SSLContextCallback() {
+                            @Override
+                            public void onGet(final SSLContext sslContext) {
+                                startPreviewServers(sslContext, response);
                             }
 
-                            Bundle stream = new Bundle();
-                            stream.putString("mimeType", server.getMimeType());
-                            stream.putString("uri", server.getUrl());
-                            streams.add(stream);
-                        }
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        setUri(response, defaultUri != null ? defaultUri : "");
-                        response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
+                            @Override
+                            public void onError() {
+                                startPreviewServers(null, response);
+                            }
+                        });
                     }
                 } finally {
                     sendResponse(response);
@@ -289,5 +288,31 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
 
     private static void setMIMEType(final Intent response, final List<String> mimeTypes) {
         response.putExtra("mimeType", mimeTypes.toArray(new String[0]));
+    }
+
+    private void startPreviewServers(final SSLContext sslContext,
+                                     final Intent response) {
+        // SSLContext を設定
+        for (PreviewServer server : getUVCRecorder().getServers()) {
+            if (sslContext != null && server.usesSSLContext()) {
+                server.setSSLContext(sslContext);
+            }
+        }
+        String defaultUri = null;
+        List<Bundle> streams = new ArrayList<>();
+        for (PreviewServer server : getUVCRecorder().startPreview()) {
+            // Motion-JPEG をデフォルトの値として使用します
+            if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
+                defaultUri = server.getUrl();
+            }
+
+            Bundle stream = new Bundle();
+            stream.putString("mimeType", server.getMimeType());
+            stream.putString("uri", server.getUrl());
+            streams.add(stream);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        setUri(response, defaultUri != null ? defaultUri : "");
+        response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
     }
 }

@@ -17,6 +17,8 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
 
 import java.io.IOException;
 
+import javax.net.ssl.SSLContext;
+
 public class RTSPPreviewServer implements PreviewServer {
 
     private static final String SERVER_NAME = "UVC Plugin RTSP Server";
@@ -45,6 +47,21 @@ public class RTSPPreviewServer implements PreviewServer {
     @Override
     public boolean isStarted() {
         return mServer != null;
+    }
+
+    @Override
+    public boolean usesSSLContext() {
+        return false;
+    }
+
+    @Override
+    public void setSSLContext(SSLContext sslContext) {
+
+    }
+
+    @Override
+    public SSLContext getSSLContext() {
+        return null;
     }
 
     @Override

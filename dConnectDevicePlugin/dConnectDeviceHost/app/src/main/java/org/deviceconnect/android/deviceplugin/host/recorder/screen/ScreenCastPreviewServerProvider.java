@@ -15,11 +15,11 @@ class ScreenCastPreviewServerProvider extends AbstractPreviewServerProvider {
      */
     private static final int NOTIFICATION_ID = 2001;
 
-    ScreenCastPreviewServerProvider(Context context, SSLContext sslContext, ScreenCastRecorder recorder) {
+    ScreenCastPreviewServerProvider(Context context, ScreenCastRecorder recorder) {
         super(context, recorder, NOTIFICATION_ID);
 
-        addServer(new ScreenCastMJPEGPreviewServer(context, recorder, 21000));
-        addServer(new ScreenCastSSLMJPEGPreviewServer(context, sslContext, recorder, 21100));
+        addServer(new ScreenCastMJPEGPreviewServer(context, false, recorder, 21000));
+        addServer(new ScreenCastMJPEGPreviewServer(context, true, recorder, 21100));
         addServer(new ScreenCastRTSPPreviewServer(context, recorder, 22000));
         addServer(new ScreenCastSRTPreviewServer(context, recorder, 23000));
     }

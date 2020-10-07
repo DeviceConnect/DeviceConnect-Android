@@ -98,11 +98,10 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      * コンストラクタ.
      *
      * @param context  コンテキスト
-     * @param sslContext SSLコンテキスト
      * @param recorder レコーダ
      * @param num カメラの番号
      */
-    Camera2PreviewServerProvider(final Context context, final SSLContext sslContext,
+    Camera2PreviewServerProvider(final Context context,
                                  final Camera2Recorder recorder, final int num) {
         super(context, recorder, BASE_NOTIFICATION_ID + recorder.getId().hashCode());
 
@@ -110,7 +109,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         mRecorder = recorder;
         mOverlayManager = new OverlayManager(mContext);
         addServer(new Camera2MJPEGPreviewServer(context, false, recorder, 11000 + num, mOnEventListener));
-        addServer(new Camera2MJPEGPreviewServer(context, true, recorder, 11101 + num, mOnEventListener));
+        addServer(new Camera2MJPEGPreviewServer(context, true, recorder, 11100 + num, mOnEventListener));
         addServer(new Camera2RTSPPreviewServer(context, recorder, 12000 + num, mOnEventListener));
         addServer(new Camera2SRTPreviewServer(context, recorder, 13000 + num, mOnEventListener));
     }

@@ -193,7 +193,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
      * @param fileManager ファイルマネージャ
      */
     public Camera2Recorder(final @NonNull Context context,
-                           final SSLContext sslContext,
                            final @NonNull CameraWrapper camera,
                            final @NonNull FileManager fileManager) {
         mContext = context;
@@ -212,7 +211,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
 
-        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, sslContext,
+        mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context,
                                                                 this, mFacing.getValue());
     }
 

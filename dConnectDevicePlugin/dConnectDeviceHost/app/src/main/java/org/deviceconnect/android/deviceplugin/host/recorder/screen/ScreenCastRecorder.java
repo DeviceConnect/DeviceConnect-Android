@@ -101,7 +101,6 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     private LiveStreamingClient mLiveStreamingClient;
 
     public ScreenCastRecorder(final Context context,
-                              final SSLContext sslContext,
                               final FileManager fileMgr) {
         mContext = context;
         mFileMgr = fileMgr;
@@ -112,7 +111,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         setMaxFrameRate(mMaxFps);
 
         mScreenCastMgr = new ScreenCastManager(context);
-        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, sslContext, this);
+        mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -375,6 +374,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     @Override
     public void stopPreviews() {
         mScreenCastPreviewServerProvider.stopServers();
+        mScreenCastMgr.clean();
     }
 
     @Override

@@ -68,6 +68,7 @@ import java.security.cert.Certificate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
@@ -158,6 +159,56 @@ public class HostDevicePlugin extends DevicePluginContext {
             }
         }
     };
+
+    /**
+     * SSLContext を提供するインターフェース.
+     */
+    public interface SSLContextCallback {
+        void onGet(SSLContext context);
+        void onError();
+    }
+
+    public void getSSLContext(final SSLContextCallback callback) {
+        final SSLContext sslContext = mSSLContext;
+        if (sslContext != null) {
+            mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Already created SSL Context: " + sslContext);
+            callback.onGet(sslContext);
+        } else {
+            requestKeyStore(SSLUtils.getIPAddress(getContext()), new KeyStoreCallback() {
+                public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
+                    try {
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
+                        mSSLContext = createSSLContext(keyStore, "0000");
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
+                        callback.onGet(mSSLContext);
+                    } catch (GeneralSecurityException e) {
+                        mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
+                        callback.onError();
+                    }
+                }
+
+                public void onError(final KeyStoreError keyStoreError) {
+                    mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
+                    callback.onError();
+                }
+            });
+        }
+    }
+
+    @Override
+    protected boolean usesAutoCertificateRequest() {
+        return true;
+    }
+
+    @Override
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+        try {
+            mSSLContext = createSSLContext(keyStore, "0000");
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
+        }
+    }
+
     /**
      * コンストラクタ.
      *
@@ -186,28 +237,6 @@ public class HostDevicePlugin extends DevicePluginContext {
         SRT.startup();
 
         mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
-        CountDownLatch lock = new CountDownLatch(1);
-        requestKeyStore(SSLUtils.getIPAddress(getContext()), new KeyStoreCallback() {
-            @Override
-            public void onSuccess(KeyStore keyStore, Certificate certificate, Certificate certificate1) {
-                try {
-                    mSSLContext = createSSLContext(keyStore, "0000");
-                } catch (GeneralSecurityException e) {
-                    e.printStackTrace();
-                }
-                lock.countDown();
-            }
-
-            @Override
-            public void onError(KeyStoreError keyStoreError) {
-                lock.countDown();
-            }
-        });
-        try {
-            lock.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         DConnectService hostService = new DConnectService(SERVICE_ID);
         addMediaStreamRecording(hostService, mSSLContext);
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);

@@ -5,6 +5,8 @@ import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.service.DConnectService;
 
+import javax.net.ssl.SSLContext;
+
 public class ThetaImageService extends DConnectService {
 
     /**
@@ -17,11 +19,11 @@ public class ThetaImageService extends DConnectService {
      */
     public static final String SERVICE_NAME = "ROI Image Service";
 
-    public ThetaImageService(final HeadTracker headTracker) {
+    public ThetaImageService(final SSLContext sslContext, final HeadTracker headTracker) {
         super(SERVICE_ID);
         setOnline(true);
         setName(SERVICE_NAME);
-        addProfile(new ThetaOmnidirectionalImageProfile(headTracker));
+        addProfile(new ThetaOmnidirectionalImageProfile(sslContext, headTracker));
     }
 
 }

@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Theta MediaStream Recording Profile.
  *
@@ -63,7 +65,7 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
 
     private LivePreviewTask mLivePreviewTask;
     private MixedReplaceMediaServer mServer;
-
+    private SSLContext mSSLContext;
     protected final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -494,10 +496,12 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
      * @param client an instance of {@link ThetaDeviceClient}
      * @param fileMgr an instance of {@link FileManager}
      */
-    protected ThetaMediaStreamRecordingProfile(final ThetaDeviceClient client,
+    protected ThetaMediaStreamRecordingProfile(final SSLContext sslContext,
+                                               final ThetaDeviceClient client,
                                                final FileManager fileMgr) {
         mClient = client;
         mFileMgr = fileMgr;
+        mSSLContext = sslContext;
         addApi(mGetMediaRecorderApi);
         addApi(mPostTakePhotoApi);
         addApi(mPutOnPhotoApi);
@@ -513,6 +517,9 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
                 mServer.setServerName("Live Preview Server");
+                if (mSSLContext != null) {
+                    mServer.setSSLContext(mSSLContext);
+                }
                 mServer.start();
             }
             final String segment = SEGMENT_LIVE_PREVIEW;

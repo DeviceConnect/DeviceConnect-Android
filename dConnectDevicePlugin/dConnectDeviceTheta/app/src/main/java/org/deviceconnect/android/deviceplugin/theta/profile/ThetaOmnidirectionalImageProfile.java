@@ -41,6 +41,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Theta Omnidirectional Image Profile.
  *
@@ -61,6 +63,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private final Handler mHandler;
 
+    private SSLContext mSSLContext;
     private final DConnectApi mGetViewApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -129,9 +132,10 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         }
     };
 
-    public ThetaOmnidirectionalImageProfile(final HeadTracker tracker) {
+    public ThetaOmnidirectionalImageProfile(final SSLContext sslContext, final HeadTracker tracker) {
         mHeadTracker = tracker;
         mHandler = new Handler(Looper.getMainLooper());
+        mSSLContext = sslContext;
         addApi(mGetViewApi);
         addApi(mPutViewApi);
         addApi(mDeleteViewApi);
@@ -144,6 +148,9 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                 mServer = new MixedReplaceMediaServer();
                 mServer.setServerName("ThetaDevicePlugin Server");
                 mServer.setContentType("image/jpeg");
+                if (mSSLContext != null) {
+                    mServer.setSSLContext(mSSLContext);
+                }
                 mServer.setServerEventListener(ThetaOmnidirectionalImageProfile.this);
                 mServer.start();
             }

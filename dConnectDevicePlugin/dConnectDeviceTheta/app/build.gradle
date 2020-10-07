@@ -68,7 +68,7 @@ android {
     repositories {
         maven {
             name = "DeviceConnect-Android"
-            url = uri("https://maven.pkg.github.com/DeviceConnect/DeviceConnect-Android")
+            url = uri("https://maven.pkg.github.com/TakayukiHoshi1984/DeviceConnect-Android")
 
             credentials {
                 username = System.getenv("GPR_USER") ?: githubProperties['gpr.usr']
@@ -81,7 +81,7 @@ android {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6.5'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.burgstaller:okhttp-digest:1.16'

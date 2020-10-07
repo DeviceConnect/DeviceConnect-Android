@@ -10,9 +10,12 @@ import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSMediaStreamRec
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
+import javax.net.ssl.SSLContext;
+
 public class ThetaService extends DConnectService {
 
     public ThetaService(final ThetaDevice device,
+                        final SSLContext sslContext,
                         final ThetaDeviceClient client,
                         final FileManager fileMgr) {
         super(device.getId());
@@ -23,10 +26,10 @@ public class ThetaService extends DConnectService {
         switch (device.getModel()) {
             case THETA_S:
             case THETA_V:
-                addProfile(new ThetaSMediaStreamRecordingProfile(client, fileMgr));
+                addProfile(new ThetaSMediaStreamRecordingProfile(sslContext, client, fileMgr));
                 break;
             case THETA_M15:
-                addProfile(new ThetaM15MediaStreamRecordingProfile(client, fileMgr));
+                addProfile(new ThetaM15MediaStreamRecordingProfile(sslContext, client, fileMgr));
                 break;
             default:
                 break;

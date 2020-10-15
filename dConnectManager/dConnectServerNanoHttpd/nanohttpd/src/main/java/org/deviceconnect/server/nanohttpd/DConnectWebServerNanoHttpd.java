@@ -182,6 +182,12 @@ public class DConnectWebServerNanoHttpd {
             mRootDirs = new ArrayList<>(config.mDocRootList);
             mVersion = config.mVersion;
 
+            // SSL設定
+            final SSLServerSocketFactory factory = config.mServerSocketFactory;
+            if (factory != null) {
+                setServerSocketFactory(factory::createServerSocket);
+            }
+
             try {
                 mimeTypes();
             } catch (Exception e){

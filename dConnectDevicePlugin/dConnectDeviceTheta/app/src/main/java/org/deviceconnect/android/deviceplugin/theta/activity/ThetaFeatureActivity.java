@@ -14,8 +14,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 
-import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingFragment;
-import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaVRModeFragment;
+import org.deviceconnect.android.deviceplugin.theta.fragment.shooting.ThetaShootingFragment;
+import org.deviceconnect.android.deviceplugin.theta.fragment.vr.ThetaVRModeFragment;
 
 /**
  * Activity for the transition from the gallery to the function screen of THETA.

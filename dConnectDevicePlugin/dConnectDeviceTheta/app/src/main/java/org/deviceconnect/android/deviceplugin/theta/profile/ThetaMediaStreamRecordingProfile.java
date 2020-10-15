@@ -7,21 +7,18 @@
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
-import org.deviceconnect.android.deviceplugin.theta.core.LiveCamera;
-import org.deviceconnect.android.deviceplugin.theta.core.LivePreviewTask;
+import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
-import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
+import org.deviceconnect.android.deviceplugin.theta.core.preview.PreviewServer;
+import org.deviceconnect.android.deviceplugin.theta.core.preview.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.theta.utils.MediaSharing;
-import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -35,13 +32,11 @@ import org.deviceconnect.android.profile.api.PutApi;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLContext;
 
@@ -55,17 +50,11 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
     private static final String PARAM_WIDTH = "width";
     private static final String PARAM_HEIGHT = "height";
 
-    private static final String SEGMENT_LIVE_PREVIEW = "1";
-
     private final ThetaDeviceClient mClient;
     private final FileManager mFileMgr;
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
     private final Object mLockObj = new Object();
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
-    private LivePreviewTask mLivePreviewTask;
-    private MixedReplaceMediaServer mServer;
-    private SSLContext mSSLContext;
     protected final DConnectApi mGetMediaRecorderApi = new GetApi() {
         @Override
         public String getAttribute() {
@@ -378,10 +367,18 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
                             recorder.getName() + " does not support preview.");
                         return;
                     }
+                    ThetaDeviceService thetaDeviceService = (ThetaDeviceService) getContext();
+                    thetaDeviceService.getSSLContext(new ThetaDeviceService.SSLContextCallback() {
+                        @Override
+                        public void onGet(SSLContext context) {
+                            startPreviewServers(context, response, device);
+                        }
 
-                    String uri = startLivePreview(device, getWidth(request), getHeight(request));
-                    setUri(response, uri);
-                    setResult(response, DConnectMessage.RESULT_OK);
+                        @Override
+                        public void onError() {
+                            startPreviewServers(null, response, device);
+                        }
+                    });
                 } catch (ThetaDeviceException cause) {
                     switch (cause.getReason()) {
                         case ThetaDeviceException.NOT_FOUND_THETA:
@@ -427,7 +424,8 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
                         return;
                     }
 
-                    stopLivePreview();
+                    PreviewServerProvider provider = device.getServerProvider();
+                    provider.stopServers();
                     setResult(response, DConnectMessage.RESULT_OK);
                 } catch (ThetaDeviceException cause) {
                     switch (cause.getReason()) {
@@ -496,12 +494,10 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
      * @param client an instance of {@link ThetaDeviceClient}
      * @param fileMgr an instance of {@link FileManager}
      */
-    protected ThetaMediaStreamRecordingProfile(final SSLContext sslContext,
-                                               final ThetaDeviceClient client,
+    protected ThetaMediaStreamRecordingProfile(final ThetaDeviceClient client,
                                                final FileManager fileMgr) {
         mClient = client;
         mFileMgr = fileMgr;
-        mSSLContext = sslContext;
         addApi(mGetMediaRecorderApi);
         addApi(mPostTakePhotoApi);
         addApi(mPutOnPhotoApi);
@@ -511,67 +507,41 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
         addApi(mPutOnRecordingChangeApi);
         addApi(mDeleteOnRecordingChangeApi);
     }
+    private void startPreviewServers(final SSLContext sslContext,
+                                     final Intent response,
+                                     final ThetaDevice recorder) {
 
-    private String startLivePreview(final LiveCamera liveCamera, final Integer width, final Integer height) {
-        synchronized (mLockObj) {
-            if (mServer == null) {
-                mServer = new MixedReplaceMediaServer();
-                mServer.setServerName("Live Preview Server");
-                if (mSSLContext != null) {
-                    mServer.setSSLContext(mSSLContext);
+        // SSLContext を設定
+        for (PreviewServer server : recorder.getServerProvider().getServers()) {
+            if (sslContext != null && server.usesSSLContext()) {
+                server.setSSLContext(sslContext);
+            }
+        }
+
+        List<PreviewServer> servers = recorder.startPreviews();
+        if (servers.isEmpty()) {
+            MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+        } else {
+            String defaultUri = null;
+            List<Bundle> streams = new ArrayList<>();
+            for (PreviewServer server : servers) {
+                // Motion-JPEG をデフォルトの値として使用します
+                if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
+                    defaultUri = server.getUri();
                 }
-                mServer.start();
+
+                Bundle stream = new Bundle();
+                stream.putString("mimeType", server.getMimeType());
+                stream.putString("uri", server.getUri());
+                streams.add(stream);
             }
-            final String segment = SEGMENT_LIVE_PREVIEW;
-            if (mLivePreviewTask == null) {
-                mLivePreviewTask = new LivePreviewTask(liveCamera) {
-                    @Override
-                    protected void onFrame(final byte[] frame) {
-                        byte[] b;
-                        if (width != null || height != null) {
-                            b = resizeFrame(frame, width, height);
-                        } else {
-                            b = frame;
-                        }
-                        offerFrame(segment, b);
-                    }
-                };
-                mExecutor.execute(mLivePreviewTask);
-            }
-            return mServer.getUrl() + "/" + segment;
+            setResult(response, DConnectMessage.RESULT_OK);
+            setUri(response, defaultUri != null ? defaultUri : "");
+            response.putExtra("streams", streams.toArray(new Bundle[0]));
         }
+        sendResponse(response);
     }
 
-    private byte[] resizeFrame(final byte[] frame, final Integer newWidth, final Integer newHeight) {
-        Bitmap preview = BitmapFactory.decodeByteArray(frame, 0, frame.length);
-        int w = newWidth != null ? newWidth : preview.getWidth();
-        int h = newHeight != null ? newHeight : preview.getHeight();
-        Bitmap resized = BitmapUtils.resize(preview, w, h);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-        return baos.toByteArray();
-    }
-
-    private void offerFrame(final String segment, final byte[] frame) {
-        synchronized (mLockObj) {
-            if (mServer != null) {
-                mServer.offerMedia(segment, frame);
-            }
-        }
-    }
-
-    private void stopLivePreview() {
-        synchronized (mLockObj) {
-            if (mLivePreviewTask != null) {
-                mLivePreviewTask.stop();
-                mLivePreviewTask = null;
-            }
-            if (mServer != null) {
-                mServer.stop();
-                mServer = null;
-            }
-        }
-    }
 
     private void sendOnPhotoEvent(final String serviceId, final String mimeType, final String uri, final String path) {
         List<Event> events = getOnPhotoEventList(serviceId);
@@ -648,7 +618,7 @@ public abstract class ThetaMediaStreamRecordingProfile extends MediaStreamRecord
                 ThetaDevice device = mClient.getCurrentConnectDevice();
                 ThetaDevice.Recorder recorder = device.getRecorder();
                 if (recorder != null && recorder.supportsPreview()) {
-                    stopLivePreview();
+                    device.getServerProvider().stopServers();
                 }
             } catch (ThetaDeviceException cause) {
                 // Not operation.

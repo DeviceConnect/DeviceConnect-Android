@@ -51,8 +51,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
@@ -76,6 +75,57 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     private FileManager mFileMgr;
     private ThetaMediaStreamRecordingProfile mThetaMediaStreamRecording;
     private SSLContext mSSLContext;
+    /**
+     * SSLContext を提供するインターフェース.
+     */
+    public interface SSLContextCallback {
+        void onGet(SSLContext context);
+        void onError();
+    }
+
+    public void getSSLContext(final SSLContextCallback callback) {
+        final SSLContext sslContext = mSSLContext;
+        if (sslContext != null) {
+            mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Already created SSL Context: " + sslContext);
+            callback.onGet(sslContext);
+        } else {
+            requestKeyStore(getIPAddress(this), new KeyStoreCallback() {
+                public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
+                    try {
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
+                        mSSLContext = createSSLContext(keyStore, "0000");
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
+                        callback.onGet(mSSLContext);
+                    } catch (GeneralSecurityException e) {
+                        mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
+                        callback.onError();
+                    }
+                }
+
+                public void onError(final KeyStoreError keyStoreError) {
+                    mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
+                    callback.onError();
+                }
+            });
+        }
+    }
+
+    @Override
+    protected boolean usesAutoCertificateRequest() {
+        return true;
+    }
+
+    @Override
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+        try {
+            if (keyStore == null) {
+                return;
+            }
+            mSSLContext = createSSLContext(keyStore, "0000");
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
+        }
+    }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
@@ -90,32 +140,6 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     @Override
     public void onCreate() {
         super.onCreate();
-        CountDownLatch lock = new CountDownLatch(1);
-        Log.d("ABC", getIPAddress(this));
-        requestKeyStore(getIPAddress(this), new KeyStoreCallback() {
-            @Override
-            public void onSuccess(KeyStore keyStore, Certificate certificate, Certificate certificate1) {
-                try {
-                    mSSLContext = getPluginContext().createSSLContext(keyStore, "0000");
-                } catch (GeneralSecurityException e) {
-                    e.printStackTrace();
-                }
-                Log.d("ABC", "success ssl theta");
-
-                lock.countDown();
-            }
-
-            @Override
-            public void onError(KeyStoreError keyStoreError) {
-                Log.d("ABC", "x:" + keyStoreError.toString());
-                lock.countDown();
-            }
-        });
-        try {
-            lock.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
         mDeviceMgr = app.getDeviceManager();
         mDeviceMgr.registerDeviceEventListener(this);
@@ -125,18 +149,20 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        getServiceProvider().addService(new ThetaImageService(mSSLContext, app.getHeadTracker()));
+        getServiceProvider().addService(new ThetaImageService(app.getHeadTracker()));
     }
 
     @Override
     public void onDestroy() {
         mDeviceMgr.dispose();
         mDeviceMgr.unregisterDeviceEventListener(this);
-        try {
-            PtpipInitiator.close();
-        } catch (ThetaException e) {
-            // Nothing to do.
-        }
+        new Thread(() -> {
+            try {
+                PtpipInitiator.close();
+            } catch (ThetaException e) {
+                // Nothing to do.
+            }
+        }).start();
         super.onDestroy();
     }
 
@@ -149,7 +175,7 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     public void onConnected(final ThetaDevice device) {
         DConnectService service = getServiceProvider().getService(device.getId());
         if (service == null) {
-            service = new ThetaService(device, mSSLContext, mClient, mFileMgr);
+            service = new ThetaService(device, mClient, mFileMgr);
             getServiceProvider().addService(service);
             mThetaMediaStreamRecording = (ThetaMediaStreamRecordingProfile)service.getProfile(ThetaMediaStreamRecordingProfile.PROFILE_NAME);
         }

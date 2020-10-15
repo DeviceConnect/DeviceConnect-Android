@@ -16,8 +16,8 @@ public class MJPEGPreviewServer implements PreviewServer {
 
     private static final String SERVER_NAME = "UVC Plugin MotionJPEG Server";
 
-    protected final UVCDeviceManager mDeviceMgr;
-    protected final UVCDevice mDevice;
+    private final UVCDeviceManager mDeviceMgr;
+    private final UVCDevice mDevice;
     private MJPEGServer mServer;
     protected int mPort;
     /**

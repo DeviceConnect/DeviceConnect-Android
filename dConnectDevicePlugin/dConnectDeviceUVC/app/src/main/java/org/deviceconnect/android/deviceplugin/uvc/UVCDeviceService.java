@@ -130,6 +130,9 @@ public class UVCDeviceService extends DConnectMessageService {
     @Override
     protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
         try {
+            if (keyStore == null) {
+                return;
+            }
             mSSLContext = createSSLContext(keyStore, "0000");
         } catch (GeneralSecurityException e) {
             mLogger.log(Level.SEVERE, "Failed to update keystore", e);

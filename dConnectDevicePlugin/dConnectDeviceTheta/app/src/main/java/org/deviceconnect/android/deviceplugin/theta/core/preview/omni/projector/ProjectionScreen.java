@@ -1,7 +1,7 @@
-package org.deviceconnect.android.deviceplugin.theta.profile;
+package org.deviceconnect.android.deviceplugin.theta.core.preview.omni.projector;
 
 
-interface ProjectionScreen {
+public interface ProjectionScreen {
 
     void onStart(Projector projector);
 

@@ -106,6 +106,11 @@ public class DConnectWebServerNanoHttpd {
 
         mWebServer = new WebServer(mConfig);
 
+        SSLServerSocketFactory factory = mConfig.mServerSocketFactory;
+        if (factory != null) {
+            mWebServer.makeSecure(factory, null);
+        }
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -872,11 +877,6 @@ public class DConnectWebServerNanoHttpd {
         private int mPort;
 
         /**
-         * SSL.
-         */
-        private boolean mSSL;
-
-        /**
          * CORS で許可するオリジン.
          */
         private String mCors;
@@ -942,16 +942,7 @@ public class DConnectWebServerNanoHttpd {
             mConfig.mPort = port;
             return this;
         }
-        /**
-         * SSL 有効化を設定します.
-         *
-         * @param ssl SSLを有効にする場合はtrue、それ以外はfalse
-         * @return Builder
-         */
-        public Builder ssl(final boolean ssl) {
-            mConfig.mSSL = ssl;
-            return this;
-        }
+
         /**
          * CORS の許可するオリジンを設定します.
          *
@@ -990,6 +981,9 @@ public class DConnectWebServerNanoHttpd {
 
         /**
          * SSL用の ServerSocket を作成するファクトリークラスを設定します.
+         *
+         * このメソッドで <code>null</code> を設定した場合、
+         * {@link DConnectWebServerNanoHttpd} は HTTP サーバとなります.
          *
          * @param factory SSL用の ServerSocket を作成するファクトリークラス
          * @return Builder

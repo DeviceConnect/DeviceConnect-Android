@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.theta.profile;
+package org.deviceconnect.android.deviceplugin.theta.core.preview.omni.projector;
 
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
@@ -7,7 +7,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTrackingListener;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 
-abstract class Viewer implements HeadTrackingListener {
+public abstract class Viewer implements HeadTrackingListener {
 
     private String mId;
 

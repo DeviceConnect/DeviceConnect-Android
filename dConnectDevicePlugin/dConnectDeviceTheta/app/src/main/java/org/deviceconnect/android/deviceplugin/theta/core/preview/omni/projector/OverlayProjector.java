@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.theta.profile;
+package org.deviceconnect.android.deviceplugin.theta.core.preview.omni.projector;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,13 +10,14 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 
-class OverlayProjector extends AbstractProjector {
+public class OverlayProjector extends AbstractProjector {
 
     private static final long MAX_INTERVAL = 100;
 
@@ -191,15 +192,16 @@ class OverlayProjector extends AbstractProjector {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         mContext.registerReceiver(mOrientReceiver, filter);
+
     }
 
     private void hide() {
         if (mPreview != null) {
             mWinMgr.removeView(mPreview);
             mPreview = null;
+            mContext.unregisterReceiver(mOrientReceiver);
         }
         mIsAttachedView = false;
-        mContext.unregisterReceiver(mOrientReceiver);
     }
 
     private void updateViewSize(final int width, final int height, final boolean isStereo) {

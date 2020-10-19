@@ -10,6 +10,7 @@ import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSMediaStreamRec
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
 
+
 public class ThetaService extends DConnectService {
 
     public ThetaService(final ThetaDevice device,

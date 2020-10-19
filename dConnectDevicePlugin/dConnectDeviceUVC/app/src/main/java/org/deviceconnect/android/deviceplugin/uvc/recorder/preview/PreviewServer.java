@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder.preview;
 
 
+import javax.net.ssl.SSLContext;
+
 public interface PreviewServer {
 
     String getUrl();
@@ -30,7 +32,16 @@ public interface PreviewServer {
      * @return サーバが開始されている場合はtrue、それ以外はfalse
      */
     boolean isStarted();
+    /**
+     * SSLContext を使用するかどうかのフラグを返す.
+     *
+     * @return SSLContext を使用する場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    boolean usesSSLContext();
 
+    void setSSLContext(SSLContext sslContext);
+
+    SSLContext getSSLContext();
     /**
      * Callback interface used to receive the result of starting a web server.
      */

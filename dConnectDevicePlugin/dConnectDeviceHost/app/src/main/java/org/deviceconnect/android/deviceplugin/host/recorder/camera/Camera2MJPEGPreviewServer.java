@@ -19,19 +19,18 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 import java.io.IOException;
 import java.net.Socket;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * カメラのプレビューをMJPEG形式で配信するサーバー.
  *
  * {@link SurfaceTexture} をもとに実装.
  */
 class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-    private static final String TAG = "host.dplugin";
-
     /**
      * Motion JPEG のマイムタイプを定義します.
      */
-    private static final String MIME_TYPE = "video/x-mjpeg";
+    protected static final String MIME_TYPE = "video/x-mjpeg";
 
     /**
      * サーバー名を定義します.
@@ -39,17 +38,28 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     private static final String SERVER_NAME = "Android Host Camera2 MJPEG Server";
 
     /**
+     * SSLContext を使用するかどうかのフラグ.
+     */
+    private boolean mUsesSSLContext;
+
+    /**
      * MotionJPEG 配信サーバ.
      */
     private MJPEGServer mMJPEGServer;
 
-    Camera2MJPEGPreviewServer(Context context, Camera2Recorder recorder, int port, OnEventListener listener) {
+    Camera2MJPEGPreviewServer(Context context, boolean isSSL, Camera2Recorder recorder, int port, OnEventListener listener) {
         super(context, recorder);
+        mUsesSSLContext = isSSL;
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
         setOnEventListener(listener);
     }
 
     // PreviewServer
+
+    @Override
+    public boolean usesSSLContext() {
+        return mUsesSSLContext;
+    }
 
     @Override
     public String getUri() {
@@ -64,7 +74,16 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mMJPEGServer == null) {
+            SSLContext sslContext = getSSLContext();
+            if (usesSSLContext() && sslContext == null) {
+                callback.onFail();
+                return;
+            }
+
             mMJPEGServer = new MJPEGServer();
+            if (sslContext != null) {
+                mMJPEGServer.setSSLContext(sslContext);
+            }
             mMJPEGServer.setServerName(SERVER_NAME);
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
@@ -137,7 +156,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
      *
      * @param quality 設定を行う MJPEGQuality
      */
-    private void setMJPEGQuality(MJPEGQuality quality) {
+    protected void setMJPEGQuality(MJPEGQuality quality) {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
         quality.setWidth(recorder.getPreviewSize().getWidth());
@@ -149,7 +168,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     /**
      * MJPEGServer からのイベントを受け取るためのコールバック.
      */
-    private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+    protected final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
             if (DEBUG) {

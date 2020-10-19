@@ -14,6 +14,8 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGServer;
 import java.io.IOException;
 import java.net.Socket;
 
+import javax.net.ssl.SSLContext;
+
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
@@ -24,18 +26,27 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * Android 端末の画面をキャストするクラス.
      */
-    private final ScreenCastManager mScreenCastMgr;
-
+    protected final ScreenCastManager mScreenCastMgr;
+    /**
+     * SSLContext を使用するかどうかのフラグ.
+     */
+    private boolean mUsesSSLContext;
     /**
      * MJPEG を配信するサーバ.
      */
     private MJPEGServer mMJPEGServer;
 
-    ScreenCastMJPEGPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
+    ScreenCastMJPEGPreviewServer(Context context, boolean isSSL, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
+        mUsesSSLContext = isSSL;
         mScreenCastMgr = recorder.getScreenCastMgr();
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
+    @Override
+    public boolean usesSSLContext() {
+        return mUsesSSLContext;
+    }
+
 
     @Override
     public String getUri() {
@@ -50,7 +61,15 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         if (mMJPEGServer == null) {
+            SSLContext sslContext = getSSLContext();
+            if (usesSSLContext() && sslContext == null) {
+                callback.onFail();
+                return;
+            }
             mMJPEGServer = new MJPEGServer();
+            if (sslContext != null) {
+                mMJPEGServer.setSSLContext(sslContext);
+            }
             mMJPEGServer.setServerName("HostDevicePlugin Server");
             mMJPEGServer.setServerPort(getPort());
             mMJPEGServer.setCallback(mCallback);
@@ -61,6 +80,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
                 return;
             }
         }
+
         callback.onStart(getUri());
     }
 
@@ -96,7 +116,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      *
      * @return JPEG のクオリティ
      */
-    private int getJpegQuality() {
+    protected int getJpegQuality() {
         return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
     }
 
@@ -117,7 +137,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      *
      * @param quality 設定を反映する MJPEGQuality
      */
-    private void setMJPEGQuality(MJPEGQuality quality) {
+    protected void setMJPEGQuality(MJPEGQuality quality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
         HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
@@ -131,7 +151,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * MJPEGServerからのイベントを受け取るためのコールバック.
      */
-    private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+    protected final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
             return true;

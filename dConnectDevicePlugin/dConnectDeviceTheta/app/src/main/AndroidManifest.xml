@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.deviceconnect.android.deviceplugin.theta">
 
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -73,10 +73,6 @@
             android:exported="false" >
         </activity>
 
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false" >
-        </service>
         <activity
             android:name=".activity.ThetaSplashActivity"
             android:screenOrientation="landscape"

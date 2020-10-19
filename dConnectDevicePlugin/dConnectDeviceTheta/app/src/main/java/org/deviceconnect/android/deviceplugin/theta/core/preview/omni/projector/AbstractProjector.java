@@ -1,5 +1,7 @@
-package org.deviceconnect.android.deviceplugin.theta.profile;
+package org.deviceconnect.android.deviceplugin.theta.core.preview.omni.projector;
 
+
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;

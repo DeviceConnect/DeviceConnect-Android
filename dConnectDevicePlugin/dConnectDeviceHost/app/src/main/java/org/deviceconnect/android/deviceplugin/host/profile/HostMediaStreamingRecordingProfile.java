@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -39,6 +40,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import javax.net.ssl.SSLContext;
 
 import static org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst.SEND_VIDEO_TO_HOSTDP;
 
@@ -513,30 +516,18 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
-                    mRecorderMgr.initialize();
-
-                    List<PreviewServer> servers = recorder.startPreviews();
-                    if (servers.isEmpty()) {
-                        MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
-                    } else {
-                        String defaultUri = null;
-                        List<Bundle> streams = new ArrayList<>();
-                        for (PreviewServer server : servers) {
-                            // Motion-JPEG をデフォルトの値として使用します
-                            if ("video/x-mjpeg".equals(server.getMimeType())) {
-                                defaultUri = server.getUri();
-                            }
-
-                            Bundle stream = new Bundle();
-                            stream.putString("mimeType", server.getMimeType());
-                            stream.putString("uri", server.getUri());
-                            streams.add(stream);
+                    HostDevicePlugin plugin = (HostDevicePlugin) getPluginContext();
+                    plugin.getSSLContext(new HostDevicePlugin.SSLContextCallback() {
+                        @Override
+                        public void onGet(final SSLContext sslContext) {
+                            startPreviewServers(sslContext, response, recorder);
                         }
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        setUri(response, defaultUri != null ? defaultUri : "");
-                        response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
-                    }
-                    sendResponse(response);
+
+                        @Override
+                        public void onError() {
+                            startPreviewServers(null, response, recorder);
+                        }
+                    });
                 }
 
                 @Override
@@ -549,6 +540,42 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return false;
         }
     };
+
+    private void startPreviewServers(final SSLContext sslContext,
+                                     final Intent response,
+                                     final HostMediaRecorder recorder) {
+        mRecorderMgr.initialize();
+
+        // SSLContext を設定
+        for (PreviewServer server : recorder.getServerProvider().getServers()) {
+            if (sslContext != null && server.usesSSLContext()) {
+                server.setSSLContext(sslContext);
+            }
+        }
+
+        List<PreviewServer> servers = recorder.startPreviews();
+        if (servers.isEmpty()) {
+            MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+        } else {
+            String defaultUri = null;
+            List<Bundle> streams = new ArrayList<>();
+            for (PreviewServer server : servers) {
+                // Motion-JPEG をデフォルトの値として使用します
+                if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
+                    defaultUri = server.getUri();
+                }
+
+                Bundle stream = new Bundle();
+                stream.putString("mimeType", server.getMimeType());
+                stream.putString("uri", server.getUri());
+                streams.add(stream);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            setUri(response, defaultUri != null ? defaultUri : "");
+            response.putExtra("streams", streams.toArray(new Bundle[0]));
+        }
+        sendResponse(response);
+    }
 
     private final DConnectApi mDeletePreviewApi = new DeleteApi() {
 

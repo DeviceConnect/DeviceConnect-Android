@@ -80,7 +80,7 @@ public class EventSessionTable {
     void updateAccessTokenForPlugin(final String pluginId, final String newAccessToken) {
         synchronized (mEventSessions) {
             for (EventSession session : mEventSessions) {
-                if (session.getPluginId().equals(pluginId)) {
+                if (session.getPluginId() != null && session.getPluginId().equals(pluginId)) {
                     session.setAccessToken(newAccessToken);
                 }
             }
@@ -96,7 +96,7 @@ public class EventSessionTable {
         synchronized (mEventSessions) {
             for (Iterator<EventSession> it = mEventSessions.iterator(); it.hasNext(); ) {
                 EventSession session = it.next();
-                if (session.getPluginId().equals(pluginId)) {
+                if (session.getPluginId() != null && session.getPluginId().equals(pluginId)) {
                     it.remove();
                 }
             }

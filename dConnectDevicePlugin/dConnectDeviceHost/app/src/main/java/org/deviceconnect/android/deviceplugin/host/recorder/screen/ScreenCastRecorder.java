@@ -51,6 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Host Device Screen Cast.
  *
@@ -372,6 +374,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     @Override
     public void stopPreviews() {
         mScreenCastPreviewServerProvider.stopServers();
+        mScreenCastMgr.clean();
     }
 
     @Override

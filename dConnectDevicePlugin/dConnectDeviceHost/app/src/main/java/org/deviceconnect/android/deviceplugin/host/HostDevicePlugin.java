@@ -12,11 +12,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
@@ -56,11 +59,25 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * Host Device Plugin Context.
@@ -110,7 +127,7 @@ public class HostDevicePlugin extends DevicePluginContext {
      * デモページアップデート通知.
      */
     private DemoInstaller.Notification mDemoNotification;
-
+    private SSLContext mSSLContext;
     /**
      * ブロードキャストレシーバー.
      */
@@ -148,6 +165,59 @@ public class HostDevicePlugin extends DevicePluginContext {
             }
         }
     };
+
+    /**
+     * SSLContext を提供するインターフェース.
+     */
+    public interface SSLContextCallback {
+        void onGet(SSLContext context);
+        void onError();
+    }
+
+    public void getSSLContext(final SSLContextCallback callback) {
+        final SSLContext sslContext = mSSLContext;
+        if (sslContext != null) {
+            mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Already created SSL Context: " + sslContext);
+            callback.onGet(sslContext);
+        } else {
+            requestKeyStore(getIPAddress(getContext()), new KeyStoreCallback() {
+                public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
+                    try {
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
+                        mSSLContext = createSSLContext(keyStore, "0000");
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
+                        callback.onGet(mSSLContext);
+                    } catch (GeneralSecurityException e) {
+                        mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
+                        callback.onError();
+                    }
+                }
+
+                public void onError(final KeyStoreError keyStoreError) {
+                    mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
+                    callback.onError();
+                }
+            });
+        }
+    }
+
+    @Override
+    protected boolean usesAutoCertificateRequest() {
+        return true;
+    }
+
+    @Override
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+        try {
+            if (keyStore == null) {
+                return;
+            }
+            mSSLContext = createSSLContext(keyStore, "0000");
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
+        }
+    }
+
     /**
      * コンストラクタ.
      *
@@ -174,13 +244,12 @@ public class HostDevicePlugin extends DevicePluginContext {
         mHostBatteryManager.getBatteryInfo();
 
         SRT.startup();
-        mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
-        mRecorderMgr.initRecorders();
-        mRecorderMgr.start();
 
+        mRecorderMgr = new HostMediaRecorderManager(this, mFileMgr);
+        DConnectService hostService = new DConnectService(SERVICE_ID);
+        addMediaStreamRecording(hostService);
         mHostMediaPlayerManager = new HostMediaPlayerManager(this);
 
-        DConnectService hostService = new DConnectService(SERVICE_ID);
         hostService.setName(SERVICE_NAME);
         hostService.setOnline(true);
         hostService.addProfile(new HostBatteryProfile(mHostBatteryManager));
@@ -202,13 +271,6 @@ public class HostDevicePlugin extends DevicePluginContext {
 
         if (checkProximityHardware()) {
             hostService.addProfile(new HostProximityProfile());
-        }
-
-        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
-        if (mRecorderMgr.getRecorders().length > 0) {
-            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
-            hostService.addProfile(mHostMediaStreamRecordingProfile);
-            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
         }
 
         // カメラが使用できる場合は、Light プロファイルを追加
@@ -239,7 +301,16 @@ public class HostDevicePlugin extends DevicePluginContext {
         registerDemoNotification();
         updateDemoPageIfNeeded();
     }
-
+    private void addMediaStreamRecording(final DConnectService hostService) {
+        mRecorderMgr.initRecorders();
+        mRecorderMgr.start();
+        //  MediaRecorder が存在する場合には、MediaStreamRecording と Camera プロファイルを追加
+        if (mRecorderMgr.getRecorders().length > 0) {
+            mHostMediaStreamRecordingProfile = new HostMediaStreamingRecordingProfile(mRecorderMgr, mFileMgr);
+            hostService.addProfile(mHostMediaStreamRecordingProfile);
+            hostService.addProfile(new HostCameraProfile(mRecorderMgr));
+        }
+    }
     private void registerDemoNotification() {
         IntentFilter filter  = new IntentFilter();
         filter.addAction(DemoInstaller.Notification.ACTON_CONFIRM_NEW_DEMO);
@@ -256,7 +327,48 @@ public class HostDevicePlugin extends DevicePluginContext {
             mLogger.info("Demo page update is not needed.");
         }
     }
+    /**
+     * Gets the ip address.
+     *
+     * @param context Context of application
+     * @return Returns ip address
+     */
+    public static String getIPAddress(final Context context) {
+        Context appContext = context.getApplicationContext();
+        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
+        ConnectivityManager cManager = (ConnectivityManager) appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network = cManager.getActiveNetworkInfo();
+        String en0Ip = null;
+        if (network != null) {
+            switch (network.getType()) {
+                case ConnectivityManager.TYPE_ETHERNET:
+                    try {
+                        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                            NetworkInterface intf = en.nextElement();
+                            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                                InetAddress inetAddress = enumIpAddr.nextElement();
+                                if (inetAddress instanceof Inet4Address
+                                        && !inetAddress.getHostAddress().equals("127.0.0.1")) {
+                                    en0Ip = inetAddress.getHostAddress();
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (SocketException e) {
+                        Log.e("Host", "Get Ethernet IP Error", e);
+                    }
+            }
+        }
 
+        if (en0Ip != null) {
+            return en0Ip;
+        } else {
+            int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+            return String.format(Locale.getDefault(), "%d.%d.%d.%d",
+                    (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                    (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+        }
+    }
     private void updateDemoPage(final Context context) {
         mDemoInstaller.update(new DemoInstaller.UpdateCallback() {
             @Override

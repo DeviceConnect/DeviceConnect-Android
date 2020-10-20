@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
-import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaGalleryFragment;
+import org.deviceconnect.android.deviceplugin.theta.fragment.gallery.ThetaGalleryFragment;
 
 /**
  * The Sample Application of THETA device plug-in.

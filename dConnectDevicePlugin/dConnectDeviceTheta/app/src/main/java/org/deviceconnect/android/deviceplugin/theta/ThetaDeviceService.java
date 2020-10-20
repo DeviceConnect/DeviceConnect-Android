@@ -7,9 +7,14 @@
 package org.deviceconnect.android.deviceplugin.theta;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.util.Log;
 
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
@@ -30,10 +35,26 @@ import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.ssl.EndPointKeyStoreManager;
+import org.deviceconnect.android.ssl.KeyStoreCallback;
+import org.deviceconnect.android.ssl.KeyStoreError;
+import org.deviceconnect.android.ssl.KeyStoreManager;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * Theta Device Service.
@@ -53,6 +74,58 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     private ThetaDeviceClient mClient;
     private FileManager mFileMgr;
     private ThetaMediaStreamRecordingProfile mThetaMediaStreamRecording;
+    private SSLContext mSSLContext;
+    /**
+     * SSLContext を提供するインターフェース.
+     */
+    public interface SSLContextCallback {
+        void onGet(SSLContext context);
+        void onError();
+    }
+
+    public void getSSLContext(final SSLContextCallback callback) {
+        final SSLContext sslContext = mSSLContext;
+        if (sslContext != null) {
+            mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Already created SSL Context: " + sslContext);
+            callback.onGet(sslContext);
+        } else {
+            requestKeyStore(getIPAddress(this), new KeyStoreCallback() {
+                public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
+                    try {
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
+                        mSSLContext = createSSLContext(keyStore, "0000");
+                        mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
+                        callback.onGet(mSSLContext);
+                    } catch (GeneralSecurityException e) {
+                        mLogger.log(Level.WARNING, "getSSLContext: requestKeyStore: onSuccess: Failed to create SSL Context", e);
+                        callback.onError();
+                    }
+                }
+
+                public void onError(final KeyStoreError keyStoreError) {
+                    mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
+                    callback.onError();
+                }
+            });
+        }
+    }
+
+    @Override
+    protected boolean usesAutoCertificateRequest() {
+        return true;
+    }
+
+    @Override
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+        try {
+            if (keyStore == null) {
+                return;
+            }
+            mSSLContext = createSSLContext(keyStore, "0000");
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
+        }
+    }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
@@ -67,7 +140,6 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     @Override
     public void onCreate() {
         super.onCreate();
-
         ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
         mDeviceMgr = app.getDeviceManager();
         mDeviceMgr.registerDeviceEventListener(this);
@@ -84,11 +156,13 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     public void onDestroy() {
         mDeviceMgr.dispose();
         mDeviceMgr.unregisterDeviceEventListener(this);
-        try {
-            PtpipInitiator.close();
-        } catch (ThetaException e) {
-            // Nothing to do.
-        }
+        new Thread(() -> {
+            try {
+                PtpipInitiator.close();
+            } catch (ThetaException e) {
+                // Nothing to do.
+            }
+        }).start();
         super.onDestroy();
     }
 
@@ -183,5 +257,47 @@ public class ThetaDeviceService extends DConnectMessageService implements ThetaD
     private void connectWifi(final ScanResult result) {
         ThetaDeviceManager deviceManager = ((ThetaDeviceApplication) getApplication()).getDeviceManager();
         deviceManager.requestNetwork(result.SSID);
+    }
+    /**
+     * Gets the ip address.
+     *
+     * @param context Context of application
+     * @return Returns ip address
+     */
+    private static String getIPAddress(final Context context) {
+        Context appContext = context.getApplicationContext();
+        WifiManager wifiManager = (WifiManager) appContext.getSystemService(Context.WIFI_SERVICE);
+        ConnectivityManager cManager = (ConnectivityManager) appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network = cManager.getActiveNetworkInfo();
+        String en0Ip = null;
+        if (network != null) {
+            switch (network.getType()) {
+                case ConnectivityManager.TYPE_ETHERNET:
+                    try {
+                        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                            NetworkInterface intf = en.nextElement();
+                            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                                InetAddress inetAddress = enumIpAddr.nextElement();
+                                if (inetAddress instanceof Inet4Address
+                                        && !inetAddress.getHostAddress().equals("127.0.0.1")) {
+                                    en0Ip = inetAddress.getHostAddress();
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (SocketException e) {
+                        Log.e("Host", "Get Ethernet IP Error", e);
+                    }
+            }
+        }
+
+        if (en0Ip != null) {
+            return en0Ip;
+        } else {
+            int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+            return String.format(Locale.getDefault(), "%d.%d.%d.%d",
+                    (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                    (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+        }
     }
 }

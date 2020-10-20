@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.uvc.recorder;
 
+import android.util.Log;
+
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.core.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.recorder.preview.MJPEGPreviewServer;
@@ -21,10 +23,8 @@ public class UVCRecorder implements MediaRecorder {
     private final List<PreviewServer> mPreviewServers = new ArrayList<>();
     private final UVCDeviceManager mDeviceMgr;
     private UVCDevice mDevice;
-
     /**
      * コンストラクタ.
-     *
      * @param manager ファイル管理クラス
      * @param device UVCカメラ
      */
@@ -40,7 +40,8 @@ public class UVCRecorder implements MediaRecorder {
     @Override
     public void initialize() {
         mPreviewServers.clear();
-        mPreviewServers.add(new MJPEGPreviewServer(mDeviceMgr, mDevice, 40000));
+        mPreviewServers.add(new MJPEGPreviewServer(false, mDeviceMgr, mDevice, 40000));
+        mPreviewServers.add(new MJPEGPreviewServer(true, mDeviceMgr, mDevice, 41000));
         mPreviewServers.add(new RTSPPreviewServer(mDeviceMgr, mDevice, 40001));
     }
 
@@ -157,7 +158,6 @@ public class UVCRecorder implements MediaRecorder {
                 @Override
                 public void onStart(@NonNull String uri) {
                     results.add(server);
-                    lock.countDown();
                 }
 
                 @Override
@@ -167,12 +167,13 @@ public class UVCRecorder implements MediaRecorder {
             });
         }
         try {
-            if (!lock.await(10, TimeUnit.SECONDS)) {
+            if (!lock.await(5, TimeUnit.SECONDS)) {
                 // TODO タイムアウト処理
             }
         } catch (Exception e) {
             // ignore.
         }
+
         return results;
     }
 

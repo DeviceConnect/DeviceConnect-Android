@@ -187,7 +187,6 @@ public class DConnectWebService extends Service {
 
         mWebServer = new DConnectWebServerNanoHttpd.Builder()
                 .port(mSettings.getWebPort())
-                .ssl(mSettings.isSSL())
                 .serverSocketFactory(factory)
                 .addDocumentRoot(mSettings.getDocumentRootPath())
                 .cors("*")

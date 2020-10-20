@@ -1,7 +1,8 @@
-package org.deviceconnect.android.deviceplugin.theta.profile;
+package org.deviceconnect.android.deviceplugin.theta.core.preview.omni.projector;
 
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
@@ -10,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.IntBuffer;
 
 
-class DefaultProjector extends AbstractProjector {
+public class DefaultProjector extends AbstractProjector {
 
     private PixelBuffer mPixelBuffer;
 
@@ -112,7 +113,6 @@ class DefaultProjector extends AbstractProjector {
         b.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] jpeg = baos.toByteArray();
         mImageCache = jpeg;
-
         mScreen.onProjected(this, jpeg);
     }
 

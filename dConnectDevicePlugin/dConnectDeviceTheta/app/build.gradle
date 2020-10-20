@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.theta"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 7
         versionName getVersionName()
@@ -81,7 +81,8 @@ android {
 
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
-    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.4'
+    implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6'
+    implementation 'org.deviceconnect:libmedia:1.1.0'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.burgstaller:okhttp-digest:1.16'

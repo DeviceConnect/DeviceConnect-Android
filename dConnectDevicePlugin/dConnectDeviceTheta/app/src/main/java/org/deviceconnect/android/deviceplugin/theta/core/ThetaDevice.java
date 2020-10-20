@@ -1,6 +1,9 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
+import org.deviceconnect.android.deviceplugin.theta.core.preview.PreviewServer;
+import org.deviceconnect.android.deviceplugin.theta.core.preview.PreviewServerProvider;
+
 import java.util.List;
 
 /**
@@ -142,7 +145,23 @@ public interface ThetaDevice extends LiveCamera {
      * @throws ThetaDeviceException if the API execution is failed.
      */
     Recorder getRecorder() throws ThetaDeviceException;
+    /**
+     * プレビュー配信サーバの管理クラスを取得します.
+     *
+     * @return プレビュー配信サーバ
+     */
+    PreviewServerProvider getServerProvider();
+    /**
+     * プレビュー配信サーバを起動します.
+     *
+     * @return 起動したプレビュー配信サーバのリスト
+     */
+    List<PreviewServer> startPreviews();
 
+    /**
+     * プレビュー配信サーバを停止します.
+     */
+    void stopPreviews();
     /**
      * Release objects or any other resources.
      */

@@ -8,6 +8,8 @@ import org.deviceconnect.android.libmedia.streaming.util.MixedReplaceMediaServer
 import java.io.IOException;
 import java.net.Socket;
 
+import javax.net.ssl.SSLContext;
+
 public class MJPEGServer {
     /**
      * デバッグフラグ.
@@ -48,6 +50,10 @@ public class MJPEGServer {
      * MJPEG サーバのイベントを通知するコールバック.
      */
     private Callback mCallback;
+    /**
+     * SSL Context.
+     */
+    private SSLContext mSSLContext;
 
     /**
      * MJPEG サーバへのイベントを通知するコールバックを設定します.
@@ -108,6 +114,9 @@ public class MJPEGServer {
         return mMJPEGEncoder;
     }
 
+    public void setSSLContext(final SSLContext sslContext) {
+        mSSLContext = sslContext;
+    }
     /**
      * MJPEG のエンコーダを再起動します.
      *
@@ -134,6 +143,7 @@ public class MJPEGServer {
         }
 
         mMixedReplaceMediaServer = new MixedReplaceMediaServer();
+        mMixedReplaceMediaServer.setSSLContext(mSSLContext);
         mMixedReplaceMediaServer.setPort(mServerPort);
         mMixedReplaceMediaServer.setServerName(mServerName);
         mMixedReplaceMediaServer.setPath(mServerPath);

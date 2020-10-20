@@ -582,11 +582,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         @Override
-        public SSLContext createSSLContext(KeyStore keyStore, String password) throws GeneralSecurityException {
-            return DConnectMessageService.this.createSSLContext(keyStore, password);
-        }
-
-        @Override
         public EventCacheController getEventCacheController() {
             return DConnectMessageService.this.getEventCacheController();
         }

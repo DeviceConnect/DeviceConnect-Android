@@ -32,6 +32,8 @@ import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Host Device Recorder Manager.
  *

@@ -2,10 +2,17 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.content.Context;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+
+import javax.net.ssl.SSLContext;
+
 /**
  * プレビュー配信サーバ.
  */
 public abstract class AbstractPreviewServer implements PreviewServer {
+    protected static final boolean DEBUG = BuildConfig.DEBUG;
+    protected static final String TAG = "host.dplugin";
+
     /**
      * コンテキスト.
      */
@@ -25,6 +32,11 @@ public abstract class AbstractPreviewServer implements PreviewServer {
      * ミュート設定.
      */
     private boolean mMute;
+
+    /**
+     * SSLContext のインスタンス.
+     */
+    private SSLContext mSSLContext;
 
     /**
      * コンストラクタ.
@@ -71,6 +83,21 @@ public abstract class AbstractPreviewServer implements PreviewServer {
     @Override
     public boolean isMuted() {
         return mMute;
+    }
+
+    @Override
+    public boolean usesSSLContext() {
+        return false;
+    }
+
+    @Override
+    public void setSSLContext(final SSLContext sslContext) {
+        mSSLContext = sslContext;
+    }
+
+    @Override
+    public SSLContext getSSLContext() {
+        return mSSLContext;
     }
 
     /**

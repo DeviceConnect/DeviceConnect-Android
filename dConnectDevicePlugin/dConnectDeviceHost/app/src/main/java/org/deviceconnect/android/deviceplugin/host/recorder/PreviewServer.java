@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * プレビュー配信用サーバを定義するインターフェース.
  */
@@ -77,6 +79,17 @@ public interface PreviewServer {
      * @return 即時生成を受け付けた場合は<code>true</code>, そうでない場合は<code>false</code>
      */
     boolean requestSyncFrame();
+
+    /**
+     * SSLContext を使用するかどうかのフラグを返す.
+     *
+     * @return SSLContext を使用する場合は<code>true</code>, そうでない場合は<code>false</code>
+     */
+    boolean usesSSLContext();
+
+    void setSSLContext(SSLContext sslContext);
+
+    SSLContext getSSLContext();
 
     /**
      * Callback interface used to receive the result of starting a web server.

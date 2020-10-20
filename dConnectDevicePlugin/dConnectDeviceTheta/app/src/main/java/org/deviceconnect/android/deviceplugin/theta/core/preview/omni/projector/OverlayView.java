@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.theta.profile;
+package org.deviceconnect.android.deviceplugin.theta.core.preview.omni.projector;
 
 
 import android.content.Context;

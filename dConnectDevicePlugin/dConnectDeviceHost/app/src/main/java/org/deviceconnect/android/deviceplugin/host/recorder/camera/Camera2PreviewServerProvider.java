@@ -34,6 +34,8 @@ import java.util.List;
 
 import androidx.core.app.NotificationCompat;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * カメラのプレビュー配信用サーバを管理するクラス.
  *
@@ -99,14 +101,15 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      * @param recorder レコーダ
      * @param num カメラの番号
      */
-    Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder, final int num) {
+    Camera2PreviewServerProvider(final Context context,
+                                 final Camera2Recorder recorder, final int num) {
         super(context, recorder, BASE_NOTIFICATION_ID + recorder.getId().hashCode());
 
         mContext = context;
         mRecorder = recorder;
         mOverlayManager = new OverlayManager(mContext);
-
-        addServer(new Camera2MJPEGPreviewServer(context, recorder, 11000 + num, mOnEventListener));
+        addServer(new Camera2MJPEGPreviewServer(context, false, recorder, 11000 + num, mOnEventListener));
+        addServer(new Camera2MJPEGPreviewServer(context, true, recorder, 11100 + num, mOnEventListener));
         addServer(new Camera2RTSPPreviewServer(context, recorder, 12000 + num, mOnEventListener));
         addServer(new Camera2SRTPreviewServer(context, recorder, 13000 + num, mOnEventListener));
     }

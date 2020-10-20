@@ -6,15 +6,15 @@ import org.deviceconnect.android.deviceplugin.uvc.profile.UVCMediaStreamRecordin
 import org.deviceconnect.android.deviceplugin.uvc.recorder.UVCRecorder;
 import org.deviceconnect.android.service.DConnectService;
 
+import javax.net.ssl.SSLContext;
+
 public class UVCService extends DConnectService {
     private UVCDeviceManager mDeviceManager;
     private UVCRecorder mUVCRecorder;
-
     public UVCService(UVCDeviceManager deviceMgr, UVCDevice device) {
         super(device.getId());
 
         mDeviceManager = deviceMgr;
-
         setName("UVC: " + device.getName());
         setOnline(false);
         setNetworkType(NetworkType.UNKNOWN);
@@ -26,6 +26,7 @@ public class UVCService extends DConnectService {
     }
 
     public void openUVCDevice(UVCDevice device) {
+
         mUVCRecorder = new UVCRecorder(mDeviceManager, device);
         mUVCRecorder.initialize();
     }

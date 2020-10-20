@@ -4,9 +4,23 @@ package org.deviceconnect.android.libsrt;
  * NDK へのアクセスを行うクラス.
  */
 class NdkHelper {
+    private static boolean mLoadLibrary = true;
     static {
-        System.loadLibrary("srt");
-        System.loadLibrary("srt-native-interface");
+        try {
+            System.loadLibrary("srt");
+            System.loadLibrary("srt-native-interface");
+        } catch(java.lang.UnsatisfiedLinkError e) {
+            mLoadLibrary = false;
+        }
+    }
+
+    static boolean isLoadLibrary() {
+        return mLoadLibrary;
+    }
+    static void checkLoadLibrary() throws SRTSocketException {
+        if (!mLoadLibrary) {
+            throw new SRTSocketException("Failed to load SRT Library, check your device architecture.", -1);
+        }
     }
 
     private NdkHelper() {
@@ -20,7 +34,16 @@ class NdkHelper {
      *
      * @return SRTソケットへのポインタ
      */
-    static native long createSrtSocket();
+    static long createSrtSocket() throws SRTSocketException {
+        checkLoadLibrary();
+        return _createSrtSocket();
+    }
+    /**
+     * SRT ソケットを作成します.
+     *
+     * @return SRTソケットへのポインタ
+     */
+    static native long _createSrtSocket();
 
     /**
      * SRT ソケットを閉じます.

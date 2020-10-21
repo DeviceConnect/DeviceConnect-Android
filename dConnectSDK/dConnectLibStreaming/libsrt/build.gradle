@@ -6,7 +6,7 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 def getVersionName = { ->
-    return "1.1.0" // Replace with version Name
+    return "1.1.1" // Replace with version Name
 }
 
 def getArtificatId = { ->

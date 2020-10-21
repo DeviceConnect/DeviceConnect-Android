@@ -45,8 +45,8 @@ JNI_METHOD_NAME(cleanup)(JNIEnv *env, jclass clazz) {
 
 
 JNIEXPORT jlong JNICALL
-JNI_METHOD_NAME(_createSrtSocket)(JNIEnv *env, jclass clazz) {
-    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_createSrtSocket()");
+JNI_METHOD_NAME(createSrtSocketImpl)(JNIEnv *env, jclass clazz) {
+    LOGI("Java_org_deviceconnect_android_libsrt_NdkHelper_createSrtSocketImpl()");
 
     int server_socket = srt_create_socket();
     if (server_socket == SRT_INVALID_SOCK) {

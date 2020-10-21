@@ -6,7 +6,7 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 def getVersionName = { ->
-    return "1.0.0" // Replace with version Name
+    return "1.1.0" // Replace with version Name
 }
 
 def getArtificatId = { ->
@@ -33,7 +33,7 @@ android {
         }
 
         ndk {
-            abiFilters "armeabi-v7a", "arm64-v8a"
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
     }
 
@@ -93,7 +93,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'org.deviceconnect:libmedia:1.0.0'
+    implementation 'org.deviceconnect:libmedia:1.1.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

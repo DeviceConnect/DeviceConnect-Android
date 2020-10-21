@@ -36,14 +36,14 @@ class NdkHelper {
      */
     static long createSrtSocket() throws SRTSocketException {
         checkLoadLibrary();
-        return _createSrtSocket();
+        return createSrtSocketImpl();
     }
     /**
      * SRT ソケットを作成します.
      *
      * @return SRTソケットへのポインタ
      */
-    static native long _createSrtSocket();
+    static native long createSrtSocketImpl();
 
     /**
      * SRT ソケットを閉じます.

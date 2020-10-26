@@ -128,10 +128,10 @@ public class CameraWrapper {
                   final @NonNull String cameraId) throws CameraAccessException {
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        mOptions = initOptions();
         mBackgroundHandler = new Handler(Looper.getMainLooper());
         mSessionConfigurationThread.start();
         mSessionConfigurationHandler = new Handler(mSessionConfigurationThread.getLooper());
-        mOptions = initOptions();
         mAutoFocusMode = choiceAutoFocusMode(context, mCameraManager, cameraId);
         mAutoExposureMode = choiceAutoExposureMode(mCameraManager, cameraId);
         mPlaceHolderPreviewReader = createImageReader(mOptions.getPreviewSize(), ImageFormat.YUV_420_888);

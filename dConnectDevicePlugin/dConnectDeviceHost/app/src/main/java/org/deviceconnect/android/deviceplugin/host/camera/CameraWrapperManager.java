@@ -9,6 +9,9 @@ package org.deviceconnect.android.deviceplugin.host.camera;
 import android.content.Context;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,8 +40,16 @@ public class CameraWrapperManager {
         try {
             CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
             for (String cameraId : cameraManager.getCameraIdList()) {
-                CameraWrapper camera = new CameraWrapper(context, cameraId);
-                mCameras.put(cameraId, camera);
+                CameraWrapper camera = null;
+                try {
+                    camera = new CameraWrapper(context, cameraId);
+                    mCameras.put(cameraId, camera);
+                } catch (Exception e) {
+                    // ignore.
+                    if (BuildConfig.DEBUG) {
+                        Log.w("CameraWrapperManager", "Failed to create a CameraWrapper.", e);
+                    }
+                }
             }
         } catch (CameraAccessException e) {
             // No camera is available now.

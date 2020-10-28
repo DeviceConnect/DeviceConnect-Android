@@ -129,7 +129,7 @@ public final class Camera2Helper {
             CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             if(map != null) {
-                pictureSizes = Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888));
+                pictureSizes = Arrays.asList(map.getOutputSizes(ImageFormat.JPEG));
                 Collections.sort(pictureSizes, SizeComparator);
             }
         } catch (CameraAccessException e) {

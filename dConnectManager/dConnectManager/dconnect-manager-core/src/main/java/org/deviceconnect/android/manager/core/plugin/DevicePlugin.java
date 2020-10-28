@@ -26,6 +26,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -452,7 +453,7 @@ public class DevicePlugin extends DConnectService {
                 }
                 return true;
             } catch (ConnectingException e) {
-                mLogger.warning("Failed to connect to the plug-in: " + getPackageName());
+                mLogger.log(Level.WARNING, "Failed to connect to the plug-in: " + getPackageName(), e);
             }
         }
         return false;

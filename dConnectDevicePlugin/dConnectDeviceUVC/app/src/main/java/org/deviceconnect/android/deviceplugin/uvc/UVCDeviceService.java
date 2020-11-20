@@ -130,7 +130,7 @@ public class UVCDeviceService extends DConnectMessageService {
     @Override
     protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
         try {
-            if (keyStore == null) {
+            if (keyStore == null || getPluginContext() == null) {
                 return;
             }
             mSSLContext = createSSLContext(keyStore, "0000");

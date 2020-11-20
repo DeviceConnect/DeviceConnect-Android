@@ -155,7 +155,12 @@ public class MJPEGServer {
                     if (mCallback != null) {
                         result = mCallback.onAccept(socket);
                         if (result) {
-                            startMJPEGEncoder();
+                            try {
+                                startMJPEGEncoder();
+                            } catch (Exception e) {
+                                stopMJPEGEncoder();
+                                return false;
+                            }
                         }
                     }
                     return result && mMJPEGEncoder != null;

@@ -87,7 +87,7 @@ dependencies {
     implementation "androidx.preference:preference:1.1.0"
     implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.9.1'
     implementation 'org.deviceconnect:dconnect-device-plugin-sdk:2.8.6'
-    implementation 'org.deviceconnect:libmedia:1.1.0'
+    implementation 'org.deviceconnect:libmedia:1.1.1'
     implementation 'org.deviceconnect:libsrt:1.1.1'
     implementation 'org.deviceconnect:dconnect-demo-lib:1.0.1'
 }

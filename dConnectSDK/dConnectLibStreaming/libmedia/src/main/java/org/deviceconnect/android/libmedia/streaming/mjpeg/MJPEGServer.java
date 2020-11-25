@@ -208,7 +208,7 @@ public class MJPEGServer {
         }
     }
 
-    private synchronized void startMJPEGEncoder() {
+    private synchronized void startMJPEGEncoder() throws MJPEGEncoderException {
         if (mMJPEGEncoder != null) {
             return;
         }
@@ -218,6 +218,8 @@ public class MJPEGServer {
             mMJPEGEncoder.setCallback((byte[] jpeg) ->
                 mMixedReplaceMediaServer.offerMedia(jpeg));
             mMJPEGEncoder.start();
+        } else {
+            throw new MJPEGEncoderException("Failed to create MJPEG Encoder.");
         }
     }
 
@@ -262,7 +264,7 @@ public class MJPEGServer {
          *
          * @return MJPEG エンコーダ
          */
-        MJPEGEncoder createMJPEGEncoder();
+        MJPEGEncoder createMJPEGEncoder() throws MJPEGEncoderException;
 
         /**
          * MJPEG エンコーダの後始末を行います.

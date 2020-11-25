@@ -116,12 +116,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
         }
 
         try {
-            if (!latch.await(10, TimeUnit.SECONDS)) {
-                // TODO タイムアウト処理
-            } else {
-                sendNotification(mRecorder.getId(), mRecorder.getName());
-                mIsShownNotification = true;
-            }
+            latch.await(10, TimeUnit.SECONDS);
+            sendNotification(mRecorder.getId(), mRecorder.getName());
+            mIsShownNotification = true;
         } catch (InterruptedException e) {
             // ignore.
         }

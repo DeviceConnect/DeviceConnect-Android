@@ -300,19 +300,24 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         }
         String defaultUri = null;
         List<Bundle> streams = new ArrayList<>();
-        for (PreviewServer server : getUVCRecorder().startPreview()) {
-            // Motion-JPEG をデフォルトの値として使用します
-            if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
-                defaultUri = server.getUrl();
-            }
+        List<PreviewServer> servers = getUVCRecorder().startPreview();
+        if (servers.isEmpty()) {
+            MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+        } else {
+            for (PreviewServer server : servers) {
+                // Motion-JPEG をデフォルトの値として使用します
+                if (defaultUri == null && "video/x-mjpeg".equals(server.getMimeType())) {
+                    defaultUri = server.getUrl();
+                }
 
-            Bundle stream = new Bundle();
-            stream.putString("mimeType", server.getMimeType());
-            stream.putString("uri", server.getUrl());
-            streams.add(stream);
+                Bundle stream = new Bundle();
+                stream.putString("mimeType", server.getMimeType());
+                stream.putString("uri", server.getUrl());
+                streams.add(stream);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            setUri(response, defaultUri != null ? defaultUri : "");
+            response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
         }
-        setResult(response, DConnectMessage.RESULT_OK);
-        setUri(response, defaultUri != null ? defaultUri : "");
-        response.putExtra("streams", streams.toArray(new Bundle[streams.size()]));
     }
 }

@@ -168,9 +168,7 @@ public class UVCRecorder implements MediaRecorder {
             });
         }
         try {
-            if (!lock.await(5, TimeUnit.SECONDS)) {
-                // TODO タイムアウト処理
-            }
+            lock.await(5, TimeUnit.SECONDS);
         } catch (Exception e) {
             // ignore.
         }

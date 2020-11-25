@@ -158,7 +158,7 @@ public interface MediaRecorder {
 
     /**
      * プレビューを開始します.
-     *
+     * サーバが起動できなかった場合には、空のリストを返却する。
      * @return 起動したプレビュー配信サーバのリスト
      */
     List<PreviewServer> startPreview();

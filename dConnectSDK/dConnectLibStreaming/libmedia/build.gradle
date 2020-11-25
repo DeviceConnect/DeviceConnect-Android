@@ -6,11 +6,11 @@ if (githubPropertiesFile.exists()) {
     githubProperties.load(new FileInputStream(githubPropertiesFile))
 }
 def getVersionName = { ->
-    return "1.1.0" // Replace with version Name
+    return "1.1.1"
 }
 
 def getArtificatId = { ->
-    return "libmedia" // Replace with library name ID
+    return "libmedia"
 }
 android {
     compileSdkVersion 29

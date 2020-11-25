@@ -1,5 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
+
 public abstract class MJPEGEncoder {
     /**
      * MJPEG の設定を格納するクラス.
@@ -22,8 +23,9 @@ public abstract class MJPEGEncoder {
 
     /**
      * エンコードを開始します.
+     * @throws MJPEGEncoderException MJPEGのエンコードの開始に失敗した場合
      */
-    public abstract void start();
+    public abstract void start() throws MJPEGEncoderException;
 
     /**
      * エンコードを停止します.

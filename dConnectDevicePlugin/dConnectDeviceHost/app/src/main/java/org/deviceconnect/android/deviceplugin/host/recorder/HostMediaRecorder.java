@@ -207,7 +207,7 @@ public interface HostMediaRecorder {
 
     /**
      * プレビュー配信サーバを起動します.
-     *
+     * サーバが起動できなかった場合には、空のリストを返却する。
      * @return 起動したプレビュー配信サーバのリスト
      */
     List<PreviewServer> startPreviews();

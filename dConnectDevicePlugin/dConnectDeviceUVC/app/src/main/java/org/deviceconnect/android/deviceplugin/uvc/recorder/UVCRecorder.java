@@ -158,6 +158,7 @@ public class UVCRecorder implements MediaRecorder {
                 @Override
                 public void onStart(@NonNull String uri) {
                     results.add(server);
+                    lock.countDown();
                 }
 
                 @Override

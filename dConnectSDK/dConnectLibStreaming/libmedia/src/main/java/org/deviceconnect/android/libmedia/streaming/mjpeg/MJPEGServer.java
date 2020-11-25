@@ -208,7 +208,7 @@ public class MJPEGServer {
         }
     }
 
-    private synchronized void startMJPEGEncoder() throws MJPEGEncoderException {
+    private synchronized void startMJPEGEncoder() {
         if (mMJPEGEncoder != null) {
             return;
         }

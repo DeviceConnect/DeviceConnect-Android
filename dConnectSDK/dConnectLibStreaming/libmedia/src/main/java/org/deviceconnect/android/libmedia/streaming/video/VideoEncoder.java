@@ -180,6 +180,23 @@ public abstract class VideoEncoder extends MediaEncoder {
     }
 
     /**
+     * ハードウェアエンコーダか確認します.
+     *
+     * @param info MediaCodec 情報
+     * @return ハードウェアエンコーダの場合にはtrue、それ以外はfalse
+     */
+    private boolean isHardware(MediaCodecInfo info) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return info.isHardwareAccelerated();
+        } else {
+            // エンコーダ名が OMX.qcom. または OMX.Exynos. から始まる場合はハードウェアエンコーダ
+            // エンコーダ名が OMX.google. から始まる場合はソフトウェアエンコーダ
+            String name = info.getName();
+            return name.startsWith("OMX.qcom.") || name.startsWith("OMX.Exynos.");
+        }
+    }
+
+    /**
      * MediaCodec を作成します.
      *
      * @param colorFormat カラーフォーマット
@@ -195,41 +212,23 @@ public abstract class VideoEncoder extends MediaEncoder {
         MediaCodecInfo codecInfo = null;
 
         boolean configureH264HighProfile = false;
+        boolean useSoftware = videoQuality.isUseSoftwareEncoder();
 
         List<MediaCodecInfo> infoList = getMediaCodecInfo(mimeType, colorFormat);
         if (infoList.isEmpty()) {
             throw new IOException(mimeType + " not supported.");
         }
 
-        // エンコーダ名が OMX.qcom. から始まる場合はハードウェアエンコーダ
-        // エンコーダ名が OMX.google. から始まる場合はソフトウェアエンコーダ
-        String encoderPrefix = "OMX.qcom.";
-        if (videoQuality.isUseSoftwareEncoder()) {
-            encoderPrefix = "OMX.google.";
+        for (MediaCodecInfo info : infoList) {
+            if (codecInfo == null || (useSoftware == !isHardware(info))) {
+                codecInfo = info;
+            }
         }
 
         if (MIME_TYPE_H264.equalsIgnoreCase(mimeType)) {
             for (MediaCodecInfo info : infoList) {
-                if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
-                    codecInfo = info;
-                }
-            }
-
-            for (MediaCodecInfo info : infoList) {
-                if (info.getName().startsWith("OMX.Exynos.")) {
+                if (info.getName().startsWith("OMX.Exynos.") && (useSoftware == !isHardware(info))) {
                     configureH264HighProfile = true;
-                    codecInfo = info;
-                }
-            }
-        } else if (MIME_TYPE_H265.equalsIgnoreCase(mimeType)) {
-            for (MediaCodecInfo info : infoList) {
-                if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
-                    codecInfo = info;
-                }
-            }
-        } else if (MIME_TYPE_VP8.equalsIgnoreCase(mimeType) || MIME_TYPE_VP9.equalsIgnoreCase(mimeType)) {
-            for (MediaCodecInfo info : infoList) {
-                if (codecInfo == null || info.getName().startsWith(encoderPrefix)) {
                     codecInfo = info;
                 }
             }
@@ -255,7 +254,7 @@ public abstract class VideoEncoder extends MediaEncoder {
         }
 
         MediaCodecInfo.CodecCapabilities codecCapabilities = codecInfo.getCapabilitiesForType(videoQuality.getMimeType());
-        MediaCodecInfo.EncoderCapabilities encoderCapabilities =  codecCapabilities.getEncoderCapabilities();
+        MediaCodecInfo.EncoderCapabilities encoderCapabilities = codecCapabilities.getEncoderCapabilities();
 
         MediaFormat format = MediaFormat.createVideoFormat(videoQuality.getMimeType(), w, h);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat);
@@ -300,7 +299,7 @@ public abstract class VideoEncoder extends MediaEncoder {
             // H264 で High Profile をサポートしている場合は使用するようにします。
             if (configureH264HighProfile) {
                 format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
-                format.setInteger(MediaFormat.KEY_LEVEL,MediaCodecInfo.CodecProfileLevel.AVCLevel3);
+                format.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel3);
             }
         }
 

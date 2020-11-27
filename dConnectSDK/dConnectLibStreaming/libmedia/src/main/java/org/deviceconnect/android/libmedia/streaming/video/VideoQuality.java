@@ -150,6 +150,8 @@ public class VideoQuality {
     /**
      * ソフトウェアエンコーダを使用するか確認します.
      *
+     * デフォルトでは、 false に設定されています。
+     *
      * @return ソフトウェアエンコーダを使用する場合はtrue、それ以外はfalse
      */
     public boolean isUseSoftwareEncoder() {

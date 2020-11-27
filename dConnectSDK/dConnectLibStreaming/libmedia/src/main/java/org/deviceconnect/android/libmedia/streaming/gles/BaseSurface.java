@@ -120,8 +120,10 @@ public abstract class BaseSurface {
      * Sends the presentation time stamp to EGL.  Time is expressed in nanoseconds.
      */
     public void setPresentationTime(long nsecs) {
-        EGLExt.eglPresentationTimeANDROID(mEGLDisplay, mEGLSurface, nsecs);
-        checkEglError("eglPresentationTimeANDROID");
+        // nsecs に 0 が指定された時に描画が行われない端末があるので、
+        // ここでは、一旦コメントアウトしておきます。
+//        EGLExt.eglPresentationTimeANDROID(mEGLDisplay, mEGLSurface, nsecs);
+//        checkEglError("eglPresentationTimeANDROID");
     }
 
     /**

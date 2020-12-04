@@ -7,6 +7,7 @@ import android.view.Surface;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
 import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
 
 import java.util.ArrayList;
@@ -37,12 +38,12 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     }
 
     @Override
-    protected OffscreenSurface createOffscreenSurface() {
+    protected OffscreenSurface createOffscreenSurface(EGLCore core) {
         MJPEGQuality quality = getMJPEGQuality();
         boolean isSwapped = Camera2WrapperManager.isSwappedDimensions(mContext, quality.getFacing());
         int w = isSwapped ? quality.getHeight() : quality.getWidth();
         int h = isSwapped ? quality.getWidth() : quality.getHeight();
-        return new OffscreenSurface(w, h);
+        return new OffscreenSurface(core, w, h);
     }
 
     @Override

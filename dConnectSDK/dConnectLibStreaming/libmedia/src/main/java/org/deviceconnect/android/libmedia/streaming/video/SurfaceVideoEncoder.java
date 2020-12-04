@@ -7,6 +7,7 @@ import android.util.Log;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.gles.CodecInputSurface;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
 
 import java.io.IOException;
@@ -19,9 +20,14 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private static final String TAG = "VIDEO-SURFACE-ENCODER";
 
     /**
-     * SurfaceTexture管理クラス.
+     * SurfaceTexture 管理クラス.
      */
     private SurfaceTextureManager mStManager;
+
+    /**
+     * OpenGLES のコンテキストなどを管理するクラス.
+     */
+    private EGLCore mEGLCore;
 
     /**
      * 描画結果を MediaCodec に渡すクラス.
@@ -38,7 +44,8 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     @Override
     protected void prepare() throws IOException {
         super.prepare();
-        mInputSurface = new CodecInputSurface(mMediaCodec.createInputSurface());
+        mEGLCore = new EGLCore();
+        mInputSurface = new CodecInputSurface(mEGLCore, mMediaCodec.createInputSurface());
     }
 
     @Override
@@ -67,6 +74,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         if (mInputSurface != null) {
             mInputSurface.release();
             mInputSurface = null;
+        }
+
+        if (mEGLCore != null) {
+            mEGLCore.release();
+            mEGLCore = null;
         }
 
         super.release();

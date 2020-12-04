@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
 import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
 
@@ -13,6 +14,11 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
+    /**
+     * OpenGLES のコンテキストなどを管理するクラス.
+     */
+    private EGLCore mEGLCore;
+
     /**
      * 描画を行う Surface クラス.
      */
@@ -156,14 +162,14 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         mOffscreenSurface.swapBuffers();
     }
 
-    protected OffscreenSurface createOffscreenSurface() {
+    protected OffscreenSurface createOffscreenSurface(EGLCore core) {
         int w = getMJPEGQuality().getWidth();
         int h = getMJPEGQuality().getHeight();
         if (isSwappedDimensions()) {
             w = getMJPEGQuality().getHeight();
             h = getMJPEGQuality().getWidth();
         }
-        return new OffscreenSurface(w, h);
+        return new OffscreenSurface(core, w, h);
     }
 
     /**
@@ -197,7 +203,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
 
                 int interval = 1000 / getMJPEGQuality().getFrameRate();
 
-                mOffscreenSurface = createOffscreenSurface();
+                mEGLCore = new EGLCore();
+                mOffscreenSurface = createOffscreenSurface(mEGLCore);
                 mOffscreenSurface.makeCurrent();
 
                 mStManager = new SurfaceTextureManager(true);
@@ -232,6 +239,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
                 if (mOffscreenSurface != null) {
                     mOffscreenSurface.release();
                     mOffscreenSurface = null;
+                }
+
+                if (mEGLCore != null) {
+                    mEGLCore.release();
+                    mEGLCore = null;
                 }
 
                 if (mStManager != null) {

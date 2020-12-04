@@ -8,40 +8,36 @@ import android.view.Surface;
 
 public class CodecInputSurface extends BaseSurface {
     /**
-     * 描画を行う Surface.
+     * 描画先の Surface.
      */
     private Surface mSurface;
 
     /**
      * Creates a CodecInputSurface from a Surface.
      */
-    public CodecInputSurface(Surface surface) {
+    public CodecInputSurface(EGLCore core, Surface surface) {
+        super(core);
         if (surface == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException("surface is null.");
         }
         mSurface = surface;
-        setupEGL();
+        setEGLSurface(createEGLSurface(core.getEGLDisplay(), core.getEGLConfigs(), surface));
     }
 
-    @Override
-    public void release() {
-        super.release();
-
-        if (mSurface != null) {
-            mSurface.release();
-            mSurface = null;
-        }
+    /**
+     * 描画先の Surface を取得します.
+     */
+    public Surface getSurface() {
+        return mSurface;
     }
 
-    @Override
-    EGLSurface createEGLSurface(EGLDisplay display, EGLConfig[] configs) {
+    private EGLSurface createEGLSurface(EGLDisplay display, EGLConfig[] configs, Surface surface) {
         // Create a window surface, and attach it to the Surface we received.
         int[] surfaceAttribs = {
                 EGL14.EGL_NONE
         };
-
-        EGLSurface surface = EGL14.eglCreateWindowSurface(display, configs[0], mSurface, surfaceAttribs, 0);
+        EGLSurface eglSurface = EGL14.eglCreateWindowSurface(display, configs[0], surface, surfaceAttribs, 0);
         checkEglError("eglCreateWindowSurface");
-        return surface;
+        return eglSurface;
     }
 }

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES20;
 import android.util.Log;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
@@ -103,6 +104,10 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
         if (mSurfaceTexture != null) {
             mSurfaceTexture.updateTexImage();
         }
+    }
+
+    public void setViewport(int x, int y, int width, int height) {
+        GLES20.glViewport(x, y, width, height);
     }
 
     /**

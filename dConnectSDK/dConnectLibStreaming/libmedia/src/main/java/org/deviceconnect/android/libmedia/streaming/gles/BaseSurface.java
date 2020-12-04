@@ -13,89 +13,59 @@ import java.nio.Buffer;
 import javax.microedition.khronos.egl.EGL10;
 
 public abstract class BaseSurface {
-    private static final int EGL_RECORDABLE_ANDROID;
-
-    static {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            EGL_RECORDABLE_ANDROID = EGLExt.EGL_RECORDABLE_ANDROID;
-        } else {
-            EGL_RECORDABLE_ANDROID = 0x3142;
-        }
-    }
-
-    private EGLDisplay mEGLDisplay = EGL14.EGL_NO_DISPLAY;
-    private EGLContext mEGLContext = EGL14.EGL_NO_CONTEXT;
     private EGLSurface mEGLSurface = EGL14.EGL_NO_SURFACE;
+    private EGLCore mEGLCore;
+    private int mWidth = -1;
+    private int mHeight = -1;
 
-    /**
-     * OpenGLES のセットアップを行います.
-     */
-    void setupEGL() {
-        mEGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
-        if (mEGLDisplay == EGL14.EGL_NO_DISPLAY) {
-            throw new RuntimeException("unable to get EGL14 display");
-        }
+    BaseSurface(EGLCore core) {
+        mEGLCore = core;
+    }
 
-        int[] version = new int[2];
-        if (!EGL14.eglInitialize(mEGLDisplay, version, 0, version, 1)) {
-            throw new RuntimeException("unable to initialize EGL14");
-        }
+    BaseSurface(EGLCore core, int width, int height) {
+        mEGLCore = core;
+        mWidth = width;
+        mHeight = height;
+    }
 
-        // Configure EGL for recording and OpenGL ES 2.0.
-        int[] attribList = new int[] {
-                EGL10.EGL_ALPHA_SIZE, 8,
-                EGL10.EGL_DEPTH_SIZE, 16,
-                EGL10.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
-                EGL_RECORDABLE_ANDROID, 1,	// this flag need to recording of MediaCodec
-                EGL10.EGL_NONE
-        };
-
-        EGLConfig[] configs = new EGLConfig[1];
-        int[] numConfigs = new int[1];
-        EGL14.eglChooseConfig(mEGLDisplay, attribList, 0, configs, 0, configs.length,
-                numConfigs, 0);
-        checkEglError("eglCreateContext RGB888+recordable ES2");
-
-        // Configure context for OpenGL ES 2.0.
-        int[] attrib_list = {
-                EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
-                EGL14.EGL_NONE
-        };
-
-        mEGLContext = EGL14.eglCreateContext(mEGLDisplay, configs[0], EGL14.EGL_NO_CONTEXT, attrib_list, 0);
-        checkEglError("eglCreateContext");
-
-        mEGLSurface = createEGLSurface(mEGLDisplay, configs);
-
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-        GLES20.glDisable(GLES20.GL_CULL_FACE);
+    void setEGLSurface(EGLSurface surface) {
+        mEGLSurface = surface;
     }
 
     /**
-     * EGLSurface を作成します.
-     *
-     * @param display Surfaceのディスプレイ
-     * @param configs コンフィグ
-     * @return EGLSurface
+     * Returns the surface's width, in pixels.
+     * <p>
+     * If this is called on a window surface, and the underlying surface is in the process
+     * of changing size, we may not see the new size right away (e.g. in the "surfaceChanged"
+     * callback).  The size should match after the next buffer swap.
      */
-    abstract EGLSurface createEGLSurface(EGLDisplay display, EGLConfig[] configs);
+    public int getWidth() {
+        if (mWidth < 0) {
+            return mEGLCore.querySurface(mEGLSurface, EGL14.EGL_WIDTH);
+        } else {
+            return mWidth;
+        }
+    }
+
+    /**
+     * Returns the surface's height, in pixels.
+     */
+    public int getHeight() {
+        if (mHeight < 0) {
+            return mEGLCore.querySurface(mEGLSurface, EGL14.EGL_HEIGHT);
+        } else {
+            return mHeight;
+        }
+    }
 
     /**
      * Discards all resources held by this class, notably the EGL context.  Also releases the
      * Surface that was passed to our constructor.
      */
     public void release() {
-        if (mEGLDisplay != EGL14.EGL_NO_DISPLAY) {
-            EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
-                    EGL14.EGL_NO_CONTEXT);
-            EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface);
-            EGL14.eglDestroyContext(mEGLDisplay, mEGLContext);
-            EGL14.eglReleaseThread();
-            EGL14.eglTerminate(mEGLDisplay);
+        if (mEGLCore.getEGLDisplay() != EGL14.EGL_NO_DISPLAY) {
+            EGL14.eglDestroySurface(mEGLCore.getEGLDisplay(), mEGLSurface);
         }
-
-        mEGLDisplay = EGL14.EGL_NO_DISPLAY;
-        mEGLContext = EGL14.EGL_NO_CONTEXT;
         mEGLSurface = EGL14.EGL_NO_SURFACE;
     }
 
@@ -103,7 +73,7 @@ public abstract class BaseSurface {
      * Makes our EGL context and surface current.
      */
     public void makeCurrent() {
-        EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext);
+        EGL14.eglMakeCurrent(mEGLCore.getEGLDisplay(), mEGLSurface, mEGLSurface, mEGLCore.getEGLContext());
         checkEglError("eglMakeCurrent");
     }
 
@@ -111,7 +81,7 @@ public abstract class BaseSurface {
      * Calls eglSwapBuffers.  Use this to "publish" the current frame.
      */
     public boolean swapBuffers() {
-        boolean result = EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface);
+        boolean result = EGL14.eglSwapBuffers(mEGLCore.getEGLDisplay(), mEGLSurface);
         checkEglError("eglSwapBuffers");
         return result;
     }

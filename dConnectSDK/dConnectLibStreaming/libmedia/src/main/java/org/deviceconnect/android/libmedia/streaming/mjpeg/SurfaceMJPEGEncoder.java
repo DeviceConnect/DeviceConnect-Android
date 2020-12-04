@@ -15,11 +15,6 @@ import java.nio.ByteBuffer;
 
 public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     /**
-     * OpenGLES のコンテキストなどを管理するクラス.
-     */
-    private EGLCore mEGLCore;
-
-    /**
      * 描画を行う Surface クラス.
      */
     private OffscreenSurface mOffscreenSurface;
@@ -141,9 +136,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * @param h 映像の縦幅
      */
     private void drainEncoder(int w, int h) {
-        mStManager.awaitNewImage();
-        mStManager.drawImage(getDisplayRotation());
-
         // OpenGLES からピクセルデータを取得するバッファを作成
         if (mBuffer == null || w != mBitmap.getWidth() || h != mBitmap.getHeight()) {
             mBuffer = ByteBuffer.allocateDirect(w * h * 4);
@@ -158,8 +150,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         mBitmap.compress(Bitmap.CompressFormat.JPEG, getMJPEGQuality().getQuality(), mJPEGOutputStream);
 
         postJPEG(mJPEGOutputStream.toByteArray());
-
-        mOffscreenSurface.swapBuffers();
     }
 
     protected OffscreenSurface createOffscreenSurface(EGLCore core) {
@@ -182,6 +172,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         private boolean mStopFlag;
 
         /**
+         * OpenGLES のコンテキストなどを管理するクラス.
+         */
+        private EGLCore mEGLCore;
+
+        /**
          * 停止処理を行います.
          */
         void terminate() {
@@ -196,37 +191,60 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             }
         }
 
+        /**
+         * SurfaceTextureManager を作成します.
+         */
+        private synchronized void createStManager() {
+            if (mStManager != null) {
+                return;
+            }
+            mStManager = new SurfaceTextureManager(true);
+
+            MJPEGQuality quality = getMJPEGQuality();
+            SurfaceTexture st = mStManager.getSurfaceTexture();
+            st.setDefaultBufferSize(quality.getWidth(), quality.getHeight());
+        }
+
+        /**
+         * SurfaceTextureManager の後始末を行います.
+         */
+        private synchronized void releaseStManager() {
+            if (mStManager != null) {
+                mStManager.release();
+                mStManager = null;
+            }
+        }
+
         @Override
         public void run() {
             try {
                 prepare();
 
-                int interval = 1000 / getMJPEGQuality().getFrameRate();
-
                 mEGLCore = new EGLCore();
+
                 mOffscreenSurface = createOffscreenSurface(mEGLCore);
                 mOffscreenSurface.makeCurrent();
 
-                mStManager = new SurfaceTextureManager(true);
-
-                MJPEGQuality quality = getMJPEGQuality();
-                SurfaceTexture st = mStManager.getSurfaceTexture();
-                st.setDefaultBufferSize(quality.getWidth(), quality.getHeight());
+                createStManager();
 
                 startRecording();
 
+                SurfaceTexture st = mStManager.getSurfaceTexture();
+
+                int fps = 1000 / getMJPEGQuality().getFrameRate();
                 while (!mStopFlag) {
                     long startTime = System.currentTimeMillis();
 
+                    mStManager.awaitNewImage();
+                    mStManager.drawImage(getDisplayRotation());
+                    mOffscreenSurface.setPresentationTime(st.getTimestamp());
+                    mOffscreenSurface.swapBuffers();
+
                     drainEncoder(mOffscreenSurface.getWidth(), mOffscreenSurface.getHeight());
 
-                    long t = interval - (System.currentTimeMillis() - startTime);
-                    if (t > 0) {
-                        try {
-                            Thread.sleep(t);
-                        } catch (InterruptedException e) {
-                            // ignore
-                        }
+                    long drawTime = System.currentTimeMillis() - startTime;
+                    if (drawTime < fps) {
+                        Thread.sleep(fps - drawTime);
                     }
                 }
             } catch (Exception e) {
@@ -241,14 +259,14 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
                     mOffscreenSurface = null;
                 }
 
+                releaseStManager();
+
+                // EGLCore を release するタイミングは一番最後にすること。
+                // 先に EGLSurfaceBase よりも先に release を行うと、EGLSurfaceBase
+                // の release に失敗して、メモリリークになります。
                 if (mEGLCore != null) {
                     mEGLCore.release();
                     mEGLCore = null;
-                }
-
-                if (mStManager != null) {
-                    mStManager.release();
-                    mStManager = null;
                 }
             }
         }

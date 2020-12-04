@@ -8,7 +8,7 @@ import android.opengl.EGLSurface;
 /**
  * オフスクリーン用の Surface.
  */
-public class OffscreenSurface extends BaseSurface {
+public class OffscreenSurface extends EGLSurfaceBase {
     /**
      * 縦幅、横幅から OffscreenSurface を作成します.
      *

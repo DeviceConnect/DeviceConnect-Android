@@ -12,23 +12,23 @@ import java.nio.Buffer;
 
 import javax.microedition.khronos.egl.EGL10;
 
-public abstract class BaseSurface {
+public abstract class EGLSurfaceBase {
     private EGLSurface mEGLSurface = EGL14.EGL_NO_SURFACE;
     private EGLCore mEGLCore;
     private int mWidth = -1;
     private int mHeight = -1;
 
-    BaseSurface(EGLCore core) {
+    EGLSurfaceBase(EGLCore core) {
         mEGLCore = core;
     }
 
-    BaseSurface(EGLCore core, int width, int height) {
+    EGLSurfaceBase(EGLCore core, int width, int height) {
         mEGLCore = core;
         mWidth = width;
         mHeight = height;
     }
 
-    void setEGLSurface(EGLSurface surface) {
+    protected void setEGLSurface(EGLSurface surface) {
         mEGLSurface = surface;
     }
 

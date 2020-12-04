@@ -6,7 +6,7 @@ import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
 import android.view.Surface;
 
-public class CodecInputSurface extends BaseSurface {
+public class WindowSurface extends EGLSurfaceBase {
     /**
      * 描画先の Surface.
      */
@@ -15,7 +15,7 @@ public class CodecInputSurface extends BaseSurface {
     /**
      * Creates a CodecInputSurface from a Surface.
      */
-    public CodecInputSurface(EGLCore core, Surface surface) {
+    public WindowSurface(EGLCore core, Surface surface) {
         super(core);
         if (surface == null) {
             throw new IllegalArgumentException("surface is null.");

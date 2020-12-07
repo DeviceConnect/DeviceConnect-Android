@@ -2,10 +2,12 @@ package org.deviceconnect.android.libmedia.streaming.video;
 
 import android.graphics.SurfaceTexture;
 import android.media.MediaCodecInfo;
+import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.gles.WindowSurface;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
 import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
@@ -22,7 +24,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     /**
      * Surface の描画を行うスレッド.
      */
-    private SurfaceDrawingThread mSurfaceDrawingThread;
+    private EGLSurfaceDrawingThread mSurfaceDrawingThread;
 
     /**
      * 描画を行う Surface のリスト.
@@ -87,7 +89,9 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         mOutputSurfaces.add(surface);
 
         if (isRunningSurfaceDrawingThread()) {
-            mSurfaceDrawingThread.addSurface(surface);
+            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
+            eglSurfaceBase.setTag(surface);
+            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
         }
     }
 
@@ -100,7 +104,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         mOutputSurfaces.remove(surface);
 
         if (isRunningSurfaceDrawingThread()) {
-            mSurfaceDrawingThread.removeSurface(surface);
+            mSurfaceDrawingThread.removeEGLSurfaceBase(surface);
         }
     }
 
@@ -115,7 +119,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     }
 
     /**
-     * Surface への描画を停止します。
+     * Surface への描画スレッドを停止します。
      */
     public synchronized void stopSurfaceDrawing() {
         mStartSurfaceDrawingFlag = false;
@@ -123,19 +127,47 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     }
 
     /**
-     * Surface への描画を開始します。
+     * Surface への描画スレッドを開始します。
      */
     private void startDrawingThreadInternal() {
         if (isRunningSurfaceDrawingThread()) {
             return;
         }
-        mSurfaceDrawingThread = new SurfaceDrawingThread();
+
+        VideoQuality quality = getVideoQuality();
+
+        mSurfaceDrawingThread = new EGLSurfaceDrawingThread() {
+            @Override
+            public void onStarted() {
+                for (Surface surface : mOutputSurfaces) {
+                    mSurfaceDrawingThread.addEGLSurfaceBase(
+                            mSurfaceDrawingThread.createEGLSurfaceBase(surface));
+                }
+                onStartSurfaceDrawing();
+            }
+
+            @Override
+            public void onStopped() {
+                onStopSurfaceDrawing();
+            }
+
+            @Override
+            public int getDisplayRotation() {
+                return SurfaceVideoEncoder.this.getDisplayRotation();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                postOnError(new MediaEncoderException(e));
+            }
+        };
         mSurfaceDrawingThread.setName("Surface-Drawing-Thread");
+        mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
         mSurfaceDrawingThread.start();
     }
 
     /**
-     * Surface への描画を停止します。
+     * Surface への描画スレッドを停止します。
      */
     private void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
@@ -150,7 +182,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
      * @return SurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
      */
     private synchronized boolean isRunningSurfaceDrawingThread() {
-        return mSurfaceDrawingThread != null && !mSurfaceDrawingThread.mStopFlag;
+        return mSurfaceDrawingThread != null && mSurfaceDrawingThread.isRunning();
     }
 
     /**
@@ -175,179 +207,4 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
      * Surface への描画が終了したことを通知します.
      */
     protected abstract void onStopSurfaceDrawing();
-
-    /**
-     * Surface への描画を行うスレッド.
-     */
-    private class SurfaceDrawingThread extends Thread {
-        /**
-         * 停止フラグ.
-         */
-        private boolean mStopFlag;
-
-        /**
-         * OpenGLES のコンテキストなどを管理するクラス.
-         */
-        private EGLCore mEGLCore;
-
-        /**
-         * SurfaceTexture管理クラス.
-         */
-        private SurfaceTextureManager mStManager;
-
-        /**
-         * 描画先の EGLSurface のリスト.
-         */
-        private final List<EGLSurfaceBase> mEGLSurfaceBases = new ArrayList<>();
-
-        /**
-         * スレッドを終了します.
-         */
-        private void terminate() {
-            mStopFlag = true;
-
-            interrupt();
-
-            try {
-                join(200);
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        }
-
-        /**
-         * SurfaceTextureManager を作成します.
-         */
-        private synchronized void createStManager() {
-            if (mStManager != null) {
-                return;
-            }
-            mStManager = new SurfaceTextureManager();
-
-            // SurfaceTexture に解像度を設定
-            VideoQuality quality = getVideoQuality();
-            SurfaceTexture st = mStManager.getSurfaceTexture();
-            st.setDefaultBufferSize(quality.getVideoWidth(), quality.getVideoHeight());
-        }
-
-        /**
-         * SurfaceTextureManager の後始末を行います.
-         */
-        private synchronized void releaseStManager() {
-            if (mStManager != null) {
-                mStManager.release();
-                mStManager = null;
-            }
-        }
-
-        /**
-         * 描画を行う SurfaceTexture を取得します.
-         *
-         * <p>
-         * この SurfaceTexture に描画した内容をエンコードします。
-         * </p>
-         *
-         * @return SurfaceTexture
-         */
-        private SurfaceTexture getSurfaceTexture() {
-            return mStManager != null ? mStManager.getSurfaceTexture() : null;
-        }
-
-        /**
-         * 描画先の Surface を追加します.
-         *
-         * @param surface 追加する Surface
-         */
-        private void addSurface(Surface surface) {
-            synchronized (mEGLSurfaceBases) {
-                mEGLSurfaceBases.add(new WindowSurface(mEGLCore, surface));
-            }
-        }
-
-        /**
-         * 描画先の Surface を削除します.
-         *
-         * @param surface 削除する Surface
-         */
-        private void removeSurface(Surface surface) {
-            synchronized (mEGLSurfaceBases) {
-                for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
-                    if (eglSurfaceBase instanceof WindowSurface) {
-                        if (((WindowSurface) eglSurfaceBase).getSurface() == surface) {
-                            mEGLSurfaceBases.remove(eglSurfaceBase);
-                            eglSurfaceBase.release();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void run() {
-            try {
-                mEGLCore = new EGLCore();
-                mEGLCore.makeCurrent();
-
-                synchronized (mEGLSurfaceBases) {
-                    for (Surface surface : mOutputSurfaces) {
-                        mEGLSurfaceBases.add(new WindowSurface(mEGLCore, surface));
-                    }
-                }
-
-                createStManager();
-
-                onStartSurfaceDrawing();
-
-                SurfaceTexture st = mStManager.getSurfaceTexture();
-
-                int fps = 1000 / getVideoQuality().getFrameRate();
-                while (!mStopFlag) {
-                    long startTime = System.currentTimeMillis();
-
-                    executeRequest();
-
-                    mStManager.awaitNewImage();
-
-                    synchronized (mEGLSurfaceBases) {
-                        for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
-                            eglSurfaceBase.makeCurrent();
-                            mStManager.setViewport(0, 0, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
-                            mStManager.drawImage(getDisplayRotation());
-                            eglSurfaceBase.setPresentationTime(st.getTimestamp());
-                            eglSurfaceBase.swapBuffers();
-                        }
-                    }
-
-                    long drawTime = System.currentTimeMillis() - startTime;
-                    if (drawTime < fps) {
-                        Thread.sleep(fps - drawTime);
-                    }
-                }
-            } catch (Exception e) {
-                if (!mStopFlag) {
-                    postOnError(new MediaEncoderException(e));
-                }
-            } finally {
-                synchronized (mEGLSurfaceBases) {
-                    for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
-                        eglSurfaceBase.release();
-                    }
-                    mEGLSurfaceBases.clear();
-                }
-
-                releaseStManager();
-
-                // EGLCore を release するタイミングは一番最後にすること。
-                // 先に EGLSurfaceBase よりも先に release を行うと、EGLSurfaceBase
-                // の release に失敗して、メモリリークになります。
-                if (mEGLCore != null) {
-                    mEGLCore.release();
-                    mEGLCore = null;
-                }
-
-                onStopSurfaceDrawing();
-            }
-        }
-    }
 }

@@ -17,12 +17,6 @@ public class OffscreenSurface extends EGLSurfaceBase {
      */
     public OffscreenSurface(EGLCore core, int width, int height) {
         super(core, width, height);
-        if (width <= 0) {
-            throw new IllegalArgumentException("width is zero or negative value.");
-        }
-        if (height <= 0) {
-            throw new IllegalArgumentException("height is zero or negative value.");
-        }
         setEGLSurface(createEGLSurface(core.getEGLDisplay(), core.getEGLConfigs(), width, height));
     }
 

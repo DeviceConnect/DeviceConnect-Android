@@ -7,8 +7,6 @@ import android.view.Surface;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
-import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,25 +23,11 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
     private Context mContext;
 
     /**
-     * カメラの映像描画用の Surface のリスト.
-     */
-    private final List<Surface> mSurfaces = new ArrayList<>();
-
-    /**
      * コンストラクタ.
      * @param context コンテキスト
      */
     public CameraMJPEGEncoder(Context context) {
         mContext = context;
-    }
-
-    @Override
-    protected OffscreenSurface createOffscreenSurface(EGLCore core) {
-        MJPEGQuality quality = getMJPEGQuality();
-        boolean isSwapped = Camera2WrapperManager.isSwappedDimensions(mContext, quality.getFacing());
-        int w = isSwapped ? quality.getHeight() : quality.getWidth();
-        int h = isSwapped ? quality.getWidth() : quality.getHeight();
-        return new OffscreenSurface(core, w, h);
     }
 
     @Override
@@ -70,10 +54,11 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
             @Override
             public void onError(Camera2WrapperException e) {
+                postOnError(new MJPEGEncoderException(e));
             }
         });
         mCamera2.getSettings().setPreviewSize(new Size(videoWidth, videoHeight));
-        mCamera2.open(getSurfaceTexture(), new ArrayList<>(mSurfaces));
+        mCamera2.open(getSurfaceTexture());
     }
 
     @Override
@@ -94,33 +79,11 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
     @Override
     public boolean isSwappedDimensions() {
-        return mCamera2 != null && mCamera2.isSwappedDimensions();
+        return Camera2WrapperManager.isSwappedDimensions(mContext, getMJPEGQuality().getFacing());
     }
 
     @Override
     protected int getDisplayRotation() {
         return mCamera2 == null ? Surface.ROTATION_0 : mCamera2.getDisplayRotation();
-    }
-
-    /**
-     * カメラの映像を描画する Surface を追加します.
-     *
-     * @param surface 追加する Surface
-     */
-    public void addSurface(Surface surface) {
-        mSurfaces.add(surface);
-    }
-
-    /**
-     * カメラの映像を描画する Surface を削除します.
-     *
-     * <p>
-     * 追加されていない Surface が指定された場合には何もしません。
-     * </p>
-     *
-     * @param surface 削除する Surface
-     */
-    public void removeSurface(Surface surface) {
-        mSurfaces.remove(surface);
     }
 }

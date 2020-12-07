@@ -1,6 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
-
 public abstract class MJPEGEncoder {
     /**
      * MJPEG の設定を格納するクラス.
@@ -11,6 +10,11 @@ public abstract class MJPEGEncoder {
      * JPEG を通知するためのコールバック.
      */
     private Callback mCallback;
+
+    /**
+     * エラーを通知するためのコールバック.
+     */
+    private ErrorCallback mErrorCallback;
 
     /**
      * MJPEG の設定を取得します.
@@ -44,6 +48,26 @@ public abstract class MJPEGEncoder {
     }
 
     /**
+     * エラーを通知します.
+     *
+     * @param e エラー原因の例外
+     */
+    protected void postOnError(MJPEGEncoderException e) {
+        if (mErrorCallback != null) {
+            mErrorCallback.onError(e);
+        }
+    }
+
+    /**
+     * エラーを通知するためのコールバックを設定します.
+     *
+     * @param callback エラーを通知するためのコールバック
+     */
+    void setErrorCallback(ErrorCallback callback) {
+        mErrorCallback = callback;
+    }
+
+    /**
      * JPEG を通知するためのコールバックを設定します.
      *
      * @param callback JPEG を通知するためのコールバック
@@ -61,5 +85,12 @@ public abstract class MJPEGEncoder {
          * @param jpeg JPEGデータ
          */
         void onJpeg(byte[] jpeg);
+    }
+
+    /**
+     * エラーを通知するためのコールバック.
+     */
+    interface ErrorCallback {
+        void onError(MJPEGEncoderException e);
     }
 }

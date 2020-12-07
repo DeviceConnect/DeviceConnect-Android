@@ -17,13 +17,26 @@ public abstract class EGLSurfaceBase {
     private EGLCore mEGLCore;
     private int mWidth = -1;
     private int mHeight = -1;
+    private Object mTag;
 
     EGLSurfaceBase(EGLCore core) {
+        if (core == null) {
+            throw new IllegalArgumentException("EGLCore is null.");
+        }
         mEGLCore = core;
     }
 
     EGLSurfaceBase(EGLCore core, int width, int height) {
-        mEGLCore = core;
+        this(core);
+
+        if (width <= 0) {
+            throw new IllegalArgumentException("width is zero or negative value.");
+        }
+
+        if (height <= 0) {
+            throw new IllegalArgumentException("height is zero or negative value.");
+        }
+
         mWidth = width;
         mHeight = height;
     }
@@ -114,5 +127,13 @@ public abstract class EGLSurfaceBase {
         if ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
             throw new RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error));
         }
+    }
+
+    public void setTag(Object tag) {
+        mTag = tag;
+    }
+
+    public Object getTag() {
+        return mTag;
     }
 }

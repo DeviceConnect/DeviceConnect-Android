@@ -117,6 +117,7 @@ public class MJPEGServer {
     public void setSSLContext(final SSLContext sslContext) {
         mSSLContext = sslContext;
     }
+
     /**
      * MJPEG のエンコーダを再起動します.
      *

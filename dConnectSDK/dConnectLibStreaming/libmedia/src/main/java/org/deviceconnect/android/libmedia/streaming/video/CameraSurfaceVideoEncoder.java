@@ -4,7 +4,6 @@ import android.content.Context;
 import android.media.ImageReader;
 import android.util.Log;
 import android.util.Size;
-import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
@@ -12,8 +11,6 @@ import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -30,11 +27,6 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
      * コンテキスト.
      */
     private Context mContext;
-
-    /**
-     * カメラのプレビューを描画する Surface.
-     */
-    private final List<Surface> mSurfaces = new ArrayList<>();
 
     /**
      * 映像のエンコード設定.
@@ -77,24 +69,6 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
      */
     public Context getContext() {
         return mContext;
-    }
-
-    /**
-     * カメラの映像を描画する Surface を追加します.
-     *
-     * @param surface カメラの映像を描画する Surface.
-     */
-    public void addSurface(Surface surface) {
-        mSurfaces.add(surface);
-    }
-
-    /**
-     * カメラの映像を描画する Surface を削除します.
-     *
-     * @param surface カメラの映像を描画する Surface
-     */
-    public void removeSurface(Surface surface) {
-        mSurfaces.remove(surface);
     }
 
     // MediaEncoder
@@ -194,7 +168,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
             }
         });
         mCamera2.getSettings().setPreviewSize(new Size(videoWidth, videoHeight));
-        mCamera2.open(getSurfaceTexture(), new ArrayList<>(mSurfaces));
+        mCamera2.open(getSurfaceTexture());
 
         try {
             if (!latch.await(3, TimeUnit.SECONDS)) {

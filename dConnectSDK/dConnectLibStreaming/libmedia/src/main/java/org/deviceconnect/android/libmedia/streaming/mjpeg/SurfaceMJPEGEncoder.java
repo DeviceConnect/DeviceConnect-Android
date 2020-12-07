@@ -4,30 +4,25 @@ import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
-import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
-import org.deviceconnect.android.libmedia.streaming.gles.OffscreenSurface;
-import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     /**
-     * 描画を行う Surface クラス.
+     * EGLSurfaceBase を識別するためのタグ.
      */
-    private OffscreenSurface mOffscreenSurface;
-
-    /**
-     * SurfaceTextureを管理するクラス.
-     */
-    private SurfaceTextureManager mStManager;
+    private static final Integer TAG_SURFACE = 12345;
 
     /**
      * ピクセル情報を格納するバッファ.
      */
-    private Buffer mBuffer;
+    private ByteBuffer mBuffer;
 
     /**
      * JPEGに変換するために使用するBitmap.
@@ -35,36 +30,94 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private Bitmap mBitmap;
 
     /**
-     * MJPEG のエンコードを行うスレッド.
-     */
-    private WorkThread mWorkThread;
-
-    /**
      * JPEG のデータを格納するためのストリーム.
      */
     private final ByteArrayOutputStream mJPEGOutputStream = new ByteArrayOutputStream();
 
     /**
+     * Surface の描画を行うスレッド.
+     */
+    private EGLSurfaceDrawingThread mSurfaceDrawingThread;
+
+    /**
+     * 描画を行う Surface のリスト.
+     */
+    private List<Surface> mOutputSurfaces = new ArrayList<>();
+
+    /**
+     * バッファを反転させるために一時的に値を格納するバッファ.
+     */
+    private byte[] mTmp1;
+
+    /**
+     * バッファを反転させるために一時的に値を格納するバッファ.
+     */
+    private byte[] mTmp2;
+
+    /**
+     * SurfaceDrawingThread の開始フラグ.
+     */
+    private boolean mStartSurfaceDrawingFlag;
+
+    /**
+     * Surface への描画を開始します。
+     *
+     * エンコーダを開始するよりも先に Surface への描画を開始したい場合に使用します。
+     */
+    public synchronized void startSurfaceDrawing() {
+        mStartSurfaceDrawingFlag = true;
+        startDrawingThreadInternal();
+    }
+
+    /**
+     * Surface への描画を停止します。
+     */
+    public synchronized void stopSurfaceDrawing() {
+        mStartSurfaceDrawingFlag = false;
+        stopDrawingThreadInternal();
+    }
+
+    /**
      * エンコードを開始します.
      */
     public synchronized void start() {
-        if (mWorkThread != null) {
-            return;
-        }
-
-        mWorkThread = new WorkThread();
-        mWorkThread.setName("MJPEG-ENCODER");
-        mWorkThread.setPriority(Thread.MIN_PRIORITY);
-        mWorkThread.start();
+        startDrawingThreadInternal();
     }
 
     /**
      * エンコードを停止します.
      */
     public synchronized void stop() {
-        if (mWorkThread != null) {
-            mWorkThread.terminate();
-            mWorkThread = null;
+        if (!mStartSurfaceDrawingFlag) {
+            stopDrawingThreadInternal();
+        }
+    }
+
+    /**
+     * 描画先の Surface を追加します.
+     *
+     * @param surface 追加する Surface
+     */
+    public void addSurface(Surface surface) {
+        mOutputSurfaces.add(surface);
+
+        if (isRunningSurfaceDrawingThread()) {
+            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
+            eglSurfaceBase.setTag(surface);
+            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+        }
+    }
+
+    /**
+     * 描画先の Surface を削除します.
+     *
+     * @param surface 削除する Surface
+     */
+    public void removeSurface(Surface surface) {
+        mOutputSurfaces.remove(surface);
+
+        if (isRunningSurfaceDrawingThread()) {
+            mSurfaceDrawingThread.removeEGLSurfaceBase(surface);
         }
     }
 
@@ -126,149 +179,127 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * @return SurfaceTexture
      */
     public SurfaceTexture getSurfaceTexture() {
-        return mStManager != null ? mStManager.getSurfaceTexture() : null;
+        return mSurfaceDrawingThread != null ? mSurfaceDrawingThread.getSurfaceTexture() : null;
+    }
+
+    /**
+     * SurfaceDrawingThread が動作している確認します.
+     *
+     * @return SurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
+     */
+    private synchronized boolean isRunningSurfaceDrawingThread() {
+        return mSurfaceDrawingThread != null && mSurfaceDrawingThread.isRunning();
+    }
+
+    private void startDrawingThreadInternal() {
+        if (isRunningSurfaceDrawingThread()) {
+            return;
+        }
+
+        MJPEGQuality quality = getMJPEGQuality();
+        int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
+        int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
+
+        mSurfaceDrawingThread = new EGLSurfaceDrawingThread() {
+            @Override
+            public void onStarted() {
+                EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
+                eglSurfaceBase.setTag(TAG_SURFACE);
+                mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+
+                for (Surface surface : mOutputSurfaces) {
+                    mSurfaceDrawingThread.addEGLSurfaceBase(
+                            mSurfaceDrawingThread.createEGLSurfaceBase(surface));
+                }
+
+                try {
+                    prepare();
+                    startRecording();
+                } catch (IOException e) {
+                    postOnError(new MJPEGEncoderException(e));
+                }
+            }
+
+            @Override
+            public void onStopped() {
+                stopRecording();
+                release();
+
+                mBuffer = null;
+                mTmp1 = null;
+                mTmp2 = null;
+                System.gc();
+            }
+
+            @Override
+            public int getDisplayRotation() {
+                return SurfaceMJPEGEncoder.this.getDisplayRotation();
+            }
+
+            @Override
+            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
+                if (TAG_SURFACE.equals(eglSurfaceBase.getTag())) {
+                    try {
+                        drainEncoder(eglSurfaceBase, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
+                    } catch (Throwable t) {
+                        // ignore.
+                    }
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                postOnError(new MJPEGEncoderException(e));
+            }
+        };
+        mSurfaceDrawingThread.setName("MJPEG-ENCODER");
+        mSurfaceDrawingThread.setSize(w, h);
+        mSurfaceDrawingThread.start();
+    }
+
+    private void stopDrawingThreadInternal() {
+        if (mSurfaceDrawingThread != null) {
+            mSurfaceDrawingThread.terminate();
+            mSurfaceDrawingThread = null;
+        }
     }
 
     /**
      * 映像を JPEG に変換します.
      *
-     * @param w 映像の横幅
-     * @param h 映像の縦幅
+     * @param width 映像の横幅
+     * @param height 映像の縦幅
      */
-    private void drainEncoder(int w, int h) {
+    private void drainEncoder(EGLSurfaceBase surface, int width, int height) {
         // OpenGLES からピクセルデータを取得するバッファを作成
-        if (mBuffer == null || w != mBitmap.getWidth() || h != mBitmap.getHeight()) {
-            mBuffer = ByteBuffer.allocateDirect(w * h * 4);
-            mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        if (mBuffer == null || width != mBitmap.getWidth() || height != mBitmap.getHeight()) {
+            mBuffer = ByteBuffer.allocateDirect(width * height * 4);
+            mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            mTmp1 = new byte[width * 4];
+            mTmp2 = new byte[width * 4];
         }
         mBuffer.rewind();
 
-        mOffscreenSurface.readPixelBuffer(mBuffer, w, h);
+        surface.readPixelBuffer(mBuffer, width, height);
+
+        // 上下逆なので、上下反転
+        int h = height / 2;
+        for (int y = 0; y < h; y++) {
+            mBuffer.position(y * width * 4);
+            mBuffer.get(mTmp1, 0, mTmp1.length);
+            mBuffer.position((height - 1 - y) * width * 4);
+            mBuffer.get(mTmp2, 0, mTmp2.length);
+            mBuffer.position((height - 1 - y) * width * 4);
+            mBuffer.put(mTmp1);
+            mBuffer.position(y * width * 4);
+            mBuffer.put(mTmp2);
+        }
+        mBuffer.position(0);
 
         mJPEGOutputStream.reset();
         mBitmap.copyPixelsFromBuffer(mBuffer);
         mBitmap.compress(Bitmap.CompressFormat.JPEG, getMJPEGQuality().getQuality(), mJPEGOutputStream);
 
         postJPEG(mJPEGOutputStream.toByteArray());
-    }
-
-    protected OffscreenSurface createOffscreenSurface(EGLCore core) {
-        int w = getMJPEGQuality().getWidth();
-        int h = getMJPEGQuality().getHeight();
-        if (isSwappedDimensions()) {
-            w = getMJPEGQuality().getHeight();
-            h = getMJPEGQuality().getWidth();
-        }
-        return new OffscreenSurface(core, w, h);
-    }
-
-    /**
-     * MJPEG 変換処理を行うスレッド.
-     */
-    private class WorkThread extends Thread {
-        /**
-         * 停止フラグ.
-         */
-        private boolean mStopFlag;
-
-        /**
-         * OpenGLES のコンテキストなどを管理するクラス.
-         */
-        private EGLCore mEGLCore;
-
-        /**
-         * 停止処理を行います.
-         */
-        void terminate() {
-            mStopFlag = true;
-
-            interrupt();
-
-            try {
-                join(500);
-            } catch (InterruptedException e) {
-                // ignore.
-            }
-        }
-
-        /**
-         * SurfaceTextureManager を作成します.
-         */
-        private synchronized void createStManager() {
-            if (mStManager != null) {
-                return;
-            }
-            mStManager = new SurfaceTextureManager(true);
-
-            MJPEGQuality quality = getMJPEGQuality();
-            SurfaceTexture st = mStManager.getSurfaceTexture();
-            st.setDefaultBufferSize(quality.getWidth(), quality.getHeight());
-        }
-
-        /**
-         * SurfaceTextureManager の後始末を行います.
-         */
-        private synchronized void releaseStManager() {
-            if (mStManager != null) {
-                mStManager.release();
-                mStManager = null;
-            }
-        }
-
-        @Override
-        public void run() {
-            try {
-                prepare();
-
-                mEGLCore = new EGLCore();
-
-                mOffscreenSurface = createOffscreenSurface(mEGLCore);
-                mOffscreenSurface.makeCurrent();
-
-                createStManager();
-
-                startRecording();
-
-                SurfaceTexture st = mStManager.getSurfaceTexture();
-
-                int fps = 1000 / getMJPEGQuality().getFrameRate();
-                while (!mStopFlag) {
-                    long startTime = System.currentTimeMillis();
-
-                    mStManager.awaitNewImage();
-                    mStManager.drawImage(getDisplayRotation());
-                    mOffscreenSurface.setPresentationTime(st.getTimestamp());
-                    mOffscreenSurface.swapBuffers();
-
-                    drainEncoder(mOffscreenSurface.getWidth(), mOffscreenSurface.getHeight());
-
-                    long drawTime = System.currentTimeMillis() - startTime;
-                    if (drawTime < fps) {
-                        Thread.sleep(fps - drawTime);
-                    }
-                }
-            } catch (Exception e) {
-                // ignore.
-            } finally {
-                stopRecording();
-
-                release();
-
-                if (mOffscreenSurface != null) {
-                    mOffscreenSurface.release();
-                    mOffscreenSurface = null;
-                }
-
-                releaseStManager();
-
-                // EGLCore を release するタイミングは一番最後にすること。
-                // 先に EGLSurfaceBase よりも先に release を行うと、EGLSurfaceBase
-                // の release に失敗して、メモリリークになります。
-                if (mEGLCore != null) {
-                    mEGLCore.release();
-                    mEGLCore = null;
-                }
-            }
-        }
     }
 }

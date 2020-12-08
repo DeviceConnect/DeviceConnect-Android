@@ -42,6 +42,11 @@ public class RtmpMuxer implements IMediaMuxer {
     private String mUrl;
 
     /**
+     * イベントを通知するためのリスナー.
+     */
+    private OnEventListener mOnEventListener;
+
+    /**
      * コンストラクタ.
      * @param url 送信先の URL
      */
@@ -50,6 +55,15 @@ public class RtmpMuxer implements IMediaMuxer {
             throw new IllegalArgumentException("url is null.");
         }
         mUrl = url;
+    }
+
+    /**
+     * イベントを通知するためのリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    public void setOnEventListener(OnEventListener listener) {
+        mOnEventListener = listener;
     }
 
     /**
@@ -84,6 +98,13 @@ public class RtmpMuxer implements IMediaMuxer {
                 result.set(false);
                 latch.countDown();
             }
+
+            @Override
+            public void onAuthErrorRtmp() {
+                super.onAuthErrorRtmp();
+                result.set(false);
+                latch.countDown();
+            }
         };
 
         mSrsFlvMuxer = new SrsFlvMuxer(rtmpAdapter);
@@ -102,6 +123,10 @@ public class RtmpMuxer implements IMediaMuxer {
             latch.await(15, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             // ignore.
+        }
+
+        if (result.get() && mOnEventListener != null) {
+            mOnEventListener.onConnected();
         }
 
         return result.get();
@@ -160,12 +185,20 @@ public class RtmpMuxer implements IMediaMuxer {
                 Log.d(TAG, "RtmpMuxer::onNewBitrateRtmp");
                 Log.d(TAG, "    bitrate: "+ bitrate);
             }
+
+            if (mOnEventListener != null) {
+                mOnEventListener.onNewBitrate(bitrate);
+            }
         }
 
         @Override
         public void onDisconnectRtmp() {
             if (DEBUG) {
                 Log.d(TAG, "RtmpMuxer::onDisconnectRtmp");
+            }
+
+            if (mOnEventListener != null) {
+                mOnEventListener.onDisconnected();
             }
         }
 
@@ -182,5 +215,27 @@ public class RtmpMuxer implements IMediaMuxer {
                 Log.d(TAG, "RtmpMuxer::onAuthSuccessRtmp");
             }
         }
+    }
+
+    /**
+     * RtmpMuxer のイベントを通知するリスナー.
+     */
+    public interface OnEventListener {
+        /**
+         * RTMP サーバに接続されたことを通知します.
+         */
+        void onConnected();
+
+        /**
+         * RTMP サーバから切断されたことを通知します.
+         */
+        void onDisconnected();
+
+        /**
+         * RTMP サーバからの通信ビットレートを通知します.
+         *
+         * @param bitrate ビットレート
+         */
+        void onNewBitrate(long bitrate);
     }
 }

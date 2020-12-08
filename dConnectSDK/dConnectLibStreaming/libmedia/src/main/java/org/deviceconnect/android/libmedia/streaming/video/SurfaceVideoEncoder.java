@@ -8,9 +8,6 @@ import android.view.Surface;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
-import org.deviceconnect.android.libmedia.streaming.gles.WindowSurface;
-import org.deviceconnect.android.libmedia.streaming.gles.EGLCore;
-import org.deviceconnect.android.libmedia.streaming.gles.SurfaceTextureManager;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -156,7 +156,7 @@ public class SRTSession {
      * AudioEncoder が設定されていない場合には何もしません。
      * </p>
      */
-    public void retstartAudioEncoder() {
+    public void restartAudioEncoder() {
         AudioEncoder audioEncoder = mMediaStreamer.getAudioEncoder();
         if (audioEncoder != null) {
             audioEncoder.restart();

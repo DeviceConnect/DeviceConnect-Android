@@ -1,0 +1,100 @@
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="サーバ"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:defaultValue="rtmp://localhost:12345"
+            android:singleLine="true"
+            app:key="broadcast_uri"
+            android:title="URL"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="映像設定"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:entries="@array/camera_facing_names"
+            app:entryValues="@array/camera_facing_values"
+            app:key="camera_facing"
+            app:title="カメラの向き"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size_0"
+            app:title="映像の解像度 (フロント)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="camera_preview_size_1"
+            app:title="映像の解像度 (バック)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:entries="@array/video_encoder_names"
+            app:entryValues="@array/video_encoder_values"
+            app:iconSpaceReserved="false"
+            app:key="encoder_name"
+            app:title="エンコーダ"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="encoder_frame_rate"
+            app:title="映像のフレームレート (fps)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="encoder_bitrate"
+            app:title="映像のビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="encoder_i_frame_interval"
+            app:title="映像のキーフレームインターバル"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="音声設定"
+        app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="audio_enable"
+            android:title="音声"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            android:defaultValue="64"
+            android:key="audio_bitrate"
+            android:singleLine="true"
+            android:title="ビットレート (KB)"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <DropDownPreference
+            android:defaultValue="@string/settings_audio_sampling_rate"
+            android:entries="@array/settings_audio_sampling_rates"
+            android:entryValues="@array/settings_audio_sampling_rates"
+            android:key="audio_sampling_rate"
+            android:title="サンプリングレート"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

@@ -114,7 +114,7 @@ public class MediaStreamer {
     }
 
     /**
-     * 音声をエンコードするエンコーダを取得しまs.
+     * 音声をエンコードするエンコーダを取得します.
      *
      * <p>
      * 未設定の場合は null を返却します。
@@ -124,6 +124,15 @@ public class MediaStreamer {
      */
     public AudioEncoder getAudioEncoder() {
         return mAudioEncoder;
+    }
+
+    /**
+     * MediaStreamer が動作中か確認します.
+     *
+     * @return 動作中は true、それ以外は false
+     */
+    public boolean isRunning() {
+        return mRunningFlag;
     }
 
     /**

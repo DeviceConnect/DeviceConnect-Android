@@ -1,7 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
-import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
@@ -60,21 +59,60 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private boolean mStartSurfaceDrawingFlag;
 
     /**
-     * Surface への描画を開始します。
-     *
-     * エンコーダを開始するよりも先に Surface への描画を開始したい場合に使用します。
+     * EGLSurfaceDrawingThread のイベントを受け取るリスナー.
      */
-    public synchronized void startSurfaceDrawing() {
-        mStartSurfaceDrawingFlag = true;
-        startDrawingThreadInternal();
+    private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
+        @Override
+        public void onStarted() {
+            MJPEGQuality quality = getMJPEGQuality();
+            int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
+            int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
+
+            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
+            eglSurfaceBase.setTag(TAG_SURFACE);
+            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+
+            for (Surface surface : mOutputSurfaces) {
+                mSurfaceDrawingThread.addEGLSurfaceBase(
+                        mSurfaceDrawingThread.createEGLSurfaceBase(surface));
+            }
+
+            try {
+                prepare();
+                startRecording();
+            } catch (IOException e) {
+                postOnError(new MJPEGEncoderException(e));
+            }
+        }
+
+        @Override
+        public void onStopped() {
+            stopRecording();
+            release();
+        }
+
+        @Override
+        public void onError(Exception e) {
+            postOnError(new MJPEGEncoderException(e));
+        }
+
+        @Override
+        public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
+            if (TAG_SURFACE.equals(eglSurfaceBase.getTag())) {
+                try {
+                    drainEncoder(eglSurfaceBase, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
+                } catch (Throwable t) {
+                    // ignore.
+                }
+            }
+        }
+    };
+
+    public SurfaceMJPEGEncoder() {
     }
 
-    /**
-     * Surface への描画を停止します。
-     */
-    public synchronized void stopSurfaceDrawing() {
-        mStartSurfaceDrawingFlag = false;
-        stopDrawingThreadInternal();
+    public SurfaceMJPEGEncoder(EGLSurfaceDrawingThread thread) {
+        mSurfaceDrawingThread = thread;
     }
 
     /**
@@ -170,19 +208,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     protected abstract void release();
 
     /**
-     * 描画を行う SurfaceTexture を取得します.
-     *
-     * <p>
-     * この SurfaceTexture に描画された内容を JPEG にエンコードします。
-     * </p>
-     *
-     * @return SurfaceTexture
-     */
-    public SurfaceTexture getSurfaceTexture() {
-        return mSurfaceDrawingThread != null ? mSurfaceDrawingThread.getSurfaceTexture() : null;
-    }
-
-    /**
      * SurfaceDrawingThread が動作している確認します.
      *
      * @return SurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
@@ -192,76 +217,35 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     }
 
     private void startDrawingThreadInternal() {
-        if (isRunningSurfaceDrawingThread()) {
-            return;
-        }
-
         MJPEGQuality quality = getMJPEGQuality();
         int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
         int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
 
-        mSurfaceDrawingThread = new EGLSurfaceDrawingThread() {
-            @Override
-            public void onStarted() {
-                EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
-                eglSurfaceBase.setTag(TAG_SURFACE);
-                mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-
-                for (Surface surface : mOutputSurfaces) {
-                    mSurfaceDrawingThread.addEGLSurfaceBase(
-                            mSurfaceDrawingThread.createEGLSurfaceBase(surface));
-                }
-
-                try {
-                    prepare();
-                    startRecording();
-                } catch (IOException e) {
-                    postOnError(new MJPEGEncoderException(e));
-                }
-            }
-
-            @Override
-            public void onStopped() {
-                stopRecording();
-                release();
-
-                mBuffer = null;
-                mTmp1 = null;
-                mTmp2 = null;
-                System.gc();
-            }
-
-            @Override
-            public int getDisplayRotation() {
-                return SurfaceMJPEGEncoder.this.getDisplayRotation();
-            }
-
-            @Override
-            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-                if (TAG_SURFACE.equals(eglSurfaceBase.getTag())) {
-                    try {
-                        drainEncoder(eglSurfaceBase, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
-                    } catch (Throwable t) {
-                        // ignore.
-                    }
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                postOnError(new MJPEGEncoderException(e));
-            }
-        };
-        mSurfaceDrawingThread.setName("MJPEG-ENCODER");
         mSurfaceDrawingThread.setSize(w, h);
-        mSurfaceDrawingThread.start();
+        mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+
+        if (isRunningSurfaceDrawingThread()) {
+            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
+            eglSurfaceBase.setTag(TAG_SURFACE);
+            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+
+            for (Surface surface : mOutputSurfaces) {
+                mSurfaceDrawingThread.addEGLSurfaceBase(
+                        mSurfaceDrawingThread.createEGLSurfaceBase(surface));
+            }
+        }
     }
 
     private void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
-            mSurfaceDrawingThread.terminate();
-            mSurfaceDrawingThread = null;
+            mSurfaceDrawingThread.removeEGLSurfaceBase(TAG_SURFACE);
+            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
         }
+
+        mBuffer = null;
+        mTmp1 = null;
+        mTmp2 = null;
+        System.gc();
     }
 
     /**

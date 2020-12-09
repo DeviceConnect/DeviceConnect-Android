@@ -35,7 +35,10 @@ import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.rtmp.RtmpClient;
+import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
@@ -90,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
+
     /**
      * ハンドラ
      */
@@ -103,10 +108,7 @@ public class MainActivity extends AppCompatActivity {
         mSettings = new Settings(getApplicationContext());
 
         findViewById(R.id.power).setOnClickListener((v) -> toggleStreaming());
-
-        toggleScreenRotation();
     }
-
 
     @Override
     protected void onResume() {
@@ -137,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         stopStreaming();
+        stopCamera();
         super.onPause();
     }
 
@@ -263,11 +266,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        stopCamera();
-
-
-        CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(this);
-        videoEncoder.addSurface(mCameraView.getHolder().getSurface());
+        CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(this, mCameraSurfaceDrawingThread);
 
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
         videoQuality.setFacing(mSettings.getCameraFacing());
@@ -329,7 +328,6 @@ public class MainActivity extends AppCompatActivity {
             mRtmpClient.stop();
             mRtmpClient = null;
         }
-        stopCamera();
     }
 
     private void showServerAddress(final String address) {
@@ -374,49 +372,38 @@ public class MainActivity extends AppCompatActivity {
         int cameraHeight = previewSize.getHeight();
 
         mCamera2 = Camera2WrapperManager.createCamera(getApplicationContext(), facing);
-        mCamera2.setCameraEventListener(new Camera2Wrapper.CameraEventListener() {
+        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
+
+        mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
+        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
             @Override
-            public void onOpen() {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onOpen");
-                }
-                if (mCamera2 != null) {
-                    mCamera2.startPreview();
-                }
+            public void onStarted() {
+                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
+                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
             }
 
             @Override
-            public void onStartPreview() {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onStartPreview");
-                }
+            public void onStopped() {
             }
 
             @Override
-            public void onStopPreview() {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onStopPreview");
-                }
+            public void onError(Exception e) {
             }
 
             @Override
-            public void onError(Camera2WrapperException e) {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onError", e);
-                }
+            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
             }
         });
-        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
-        mCamera2.open(Collections.singletonList(mCameraView.getHolder().getSurface()));
+        mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
         adjustSurfaceView(mCamera2.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {
-        if (mCamera2 != null) {
-            mCamera2.close();
-            mCamera2 = null;
+        if (mCameraSurfaceDrawingThread != null) {
+            mCameraSurfaceDrawingThread.terminate();
+            mCameraSurfaceDrawingThread = null;
         }
     }
 

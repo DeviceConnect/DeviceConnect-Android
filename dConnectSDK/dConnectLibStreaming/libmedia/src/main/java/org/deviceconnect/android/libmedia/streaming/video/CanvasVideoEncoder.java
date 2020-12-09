@@ -7,6 +7,7 @@ import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
     private static final boolean DEBUG = BuildConfig.DEBUG;
@@ -34,6 +35,15 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
 
     /**
      * コンストラクタ.
+     *
+     * @param thread エンコードする Surface を描画するスレッド
+     */
+    public CanvasVideoEncoder(EGLSurfaceDrawingThread thread) {
+        this(new VideoQuality("video/avc"), thread);
+    }
+
+    /**
+     * コンストラクタ.
      * @param mimeType MediaCodec に渡すマイムタイプ
      */
     public CanvasVideoEncoder(String mimeType) {
@@ -45,6 +55,25 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
      * @param videoQuality 映像エンコードの設定
      */
     public CanvasVideoEncoder(VideoQuality videoQuality) {
+        mVideoQuality = videoQuality;
+    }
+
+    /**
+     * コンストラクタ.
+     * @param mimeType MediaCodec に渡すマイムタイプ
+     * @param thread エンコードする Surface を描画するスレッド
+     */
+    public CanvasVideoEncoder(String mimeType, EGLSurfaceDrawingThread thread) {
+        this(new VideoQuality(mimeType), thread);
+    }
+
+    /**
+     * コンストラクタ.
+     * @param videoQuality 映像エンコードの設定
+     * @param thread エンコードする Surface を描画するスレッド
+     */
+    public CanvasVideoEncoder(VideoQuality videoQuality, EGLSurfaceDrawingThread thread) {
+        super(thread);
         mVideoQuality = videoQuality;
     }
 
@@ -121,7 +150,7 @@ public abstract class CanvasVideoEncoder extends SurfaceVideoEncoder {
                 SurfaceTexture surfaceTexture = getSurfaceTexture();
                 surfaceTexture.setDefaultBufferSize(videoQuality.getVideoWidth(), videoQuality.getVideoHeight());
 
-                surface = new Surface(getSurfaceTexture());
+                surface = new Surface(surfaceTexture);
 
                 while (!mStopFlag) {
                     long start = System.currentTimeMillis();

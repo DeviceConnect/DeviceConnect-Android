@@ -9,6 +9,7 @@ import android.util.Log;
 import org.deviceconnect.android.libmedia.BuildConfig;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoder;
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.rtp.RtpPacketize;
 import org.deviceconnect.android.libmedia.streaming.rtp.packet.H264Packetize;
 import org.deviceconnect.android.libmedia.streaming.sdp.MediaDescription;
@@ -186,7 +187,7 @@ public abstract class H264VideoStream extends VideoStream {
         return s.toString();
     }
 
-    private class TempVideoEncoder extends CanvasVideoEncoder {
+    private static class TempVideoEncoder extends CanvasVideoEncoder {
         @Override
         public void draw(Canvas canvas, int width, int height) {
         }

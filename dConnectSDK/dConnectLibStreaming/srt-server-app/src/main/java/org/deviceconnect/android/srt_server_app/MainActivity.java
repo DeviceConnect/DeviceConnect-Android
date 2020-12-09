@@ -22,6 +22,9 @@ import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.util.IpAddressManager;
 import org.deviceconnect.android.libmedia.streaming.util.PermissionUtil;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
@@ -91,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
      * カメラを操作するためのクラス.
      */
     private Camera2Wrapper mCamera2;
+
+    private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
      * ハンドラ
@@ -245,12 +250,10 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "Create a SRTSession.");
                     }
 
-                    stopCamera();
-
                     String mimeType = mSettings.getEncoderName();
 
-                    CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(getApplicationContext(), mimeType);
-                    videoEncoder.addSurface(mCameraView.getHolder().getSurface());
+                    CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(
+                            getApplicationContext(), mimeType, mCameraSurfaceDrawingThread);
 
                     setVideoQuality((CameraVideoQuality) videoEncoder.getVideoQuality());
 
@@ -279,8 +282,6 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     runOnUiThread(() -> findViewById(R.id.text_view).setVisibility(View.GONE));
-
-                    mHandler.postDelayed(() -> startCamera(), 500);
                 }
             });
             mSRTServer.start();
@@ -330,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private synchronized void startCamera() {
-        if (mCamera2 != null) {
+        if (mCameraSurfaceDrawingThread != null) {
             if (DEBUG) {
                 Log.w(TAG, "Camera is already opened.");
             }
@@ -343,49 +344,38 @@ public class MainActivity extends AppCompatActivity {
         int cameraHeight = previewSize.getHeight();
 
         mCamera2 = Camera2WrapperManager.createCamera(getApplicationContext(), facing);
-        mCamera2.setCameraEventListener(new Camera2Wrapper.CameraEventListener() {
+        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
+
+        mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCamera2);
+        mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
             @Override
-            public void onOpen() {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onOpen");
-                }
-                if (mCamera2 != null) {
-                    mCamera2.startPreview();
-                }
+            public void onStarted() {
+                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
+                mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
             }
 
             @Override
-            public void onStartPreview() {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onStartPreview");
-                }
+            public void onStopped() {
             }
 
             @Override
-            public void onStopPreview() {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onStopPreview");
-                }
+            public void onError(Exception e) {
             }
 
             @Override
-            public void onError(Camera2WrapperException e) {
-                if (DEBUG) {
-                    Log.d(TAG, "MainActivity::onError", e);
-                }
+            public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
             }
         });
-        mCamera2.getSettings().setPreviewSize(new Size(cameraWidth, cameraHeight));
-        mCamera2.open(Collections.singletonList(mCameraView.getHolder().getSurface()));
+        mCameraSurfaceDrawingThread.start();
 
         // SurfaceView のサイズを調整
         adjustSurfaceView(mCamera2.isSwappedDimensions());
     }
 
     private synchronized void stopCamera() {
-        if (mCamera2 != null) {
-            mCamera2.close();
-            mCamera2 = null;
+        if (mCameraSurfaceDrawingThread != null) {
+            mCameraSurfaceDrawingThread.terminate();
+            mCameraSurfaceDrawingThread = null;
         }
     }
 

@@ -3,6 +3,7 @@ package org.deviceconnect.android.libmedia.streaming.rtsp.session.video;
 import android.content.Context;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 
@@ -18,30 +19,30 @@ public class CameraH265VideoStream extends H265VideoStream {
      * @param context コンテキスト
      */
     public CameraH265VideoStream(Context context) {
+        this(new CameraSurfaceVideoEncoder(context, "video/hevc"));
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * @param context コンテキスト
+     */
+    public CameraH265VideoStream(Context context, EGLSurfaceDrawingThread thread) {
+        this(new CameraSurfaceVideoEncoder(context, "video/hevc", thread));
+    }
+
+    /**
+     * コンストラクタ.
+     *
+     * @param encoder コンテキスト
+     */
+    public CameraH265VideoStream(CameraSurfaceVideoEncoder encoder) {
         super();
-        mVideoEncoder = new CameraSurfaceVideoEncoder(context, "video/hevc");
+        mVideoEncoder = encoder;
     }
 
     @Override
     public VideoEncoder getVideoEncoder() {
         return mVideoEncoder;
-    }
-
-    /**
-     * カメラの映像を描画する Surface を追加します.
-     *
-     * @param surface Surface
-     */
-    public void addSurface(Surface surface) {
-        mVideoEncoder.addSurface(surface);
-    }
-
-    /**
-     * カメラの映像を描画する Surface を削除します.
-     *
-     * @param surface Surface
-     */
-    public void removeSurface(Surface surface) {
-        mVideoEncoder.removeSurface(surface);
     }
 }

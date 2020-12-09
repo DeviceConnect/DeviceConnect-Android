@@ -7,6 +7,7 @@ import android.view.Surface;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
+import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,35 +31,13 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
         mContext = context;
     }
 
+    public CameraMJPEGEncoder(Context context, CameraSurfaceDrawingThread thread) {
+        super(thread);
+        mContext = context;
+    }
+
     @Override
     protected void prepare() {
-        MJPEGQuality quality = getMJPEGQuality();
-
-        int videoWidth = quality.getWidth();
-        int videoHeight = quality.getHeight();
-
-        mCamera2 = Camera2WrapperManager.createCamera(mContext, quality.getFacing());
-        mCamera2.setCameraEventListener(new Camera2Wrapper.CameraEventListener() {
-            @Override
-            public void onOpen() {
-                mCamera2.startPreview();
-            }
-
-            @Override
-            public void onStartPreview() {
-            }
-
-            @Override
-            public void onStopPreview() {
-            }
-
-            @Override
-            public void onError(Camera2WrapperException e) {
-                postOnError(new MJPEGEncoderException(e));
-            }
-        });
-        mCamera2.getSettings().setPreviewSize(new Size(videoWidth, videoHeight));
-        mCamera2.open(getSurfaceTexture());
     }
 
     @Override
@@ -71,10 +50,6 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
     @Override
     protected void release() {
-        if (mCamera2 != null) {
-            mCamera2.close();
-            mCamera2 = null;
-        }
     }
 
     @Override

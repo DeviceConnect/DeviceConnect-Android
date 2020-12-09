@@ -2,7 +2,6 @@ package org.deviceconnect.android.libmedia.streaming.video;
 
 import android.graphics.SurfaceTexture;
 import android.media.MediaCodecInfo;
-import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
@@ -10,23 +9,15 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Camera2 API から Surface でプレビューを取得して、エンコードするためのエンコーダ.
+ * Surface に描画を行い、MediaCodec でエンコードするためのエンコーダ.
  */
 public abstract class SurfaceVideoEncoder extends VideoEncoder {
-
     /**
      * Surface の描画を行うスレッド.
      */
     private EGLSurfaceDrawingThread mSurfaceDrawingThread;
-
-    /**
-     * 描画を行う Surface のリスト.
-     */
-    private List<Surface> mOutputSurfaces = new ArrayList<>();
 
     /**
      * MediaCodec の入力用 Surface.
@@ -34,9 +25,44 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private Surface mMediaCodecSurface;
 
     /**
-     * SurfaceDrawingThread の開始フラグ.
+     * このフラグが true の場合には、外部から EGLSurfaceDrawingThread が設定されたことを意味します。
      */
-    private boolean mStartSurfaceDrawingFlag;
+    private final boolean mInternalCreateSurfaceDrawingThread;
+
+    /**
+     * EGLSurfaceDrawingThread からのイベントを受け取るためのリスナー.
+     */
+    private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
+        @Override
+        public void onStarted() {
+            addSurface(mMediaCodecSurface);
+            onStartSurfaceDrawing();
+        }
+
+        @Override
+        public void onStopped() {
+            onStopSurfaceDrawing();
+        }
+
+        @Override
+        public void onError(Exception e) {
+            postOnError(new MediaEncoderException(e));
+        }
+
+        @Override
+        public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
+            // ignore.
+        }
+    };
+
+    public SurfaceVideoEncoder() {
+        mInternalCreateSurfaceDrawingThread = true;
+    }
+
+    public SurfaceVideoEncoder(EGLSurfaceDrawingThread thread) {
+        mSurfaceDrawingThread = thread;
+        mInternalCreateSurfaceDrawingThread = false;
+    }
 
     // MediaEncoder
 
@@ -44,7 +70,6 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     protected void prepare() throws IOException {
         super.prepare();
         mMediaCodecSurface = mMediaCodec.createInputSurface();
-        addSurface(mMediaCodecSurface);
     }
 
     @Override
@@ -54,19 +79,12 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
     @Override
     protected void stopRecording() {
-        if (!mStartSurfaceDrawingFlag) {
-            // 開始フラグが false の場合には、明示的に開始されていないので、
-            // ここで停止処理を行います。
-            stopDrawingThreadInternal();
-        }
+        stopDrawingThreadInternal();
     }
 
     @Override
     protected void release() {
-        if (mMediaCodecSurface != null) {
-            removeSurface(mMediaCodecSurface);
-            mMediaCodecSurface = null;
-        }
+        mMediaCodecSurface = null;
         super.release();
     }
 
@@ -77,90 +95,29 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         return MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface;
     }
 
-    /**
-     * 描画先の Surface を追加します.
-     *
-     * @param surface 追加する Surface
-     */
-    public void addSurface(Surface surface) {
-        mOutputSurfaces.add(surface);
-
-        if (isRunningSurfaceDrawingThread()) {
-            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
-            eglSurfaceBase.setTag(surface);
-            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-        }
-    }
-
-    /**
-     * 描画先の Surface を削除します.
-     *
-     * @param surface 削除する Surface
-     */
-    public void removeSurface(Surface surface) {
-        mOutputSurfaces.remove(surface);
-
-        if (isRunningSurfaceDrawingThread()) {
-            mSurfaceDrawingThread.removeEGLSurfaceBase(surface);
-        }
-    }
-
-    /**
-     * Surface への描画を開始します。
-     *
-     * エンコーダを開始するよりも先に Surface への描画を開始したい場合に使用します。
-     */
-    public synchronized void startSurfaceDrawing() {
-        mStartSurfaceDrawingFlag = true;
-        startDrawingThreadInternal();
-    }
-
-    /**
-     * Surface への描画スレッドを停止します。
-     */
-    public synchronized void stopSurfaceDrawing() {
-        mStartSurfaceDrawingFlag = false;
-        stopDrawingThreadInternal();
-    }
+    // private method.
 
     /**
      * Surface への描画スレッドを開始します。
      */
     private void startDrawingThreadInternal() {
-        if (isRunningSurfaceDrawingThread()) {
-            return;
-        }
-
         VideoQuality quality = getVideoQuality();
 
-        mSurfaceDrawingThread = new EGLSurfaceDrawingThread() {
-            @Override
-            public void onStarted() {
-                for (Surface surface : mOutputSurfaces) {
-                    mSurfaceDrawingThread.addEGLSurfaceBase(
-                            mSurfaceDrawingThread.createEGLSurfaceBase(surface));
-                }
-                onStartSurfaceDrawing();
-            }
+        if (mInternalCreateSurfaceDrawingThread) {
+            mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
+            mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
+            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+            mSurfaceDrawingThread.start();
+        } else {
+            mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
+            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
 
-            @Override
-            public void onStopped() {
-                onStopSurfaceDrawing();
+            if (isRunningSurfaceDrawingThread()) {
+                addSurface(mMediaCodecSurface);
+            } else {
+                mSurfaceDrawingThread.start();
             }
-
-            @Override
-            public int getDisplayRotation() {
-                return SurfaceVideoEncoder.this.getDisplayRotation();
-            }
-
-            @Override
-            public void onError(Exception e) {
-                postOnError(new MediaEncoderException(e));
-            }
-        };
-        mSurfaceDrawingThread.setName("Surface-Drawing-Thread");
-        mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
-        mSurfaceDrawingThread.start();
+        }
     }
 
     /**
@@ -168,18 +125,41 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
      */
     private void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
-            mSurfaceDrawingThread.terminate();
-            mSurfaceDrawingThread = null;
+            mSurfaceDrawingThread.removeEGLSurfaceBase(mMediaCodecSurface);
+            mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
+
+            // 内部で作成された場合には、停止処理も行います。
+            if (mInternalCreateSurfaceDrawingThread) {
+                mSurfaceDrawingThread.terminate();
+                mSurfaceDrawingThread = null;
+            }
         }
     }
 
+    private void addSurface(Surface surface) {
+        EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
+        eglSurfaceBase.setTag(surface);
+        mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+    }
+
     /**
-     * SurfaceDrawingThread が動作している確認します.
+     * EGLSurfaceDrawingThread が動作している確認します.
      *
-     * @return SurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
+     * @return EGLSurfaceDrawingThread が動作している場合はtrue、それ以外はfalse
      */
     private synchronized boolean isRunningSurfaceDrawingThread() {
         return mSurfaceDrawingThread != null && mSurfaceDrawingThread.isRunning();
+    }
+
+    /**
+     * 内部で EGLSurfaceDrawingThread を作成します.
+     *
+     * 別の EGLSurfaceDrawingThread を使用した場合には、このメソッドをオーバーライドしてください。
+     *
+     * @return EGLSurfaceDrawingThread のインスタンス
+     */
+    protected EGLSurfaceDrawingThread createEGLSurfaceDrawingThread() {
+        return new EGLSurfaceDrawingThread();
     }
 
     /**

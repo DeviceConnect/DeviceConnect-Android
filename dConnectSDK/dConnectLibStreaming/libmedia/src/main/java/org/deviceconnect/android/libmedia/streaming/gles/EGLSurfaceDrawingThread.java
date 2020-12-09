@@ -1,8 +1,12 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.SurfaceTexture;
+import android.util.Log;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +14,7 @@ public class EGLSurfaceDrawingThread extends Thread {
     /**
      * 停止フラグ.
      */
-    private boolean mStopFlag;
+    private boolean mStopFlag = true;
 
     /**
      * OpenGLES のコンテキストなどを管理するクラス.
@@ -36,6 +40,24 @@ public class EGLSurfaceDrawingThread extends Thread {
      * 描画を行う Surface の縦幅.
      */
     private int mHeight;
+
+    /**
+     * イベントを通知するリスナー.
+     */
+    private final WeakReferenceList<OnDrawingEventListener> mOnDrawingEventListeners = new WeakReferenceList<>();
+
+    /**
+     * イベントを通知するリスナーを設定します.
+     *
+     * @param listener リスナー
+     */
+    public void addOnDrawingEventListener(OnDrawingEventListener listener) {
+        mOnDrawingEventListeners.add(listener);
+    }
+
+    public void removeOnDrawingEventListener(OnDrawingEventListener listener) {
+        mOnDrawingEventListeners.remove(listener);
+    }
 
     /**
      * 描画を行う Surface のサイズを設定します.
@@ -141,6 +163,12 @@ public class EGLSurfaceDrawingThread extends Thread {
         return mStManager != null ? mStManager.getSurfaceTexture() : null;
     }
 
+    @Override
+    public void start() {
+        super.start();
+        mStopFlag = false;
+    }
+
     /**
      * スレッドを終了します.
      */
@@ -180,35 +208,9 @@ public class EGLSurfaceDrawingThread extends Thread {
     }
 
     /**
-     * 描画の開始を通知します.
-     */
-    public void onStarted() {
-    }
-
-    /**
-     * 描画の停止を通知します.
-     */
-    public void onStopped() {
-    }
-
-    /**
-     * 描画中にエラーが発生したことを通知します.
-     *
-     * @param e エラー原因の例外
-     */
-    public void onError(Exception e) {
-    }
-
-    /**
-     * 描画が完了したことを通知します.
-     *
-     * @param eglSurfaceBase 描画が完了した EGLSurfaceBase
-     */
-    public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
-    }
-
-    /**
      * 画面の回転を取得します.
+     *
+     * 画面の回転を行いたい場合には、このクラスをオーバーライドします。
      *
      * 以下の値を返すこと。
      * <ul>
@@ -220,8 +222,44 @@ public class EGLSurfaceDrawingThread extends Thread {
      *
      * @return 画面の回転
      */
-    public int getDisplayRotation() {
+    protected int getDisplayRotation() {
         return Surface.ROTATION_0;
+    }
+
+    /**
+     * スレッドが開始され SurfaceTextureManager が作成された後に呼び出されます.
+     */
+    protected void onStarted() {
+    }
+
+    /**
+     * スレッドが停止された時に呼び出されます.
+     */
+    protected void onStopped() {
+    }
+
+    private void postOnStarted() {
+        for (OnDrawingEventListener l : mOnDrawingEventListeners) {
+            l.onStarted();
+        }
+    }
+
+    private void postOnStopped() {
+        for (OnDrawingEventListener l : mOnDrawingEventListeners) {
+            l.onStopped();
+        }
+    }
+
+    protected void postOnError(Exception e) {
+        for (OnDrawingEventListener l : mOnDrawingEventListeners) {
+            l.onError(e);
+        }
+    }
+
+    private void postOnDrawn(EGLSurfaceBase eglSurfaceBase) {
+        for (OnDrawingEventListener l : mOnDrawingEventListeners) {
+            l.onDrawn(eglSurfaceBase);
+        }
     }
 
     @Override
@@ -234,6 +272,8 @@ public class EGLSurfaceDrawingThread extends Thread {
 
             onStarted();
 
+            postOnStarted();
+
             SurfaceTexture st = mStManager.getSurfaceTexture();
             while (!mStopFlag) {
                 mStManager.awaitNewImage();
@@ -245,13 +285,13 @@ public class EGLSurfaceDrawingThread extends Thread {
                         mStManager.drawImage(getDisplayRotation());
                         eglSurfaceBase.setPresentationTime(st.getTimestamp());
                         eglSurfaceBase.swapBuffers();
-                        onDrawn(eglSurfaceBase);
+                        postOnDrawn(eglSurfaceBase);
                     }
                 }
             }
         } catch (Exception e) {
             if (!mStopFlag) {
-                onError(e);
+                postOnError(e);
             }
         } finally {
             synchronized (mEGLSurfaceBases) {
@@ -271,7 +311,35 @@ public class EGLSurfaceDrawingThread extends Thread {
                 mEGLCore = null;
             }
 
+            postOnStopped();
+
             onStopped();
         }
+    }
+
+    public interface OnDrawingEventListener {
+        /**
+         * 描画の開始を通知します.
+         */
+        void onStarted();
+
+        /**
+         * 描画の停止を通知します.
+         */
+        void onStopped();
+
+        /**
+         * 描画中にエラーが発生したことを通知します.
+         *
+         * @param e エラー原因の例外
+         */
+        void onError(Exception e);
+
+        /**
+         * 描画が完了したことを通知します.
+         *
+         * @param eglSurfaceBase 描画が完了した EGLSurfaceBase
+         */
+        void onDrawn(EGLSurfaceBase eglSurfaceBase);
     }
 }

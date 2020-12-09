@@ -1,2 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.deviceconnect.android.libmedia" />
+          package="org.deviceconnect.android.libmedia" >
+
+    <uses-permission android:name="android.permission.CAMERA" />
+</manifest>

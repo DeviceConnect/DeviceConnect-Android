@@ -7,14 +7,13 @@ import android.opengl.Matrix;
 import android.util.Log;
 import android.view.Surface;
 
+import org.deviceconnect.android.libmedia.BuildConfig;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-import org.deviceconnect.android.libmedia.BuildConfig;
-
-
-class SurfaceTextureRender {
+public class SurfaceTextureRenderer {
     private static final String TAG = "SurfaceTextureRender";
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
@@ -24,41 +23,41 @@ class SurfaceTextureRender {
     private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
     private static final float[] TRIANGLE_VERTICES_DATA = {
             // X, Y, Z, U, V
-            -1.0f, -1.0f, 0, 0.f, 0.f,
-             1.0f, -1.0f, 0, 1.f, 0.f,
-            -1.0f,  1.0f, 0, 0.f, 1.f,
-             1.0f,  1.0f, 0, 1.f, 1.f,
+            -1.0f, -1.0f, 0.f, 0.f, 0.f,
+            1.0f, -1.0f, 0.f, 1.f, 0.f,
+            -1.0f,  1.0f, 0.f, 0.f, 1.f,
+            1.0f,  1.0f, 0.f, 1.f, 1.f,
     };
 
     private static final float[] TRIANGLE_VERTICES_DATA_2 = {
             // X, Y, Z, U, V
-            -1.0f, -1.0f, 0, 0.f, 1.f,
-             1.0f, -1.0f, 0, 1.f, 1.f,
-            -1.0f,  1.0f, 0, 0.f, 0.f,
-             1.0f,  1.0f, 0, 1.f, 0.f,
+            -1.0f, -1.0f, 0.f, 0.f, 1.f,
+            1.0f, -1.0f, 0.f, 1.f, 1.f,
+            -1.0f,  1.0f, 0.f, 0.f, 0.f,
+            1.0f,  1.0f, 0.f, 1.f, 0.f,
     };
 
     private FloatBuffer mTriangleVertices;
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
-            "uniform mat4 uSTMatrix;\n" +
-            "attribute vec4 aPosition;\n" +
-            "attribute vec4 aTextureCoord;\n" +
-            "varying vec2 vTextureCoord;\n" +
-            "void main() {\n" +
-            "    gl_Position = uMVPMatrix * aPosition;\n" +
-            "    vTextureCoord = (uSTMatrix * aTextureCoord).xy;\n" +
-            "}\n";
+                    "uniform mat4 uSTMatrix;\n" +
+                    "attribute vec4 aPosition;\n" +
+                    "attribute vec4 aTextureCoord;\n" +
+                    "varying vec2 vTextureCoord;\n" +
+                    "void main() {\n" +
+                    "    gl_Position = uMVPMatrix * aPosition;\n" +
+                    "    vTextureCoord = (uSTMatrix * aTextureCoord).xy;\n" +
+                    "}\n";
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
-            "precision mediump float;\n" +      // highp here doesn't seem to matter
-            "varying vec2 vTextureCoord;\n" +
-            "uniform samplerExternalOES sTexture;\n" +
-            "void main() {\n" +
-            "    gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
-            "}\n";
+                    "precision mediump float;\n" +      // highp here doesn't seem to matter
+                    "varying vec2 vTextureCoord;\n" +
+                    "uniform samplerExternalOES sTexture;\n" +
+                    "void main() {\n" +
+                    "    gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
+                    "}\n";
 
     private float[] mMVPMatrix = new float[16];
     private float[] mSTMatrix = new float[16];
@@ -76,7 +75,7 @@ class SurfaceTextureRender {
      * コンストラクタ.
      * @param inverse テクスチャの反転フラグ
      */
-    SurfaceTextureRender(boolean inverse) {
+    SurfaceTextureRenderer(boolean inverse) {
         mTriangleVertices = ByteBuffer.allocateDirect(
                 TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -90,22 +89,66 @@ class SurfaceTextureRender {
         Matrix.setIdentityM(mMVPMatrix, 0);
     }
 
-    /**
-     * 描画用のテクスチャ ID を取得します.
-     *
-     * @return 描画用のテクスチャID
-     */
-    int getTextureId() {
+    public void surfaceCreated() {
+        mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        if (mProgram == 0) {
+            throw new RuntimeException("failed creating program");
+        }
+        maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
+        checkLocation(maPositionHandle, "aPosition");
+        maTextureHandle = GLES20.glGetAttribLocation(mProgram, "aTextureCoord");
+        checkLocation(maTextureHandle, "aTextureCoord");
+
+        muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        checkLocation(muMVPMatrixHandle, "uMVPMatrix");
+        muSTMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uSTMatrix");
+        checkLocation(muSTMatrixHandle, "uSTMatrix");
+
+        int[] textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+
+        mTextureID = textures[0];
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureID);
+        checkGlError("glBindTexture mTextureID");
+
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER,
+                GLES20.GL_NEAREST);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
+                GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S,
+                GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
+                GLES20.GL_CLAMP_TO_EDGE);
+        checkGlError("glTexParameter");
+    }
+
+    public void surfaceDestroy() {
+        if (mTextureID != 0) {
+            GLES20.glDeleteTextures(1, new int[] {mTextureID}, 0);
+            mTextureID = 0;
+        }
+
+        if (mVertexShader != 0) {
+            GLES20.glDeleteShader(mVertexShader);
+            mVertexShader = 0;
+        }
+
+        if (mFragmentShader != 0) {
+            GLES20.glDeleteShader(mFragmentShader);
+            mFragmentShader = 0;
+        }
+
+        if (mProgram != 0) {
+            GLES20.glDeleteProgram(mProgram);
+            mProgram = 0;
+        }
+    }
+
+    public int getTextureId() {
         return mTextureID;
     }
 
-    /**
-     * オフスクリーンに SurfaceTexture を描画します.
-     *
-     * @param st 描画を行う SurfaceTexture
-     * @param displayRotation 画面の回転
-     */
-    void drawFrame(SurfaceTexture st, int displayRotation) {
+    public void drawFrame(SurfaceTexture st, int displayRotation) {
         st.getTransformMatrix(mSTMatrix);
 
         switch (displayRotation) {
@@ -157,63 +200,25 @@ class SurfaceTextureRender {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     }
 
-    /**
-     * Initializes GL state.
-     * Call this after the EGL surface has been created and made current.
-     */
-    void surfaceCreated() {
-        mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-        if (mProgram == 0) {
-            throw new RuntimeException("failed creating program");
-        }
-        maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
-        checkLocation(maPositionHandle, "aPosition");
-        maTextureHandle = GLES20.glGetAttribLocation(mProgram, "aTextureCoord");
-        checkLocation(maTextureHandle, "aTextureCoord");
-
-        muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
-        checkLocation(muMVPMatrixHandle, "uMVPMatrix");
-        muSTMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uSTMatrix");
-        checkLocation(muSTMatrixHandle, "uSTMatrix");
-
-        int[] textures = new int[1];
-        GLES20.glGenTextures(1, textures, 0);
-
-        mTextureID = textures[0];
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, mTextureID);
-        checkGlError("glBindTexture mTextureID");
-
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER,
-                GLES20.GL_NEAREST);
-        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
-                GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_CLAMP_TO_EDGE);
-        checkGlError("glTexParameter");
+    public void setDrawingRange(int left, int top, int right, int bottom, int width, int height) {
+        float l = left / (float) width;
+        float t = 1.0f - bottom / (float) height;
+        float r = right / (float) width;
+        float b = 1.0f - top / (float) height;
+        setDrawingRange(l, t, r, b);
     }
 
-    void surfaceDestroy() {
-        if (mTextureID != 0) {
-            GLES20.glDeleteTextures(1, new int[] {mTextureID}, 0);
-            mTextureID = 0;
-        }
+    public void setDrawingRange(float l, float t, float r, float b) {
+        float[] TRIANGLE_VERTICES_DATA = {
+                // X, Y, Z, U, V
+                -1.0f, -1.0f, 0.f, l, t,
+                1.0f, -1.0f, 0.f, r, t,
+                -1.0f,  1.0f, 0.f, l, b,
+                1.0f,  1.0f, 0.f, r, b,
+        };
 
-        if (mVertexShader != 0) {
-            GLES20.glDeleteShader(mVertexShader);
-            mVertexShader = 0;
-        }
-
-        if (mFragmentShader != 0) {
-            GLES20.glDeleteShader(mFragmentShader);
-            mFragmentShader = 0;
-        }
-
-        if (mProgram != 0) {
-            GLES20.glDeleteProgram(mProgram);
-            mProgram = 0;
-        }
+        mTriangleVertices.clear();
+        mTriangleVertices.put(TRIANGLE_VERTICES_DATA).position(0);
     }
 
     private int loadShader(int shaderType, String source) {

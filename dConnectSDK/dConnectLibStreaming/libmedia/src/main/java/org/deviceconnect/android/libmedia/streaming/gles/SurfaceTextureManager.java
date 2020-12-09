@@ -11,31 +11,41 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
     private SurfaceTexture mSurfaceTexture;
-    private SurfaceTextureRender mTextureRender;
+    private SurfaceTextureRenderer mTextureRenderer;
 
     private final Object mFrameSyncObject = new Object();
     private boolean mFrameAvailable;
 
     /**
-     * Creates instances of TextureRender and SurfaceTexture.
+     * Creates instances of SurfaceTextureRenderer and SurfaceTexture.
      */
     public SurfaceTextureManager() {
         this(false);
     }
 
     /**
-     * Creates instances of TextureRender and SurfaceTexture.
+     * Creates instances of SurfaceTextureRenderer and SurfaceTexture.
+     *
      * @param inverse テクスチャの反転フラグ
      */
     public SurfaceTextureManager(boolean inverse) {
-        mTextureRender = new SurfaceTextureRender(inverse);
-        mTextureRender.surfaceCreated();
+        this(new SurfaceTextureRenderer(inverse));
+    }
+
+    /**
+     * Creates instances of SurfaceTexture.
+     *
+     * @param renderer SurfaceTextureRenderer
+     */
+    public SurfaceTextureManager(SurfaceTextureRenderer renderer) {
+        mTextureRenderer = renderer;
+        mTextureRenderer.surfaceCreated();
 
         if (DEBUG) {
-            Log.d(TAG, "textureID=" + mTextureRender.getTextureId());
+            Log.d(TAG, "textureID=" + mTextureRenderer.getTextureId());
         }
 
-        mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
+        mSurfaceTexture = new SurfaceTexture(mTextureRenderer.getTextureId());
 
         // This doesn't work if this object is created on the thread that CTS started for
         // these test cases.
@@ -59,10 +69,10 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
         //  W BufferQueue: [unnamed-3997-2] cancelBuffer: BufferQueue has been abandoned!
         //mSurfaceTexture.release();
 
-        if (mTextureRender != null) {
-            mTextureRender.surfaceDestroy();
+        if (mTextureRenderer != null) {
+            mTextureRenderer.surfaceDestroy();
         }
-        mTextureRender = null;
+        mTextureRenderer = null;
 
         if (mSurfaceTexture != null) {
             mSurfaceTexture.setOnFrameAvailableListener(null);
@@ -106,6 +116,14 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
         }
     }
 
+    /**
+     * Viewport の設定を行います.
+     *
+     * @param x x座標
+     * @param y y座標
+     * @param width 横幅
+     * @param height 縦幅
+     */
     public void setViewport(int x, int y, int width, int height) {
         GLES20.glViewport(x, y, width, height);
     }
@@ -114,7 +132,7 @@ public class SurfaceTextureManager implements SurfaceTexture.OnFrameAvailableLis
      * Draws the data from SurfaceTexture onto the current EGL surface.
      */
     public void drawImage(int displayRotation) {
-        mTextureRender.drawFrame(mSurfaceTexture, displayRotation);
+        mTextureRenderer.drawFrame(mSurfaceTexture, displayRotation);
     }
 
     @Override

@@ -5,6 +5,9 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraH264VideoStream;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraH265VideoStream;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
@@ -171,8 +174,14 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
             }
 
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+            HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            ScreenCastVideoStream videoStream = new ScreenCastVideoStream(mScreenCastMgr, 5006);
+            ScreenCastH264VideoStream videoStream;
+            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+                videoStream = new ScreenCastH264VideoStream(mScreenCastMgr, 5006);
+            } else {
+                videoStream = new ScreenCastH264VideoStream(mScreenCastMgr, 5006);
+            }
             setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 

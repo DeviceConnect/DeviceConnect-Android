@@ -10,6 +10,8 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraVideoEncoder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
@@ -177,8 +179,14 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
             }
 
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+            HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mScreenCastMgr);
+            ScreenCastVideoEncoder videoEncoder;
+            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+                videoEncoder = new ScreenCastVideoEncoder(recorder.getScreenCastMgr(), "video/hevc");
+            } else {
+                videoEncoder = new ScreenCastVideoEncoder(recorder.getScreenCastMgr());
+            }
             setVideoQuality(videoEncoder.getVideoQuality());
             session.setVideoEncoder(videoEncoder);
 

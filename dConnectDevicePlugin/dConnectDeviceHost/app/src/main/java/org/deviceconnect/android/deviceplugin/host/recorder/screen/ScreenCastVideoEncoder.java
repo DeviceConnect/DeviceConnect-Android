@@ -11,7 +11,7 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
     /**
      * エンコードするための情報を格納するクラス.
      */
-    private VideoQuality mVideoQuality = new VideoQuality("video/avc");
+    private VideoQuality mVideoQuality;
 
     /**
      * Android 端末の画面をキャストを管理するクラス.
@@ -24,7 +24,12 @@ public class ScreenCastVideoEncoder extends VideoEncoder {
     private ScreenCast mScreenCast;
 
     public ScreenCastVideoEncoder(ScreenCastManager screenCastManager) {
+        this(screenCastManager, "video/avc");
+    }
+
+    public ScreenCastVideoEncoder(ScreenCastManager screenCastManager, String mimeType) {
         mScreenCastMgr = screenCastManager;
+        mVideoQuality = new VideoQuality(mimeType);
     }
 
     // VideoEncoder

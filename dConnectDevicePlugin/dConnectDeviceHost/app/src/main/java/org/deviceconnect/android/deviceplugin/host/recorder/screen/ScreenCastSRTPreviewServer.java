@@ -182,7 +182,7 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
             setVideoQuality(videoEncoder.getVideoQuality());
             session.setVideoEncoder(videoEncoder);
 
-            if (recorder.isAudioEnabled()) {
+            if (recorder.getSettings().isAudioEnabled()) {
                 AudioEncoder audioEncoder = new MicAACLATMEncoder();
                 audioEncoder.setMute(isMuted());
                 setAudioQuality(audioEncoder.getAudioQuality());

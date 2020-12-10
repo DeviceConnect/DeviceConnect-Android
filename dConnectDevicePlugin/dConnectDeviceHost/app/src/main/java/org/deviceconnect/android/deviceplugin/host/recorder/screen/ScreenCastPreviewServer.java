@@ -21,14 +21,15 @@ abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
      */
     void setVideoQuality(VideoQuality videoQuality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
+        HostMediaRecorder.Size size = settings.getPreviewSize();
 
         videoQuality.setVideoWidth(size.getWidth());
         videoQuality.setVideoHeight(size.getHeight());
-        videoQuality.setBitRate(recorder.getPreviewBitRate());
-        videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-        videoQuality.setIFrameInterval(recorder.getIFrameInterval());
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate((int) settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
     }
 
     /**
@@ -38,11 +39,12 @@ abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
      */
     void setAudioQuality(AudioQuality audioQuality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        audioQuality.setChannel(recorder.getPreviewChannel() == 1 ?
+        audioQuality.setChannel(settings.getPreviewChannel() == 1 ?
                 AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
-        audioQuality.setSamplingRate(recorder.getPreviewSampleRate());
-        audioQuality.setBitRate(recorder.getPreviewAudioBitRate());
-        audioQuality.setUseAEC(recorder.isUseAEC());
+        audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+        audioQuality.setBitRate(settings.getPreviewAudioBitRate());
+        audioQuality.setUseAEC(settings.isUseAEC());
     }
 }

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -25,6 +26,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
@@ -244,6 +246,9 @@ public class CameraWrapper {
         List<Size> supportedPreviewList = Camera2Helper.getSupportedPreviewSizes(mCameraManager, mCameraId);
         options.setSupportedPreviewSizeList(supportedPreviewList);
         options.setPreviewSize(supportedPreviewList.get(0));
+
+        List<Range<Integer>> supportedFpsList = Camera2Helper.getSupportedFps(mCameraManager, mCameraId);
+        options.setSupportedFpsList(supportedFpsList);
 
         Size defaultSize = options.getDefaultPictureSize();
         if (defaultSize != null) {
@@ -911,9 +916,13 @@ public class CameraWrapper {
 
         private Size mPreviewSize;
 
+        private Range<Integer> mFps;
+
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
 
         private List<Size> mSupportedPreviewSizeList = new ArrayList<>();
+
+        private List<Range<Integer>> mSupportedFpsList = new ArrayList<>();
 
         private double mPreviewMaxFrameRate = 30.0d; //fps
 
@@ -937,6 +946,14 @@ public class CameraWrapper {
             mPreviewSize = previewSize;
         }
 
+        public Range<Integer> getFps() {
+            return mFps;
+        }
+
+        public void setFps(Range<Integer> fps) {
+            mFps = fps;
+        }
+
         public List<Size> getSupportedPictureSizeList() {
             return mSupportedPictureSizeList;
         }
@@ -951,6 +968,14 @@ public class CameraWrapper {
 
         public void setSupportedPreviewSizeList(final List<Size> supportedPreviewSizeList) {
             mSupportedPreviewSizeList = new ArrayList<>(supportedPreviewSizeList);
+        }
+
+        public List<Range<Integer>> getSupportedFpsList() {
+            return mSupportedFpsList;
+        }
+
+        public void setSupportedFpsList(final List<Range<Integer>> fpsList) {
+            mSupportedFpsList = fpsList;
         }
 
         public Size getDefaultPictureSize() {

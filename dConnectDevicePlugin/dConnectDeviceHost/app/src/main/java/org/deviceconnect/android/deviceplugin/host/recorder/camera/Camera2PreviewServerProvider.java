@@ -15,7 +15,6 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -33,8 +32,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayPermissi
 import java.util.List;
 
 import androidx.core.app.NotificationCompat;
-
-import javax.net.ssl.SSLContext;
 
 /**
  * カメラのプレビュー配信用サーバを管理するクラス.
@@ -101,8 +98,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      * @param recorder レコーダ
      * @param num カメラの番号
      */
-    Camera2PreviewServerProvider(final Context context,
-                                 final Camera2Recorder recorder, final int num) {
+    Camera2PreviewServerProvider(final Context context, final Camera2Recorder recorder, final int num) {
         super(context, recorder, BASE_NOTIFICATION_ID + recorder.getId().hashCode());
 
         mContext = context;
@@ -324,13 +320,13 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         }
 
         mHandler.post(() -> {
-            HostMediaRecorder.PictureSize previewSize = mRecorder.getPreviewSize();
+            HostMediaRecorder.Size previewSize = mRecorder.getSettings().getPreviewSize();
             int cameraWidth = previewSize.getWidth();
             int cameraHeight = previewSize.getHeight();
 
             SurfaceView surfaceView = mOverlayView.findViewById(R.id.surface_view);
-            Size changeSize;
-            Size viewSize = new Size(mOverlayManager.getDisplayWidth(), mOverlayManager.getDisplayHeight());
+            android.util.Size changeSize;
+            android.util.Size viewSize = new android.util.Size(mOverlayManager.getDisplayWidth(), mOverlayManager.getDisplayHeight());
             if (isSwappedDimensions) {
                 changeSize = calculateViewSize(cameraHeight, cameraWidth, viewSize);
             } else {
@@ -358,16 +354,16 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
      * @param viewSize Viewのサイズ
      * @return viewSize に収まるように計算された縦横のサイズ
      */
-    private Size calculateViewSize(int width, int height, Size viewSize) {
+    private android.util.Size calculateViewSize(int width, int height, android.util.Size viewSize) {
         int h = (int) (height * (viewSize.getWidth() / (float) width));
         if (viewSize.getHeight() < h) {
             int w = (int) (width * (viewSize.getHeight() / (float) height));
             if (w % 2 != 0) {
                 w--;
             }
-            return new Size(w, viewSize.getHeight());
+            return new android.util.Size(w, viewSize.getHeight());
         }
-        return new Size(viewSize.getWidth(), h);
+        return new android.util.Size(viewSize.getWidth(), h);
     }
 
     /**

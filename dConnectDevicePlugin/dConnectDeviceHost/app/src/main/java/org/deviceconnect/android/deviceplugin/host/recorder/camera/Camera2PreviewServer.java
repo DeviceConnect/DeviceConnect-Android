@@ -34,12 +34,13 @@ abstract class Camera2PreviewServer extends AbstractPreviewServer {
      */
     void setVideoQuality(VideoQuality videoQuality) {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        videoQuality.setVideoWidth(recorder.getPreviewSize().getWidth());
-        videoQuality.setVideoHeight(recorder.getPreviewSize().getHeight());
-        videoQuality.setBitRate(recorder.getPreviewBitRate());
-        videoQuality.setFrameRate((int) recorder.getMaxFrameRate());
-        videoQuality.setIFrameInterval(recorder.getIFrameInterval());
+        videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
+        videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
+        videoQuality.setBitRate(settings.getPreviewBitRate());
+        videoQuality.setFrameRate((int) settings.getPreviewMaxFrameRate());
+        videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
     }
 
     /**
@@ -49,12 +50,13 @@ abstract class Camera2PreviewServer extends AbstractPreviewServer {
      */
     void setAudioQuality(AudioQuality audioQuality) {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+        HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        audioQuality.setChannel(recorder.getPreviewChannel() == 1 ?
+        audioQuality.setChannel(settings.getPreviewChannel() == 1 ?
                 AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
-        audioQuality.setSamplingRate(recorder.getPreviewSampleRate());
-        audioQuality.setBitRate(recorder.getPreviewAudioBitRate());
-        audioQuality.setUseAEC(recorder.isUseAEC());
+        audioQuality.setSamplingRate(settings.getPreviewSampleRate());
+        audioQuality.setBitRate(settings.getPreviewAudioBitRate());
+        audioQuality.setUseAEC(settings.isUseAEC());
     }
 
     /**

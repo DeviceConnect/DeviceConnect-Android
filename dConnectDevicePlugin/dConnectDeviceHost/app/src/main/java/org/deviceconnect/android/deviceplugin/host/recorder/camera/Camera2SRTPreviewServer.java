@@ -178,7 +178,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
             setVideoQuality(encoder.getVideoQuality());
             session.setVideoEncoder(encoder);
 
-            if (recorder.isAudioEnabled()) {
+            if (recorder.getSettings().isAudioEnabled()) {
                 AudioEncoder audioEncoder = new MicAACLATMEncoder();
                 audioEncoder.setMute(isMuted());
                 setAudioQuality(audioEncoder.getAudioQuality());

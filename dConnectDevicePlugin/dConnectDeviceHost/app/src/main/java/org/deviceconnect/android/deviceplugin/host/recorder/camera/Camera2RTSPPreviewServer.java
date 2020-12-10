@@ -190,7 +190,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 
-            if (recorder.isAudioEnabled()) {
+            if (recorder.getSettings().isAudioEnabled()) {
                 AudioStream audioStream = new MicAACLATMStream(5004);
                 AudioEncoder audioEncoder = audioStream.getAudioEncoder();
                 audioEncoder.setMute(isMuted());

@@ -133,16 +133,17 @@ public class HostLiveStreamingProfile extends DConnectProfile implements LiveStr
                                 VideoEncoder encoder;
                                 if (mVideoURI.equals(VIDEO_URI_SCREEN)) {
                                     ScreenCastRecorder sRecorder = (ScreenCastRecorder) mHostDeviceLiveStreamRecorder;
+                                    HostMediaRecorder.Settings settings = sRecorder.getSettings();
                                     encoder = new ScreenCastVideoEncoder(sRecorder.getScreenCastMgr());
                                     // widthかheightがnullの場合は、PreviewSizeの最小値を設定する
                                     if (width == null || height == null) {
-                                        HostMediaRecorder.PictureSize pSize = sRecorder.getSupportedPreviewSizes().get(0);
+                                        HostMediaRecorder.Size pSize = settings.getSupportedPreviewSizes().get(0);
                                         width = pSize.getWidth();
                                         height = pSize.getHeight();
-                                        for (int i = 1; i < sRecorder.getSupportedPreviewSizes().size(); i++) {
-                                            if (pSize.getWidth() < sRecorder.getSupportedPreviewSizes().get(i).getWidth()) {
-                                                width = sRecorder.getSupportedPreviewSizes().get(i).getWidth();
-                                                height = sRecorder.getSupportedPreviewSizes().get(i).getHeight();
+                                        for (int i = 1; i < settings.getSupportedPreviewSizes().size(); i++) {
+                                            if (pSize.getWidth() < settings.getSupportedPreviewSizes().get(i).getWidth()) {
+                                                width = settings.getSupportedPreviewSizes().get(i).getWidth();
+                                                height = settings.getSupportedPreviewSizes().get(i).getHeight();
                                             }
                                         }
                                     }

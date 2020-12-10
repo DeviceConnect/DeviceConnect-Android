@@ -9,9 +9,18 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Size;
+import android.util.Log;
+import android.util.Range;
 
+import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Host プラグインで使用する MediaRecorder のインターフェース.
@@ -65,115 +74,6 @@ public interface HostMediaRecorder {
     String getMimeType();
 
     /**
-     * MediaRecorder の状態を取得します.
-     *
-     * @return MediaRecorder の状態
-     */
-    RecorderState getState();
-
-    /**
-     * MediaRecorder に設定されている静止画のサイズを取得します.
-     *
-     * @return MediaRecorder に設定されている静止画のサイズ
-     */
-    PictureSize getPictureSize();
-
-    /**
-     * MediaRecorder に静止画のサイズを設定します.
-     *
-     * <p>
-     * {@link #getSupportedPictureSizes()} で指定された範囲外の値が設定された場合には例外を発生します。
-     * </p>
-     *
-     * @param size 静止画のサイズ
-     */
-    void setPictureSize(PictureSize size);
-
-    /**
-     * MediaRecorder に設定されているプレビューのサイズを取得します.
-     *
-     * @return MediaRecorder に設定されているプレビューのサイズ
-     */
-    PictureSize getPreviewSize();
-
-    /**
-     * MediaRecorder にプレビューサイズを設定します.
-     *
-     * <p>
-     * {@link #getSupportedPreviewSizes()} ()} で指定された範囲外の値が設定された場合には例外を発生します。
-     * </p>
-     *
-     * @param size プレビューサイズ
-     */
-    void setPreviewSize(PictureSize size);
-
-    /**
-     * 最大のフレームレートを取得します.
-     *
-     * @return 最大のフレームレート
-     */
-    double getMaxFrameRate();
-
-    /**
-     * 最大のフレームレートを設定します.
-     *
-     * <p>
-     * 端末によっては、最大のフレームレートが設定できない場合には、
-     * 最大のフレームレート以下の値が設定されることがあります。
-     * </p>
-     *
-     * @param frameRate 最大のフレームレート
-     */
-    void setMaxFrameRate(double frameRate);
-
-    /**
-     * プレビューのビットレートを取得します.
-     *
-     * @return プレビューのビットレート
-     */
-    int getPreviewBitRate();
-
-    /**
-     * プレビューのビットレートを設定します.
-     *
-     * <p>
-     * プレビューのビットレートを設定しますが、VBR (Variable Bitrate)
-     * で動作するために、指定されたビットレートにはならない場合があります。
-     * </p>
-     *
-     * @param bitRate ビットレート
-     */
-    void setPreviewBitRate(int bitRate);
-
-    /**
-     * プレビューのフレームインターバルを取得します.
-     *
-     * @return フレームインターバル
-     */
-    int getIFrameInterval();
-
-    /**
-     * プレビューのフレームインターバルを設定します.
-     *
-     * @param interval フレームインターバル
-     */
-    void setIFrameInterval(int interval);
-
-    /**
-     * サポートしている静止画のサイズを取得します.
-     *
-     * @return サポートしている静止画のサイズ
-     */
-    List<PictureSize> getSupportedPictureSizes();
-
-    /**
-     * サポートしているプレビューサイズを取得します.
-     *
-     * @return サポートしているプレビューサイズ
-     */
-    List<PictureSize> getSupportedPreviewSizes();
-
-    /**
      * サポートしているマイムタイプを取得します.
      *
      * @return サポートしているマイムタイプ
@@ -181,22 +81,18 @@ public interface HostMediaRecorder {
     List<String> getSupportedMimeTypes();
 
     /**
-     * 指定されたサイズが静止画でサポートされているか確認します.
+     * MediaRecorder の状態を取得します.
      *
-     * @param width 横幅
-     * @param height 縦幅
-     * @return サポートされている場合はtrue、それ以外はfalse
+     * @return MediaRecorder の状態
      */
-    boolean isSupportedPictureSize(int width, int height);
+    RecorderState getState();
 
     /**
-     * 指定されたサイズがプレビューでサポートされているか確認します.
+     * HostMediaRecorder の設定を取得します.
      *
-     * @param width 横幅
-     * @param height 縦幅
-     * @return サポートされている場合はtrue、それ以外はfalse
+     * @return HostMediaRecorder の設定
      */
-    boolean isSupportedPreviewSize(int width, int height);
+    Settings getSettings();
 
     /**
      * プレビュー配信サーバの管理クラスを取得します.
@@ -218,39 +114,14 @@ public interface HostMediaRecorder {
     void stopPreviews();
 
     /**
-     * プレビュー音声が有効化確認します.
-     *
-     * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
+     * プレビュー配信を開始します.
      */
-    boolean isAudioEnabled();
+    void startBroadcaster();
 
     /**
-     * プレビュー音声のビットレートを取得します.
-     *
-     * @return プレビュー音声のビットレート
+     * プレビュー配信を停止します.
      */
-    int getPreviewAudioBitRate();
-
-    /**
-     * プレビュー音声のサンプルレートを取得します.
-     *
-     * @return プレビュー音声のサンプルレート
-     */
-    int getPreviewSampleRate();
-
-    /**
-     * プレビュー音声のチャンネル数を取得します.
-     *
-     * @return プレビュー音声のチャンネル数
-     */
-    int getPreviewChannel();
-
-    /**
-     * プレビュー配信のエコーキャンセラーを取得します.
-     *
-     * @return プレビュー配信のエコーキャンセラー
-     */
-    boolean isUseAEC();
+    void stopBroadcaster();
 
     /**
      * 端末の画面が回転したタイミングで実行されるメソッド.
@@ -310,21 +181,20 @@ public interface HostMediaRecorder {
         ERROR
     }
 
-    class PictureSize implements Parcelable {
-
+    class Size implements Parcelable {
         private final int mWidth;
         private final int mHeight;
 
-        public PictureSize(final Size size) {
+        public Size(final android.util.Size size) {
             this(size.getWidth(), size.getHeight());
         }
 
-        public PictureSize(final int w, final int h) {
+        public Size(final int w, final int h) {
             mWidth = w;
             mHeight = h;
         }
 
-        private PictureSize(final Parcel in) {
+        private Size(final Parcel in) {
             this(in.readInt(), in.readInt());
         }
 
@@ -349,18 +219,449 @@ public interface HostMediaRecorder {
 
         public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
             @Override
-            public PictureSize createFromParcel(Parcel in) {
-                return new PictureSize(in);
+            public Size createFromParcel(Parcel in) {
+                return new Size(in);
             }
             @Override
-            public PictureSize[] newArray(int size) {
-                return new PictureSize[size];
+            public Size[] newArray(int size) {
+                return new Size[size];
             }
         };
 
         @Override
         public String toString() {
             return "(width = " + getWidth() + ", height = " + getHeight() + ")";
+        }
+    }
+
+    class Settings {
+        private Size mPictureSize;
+        private Size mPreviewSize;
+        private Float mPreviewMaxFrameRate = 30.0f;
+        private Integer mPreviewBitRate = 2 * 1024 * 1024;
+        private Integer mPreviewKeyFrameInterval = 1;
+        private Integer mWhiteBalance;
+        private Range<Integer> mFps;
+
+        private List<Size> mSupportedPictureSizes;
+        private List<Size> mSupportedPreviewSizes;
+        private List<Range<Integer>> mSupportedFps;
+
+        private boolean mAudioEnabled;
+        private Integer mPreviewAudioBitRate;
+        private Integer mPreviewSampleRate;
+        private Integer mPreviewChannel;
+        private boolean mUseAEC;
+
+        private Map<String, Integer> mPort = new HashMap<>();
+
+        /**
+         * 設定データを読み込みます.
+         *
+         * @param file 設定データが格納されたファイル
+         */
+        public boolean load(File file) {
+            try {
+                PropertyUtil property = new PropertyUtil();
+                property.load(file);
+                mPictureSize = property.getSize("picture_size_width","picture_size_height");
+                mPreviewSize = property.getSize("preview_size_width", "preview_size_height");
+                mPreviewMaxFrameRate = property.getFloat("preview_framerate", 30f);
+                mPreviewBitRate = property.getInteger("preview_bitrate", 2 * 1024 * 1024);
+                mPreviewKeyFrameInterval = property.getInteger("preview_i_frame_interval", 1);
+                mFps = property.getRange("picture_fps_min", "picture_fps_max");
+                mWhiteBalance = property.getInteger("preview_white_balance", 0);
+
+                // 音声
+                mAudioEnabled = property.getBoolean("audio_enabled", false);
+                mPreviewAudioBitRate = property.getInteger("preview_audio_bitrate", 64 * 1024);
+                mPreviewSampleRate = property.getInteger("preview_audio_sample_rate", 8000);
+                mPreviewChannel = property.getInteger("preview_audio_channel", 1);
+                mUseAEC = property.getBoolean("preview_audio_aec", false);
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        /**
+         * 設定データを書き込みます.
+         *
+         * @param file 設定データを書き込むファイル
+         */
+        public void save(File file) {
+            try {
+                PropertyUtil property = new PropertyUtil();
+                property.put("picture_size_width", "picture_size_height", mPictureSize);
+                property.put("preview_size_width", "preview_size_height", mPreviewSize);
+                property.put("preview_framerate", mPreviewMaxFrameRate);
+                property.put("preview_bitrate", mPreviewBitRate);
+                property.put("preview_i_frame_interval", mPreviewKeyFrameInterval);
+                if (mFps != null) {
+                    property.put("picture_fps_min", "picture_fps_max", mFps);
+                }
+                property.put("preview_white_balance", mWhiteBalance);
+
+                // 音声
+                property.put("audio_enabled", mAudioEnabled);
+                property.put("preview_audio_bitrate", mPreviewAudioBitRate);
+                property.put("preview_audio_sample_rate", mPreviewSampleRate);
+                property.put("preview_audio_channel", mPreviewChannel);
+                property.put("preview_audio_aec", mUseAEC);
+
+                property.save(file);
+            } catch (IOException e) {
+                // ignore.
+            }
+        }
+
+        /**
+         * 写真サイズを取得します.
+         *
+         * @return 写真サイズ
+         */
+        public Size getPictureSize() {
+            return mPictureSize;
+        }
+
+        /**
+         * 写真サイズを設定します.
+         *
+         * サポートされていない写真サイズの場合は IllegalArgumentException を発生させます。
+         *
+         * @param pictureSize 写真サイズ
+         */
+        public void setPictureSize(Size pictureSize) {
+            if (!isSupportedPictureSize(pictureSize)) {
+                throw new IllegalArgumentException("pictureSize is not supported.");
+            }
+            mPictureSize = pictureSize;
+        }
+
+        /**
+         * プレビューサイズを取得します.
+         *
+         * @return プレビューサイズ
+         */
+        public Size getPreviewSize() {
+            return mPreviewSize;
+        }
+
+        /**
+         * プレビューサイズを設定します.
+         *
+         * サポートされていないプレビューサイズの場合は IllegalArgumentException を発生させます。
+         *
+         * @param previewSize プレビューサイズ
+         */
+        public void setPreviewSize(Size previewSize) {
+            if (!isSupportedPreviewSize(previewSize)) {
+                throw new IllegalArgumentException("previewSize is not supported.");
+            }
+            mPreviewSize = previewSize;
+        }
+
+        /**
+         * フレームレートを取得します.
+         *
+         * @return フレームレート
+         */
+        public float getPreviewMaxFrameRate() {
+            return mPreviewMaxFrameRate;
+        }
+
+        /**
+         * フレームレートを設定します.
+         *
+         * @param previewMaxFrameRate フレームレート
+         */
+        public void setPreviewMaxFrameRate(float previewMaxFrameRate) {
+            if (previewMaxFrameRate <= 0) {
+                throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
+            }
+            mPreviewMaxFrameRate = previewMaxFrameRate;
+        }
+
+        /**
+         * ビットレートを取得します.
+         *
+         * @return ビットレート(byte)
+         */
+        public int getPreviewBitRate() {
+            return mPreviewBitRate;
+        }
+
+        /**
+         * ビットレートを設定します.
+         *
+         * @param previewBitRate ビットレート(byte)
+         */
+        public void setPreviewBitRate(int previewBitRate) {
+            if (previewBitRate <= 0) {
+                throw new IllegalArgumentException("previewBitRate is zero or negative.");
+            }
+            mPreviewBitRate = previewBitRate;
+        }
+
+        /**
+         * キーフレームインターバルを取得します.
+         *
+         * @return キーフレームを発行する間隔(ミリ秒)
+         */
+        public int getPreviewKeyFrameInterval() {
+            return mPreviewKeyFrameInterval;
+        }
+
+        /**
+         * キーフレームインターバルを設定します.
+         *
+         * @param previewKeyFrameInterval キーフレームを発行する間隔(ミリ秒)
+         */
+        public void setPreviewKeyFrameInterval(int previewKeyFrameInterval) {
+            if (previewKeyFrameInterval <= 0) {
+                throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
+            }
+            mPreviewKeyFrameInterval = previewKeyFrameInterval;
+        }
+
+        /**
+         * 設定されている FPS を取得します.
+         *
+         * @return FPS
+         */
+        public Range<Integer> getFps() {
+            return mFps;
+        }
+
+        /**
+         * FPS を設定します.
+         *
+         * @param fps FPS
+         */
+        public void setFps(Range<Integer> fps) {
+            if (fps != null && !isSupportedFps(fps)) {
+                throw new IllegalArgumentException("fps is unsupported value.");
+            }
+            mFps = fps;
+        }
+
+        /**
+         * サポートしている写真サイズを取得します.
+         *
+         * @return サポートしている写真サイズ
+         */
+        public List<Size> getSupportedPictureSizes() {
+            return mSupportedPictureSizes;
+        }
+
+        /**
+         * サポートしている写真サイズを設定します.
+         *
+         * @param sizes サポートサイズ
+         */
+        public void setSupportedPictureSizes(List<Size> sizes) {
+            mSupportedPictureSizes = sizes;
+        }
+
+        /**
+         * サポートしているプレビューサイズを取得します.
+         *
+         * @return サポートしているプレビューサイズ
+         */
+        public List<Size> getSupportedPreviewSizes() {
+            return mSupportedPreviewSizes;
+        }
+
+        /**
+         * サポートしているプレビューサイズを設定します.
+         *
+         * @param sizes サポートサイズ
+         */
+        public void setSupportedPreviewSizes(List<Size> sizes) {
+            mSupportedPreviewSizes = sizes;
+        }
+
+        /**
+         * サポートしている FPS のリストを取得します.
+         *
+         * @return サポートしている FPS のリスト
+         */
+        public List<Range<Integer>> getSupportedFps() {
+            return mSupportedFps;
+        }
+
+        /**
+         * サポートしている FPS のリストを設定します.
+         *
+         * @param fps サポートしている FPS のリスト
+         */
+        public void setSupportedFps(List<Range<Integer>> fps) {
+            mSupportedFps = fps;
+        }
+
+        /**
+         * 指定されたサイズがサポートされているか確認します.
+         *
+         * @param size 確認するサイズ
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedPictureSize(final Size size) {
+            for (Size s : mSupportedPictureSizes) {
+                if (s.getWidth() == size.getWidth() &&
+                        s.getHeight() == size.getHeight()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * 指定されたサイズが静止画でサポートされているか確認します.
+         *
+         * @param width 横幅
+         * @param height 縦幅
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedPictureSize(int width, int height) {
+            return isSupportedPictureSize(new Size(width, height));
+        }
+
+        /**
+         * 指定されたサイズがサポートされているか確認します.
+         *
+         * @param size 確認するサイズ
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedPreviewSize(final Size size) {
+            for (Size s : mSupportedPreviewSizes) {
+                if (s.getWidth() == size.getWidth() &&
+                        s.getHeight() == size.getHeight()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * 指定されたサイズがプレビューでサポートされているか確認します.
+         *
+         * @param width 横幅
+         * @param height 縦幅
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedPreviewSize(int width, int height) {
+            return isSupportedPreviewSize(new Size(width, height));
+        }
+
+        /**
+         * 指定されたサイズがサポートされているか確認します.
+         *
+         * @param fps 確認する FPS
+         * @return サポートされている場合はtrue、それ以外はfalse
+         */
+        public boolean isSupportedFps(Range<Integer> fps) {
+            for (Range<Integer> r : mSupportedFps) {
+                if (r.getLower().equals(fps.getLower()) &&
+                        r.getUpper().equals(fps.getUpper())){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 音声
+
+        /**
+         * プレビュー音声が有効化確認します.
+         *
+         * @return プレビュー音声が有効の場合はtrue、それ以外はfalse
+         */
+        public boolean isAudioEnabled() {
+            return mAudioEnabled;
+        }
+
+        /**
+         * プレビュー音声が有効化を設定します.
+         *
+         * @param enabled プレビュー音声が有効の場合はtrue、それ以外はfalse
+         */
+        public void setAudioEnabled(boolean enabled) {
+            mAudioEnabled = enabled;
+        }
+
+        /**
+         * プレビュー音声のビットレートを取得します.
+         *
+         * @return プレビュー音声のビットレート
+         */
+        public int getPreviewAudioBitRate() {
+            return mPreviewAudioBitRate;
+        }
+
+        /**
+         * プレビュー音声のビットレートを設定します.
+         *
+         * @param bitRate プレビュー音声のビットレート
+         */
+        public void setPreviewAudioBitRate(int bitRate) {
+            if (bitRate <= 0) {
+                throw new IllegalArgumentException("previewAudioBitRate is zero or negative value.");
+            }
+            mPreviewAudioBitRate = bitRate;
+        }
+
+        /**
+         * プレビュー音声のサンプルレートを取得します.
+         *
+         * @return プレビュー音声のサンプルレート
+         */
+        public int getPreviewSampleRate() {
+            return mPreviewSampleRate;
+        }
+
+        /**
+         * プレビュー音声のサンプルレートを設定します.
+         *
+         * @param sampleRate プレビュー音声のサンプルレート
+         */
+        public void setPreviewSampleRate(int sampleRate) {
+            mPreviewSampleRate = sampleRate;
+        }
+
+        /**
+         * プレビュー音声のチャンネル数を取得します.
+         *
+         * @return プレビュー音声のチャンネル数
+         */
+        public int getPreviewChannel() {
+            return mPreviewChannel;
+        }
+
+        /**
+         * プレビュー音声のチャンネル数を設定します.
+         *
+         * @param channel プレビュー音声のチャンネル数
+         */
+        public void setPreviewChannel(int channel) {
+            mPreviewChannel = channel;
+        }
+
+        /**
+         * プレビュー配信のエコーキャンセラーを取得します.
+         *
+         * @return プレビュー配信のエコーキャンセラー
+         */
+        public boolean isUseAEC() {
+            return mUseAEC;
+        }
+
+        /**
+         * プレビュー配信のエコーキャンセラーを設定します.
+         *
+         * @param used プレビュー配信のエコーキャンセラー
+         */
+        public void setUseAEC(boolean used) {
+            mUseAEC = used;
         }
     }
 }

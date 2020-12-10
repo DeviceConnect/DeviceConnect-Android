@@ -140,12 +140,12 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     protected void setMJPEGQuality(MJPEGQuality quality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
 
-        HostMediaRecorder.PictureSize size = recorder.getPreviewSize();
+        HostMediaRecorder.Size size = recorder.getSettings().getPreviewSize();
 
         quality.setWidth(size.getWidth());
         quality.setHeight(size.getHeight());
         quality.setQuality(getJpegQuality());
-        quality.setFrameRate((int) recorder.getMaxFrameRate());
+        quality.setFrameRate((int) recorder.getSettings().getPreviewMaxFrameRate());
     }
 
     /**

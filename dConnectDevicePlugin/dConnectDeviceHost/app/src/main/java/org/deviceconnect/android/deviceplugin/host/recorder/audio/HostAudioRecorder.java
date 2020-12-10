@@ -122,103 +122,24 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     }
 
     @Override
+    public Settings getSettings() {
+        return null;
+    }
+
+    @Override
     public String getMimeType() {
         return MIME_TYPE;
     }
 
     @Override
-    public String getStreamMimeType() {
-        return MIME_TYPE;
-    }
-
-    @Override
-    public PictureSize getPictureSize() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setPictureSize(final PictureSize size) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PictureSize getPreviewSize() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setPreviewSize(PictureSize size) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public double getMaxFrameRate() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setMaxFrameRate(double frameRate) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getPreviewBitRate() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setPreviewBitRate(int bitRate) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getIFrameInterval() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setIFrameInterval(int interval) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<PictureSize> getSupportedPreviewSizes() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<PictureSize> getSupportedPictureSizes() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isSupportedPictureSize(int width, int height) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isSupportedPreviewSize(int width, int height) {
-        throw new UnsupportedOperationException();
+    public List<String> getSupportedMimeTypes() {
+        return mMimeTypes;
     }
 
     @Override
     public void onDisplayRotation(final int degree) {
     }
 
-    @Override
-    public void muteTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void unMuteTrack() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isMutedTrack() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public PreviewServerProvider getServerProvider() {
@@ -235,28 +156,11 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     }
 
     @Override
-    public boolean isAudioEnabled() {
-        return false;
+    public void startBroadcaster() {
     }
 
     @Override
-    public int getPreviewAudioBitRate() {
-        return 0;
-    }
-
-    @Override
-    public int getPreviewSampleRate() {
-        return 0;
-    }
-
-    @Override
-    public int getPreviewChannel() {
-        return 0;
-    }
-
-    @Override
-    public boolean isUseAEC() {
-        return false;
+    public void stopBroadcaster() {
     }
 
     @Override
@@ -274,9 +178,21 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         });
     }
 
+    // HostDeviceStreamRecorder
+
     @Override
-    public List<String> getSupportedMimeTypes() {
-        return mMimeTypes;
+    public void muteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void unMuteTrack() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isMutedTrack() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -352,6 +268,13 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
             }
         }
     }
+
+    @Override
+    public String getStreamMimeType() {
+        return MIME_TYPE;
+    }
+
+    // private method.
 
     private String generateAudioFileName() {
         return "android_audio_" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;

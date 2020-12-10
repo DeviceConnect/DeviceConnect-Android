@@ -15,6 +15,8 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import androidx.annotation.NonNull;
+
+import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;
@@ -136,6 +138,27 @@ public final class Camera2Helper {
             // ignore.
         }
         return pictureSizes;
+    }
+
+    /**
+     * カメラがサポートしている FPS の一覧を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしている FPS のリスト
+     */
+    @NonNull
+    static List<Range<Integer>> getSupportedFps(final CameraManager cameraManager, final String cameraId) {
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            Range<Integer>[] fps = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+            if (fps != null) {
+                return Arrays.asList(fps);
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return new ArrayList<>();
     }
 
     /**

@@ -103,6 +103,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 public void onAllowed() {
                     List<Bundle> recorders = new LinkedList<>();
                     for (HostMediaRecorder recorder : mRecorderMgr.getRecorders()) {
+                        HostMediaRecorder.Settings settings = recorder.getSettings();
                         Bundle info = new Bundle();
                         setRecorderId(info, recorder.getId());
                         setRecorderName(info, recorder.getName());
@@ -118,19 +119,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                         if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
                             // 静止画の設定
-                            HostMediaRecorder.PictureSize pictureSize = recorder.getPictureSize();
+                            HostMediaRecorder.Size pictureSize = settings.getPictureSize();
                             if (pictureSize != null) {
                                 setRecorderImageWidth(info, pictureSize.getWidth());
                                 setRecorderImageHeight(info, pictureSize.getHeight());
                             }
 
-                            HostMediaRecorder.PictureSize previewSize = recorder.getPreviewSize();
+                            HostMediaRecorder.Size previewSize = settings.getPreviewSize();
                             if (previewSize != null) {
                                 setRecorderPreviewWidth(info, previewSize.getWidth());
                                 setRecorderPreviewHeight(info, previewSize.getHeight());
-                                setRecorderPreviewMaxFrameRate(info, recorder.getMaxFrameRate());
-                                info.putInt("previewBitRate", recorder.getPreviewBitRate() / 1024);
-                                info.putInt("previewKeyFrameInterval", recorder.getIFrameInterval());
+                                setRecorderPreviewMaxFrameRate(info, settings.getPreviewMaxFrameRate());
+                                info.putInt("previewBitRate", settings.getPreviewBitRate() / 1024);
+                                info.putInt("previewKeyFrameInterval", settings.getPreviewKeyFrameInterval());
                             }
                         } else if (recorder.getMimeType().startsWith("audio/")) {
                             // 音声の設定
@@ -173,10 +174,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
+                    HostMediaRecorder.Settings settings = recorder.getSettings();
                     if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
                         // 映像系の設定
-                        setSupportedImageSizes(response, recorder.getSupportedPictureSizes());
-                        setSupportedPreviewSizes(response, recorder.getSupportedPreviewSizes());
+                        setSupportedImageSizes(response, settings.getSupportedPictureSizes());
+                        setSupportedPreviewSizes(response, settings.getSupportedPreviewSizes());
                     } else if (recorder.getMimeType().startsWith("audio/")) {
                         // 音声系の設定
                     }
@@ -216,6 +218,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return;
             }
 
+            HostMediaRecorder.Settings settings = recorder.getSettings();
+
             if (!supportsMimeType(recorder, mimeType)) {
                 MessageUtils.setInvalidRequestParameterError(response, "MIME-Type " + mimeType + " is unsupported.");
                 return;
@@ -228,36 +232,36 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (imageWidth != null && imageHeight != null) {
-                if (!recorder.isSupportedPictureSize(imageWidth, imageHeight)) {
+                if (!settings.isSupportedPictureSize(imageWidth, imageHeight)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Unsupported image size: imageWidth = "
                             + imageWidth + ", imageHeight = " + imageHeight);
                     return;
                 }
-                HostMediaRecorder.PictureSize newSize = new HostMediaRecorder.PictureSize(imageWidth, imageHeight);
-                recorder.setPictureSize(newSize);
+                HostMediaRecorder.Size newSize = new HostMediaRecorder.Size(imageWidth, imageHeight);
+                settings.setPictureSize(newSize);
             }
 
             if (previewWidth != null && previewHeight != null) {
-                if (!recorder.isSupportedPreviewSize(previewWidth, previewHeight)) {
+                if (!settings.isSupportedPreviewSize(previewWidth, previewHeight)) {
                     MessageUtils.setInvalidRequestParameterError(response, "Unsupported preview size: previewWidth = "
                             + previewWidth + ", previewHeight = " + previewHeight);
                     return;
                 }
 
-                HostMediaRecorder.PictureSize newSize = new HostMediaRecorder.PictureSize(previewWidth, previewHeight);
-                recorder.setPreviewSize(newSize);
+                HostMediaRecorder.Size newSize = new HostMediaRecorder.Size(previewWidth, previewHeight);
+                settings.setPreviewSize(newSize);
             }
 
             if (previewMaxFrameRate != null) {
-                recorder.setMaxFrameRate(previewMaxFrameRate);
+                settings.setPreviewMaxFrameRate(previewMaxFrameRate.floatValue());
             }
 
             if (previewBitRate != null) {
-                recorder.setPreviewBitRate(previewBitRate * 1024);
+                settings.setPreviewBitRate(previewBitRate * 1024);
             }
 
             if (previewKeyFrameInterval != null) {
-                recorder.setIFrameInterval(previewKeyFrameInterval);
+                settings.setPreviewKeyFrameInterval(previewKeyFrameInterval);
             }
 
             // 設定をプレビューサーバに反映
@@ -660,7 +664,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
 
-        if (!recorder.isAudioEnabled()) {
+        if (!recorder.getSettings().isAudioEnabled()) {
             MessageUtils.setNotSupportAttributeError(response, "mute is not supported.");
             return true;
         }
@@ -968,10 +972,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     private static void setSupportedImageSizes(final Intent response,
-                                               final List<HostMediaRecorder.PictureSize> sizes) {
+                                               final List<HostMediaRecorder.Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
-        for (HostMediaRecorder.PictureSize size : sizes) {
+        for (HostMediaRecorder.Size size : sizes) {
             Bundle info = new Bundle();
             setWidth(info, size.getWidth());
             setHeight(info, size.getHeight());
@@ -981,10 +985,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     private static void setSupportedPreviewSizes(final Intent response,
-                                                 final List<HostMediaRecorder.PictureSize> sizes) {
+                                                 final List<HostMediaRecorder.Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
-        for (HostMediaRecorder.PictureSize size : sizes) {
+        for (HostMediaRecorder.Size size : sizes) {
             Bundle info = new Bundle();
             setWidth(info, size.getWidth());
             setHeight(info, size.getHeight());

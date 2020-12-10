@@ -17,80 +17,45 @@ import java.util.concurrent.TimeUnit;
 
 public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
-     * コンテキスト.
-     */
-    private Context mContext;
-
-    /**
      * 映像のエンコード設定.
      */
     private CameraVideoQuality mVideoQuality;
 
     /**
      * コンストラクタ.
-     * @param context コンテキスト
-     */
-    public CameraSurfaceVideoEncoder(Context context) {
-        this(context, "video/avc");
-    }
-
-    /**
-     * コンストラクタ.
-     * @param context コンテキスト
-     */
-    public CameraSurfaceVideoEncoder(Context context, EGLSurfaceDrawingThread thread) {
-        this(context, "video/avc", thread);
-    }
-
-    /**
-     * コンストラクタ.
      *
-     * @param context コンテキスト
      * @param mimeType MediaCodec に渡すマイムタイプ
      */
-    public CameraSurfaceVideoEncoder(Context context, String mimeType) {
-        this(context, new CameraVideoQuality(mimeType));
+    public CameraSurfaceVideoEncoder(String mimeType) {
+        this(new CameraVideoQuality(mimeType));
     }
 
     /**
      * コンストラクタ.
      *
-     * @param context コンテキスト
      * @param mimeType MediaCodec に渡すマイムタイプ
      */
-    public CameraSurfaceVideoEncoder(Context context, String mimeType, EGLSurfaceDrawingThread thread) {
-        this(context, new CameraVideoQuality(mimeType), thread);
+    public CameraSurfaceVideoEncoder(String mimeType, EGLSurfaceDrawingThread thread) {
+        this(new CameraVideoQuality(mimeType), thread);
     }
 
     /**
      * コンストラクタ.
      *
-     * @param context コンテキスト
      * @param videoQuality 映像エンコードの設定
      */
-    public CameraSurfaceVideoEncoder(Context context, CameraVideoQuality videoQuality) {
-        this(context, videoQuality, null);
+    public CameraSurfaceVideoEncoder(CameraVideoQuality videoQuality) {
+        this(videoQuality, null);
     }
 
     /**
      * コンストラクタ.
      *
-     * @param context コンテキスト
      * @param videoQuality 映像エンコードの設定
      */
-    public CameraSurfaceVideoEncoder(Context context, CameraVideoQuality videoQuality, EGLSurfaceDrawingThread thread) {
+    public CameraSurfaceVideoEncoder(CameraVideoQuality videoQuality, EGLSurfaceDrawingThread thread) {
         super(thread);
-        mContext = context;
         mVideoQuality = videoQuality;
-    }
-
-    /**
-     * コンテキストを取得します.
-     *
-     * @return コンテキスト
-     */
-    public Context getContext() {
-        return mContext;
     }
 
     // VideoEncoder
@@ -98,16 +63,6 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     @Override
     public VideoQuality getVideoQuality() {
         return mVideoQuality;
-    }
-
-    @Override
-    protected int getDisplayRotation() {
-        return Camera2WrapperManager.getDisplayRotation(mContext);
-    }
-
-    @Override
-    public boolean isSwappedDimensions() {
-        return Camera2WrapperManager.isSwappedDimensions(mContext, mVideoQuality.getFacing());
     }
 
     // SurfaceVideoEncoder

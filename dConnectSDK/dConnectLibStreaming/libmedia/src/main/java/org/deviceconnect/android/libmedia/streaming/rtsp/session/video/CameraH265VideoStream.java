@@ -15,20 +15,16 @@ public class CameraH265VideoStream extends H265VideoStream {
 
     /**
      * コンストラクタ.
-     *
-     * @param context コンテキスト
      */
-    public CameraH265VideoStream(Context context) {
-        this(new CameraSurfaceVideoEncoder(context, "video/hevc"));
+    public CameraH265VideoStream() {
+        this(new CameraSurfaceVideoEncoder("video/hevc"));
     }
 
     /**
      * コンストラクタ.
-     *
-     * @param context コンテキスト
      */
-    public CameraH265VideoStream(Context context, EGLSurfaceDrawingThread thread) {
-        this(new CameraSurfaceVideoEncoder(context, "video/hevc", thread));
+    public CameraH265VideoStream(EGLSurfaceDrawingThread thread) {
+        this(new CameraSurfaceVideoEncoder("video/hevc", thread));
     }
 
     /**

@@ -9,8 +9,6 @@ import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     /**
@@ -34,14 +32,14 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     private final ByteArrayOutputStream mJPEGOutputStream = new ByteArrayOutputStream();
 
     /**
+     * このフラグが true の場合には、外部から EGLSurfaceDrawingThread が設定されたことを意味します。
+     */
+    private final boolean mInternalCreateSurfaceDrawingThread;
+
+    /**
      * Surface の描画を行うスレッド.
      */
     private EGLSurfaceDrawingThread mSurfaceDrawingThread;
-
-    /**
-     * 描画を行う Surface のリスト.
-     */
-    private List<Surface> mOutputSurfaces = new ArrayList<>();
 
     /**
      * バッファを反転させるために一時的に値を格納するバッファ.
@@ -52,11 +50,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * バッファを反転させるために一時的に値を格納するバッファ.
      */
     private byte[] mTmp2;
-
-    /**
-     * SurfaceDrawingThread の開始フラグ.
-     */
-    private boolean mStartSurfaceDrawingFlag;
 
     /**
      * EGLSurfaceDrawingThread のイベントを受け取るリスナー.
@@ -71,11 +64,6 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
             eglSurfaceBase.setTag(TAG_SURFACE);
             mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-
-            for (Surface surface : mOutputSurfaces) {
-                mSurfaceDrawingThread.addEGLSurfaceBase(
-                        mSurfaceDrawingThread.createEGLSurfaceBase(surface));
-            }
 
             try {
                 prepare();
@@ -109,10 +97,12 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
     };
 
     public SurfaceMJPEGEncoder() {
+        mInternalCreateSurfaceDrawingThread = true;
     }
 
     public SurfaceMJPEGEncoder(EGLSurfaceDrawingThread thread) {
         mSurfaceDrawingThread = thread;
+        mInternalCreateSurfaceDrawingThread = false;
     }
 
     /**
@@ -126,37 +116,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * エンコードを停止します.
      */
     public synchronized void stop() {
-        if (!mStartSurfaceDrawingFlag) {
-            stopDrawingThreadInternal();
-        }
-    }
-
-    /**
-     * 描画先の Surface を追加します.
-     *
-     * @param surface 追加する Surface
-     */
-    public void addSurface(Surface surface) {
-        mOutputSurfaces.add(surface);
-
-        if (isRunningSurfaceDrawingThread()) {
-            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
-            eglSurfaceBase.setTag(surface);
-            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-        }
-    }
-
-    /**
-     * 描画先の Surface を削除します.
-     *
-     * @param surface 削除する Surface
-     */
-    public void removeSurface(Surface surface) {
-        mOutputSurfaces.remove(surface);
-
-        if (isRunningSurfaceDrawingThread()) {
-            mSurfaceDrawingThread.removeEGLSurfaceBase(surface);
-        }
+        stopDrawingThreadInternal();
     }
 
     /**
@@ -165,12 +125,16 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * @return スワップする場合は true、それ以外は false
      */
     public boolean isSwappedDimensions() {
-        switch (getDisplayRotation()) {
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-                return false;
-            default:
-                return true;
+        if (mSurfaceDrawingThread == null) {
+            switch (getDisplayRotation()) {
+                case Surface.ROTATION_0:
+                case Surface.ROTATION_180:
+                    return false;
+                default:
+                    return true;
+            }
+        } else {
+            return mSurfaceDrawingThread.isSwappedDimensions();
         }
     }
 
@@ -180,7 +144,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
      * @return 画面の回転
      */
     protected int getDisplayRotation() {
-        return Surface.ROTATION_0;
+        if (mSurfaceDrawingThread == null) {
+            return Surface.ROTATION_0;
+        } else {
+            return mSurfaceDrawingThread.getDisplayRotation();
+        }
     }
 
     /**
@@ -216,30 +184,56 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         return mSurfaceDrawingThread != null && mSurfaceDrawingThread.isRunning();
     }
 
+    /**
+     * 内部で EGLSurfaceDrawingThread を作成します.
+     *
+     * 別の EGLSurfaceDrawingThread を使用した場合には、このメソッドをオーバーライドしてください。
+     *
+     * @return EGLSurfaceDrawingThread のインスタンス
+     */
+    protected EGLSurfaceDrawingThread createEGLSurfaceDrawingThread() {
+        return new EGLSurfaceDrawingThread();
+    }
+
+    /**
+     * Surface への描画スレッドを開始します。
+     */
     private void startDrawingThreadInternal() {
         MJPEGQuality quality = getMJPEGQuality();
         int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
         int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
 
-        mSurfaceDrawingThread.setSize(w, h);
-        mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-
-        if (isRunningSurfaceDrawingThread()) {
-            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
-            eglSurfaceBase.setTag(TAG_SURFACE);
-            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-
-            for (Surface surface : mOutputSurfaces) {
-                mSurfaceDrawingThread.addEGLSurfaceBase(
-                        mSurfaceDrawingThread.createEGLSurfaceBase(surface));
+        if (mInternalCreateSurfaceDrawingThread) {
+            mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
+            mSurfaceDrawingThread.setSize(w, h);
+            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+            mSurfaceDrawingThread.start();
+        } else {
+            mSurfaceDrawingThread.setSize(w, h);
+            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+            if (isRunningSurfaceDrawingThread()) {
+                EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
+                eglSurfaceBase.setTag(TAG_SURFACE);
+                mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+            } else {
+                mSurfaceDrawingThread.start();
             }
         }
     }
 
+    /**
+     * Surface への描画スレッドを停止します。
+     */
     private void stopDrawingThreadInternal() {
         if (mSurfaceDrawingThread != null) {
             mSurfaceDrawingThread.removeEGLSurfaceBase(TAG_SURFACE);
             mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
+
+            // 内部で作成された場合には、停止処理も行います。
+            if (mInternalCreateSurfaceDrawingThread) {
+                mSurfaceDrawingThread.terminate();
+                mSurfaceDrawingThread = null;
+            }
         }
 
         mBuffer = null;

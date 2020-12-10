@@ -47,7 +47,7 @@ public class EGLSurfaceDrawingThread extends Thread {
     private final WeakReferenceList<OnDrawingEventListener> mOnDrawingEventListeners = new WeakReferenceList<>();
 
     /**
-     * イベントを通知するリスナーを設定します.
+     * イベントを通知するリスナーを追加します.
      *
      * @param listener リスナー
      */
@@ -55,6 +55,11 @@ public class EGLSurfaceDrawingThread extends Thread {
         mOnDrawingEventListeners.add(listener);
     }
 
+    /**
+     * イベントを通知するリスナーを削除します.
+     *
+     * @param listener リスナー
+     */
     public void removeOnDrawingEventListener(OnDrawingEventListener listener) {
         mOnDrawingEventListeners.remove(listener);
     }
@@ -68,6 +73,24 @@ public class EGLSurfaceDrawingThread extends Thread {
     public void setSize(int width, int height) {
         mWidth = width;
         mHeight = height;
+    }
+
+    /**
+     * 描画を行う Surface の横幅を取得します.
+     *
+     * @return 描画を行う Surface の横幅
+     */
+    public int getWidth() {
+        return mWidth;
+    }
+
+    /**
+     * 描画を行う Surface の縦幅を取得します.
+     *
+     * @return 描画を行う Surface の縦幅
+     */
+    public int getHeight() {
+        return mHeight;
     }
 
     /**
@@ -222,8 +245,23 @@ public class EGLSurfaceDrawingThread extends Thread {
      *
      * @return 画面の回転
      */
-    protected int getDisplayRotation() {
+    public int getDisplayRotation() {
         return Surface.ROTATION_0;
+    }
+
+    /**
+     * 画面の縦・横の切り替えを行うか確認します.
+     *
+     * @return 画面の縦・横を切り替える場合はtrue、それ以外はfalse
+     */
+    public boolean isSwappedDimensions() {
+        switch (getDisplayRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                return false;
+            default:
+                return true;
+        }
     }
 
     /**

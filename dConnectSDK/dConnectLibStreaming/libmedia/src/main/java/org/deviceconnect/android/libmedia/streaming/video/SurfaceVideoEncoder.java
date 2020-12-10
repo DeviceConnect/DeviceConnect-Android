@@ -5,6 +5,7 @@ import android.media.MediaCodecInfo;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
+import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
@@ -95,6 +96,24 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         return MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface;
     }
 
+    @Override
+    protected int getDisplayRotation() {
+        if (mSurfaceDrawingThread == null) {
+            return super.getDisplayRotation();
+        } else {
+            return mSurfaceDrawingThread.getDisplayRotation();
+        }
+    }
+
+    @Override
+    public boolean isSwappedDimensions() {
+        if (mSurfaceDrawingThread == null) {
+            return super.isSwappedDimensions();
+        } else {
+            return mSurfaceDrawingThread.isSwappedDimensions();
+        }
+    }
+
     // private method.
 
     /**
@@ -111,7 +130,6 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         } else {
             mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
             mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-
             if (isRunningSurfaceDrawingThread()) {
                 addSurface(mMediaCodecSurface);
             } else {
@@ -136,6 +154,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         }
     }
 
+    /**
+     * EGLSurfaceDrawingThread に描画先の Surface を追加します.
+     *
+     * @param surface 描画先の Surface
+     */
     private void addSurface(Surface surface) {
         EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
         eglSurfaceBase.setTag(surface);

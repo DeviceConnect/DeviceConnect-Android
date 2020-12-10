@@ -2,6 +2,7 @@ package org.deviceconnect.android.libmedia.streaming.util;
 
 import android.graphics.SurfaceTexture;
 import android.media.ImageReader;
+import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
@@ -28,9 +29,16 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         mCamera2 = camera2;
     }
 
+    // EGLSurfaceDrawingThread
+
     @Override
     public int getDisplayRotation() {
         return mCamera2.getDisplayRotation();
+    }
+
+    @Override
+    public boolean isSwappedDimensions() {
+        return mCamera2.isSwappedDimensions();
     }
 
     @Override
@@ -43,6 +51,13 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         stopCamera();
     }
 
+    // private method.
+
+    /**
+     * カメラを操作するクラスを取得します.
+     *
+     * @return カメラを操作するためのクラス
+     */
     public Camera2Wrapper getCamera2Wrapper() {
         return mCamera2;
     }

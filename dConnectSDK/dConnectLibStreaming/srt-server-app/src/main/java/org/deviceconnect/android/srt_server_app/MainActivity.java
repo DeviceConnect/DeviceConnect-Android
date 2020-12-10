@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
                     String mimeType = mSettings.getEncoderName();
 
                     CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(
-                            getApplicationContext(), mimeType, mCameraSurfaceDrawingThread);
+                            mimeType, mCameraSurfaceDrawingThread);
 
                     setVideoQuality((CameraVideoQuality) videoEncoder.getVideoQuality());
 

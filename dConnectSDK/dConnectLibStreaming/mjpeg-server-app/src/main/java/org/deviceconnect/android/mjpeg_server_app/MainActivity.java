@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                     int quality = mSettings.getEncoderQuality();
                     Size previewSize = mSettings.getCameraPreviewSize(facing);
 
-                    CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(MainActivity.this, mCameraSurfaceDrawingThread);
+                    CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(mCameraSurfaceDrawingThread);
                     encoder.getMJPEGQuality().setFacing(facing);
                     encoder.getMJPEGQuality().setWidth(previewSize.getWidth());
                     encoder.getMJPEGQuality().setHeight(previewSize.getHeight());
@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private synchronized void startCamera() {
-        if (mCamera2 != null) {
+        if (mCameraSurfaceDrawingThread != null) {
             if (DEBUG) {
                 Log.w(TAG, "Camera is already opened.");
             }

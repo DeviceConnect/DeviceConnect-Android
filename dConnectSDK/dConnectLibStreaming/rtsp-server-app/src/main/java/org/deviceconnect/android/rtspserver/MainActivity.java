@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
 
                 VideoStream videoStream;
                 if (mimeType.equalsIgnoreCase("video/hevc")) {
-                    videoStream = new CameraH265VideoStream(getApplicationContext(), mCameraSurfaceDrawingThread);
+                    videoStream = new CameraH265VideoStream(mCameraSurfaceDrawingThread);
                     videoStream.setDestinationPort(5006);
                     if (mStreamingRecorder != null) {
                         EGLSurfaceBase eglSurfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mStreamingRecorder.getSurface());
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                         mCameraSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
                     }
                 } else {
-                    videoStream = new CameraH264VideoStream(getApplicationContext(), mCameraSurfaceDrawingThread);
+                    videoStream = new CameraH264VideoStream(mCameraSurfaceDrawingThread);
                     videoStream.setDestinationPort(5006);
                     if (mStreamingRecorder != null) {
                         EGLSurfaceBase eglSurfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mStreamingRecorder.getSurface());

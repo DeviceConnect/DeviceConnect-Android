@@ -2,7 +2,6 @@ package org.deviceconnect.android.libmedia.streaming.util;
 
 import android.graphics.SurfaceTexture;
 import android.media.ImageReader;
-import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
 import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;

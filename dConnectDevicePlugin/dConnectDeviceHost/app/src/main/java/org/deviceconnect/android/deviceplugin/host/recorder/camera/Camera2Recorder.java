@@ -19,8 +19,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
-import android.util.Range;
-import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.WindowManager;
@@ -32,6 +30,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.Camera2Helper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
+import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -42,7 +41,6 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.DefaultSurfaceRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.ImageUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.SurfaceRecorder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
@@ -175,6 +173,16 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     private Camera2PreviewServerProvider mCamera2PreviewServerProvider;
 
     /**
+     * カメラのプレビューを配信するクラス.
+     */
+    private Broadcaster mBroadcaster;
+
+    /**
+     * カメラの映像を Surface に描画を行うためのクラス.
+     */
+    private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
+
+    /**
      * コンテキスト.
      */
     private Context mContext;
@@ -232,6 +240,30 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mSettings.setSupportedPreviewSizes(supportPreviewSizes);
         mSettings.setSupportedPictureSizes(supportPictureSizes);
         mSettings.setSupportedFps(options.getSupportedFpsList());
+    }
+
+    public CameraSurfaceDrawingThread getCameraSurfaceDrawingThread(){
+        return mCameraSurfaceDrawingThread;
+    }
+
+    /**
+     * カメラを開始します.
+     */
+    public void startCamera() {
+        if (mCameraSurfaceDrawingThread == null) {
+            mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCameraWrapper);
+            mCameraSurfaceDrawingThread.start();
+        }
+    }
+
+    /**
+     * カメラを停止します.
+     */
+    public void stopCamera() {
+        if (mCameraSurfaceDrawingThread != null) {
+            mCameraSurfaceDrawingThread.terminate();
+            mCameraSurfaceDrawingThread = null;
+        }
     }
 
     // HostMediaRecorder
@@ -306,20 +338,49 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
 
     @Override
     public List<PreviewServer> startPreviews() {
+        startCamera();
         return mCamera2PreviewServerProvider.startServers();
     }
 
     @Override
     public void stopPreviews() {
         mCamera2PreviewServerProvider.stopServers();
+        stopCamera();
     }
 
     @Override
-    public void startBroadcaster() {
+    public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
+        startCamera();
+        mBroadcaster = new Camera2RTMPBroadcaster(this, broadcastURI);
+        mBroadcaster.setOnBroadcasterEventListener(new Broadcaster.OnBroadcasterEventListener() {
+            @Override
+            public void onStarted() {
+                listener.onStarted(mBroadcaster);
+            }
+
+            @Override
+            public void onStopped() {
+            }
+
+            @Override
+            public void onError(Exception e) {
+            }
+        });
+        mBroadcaster.start();
     }
 
     @Override
     public void stopBroadcaster() {
+        if (mBroadcaster != null) {
+            mBroadcaster.stop();
+            mBroadcaster = null;
+        }
+        stopCamera();
+    }
+
+    @Override
+    public Broadcaster getBroadcaster() {
+        return mBroadcaster;
     }
 
     @Override
@@ -384,7 +445,6 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     public boolean isUseFlashLight() {
         return mCameraWrapper.isUseTorch();
     }
-
 
     // HostDeviceStreamRecorder
 

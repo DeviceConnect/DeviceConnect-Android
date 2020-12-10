@@ -53,6 +53,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     private HostMediaRecorder mRecorder;
 
     private boolean mIsShownNotification;
+
     /**
      * コンストラクタ.
      * @param context コンテキスト

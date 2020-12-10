@@ -18,6 +18,7 @@ import android.util.Log;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
+import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
@@ -156,11 +157,17 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     }
 
     @Override
-    public void startBroadcaster() {
+    public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
+
     }
 
     @Override
     public void stopBroadcaster() {
+    }
+
+    @Override
+    public Broadcaster getBroadcaster() {
+        return null;
     }
 
     @Override

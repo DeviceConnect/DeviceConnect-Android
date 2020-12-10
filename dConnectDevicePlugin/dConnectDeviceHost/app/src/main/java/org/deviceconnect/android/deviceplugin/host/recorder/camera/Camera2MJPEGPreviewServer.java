@@ -10,7 +10,6 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.mjpeg.MJPEGEncoder;
@@ -132,15 +131,6 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     }
 
     /**
-     * JPEG のクオリティを取得します.
-     *
-     * @return JPEG のクオリティ
-     */
-    private int getJpegQuality() {
-        return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
-    }
-
-    /**
      * エンコーダの設定を行います.
      */
     private void setEncoderQuality() {
@@ -153,24 +143,24 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
     }
 
     /**
-     * MJPEGEncoder の設定を行います.
+     * MJPEG の設定を行います.
      *
      * @param quality 設定を行う MJPEGQuality
      */
-    protected void setMJPEGQuality(MJPEGQuality quality) {
+    private void setMJPEGQuality(MJPEGQuality quality) {
         Camera2Recorder recorder = (Camera2Recorder) getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
         quality.setWidth(settings.getPreviewSize().getWidth());
         quality.setHeight(settings.getPreviewSize().getHeight());
-        quality.setQuality(getJpegQuality());
         quality.setFrameRate((int) settings.getPreviewMaxFrameRate());
+        quality.setQuality(settings.getPreviewQuality());
     }
 
     /**
      * MJPEGServer からのイベントを受け取るためのコールバック.
      */
-    protected final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
+    private final MJPEGServer.Callback mCallback = new MJPEGServer.Callback() {
         @Override
         public boolean onAccept(Socket socket) {
             if (DEBUG) {
@@ -194,11 +184,10 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             if (DEBUG) {
                 Log.d(TAG, "MJPEGServer.Callback#createMJPEGEncoder: ");
             }
-            postOnCameraStarted();
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
 
-            MJPEGEncoder encoder = new CameraMJPEGEncoder(recorder);
+            CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(recorder);
             setMJPEGQuality(encoder.getMJPEGQuality());
             return encoder;
         }

@@ -5,6 +5,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
@@ -182,11 +183,17 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             }
 
             // カメラを開始することを通知
-            postOnCameraStarted();
+//            postOnCameraStarted();
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+            HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            CameraVideoStream videoStream = new CameraVideoStream(mRecorder, 5006);
+            VideoStream videoStream;
+            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+                videoStream = new CameraH265VideoStream(mRecorder, 5006);
+            } else {
+                videoStream = new CameraH264VideoStream(mRecorder, 5006);
+            }
             setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);
 
@@ -206,7 +213,7 @@ class Camera2RTSPPreviewServer extends Camera2PreviewServer {
             }
 
             // カメラを停止したことを通知
-            postOnCameraStopped();
+//            postOnCameraStopped();
         }
     };
 }

@@ -1,9 +1,9 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
-import org.deviceconnect.android.libmedia.streaming.util.CameraSurfaceDrawingThread;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
-    public CameraMJPEGEncoder(CameraSurfaceDrawingThread thread) {
+    public CameraMJPEGEncoder(EGLSurfaceDrawingThread thread) {
         super(thread);
     }
 

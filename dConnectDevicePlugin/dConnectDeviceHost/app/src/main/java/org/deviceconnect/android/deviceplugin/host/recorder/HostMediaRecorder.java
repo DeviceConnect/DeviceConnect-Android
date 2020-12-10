@@ -9,18 +9,15 @@ package org.deviceconnect.android.deviceplugin.host.recorder;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 import android.util.Range;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Host プラグインで使用する MediaRecorder のインターフェース.
@@ -115,13 +112,22 @@ public interface HostMediaRecorder {
 
     /**
      * プレビュー配信を開始します.
+     *
+     * @param broadcastURI 配信先の URI
      */
-    void startBroadcaster();
+    void startBroadcaster(String broadcastURI, OnBroadcasterListener listener);
 
     /**
      * プレビュー配信を停止します.
      */
     void stopBroadcaster();
+
+    /**
+     * プレビュー配信を行っているブロードキャスターを取得します.
+     *
+     * @return プレビュー配信を行っているブロードキャスター
+     */
+    Broadcaster getBroadcaster();
 
     /**
      * 端末の画面が回転したタイミングで実行されるメソッド.
@@ -149,6 +155,12 @@ public interface HostMediaRecorder {
          * 拒否された場合に呼び出されます.
          */
         void onDisallowed();
+    }
+
+    interface OnBroadcasterListener {
+        void onStarted(Broadcaster broadcaster);
+        void onStopped(Broadcaster broadcaster);
+        void onError(Broadcaster broadcaster, Exception e);
     }
 
     /**
@@ -242,10 +254,13 @@ public interface HostMediaRecorder {
         private Integer mPreviewKeyFrameInterval = 1;
         private Integer mWhiteBalance;
         private Range<Integer> mFps;
+        private Integer mPreviewQuality = 80;
+        private String mPreviewMimeType = "video/avc";
 
         private List<Size> mSupportedPictureSizes;
         private List<Size> mSupportedPreviewSizes;
         private List<Range<Integer>> mSupportedFps;
+        private List<Integer> mSupportedWhiteBalances;
 
         private boolean mAudioEnabled;
         private Integer mPreviewAudioBitRate;
@@ -271,6 +286,8 @@ public interface HostMediaRecorder {
                 mPreviewKeyFrameInterval = property.getInteger("preview_i_frame_interval", 1);
                 mFps = property.getRange("picture_fps_min", "picture_fps_max");
                 mWhiteBalance = property.getInteger("preview_white_balance", 0);
+                mPreviewQuality = property.getInteger("preview_quality", 80);
+                mPreviewMimeType = property.getString("preview_mime_type", "video/avc");
 
                 // 音声
                 mAudioEnabled = property.getBoolean("audio_enabled", false);
@@ -301,6 +318,8 @@ public interface HostMediaRecorder {
                     property.put("picture_fps_min", "picture_fps_max", mFps);
                 }
                 property.put("preview_white_balance", mWhiteBalance);
+                property.put("preview_quality", mPreviewQuality);
+                property.put("preview_mime_type", mPreviewMimeType);
 
                 // 音声
                 property.put("audio_enabled", mAudioEnabled);
@@ -313,6 +332,24 @@ public interface HostMediaRecorder {
             } catch (IOException e) {
                 // ignore.
             }
+        }
+
+        /**
+         * プレビューの配信エンコードのマイムタイプを取得します.
+         *
+         * @return プレビューの配信エンコードのマイムタイプ
+         */
+        public String getPreviewMimeType() {
+            return mPreviewMimeType;
+        }
+
+        /**
+         * プレビューの配信エンコードのマイムタイプを設定します.
+         *
+         * @param mimeType プレビューの配信エンコードのマイムタイプ
+         */
+        public void setPreviewMimeType(String mimeType) {
+            mPreviewMimeType = mimeType;
         }
 
         /**
@@ -422,6 +459,33 @@ public interface HostMediaRecorder {
                 throw new IllegalArgumentException("previewKeyFrameInterval is zero or negative.");
             }
             mPreviewKeyFrameInterval = previewKeyFrameInterval;
+        }
+
+        /**
+         * プレビューの品質を取得します.
+         *
+         * @return プレビューの品質
+         */
+        public int getPreviewQuality() {
+            return mPreviewQuality;
+        }
+
+        /**
+         * プレビューの品質を設定します.
+         *
+         * 0 から 100 の間で設定することができます。
+         * それ以外は例外が発生します。
+         *
+         * @param quality プレビューの品質
+         */
+        public void setPreviewQuality(int quality) {
+            if (quality < 0) {
+                throw new IllegalArgumentException("quality is negative value.");
+            }
+            if (quality > 100) {
+                throw new IllegalArgumentException("quality is over 100.");
+            }
+            mPreviewQuality = quality;
         }
 
         /**

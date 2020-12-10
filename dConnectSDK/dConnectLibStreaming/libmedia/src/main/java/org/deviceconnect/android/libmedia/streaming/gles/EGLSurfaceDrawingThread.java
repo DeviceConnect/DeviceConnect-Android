@@ -165,6 +165,15 @@ public class EGLSurfaceDrawingThread extends Thread {
     }
 
     /**
+     * 登録されている Surface の個数を取得します.
+     *
+     * @return 登録されている Surface の個数
+     */
+    public int getSurfaceSize() {
+        return mEGLSurfaceBases.size();
+    }
+
+    /**
      * 描画スレッドの動作状況を確認します.
      *
      * @return 動作中の場合はtrue、それ以外はfalse

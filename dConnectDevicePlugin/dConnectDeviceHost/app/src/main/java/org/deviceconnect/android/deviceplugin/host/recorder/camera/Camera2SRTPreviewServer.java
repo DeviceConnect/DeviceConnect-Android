@@ -4,9 +4,11 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
+import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.server.SRTServer;
 import org.deviceconnect.android.libsrt.server.SRTSession;
@@ -170,11 +172,17 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                 Log.d(TAG, "SRTServer.Callback#createSession()");
             }
 
-            postOnCameraStarted();
+//            postOnCameraStarted();
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
+            HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            CameraVideoEncoder encoder = new CameraVideoEncoder(mRecorder);
+            CameraVideoEncoder encoder;
+            if ("video/hevc".equals(settings.getPreviewMimeType())) {
+                encoder = new CameraVideoEncoder(mRecorder, "video/hevc");
+            } else {
+                encoder = new CameraVideoEncoder(mRecorder);
+            }
             setVideoQuality(encoder.getVideoQuality());
             session.setVideoEncoder(encoder);
 
@@ -192,7 +200,7 @@ public class Camera2SRTPreviewServer extends Camera2PreviewServer {
                 Log.d(TAG, "SRTServer.Callback#releaseSession()");
             }
 
-            postOnCameraStopped();
+//            postOnCameraStopped();
         }
     };
 }

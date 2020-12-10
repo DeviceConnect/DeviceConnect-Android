@@ -46,6 +46,10 @@ public final class PropertyUtil {
         mProperties.put(key, String.valueOf(value));
     }
 
+    public void put(String key, String value) {
+        mProperties.put(key, value);
+    }
+
     public void put(String widthKey, String heightKey, HostMediaRecorder.Size size) {
         mProperties.put(widthKey, size.getWidth());
         mProperties.put(heightKey, size.getHeight());
@@ -63,6 +67,10 @@ public final class PropertyUtil {
         } catch (Exception e) {
             return defaultValue;
         }
+    }
+
+    public String getString(String key, String defaultValue) {
+        return mProperties.getProperty(key, defaultValue);
     }
 
     public float getFloat(String key, float defaultValue) {

@@ -1,6 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;

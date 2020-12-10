@@ -8,49 +8,24 @@ import org.deviceconnect.android.libmedia.streaming.mjpeg.SurfaceMJPEGEncoder;
 import java.io.IOException;
 
 public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
-    /**
-     * カメラ操作クラス.
-     */
-    private Camera2Recorder mCamera2Recorder;
 
     CameraMJPEGEncoder(Camera2Recorder camera2Recorder) {
-        mCamera2Recorder = camera2Recorder;
-    }
-
-    // MJPEGEncoder
-
-    @Override
-    protected int getDisplayRotation() {
-        return mCamera2Recorder.getDisplayRotation();
-    }
-
-    @Override
-    public boolean isSwappedDimensions() {
-        return mCamera2Recorder.isSwappedDimensions();
+        super(camera2Recorder.getCameraSurfaceDrawingThread());
     }
 
     // SurfaceMJPEGEncoder
 
     @Override
-    protected void prepare() throws IOException {
+    protected void prepare() {
     }
 
     @Override
-    protected void startRecording() throws IOException {
-        try {
-            mCamera2Recorder.startPreview(new Surface(getSurfaceTexture()));
-        } catch (CameraWrapperException e) {
-            throw new IOException(e);
-        }
+    protected void startRecording() {
     }
 
     @Override
     protected void stopRecording() {
-        try {
-            mCamera2Recorder.stopPreview();
-        } catch (CameraWrapperException e) {
-            // ignore
-        }
+
     }
 
     @Override

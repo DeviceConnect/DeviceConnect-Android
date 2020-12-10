@@ -21,6 +21,7 @@ import android.util.Log;
 import android.util.Range;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -208,13 +209,16 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     }
 
     @Override
-    public void startBroadcaster() {
-
+    public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
     }
 
     @Override
     public void stopBroadcaster() {
+    }
 
+    @Override
+    public Broadcaster getBroadcaster() {
+        return null;
     }
 
     @Override

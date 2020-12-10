@@ -29,6 +29,7 @@ import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
@@ -125,9 +126,11 @@ public class CameraWrapper {
     private byte mPreviewJpegQuality = 100;
 
     private CameraEventListenerHolder mCameraEventListenerHolder;
+    private Context mContext;
 
     CameraWrapper(final @NonNull Context context,
                   final @NonNull String cameraId) throws CameraAccessException {
+        mContext = context;
         mCameraId = cameraId;
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         mOptions = initOptions();
@@ -147,6 +150,14 @@ public class CameraWrapper {
         if (DEBUG) {
             Log.d(TAG, "CameraWrapper: cameraId=" + cameraId + " autoFocus=" + mAutoFocusMode + " autoExposure=" + mAutoExposureMode);
         }
+    }
+
+    public int getDisplayRotation() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+        return wm.getDefaultDisplay().getRotation();
     }
 
     private boolean hasAutoFocus() {

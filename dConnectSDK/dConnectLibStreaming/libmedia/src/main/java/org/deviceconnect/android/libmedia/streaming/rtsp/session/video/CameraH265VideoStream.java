@@ -1,8 +1,5 @@
 package org.deviceconnect.android.libmedia.streaming.rtsp.session.video;
 
-import android.content.Context;
-import android.view.Surface;
-
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.CameraSurfaceVideoEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;

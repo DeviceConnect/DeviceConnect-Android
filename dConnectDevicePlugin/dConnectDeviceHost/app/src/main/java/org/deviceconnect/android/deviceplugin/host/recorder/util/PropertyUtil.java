@@ -1,8 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.util;
 
 import android.util.Range;
-
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
+import android.util.Size;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -50,7 +49,7 @@ public final class PropertyUtil {
         mProperties.put(key, value);
     }
 
-    public void put(String widthKey, String heightKey, HostMediaRecorder.Size size) {
+    public void put(String widthKey, String heightKey, Size size) {
         mProperties.put(widthKey, size.getWidth());
         mProperties.put(heightKey, size.getHeight());
     }
@@ -91,12 +90,12 @@ public final class PropertyUtil {
         }
     }
 
-    public HostMediaRecorder.Size getSize(String widthKey, String heightKey) {
+    public Size getSize(String widthKey, String heightKey) {
         String w = mProperties.getProperty(widthKey, null);
         String h = mProperties.getProperty(heightKey, null);
         if (w != null && h != null) {
             try {
-                return new HostMediaRecorder.Size(Integer.parseInt(w), Integer.parseInt(h));
+                return new Size(Integer.parseInt(w), Integer.parseInt(h));
             } catch (Exception e) {
                 // ignore.
             }

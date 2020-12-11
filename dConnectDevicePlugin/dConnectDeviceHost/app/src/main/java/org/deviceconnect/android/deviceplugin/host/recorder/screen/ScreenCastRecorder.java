@@ -10,7 +10,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
-import android.media.AudioFormat;
 import android.media.ImageReader;
 import android.net.Uri;
 import android.os.Build;
@@ -19,23 +18,18 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Range;
+import android.util.Size;
+
+import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
-import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
-import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
-import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
@@ -50,8 +44,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import androidx.annotation.NonNull;
 
 /**
  * Host Device Screen Cast.

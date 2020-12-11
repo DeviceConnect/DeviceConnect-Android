@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Size;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -118,13 +119,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
                         if (recorder.getMimeType().startsWith("image/") || recorder.getMimeType().startsWith("video/")) {
                             // 静止画の設定
-                            HostMediaRecorder.Size pictureSize = settings.getPictureSize();
+                            Size pictureSize = settings.getPictureSize();
                             if (pictureSize != null) {
                                 setRecorderImageWidth(info, pictureSize.getWidth());
                                 setRecorderImageHeight(info, pictureSize.getHeight());
                             }
 
-                            HostMediaRecorder.Size previewSize = settings.getPreviewSize();
+                            Size previewSize = settings.getPreviewSize();
                             if (previewSize != null) {
                                 setRecorderPreviewWidth(info, previewSize.getWidth());
                                 setRecorderPreviewHeight(info, previewSize.getHeight());
@@ -236,7 +237,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             + imageWidth + ", imageHeight = " + imageHeight);
                     return;
                 }
-                HostMediaRecorder.Size newSize = new HostMediaRecorder.Size(imageWidth, imageHeight);
+                Size newSize = new Size(imageWidth, imageHeight);
                 settings.setPictureSize(newSize);
             }
 
@@ -247,7 +248,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     return;
                 }
 
-                HostMediaRecorder.Size newSize = new HostMediaRecorder.Size(previewWidth, previewHeight);
+                Size newSize = new Size(previewWidth, previewHeight);
                 settings.setPreviewSize(newSize);
             }
 
@@ -973,10 +974,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     private static void setSupportedImageSizes(final Intent response,
-                                               final List<HostMediaRecorder.Size> sizes) {
+                                               final List<Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
-        for (HostMediaRecorder.Size size : sizes) {
+        for (Size size : sizes) {
             Bundle info = new Bundle();
             setWidth(info, size.getWidth());
             setHeight(info, size.getHeight());
@@ -986,10 +987,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     private static void setSupportedPreviewSizes(final Intent response,
-                                                 final List<HostMediaRecorder.Size> sizes) {
+                                                 final List<Size> sizes) {
         Bundle[] array = new Bundle[sizes.size()];
         int i = 0;
-        for (HostMediaRecorder.Size size : sizes) {
+        for (Size size : sizes) {
             Bundle info = new Bundle();
             setWidth(info, size.getWidth());
             setHeight(info, size.getHeight());

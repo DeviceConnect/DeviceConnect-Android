@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.content.Context;
 import android.media.AudioFormat;
+import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
@@ -23,7 +24,7 @@ abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
 
-        HostMediaRecorder.Size size = settings.getPreviewSize();
+        Size size = settings.getPreviewSize();
 
         videoQuality.setVideoWidth(size.getWidth());
         videoQuality.setVideoHeight(size.getHeight());

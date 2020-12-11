@@ -6,9 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Range;
+import android.util.Size;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
@@ -164,59 +163,6 @@ public interface HostMediaRecorder {
          * エラーで停止している状態.
          */
         ERROR
-    }
-
-    class Size implements Parcelable {
-        private final int mWidth;
-        private final int mHeight;
-
-        public Size(final android.util.Size size) {
-            this(size.getWidth(), size.getHeight());
-        }
-
-        public Size(final int w, final int h) {
-            mWidth = w;
-            mHeight = h;
-        }
-
-        private Size(final Parcel in) {
-            this(in.readInt(), in.readInt());
-        }
-
-        public int getWidth() {
-            return mWidth;
-        }
-
-        public int getHeight() {
-            return mHeight;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(final Parcel out, final int flags) {
-            out.writeInt(mWidth);
-            out.writeInt(mHeight);
-        }
-
-        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
-            @Override
-            public Size createFromParcel(Parcel in) {
-                return new Size(in);
-            }
-            @Override
-            public Size[] newArray(int size) {
-                return new Size[size];
-            }
-        };
-
-        @Override
-        public String toString() {
-            return "(width = " + getWidth() + ", height = " + getHeight() + ")";
-        }
     }
 
     class Settings {

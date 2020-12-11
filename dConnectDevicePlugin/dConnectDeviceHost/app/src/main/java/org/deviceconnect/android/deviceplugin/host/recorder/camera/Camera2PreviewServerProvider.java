@@ -15,23 +15,23 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.core.app.NotificationCompat;
+
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.AbstractPreviewServerProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayManager;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.OverlayPermissionActivity;
 
 import java.util.List;
-
-import androidx.core.app.NotificationCompat;
 
 /**
  * カメラのプレビュー配信用サーバを管理するクラス.
@@ -320,7 +320,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         }
 
         mHandler.post(() -> {
-            HostMediaRecorder.Size previewSize = mRecorder.getSettings().getPreviewSize();
+            Size previewSize = mRecorder.getSettings().getPreviewSize();
             int cameraWidth = previewSize.getWidth();
             int cameraHeight = previewSize.getHeight();
 

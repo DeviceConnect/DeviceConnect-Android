@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.graphics.SurfaceTexture;
-import android.util.Size;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -65,7 +64,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         try {
             HostMediaRecorder.Settings settings = mRecorder.getSettings();
             CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
-            cameraWrapper.getOptions().setPreviewSize(new Size(settings.getPreviewSize().getWidth(), settings.getPreviewSize().getHeight()));
+            cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
             cameraWrapper.startPreview(new Surface(surfaceTexture), false);
         } catch (CameraWrapperException e) {
             e.printStackTrace();

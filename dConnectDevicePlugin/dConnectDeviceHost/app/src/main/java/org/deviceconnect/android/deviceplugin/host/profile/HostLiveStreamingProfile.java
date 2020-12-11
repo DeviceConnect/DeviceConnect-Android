@@ -3,6 +3,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
@@ -105,7 +106,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                 HostMediaRecorder.Settings settings = recorder.getSettings();
                 try {
                     if (width != null && height != null) {
-                        settings.setPreviewSize(new HostMediaRecorder.Size(width, height));
+                        settings.setPreviewSize(new Size(width, height));
                     }
 
                     if (bitrate != null) {

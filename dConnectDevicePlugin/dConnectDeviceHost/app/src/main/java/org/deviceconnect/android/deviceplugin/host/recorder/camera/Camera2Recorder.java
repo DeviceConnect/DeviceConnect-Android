@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.WindowManager;
@@ -212,11 +213,11 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         CameraWrapper.Options options = mCameraWrapper.getOptions();
 
         for (android.util.Size size : options.getSupportedPictureSizeList()) {
-            supportPictureSizes.add(new Size(size));
+            supportPictureSizes.add(size);
         }
 
         for (android.util.Size size : options.getSupportedPreviewSizeList()) {
-            supportPreviewSizes.add(new Size(size));
+            supportPreviewSizes.add(size);
         }
 
         mSettings.setSupportedPreviewSizes(supportPreviewSizes);
@@ -241,8 +242,8 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
     public synchronized void initialize() {
         if (!mSettings.load(new File(mContext.getCacheDir(), getId()))) {
             CameraWrapper.Options options = mCameraWrapper.getOptions();
-            mSettings.setPictureSize(new Size(options.getDefaultPictureSize()));
-            mSettings.setPreviewSize(new Size(options.getDefaultPreviewSize()));
+            mSettings.setPictureSize(options.getDefaultPictureSize());
+            mSettings.setPreviewSize(options.getDefaultPreviewSize());
             mSettings.setPreviewBitRate(2 * 1024 * 1024);
             mSettings.setPreviewMaxFrameRate(30);
             mSettings.setPreviewKeyFrameInterval(1);

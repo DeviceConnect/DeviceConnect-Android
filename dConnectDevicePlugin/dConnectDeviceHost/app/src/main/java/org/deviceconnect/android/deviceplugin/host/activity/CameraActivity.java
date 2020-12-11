@@ -139,7 +139,7 @@ public class CameraActivity extends HostDevicePluginBindActivity {
     private void adjustSurfaceView(boolean isSwappedDimensions) {
         runOnUiThread(() -> {
             HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-            HostMediaRecorder.Size previewSize = settings.getPreviewSize();
+            Size previewSize = settings.getPreviewSize();
 
             SurfaceView surfaceView = findViewById(R.id.surface_view);
             View root = findViewById(R.id.root);

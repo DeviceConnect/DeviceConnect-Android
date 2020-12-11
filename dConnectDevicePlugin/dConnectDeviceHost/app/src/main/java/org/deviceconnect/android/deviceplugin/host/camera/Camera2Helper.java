@@ -14,12 +14,12 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
-import androidx.annotation.NonNull;
-
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;
+
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -159,6 +159,30 @@ public final class Camera2Helper {
             // ignore.
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * カメラがサポートしているホワイトバランスモードの一覧を取得します.
+     *
+     * @param cameraManager カメラマネージャ
+     * @param cameraId カメラID
+     * @return サポートしているホワイトバランスモード のリスト
+     */
+    @NonNull
+    static List<Integer> getSupportedAWB(final CameraManager cameraManager, final String cameraId) {
+        List<Integer> awm = new ArrayList<>();
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES);
+            if (modes != null) {
+                for (int mode : modes) {
+                    awm.add(mode);
+                }
+            }
+        } catch (CameraAccessException e) {
+            // ignore.
+        }
+        return awm;
     }
 
     /**

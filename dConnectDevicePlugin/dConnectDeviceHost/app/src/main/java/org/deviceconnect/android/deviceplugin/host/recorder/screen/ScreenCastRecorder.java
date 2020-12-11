@@ -22,6 +22,7 @@ import android.util.Range;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
+import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -58,14 +59,12 @@ import androidx.annotation.NonNull;
  * @author NTT DOCOMO, INC.
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder, HostDeviceLiveStreamRecorder {
+public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRecorder, HostDeviceStreamRecorder {
 
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
     private static final String TAG = "host.dplugin";
 
     private static final String ID = "screen";
-
     private static final String NAME = "AndroidHost Screen";
 
     /** ファイル名に付けるプレフィックス. */
@@ -77,20 +76,19 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     /** 日付のフォーマット. */
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
+    private final Context mContext;
+
     private final ScreenCastManager mScreenCastMgr;
     private final ExecutorService mPhotoThread = Executors.newFixedThreadPool(4);
     private final Handler mImageReaderHandler = new Handler(Looper.getMainLooper());
-
-    private FileManager mFileMgr;
-    private RecorderState mState = RecorderState.INACTIVE;
-
+    private final FileManager mFileMgr;
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
+    private final Settings mSettings = new Settings();
 
     private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
-    private Context mContext;
-    private LiveStreamingClient mLiveStreamingClient;
+    private ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
 
-    private final Settings mSettings = new Settings();
+    private RecorderState mState = RecorderState.INACTIVE;
 
     public ScreenCastRecorder(final Context context, final FileManager fileMgr) {
         mContext = context;
@@ -102,6 +100,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
         mScreenCastMgr = new ScreenCastManager(context);
         mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
+        mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(this);
     }
 
     private void initSupportedSettings(final Size originalSize) {
@@ -140,7 +139,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     }
 
     @Override
-    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
         return null;
     }
 
@@ -204,27 +203,8 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     }
 
     @Override
-    public List<PreviewServer> startPreviews() {
-        return mScreenCastPreviewServerProvider.startServers();
-    }
-
-    @Override
-    public void stopPreviews() {
-        mScreenCastPreviewServerProvider.stopServers();
-        mScreenCastMgr.clean();
-    }
-
-    @Override
-    public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
-    }
-
-    @Override
-    public void stopBroadcaster() {
-    }
-
-    @Override
-    public Broadcaster getBroadcaster() {
-        return null;
+    public BroadcasterProvider getBroadcasterProvider() {
+        return mScreenCastBroadcasterProvider;
     }
 
     @Override
@@ -325,144 +305,6 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
     @Override
     public boolean isMutedTrack() {
         return false;
-    }
-
-    // HostDeviceLiveStreamRecorder
-
-    @Override
-    public void createLiveStreamingClient(String broadcastURI, LiveStreamingClient.EventListener eventListener) {
-        mLiveStreamingClient = new LiveStreamingClient(broadcastURI, eventListener);
-    }
-
-    @Override
-    public void setVideoEncoder(VideoEncoder encoder, Integer width, Integer height, Integer bitrate, Integer frameRate) {
-        if (DEBUG) {
-            Log.d(TAG, "setVideoEncoder()");
-            Log.d(TAG, "width : " + width);
-            Log.d(TAG, "height : " + height);
-            Log.d(TAG, "bitrate : " + bitrate);
-            Log.d(TAG, "framerate : " + frameRate);
-            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
-        }
-        if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.setVideoEncoder(encoder, width, height, bitrate, frameRate);
-        }
-    }
-
-    @Override
-    public void setAudioEncoder() {
-        if (DEBUG) {
-            Log.d(TAG, "setAudioEncoder()");
-            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
-        }
-        if (mLiveStreamingClient != null) {
-            AudioEncoder audioEncoder = new MicAACLATMEncoder();
-            AudioQuality audioQuality = audioEncoder.getAudioQuality();
-            audioQuality.setChannel(AudioFormat.CHANNEL_IN_MONO);
-            audioQuality.setSamplingRate(44100);
-            mLiveStreamingClient.setAudioEncoder(audioEncoder);
-        }
-    }
-
-    @Override
-    public void startLiveStreaming() {
-        if (DEBUG) {
-            Log.d(TAG, "liveStreamingStart()");
-            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
-        }
-        if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.start();
-        }
-    }
-
-    @Override
-    public void stopLiveStreaming() {
-        if (DEBUG) {
-            Log.d(TAG, "liveStreamingStop()");
-            Log.d(TAG, "mLiveStreamingClient : " + mLiveStreamingClient);
-        }
-        if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.stop();
-        }
-    }
-
-    @Override
-    public boolean isStreaming() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.isStreaming();
-        }
-        return false;
-    }
-
-    @Override
-    public void setMute(boolean mute) {
-        if (mLiveStreamingClient != null) {
-            mLiveStreamingClient.setMute(mute);
-        }
-    }
-
-    @Override
-    public boolean isMute() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.isMute();
-        }
-        return false;
-    }
-
-    @Override
-    public boolean isError() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.isError();
-        }
-        return false;
-    }
-
-    @Override
-    public int getVideoWidth() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.getVideoWidth();
-        }
-        return 0;
-    }
-
-    @Override
-    public int getVideoHeight() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.getVideoHeight();
-        }
-        return 0;
-    }
-
-    @Override
-    public int getBitrate() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.getBitrate();
-        }
-        return 0;
-    }
-
-    @Override
-    public int getFrameRate() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.getFrameRate();
-        }
-        return 0;
-    }
-
-    @Override
-    public String getLiveStreamingMimeType() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.getMimeType();
-        }
-        return MIME_TYPE_JPEG;
-    }
-
-    @Override
-    public String getBroadcastURI() {
-        if (mLiveStreamingClient != null) {
-            return mLiveStreamingClient.getBroadcastURI();
-        }
-        return null;
     }
 
     // private method.

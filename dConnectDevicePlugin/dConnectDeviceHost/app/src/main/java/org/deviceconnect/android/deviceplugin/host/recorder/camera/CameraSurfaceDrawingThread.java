@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.graphics.SurfaceTexture;
-import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -13,11 +12,6 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
      * カメラ操作オブジェクト.
      */
     private final CameraWrapper mCameraWrapper;
-
-    /**
-     * カメラの状態を確認。
-     */
-    private boolean mRunningFlag;
 
     public CameraSurfaceDrawingThread(CameraWrapper cameraWrapper) {
         if (cameraWrapper == null) {

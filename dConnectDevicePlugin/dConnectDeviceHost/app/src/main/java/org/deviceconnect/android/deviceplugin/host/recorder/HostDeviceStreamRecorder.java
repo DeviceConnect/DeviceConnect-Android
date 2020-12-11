@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
 /**
  * 録画・録音を行うためのインターフェース.
  *

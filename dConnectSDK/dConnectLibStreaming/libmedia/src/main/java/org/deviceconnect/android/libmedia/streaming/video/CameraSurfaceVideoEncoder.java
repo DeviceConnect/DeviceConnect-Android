@@ -1,19 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.video;
 
-import android.content.Context;
-import android.media.ImageReader;
-import android.util.Log;
-import android.util.Size;
-
-import org.deviceconnect.android.libmedia.BuildConfig;
-import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2Wrapper;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperException;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
@@ -33,7 +20,17 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
     /**
      * コンストラクタ.
      *
+     * @param thread 描画用スレッド
+     */
+    public CameraSurfaceVideoEncoder(EGLSurfaceDrawingThread thread) {
+        this("video/avc", thread);
+    }
+
+    /**
+     * コンストラクタ.
+     *
      * @param mimeType MediaCodec に渡すマイムタイプ
+     * @param thread 描画用スレッド
      */
     public CameraSurfaceVideoEncoder(String mimeType, EGLSurfaceDrawingThread thread) {
         this(new CameraVideoQuality(mimeType), thread);
@@ -52,6 +49,7 @@ public class CameraSurfaceVideoEncoder extends SurfaceVideoEncoder {
      * コンストラクタ.
      *
      * @param videoQuality 映像エンコードの設定
+     * @param thread 描画用スレッド
      */
     public CameraSurfaceVideoEncoder(CameraVideoQuality videoQuality, EGLSurfaceDrawingThread thread) {
         super(thread);

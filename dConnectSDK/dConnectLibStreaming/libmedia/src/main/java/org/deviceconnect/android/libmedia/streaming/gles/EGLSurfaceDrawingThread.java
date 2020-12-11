@@ -1,21 +1,14 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.SurfaceTexture;
-import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EGLSurfaceDrawingThread extends Thread {
-    /**
-     * 停止フラグ.
-     */
-    private boolean mStopFlag = true;
-
+public class EGLSurfaceDrawingThread {
     /**
      * OpenGLES のコンテキストなどを管理するクラス.
      */
@@ -45,6 +38,11 @@ public class EGLSurfaceDrawingThread extends Thread {
      * イベントを通知するリスナー.
      */
     private final WeakReferenceList<OnDrawingEventListener> mOnDrawingEventListeners = new WeakReferenceList<>();
+
+    /**
+     * 描画を実行するスレッド.
+     */
+    private DrawingThread mDrawingThread;
 
     /**
      * イベントを通知するリスナーを追加します.
@@ -96,7 +94,7 @@ public class EGLSurfaceDrawingThread extends Thread {
     /**
      * Window 用の EGLSurfaceBase を作成します.
      *
-     * {@link #start()} で開始されて、{link #onStarted()} が呼び出された後でないとエラーが発生します。
+     * {@link #start()} で開始されて、{link #onStarted()} が呼び出された後でないと例外が発生します。
      *
      * @param surface 描画を行う Surface
      * @return EGLSurfaceBase のインスタンス
@@ -108,7 +106,7 @@ public class EGLSurfaceDrawingThread extends Thread {
     /**
      * オフスクリーン用の EGLSurfaceBase を作成します.
      *
-     * {@link #start()} で開始されて、{link #onStarted()} が呼び出された後でないとエラーが発生します。
+     * {@link #start()} で開始されて、{link #onStarted()} が呼び出された後でないと例外が発生します。
      *
      * @param width 横幅
      * @param height 縦幅
@@ -134,6 +132,11 @@ public class EGLSurfaceDrawingThread extends Thread {
     /**
      * 描画先の EGLSurfaceBase を削除します.
      *
+     * 削除した EGLSurfaceBase は {@link EGLSurfaceBase#release()} を呼び出しますので
+     * {@link #addEGLSurfaceBase(EGLSurfaceBase)} に指定するとエラーが発生します。
+     *
+     * EGLSurfaceBase は作り直してください。
+     *
      * @param eglSurfaceBase 削除する EGLSurfaceBase
      */
     public void removeEGLSurfaceBase(EGLSurfaceBase eglSurfaceBase) {
@@ -149,19 +152,34 @@ public class EGLSurfaceDrawingThread extends Thread {
      * @param tag 削除する EGLSurfaceBase のタグ
      */
     public void removeEGLSurfaceBase(Object tag) {
+        EGLSurfaceBase eglSurfaceBase = findEGLSurfaceBaseByTag(tag);
+        if (eglSurfaceBase != null) {
+            removeEGLSurfaceBase(eglSurfaceBase);
+        }
+    }
+
+    /**
+     * 指定されたタグと一致する EGLSurfaceBase を取得します.
+     *
+     * 一致する EGLSurfaceBase が見つからない場合には null を返却します。
+     *
+     * @param tag EGLSurfaceBase のタグ
+     * @return EGLSurfaceBase のインスタンス
+     */
+    public EGLSurfaceBase findEGLSurfaceBaseByTag(Object tag) {
         if (tag == null) {
-            return;
+            return null;
         }
 
         synchronized (mEGLSurfaceBases) {
             for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
                 if (tag.equals(eglSurfaceBase.getTag())) {
-                    mEGLSurfaceBases.remove(eglSurfaceBase);
-                    eglSurfaceBase.release();
-                    return;
+                    return eglSurfaceBase;
                 }
             }
         }
+
+        return null;
     }
 
     /**
@@ -171,15 +189,6 @@ public class EGLSurfaceDrawingThread extends Thread {
      */
     public int getSurfaceSize() {
         return mEGLSurfaceBases.size();
-    }
-
-    /**
-     * 描画スレッドの動作状況を確認します.
-     *
-     * @return 動作中の場合はtrue、それ以外はfalse
-     */
-    public boolean isRunning() {
-        return !mStopFlag;
     }
 
     /**
@@ -195,24 +204,49 @@ public class EGLSurfaceDrawingThread extends Thread {
         return mStManager != null ? mStManager.getSurfaceTexture() : null;
     }
 
-    @Override
+    /**
+     * 描画スレッドの動作状況を確認します.
+     *
+     * @return 動作中の場合はtrue、それ以外はfalse
+     */
+    public boolean isRunning() {
+        return mDrawingThread != null && mDrawingThread.isRunning() ;
+    }
+
+    /**
+     * スレッドを開始します.
+     */
     public void start() {
-        super.start();
-        mStopFlag = false;
+        if (isRunning()) {
+            return;
+        }
+        mDrawingThread = new DrawingThread();
+        mDrawingThread.setName("Surface-Drawing-Thread");
+        mDrawingThread.start();
     }
 
     /**
      * スレッドを終了します.
+     *
+     * 終了時に登録されている全ての GELSurfaceBase は削除します。
+     *
+     * {@link #getSurfaceSize()} が 0 の場合にはスレッドを終了します。
      */
-    public void terminate() {
-        mStopFlag = true;
+    public void stop() {
+        stop(false);
+    }
 
-        interrupt();
-
-        try {
-            join(500);
-        } catch (InterruptedException e) {
-            // ignore
+    /**
+     * スレッドを終了します.
+     *
+     * @param force 強制的に終了する場合は true、それ以外は false
+     */
+    public void stop(boolean force) {
+        if (mDrawingThread != null) {
+            if (force || getSurfaceSize() == 0) {
+                mDrawingThread.terminate();
+                mDrawingThread = null;
+            }
         }
     }
 
@@ -221,7 +255,7 @@ public class EGLSurfaceDrawingThread extends Thread {
      *
      * @return SurfaceTextureManager のインスタンス
      */
-    public SurfaceTextureManager createStManager() {
+    private SurfaceTextureManager createStManager() {
         SurfaceTextureManager manager = new SurfaceTextureManager();
         // SurfaceTexture に解像度を設定
         SurfaceTexture st = manager.getSurfaceTexture();
@@ -309,58 +343,89 @@ public class EGLSurfaceDrawingThread extends Thread {
         }
     }
 
-    @Override
-    public void run() {
-        try {
-            mEGLCore = new EGLCore();
-            mEGLCore.makeCurrent();
+    private class DrawingThread extends Thread {
+        /**
+         * 停止フラグ.
+         */
+        private boolean mStopFlag;
 
-            mStManager = createStManager();
+        /**
+         * スレッドの動作を確認します.
+         *
+         * @return スレッドが動作中の場合は true、それ以外は false
+         */
+        private boolean isRunning() {
+            return !mStopFlag;
+        }
 
-            onStarted();
+        /**
+         * スレッドを終了します.
+         */
+        private void terminate() {
+            mStopFlag = true;
 
-            postOnStarted();
+            interrupt();
 
-            SurfaceTexture st = mStManager.getSurfaceTexture();
-            while (!mStopFlag) {
-                mStManager.awaitNewImage();
+            try {
+                join(500);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
 
-                synchronized (mEGLSurfaceBases) {
-                    for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
-                        eglSurfaceBase.makeCurrent();
-                        mStManager.setViewport(0, 0, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
-                        mStManager.drawImage(getDisplayRotation());
-                        eglSurfaceBase.setPresentationTime(st.getTimestamp());
-                        eglSurfaceBase.swapBuffers();
-                        postOnDrawn(eglSurfaceBase);
+        @Override
+        public void run() {
+            try {
+                mEGLCore = new EGLCore();
+                mEGLCore.makeCurrent();
+
+                mStManager = createStManager();
+
+                onStarted();
+
+                postOnStarted();
+
+                SurfaceTexture st = mStManager.getSurfaceTexture();
+                while (!mStopFlag) {
+                    mStManager.awaitNewImage();
+
+                    synchronized (mEGLSurfaceBases) {
+                        for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
+                            eglSurfaceBase.makeCurrent();
+                            mStManager.setViewport(0, 0, eglSurfaceBase.getWidth(), eglSurfaceBase.getHeight());
+                            mStManager.drawImage(getDisplayRotation());
+                            eglSurfaceBase.setPresentationTime(st.getTimestamp());
+                            eglSurfaceBase.swapBuffers();
+                            postOnDrawn(eglSurfaceBase);
+                        }
                     }
                 }
-            }
-        } catch (Exception e) {
-            if (!mStopFlag) {
-                postOnError(e);
-            }
-        } finally {
-            synchronized (mEGLSurfaceBases) {
-                for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
-                    eglSurfaceBase.release();
+            } catch (Exception e) {
+                if (!mStopFlag) {
+                    postOnError(e);
                 }
-                mEGLSurfaceBases.clear();
+            } finally {
+                synchronized (mEGLSurfaceBases) {
+                    for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
+                        eglSurfaceBase.release();
+                    }
+                    mEGLSurfaceBases.clear();
+                }
+
+                releaseStManager();
+
+                // EGLCore を release するタイミングは一番最後にすること。
+                // 先に EGLSurfaceBase よりも先に release を行うと、EGLSurfaceBase
+                // の release に失敗して、メモリリークになります。
+                if (mEGLCore != null) {
+                    mEGLCore.release();
+                    mEGLCore = null;
+                }
+
+                postOnStopped();
+
+                onStopped();
             }
-
-            releaseStManager();
-
-            // EGLCore を release するタイミングは一番最後にすること。
-            // 先に EGLSurfaceBase よりも先に release を行うと、EGLSurfaceBase
-            // の release に失敗して、メモリリークになります。
-            if (mEGLCore != null) {
-                mEGLCore.release();
-                mEGLCore = null;
-            }
-
-            postOnStopped();
-
-            onStopped();
         }
     }
 

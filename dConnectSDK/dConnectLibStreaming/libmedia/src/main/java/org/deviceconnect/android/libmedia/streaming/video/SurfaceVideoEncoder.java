@@ -5,7 +5,6 @@ import android.media.MediaCodecInfo;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
-import org.deviceconnect.android.libmedia.streaming.camera2.Camera2WrapperManager;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
@@ -148,7 +147,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
             // 内部で作成された場合には、停止処理も行います。
             if (mInternalCreateSurfaceDrawingThread) {
-                mSurfaceDrawingThread.terminate();
+                mSurfaceDrawingThread.stop();
                 mSurfaceDrawingThread = null;
             }
         }

@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.host.recorder.camera;
+package org.deviceconnect.android.deviceplugin.host.recorder.screen;
 
 import android.util.Log;
 
@@ -11,16 +11,16 @@ import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtmp.RtmpClient;
 import org.deviceconnect.android.libmedia.streaming.video.CameraVideoQuality;
 
-public class Camera2RTMPBroadcaster implements Broadcaster {
+public class ScreenCastRTMPBroadcaster implements Broadcaster {
     /**
      * 配信先の URI.
      */
     private final String mBroadcastURI;
 
     /**
-     * カメラを操作するレコーダ.
+     * 配信を行うレコーダ.
      */
-    private final Camera2Recorder mRecorder;
+    private final ScreenCastRecorder mRecorder;
 
     /**
      * RTMP 配信クライアント.
@@ -32,9 +32,14 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
      */
     private OnBroadcasterEventListener mOnBroadcasterEventListener;
 
-    public Camera2RTMPBroadcaster(Camera2Recorder recorder, String broadcastURI) {
+    public ScreenCastRTMPBroadcaster(ScreenCastRecorder recorder, String broadcastURI) {
         mRecorder = recorder;
         mBroadcastURI = broadcastURI;
+    }
+
+    @Override
+    public String getMimeType() {
+        return null;
     }
 
     @Override
@@ -56,7 +61,7 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
 
-        CameraVideoEncoder videoEncoder = new CameraVideoEncoder(mRecorder);
+        ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mRecorder.getScreenCastMgr());
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
         videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
         videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
@@ -124,10 +129,5 @@ public class Camera2RTMPBroadcaster implements Broadcaster {
             mRtmpClient.stop();
             mRtmpClient = null;
         }
-    }
-
-    @Override
-    public String getMimeType() {
-        return "";
     }
 }

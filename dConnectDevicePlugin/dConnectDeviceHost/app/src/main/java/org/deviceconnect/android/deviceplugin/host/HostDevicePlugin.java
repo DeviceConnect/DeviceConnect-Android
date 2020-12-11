@@ -6,25 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host;
 
-import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
-import android.os.Binder;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.demo.DemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.battery.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
-import org.deviceconnect.android.deviceplugin.host.demo.HostDemoInstaller;
 import org.deviceconnect.android.deviceplugin.host.demo.HostDemoManager;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
@@ -38,8 +23,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientation
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostGeolocationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostLiveStreamingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostLightProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostLiveStreamingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
@@ -52,9 +37,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.util.NetworkUtil;
-import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.libsrt.SRT;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -66,12 +49,9 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.ssl.KeyStoreCallback;
 import org.deviceconnect.android.ssl.KeyStoreError;
 
-import java.io.File;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -83,6 +63,10 @@ import javax.net.ssl.SSLContext;
  * @author NTT DOCOMO, INC.
  */
 public class HostDevicePlugin extends DConnectMessageService {
+    /**
+     * デフォルトのパスワードを定義します.
+     */
+    private static final String DEFAULT_PASSWORD = "0000";
 
     /** サービスID. */
     public static final String SERVICE_ID = "Host";
@@ -135,10 +119,10 @@ public class HostDevicePlugin extends DConnectMessageService {
         // Manager 同梱のため、LocalOAuthを無効化に設定
         setUseLocalOAuth(false);
 
+        SRT.startup();
+
         mFileMgr = new FileManager(this, HostFileProvider.class.getName());
         mFileDataManager = new FileDataManager(mFileMgr);
-
-        SRT.startup();
 
         DConnectService hostService = new DConnectService(SERVICE_ID);
         hostService.setName(SERVICE_NAME);
@@ -204,10 +188,14 @@ public class HostDevicePlugin extends DConnectMessageService {
 
     @Override
     public void onDestroy() {
-        mRecorderMgr.destroy();
-        SRT.cleanup();
+        if (mRecorderMgr != null) {
+            mRecorderMgr.destroy();
+            mRecorderMgr = null;
+        }
 
-        mFileDataManager.stopTimer();
+        if (mFileDataManager != null) {
+            mFileDataManager.stopTimer();
+        }
 
         if (mHostConnectionManager != null) {
             mHostConnectionManager.destroy();
@@ -223,6 +211,8 @@ public class HostDevicePlugin extends DConnectMessageService {
             mHostDemoManager.destroy();
             mHostDemoManager = null;
         }
+
+        SRT.cleanup();
 
         super.onDestroy();
     }
@@ -291,6 +281,29 @@ public class HostDevicePlugin extends DConnectMessageService {
     protected void onDevicePluginDisabled() {
     }
 
+    @Override
+    protected boolean usesAutoCertificateRequest() {
+        // SSL の証明書を使用するので true を返却
+        return true;
+    }
+
+    @Override
+    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
+        try {
+            if (keyStore == null) {
+                return;
+            }
+            mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
+        } catch (GeneralSecurityException e) {
+            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
+        }
+    }
+
+    /**
+     * HostMediaRecorderManager のインスタンスを取得します.
+     *
+     * @return HostMediaRecorderManager のインスタンス
+     */
     public HostMediaRecorderManager getHostMediaRecorderManager() {
         return mRecorderMgr;
     }
@@ -312,10 +325,11 @@ public class HostDevicePlugin extends DConnectMessageService {
             callback.onGet(sslContext);
         } else {
             requestKeyStore(NetworkUtil.getIPAddress(this), new KeyStoreCallback() {
+                @Override
                 public void onSuccess(final KeyStore keyStore, final Certificate certificate, final Certificate certificate1) {
                     try {
                         mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Creating SSL Context...");
-                        mSSLContext = createSSLContext(keyStore, "0000");
+                        mSSLContext = createSSLContext(keyStore, DEFAULT_PASSWORD);
                         mLogger.log(Level.INFO, "getSSLContext: requestKeyStore: onSuccess: Created SSL Context: " + mSSLContext);
                         callback.onGet(mSSLContext);
                     } catch (GeneralSecurityException e) {
@@ -324,28 +338,12 @@ public class HostDevicePlugin extends DConnectMessageService {
                     }
                 }
 
+                @Override
                 public void onError(final KeyStoreError keyStoreError) {
                     mLogger.warning("getSSLContext: requestKeyStore: onError: error = " + keyStoreError);
                     callback.onError();
                 }
             });
-        }
-    }
-
-    @Override
-    protected boolean usesAutoCertificateRequest() {
-        return true;
-    }
-
-    @Override
-    protected void onKeyStoreUpdated(final KeyStore keyStore, final Certificate cert, final Certificate rootCert) {
-        try {
-            if (keyStore == null) {
-                return;
-            }
-            mSSLContext = createSSLContext(keyStore, "0000");
-        } catch (GeneralSecurityException e) {
-            mLogger.log(Level.SEVERE, "Failed to update keystore", e);
         }
     }
 

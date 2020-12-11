@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -31,6 +30,9 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
 import java.util.ArrayList;
@@ -39,9 +41,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 /**
  * カメラ操作クラス.
@@ -184,6 +183,14 @@ public class CameraWrapper {
         return mCameraId;
     }
 
+    public int getFacing() throws CameraWrapperException {
+        try {
+            return Camera2Helper.getFacing(mCameraManager, mCameraId);
+        } catch (CameraAccessException e) {
+            throw new CameraWrapperException(e);
+        }
+    }
+
     public int getPreviewJpegQuality() {
         return mPreviewJpegQuality;
     }
@@ -260,6 +267,9 @@ public class CameraWrapper {
 
         List<Range<Integer>> supportedFpsList = Camera2Helper.getSupportedFps(mCameraManager, mCameraId);
         options.setSupportedFpsList(supportedFpsList);
+
+        List<Integer> supportedWBList = Camera2Helper.getSupportedAWB(mCameraManager, mCameraId);
+        options.setSupportedWhiteBalanceList(supportedWBList);
 
         Size defaultSize = options.getDefaultPictureSize();
         if (defaultSize != null) {
@@ -668,7 +678,7 @@ public class CameraWrapper {
     }
 
     private void setWhiteBalance(final CaptureRequest.Builder request) {
-        Integer whiteBalance = getWhiteBalanceOption();
+        Integer whiteBalance = getOptions().mWhiteBalance;
         if (DEBUG) {
             Log.d(TAG, "White Balance: " + whiteBalance);
         }
@@ -676,31 +686,6 @@ public class CameraWrapper {
             request.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
             request.set(CaptureRequest.CONTROL_AWB_MODE, whiteBalance);
         }
-    }
-
-    private Integer getWhiteBalanceOption() {
-        String whiteBalance = getOptions().getWhiteBalance();
-        Integer mode;
-        if ("auto".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_AUTO;
-        } else if ("incandescent".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_INCANDESCENT;
-        } else if ("fluorescent".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_FLUORESCENT;
-        } else if ("warm-fluorescent".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_WARM_FLUORESCENT;
-        } else if ("daylight".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_DAYLIGHT;
-        } else if ("cloudy-daylight".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_CLOUDY_DAYLIGHT;
-        } else if ("twilight".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_TWILIGHT;
-        } else if ("shade".equals(whiteBalance)) {
-            mode = CameraMetadata.CONTROL_AWB_MODE_SHADE;
-        } else {
-            mode = null;
-        }
-        return mode;
     }
 
     private void prepareCapture(final CameraDevice cameraDevice) throws CameraWrapperException {
@@ -935,11 +920,13 @@ public class CameraWrapper {
 
         private List<Range<Integer>> mSupportedFpsList = new ArrayList<>();
 
+        private List<Integer> mSupportedWhiteBalanceList = new ArrayList<>();
+
         private double mPreviewMaxFrameRate = 30.0d; //fps
 
         private int mPreviewBitRate = 1000 * 1000; //bps
 
-        private String mWhiteBalance = DEFAULT_WHITE_BALANCE;
+        private Integer mWhiteBalance = CameraMetadata.CONTROL_AWB_MODE_AUTO;
 
         public Size getPictureSize() {
             return mPictureSize;
@@ -1039,12 +1026,20 @@ public class CameraWrapper {
             mPreviewBitRate = previewBitRate;
         }
 
-        public String getWhiteBalance() {
+        public Integer getWhiteBalance() {
             return mWhiteBalance;
         }
 
-        public void setWhiteBalance(final String whiteBalance) {
+        public void setWhiteBalance(final Integer whiteBalance) {
             mWhiteBalance = whiteBalance;
+        }
+
+        public List<Integer> getSupportedWhiteBalanceList() {
+            return mSupportedWhiteBalanceList;
+        }
+
+        public void setSupportedWhiteBalanceList(List<Integer> list) {
+            mSupportedWhiteBalanceList = list;
         }
     }
 

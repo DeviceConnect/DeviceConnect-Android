@@ -19,6 +19,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
+import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
@@ -94,7 +95,7 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     }
 
     @Override
-    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
         return null;
     }
 
@@ -147,32 +148,13 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     public void onDisplayRotation(final int degree) {
     }
 
-
     @Override
     public PreviewServerProvider getServerProvider() {
         return null;
     }
 
     @Override
-    public List<PreviewServer> startPreviews() {
-        return null;
-    }
-
-    @Override
-    public void stopPreviews() {
-    }
-
-    @Override
-    public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
-
-    }
-
-    @Override
-    public void stopBroadcaster() {
-    }
-
-    @Override
-    public Broadcaster getBroadcaster() {
+    public BroadcasterProvider getBroadcasterProvider() {
         return null;
     }
 

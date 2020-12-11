@@ -374,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
 
     private synchronized void stopCamera() {
         if (mCameraSurfaceDrawingThread != null) {
-            mCameraSurfaceDrawingThread.terminate();
+            mCameraSurfaceDrawingThread.stop();
             mCameraSurfaceDrawingThread = null;
         }
     }

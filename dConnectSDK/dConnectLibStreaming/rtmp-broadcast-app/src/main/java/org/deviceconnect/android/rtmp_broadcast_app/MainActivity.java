@@ -93,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    /**
+     * カメラの描画を行うクラス.
+     */
     private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
@@ -266,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder(this, mCameraSurfaceDrawingThread);
+        CameraSurfaceVideoEncoder videoEncoder = new CameraSurfaceVideoEncoder("video/avc", mCameraSurfaceDrawingThread);
 
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
         videoQuality.setFacing(mSettings.getCameraFacing());
@@ -402,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
 
     private synchronized void stopCamera() {
         if (mCameraSurfaceDrawingThread != null) {
-            mCameraSurfaceDrawingThread.terminate();
+            mCameraSurfaceDrawingThread.stop();
             mCameraSurfaceDrawingThread = null;
         }
     }

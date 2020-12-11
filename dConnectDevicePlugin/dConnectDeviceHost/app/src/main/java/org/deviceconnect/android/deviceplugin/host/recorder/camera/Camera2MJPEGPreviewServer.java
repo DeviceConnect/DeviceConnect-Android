@@ -153,7 +153,7 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
 
         quality.setWidth(settings.getPreviewSize().getWidth());
         quality.setHeight(settings.getPreviewSize().getHeight());
-        quality.setFrameRate((int) settings.getPreviewMaxFrameRate());
+        quality.setFrameRate(settings.getPreviewMaxFrameRate());
         quality.setQuality(settings.getPreviewQuality());
     }
 
@@ -186,7 +186,6 @@ class Camera2MJPEGPreviewServer extends Camera2PreviewServer {
             }
 
             Camera2Recorder recorder = (Camera2Recorder) getRecorder();
-
             CameraMJPEGEncoder encoder = new CameraMJPEGEncoder(recorder);
             setMJPEGQuality(encoder.getMJPEGQuality());
             return encoder;

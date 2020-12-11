@@ -14,7 +14,8 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import org.deviceconnect.android.deviceplugin.host.mediaplayer.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
@@ -38,8 +39,6 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import javax.net.ssl.SSLContext;
 
@@ -253,7 +252,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
 
             if (previewMaxFrameRate != null) {
-                settings.setPreviewMaxFrameRate(previewMaxFrameRate.floatValue());
+                settings.setPreviewMaxFrameRate(previewMaxFrameRate.intValue());
             }
 
             if (previewBitRate != null) {
@@ -520,6 +519,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
+                    // TODO SSL対応
 //                    HostDevicePlugin plugin = (HostDevicePlugin) get();
 //                    plugin.getSSLContext(new HostDevicePlugin.SSLContextCallback() {
 //                        @Override
@@ -551,14 +551,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                      final HostMediaRecorder recorder) {
         mRecorderMgr.initialize();
 
+        PreviewServerProvider provider = recorder.getServerProvider();
+
         // SSLContext を設定
-        for (PreviewServer server : recorder.getServerProvider().getServers()) {
+        for (PreviewServer server : provider.getServers()) {
             if (sslContext != null && server.usesSSLContext()) {
                 server.setSSLContext(sslContext);
             }
         }
 
-        List<PreviewServer> servers = recorder.startPreviews();
+        List<PreviewServer> servers = provider.startServers();
         if (servers.isEmpty()) {
             MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
         } else {
@@ -602,7 +604,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
-                    recorder.stopPreviews();
+                    PreviewServerProvider provider = recorder.getServerProvider();
+                    provider.stopServers();
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
                 }

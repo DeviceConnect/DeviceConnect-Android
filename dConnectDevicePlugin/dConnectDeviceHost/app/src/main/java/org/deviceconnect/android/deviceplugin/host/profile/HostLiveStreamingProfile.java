@@ -1,20 +1,17 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceLiveStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.libmedia.streaming.MediaEncoderException;
-import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.api.DeleteApi;
@@ -54,8 +51,11 @@ public class HostLiveStreamingProfile extends DConnectProfile {
     private static final String AUDIO_URI_FALSE = "false";
     private static final int CAMERA_TYPE_FRONT = 0;
     private static final int CAMERA_TYPE_BACK = 1;
+
     private HostMediaRecorderManager mHostMediaRecorderManager;
     private HostMediaRecorder mHostMediaRecorder;
+
+    @Override
     public String getProfileName() {
         return "liveStreaming";
     }
@@ -128,19 +128,20 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     @Override
                     public void onAllowed() {
                         String testURI = "rtmp://192.168.11.7:1935/live/abc";
-                        recorder.startBroadcaster(testURI, new HostMediaRecorder.OnBroadcasterListener() {
+
+                        BroadcasterProvider provider = recorder.getBroadcasterProvider();
+                        provider.startBroadcaster(testURI, new BroadcasterProvider.OnBroadcasterListener() {
                             @Override
-                            public void onStarted(Broadcaster broadcaster) {
-                                mHostMediaRecorder = recorder;
+                            public void onStarted() {
                                 sendResponse(response);
                             }
 
                             @Override
-                            public void onStopped(Broadcaster broadcaster) {
+                            public void onStopped() {
                             }
 
                             @Override
-                            public void onError(Broadcaster broadcaster, Exception e) {
+                            public void onError(Exception e) {
                                 MessageUtils.setUnknownError(response, "e" + e.toString());
                                 sendResponse(response);
                             }
@@ -170,12 +171,14 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : put /stop");
                 }
 
-                if (mHostMediaRecorder != null) {
-                    mHostMediaRecorder.stopBroadcaster();
-                    mHostMediaRecorder = null;
-                } else {
-                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
-                }
+                // TODO
+
+//                if (mHostMediaRecorder != null) {
+//                    mHostMediaRecorder.stopBroadcaster();
+//                    mHostMediaRecorder = null;
+//                } else {
+//                    MessageUtils.setIllegalDeviceStateError(response, "status is not normal(streaming)");
+//                }
                 return true;
             }
         });
@@ -192,10 +195,12 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : get /onStatusChange");
                 }
 
-                if (mHostMediaRecorder != null) {
-                    Bundle streaming = createStreamingBundle(mHostMediaRecorder.getBroadcaster(), "streaming");
-                    response.putExtra(PARAM_KEY_STREAMING, streaming);
-                }
+                // TODO
+
+//                if (mHostMediaRecorder != null) {
+//                    Bundle streaming = createStreamingBundle(mHostMediaRecorder.getBroadcaster(), "streaming");
+//                    response.putExtra(PARAM_KEY_STREAMING, streaming);
+//                }
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
@@ -265,6 +270,8 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                 if (mHostMediaRecorder != null) {
                 }
 
+                // TODO 実装すること
+
 //                if (mHostDeviceLiveStreamRecorder != null) {
 //                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
 //                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
@@ -302,6 +309,8 @@ public class HostLiveStreamingProfile extends DConnectProfile {
                     Log.d(TAG, "onRequest() : delete /mute");
                 }
 
+                // TODO 実装すること
+
 //                if (mHostDeviceLiveStreamRecorder != null) {
 //                    ((HostMediaRecorder) mHostDeviceLiveStreamRecorder)
 //                            .requestPermission(new HostMediaRecorder.PermissionCallback() {
@@ -335,6 +344,8 @@ public class HostLiveStreamingProfile extends DConnectProfile {
 
             @Override
             public boolean onRequest(final Intent request, final Intent response) {
+                // TODO 実装すること
+
 //                if (mHostDeviceLiveStreamRecorder != null) {
 //                    response.putExtra(PARAM_KEY_MUTE, mHostDeviceLiveStreamRecorder.isMute());
 //                    setResult(response, DConnectMessage.RESULT_OK);
@@ -346,6 +357,15 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         });
     }
 
+    /**
+     * 指定された video と audio から対応する HostMediaRecorder を取得します.
+     *
+     * 見つからない場合は null を返却します。
+     *
+     * @param video 映像のレコーダ識別子
+     * @param audio 音声のレコーダ識別子
+     * @return HostMediaRecorder のインスタンス
+     */
     private HostMediaRecorder getHostMediaRecorder(String video, String audio) {
         if (video == null && audio == null) {
             return null;
@@ -375,7 +395,7 @@ public class HostLiveStreamingProfile extends DConnectProfile {
         video.putInt(PARAM_KEY_WIDTH, settings.getPreviewSize().getWidth());
         video.putInt(PARAM_KEY_HEIGHT, settings.getPreviewSize().getHeight());
         video.putInt(PARAM_KEY_BITRATE, settings.getPreviewBitRate());
-        video.putInt(PARAM_KEY_FRAME_RATE, (int) settings.getPreviewMaxFrameRate());
+        video.putInt(PARAM_KEY_FRAME_RATE, settings.getPreviewMaxFrameRate());
         video.putString(PARAM_KEY_MIME_TYPE, broadcaster.getMimeType());
         streaming.putParcelable(PARAM_KEY_VIDEO, video);
 

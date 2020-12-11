@@ -14,6 +14,7 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -82,12 +83,20 @@ public class MainActivity extends AppCompatActivity {
      */
     private Camera2Wrapper mCamera2;
 
+    /**
+     * カメラ描画クラス.
+     */
     private CameraSurfaceDrawingThread mCameraSurfaceDrawingThread;
 
     /**
      * ハンドラ
      */
     private Handler mHandler = new Handler(Looper.getMainLooper());
+
+    /**
+     * 画面の Surface.
+     */
+    private Surface mSurface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
             mCameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder surfaceHolder) {
+                    mSurface = surfaceHolder.getSurface();
                     startStreaming();
                 }
 
@@ -296,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         mCameraSurfaceDrawingThread.addOnDrawingEventListener(new EGLSurfaceDrawingThread.OnDrawingEventListener() {
             @Override
             public void onStarted() {
-                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mCameraView.getHolder().getSurface());
+                EGLSurfaceBase surfaceBase = mCameraSurfaceDrawingThread.createEGLSurfaceBase(mSurface);
                 mCameraSurfaceDrawingThread.addEGLSurfaceBase(surfaceBase);
             }
 
@@ -320,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
 
     private synchronized void stopCamera() {
         if (mCameraSurfaceDrawingThread != null) {
-            mCameraSurfaceDrawingThread.terminate();
+            mCameraSurfaceDrawingThread.stop();
             mCameraSurfaceDrawingThread = null;
         }
     }

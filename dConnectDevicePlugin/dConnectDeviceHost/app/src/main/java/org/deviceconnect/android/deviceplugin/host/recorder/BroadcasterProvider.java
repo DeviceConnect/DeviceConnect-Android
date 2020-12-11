@@ -1,24 +1,35 @@
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-import java.util.List;
-
 public interface BroadcasterProvider {
     /**
      * ブロードキャスターのリストを取得します.
      *
      * @return ブロードキャスターのリスト
      */
-    List<Broadcaster> getBroadcasters();
+    Broadcaster getBroadcaster();
 
     /**
      * ブロードキャスターを開始します.
      *
      * @return 起動したプレビュー配信サーバのリスト
      */
-    List<Broadcaster> startBroadcaster();
+    void startBroadcaster(String broadcastURI, OnBroadcasterListener listener);
 
     /**
      * ブロードキャスターを停止します.
      */
     void stopBroadcaster();
+
+    /**
+     * ブロードキャスト中か確認します.
+     *
+     * @return ブロードキャスト中は true、それ以外は false
+     */
+    boolean isRunning();
+
+    interface OnBroadcasterListener {
+        void onStarted();
+        void onStopped();
+        void onError(Exception e);
+    }
 }

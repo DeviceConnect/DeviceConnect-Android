@@ -1,7 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.mjpeg;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceBase;
@@ -232,7 +231,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
 
             // 内部で作成された場合には、停止処理も行います。
             if (mInternalCreateSurfaceDrawingThread) {
-                mSurfaceDrawingThread.terminate();
+                mSurfaceDrawingThread.stop();
                 mSurfaceDrawingThread = null;
             }
         }

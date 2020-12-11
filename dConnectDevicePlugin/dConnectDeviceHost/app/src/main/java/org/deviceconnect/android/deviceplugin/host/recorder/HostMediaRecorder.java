@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Range;
@@ -100,35 +99,11 @@ public interface HostMediaRecorder {
     PreviewServerProvider getServerProvider();
 
     /**
-     * プレビュー配信サーバを起動します.
-     * サーバが起動できなかった場合には、空のリストを返却する。
-     * @return 起動したプレビュー配信サーバのリスト
-     */
-    List<PreviewServer> startPreviews();
-
-    /**
-     * プレビュー配信サーバを停止します.
-     */
-    void stopPreviews();
-
-    /**
-     * プレビュー配信を開始します.
+     * プレビュー配信管理クラスを取得します.
      *
-     * @param broadcastURI 配信先の URI
+     * @return BroadcasterProvider の実装クラス
      */
-    void startBroadcaster(String broadcastURI, OnBroadcasterListener listener);
-
-    /**
-     * プレビュー配信を停止します.
-     */
-    void stopBroadcaster();
-
-    /**
-     * プレビュー配信を行っているブロードキャスターを取得します.
-     *
-     * @return プレビュー配信を行っているブロードキャスター
-     */
-    Broadcaster getBroadcaster();
+    BroadcasterProvider getBroadcasterProvider();
 
     // テスト
     EGLSurfaceDrawingThread getSurfaceDrawingThread();
@@ -159,12 +134,6 @@ public interface HostMediaRecorder {
          * 拒否された場合に呼び出されます.
          */
         void onDisallowed();
-    }
-
-    interface OnBroadcasterListener {
-        void onStarted(Broadcaster broadcaster);
-        void onStopped(Broadcaster broadcaster);
-        void onError(Broadcaster broadcaster, Exception e);
     }
 
     /**
@@ -253,26 +222,29 @@ public interface HostMediaRecorder {
     class Settings {
         private Size mPictureSize;
         private Size mPreviewSize;
-        private Float mPreviewMaxFrameRate = 30.0f;
+        private Integer mPreviewMaxFrameRate = 30;
         private Integer mPreviewBitRate = 2 * 1024 * 1024;
         private Integer mPreviewKeyFrameInterval = 1;
-        private Integer mWhiteBalance;
+        private Integer mPreviewWhiteBalance;
         private Range<Integer> mFps;
         private Integer mPreviewQuality = 80;
         private String mPreviewMimeType = "video/avc";
 
-        private List<Size> mSupportedPictureSizes;
-        private List<Size> mSupportedPreviewSizes;
-        private List<Range<Integer>> mSupportedFps;
-        private List<Integer> mSupportedWhiteBalances;
-
+        // 音声
         private boolean mAudioEnabled;
         private Integer mPreviewAudioBitRate;
         private Integer mPreviewSampleRate;
         private Integer mPreviewChannel;
         private boolean mUseAEC;
 
+        // ポート
         private Map<String, Integer> mPort = new HashMap<>();
+
+        // サポート範囲
+        private List<Size> mSupportedPictureSizes;
+        private List<Size> mSupportedPreviewSizes;
+        private List<Range<Integer>> mSupportedFps;
+        private List<Integer> mSupportedWhiteBalances;
 
         /**
          * 設定データを読み込みます.
@@ -283,13 +255,14 @@ public interface HostMediaRecorder {
             try {
                 PropertyUtil property = new PropertyUtil();
                 property.load(file);
+
                 mPictureSize = property.getSize("picture_size_width","picture_size_height");
                 mPreviewSize = property.getSize("preview_size_width", "preview_size_height");
-                mPreviewMaxFrameRate = property.getFloat("preview_framerate", 30f);
+                mPreviewMaxFrameRate = property.getInteger("preview_framerate", 30);
                 mPreviewBitRate = property.getInteger("preview_bitrate", 2 * 1024 * 1024);
                 mPreviewKeyFrameInterval = property.getInteger("preview_i_frame_interval", 1);
                 mFps = property.getRange("picture_fps_min", "picture_fps_max");
-                mWhiteBalance = property.getInteger("preview_white_balance", 0);
+                mPreviewWhiteBalance = property.getInteger("preview_white_balance", 0);
                 mPreviewQuality = property.getInteger("preview_quality", 80);
                 mPreviewMimeType = property.getString("preview_mime_type", "video/avc");
 
@@ -321,7 +294,7 @@ public interface HostMediaRecorder {
                 if (mFps != null) {
                     property.put("picture_fps_min", "picture_fps_max", mFps);
                 }
-                property.put("preview_white_balance", mWhiteBalance);
+                property.put("preview_white_balance", mPreviewWhiteBalance);
                 property.put("preview_quality", mPreviewQuality);
                 property.put("preview_mime_type", mPreviewMimeType);
 
@@ -407,7 +380,7 @@ public interface HostMediaRecorder {
          *
          * @return フレームレート
          */
-        public float getPreviewMaxFrameRate() {
+        public int getPreviewMaxFrameRate() {
             return mPreviewMaxFrameRate;
         }
 
@@ -416,7 +389,7 @@ public interface HostMediaRecorder {
          *
          * @param previewMaxFrameRate フレームレート
          */
-        public void setPreviewMaxFrameRate(float previewMaxFrameRate) {
+        public void setPreviewMaxFrameRate(Integer previewMaxFrameRate) {
             if (previewMaxFrameRate <= 0) {
                 throw new IllegalArgumentException("previewMaxFrameRate is zero or negative.");
             }
@@ -513,6 +486,17 @@ public interface HostMediaRecorder {
             mFps = fps;
         }
 
+        public int getPreviewWhiteBalance() {
+            return mPreviewWhiteBalance;
+        }
+
+        public void setPreviewWhiteBalance(int whiteBalance) {
+            if (!isSupportedWhiteBalance(whiteBalance)) {
+                throw new IllegalArgumentException("whiteBalance is unsupported value.");
+            }
+            mPreviewWhiteBalance = whiteBalance;
+        }
+
         /**
          * サポートしている写真サイズを取得します.
          *
@@ -565,6 +549,24 @@ public interface HostMediaRecorder {
          */
         public void setSupportedFps(List<Range<Integer>> fps) {
             mSupportedFps = fps;
+        }
+
+        /**
+         * サポートしているホワイトバランスのリストを取得します.
+         *
+         * @return サポートしているホワイトバランスのリスト
+         */
+        public List<Integer> getSupportedWhiteBalances() {
+            return mSupportedWhiteBalances;
+        }
+
+        /**
+         * サポートしているホワイトバランスのリストを設定します.
+         *
+         * @param whiteBalances サポートしているホワイトバランスのリスト
+         */
+        public void setSupportedWhiteBalances(List<Integer> whiteBalances) {
+            mSupportedWhiteBalances = whiteBalances;
         }
 
         /**
@@ -631,6 +633,15 @@ public interface HostMediaRecorder {
             for (Range<Integer> r : mSupportedFps) {
                 if (r.getLower().equals(fps.getLower()) &&
                         r.getUpper().equals(fps.getUpper())){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isSupportedWhiteBalance(int whiteBalance) {
+            for (Integer wb : mSupportedWhiteBalances) {
+                if (wb == whiteBalance) {
                     return true;
                 }
             }

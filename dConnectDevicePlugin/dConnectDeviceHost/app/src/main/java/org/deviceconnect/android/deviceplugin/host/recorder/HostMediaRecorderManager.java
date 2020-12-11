@@ -26,14 +26,11 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
-import org.deviceconnect.android.profile.spec.models.In;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.net.ssl.SSLContext;
 
 /**
  * Host Device Recorder Manager.

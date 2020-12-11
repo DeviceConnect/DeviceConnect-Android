@@ -10,7 +10,7 @@ import java.io.IOException;
 public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
     CameraMJPEGEncoder(Camera2Recorder camera2Recorder) {
-        super(camera2Recorder.getCameraSurfaceDrawingThread());
+        super(camera2Recorder.getSurfaceDrawingThread());
     }
 
     // SurfaceMJPEGEncoder

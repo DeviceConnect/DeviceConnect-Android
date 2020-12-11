@@ -12,6 +12,7 @@ import android.os.Parcelable;
 import android.util.Range;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.util.PropertyUtil;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 import java.io.File;
 import java.io.IOException;
@@ -128,6 +129,9 @@ public interface HostMediaRecorder {
      * @return プレビュー配信を行っているブロードキャスター
      */
     Broadcaster getBroadcaster();
+
+    // テスト
+    EGLSurfaceDrawingThread getSurfaceDrawingThread();
 
     /**
      * 端末の画面が回転したタイミングで実行されるメソッド.

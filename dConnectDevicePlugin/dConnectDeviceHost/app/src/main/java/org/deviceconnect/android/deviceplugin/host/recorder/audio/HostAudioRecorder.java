@@ -25,6 +25,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
@@ -90,6 +91,11 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
     public HostAudioRecorder(final Context context) {
         mContext = context;
         mState = RecorderState.INACTIVE;
+    }
+
+    @Override
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
+        return null;
     }
 
     @Override

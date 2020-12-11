@@ -520,18 +520,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             recorder.requestPermission(new HostMediaRecorder.PermissionCallback() {
                 @Override
                 public void onAllowed() {
-                    HostDevicePlugin plugin = (HostDevicePlugin) getPluginContext();
-                    plugin.getSSLContext(new HostDevicePlugin.SSLContextCallback() {
-                        @Override
-                        public void onGet(final SSLContext sslContext) {
-                            startPreviewServers(sslContext, response, recorder);
-                        }
-
-                        @Override
-                        public void onError() {
-                            startPreviewServers(null, response, recorder);
-                        }
-                    });
+//                    HostDevicePlugin plugin = (HostDevicePlugin) get();
+//                    plugin.getSSLContext(new HostDevicePlugin.SSLContextCallback() {
+//                        @Override
+//                        public void onGet(final SSLContext sslContext) {
+//                            startPreviewServers(sslContext, response, recorder);
+//                        }
+//
+//                        @Override
+//                        public void onError() {
+//                            startPreviewServers(null, response, recorder);
+//                        }
+//                    });
+                    startPreviewServers(null, response, recorder);
                 }
 
                 @Override
@@ -966,9 +967,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         addApi(mDeleteOnRecordingChangeApi);
         addApi(mPutPreviewMuteApi);
         addApi(mDeletePreviewMuteApi);
-    }
-
-    public void destroy() {
     }
 
     private static void setSupportedImageSizes(final Intent response,

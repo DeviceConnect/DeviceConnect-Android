@@ -46,6 +46,7 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.LiveStreamingClient;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -242,7 +243,11 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mSettings.setSupportedFps(options.getSupportedFpsList());
     }
 
-    public CameraSurfaceDrawingThread getCameraSurfaceDrawingThread(){
+    @Override
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
+        if (mCameraSurfaceDrawingThread == null) {
+            mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCameraWrapper);
+        }
         return mCameraSurfaceDrawingThread;
     }
 

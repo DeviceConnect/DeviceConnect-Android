@@ -26,6 +26,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DevicePluginContext;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
+import org.deviceconnect.android.profile.spec.models.In;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
@@ -56,11 +57,6 @@ public class HostMediaRecorderManager {
     private final DevicePluginContext mHostDevicePluginContext;
 
     /**
-     * 画面回転のイベントを受け取るための IntentFilter.
-     */
-    private final IntentFilter mIntentFilter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
-
-    /**
      * カメラ管理クラス.
      */
     private CameraWrapperManager mCameraWrapperManager;
@@ -76,16 +72,21 @@ public class HostMediaRecorderManager {
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            if (windowManager != null) {
-                int rotation = windowManager.getDefaultDisplay().getRotation();
-                for (HostMediaRecorder recorder : mRecorders) {
-                    try {
-                        recorder.onDisplayRotation(rotation);
-                    } catch (Exception e) {
-                        // ignore.
+            String action = intent.getAction();
+            if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
+                WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+                if (windowManager != null) {
+                    int rotation = windowManager.getDefaultDisplay().getRotation();
+                    for (HostMediaRecorder recorder : mRecorders) {
+                        try {
+                            recorder.onDisplayRotation(rotation);
+                        } catch (Exception e) {
+                            // ignore.
+                        }
                     }
                 }
+            } else if (PreviewServerProvider.DELETE_PREVIEW_ACTION.equals(action)) {
+                stopPreviewServer(intent.getStringExtra(PreviewServerProvider.EXTRA_CAMERA_ID));
             }
         }
     };
@@ -154,7 +155,6 @@ public class HostMediaRecorderManager {
     /**
      * 初期化処理を行います.
      * <p>
-     * TODO 何も実装されていない
      */
     public void initialize() {
         for (HostMediaRecorder recorder : getRecorders()) {
@@ -166,7 +166,10 @@ public class HostMediaRecorderManager {
      * 画面回転の監視を開始します.
      */
     public void start() {
-        getContext().registerReceiver(mBroadcastReceiver, mIntentFilter);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+        filter.addAction(PreviewServerProvider.DELETE_PREVIEW_ACTION);
+        getContext().registerReceiver(mBroadcastReceiver, filter);
     }
 
     /**
@@ -194,6 +197,10 @@ public class HostMediaRecorderManager {
      * レコーダの破棄処理を行います.
      */
     public void destroy() {
+        stop();
+
+        clean();
+
         for (HostMediaRecorder recorder : getRecorders()) {
             recorder.destroy();
         }

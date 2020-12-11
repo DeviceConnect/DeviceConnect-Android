@@ -33,6 +33,7 @@ import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
+import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -136,6 +137,11 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     public Context getContext() {
         return mContext;
+    }
+
+    @Override
+    public EGLSurfaceDrawingThread getSurfaceDrawingThread(){
+        return null;
     }
 
     @Override

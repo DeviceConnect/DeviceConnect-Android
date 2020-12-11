@@ -10,15 +10,14 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.nfc.NfcAdapter;
 import android.os.Build;
-import android.util.Log;
+import android.os.Bundle;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePlugin;
+import org.deviceconnect.android.deviceplugin.host.connection.HostConnectionManager;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -27,9 +26,10 @@ import org.deviceconnect.android.profile.api.DConnectApi;
 import org.deviceconnect.android.profile.api.DeleteApi;
 import org.deviceconnect.android.profile.api.GetApi;
 import org.deviceconnect.android.profile.api.PutApi;
-import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
+import java.util.List;
 
 /**
  * Connection プロファイル.
@@ -41,10 +41,7 @@ public class HostConnectionProfile extends ConnectionProfile {
     /** Debug Tag. */
     private static final String TAG = "HOST";
 
-    /** Bluetooth Adapter. */
-    private BluetoothAdapter mBluetoothAdapter;
-    /** Notification Id */
-    private final int NOTIFICATION_ID = 3527;
+    private HostConnectionManager mHostConnectionManager;
 
     private final DConnectApi mGetWifiApi = new GetApi() {
 
@@ -292,10 +289,22 @@ public class HostConnectionProfile extends ConnectionProfile {
     /**
      * コンストラクタ.
      * 
-     * @param bluetoothAdapter Bluetoothアダプタ.
+     * @param manager 接続管理クラス.
      */
-    public HostConnectionProfile(final BluetoothAdapter bluetoothAdapter) {
-        mBluetoothAdapter = bluetoothAdapter;
+    public HostConnectionProfile(HostConnectionManager manager) {
+        mHostConnectionManager = manager;
+        mHostConnectionManager.setHostConnectionEventListener(new HostConnectionManager.ConnectionEventListener() {
+            @Override
+            public void onChangedWifiStatus() {
+                postOnChangedWifiStatus();
+            }
+
+            @Override
+            public void onChangedBluetoothStatus() {
+                postOnChangedBluetoothStatus();
+            }
+        });
+
         addApi(mGetWifiApi);
         addApi(mGetBluetoothApi);
         addApi(mGetBleApi);
@@ -321,15 +330,9 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param request リクエスト
      * @param response レスポンス
      */
-    protected void getEnabledOfWiFi(final Intent request, final Intent response) {
-
+    private void getEnabledOfWiFi(final Intent request, final Intent response) {
         setResult(response, IntentDConnectMessage.RESULT_OK);
-
-        WifiManager mWifiManager = getWifiManager();
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "WifiManager:" + mWifiManager.isWifiEnabled());
-        }
-        response.putExtra(PARAM_ENABLE, mWifiManager.isWifiEnabled());
+        response.putExtra(PARAM_ENABLE, mHostConnectionManager.isWifiEnabled());
     }
 
     /**
@@ -339,9 +342,8 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param response レスポンス
      * @param enabled WiFi接続状態
      */
-    protected void setEnabledOfWiFi(final Intent request, final Intent response, final boolean enabled) {
-        WifiManager wifiMgr = getWifiManager();
-        if (wifiMgr.setWifiEnabled(enabled)) {
+    private void setEnabledOfWiFi(final Intent request, final Intent response, final boolean enabled) {
+        if (mHostConnectionManager.setWifiEnabled(enabled)) {
             setResult(response, IntentDConnectMessage.RESULT_OK);
         } else {
             String msg;
@@ -360,10 +362,9 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param request リクエスト
      * @param response レスポンス
      */
-    protected void getEnabledBluetooth(final Intent request, final Intent response) {
-
+    private void getEnabledBluetooth(final Intent request, final Intent response) {
         setResult(response, IntentDConnectMessage.RESULT_OK);
-        response.putExtra(PARAM_ENABLE, mBluetoothAdapter.isEnabled());
+        response.putExtra(PARAM_ENABLE, mHostConnectionManager.isBluetoothEnabled());
     }
 
     /**
@@ -373,39 +374,12 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param response レスポンス
      * @param enabled Bluetooth接続状態
      */
-    protected void setEnabledBluetooth(final Intent request, final Intent response, final boolean enabled) {
-        if (enabled) {
-            // enable bluetooth
-            if (!mBluetoothAdapter.isEnabled()) {
-
-                Intent intent = new Intent(request);
-                intent.setClass(getContext(), BluetoothManageActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    this.getContext().startActivity(intent);
-                } else {
-                    NotificationUtils.createNotificationChannel(getContext());
-                    NotificationUtils.notify(getContext(), NOTIFICATION_ID, 0, intent,
-                            getContext().getString(R.string.host_notification_connection_warnning));
-                }
-
-                setResult(response, IntentDConnectMessage.RESULT_OK);
-            } else {
-                // bluetooth has already enabled
-                setResult(response, IntentDConnectMessage.RESULT_OK);
-            }
-
+    private void setEnabledBluetooth(final Intent request, final Intent response, final boolean enabled) {
+        boolean result = mHostConnectionManager.setBluetoothEnabled(enabled);
+        if (result) {
+            setResult(response, IntentDConnectMessage.RESULT_OK);
         } else {
-            // disable bluetooth
-            boolean result = mBluetoothAdapter.disable();
-
-            // create response
-            if (result) {
-                setResult(response, IntentDConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, IntentDConnectMessage.RESULT_ERROR);
-            }
-
+            setResult(response, IntentDConnectMessage.RESULT_ERROR);
         }
     }
 
@@ -416,17 +390,36 @@ public class HostConnectionProfile extends ConnectionProfile {
      * @param response レスポンス
      */
     protected void getEnabledOfBluetoothLowEnery(final Intent request, final Intent response) {
+        response.putExtra(PARAM_ENABLE, mHostConnectionManager.getEnabledOfBluetoothLowEnergy());
+    }
 
-        // Bluetoothが機能していないときはBluetooth LEも機能しない扱いに。
-        if (this.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
-                && mBluetoothAdapter.isEnabled()) {
-            response.putExtra(PARAM_ENABLE, true);
-        } else {
-            response.putExtra(PARAM_ENABLE, false);
+    private void postOnChangedBluetoothStatus() {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
+                HostConnectionProfile.PROFILE_NAME, null, HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent mIntent = EventManager.createEventMessage(event);
+            HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
+            Bundle bluetoothConnecting = new Bundle();
+            HostConnectionProfile.setEnable(bluetoothConnecting, mHostConnectionManager.isBluetoothEnabled());
+            HostConnectionProfile.setConnectStatus(mIntent, bluetoothConnecting);
+            sendEvent(mIntent, event.getAccessToken());
         }
     }
 
-    private WifiManager getWifiManager() {
-        return (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    private void postOnChangedWifiStatus() {
+        List<Event> events = EventManager.INSTANCE.getEventList(HostDevicePlugin.SERVICE_ID,
+                HostConnectionProfile.PROFILE_NAME, null, HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            Intent mIntent = EventManager.createEventMessage(event);
+            HostConnectionProfile.setAttribute(mIntent, HostConnectionProfile.ATTRIBUTE_ON_WIFI_CHANGE);
+            Bundle wifiConnecting = new Bundle();
+            HostConnectionProfile.setEnable(wifiConnecting, mHostConnectionManager.isWifiEnabled());
+            HostConnectionProfile.setConnectStatus(mIntent, wifiConnecting);
+            sendEvent(mIntent, event.getAccessToken());
+        }
     }
 }

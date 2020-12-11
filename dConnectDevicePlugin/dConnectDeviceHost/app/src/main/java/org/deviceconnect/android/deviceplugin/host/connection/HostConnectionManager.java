@@ -8,15 +8,11 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity;
 import org.deviceconnect.android.message.DevicePluginContext;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.util.NotificationUtils;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 public class HostConnectionManager {
     /** Notification Id */
@@ -25,7 +21,6 @@ public class HostConnectionManager {
     private DevicePluginContext mPluginContext;
 
     private WifiManager mWifiManager;
-    /** Bluetooth Adapter. */
     private BluetoothAdapter mBluetoothAdapter;
 
     private ConnectionEventListener mConnectionEventListener;
@@ -36,10 +31,10 @@ public class HostConnectionManager {
             String action = intent.getAction();
             if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
                     || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                onChangedWifiStatus();
+                postOnChangedWifiStatus();
             } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)
                     || BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                onChangedBluetoothStatus();
+                postOnChangedBluetoothStatus();
             }
         }
     };
@@ -143,13 +138,13 @@ public class HostConnectionManager {
                 && mBluetoothAdapter.isEnabled());
     }
 
-    private void onChangedWifiStatus() {
+    private void postOnChangedWifiStatus() {
         if (mConnectionEventListener != null) {
             mConnectionEventListener.onChangedWifiStatus();
         }
     }
 
-    private void onChangedBluetoothStatus() {
+    private void postOnChangedBluetoothStatus() {
         if (mConnectionEventListener != null) {
             mConnectionEventListener.onChangedBluetoothStatus();
         }

@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import android.content.Intent;
 import android.hardware.camera2.CameraMetadata;
 import android.os.Bundle;
-import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorderManager;
@@ -28,6 +27,7 @@ import org.deviceconnect.message.DConnectMessage;
 public class HostCameraProfile extends DConnectProfile {
 
     private HostMediaRecorderManager mRecorderManager;
+
     @Override
     public String getProfileName() {
         return "camera";

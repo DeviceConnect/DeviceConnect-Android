@@ -4,7 +4,6 @@ import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
@@ -64,9 +63,11 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         try {
             HostMediaRecorder.Settings settings = mRecorder.getSettings();
             CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
+            cameraWrapper.getOptions().setFps(settings.getPreviewMaxFrameRate());
             cameraWrapper.getOptions().setPreviewSize(settings.getPreviewSize());
+            cameraWrapper.getOptions().setWhiteBalance(settings.getPreviewWhiteBalance());
             cameraWrapper.startPreview(new Surface(surfaceTexture), false);
-        } catch (CameraWrapperException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -74,7 +75,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     private void stopCamera() {
         try {
             mRecorder.getCameraWrapper().stopPreview();
-        } catch (CameraWrapperException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

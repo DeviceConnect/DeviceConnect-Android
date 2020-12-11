@@ -18,9 +18,7 @@ import androidx.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.message.DevicePluginContext;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.util.NotificationUtils;
 import org.deviceconnect.profile.PhoneProfileConstants;
 
@@ -200,14 +198,14 @@ public class HostPhoneManager {
         }
     }
 
-    public void onNewOutGoingCall(final Intent intent) {
+    private void postOnNewOutGoingCall(final Intent intent) {
         if (mPhoneEventListener != null) {
             String phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
             mPhoneEventListener.onNewOutGoingCall(phoneNumber);
         }
     }
 
-    public void onPhoneStateChanged(final Intent intent) {
+    private void postOnPhoneStateChanged(final Intent intent) {
         if (mPhoneEventListener != null) {
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             String phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
@@ -223,9 +221,9 @@ public class HostPhoneManager {
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             if (Intent.ACTION_NEW_OUTGOING_CALL.equals(action)) {
-                onNewOutGoingCall(intent);
+                postOnNewOutGoingCall(intent);
             } else if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
-                onPhoneStateChanged(intent);
+                postOnPhoneStateChanged(intent);
             }
         }
     };

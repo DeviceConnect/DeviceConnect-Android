@@ -422,6 +422,8 @@ public class EGLSurfaceDrawingThread {
                     mEGLCore = null;
                 }
 
+                mStopFlag = true;
+
                 postOnStopped();
 
                 onStopped();

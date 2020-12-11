@@ -443,8 +443,7 @@ public class CameraWrapper {
         setDefaultCaptureRequest(request, false);
     }
 
-    private void setDefaultCaptureRequest(final CaptureRequest.Builder request,
-                                          final boolean trigger) {
+    private void setDefaultCaptureRequest(final CaptureRequest.Builder request, final boolean trigger) {
         if (hasAutoFocus()) {
             request.set(CaptureRequest.CONTROL_AF_MODE, mAutoFocusMode);
             if (trigger) {
@@ -905,7 +904,7 @@ public class CameraWrapper {
 
         private Size mPictureSize;
         private Size mPreviewSize;
-        private Integer mWhiteBalance = CameraMetadata.CONTROL_AWB_MODE_AUTO;
+        private Integer mWhiteBalance;
         private Range<Integer> mFps;
 
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
@@ -927,6 +926,26 @@ public class CameraWrapper {
 
         public void setPreviewSize(final Size previewSize) {
             mPreviewSize = previewSize;
+        }
+
+        public void setFps(int fps) {
+            // 下限と上限の fps が一致する値を探す
+            for (Range<Integer> range : mSupportedFpsList) {
+                if (range.getLower() == fps && range.getUpper() == fps) {
+                    mFps = range;
+                    return;
+                }
+            }
+
+            // 上限の fps が一致する値を探す
+            for (Range<Integer> range : mSupportedFpsList) {
+                if (range.getUpper() == fps) {
+                    mFps = range;
+                    return;
+                }
+            }
+
+            // 発見できなかった場合は、設定を行わない。
         }
 
         public Range<Integer> getFps() {

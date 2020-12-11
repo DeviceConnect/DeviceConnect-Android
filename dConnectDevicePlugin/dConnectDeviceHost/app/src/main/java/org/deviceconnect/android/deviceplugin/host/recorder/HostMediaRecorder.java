@@ -432,11 +432,11 @@ public interface HostMediaRecorder {
             mFps = fps;
         }
 
-        public int getPreviewWhiteBalance() {
+        public Integer getPreviewWhiteBalance() {
             return mPreviewWhiteBalance;
         }
 
-        public void setPreviewWhiteBalance(int whiteBalance) {
+        public void setPreviewWhiteBalance(Integer whiteBalance) {
             if (!isSupportedWhiteBalance(whiteBalance)) {
                 throw new IllegalArgumentException("whiteBalance is unsupported value.");
             }

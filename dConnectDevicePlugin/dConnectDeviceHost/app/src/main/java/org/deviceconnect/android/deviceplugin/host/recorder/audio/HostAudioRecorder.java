@@ -15,14 +15,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.file.HostFileProvider;
-import org.deviceconnect.android.deviceplugin.host.recorder.Broadcaster;
 import org.deviceconnect.android.deviceplugin.host.recorder.BroadcasterProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServer;
 import org.deviceconnect.android.deviceplugin.host.recorder.PreviewServerProvider;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.CapabilityUtil;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.MediaSharing;
@@ -37,33 +37,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import androidx.annotation.NonNull;
-
 /**
  * Host Device Audio Recorder.
  *
  * @author NTT DOCOMO, INC.
  */
 public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRecorder {
-
-    /**
-     * ログ出力用フラグ.
-     */
     private static final boolean DEBUG = BuildConfig.DEBUG;
-
-    /**
-     * ログ出力用タグ.
-     */
     private static final String TAG = "host.dplugin";
-
     private static final String ID = "audio";
-
     private static final String NAME = "AndroidHost Audio Recorder";
-
     private static final String MIME_TYPE = "audio/aac";
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
-
     private final Context mContext;
 
     /**
@@ -85,13 +71,12 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
         }
     };
 
-    private RecorderState mState;
+    private RecorderState mState = RecorderState.INACTIVE;
 
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
     public HostAudioRecorder(final Context context) {
         mContext = context;
-        mState = RecorderState.INACTIVE;
     }
 
     @Override

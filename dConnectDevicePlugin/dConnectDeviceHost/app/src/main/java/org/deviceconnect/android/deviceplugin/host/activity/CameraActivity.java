@@ -104,9 +104,11 @@ public class CameraActivity extends HostDevicePluginBindActivity {
         mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
         mMediaRecorder = mMediaRecorderManager.getRecorder(null);
 
-        mEGLSurfaceDrawingThread = mMediaRecorder.getSurfaceDrawingThread();
-        mEGLSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
 
+        mEGLSurfaceDrawingThread = mMediaRecorder.getSurfaceDrawingThread();
+        mEGLSurfaceDrawingThread.setSize(settings.getPreviewSize().getWidth(), settings.getPreviewSize().getHeight());
+        mEGLSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
         if (mEGLSurfaceDrawingThread.isRunning()) {
             if (mSurface != null) {
                 addSurface(mSurface);

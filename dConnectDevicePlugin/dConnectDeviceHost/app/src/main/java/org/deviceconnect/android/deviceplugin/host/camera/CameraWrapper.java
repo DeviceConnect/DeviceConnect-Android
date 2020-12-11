@@ -903,30 +903,15 @@ public class CameraWrapper {
          */
         private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 480;
 
-        /**
-         * デフォルトのホワイトバランス.
-         */
-        private static final String DEFAULT_WHITE_BALANCE = "auto";
-
         private Size mPictureSize;
-
         private Size mPreviewSize;
-
+        private Integer mWhiteBalance = CameraMetadata.CONTROL_AWB_MODE_AUTO;
         private Range<Integer> mFps;
 
         private List<Size> mSupportedPictureSizeList = new ArrayList<>();
-
         private List<Size> mSupportedPreviewSizeList = new ArrayList<>();
-
         private List<Range<Integer>> mSupportedFpsList = new ArrayList<>();
-
         private List<Integer> mSupportedWhiteBalanceList = new ArrayList<>();
-
-        private double mPreviewMaxFrameRate = 30.0d; //fps
-
-        private int mPreviewBitRate = 1000 * 1000; //bps
-
-        private Integer mWhiteBalance = CameraMetadata.CONTROL_AWB_MODE_AUTO;
 
         public Size getPictureSize() {
             return mPictureSize;
@@ -952,6 +937,14 @@ public class CameraWrapper {
             mFps = fps;
         }
 
+        public Integer getWhiteBalance() {
+            return mWhiteBalance;
+        }
+
+        public void setWhiteBalance(final Integer whiteBalance) {
+            mWhiteBalance = whiteBalance;
+        }
+
         public List<Size> getSupportedPictureSizeList() {
             return mSupportedPictureSizeList;
         }
@@ -974,6 +967,14 @@ public class CameraWrapper {
 
         public void setSupportedFpsList(final List<Range<Integer>> fpsList) {
             mSupportedFpsList = fpsList;
+        }
+
+        public List<Integer> getSupportedWhiteBalanceList() {
+            return mSupportedWhiteBalanceList;
+        }
+
+        public void setSupportedWhiteBalanceList(List<Integer> list) {
+            mSupportedWhiteBalanceList = list;
         }
 
         public Size getDefaultPictureSize() {
@@ -1008,38 +1009,6 @@ public class CameraWrapper {
                 return defaultSize;
             }
             return sizeList.get(0);
-        }
-
-        public double getPreviewMaxFrameRate() {
-            return mPreviewMaxFrameRate;
-        }
-
-        public void setPreviewMaxFrameRate(final double previewMaxFrameRate) {
-            mPreviewMaxFrameRate = previewMaxFrameRate;
-        }
-
-        public int getPreviewBitRate() {
-            return mPreviewBitRate;
-        }
-
-        public void setPreviewBitRate(final int previewBitRate) {
-            mPreviewBitRate = previewBitRate;
-        }
-
-        public Integer getWhiteBalance() {
-            return mWhiteBalance;
-        }
-
-        public void setWhiteBalance(final Integer whiteBalance) {
-            mWhiteBalance = whiteBalance;
-        }
-
-        public List<Integer> getSupportedWhiteBalanceList() {
-            return mSupportedWhiteBalanceList;
-        }
-
-        public void setSupportedWhiteBalanceList(List<Integer> list) {
-            mSupportedWhiteBalanceList = list;
         }
     }
 

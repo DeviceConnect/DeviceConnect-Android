@@ -39,7 +39,7 @@ abstract class Camera2PreviewServer extends AbstractPreviewServer {
         videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
         videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());
         videoQuality.setBitRate(settings.getPreviewBitRate());
-        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
+        videoQuality.setFrameRate((int) settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
     }
 

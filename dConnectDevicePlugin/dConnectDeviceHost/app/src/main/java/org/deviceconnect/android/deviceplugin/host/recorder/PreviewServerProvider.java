@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
 import java.util.List;
 
 public interface PreviewServerProvider {
@@ -48,7 +47,7 @@ public interface PreviewServerProvider {
      * @param mimeType マイムタイプ
      * @return プレビュー配信サーバ
      */
-    PreviewServer getServerForMimeType(String mimeType);
+    PreviewServer getServerByMimeType(String mimeType);
 
     /**
      * 全てのサーバを開始します.

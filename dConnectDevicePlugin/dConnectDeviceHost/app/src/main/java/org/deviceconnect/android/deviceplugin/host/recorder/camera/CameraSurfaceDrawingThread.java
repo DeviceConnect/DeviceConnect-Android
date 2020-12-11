@@ -1,35 +1,37 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.graphics.SurfaceTexture;
+import android.util.Size;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapperException;
+import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
 import org.deviceconnect.android.libmedia.streaming.gles.EGLSurfaceDrawingThread;
 
 public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     /**
-     * カメラ操作オブジェクト.
+     * レコーダ.
      */
-    private final CameraWrapper mCameraWrapper;
+    private final Camera2Recorder mRecorder;
 
-    public CameraSurfaceDrawingThread(CameraWrapper cameraWrapper) {
-        if (cameraWrapper == null) {
-            throw new IllegalArgumentException("cameraWrapper is null.");
+    public CameraSurfaceDrawingThread(Camera2Recorder recorder) {
+        if (recorder == null) {
+            throw new IllegalArgumentException("recorder is null.");
         }
-        mCameraWrapper = cameraWrapper;
+        mRecorder = recorder;
     }
 
     // EGLSurfaceDrawingThread
 
     @Override
     public int getDisplayRotation() {
-        return mCameraWrapper.getDisplayRotation();
+        return mRecorder.getCameraWrapper().getDisplayRotation();
     }
 
     @Override
     public boolean isSwappedDimensions() {
-        int sensorOrientation = mCameraWrapper.getSensorOrientation();
+        int sensorOrientation = mRecorder.getCameraWrapper().getSensorOrientation();
         switch (getDisplayRotation()) {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
@@ -61,7 +63,10 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     private void startCamera(SurfaceTexture surfaceTexture) {
         try {
-            mCameraWrapper.startPreview(new Surface(surfaceTexture), false);
+            HostMediaRecorder.Settings settings = mRecorder.getSettings();
+            CameraWrapper cameraWrapper = mRecorder.getCameraWrapper();
+            cameraWrapper.getOptions().setPreviewSize(new Size(settings.getPreviewSize().getWidth(), settings.getPreviewSize().getHeight()));
+            cameraWrapper.startPreview(new Surface(surfaceTexture), false);
         } catch (CameraWrapperException e) {
             e.printStackTrace();
         }
@@ -69,7 +74,7 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
 
     private void stopCamera() {
         try {
-            mCameraWrapper.stopPreview();
+            mRecorder.getCameraWrapper().stopPreview();
         } catch (CameraWrapperException e) {
             e.printStackTrace();
         }

@@ -195,7 +195,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         requestThread.start();
         mRequestHandler = new Handler(requestThread.getLooper());
 
-        mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(mCameraWrapper);
+        mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(this);
         mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this, mFacing.getValue());
         mBroadcasterProvider = new Camera2BroadcasterProvider(this);
 
@@ -223,6 +223,10 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mSettings.setSupportedPictureSizes(supportPictureSizes);
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
+    }
+
+    public CameraWrapper getCameraWrapper() {
+        return mCameraWrapper;
     }
 
     // テスト

@@ -16,15 +16,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 
 /**
  * Host Device Preview Server.
@@ -52,6 +52,9 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
      */
     private HostMediaRecorder mRecorder;
 
+    /**
+     * Notification 表示フラグ.
+     */
     private boolean mIsShownNotification;
 
     /**
@@ -87,7 +90,7 @@ public abstract class AbstractPreviewServerProvider implements PreviewServerProv
     }
 
     @Override
-    public PreviewServer getServerForMimeType(String mimeType) {
+    public PreviewServer getServerByMimeType(String mimeType) {
         for (PreviewServer server : getServers()) {
             if (server.getMimeType().equalsIgnoreCase(mimeType)) {
                 return server;

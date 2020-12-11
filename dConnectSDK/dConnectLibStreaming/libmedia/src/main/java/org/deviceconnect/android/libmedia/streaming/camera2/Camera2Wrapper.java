@@ -1125,6 +1125,7 @@ public class Camera2Wrapper {
                 mPreviewRequestBuilder.addTarget(surface);
             }
             chooseStabilizationMode(mPreviewRequestBuilder);
+            setWhiteBalanceMode(mPreviewRequestBuilder);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             if (mSettings.getFps() != null) {
@@ -1169,6 +1170,7 @@ public class Camera2Wrapper {
                 mPreviewRequestBuilder.addTarget(surface);
             }
             chooseStabilizationMode(mPreviewRequestBuilder);
+            setWhiteBalanceMode(mPreviewRequestBuilder);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             if (mSettings.getFps() != null) {
@@ -1315,8 +1317,9 @@ public class Camera2Wrapper {
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getDisplayOrientation());
-            setAutoFlash(captureBuilder);
             chooseStabilizationMode(captureBuilder);
+            setAutoFlash(captureBuilder);
+            setWhiteBalanceMode(captureBuilder);
             mImageReader.setOnImageAvailableListener(mTakePictureListener, mBackgroundHandler);
 
             mCaptureSession.stopRepeating();
@@ -1432,6 +1435,18 @@ public class Camera2Wrapper {
         }
     }
 
+    /**
+     * ホワイトバランスを設定します.
+     *
+     * @param builder ホワイトバランスを適用する CaptureRequest.Builder
+     */
+    private void setWhiteBalanceMode(CaptureRequest.Builder builder) {
+        Integer whiteBalance = getSettings().getWhiteBalance();
+        if (whiteBalance != null) {
+            builder.set(CaptureRequest.CONTROL_AWB_MODE, whiteBalance);
+        }
+    }
+
     public interface OnErrorEventListener {
         /**
          * エラーを通知します.
@@ -1520,12 +1535,12 @@ public class Camera2Wrapper {
         /**
          * ホワイトバランスモード.
          */
-        private int mWhiteBalance;
+        private Integer mWhiteBalance;
 
         /**
          * 自動露出モード.
          */
-        private int mAutoExposure;
+        private Integer mAutoExposure;
 
         /**
          * コンストラクタ.
@@ -1627,6 +1642,76 @@ public class Camera2Wrapper {
         @NonNull
         public List<Size> getSupportedPreviewSizes() {
             return Camera2Helper.getSupportedPreviewSizes(mCameraManager, mCameraId);
+        }
+
+        /**
+         * ホワイトバランスを取得します.
+         *
+         * @return ホワイトバランス
+         */
+        public Integer getWhiteBalance() {
+            return mWhiteBalance;
+        }
+
+        /**
+         * ホワイトバランスを設定します.
+         *
+         * @param whiteBalance ホワイトバランス
+         */
+        public void setWhiteBalance(Integer whiteBalance) {
+            List<Integer> modes = getSupportedWhiteBalances();
+            for (Integer mode : modes) {
+                if (mode.equals(whiteBalance)) {
+                    mWhiteBalance = whiteBalance;
+                    return;
+                }
+            }
+            throw new RuntimeException("Not found a match white balance.");
+        }
+
+        /**
+         * カメラがサポートしているホワイトバランスのリストを取得します。
+         *
+         * @return カメラがサポートしているホワイトバランスのリスト
+         */
+        @NonNull
+        public List<Integer> getSupportedWhiteBalances() {
+            return Camera2Helper.getSupportedAWB(mCameraManager, mCameraId);
+        }
+
+        /**
+         * 自動露出モードを取得します.
+         *
+         * @return 自動露出モード
+         */
+        public Integer getAutoExposure() {
+            return mAutoExposure;
+        }
+
+        /**
+         * 自動露出モードを設定します.
+         *
+         * @param autoExposure 自動露出モード
+         */
+        public void setAutoExposure(int autoExposure) {
+            List<Integer> modes = getSupportedAutoExposure();
+            for (Integer mode : modes) {
+                if (mode.equals(autoExposure)) {
+                    mAutoExposure = autoExposure;
+                    return;
+                }
+            }
+            throw new RuntimeException("Not found a match auto exposure.");
+        }
+
+        /**
+         * カメラがサポートしている自動露出モードのリストを取得します.
+         *
+         * @return カメラがサポートしている自動露出モードのリスト
+         */
+        @NonNull
+        public List<Integer> getSupportedAutoExposure() {
+            return Camera2Helper.getSupportedAutoExposure(mCameraManager, mCameraId);
         }
 
         /**

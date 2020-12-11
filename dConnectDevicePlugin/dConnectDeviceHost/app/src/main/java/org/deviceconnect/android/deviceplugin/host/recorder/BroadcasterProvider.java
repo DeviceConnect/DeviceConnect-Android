@@ -11,7 +11,7 @@ public interface BroadcasterProvider {
     /**
      * ブロードキャスターを開始します.
      *
-     * @return 起動したプレビュー配信サーバのリスト
+     * @param broadcastURI 配信先の URI
      */
     void startBroadcaster(String broadcastURI, OnBroadcasterListener listener);
 
@@ -27,6 +27,9 @@ public interface BroadcasterProvider {
      */
     boolean isRunning();
 
+    /**
+     * Broadcaster のイベントを通知するリスナー.
+     */
     interface OnBroadcasterListener {
         void onStarted();
         void onStopped();

@@ -126,9 +126,9 @@
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.Translucent" />
 
-
+        <!-- カメラの画面を表示するための Activity -->
         <activity android:name=".activity.CameraActivity"
-            android:label="test"
+            android:label="Host Camera"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

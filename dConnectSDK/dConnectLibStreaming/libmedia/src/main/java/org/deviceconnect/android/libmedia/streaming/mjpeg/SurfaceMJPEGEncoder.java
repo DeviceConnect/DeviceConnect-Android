@@ -61,9 +61,7 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
             int w = isSwappedDimensions() ? quality.getHeight() : quality.getWidth();
             int h = isSwappedDimensions() ? quality.getWidth() : quality.getHeight();
 
-            EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
-            eglSurfaceBase.setTag(TAG_SURFACE);
-            mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+            mSurfaceDrawingThread.addEGLSurfaceBase(w, h, TAG_SURFACE);
 
             try {
                 prepare();
@@ -205,19 +203,11 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
 
         if (mInternalCreateSurfaceDrawingThread) {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
-            mSurfaceDrawingThread.setSize(w, h);
-            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+        }
+        mSurfaceDrawingThread.setSize(w, h);
+        mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+        if (!isRunningSurfaceDrawingThread()) {
             mSurfaceDrawingThread.start();
-        } else {
-            mSurfaceDrawingThread.setSize(w, h);
-            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-            if (isRunningSurfaceDrawingThread()) {
-                EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(w, h);
-                eglSurfaceBase.setTag(TAG_SURFACE);
-                mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
-            } else {
-                mSurfaceDrawingThread.start();
-            }
         }
     }
 
@@ -228,10 +218,8 @@ public abstract class SurfaceMJPEGEncoder extends MJPEGEncoder {
         if (mSurfaceDrawingThread != null) {
             mSurfaceDrawingThread.removeEGLSurfaceBase(TAG_SURFACE);
             mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
-
-            // 内部で作成された場合には、停止処理も行います。
+            mSurfaceDrawingThread.stop(false);
             if (mInternalCreateSurfaceDrawingThread) {
-                mSurfaceDrawingThread.stop();
                 mSurfaceDrawingThread = null;
             }
         }

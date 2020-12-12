@@ -87,8 +87,18 @@ public interface PreviewServer {
      */
     boolean usesSSLContext();
 
+    /**
+     * SSL コンテキストの設定を行います.
+     *
+     * @param sslContext SSL コンテキスト
+     */
     void setSSLContext(SSLContext sslContext);
 
+    /**
+     * SSL コンテキストを取得します.
+     *
+     * @return SSL コンテキスト
+     */
     SSLContext getSSLContext();
 
     /**

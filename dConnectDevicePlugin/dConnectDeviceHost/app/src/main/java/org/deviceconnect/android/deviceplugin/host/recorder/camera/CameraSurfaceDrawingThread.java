@@ -59,6 +59,14 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
         stopCamera();
     }
 
+    @Override
+    public void start() {
+        // カメラの設定を行う
+        HostMediaRecorder.Settings settings = mRecorder.getSettings();
+        setSize(settings.getPreviewSize().getWidth(), settings.getPreviewSize().getHeight());
+        super.start();
+    }
+
     private void startCamera(SurfaceTexture surfaceTexture) {
         try {
             HostMediaRecorder.Settings settings = mRecorder.getSettings();

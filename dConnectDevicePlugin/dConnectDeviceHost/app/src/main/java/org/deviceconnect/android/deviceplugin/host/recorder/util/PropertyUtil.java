@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Properties を使用して、データを保存するためのユーテリティクラス.
@@ -31,6 +32,10 @@ public final class PropertyUtil {
              BufferedOutputStream b = new BufferedOutputStream(f)) {
             mProperties.store(b, "setting data.");
         }
+    }
+
+    public Set<String> getKeys() {
+        return mProperties.stringPropertyNames();
     }
 
     public void put(String key, int value) {

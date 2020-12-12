@@ -1,17 +1,14 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.opengl.EGL14;
-import android.opengl.EGLConfig;
-import android.opengl.EGLContext;
-import android.opengl.EGLDisplay;
-import android.opengl.EGLExt;
 import android.opengl.EGLSurface;
 import android.opengl.GLES20;
 
 import java.nio.Buffer;
 
-import javax.microedition.khronos.egl.EGL10;
-
+/**
+ * OpenGLES で描画を行うための EGLSurface をラッピングするクラス.
+ */
 public abstract class EGLSurfaceBase {
     private EGLSurface mEGLSurface = EGL14.EGL_NO_SURFACE;
     private EGLCore mEGLCore;
@@ -41,6 +38,11 @@ public abstract class EGLSurfaceBase {
         mHeight = height;
     }
 
+    /**
+     * EGLSurface を設定します.
+     *
+     * @param surface EGLSurface のインスタンス
+     */
     protected void setEGLSurface(EGLSurface surface) {
         mEGLSurface = surface;
     }
@@ -129,10 +131,20 @@ public abstract class EGLSurfaceBase {
         }
     }
 
+    /**
+     * タグを設定します.
+     *
+     * @param tag タグ
+     */
     public void setTag(Object tag) {
         mTag = tag;
     }
 
+    /**
+     * タグを取得します.
+     *
+     * @return タグ
+     */
     public Object getTag() {
         return mTag;
     }

@@ -41,23 +41,34 @@ public interface PreviewServerProvider {
 
     /**
      * 指定されたマイムタイプに対応するプレビュー配信サーバを取得します.
+     *
      * <p>
      * マイムタイプに対応したプレビュー配信サーバが存在しない場合は null を返却します。
      * </p>
+     *
      * @param mimeType マイムタイプ
      * @return プレビュー配信サーバ
      */
     PreviewServer getServerByMimeType(String mimeType);
 
     /**
-     * 全てのサーバを開始します.
+     * プレビューサーバが動作している確認します.
      *
-     * @return 起動したプレビュー配信サーバのリスト
+     * @return 動作中の場合は true、それ以外は false
+     */
+    boolean isRunning();
+
+    /**
+     * 全てのプレビュー配信サーバを開始します.
+     *
+     * レスポンスのリストが空の場合には、全てのプレビュー配信サーバの起動に失敗しています。
+     *
+     * @return 起動に成功したプレビュー配信サーバのリスト
      */
     List<PreviewServer> startServers();
 
     /**
-     * 全てのサーバを停止します.
+     * 全てのプレビュー配信サーバを停止します.
      */
     void stopServers();
 
@@ -72,10 +83,4 @@ public interface PreviewServerProvider {
      * 設定が変更されたことを通知します.
      */
     void onConfigChange();
-
-    /**
-     * Previewの状態を表すNotificationが表示されているかどうかのフラグを返します.
-     * return true:表示されている false:表示されていない
-     */
-    boolean isShownCameraNotification();
 }

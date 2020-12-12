@@ -296,7 +296,7 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
             return RecorderState.RECORDING;
         }
         // Preview用のNotificationが表示されている場合は、カメラをPreviewで占有しているものと判断する。
-        if (mCamera2PreviewServerProvider.isShownCameraNotification()) {
+        if (mCamera2PreviewServerProvider.isRunning()) {
             return RecorderState.PREVIEW;
         }
         return RecorderState.INACTIVE;

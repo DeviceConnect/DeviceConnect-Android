@@ -1,6 +1,7 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.SurfaceTexture;
+import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
@@ -51,6 +52,11 @@ public class EGLSurfaceDrawingThread {
      */
     public void addOnDrawingEventListener(OnDrawingEventListener listener) {
         mOnDrawingEventListeners.add(listener);
+
+        // すでに開始されている場合には、リスナーのイベントを呼び出します。
+        if (isRunning() && mEGLCore != null) {
+            listener.onStarted();
+        }
     }
 
     /**
@@ -130,6 +136,46 @@ public class EGLSurfaceDrawingThread {
     }
 
     /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に設定した Surface の EGLSurfaceBase を作成します。
+     * また、タグには、引数に指定された surface を設定します。
+     *
+     * @param surface 追加する EGLSurfaceBase に設定する Surface
+     */
+    public void addEGLSurfaceBase(Surface surface) {
+        addEGLSurfaceBase(surface, surface);
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に設定した Surface の EGLSurfaceBase を作成します。
+     *
+     * @param surface 追加する EGLSurfaceBase に設定する Surface
+     */
+    public void addEGLSurfaceBase(Surface surface, Object tag) {
+        EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(surface);
+        eglSurfaceBase.setTag(tag);
+        addEGLSurfaceBase(eglSurfaceBase);
+    }
+
+    /**
+     * 描画先の EGLSurfaceBase を追加します.
+     *
+     * 引数に指定された width と height でオフスクリーンの EGLSurfaceBase を作成します。
+     *
+     * @param width 横幅
+     * @param height 縦幅
+     * @param tag タグ
+     */
+    public void addEGLSurfaceBase(int width, int height, Object tag) {
+        EGLSurfaceBase eglSurfaceBase = createEGLSurfaceBase(width, height);
+        eglSurfaceBase.setTag(tag);
+        addEGLSurfaceBase(eglSurfaceBase);
+    }
+
+    /**
      * 描画先の EGLSurfaceBase を削除します.
      *
      * 削除した EGLSurfaceBase は {@link EGLSurfaceBase#release()} を呼び出しますので
@@ -167,18 +213,15 @@ public class EGLSurfaceDrawingThread {
      * @return EGLSurfaceBase のインスタンス
      */
     public EGLSurfaceBase findEGLSurfaceBaseByTag(Object tag) {
-        if (tag == null) {
-            return null;
-        }
-
-        synchronized (mEGLSurfaceBases) {
-            for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
-                if (tag.equals(eglSurfaceBase.getTag())) {
-                    return eglSurfaceBase;
+        if (tag != null) {
+            synchronized (mEGLSurfaceBases) {
+                for (EGLSurfaceBase eglSurfaceBase : mEGLSurfaceBases) {
+                    if (tag.equals(eglSurfaceBase.getTag())) {
+                        return eglSurfaceBase;
+                    }
                 }
             }
         }
-
         return null;
     }
 
@@ -187,7 +230,7 @@ public class EGLSurfaceDrawingThread {
      *
      * @return 登録されている Surface の個数
      */
-    public int getSurfaceSize() {
+    public int getEGLSurfaceBaseCount() {
         return mEGLSurfaceBases.size();
     }
 
@@ -217,9 +260,12 @@ public class EGLSurfaceDrawingThread {
      * スレッドを開始します.
      */
     public void start() {
+        Log.e("ABC", "################################ START");
         if (isRunning()) {
+            Log.e("ABC", "################################ START ERROR");
             return;
         }
+
         mDrawingThread = new DrawingThread();
         mDrawingThread.setName("Surface-Drawing-Thread");
         mDrawingThread.start();
@@ -230,10 +276,10 @@ public class EGLSurfaceDrawingThread {
      *
      * 終了時に登録されている全ての GELSurfaceBase は削除します。
      *
-     * {@link #getSurfaceSize()} が 0 の場合にはスレッドを終了します。
+     * EGLSurfaceBase が登録されていても強制的に終了します。
      */
     public void stop() {
-        stop(false);
+        stop(true);
     }
 
     /**
@@ -242,8 +288,10 @@ public class EGLSurfaceDrawingThread {
      * @param force 強制的に終了する場合は true、それ以外は false
      */
     public void stop(boolean force) {
+        Log.e("ABC", "################################ STOP");
         if (mDrawingThread != null) {
-            if (force || getSurfaceSize() == 0) {
+            if (force || getEGLSurfaceBaseCount() == 0) {
+                Log.e("ABC", "################################ STOP DONE");
                 mDrawingThread.terminate();
                 mDrawingThread = null;
             }
@@ -321,19 +369,31 @@ public class EGLSurfaceDrawingThread {
 
     private void postOnStarted() {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
-            l.onStarted();
+            try {
+                l.onStarted();
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 
     private void postOnStopped() {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
-            l.onStopped();
+            try {
+                l.onStopped();
+            } catch (Exception e) {
+                // ignore.
+            }
         }
     }
 
     protected void postOnError(Exception e) {
         for (OnDrawingEventListener l : mOnDrawingEventListeners) {
-            l.onError(e);
+            try {
+                l.onError(e);
+            } catch (Exception ex) {
+                // ignore.
+            }
         }
     }
 
@@ -343,6 +403,9 @@ public class EGLSurfaceDrawingThread {
         }
     }
 
+    /**
+     * 描画処理を行うスレッド.
+     */
     private class DrawingThread extends Thread {
         /**
          * 停止フラグ.
@@ -382,7 +445,6 @@ public class EGLSurfaceDrawingThread {
                 mStManager = createStManager();
 
                 onStarted();
-
                 postOnStarted();
 
                 SurfaceTexture st = mStManager.getSurfaceTexture();
@@ -426,7 +488,11 @@ public class EGLSurfaceDrawingThread {
 
                 postOnStopped();
 
-                onStopped();
+                try {
+                    onStopped();
+                } catch (Exception e) {
+                    // ignore.
+                }
             }
         }
     }

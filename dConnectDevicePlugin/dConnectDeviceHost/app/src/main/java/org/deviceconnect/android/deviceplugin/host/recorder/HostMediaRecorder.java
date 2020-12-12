@@ -184,7 +184,7 @@ public interface HostMediaRecorder {
         private boolean mUseAEC;
 
         // ポート
-        private Map<String, Integer> mPort = new HashMap<>();
+        private Map<String, Integer> mPorts = new HashMap<>();
 
         // サポート範囲
         private List<Size> mSupportedPictureSizes;
@@ -218,6 +218,15 @@ public interface HostMediaRecorder {
                 mPreviewSampleRate = property.getInteger("preview_audio_sample_rate", 8000);
                 mPreviewChannel = property.getInteger("preview_audio_channel", 1);
                 mUseAEC = property.getBoolean("preview_audio_aec", false);
+
+                // ポート
+                for (String key : property.getKeys()) {
+                    if (key.startsWith("preview_port_")) {
+                        String k = key.substring("preview_port_".length());
+                        mPorts.put(k, property.getInteger(key, 0));
+                    }
+                }
+
                 return true;
             } catch (IOException e) {
                 return false;
@@ -250,6 +259,14 @@ public interface HostMediaRecorder {
                 property.put("preview_audio_sample_rate", mPreviewSampleRate);
                 property.put("preview_audio_channel", mPreviewChannel);
                 property.put("preview_audio_aec", mUseAEC);
+
+                // ポート
+                for (String key : mPorts.keySet()) {
+                    Integer value = mPorts.get(key);
+                    if (value != null) {
+                        property.put("preview_port_" + key, value);
+                    }
+                }
 
                 property.save(file);
             } catch (IOException e) {
@@ -432,15 +449,45 @@ public interface HostMediaRecorder {
             mFps = fps;
         }
 
+        /**
+         * ホワイトバランスの設定を取得します.
+         *
+         * @return ホワイトバランス
+         */
         public Integer getPreviewWhiteBalance() {
             return mPreviewWhiteBalance;
         }
 
+        /**
+         * ホワイトバランスを設定します.
+         *
+         * @param whiteBalance ホワイトバランス
+         */
         public void setPreviewWhiteBalance(Integer whiteBalance) {
             if (!isSupportedWhiteBalance(whiteBalance)) {
                 throw new IllegalArgumentException("whiteBalance is unsupported value.");
             }
             mPreviewWhiteBalance = whiteBalance;
+        }
+
+        /**
+         * ポート番号を取得します.
+         *
+         * @param key ポート番号のキー
+         * @return ポート番号
+         */
+        public Integer getPort(String key) {
+            return mPorts.get(key);
+        }
+
+        /**
+         * ポート番号を設定します.
+         *
+         * @param key ポート番号のキー
+         * @param port ポート番号
+         */
+        public void setPort(String key, Integer port) {
+            mPorts.put(key, port);
         }
 
         /**

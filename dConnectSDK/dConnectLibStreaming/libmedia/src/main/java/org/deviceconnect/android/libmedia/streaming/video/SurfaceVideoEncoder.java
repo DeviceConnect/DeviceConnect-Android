@@ -35,7 +35,7 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
     private final EGLSurfaceDrawingThread.OnDrawingEventListener mOnDrawingEventListener = new EGLSurfaceDrawingThread.OnDrawingEventListener() {
         @Override
         public void onStarted() {
-            addSurface(mMediaCodecSurface);
+            mSurfaceDrawingThread.addEGLSurfaceBase(mMediaCodecSurface);
             onStartSurfaceDrawing();
         }
 
@@ -123,17 +123,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
 
         if (mInternalCreateSurfaceDrawingThread) {
             mSurfaceDrawingThread = createEGLSurfaceDrawingThread();
-            mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
-            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+        }
+        mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
+        mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
+        if (!isRunningSurfaceDrawingThread()) {
             mSurfaceDrawingThread.start();
-        } else {
-            mSurfaceDrawingThread.setSize(quality.getVideoWidth(), quality.getVideoHeight());
-            mSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-            if (isRunningSurfaceDrawingThread()) {
-                addSurface(mMediaCodecSurface);
-            } else {
-                mSurfaceDrawingThread.start();
-            }
         }
     }
 
@@ -144,24 +138,11 @@ public abstract class SurfaceVideoEncoder extends VideoEncoder {
         if (mSurfaceDrawingThread != null) {
             mSurfaceDrawingThread.removeEGLSurfaceBase(mMediaCodecSurface);
             mSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
-
-            // 内部で作成された場合には、停止処理も行います。
+            mSurfaceDrawingThread.stop(false);
             if (mInternalCreateSurfaceDrawingThread) {
-                mSurfaceDrawingThread.stop();
                 mSurfaceDrawingThread = null;
             }
         }
-    }
-
-    /**
-     * EGLSurfaceDrawingThread に描画先の Surface を追加します.
-     *
-     * @param surface 描画先の Surface
-     */
-    private void addSurface(Surface surface) {
-        EGLSurfaceBase eglSurfaceBase = mSurfaceDrawingThread.createEGLSurfaceBase(surface);
-        eglSurfaceBase.setTag(surface);
-        mSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
     }
 
     /**

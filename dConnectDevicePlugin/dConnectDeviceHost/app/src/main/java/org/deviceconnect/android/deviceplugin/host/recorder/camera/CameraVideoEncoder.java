@@ -9,11 +9,6 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
  */
 public class CameraVideoEncoder extends SurfaceVideoEncoder {
     /**
-     * カメラ操作クラス.
-     */
-    private Camera2Recorder mCamera2Recorder;
-
-    /**
      * 映像のエンコード設定.
      */
     private CameraVideoQuality mVideoQuality;
@@ -24,7 +19,6 @@ public class CameraVideoEncoder extends SurfaceVideoEncoder {
 
     public CameraVideoEncoder(Camera2Recorder camera2Recorder, String mimeType) {
         super(camera2Recorder.getSurfaceDrawingThread());
-        mCamera2Recorder = camera2Recorder;
         mVideoQuality = new CameraVideoQuality(mimeType);
     }
 

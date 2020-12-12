@@ -104,6 +104,7 @@ class Camera2PreviewServerProvider extends AbstractPreviewServerProvider {
         mContext = context;
         mRecorder = recorder;
         mOverlayManager = new OverlayManager(mContext);
+
         addServer(new Camera2MJPEGPreviewServer(context, false, recorder, 11000 + num, mOnEventListener));
         addServer(new Camera2MJPEGPreviewServer(context, true, recorder, 11100 + num, mOnEventListener));
         addServer(new Camera2RTSPPreviewServer(context, recorder, 12000 + num, mOnEventListener));

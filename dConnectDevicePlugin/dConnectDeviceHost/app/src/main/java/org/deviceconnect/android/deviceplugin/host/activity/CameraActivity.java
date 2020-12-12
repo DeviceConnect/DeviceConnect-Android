@@ -39,6 +39,7 @@ public class CameraActivity extends HostDevicePluginBindActivity {
 
         @Override
         public void onDrawn(EGLSurfaceBase eglSurfaceBase) {
+            // ignore.
         }
     };
 
@@ -46,7 +47,6 @@ public class CameraActivity extends HostDevicePluginBindActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        bindService();
 
         SurfaceView surfaceView = findViewById(R.id.surface_view);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -65,7 +65,7 @@ public class CameraActivity extends HostDevicePluginBindActivity {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 if (mSurface != null) {
-                    removeSurface(mSurface);
+                    mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
                     mSurface = null;
                 }
             }
@@ -93,7 +93,7 @@ public class CameraActivity extends HostDevicePluginBindActivity {
         if (mEGLSurfaceDrawingThread != null) {
             mEGLSurfaceDrawingThread.removeEGLSurfaceBase(mSurface);
             mEGLSurfaceDrawingThread.removeOnDrawingEventListener(mOnDrawingEventListener);
-            mEGLSurfaceDrawingThread.stop();
+            mEGLSurfaceDrawingThread.stop(false);
         }
 
         super.unbindService();
@@ -104,16 +104,9 @@ public class CameraActivity extends HostDevicePluginBindActivity {
         mMediaRecorderManager = getHostDevicePlugin().getHostMediaRecorderManager();
         mMediaRecorder = mMediaRecorderManager.getRecorder(null);
 
-        HostMediaRecorder.Settings settings = mMediaRecorder.getSettings();
-
         mEGLSurfaceDrawingThread = mMediaRecorder.getSurfaceDrawingThread();
-        mEGLSurfaceDrawingThread.setSize(settings.getPreviewSize().getWidth(), settings.getPreviewSize().getHeight());
         mEGLSurfaceDrawingThread.addOnDrawingEventListener(mOnDrawingEventListener);
-        if (mEGLSurfaceDrawingThread.isRunning()) {
-            if (mSurface != null) {
-                addSurface(mSurface);
-            }
-        } else {
+        if (!mEGLSurfaceDrawingThread.isRunning()) {
             mEGLSurfaceDrawingThread.start();
         }
     }
@@ -123,19 +116,11 @@ public class CameraActivity extends HostDevicePluginBindActivity {
     }
 
     private void addSurface(Surface surface) {
-        EGLSurfaceBase s = mEGLSurfaceDrawingThread.findEGLSurfaceBaseByTag(surface);
-        if (s != null) {
+        if (mEGLSurfaceDrawingThread.findEGLSurfaceBaseByTag(surface) != null) {
             return;
         }
-
-        EGLSurfaceBase eglSurfaceBase = mEGLSurfaceDrawingThread.createEGLSurfaceBase(surface);
-        eglSurfaceBase.setTag(surface);
-        mEGLSurfaceDrawingThread.addEGLSurfaceBase(eglSurfaceBase);
+        mEGLSurfaceDrawingThread.addEGLSurfaceBase(surface);
         runOnUiThread(() -> adjustSurfaceView(mEGLSurfaceDrawingThread.isSwappedDimensions()));
-    }
-
-    private void removeSurface(Surface surface) {
-        mEGLSurfaceDrawingThread.removeEGLSurfaceBase(surface);
     }
 
     private void adjustSurfaceView(boolean isSwappedDimensions) {

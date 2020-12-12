@@ -9,6 +9,13 @@ public interface BroadcasterProvider {
     Broadcaster getBroadcaster();
 
     /**
+     * ブロードキャスト中か確認します.
+     *
+     * @return ブロードキャスト中は true、それ以外は false
+     */
+    boolean isRunning();
+
+    /**
      * ブロードキャスターを開始します.
      *
      * @param broadcastURI 配信先の URI
@@ -19,13 +26,6 @@ public interface BroadcasterProvider {
      * ブロードキャスターを停止します.
      */
     void stopBroadcaster();
-
-    /**
-     * ブロードキャスト中か確認します.
-     *
-     * @return ブロードキャスト中は true、それ以外は false
-     */
-    boolean isRunning();
 
     /**
      * Broadcaster のイベントを通知するリスナー.

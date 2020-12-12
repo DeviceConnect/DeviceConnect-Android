@@ -20,6 +20,16 @@ public class Camera2BroadcasterProvider implements BroadcasterProvider {
     }
 
     @Override
+    public Broadcaster getBroadcaster() {
+        return mBroadcaster;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return mBroadcaster != null && mBroadcaster.isRunning();
+    }
+
+    @Override
     public void startBroadcaster(String broadcastURI, OnBroadcasterListener listener) {
         if (mBroadcaster != null) {
             return;
@@ -49,15 +59,5 @@ public class Camera2BroadcasterProvider implements BroadcasterProvider {
             mBroadcaster.stop();
             mBroadcaster = null;
         }
-    }
-
-    @Override
-    public boolean isRunning() {
-        return mBroadcaster != null && mBroadcaster.isRunning();
-    }
-
-    @Override
-    public Broadcaster getBroadcaster() {
-        return mBroadcaster;
     }
 }

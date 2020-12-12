@@ -75,6 +75,9 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     private final MediaSharing mMediaSharing = MediaSharing.getInstance();
 
+    private AudioPreviewServerProvider mAudioPreviewServerProvider;
+    private AudioBroadcasterProvider mAudioBroadcasterProvider;
+
     public HostAudioRecorder(final Context context) {
         mContext = context;
     }
@@ -135,12 +138,12 @@ public class HostAudioRecorder implements HostMediaRecorder, HostDeviceStreamRec
 
     @Override
     public PreviewServerProvider getServerProvider() {
-        return null;
+        return mAudioPreviewServerProvider;
     }
 
     @Override
     public BroadcasterProvider getBroadcasterProvider() {
-        return null;
+        return mAudioBroadcasterProvider;
     }
 
     @Override

@@ -16,7 +16,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
-import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.WindowManager;
@@ -188,6 +187,8 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mCameraWrapper.setCameraEventListener(this::notifyEventToUser, new Handler(Looper.getMainLooper()));
         mFacing = CameraFacing.detect(mCameraWrapper);
 
+        initSupportedSettings();
+
         HandlerThread photoThread = new HandlerThread("host-camera-photo");
         photoThread.start();
         mPhotoHandler = new Handler(photoThread.getLooper());
@@ -199,29 +200,16 @@ public class Camera2Recorder implements HostMediaRecorder, HostDevicePhotoRecord
         mCameraSurfaceDrawingThread = new CameraSurfaceDrawingThread(this);
         mCamera2PreviewServerProvider = new Camera2PreviewServerProvider(context, this, mFacing.getValue());
         mBroadcasterProvider = new Camera2BroadcasterProvider(this);
-
-        initSupportedSettings();
     }
 
     /**
      * レコーダの設定を初期化します.
      */
     private void initSupportedSettings() {
-        List<Size> supportPictureSizes = new ArrayList<>();
-        List<Size> supportPreviewSizes = new ArrayList<>();
-
         CameraWrapper.Options options = mCameraWrapper.getOptions();
 
-        for (android.util.Size size : options.getSupportedPictureSizeList()) {
-            supportPictureSizes.add(size);
-        }
-
-        for (android.util.Size size : options.getSupportedPreviewSizeList()) {
-            supportPreviewSizes.add(size);
-        }
-
-        mSettings.setSupportedPreviewSizes(supportPreviewSizes);
-        mSettings.setSupportedPictureSizes(supportPictureSizes);
+        mSettings.setSupportedPreviewSizes(new ArrayList<>(options.getSupportedPreviewSizeList()));
+        mSettings.setSupportedPictureSizes(new ArrayList<>(options.getSupportedPictureSizeList()));
         mSettings.setSupportedFps(options.getSupportedFpsList());
         mSettings.setSupportedWhiteBalances(options.getSupportedWhiteBalanceList());
     }

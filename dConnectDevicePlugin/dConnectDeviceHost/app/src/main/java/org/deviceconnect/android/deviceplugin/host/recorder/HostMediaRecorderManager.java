@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.recorder;
 
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -349,6 +348,8 @@ public class HostMediaRecorderManager {
             }
         }
     }
+
+    // TODO リスナーにして、プロファイルで処理を行うこと。
 
     @SuppressWarnings("deprecation")
     public void sendEventForRecordingChange(final String serviceId, final HostMediaRecorder.RecorderState state,

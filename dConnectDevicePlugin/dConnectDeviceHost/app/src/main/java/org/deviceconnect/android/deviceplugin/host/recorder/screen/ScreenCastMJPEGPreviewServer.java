@@ -112,15 +112,6 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     }
 
     /**
-     * JPEG のクオリティを取得します.
-     *
-     * @return JPEG のクオリティ
-     */
-    protected int getJpegQuality() {
-        return RecorderSetting.getInstance(getContext()).getJpegQuality(getRecorder().getId(), 40);
-    }
-
-    /**
      * エンコーダーの設定を行います.
      */
     private void setEncoderQuality() {
@@ -140,10 +131,11 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     protected void setMJPEGQuality(MJPEGQuality quality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
         Size size = recorder.getSettings().getPreviewSize();
+
         quality.setWidth(size.getWidth());
         quality.setHeight(size.getHeight());
-        quality.setQuality(getJpegQuality());
         quality.setFrameRate(recorder.getSettings().getPreviewMaxFrameRate());
+        quality.setQuality(recorder.getSettings().getPreviewQuality());
     }
 
     /**

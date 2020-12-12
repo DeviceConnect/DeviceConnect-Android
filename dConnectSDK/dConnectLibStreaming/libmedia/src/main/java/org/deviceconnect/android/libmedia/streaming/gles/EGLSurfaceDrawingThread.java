@@ -282,6 +282,12 @@ public class EGLSurfaceDrawingThread {
     /**
      * スレッドを終了します.
      *
+     * 引数に false が指定された場合には、{@link #getEGLSurfaceBaseCount()} の
+     * 値が 0 に以外の場合には、スレッドを停止しません。EGLSurfaceBase が全て削除された状態でのみ停止します。
+     *
+     * 引数に true が指定された場合には、{@link #getEGLSurfaceBaseCount()} の
+     * 値が 0 以上でも強制的に停止します。
+     *
      * @param force 強制的に終了する場合は true、それ以外は false
      */
     public void stop(boolean force) {

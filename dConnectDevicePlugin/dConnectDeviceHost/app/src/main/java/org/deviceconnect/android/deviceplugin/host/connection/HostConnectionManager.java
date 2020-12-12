@@ -16,7 +16,7 @@ import org.deviceconnect.android.util.NotificationUtils;
 
 public class HostConnectionManager {
     /** Notification Id */
-    private final int NOTIFICATION_ID = 3527;
+    private static final int NOTIFICATION_ID = 3527;
 
     private DevicePluginContext mPluginContext;
 

@@ -4,10 +4,10 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraH264VideoStream;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraH265VideoStream;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.rtsp.RtspServer;
@@ -17,8 +17,6 @@ import org.deviceconnect.android.libmedia.streaming.rtsp.session.audio.MicAACLAT
 import org.deviceconnect.android.libmedia.streaming.rtsp.session.video.VideoStream;
 
 import java.io.IOException;
-
-import androidx.annotation.RequiresApi;
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
@@ -36,18 +34,12 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
     private static final String SERVER_NAME = "Android Host Screen RTSP Server";
 
     /**
-     * 画面のキャプチャを管理するクラス.
-     */
-    private ScreenCastManager mScreenCastMgr;
-
-    /**
      * RTSP サーバ.
      */
     private RtspServer mRtspServer;
 
     ScreenCastRTSPPreviewServer(Context context, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
-        mScreenCastMgr = recorder.getScreenCastMgr();
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
 
@@ -176,11 +168,11 @@ class ScreenCastRTSPPreviewServer extends ScreenCastPreviewServer {
             ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
             HostMediaRecorder.Settings settings = recorder.getSettings();
 
-            ScreenCastH264VideoStream videoStream;
+            VideoStream videoStream;
             if ("video/hevc".equals(settings.getPreviewMimeType())) {
-                videoStream = new ScreenCastH264VideoStream(mScreenCastMgr, 5006);
+                videoStream = new ScreenCastH265VideoStream(recorder, 5006);
             } else {
-                videoStream = new ScreenCastH264VideoStream(mScreenCastMgr, 5006);
+                videoStream = new ScreenCastH264VideoStream(recorder, 5006);
             }
             setVideoQuality(videoStream.getVideoEncoder().getVideoQuality());
             session.setVideoMediaStream(videoStream);

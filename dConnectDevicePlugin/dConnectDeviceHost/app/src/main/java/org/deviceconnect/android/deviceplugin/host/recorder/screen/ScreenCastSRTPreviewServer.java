@@ -11,7 +11,6 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.recorder.HostMediaRecorder;
-import org.deviceconnect.android.deviceplugin.host.recorder.camera.CameraVideoEncoder;
 import org.deviceconnect.android.deviceplugin.host.recorder.util.RecorderSetting;
 import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.audio.MicAACLATMEncoder;
@@ -40,18 +39,12 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
     public static final String MIME_TYPE = "video/MP2T";
 
     /**
-     * スクリーンキャストを管理するクラス.
-     */
-    private ScreenCastManager mScreenCastMgr;
-
-    /**
      * SRT サーバ。
      */
     private SRTServer mSRTServer;
 
     ScreenCastSRTPreviewServer(final Context context, final ScreenCastRecorder recorder, final int port) {
         super(context, recorder);
-        mScreenCastMgr = recorder.getScreenCastMgr();
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
 
@@ -183,9 +176,9 @@ class ScreenCastSRTPreviewServer extends ScreenCastPreviewServer {
 
             ScreenCastVideoEncoder videoEncoder;
             if ("video/hevc".equals(settings.getPreviewMimeType())) {
-                videoEncoder = new ScreenCastVideoEncoder(recorder.getScreenCastMgr(), "video/hevc");
+                videoEncoder = new ScreenCastVideoEncoder(recorder, "video/hevc");
             } else {
-                videoEncoder = new ScreenCastVideoEncoder(recorder.getScreenCastMgr());
+                videoEncoder = new ScreenCastVideoEncoder(recorder);
             }
             setVideoQuality(videoEncoder.getVideoQuality());
             session.setVideoEncoder(videoEncoder);

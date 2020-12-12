@@ -6,8 +6,8 @@ import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 public class ScreenCastH265VideoStream extends H264VideoStream {
     private ScreenCastVideoEncoder mVideoEncoder;
 
-    ScreenCastH265VideoStream(ScreenCastManager screenCastManager, int port) {
-        mVideoEncoder = new ScreenCastVideoEncoder(screenCastManager, "video/hevc");
+    ScreenCastH265VideoStream(ScreenCastRecorder recorder, int port) {
+        mVideoEncoder = new ScreenCastVideoEncoder(recorder, "video/hevc");
         setDestinationPort(port);
     }
 

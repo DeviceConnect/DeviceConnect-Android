@@ -11,7 +11,6 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Surface;
-import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 
@@ -20,7 +19,6 @@ public abstract class AbstractScreenCast implements ScreenCast {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "ScreenCast";
 
-    private Context mContext;
     private MediaProjection mMediaProjection;
     private VirtualDisplay mDisplay;
     private int mDisplayDensityDpi;
@@ -51,9 +49,7 @@ public abstract class AbstractScreenCast implements ScreenCast {
     };
 
     AbstractScreenCast(Context context, MediaProjection mediaProjection, int width, int height) {
-        mContext = context;
         mMediaProjection = mediaProjection;
-
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         mDisplayDensityDpi = metrics.densityDpi;
         mWidth = width;
@@ -81,32 +77,10 @@ public abstract class AbstractScreenCast implements ScreenCast {
     }
 
     private VirtualDisplay createVirtualDisplay() {
-        int w = mWidth;
-        int h = mHeight;
-
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            throw new RuntimeException("WindowManager is not supported.");
-        }
-
-        DisplayMetrics dm = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(dm);
-        if (dm.widthPixels > dm.heightPixels) {
-            if (w < h) {
-                w = mHeight;
-                h = mWidth;
-            }
-        } else {
-            if (w > h) {
-                w = mHeight;
-                h = mWidth;
-            }
-        }
-
         return mMediaProjection.createVirtualDisplay(
                 "Android Host Screen",
-                w,
-                h,
+                mWidth,
+                mHeight,
                 mDisplayDensityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 getSurface(),

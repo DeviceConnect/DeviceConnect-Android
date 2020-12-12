@@ -61,7 +61,7 @@ public class ScreenCastRTMPBroadcaster implements Broadcaster {
     public void start() {
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
 
-        ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mRecorder.getScreenCastMgr());
+        ScreenCastVideoEncoder videoEncoder = new ScreenCastVideoEncoder(mRecorder);
         CameraVideoQuality videoQuality = (CameraVideoQuality) videoEncoder.getVideoQuality();
         videoQuality.setVideoWidth(settings.getPreviewSize().getWidth());
         videoQuality.setVideoHeight(settings.getPreviewSize().getHeight());

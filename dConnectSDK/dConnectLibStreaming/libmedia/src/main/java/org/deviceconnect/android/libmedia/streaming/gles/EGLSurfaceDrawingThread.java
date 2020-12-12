@@ -1,7 +1,6 @@
 package org.deviceconnect.android.libmedia.streaming.gles;
 
 import android.graphics.SurfaceTexture;
-import android.util.Log;
 import android.view.Surface;
 
 import org.deviceconnect.android.libmedia.streaming.util.WeakReferenceList;
@@ -260,9 +259,7 @@ public class EGLSurfaceDrawingThread {
      * スレッドを開始します.
      */
     public void start() {
-        Log.e("ABC", "################################ START");
         if (isRunning()) {
-            Log.e("ABC", "################################ START ERROR");
             return;
         }
 
@@ -288,10 +285,8 @@ public class EGLSurfaceDrawingThread {
      * @param force 強制的に終了する場合は true、それ以外は false
      */
     public void stop(boolean force) {
-        Log.e("ABC", "################################ STOP");
         if (mDrawingThread != null) {
             if (force || getEGLSurfaceBaseCount() == 0) {
-                Log.e("ABC", "################################ STOP DONE");
                 mDrawingThread.terminate();
                 mDrawingThread = null;
             }

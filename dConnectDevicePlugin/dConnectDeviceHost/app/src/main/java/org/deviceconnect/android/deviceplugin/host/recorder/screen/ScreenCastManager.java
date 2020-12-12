@@ -21,25 +21,25 @@ import org.deviceconnect.android.util.NotificationUtils;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenCastManager {
 
+    /**
+     * Notification Id
+     */
+    private static final int NOTIFICATION_ID = 3539;
+
     private final Context mContext;
-
     private final MediaProjectionManager mMediaProjectionMgr;
-
     private MediaProjection mMediaProjection;
+    private WindowManager mWindowManager;
 
     /**
      * コールバックの通知を受けるスレッド.
      */
     private final Handler mCallbackHandler = new Handler(Looper.getMainLooper());
 
-    /**
-     * Notification Id
-     */
-    private static final int NOTIFICATION_ID = 3539;
-
     ScreenCastManager(final Context context) {
         mContext = context;
         mMediaProjectionMgr = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     }
 
     /**
@@ -52,6 +52,8 @@ class ScreenCastManager {
             case Surface.ROTATION_0:
             case Surface.ROTATION_180:
                 return false;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
             default:
                 return true;
         }
@@ -63,11 +65,7 @@ class ScreenCastManager {
      * @return 画面の回転
      */
     int getDisplayRotation() {
-        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        if (wm == null) {
-            throw new RuntimeException("WindowManager is not supported.");
-        }
-        return wm.getDefaultDisplay().getRotation();
+        return mWindowManager.getDefaultDisplay().getRotation();
     }
 
     /**
@@ -134,8 +132,8 @@ class ScreenCastManager {
      * Surface に端末の画面をキャストするクラスを作成します.
      *
      * @param outputSurface キャスト先の Surface
-     * @param width キャスト先の Surface の横幅
-     * @param height キャスト先の Surface の縦幅
+     * @param width         キャスト先の Surface の横幅
+     * @param height        キャスト先の Surface の縦幅
      * @return SurfaceScreenCast のインスタンス
      */
     SurfaceScreenCast createScreenCast(final Surface outputSurface, int width, int height) {
@@ -149,8 +147,8 @@ class ScreenCastManager {
      * ImageReader に端末の画面をキャストするクラスを作成します.
      *
      * @param imageReader キャスト先の ImageReader
-     * @param width キャスト先の ImageReader の横幅
-     * @param height キャスト先の ImageReader の縦幅
+     * @param width       キャスト先の ImageReader の横幅
+     * @param height      キャスト先の ImageReader の縦幅
      * @return ImageScreenCast のインスタンス
      */
     ImageScreenCast createScreenCast(final ImageReader imageReader, int width, int height) {

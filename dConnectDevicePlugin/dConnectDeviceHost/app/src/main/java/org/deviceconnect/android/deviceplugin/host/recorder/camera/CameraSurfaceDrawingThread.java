@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.host.recorder.camera;
 
 import android.graphics.SurfaceTexture;
+import android.util.Size;
 import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraWrapper;
@@ -63,7 +64,10 @@ public class CameraSurfaceDrawingThread extends EGLSurfaceDrawingThread {
     public void start() {
         // カメラの設定を行う
         HostMediaRecorder.Settings settings = mRecorder.getSettings();
-        setSize(settings.getPreviewSize().getWidth(), settings.getPreviewSize().getHeight());
+        Size previewSize = settings.getPreviewSize();
+        int width = isSwappedDimensions() ? previewSize.getHeight() : previewSize.getWidth();
+        int height = isSwappedDimensions() ? previewSize.getWidth() : previewSize.getHeight();
+        setSize(width, height);
         super.start();
     }
 

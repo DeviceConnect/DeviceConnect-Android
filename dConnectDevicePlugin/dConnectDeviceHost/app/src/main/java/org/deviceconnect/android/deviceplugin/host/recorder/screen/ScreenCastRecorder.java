@@ -19,6 +19,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Range;
 import android.util.Size;
+import android.view.Surface;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
@@ -79,6 +81,7 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
 
     private ScreenCastPreviewServerProvider mScreenCastPreviewServerProvider;
     private ScreenCastBroadcasterProvider mScreenCastBroadcasterProvider;
+    private ScreenCastSurfaceDrawingThread mScreenCastSurfaceDrawingThread;
 
     private RecorderState mState = RecorderState.INACTIVE;
 
@@ -86,20 +89,23 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         mContext = context;
         mFileMgr = fileMgr;
 
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        Size size = new Size(metrics.widthPixels, metrics.heightPixels);
-        initSupportedSettings(size);
+        initSupportedSettings();
 
         mScreenCastMgr = new ScreenCastManager(context);
         mScreenCastPreviewServerProvider = new ScreenCastPreviewServerProvider(context, this);
         mScreenCastBroadcasterProvider = new ScreenCastBroadcasterProvider(this);
+        mScreenCastSurfaceDrawingThread = new ScreenCastSurfaceDrawingThread(this);
     }
 
-    private void initSupportedSettings(final Size originalSize) {
+    /**
+     * レコーダの設定を初期化します.
+     */
+    private void initSupportedSettings() {
         if (DEBUG) {
             Log.d(TAG, "ScreenCastSupportedPreviewSize");
-            Log.d(TAG, "  size: " + originalSize);
         }
+
+        Size originalSize = getDisplaySize();
 
         List<Size> supportPictureSizes = new ArrayList<>();
         List<Size> supportPreviewSizes = new ArrayList<>();
@@ -126,13 +132,42 @@ public class ScreenCastRecorder implements HostMediaRecorder, HostDevicePhotoRec
         mSettings.setSupportedFps(supportFps);
     }
 
+    /**
+     * 画面のサイズを取得します.
+     *
+     * @return 画面サイズ
+     */
+    private Size getDisplaySize() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            throw new RuntimeException("WindowManager is not supported.");
+        }
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        boolean isSwap;
+        switch (wm.getDefaultDisplay().getRotation()) {
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                isSwap = false;
+                break;
+            default:
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+                isSwap = true;
+                break;
+        }
+        // 画面が回転している場合には、縦横をスワップしておく。
+        int width = isSwap ? metrics.heightPixels : metrics.widthPixels;
+        int height = isSwap ? metrics.widthPixels : metrics.heightPixels;
+        return new Size(width, height);
+    }
+
     public Context getContext() {
         return mContext;
     }
 
     @Override
     public EGLSurfaceDrawingThread getSurfaceDrawingThread() {
-        return null;
+        return mScreenCastSurfaceDrawingThread;
     }
 
     @Override

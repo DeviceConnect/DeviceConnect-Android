@@ -26,7 +26,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     /**
      * Android 端末の画面をキャストするクラス.
      */
-    protected final ScreenCastManager mScreenCastMgr;
+    protected final ScreenCastRecorder mRecorder;
     /**
      * SSLContext を使用するかどうかのフラグ.
      */
@@ -39,7 +39,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
     ScreenCastMJPEGPreviewServer(Context context, boolean isSSL, ScreenCastRecorder recorder, int port) {
         super(context, recorder);
         mUsesSSLContext = isSSL;
-        mScreenCastMgr = recorder.getScreenCastMgr();
+        mRecorder = recorder;
         setPort(RecorderSetting.getInstance(getContext()).getPort(recorder.getId(), MIME_TYPE, port));
     }
     @Override
@@ -139,13 +139,11 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
      */
     protected void setMJPEGQuality(MJPEGQuality quality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
-
         Size size = recorder.getSettings().getPreviewSize();
-
         quality.setWidth(size.getWidth());
         quality.setHeight(size.getHeight());
         quality.setQuality(getJpegQuality());
-        quality.setFrameRate((int) recorder.getSettings().getPreviewMaxFrameRate());
+        quality.setFrameRate(recorder.getSettings().getPreviewMaxFrameRate());
     }
 
     /**
@@ -163,7 +161,7 @@ class ScreenCastMJPEGPreviewServer extends AbstractPreviewServer {
 
         @Override
         public MJPEGEncoder createMJPEGEncoder() {
-            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mScreenCastMgr);
+            ScreenCastMJPEGEncoder encoder = new ScreenCastMJPEGEncoder(mRecorder);
             setMJPEGQuality(encoder.getMJPEGQuality());
             return encoder;
         }

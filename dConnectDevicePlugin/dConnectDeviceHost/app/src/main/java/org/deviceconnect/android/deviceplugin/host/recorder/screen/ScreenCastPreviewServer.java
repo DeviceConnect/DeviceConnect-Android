@@ -23,13 +23,12 @@ abstract class ScreenCastPreviewServer extends AbstractPreviewServer {
     void setVideoQuality(VideoQuality videoQuality) {
         ScreenCastRecorder recorder = (ScreenCastRecorder) getRecorder();
         HostMediaRecorder.Settings settings = recorder.getSettings();
-
         Size size = settings.getPreviewSize();
 
         videoQuality.setVideoWidth(size.getWidth());
         videoQuality.setVideoHeight(size.getHeight());
         videoQuality.setBitRate(settings.getPreviewBitRate());
-        videoQuality.setFrameRate((int) settings.getPreviewMaxFrameRate());
+        videoQuality.setFrameRate(settings.getPreviewMaxFrameRate());
         videoQuality.setIFrameInterval(settings.getPreviewKeyFrameInterval());
     }
 

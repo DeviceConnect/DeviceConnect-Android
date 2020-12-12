@@ -20,7 +20,6 @@ public class CameraMJPEGEncoder extends SurfaceMJPEGEncoder {
 
     @Override
     protected void stopRecording() {
-
     }
 
     @Override

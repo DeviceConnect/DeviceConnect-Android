@@ -9,16 +9,6 @@ import org.deviceconnect.android.libsrt.util.Mpeg2TsMuxer;
 
 public class SRTSession {
     /**
-     * デバッグフラグ.
-     */
-    private static final boolean DEBUG = BuildConfig.DEBUG;
-
-    /**
-     * デバッグ用タグ.
-     */
-    private static final String TAG = "SRT-SESSION";
-
-    /**
      * ストリーミングを行うためのクラス.
      */
     private MediaStreamer mMediaStreamer;

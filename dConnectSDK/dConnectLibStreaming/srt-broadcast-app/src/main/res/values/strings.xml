@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">srt-broadcast-app</string>
+    <string name="settings_name">設定</string>
 </resources>

@@ -4,14 +4,10 @@ import android.net.Uri;
 
 import org.deviceconnect.android.libmedia.streaming.audio.AudioQuality;
 import org.deviceconnect.android.libmedia.streaming.video.VideoQuality;
+import org.deviceconnect.android.libsrt.SRT;
+import org.deviceconnect.android.libsrt.SRTSocket;
 import org.deviceconnect.android.libsrt.SRTSocketException;
-import org.deviceconnect.android.libsrt.SRTStats;
 import org.deviceconnect.android.libsrt.util.Mpeg2TsMuxer;
-import org.deviceconnect.android.libsrt.util.SRTSocketThread;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SRTMuxer extends Mpeg2TsMuxer {
     /**
@@ -30,9 +26,9 @@ public class SRTMuxer extends Mpeg2TsMuxer {
     private int mPort;
 
     /**
-     * SRTSocket 通信を管理するスレッド.
+     * ソケット.
      */
-    private SRTSocketThread mSRTSocketThread;
+    private SRTSocket mSocket;
 
     /**
      * イベントを通知するためのリスナー.
@@ -79,63 +75,20 @@ public class SRTMuxer extends Mpeg2TsMuxer {
      * @return SRT サーバに接続されている場合はtrue、それ以外はfalse
      */
     private boolean isConnected() {
-        return mSRTSocketThread != null && mSRTSocketThread.isConnected();
+        return mSocket != null && mSocket.isConnected();
     }
 
     @Override
     public boolean onPrepare(VideoQuality videoQuality, AudioQuality audioQuality) {
-        if (mSRTSocketThread != null) {
+        if (mSocket != null) {
             return false;
         }
 
-        final CountDownLatch latch = new CountDownLatch(1);
-        final AtomicBoolean result = new AtomicBoolean(false);
-
-        mSRTSocketThread = new SRTSocketThread(mAddress, mPort);
-        mSRTSocketThread.setOnEventListener(new SRTSocketThread.OnEventListener() {
-            @Override
-            public void onConnected() {
-                result.set(true);
-                latch.countDown();
-            }
-
-            @Override
-            public void onnErrorConnecting(Exception e) {
-                result.set(false);
-                latch.countDown();
-            }
-
-            @Override
-            public void onDisconnected() {
-                if (mOnEventListener != null) {
-                    mOnEventListener.onDisconnected();
-                }
-            }
-
-            @Override
-            public void onReceived(byte[] data, int dataLength) {
-                // TODO 受信データ
-            }
-
-            @Override
-            public void onError(Exception e) {
-                // TODO エラー受信データ
-            }
-
-            @Override
-            public void onStats(SRTStats stats) {
-            }
-        });
-
-        // SRT の配信準備が完了してから、エンコード処理を行わないと処理が進まないので、
-        // ここで、配信準備が完了するのを待ちます。
         try {
-            latch.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            // ignore.
-        }
-
-        if (!result.get()) {
+            mSocket = new SRTSocket();
+            mSocket.setOption(SRT.SRTO_SENDER, true);
+            mSocket.connect(mAddress, mPort);
+        } catch (SRTSocketException e) {
             return false;
         }
 
@@ -145,9 +98,9 @@ public class SRTMuxer extends Mpeg2TsMuxer {
 
         boolean prepareResult = super.onPrepare(videoQuality, audioQuality);
         if (!prepareResult) {
-            // prepare に失敗した場合にはスレッドを停止しておく
-            mSRTSocketThread.stop();
-            mSRTSocketThread = null;
+            // prepare に失敗した場合にはソケットを閉じておく
+            mSocket.close();
+            mSocket = null;
         }
         return prepareResult;
     }
@@ -156,16 +109,16 @@ public class SRTMuxer extends Mpeg2TsMuxer {
     public void onReleased() {
         super.onReleased();
 
-        if (mSRTSocketThread != null) {
-            mSRTSocketThread.stop();
-            mSRTSocketThread = null;
+        if (mSocket != null) {
+            mSocket.close();
+            mSocket = null;
         }
     }
 
     @Override
     public void sendPacket(byte[] data, int offset, int length) {
         try {
-            mSRTSocketThread.sendData(data, offset, length);
+            mSocket.send(data, offset,length);
         } catch (SRTSocketException e) {
             // TODO エラー処理
         }

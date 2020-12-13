@@ -13,7 +13,7 @@ import org.deviceconnect.android.libsrt.player.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libsrt.player.decoder.video.H264Decoder;
 import org.deviceconnect.android.libsrt.player.decoder.video.H265Decoder;
 import org.deviceconnect.android.libsrt.player.decoder.video.VideoDecoder;
-import org.deviceconnect.android.libsrt.util.SRTSocketThread;
+import org.deviceconnect.android.libsrt.server.SRTSocketThread;
 
 import java.util.Map;
 
@@ -171,7 +171,7 @@ public class SRTPlayer {
         mPacketExtractor.start();
 
         mSRTSocketThread = new SRTSocketThread(uri.getHost(), uri.getPort());
-        mSRTSocketThread.setSocketOptions(mCustomSocketOptions);
+        mSRTSocketThread.addSocketOptions(mCustomSocketOptions);
         mSRTSocketThread.setOnEventListener(mOnClientEventListener);
         mSRTSocketThread.setStatsInterval(mStatsInterval);
         mSRTSocketThread.setShowStats(mShowStats);

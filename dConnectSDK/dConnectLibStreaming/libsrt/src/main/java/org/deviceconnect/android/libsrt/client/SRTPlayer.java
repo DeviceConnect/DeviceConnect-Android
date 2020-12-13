@@ -13,6 +13,7 @@ import org.deviceconnect.android.libsrt.client.decoder.audio.AudioDecoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H264Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.H265Decoder;
 import org.deviceconnect.android.libsrt.client.decoder.video.VideoDecoder;
+import org.deviceconnect.android.libsrt.util.SRTSocketThread;
 
 import java.util.Map;
 
@@ -33,12 +34,12 @@ public class SRTPlayer {
     /**
      * 統計データをログ出力するインターバルのデフォルト値. 単位はミリ秒.
      */
-    private static final long DEFAULT_STATS_INTERVAL = SRTClient.DEFAULT_STATS_INTERVAL;
+    private static final long DEFAULT_STATS_INTERVAL = 5000;
 
     /**
      * SRT の通信を行うクラス.
      */
-    private SRTClient mSRTClient;
+    private SRTSocketThread mSRTSocketThread;
 
     /**
      * クライアントのソケットに設定するオプション.
@@ -143,8 +144,8 @@ public class SRTPlayer {
      * @param value 値
      */
     public synchronized void setSocketOption(int option, Object value) {
-        if (mSRTClient != null) {
-            mSRTClient.setSocketOption(option, value);
+        if (mSRTSocketThread != null) {
+            mSRTSocketThread.setSocketOption(option, value);
         }
     }
 
@@ -152,7 +153,7 @@ public class SRTPlayer {
      * SRT プレイヤーを開始します.
      */
     public synchronized void start() {
-        if (mSRTClient != null) {
+        if (mSRTSocketThread != null) {
             return;
         }
 
@@ -169,12 +170,12 @@ public class SRTPlayer {
         mPacketExtractor.setCallback(mCallback);
         mPacketExtractor.start();
 
-        mSRTClient = new SRTClient(uri.getHost(), uri.getPort());
-        mSRTClient.setSocketOptions(mCustomSocketOptions);
-        mSRTClient.setOnEventListener(mOnClientEventListener);
-        mSRTClient.setStatsInterval(mStatsInterval);
-        mSRTClient.setShowStats(mShowStats);
-        mSRTClient.start();
+        mSRTSocketThread = new SRTSocketThread(uri.getHost(), uri.getPort());
+        mSRTSocketThread.setSocketOptions(mCustomSocketOptions);
+        mSRTSocketThread.setOnEventListener(mOnClientEventListener);
+        mSRTSocketThread.setStatsInterval(mStatsInterval);
+        mSRTSocketThread.setShowStats(mShowStats);
+        mSRTSocketThread.start();
     }
 
     /**
@@ -186,9 +187,9 @@ public class SRTPlayer {
             mPacketExtractor = null;
         }
 
-        if (mSRTClient != null) {
-            mSRTClient.stop();
-            mSRTClient = null;
+        if (mSRTSocketThread != null) {
+            mSRTSocketThread.stop();
+            mSRTSocketThread = null;
         }
     }
 
@@ -201,9 +202,9 @@ public class SRTPlayer {
         mShowStats = showStats;
 
         // 既にクライアントが開始されている場合は、タイマーの設定を行います。
-        if (mSRTClient != null) {
-            mSRTClient.setStatsInterval(mStatsInterval);
-            mSRTClient.setShowStats(showStats);
+        if (mSRTSocketThread != null) {
+            mSRTSocketThread.setStatsInterval(mStatsInterval);
+            mSRTSocketThread.setShowStats(showStats);
         }
     }
 
@@ -331,7 +332,7 @@ public class SRTPlayer {
         }
     }
 
-    private final SRTClient.OnEventListener mOnClientEventListener = new SRTClient.OnEventListener() {
+    private final SRTSocketThread.OnEventListener mOnClientEventListener = new SRTSocketThread.OnEventListener() {
         @Override
         public void onReceived(byte[] data, int dataLength) {
             if (mPacketExtractor != null) {
@@ -342,6 +343,11 @@ public class SRTPlayer {
         @Override
         public void onConnected() {
             postOnConnected();
+        }
+
+        @Override
+        public void onnErrorConnecting(Exception e) {
+
         }
 
         @Override

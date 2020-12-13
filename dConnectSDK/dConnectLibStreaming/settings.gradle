@@ -1,1 +1,1 @@
-include ':libmedia', ':libopus', ':libsrt', ':mjpeg-server-app', ':rtmp-broadcast-app', ':rtsp-player-app', ':rtsp-server-app', ':srt-player-app',':srt-server-app'
+include ':libmedia', ':libopus', ':libsrt', ':mjpeg-server-app', ':rtmp-broadcast-app', ':rtsp-player-app', ':rtsp-server-app', ':srt-broadcast-app', ':srt-player-app',':srt-server-app'

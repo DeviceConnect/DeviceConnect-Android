@@ -193,8 +193,9 @@ public class HostDevicePlugin extends DConnectMessageService {
             mRecorderMgr = null;
         }
 
-        if (mFileDataManager != null) {
-            mFileDataManager.stopTimer();
+        if (mHostBatteryManager != null) {
+            mHostBatteryManager.destroy();
+            mHostBatteryManager = null;
         }
 
         if (mHostConnectionManager != null) {
@@ -210,6 +211,10 @@ public class HostDevicePlugin extends DConnectMessageService {
         if (mHostDemoManager != null) {
             mHostDemoManager.destroy();
             mHostDemoManager = null;
+        }
+
+        if (mFileDataManager != null) {
+            mFileDataManager.stopTimer();
         }
 
         SRT.cleanup();

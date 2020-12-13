@@ -86,6 +86,10 @@ public class HostBatteryManager {
         return mHostDevicePluginContext.getContext();
     }
 
+    public void destroy() {
+        clear();
+    }
+
     public void clear() {
         unregisterBatteryChargeBroadcastReceiver();
         unregisterBatteryConnectBroadcastReceiver();

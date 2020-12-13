@@ -5,6 +5,7 @@ import org.deviceconnect.android.libmedia.streaming.audio.AudioEncoder;
 import org.deviceconnect.android.libmedia.streaming.video.VideoEncoder;
 import org.deviceconnect.android.libsrt.BuildConfig;
 import org.deviceconnect.android.libsrt.SRTSocket;
+import org.deviceconnect.android.libsrt.util.Mpeg2TsMuxer;
 
 public class SRTSession {
     /**
@@ -39,7 +40,7 @@ public class SRTSession {
      * </p>
      */
     public SRTSession() {
-        this(new Mpeg2TsMuxer(), null);
+        this(new SRTMuxer(), null);
     }
 
     /**
@@ -50,7 +51,7 @@ public class SRTSession {
      * @param listener リスナー
      */
     public SRTSession(OnEventListener listener) {
-        this(new Mpeg2TsMuxer(), listener);
+        this(new SRTMuxer(), listener);
     }
 
     /**
